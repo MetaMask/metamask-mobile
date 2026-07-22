@@ -133,11 +133,13 @@ import {
   PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
-  PreferencesController,
   PreferencesControllerActions,
   PreferencesControllerEvents,
-  PreferencesState,
 } from '@metamask/preferences-controller';
+import type {
+  PreferencesControllerWithSavedGasFees,
+  PreferencesStateWithSavedGasFees,
+} from './controllers/preferences-controller-types';
 import {
   RampsController,
   RampsControllerState,
@@ -364,6 +366,10 @@ import type {
   QrSyncControllerActions,
   QrSyncControllerEvents,
 } from '../QrSync/controller-types';
+import {
+  QrSyncProvisioningService,
+  type QrSyncProvisioningServiceActions,
+} from '../QrSync/services/qr-sync-provisioning-service';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -615,6 +621,7 @@ export type GlobalActions =
   | PredictControllerActions
   | CardControllerActions
   | QrSyncControllerActions
+  | QrSyncProvisioningServiceActions
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
@@ -803,7 +810,7 @@ export type MessengerClients = {
   PermissionController: PermissionController<any, any>;
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
-  PreferencesController: PreferencesController;
+  PreferencesController: PreferencesControllerWithSavedGasFees;
   RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   TokenBalancesController: TokenBalancesController;
@@ -854,6 +861,7 @@ export type MessengerClients = {
   PredictController: PredictController;
   CardController: CardController;
   QrSyncController: QrSyncController;
+  QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
@@ -899,7 +907,7 @@ export type EngineState = {
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   NetworkEnablementController: NetworkEnablementControllerState;
-  PreferencesController: PreferencesState;
+  PreferencesController: PreferencesStateWithSavedGasFees;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   RampsController: RampsControllerState;
   PhishingController: PhishingControllerState;
@@ -1045,13 +1053,13 @@ export type MessengerClientsToInitialize =
   | 'TokenRatesController'
   | 'TokensController'
   | 'TokenSearchDiscoveryDataController'
-  | 'TransactionController'
   | 'TransactionPayController'
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
   | 'CardController'
   | 'QrSyncController'
+  | 'QrSyncProvisioningService'
   | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'

@@ -38,6 +38,7 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/t
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { useDepositPrefillAmount } from './useDepositPrefillAmount';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -74,6 +75,11 @@ export function useTransactionCustomAmount({
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
   const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
   const hasPrefilled = useRef(false);
+  const depositMaxHumanRef = useRef<string | null>(null);
+  const userHasEditedRef = useRef(false);
+  // Dispatching the metric per keystroke triggers a store-wide selector sweep;
+  // only dispatch when the input type actually changes.
+  const lastAmountInputTypeRef = useRef<string | null>(null);
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -93,8 +99,7 @@ export function useTransactionCustomAmount({
     TransactionType.moneyAccountWithdraw,
   ]);
   const tokenAddress = getTokenAddress(transactionMeta);
-  const payTokenFiatRate =
-    useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const payTokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   const musdFiatRate =
     useTokenFiatRate(
       MUSD_TOKEN_ADDRESS,
@@ -105,8 +110,34 @@ export function useTransactionCustomAmount({
     ? musdFiatRate
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
+  const { payToken } = useTransactionPayToken();
+
+  useEffect(() => {
+    depositMaxHumanRef.current = null;
+    userHasEditedRef.current = false;
+  }, [payToken?.address, payToken?.chainId]);
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
+
+  const depositPrefill = useDepositPrefillAmount();
+
+  const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
+  useEffect(() => {
+    // Skip if the user has manually typed on the keypad — a transient
+    // hasPrefilled toggle (from tokenKey changes) must not overwrite
+    // their input. The ref resets when the pay token genuinely changes.
+    if (userHasEditedRef.current) {
+      prevHasPrefilled.current = depositPrefill.hasPrefilled;
+      return;
+    }
+    if (depositPrefill.hasPrefilled) {
+      setAmountFiat(depositPrefill.prefillAmount ?? '0');
+    } else if (prevHasPrefilled.current) {
+      setAmountFiat('0');
+    }
+    prevHasPrefilled.current = depositPrefill.hasPrefilled;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositPrefill.hasPrefilled]);
 
   // Gating mirrors useFiatBuyLimitAlert so the keypad cap and the limit alert agree.
   const { enabledTransactionTypes } = useMMPayFiatConfig();
@@ -146,7 +177,9 @@ export function useTransactionCustomAmount({
 
   const amountHuman = useMemo(
     () =>
-      new BigNumber(amountFiat || '0').dividedBy(tokenFiatRate).toString(10),
+      tokenFiatRate
+        ? new BigNumber(amountFiat || '0').dividedBy(tokenFiatRate).toString(10)
+        : '0',
     [amountFiat, tokenFiatRate],
   );
 
@@ -205,11 +238,18 @@ export function useTransactionCustomAmount({
         setIsMax(false);
       }
 
-      setConfirmationMetric({
-        properties: {
-          mm_pay_amount_input_type: 'manual',
-        },
-      });
+      depositMaxHumanRef.current = null;
+      userHasEditedRef.current = true;
+
+      if (lastAmountInputTypeRef.current !== 'manual') {
+        lastAmountInputTypeRef.current = 'manual';
+
+        setConfirmationMetric({
+          properties: {
+            mm_pay_amount_input_type: 'manual',
+          },
+        });
+      }
 
       setAmountFiat(newAmount);
     },
@@ -235,6 +275,8 @@ export function useTransactionCustomAmount({
           .decimalPlaces(2, BigNumber.ROUND_DOWN),
       );
 
+      lastAmountInputTypeRef.current = `${percentage}%`;
+
       setConfirmationMetric({
         properties: {
           mm_pay_amount_input_type: `${percentage}%`,
@@ -247,20 +289,28 @@ export function useTransactionCustomAmount({
       // balance) and wrong for money account (on-chain mUSD only vs mUSD +
       // vmUSD fiat total). Keeping isMaxAmount false routes the typed
       // amount through as token.amountRaw.
-      // addMusd is the exception: its pay token is the wallet's mUSD, so
-      // token.balanceRaw is exactly what we want to move. Setting max deposits
-      // the full balance (no cent-floored dust left behind) and displays the
-      // quote's targetAmount, keeping the amount in step with the pay-with row.
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&
         !isMoneyAccountWithdraw &&
-        (!isMoneyAccountDeposit || isAddMusdFlow);
+        !isMoneyAccountDeposit;
 
       if (shouldSetMax) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
+      }
+
+      // For money account deposit max, store the full-precision human amount
+      // derived directly from the raw token balance. This bypasses the lossy
+      // fiat roundtrip (ROUND_DOWN → ÷ rate → × 10^decimals → ROUND_UP) that
+      // can inflate the required amount past the actual balance.
+      if (percentage === 100 && isMoneyAccountDeposit && payToken?.balanceRaw) {
+        depositMaxHumanRef.current = new BigNumber(payToken.balanceRaw)
+          .shiftedBy(-(payToken.decimals ?? 6))
+          .toString(10);
+      } else {
+        depositMaxHumanRef.current = null;
       }
 
       setAmountFiat(newAmount);
@@ -271,7 +321,8 @@ export function useTransactionCustomAmount({
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
-      isAddMusdFlow,
+      payToken?.balanceRaw,
+      payToken?.decimals,
       setIsMax,
       setConfirmationMetric,
     ],
@@ -291,7 +342,8 @@ export function useTransactionCustomAmount({
   }, [isAddMusdFlow, balanceUsd, updatePendingAmountPercentage]);
 
   const updateTokenAmount = useCallback(async () => {
-    await updateTransactionPayAmount(amountHuman);
+    const effectiveHuman = depositMaxHumanRef.current ?? amountHuman;
+    await updateTransactionPayAmount(effectiveHuman);
     setIsTokenAmountUpdated(true);
   }, [amountHuman, updateTransactionPayAmount]);
 
@@ -317,6 +369,9 @@ export function useTransactionCustomAmount({
     amountHuman,
     amountHumanDebounced,
     hasInput,
+    isDepositPrefillEnabled: depositPrefill.enabled,
+    isDepositPrefilled: depositPrefill.hasPrefilled,
+    isDepositPrefillLoading: depositPrefill.isLoading,
     isInputChanged,
     isPrefillPending,
     updatePendingAmount,
@@ -325,7 +380,7 @@ export function useTransactionCustomAmount({
   };
 }
 
-function useTokenBalance(tokenUsdRate: number) {
+function useTokenBalance(tokenUsdRate: number | undefined) {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const transactionId = transactionMeta?.id ?? '';
 
@@ -337,9 +392,11 @@ function useTokenBalance(tokenUsdRate: number) {
 
   const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
-  const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
-    .multipliedBy(tokenUsdRate)
-    .toNumber();
+  const predictBalanceUsd = tokenUsdRate
+    ? new BigNumber(predictBalanceHuman ?? '0')
+        .multipliedBy(tokenUsdRate)
+        .toNumber()
+    : 0;
 
   const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
 
@@ -361,7 +418,9 @@ function useTokenBalance(tokenUsdRate: number) {
     if (withdrawableMusd === undefined) {
       return 0;
     }
-    return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
+    return tokenUsdRate
+      ? withdrawableMusd.multipliedBy(tokenUsdRate).toNumber()
+      : 0;
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {

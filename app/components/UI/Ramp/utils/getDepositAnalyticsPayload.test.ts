@@ -30,6 +30,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
       ramp_type: 'DEPOSIT',
+      provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
       exchange_rate: 2000,
@@ -45,6 +46,25 @@ describe('getDepositAnalyticsPayload', () => {
       currency_source: 'USD',
       provider_onramp: 'TRANSAK',
     });
+  });
+
+  it('prefers order.providerOrderId over fiatOrder.id for provider_order_id', () => {
+    const orderWithProviderOrderId = {
+      ...mockDepositOrder,
+      data: {
+        ...mockDepositOrder.data,
+        providerOrderId: 'provider-order-abc',
+      },
+    };
+
+    const [, params] = getDepositAnalyticsPayload(
+      orderWithProviderOrderId as unknown as FiatOrder,
+      MOCK_ROOT_STATE,
+    );
+
+    expect(params).toEqual(
+      expect.objectContaining({ provider_order_id: 'provider-order-abc' }),
+    );
   });
 
   it('returns correct parameters for failed deposit order', () => {
@@ -65,6 +85,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
       ramp_type: 'DEPOSIT',
+      provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
       exchange_rate: 2000,
@@ -97,6 +118,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
       ramp_type: 'DEPOSIT',
+      provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
       exchange_rate: 2000,
@@ -137,6 +159,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
       ramp_type: 'DEPOSIT',
+      provider_order_id: '123',
       amount_source: 250.75,
       amount_destination: 0.135,
       exchange_rate: 1850.25,
@@ -234,6 +257,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
       ramp_type: 'DEPOSIT',
+      provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
       exchange_rate: 2000,
@@ -268,6 +292,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
       ramp_type: 'DEPOSIT',
+      provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
       exchange_rate: 2000,
@@ -302,6 +327,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
       ramp_type: 'DEPOSIT',
+      provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
       exchange_rate: 2000,

@@ -5,7 +5,6 @@ import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 import useNetworkConnectionBanner from './useNetworkConnectionBanner';
-import Engine from '../../../core/Engine';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -22,9 +21,6 @@ import {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 jest.mock('@react-navigation/native');
-jest.mock('../../../core/Engine', () => ({
-  lookupEnabledNetworks: jest.fn(),
-}));
 jest.mock('../../../hooks/useMessenger');
 jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../selectors/networkConnectionBanner');
@@ -125,11 +121,6 @@ describe('useNetworkConnectionBanner', () => {
     const { result } = renderHookWithProviders();
     expect(result.current.status).toBe('available');
     expect(result.current.network).toBeNull();
-  });
-
-  it('refreshes enabled network metadata on mount', () => {
-    renderHookWithProviders();
-    expect(Engine.lookupEnabledNetworks).toHaveBeenCalledTimes(1);
   });
 
   it('fires the banner shown analytics event when the banner becomes visible', () => {

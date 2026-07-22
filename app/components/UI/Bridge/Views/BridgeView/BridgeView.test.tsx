@@ -331,6 +331,10 @@ jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
+jest.mock('../../../Tokens/hooks/useTokenListSecurityBadgeQuery', () => ({
+  useTokenListSecurityBadgeQuery: jest.fn(() => ({ data: null })),
+}));
+
 const mockUseABTest = jest.mocked(useABTest);
 
 jest.mock(
@@ -352,32 +356,31 @@ jest.mock(
   },
 );
 
-// Mock BottomSheetDialog so that onCloseDialog synchronously calls onClose,
+// Mock MMDS BottomSheetDialog so that onCloseDialog synchronously calls onClose,
 // allowing keypad close() to work in tests (the real component uses reanimated
 // withTiming which never completes in JSDOM).
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
-  () => {
-    const MockReact = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: MockReact.forwardRef(
-        (
-          {
-            children,
-            onClose,
-          }: { children: React.ReactNode; onClose?: () => void },
-          dialogRef: React.Ref<{ onCloseDialog: () => void }>,
-        ) => {
-          MockReact.useImperativeHandle(dialogRef, () => ({
-            onCloseDialog: () => onClose?.(),
-          }));
-          return children;
-        },
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const MockReact = jest.requireActual('react');
+
+  return {
+    ...actual,
+    BottomSheetDialog: MockReact.forwardRef(
+      (
+        {
+          children,
+          onClose,
+        }: { children: React.ReactNode; onClose?: () => void },
+        dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+      ) => {
+        MockReact.useImperativeHandle(dialogRef, () => ({
+          onCloseDialog: () => onClose?.(),
+        }));
+        return children;
+      },
+    ),
+  };
+});
 
 // Mock gas included support hooks
 const mockUseIsGasIncludedSTXSendBundleSupported = jest.fn();
@@ -902,7 +905,7 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('should set slippage to undefined when isSolanaSwap is true', async () => {
+    it('leaves slippage unset until a current-pair quote suggests a value', async () => {
       const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
@@ -941,7 +944,7 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Wait for the useEffect to run and update the state
+      // Quotes without quote.slippage must not invent a client default.
       await waitFor(() => {
         expect(store.getState().bridge.slippage).toBeUndefined();
       });
@@ -949,7 +952,7 @@ describe('BridgeView', () => {
   });
 
   describe('RWA same-chain EVM swap', () => {
-    it('sets slippage to undefined for stock RWA swap with RWA flag enabled', async () => {
+    it('leaves slippage unset when the active quote is not for the selected pair', async () => {
       const mockQuote = mockQuoteWithMetadata;
       const ethChainId = '0x1' as const;
       const testState = createBridgeTestState(

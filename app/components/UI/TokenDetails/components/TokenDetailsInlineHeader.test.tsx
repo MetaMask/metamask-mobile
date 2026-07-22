@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
 const mockNavigate = jest.fn();
@@ -101,7 +100,6 @@ describe('TokenDetailsInlineHeader', () => {
         token={mockToken}
         securityData={undefined}
         onBackPress={mockOnBackPress}
-        useAmbientColor={false}
         {...props}
       />,
     );
@@ -208,17 +206,9 @@ describe('TokenDetailsInlineHeader', () => {
     });
   });
 
-  describe('control group (useAmbientColor=false)', () => {
-    it('renders back button even when iconColor is undefined', () => {
+  describe('back button and header actions', () => {
+    it('renders back button with neutral icon', () => {
       const { getByTestId } = renderHeader();
-
-      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
-    });
-
-    it('renders back button when iconColor is provided', () => {
-      const { getByTestId } = renderHeader({
-        iconColor: LIGHT_MODE_SUCCESS_GREEN,
-      });
 
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
     });
@@ -309,75 +299,6 @@ describe('TokenDetailsInlineHeader', () => {
 
     it('does not render the share button when onSharePress is undefined', () => {
       const { queryByTestId } = renderHeader();
-
-      expect(queryByTestId('share-button')).toBeNull();
-    });
-  });
-
-  describe('treatment group (useAmbientColor=true)', () => {
-    it('renders back button with default color when iconColor is undefined', () => {
-      const { getByTestId } = renderHeader({ useAmbientColor: true });
-
-      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
-    });
-
-    it('renders back button when iconColor is provided', () => {
-      const { getByTestId } = renderHeader({
-        iconColor: LIGHT_MODE_SUCCESS_GREEN,
-        useAmbientColor: true,
-      });
-
-      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
-    });
-
-    it('calls onBackPress when back button is pressed', () => {
-      const { getByTestId } = renderHeader({ useAmbientColor: true });
-
-      fireEvent.press(getByTestId('back-arrow-button'));
-
-      expect(mockOnBackPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders price alert button when iconColor is provided and onPriceAlertPress is set', () => {
-      const mockOnPriceAlertPress = jest.fn();
-      const { getByTestId } = renderHeader({
-        onPriceAlertPress: mockOnPriceAlertPress,
-        iconColor: LIGHT_MODE_SUCCESS_GREEN,
-        useAmbientColor: true,
-      });
-
-      fireEvent.press(getByTestId('token-price-alert-button'));
-      expect(mockOnPriceAlertPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not render the price alert button when iconColor is undefined', () => {
-      const mockOnPriceAlertPress = jest.fn();
-      const { queryByTestId } = renderHeader({
-        onPriceAlertPress: mockOnPriceAlertPress,
-        useAmbientColor: true,
-      });
-
-      expect(queryByTestId('token-price-alert-button')).toBeNull();
-    });
-
-    it('renders share button when iconColor is provided and onSharePress is set', () => {
-      const mockOnSharePress = jest.fn();
-      const { getByTestId } = renderHeader({
-        onSharePress: mockOnSharePress,
-        iconColor: LIGHT_MODE_SUCCESS_GREEN,
-        useAmbientColor: true,
-      });
-
-      fireEvent.press(getByTestId('share-button'));
-      expect(mockOnSharePress).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not render the share button when iconColor is undefined', () => {
-      const mockOnSharePress = jest.fn();
-      const { queryByTestId } = renderHeader({
-        onSharePress: mockOnSharePress,
-        useAmbientColor: true,
-      });
 
       expect(queryByTestId('share-button')).toBeNull();
     });

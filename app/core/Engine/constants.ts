@@ -23,6 +23,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RampsService',
   'TransakService',
   'ComplianceService',
+  'QrSyncProvisioningService',
   'SocialService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',

@@ -4,7 +4,6 @@ import {
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconName,
@@ -143,14 +142,9 @@ const MONEY_TOASTS_DEFAULT_OPTIONS: Partial<MoneyToastOptions> = {
   hasNoTimeout: false,
 };
 
-const toastStyles = StyleSheet.create({
-  iconWrapper: {
-    marginRight: 16,
-  },
-});
-
 const useMoneyToasts = (): {
   showToast: (config: MoneyToastOptions) => void;
+  closeToast: () => void;
   MoneyToastOptions: MoneyToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
@@ -191,13 +185,11 @@ const useMoneyToasts = (): {
         iconColor: theme.colors.success.default,
         hapticsType: NotificationMoment.Success,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Icon
-              name={IconName.Confirmation}
-              color={theme.colors.success.default}
-              size={IconSize.Lg}
-            />
-          </View>
+          <Icon
+            name={IconName.Confirmation}
+            color={theme.colors.success.default}
+            size={IconSize.Lg}
+          />
         ),
       },
       inProgress: {
@@ -207,9 +199,7 @@ const useMoneyToasts = (): {
         hapticsType: NotificationMoment.Warning,
         hasNoTimeout: true,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
-          </View>
+          <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
         ),
       },
       error: {
@@ -219,13 +209,11 @@ const useMoneyToasts = (): {
         iconColor: theme.colors.error.default,
         hapticsType: NotificationMoment.Error,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Icon
-              name={IconName.CircleX}
-              color={theme.colors.error.default}
-              size={IconSize.Lg}
-            />
-          </View>
+          <Icon
+            name={IconName.CircleX}
+            color={theme.colors.error.default}
+            size={IconSize.Lg}
+          />
         ),
       },
     }),
@@ -427,7 +415,7 @@ const useMoneyToasts = (): {
     moneyBaseToastOptions.success,
   ]);
 
-  return { showToast, MoneyToastOptions };
+  return { showToast, closeToast, MoneyToastOptions };
 };
 
 export default useMoneyToasts;

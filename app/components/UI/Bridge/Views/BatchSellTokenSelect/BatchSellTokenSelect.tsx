@@ -1,4 +1,5 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -244,7 +245,7 @@ interface TokenPriceDisplay {
 const EMPTY_TOKEN_PRICE_DISPLAY: TokenPriceDisplay = {};
 
 export function BatchSellTokenSelect() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<
     RouteProp<
       {
@@ -288,6 +289,7 @@ export function BatchSellTokenSelect() {
   );
   const batchSellLocation =
     route.params?.batchSellLocation ?? BatchSellMetricsLocation.Unknown;
+  const preserveBridgeState = route.params?.preserveBridgeState === true;
 
   useLayoutEffect(() => {
     Engine.context.BridgeController.setLocation(batchSellLocation);
@@ -309,8 +311,12 @@ export function BatchSellTokenSelect() {
   const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
 
   useEffect(() => {
+    if (preserveBridgeState) {
+      return;
+    }
+
     dispatch(resetBridgeState());
-  }, [dispatch]);
+  }, [dispatch, preserveBridgeState]);
 
   useEffect(() => {
     // Tokens can be removed on the review page, which only updates Redux. Keep the

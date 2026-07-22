@@ -14,6 +14,7 @@ import {
   markTerminalOrderAnalyticsEmitted,
 } from '../terminalOrderAnalyticsRegistry';
 import {
+  emitOrderConfirmedAnalyticsFromCallback,
   emitTerminalOrderAnalyticsFromCallback,
   handleOrderStatusChangedForMetrics,
 } from './analytics';
@@ -35,6 +36,7 @@ jest.mock('../../../../Analytics', () => ({
     OFFRAMP_PURCHASE_FAILED: { category: 'Off-ramp Purchase Failed' },
     OFFRAMP_PURCHASE_CANCELLED: { category: 'Off-ramp Purchase Cancelled' },
     RAMPS_TRANSACTION_COMPLETED: { category: 'Ramps Transaction Completed' },
+    RAMPS_TRANSACTION_CONFIRMED: { category: 'Ramps Transaction Confirmed' },
     RAMPS_TRANSACTION_FAILED: { category: 'Ramps Transaction Failed' },
   },
 }));
@@ -113,6 +115,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(trackedEvent.name).toBe('Ramps Transaction Completed');
       expect(trackedEvent.properties).toEqual({
         ramp_type: 'UNIFIED_BUY_2',
+        provider_order_id: 'order-1',
         amount_source: 100,
         amount_destination: 0.5,
         exchange_rate: 200,
@@ -143,6 +146,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
           name: 'Ramps Transaction Failed',
           properties: expect.objectContaining({
             ramp_type: 'UNIFIED_BUY_2',
+            provider_order_id: 'order-1',
             chain_id: 'eip155:1',
             provider_onramp: 'Transak',
             error_message: 'card_declined',
@@ -207,6 +211,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
           name: 'Ramps Transaction Completed',
           properties: expect.objectContaining({
             ramp_type: 'UNIFIED_BUY_2',
+            provider_order_id: 'order-1',
             chain_id: 'eip155:1',
             country: 'US',
             provider_onramp: 'Transak',
@@ -363,6 +368,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
         ramp_surface: 'money_account',
         region: 'us-ca',
         country: 'us-ca',
+        provider_order_id: 'order-1',
         error_message: 'Payment was declined by the bank',
         provider_onramp: 'Transak',
         amount_source: 100,
@@ -819,7 +825,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         'Ramps Transaction Completed',
       );
       expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
-        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          provider_order_id: 'order-1',
+        }),
       );
     });
 
@@ -833,7 +842,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         'Ramps Transaction Failed',
       );
       expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
-        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          provider_order_id: 'order-1',
+        }),
       );
     });
 
@@ -939,5 +951,81 @@ describe('handleOrderStatusChangedForMetrics', () => {
         expect.objectContaining({ ramp_type: 'HEADLESS' }),
       );
     });
+  });
+});
+
+describe('emitOrderConfirmedAnalyticsFromCallback', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
+    __resetTerminalOrderAnalyticsRegistryForTests();
+  });
+
+  it('emits RAMPS_TRANSACTION_CONFIRMED with UNIFIED_BUY_2 for a non-terminal order', () => {
+    const order = createMockOrder({ status: Status.Pending });
+
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].name).toBe(
+      'Ramps Transaction Confirmed',
+    );
+    expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+      expect.objectContaining({
+        ramp_type: 'UNIFIED_BUY_2',
+        provider_order_id: 'order-1',
+        amount_source: 100,
+        amount_destination: 0.5,
+        country: 'US',
+        chain_id: 'eip155:1',
+      }),
+    );
+  });
+
+  it('omits provider_order_id when the order has no providerOrderId', () => {
+    const order = createMockOrder({
+      status: Status.Pending,
+      providerOrderId: '',
+    });
+
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+
+    expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
+      'provider_order_id',
+    );
+  });
+
+  it('emits RAMPS_TRANSACTION_CONFIRMED with HEADLESS surface and region', () => {
+    const order = createMockOrder({ status: Status.Created });
+
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'HEADLESS',
+      rampSurface: 'money_account',
+      region: 'US-CA',
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+      expect.objectContaining({
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'money_account',
+        region: 'US-CA',
+        country: 'US-CA',
+      }),
+    );
+  });
+
+  it('is a no-op for terminal orders', () => {
+    const order = createMockOrder({ status: Status.Completed });
+
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

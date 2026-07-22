@@ -18,7 +18,11 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
-import { QuickBuyEventProperties, QuickBuyEventValues } from './analytics';
+import {
+  buildQuickBuySharedAnalyticsProperties,
+  QuickBuyEventProperties,
+  QuickBuyEventValues,
+} from './analytics';
 import { useSocialLeaderboardAnalytics } from '../../../analytics';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
@@ -125,15 +129,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     }
     track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
       [QuickBuyEventProperties.ASSET_NAME]: target.tokenSymbol,
-      ...(typeof analyticsContext.marketCap === 'number'
-        ? {
-            [QuickBuyEventProperties.MARKET_CAP]: analyticsContext.marketCap,
-          }
-        : {}),
-      [QuickBuyEventProperties.SOURCE]: source,
-      [QuickBuyEventProperties.TRADER_TRADE_TYPE]:
-        analyticsContext.traderTradeType ??
-        QuickBuyEventValues.TRADER_TRADE_TYPE.BUY,
+      ...buildQuickBuySharedAnalyticsProperties(analyticsContext),
+      [QuickBuyEventProperties.TRADE_TYPE]:
+        analyticsContext.traderTradeType ?? QuickBuyEventValues.TRADE_TYPE.BUY,
     });
   }, [analyticsContext, target.tokenSymbol, track]);
 

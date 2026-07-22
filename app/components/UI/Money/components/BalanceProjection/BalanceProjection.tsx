@@ -16,10 +16,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { isPositiveNumberOrZero } from '../../utils/number';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   MONEY_TOOLTIP_NAMES,
@@ -39,7 +39,6 @@ export function BalanceProjection({
 }: BalanceProjectionProps) {
   const navigation = useNavigation();
   const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
-  const formatFiat = useFiatFormatter();
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
   });
@@ -112,7 +111,7 @@ export function BalanceProjection({
               projectedYears,
             })}{' '}
             <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-              {formatFiat(projected)}
+              {moneyFormatUsd(projected)}
             </Text>
           </Text>
           <ButtonIcon

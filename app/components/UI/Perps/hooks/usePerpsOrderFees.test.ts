@@ -130,7 +130,7 @@ describe('usePerpsOrderFees', () => {
           selectorStr.includes('rewards') ||
           selectorStr.includes('Rewards')
         ) {
-          return true; // rewardsEnabled
+          return true; // rewards-related selectors default to enabled
         }
         if (
           selectorStr.includes('address') ||

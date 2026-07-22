@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useRampSDK, withRampSDK } from '../../sdk';
@@ -33,7 +34,7 @@ export const RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID =
   'ramp-settings-headless-playground-button';
 
 function Settings() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isInternalBuild } = useRampSDK();
   const trackEvent = useAnalytics();
   const { userRegion } = useRampsController();

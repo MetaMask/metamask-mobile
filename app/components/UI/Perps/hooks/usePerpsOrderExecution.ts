@@ -2,18 +2,15 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import {
   PERPS_CONSTANTS,
-  PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type OrderParams,
   type OrderResult,
   type Position,
 } from '@metamask/perps-controller';
-import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';
 import {
@@ -60,14 +57,23 @@ const getPerpsOrderPositionSnapshot = (
 /**
  * Hook to handle order execution flow
  * Manages loading states, success/error handling, and stream-confirmed
- * position rendering
+ * position rendering.
+ *
+ * Trade transaction analytics (submitted + terminal) are emitted by
+ * `@metamask/perps-controller` TradingService — do not re-emit
+ * PERPS_TRADE_TRANSACTION from this hook.
+ *
+ * Partial-fill status on the open-trade path (PARTIALLY_FILLED plus
+ * amount_filled / remaining_amount) is likewise controller-owned and lands with
+ * the next `@metamask/perps-controller` release — do not emit it here, as client
+ * emission would double-count once the controller ships it (same deferral as
+ * `orderExecutionLatencyMs`).
  */
 export function usePerpsOrderExecution(
   params: UsePerpsOrderExecutionParams = {},
 ): UsePerpsOrderExecutionReturn {
   const { onSubmitted, onSuccess, onError } = params;
   const { placeOrder: controllerPlaceOrder } = usePerpsTrading();
-  const { track } = usePerpsEventTracking();
   const stream = usePerpsStream();
 
   const [isPlacing, setIsPlacing] = useState(false);
@@ -194,50 +200,6 @@ export function usePerpsOrderExecution(
             result,
           );
 
-          // Check if order was partially filled
-          const orderSize = Number.parseFloat(orderParams.size.toString());
-          const filledSize = result.filledSize
-            ? Number.parseFloat(result.filledSize)
-            : orderSize;
-          const isPartiallyFilled = filledSize > 0 && filledSize < orderSize;
-
-          if (isPartiallyFilled) {
-            // Track partially filled event
-            const partialProps: Record<string, string | number | boolean> = {
-              [PERPS_EVENT_PROPERTY.STATUS]:
-                PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
-              [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
-              [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
-                ? PERPS_EVENT_VALUE.DIRECTION.LONG
-                : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-              [PERPS_EVENT_PROPERTY.LEVERAGE]: orderParams.leverage || 1,
-              [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderSize,
-              [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
-              [PERPS_EVENT_PROPERTY.AMOUNT_FILLED]: filledSize,
-              [PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]: orderSize - filledSize,
-              [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
-                orderParams.trackingData?.tradeWithToken === true,
-            };
-            if (orderParams.trackingData?.source) {
-              partialProps[PERPS_EVENT_PROPERTY.SOURCE] =
-                orderParams.trackingData.source;
-            }
-            if (orderParams.trackingData?.tradeWithToken === true) {
-              if (orderParams.trackingData.mmPayTokenSelected != null) {
-                partialProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-                  orderParams.trackingData.mmPayTokenSelected;
-              }
-              if (orderParams.trackingData.mmPayNetworkSelected != null) {
-                partialProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
-                  orderParams.trackingData.mmPayNetworkSelected;
-              }
-            } else if (orderParams.trackingData !== undefined) {
-              partialProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-                PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
-            }
-            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, partialProps);
-          }
-
           if (!isMarketOrder) {
             // Resting limit order: accepted, no position renders now. Confirm
             // immediately, then end the order-render CUF when the resting
@@ -355,38 +317,6 @@ export function usePerpsOrderExecution(
           setError(errorMessage);
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
-          // Track order failure with specific event
-          const failedProps: Record<string, string | number | boolean> = {
-            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-            [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
-            [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
-              ? PERPS_EVENT_VALUE.DIRECTION.LONG
-              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
-            [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderParams.size,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
-            [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
-              orderParams.trackingData?.tradeWithToken === true,
-          };
-          if (orderParams.trackingData?.source) {
-            failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
-              orderParams.trackingData.source;
-          }
-          if (orderParams.trackingData?.tradeWithToken === true) {
-            if (orderParams.trackingData.mmPayTokenSelected != null) {
-              failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-                orderParams.trackingData.mmPayTokenSelected;
-            }
-            if (orderParams.trackingData.mmPayNetworkSelected != null) {
-              failedProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
-                orderParams.trackingData.mmPayNetworkSelected;
-            }
-          } else if (orderParams.trackingData !== undefined) {
-            failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-              PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
-          }
-          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, failedProps);
-
           onError?.(errorMessage);
         }
       } catch (err) {
@@ -428,44 +358,12 @@ export function usePerpsOrderExecution(
           },
         });
 
-        // Track exception with specific event
-        const exceptionProps: Record<string, string | number | boolean> = {
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-          [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
-          [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
-            ? PERPS_EVENT_VALUE.DIRECTION.LONG
-            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
-          [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderParams.size,
-          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
-            orderParams.trackingData?.tradeWithToken === true,
-        };
-        if (orderParams.trackingData?.source) {
-          exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
-            orderParams.trackingData.source;
-        }
-        if (orderParams.trackingData?.tradeWithToken === true) {
-          if (orderParams.trackingData.mmPayTokenSelected != null) {
-            exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-              orderParams.trackingData.mmPayTokenSelected;
-          }
-          if (orderParams.trackingData.mmPayNetworkSelected != null) {
-            exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
-              orderParams.trackingData.mmPayNetworkSelected;
-          }
-        } else if (orderParams.trackingData !== undefined) {
-          exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
-        }
-        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, exceptionProps);
-
         onError?.(errorMessage);
       } finally {
         setIsPlacing(false);
       }
     },
-    [controllerPlaceOrder, stream, onSubmitted, onSuccess, onError, track],
+    [controllerPlaceOrder, stream, onSubmitted, onSuccess, onError],
   );
 
   return {

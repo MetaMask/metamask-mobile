@@ -8,7 +8,6 @@ import React, {
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
@@ -16,6 +15,7 @@ import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
+import WatchlistSection from './Sections/Watchlist';
 import MoreSection from './Sections/More';
 import { SectionRefreshHandle } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -24,8 +24,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
+import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -36,6 +35,7 @@ import {
 } from './abTestConfig';
 import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -57,13 +57,13 @@ interface HomepageProps {
  */
 const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
   ({ perpsProvidersHoisted = false }, ref) => {
-    const cashSectionRef = useRef<SectionRefreshHandle>(null);
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
+    const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
     const trendingTokensRef = useRef<SectionRefreshHandle>(null);
     const trendingPerpsRef = useRef<SectionRefreshHandle>(null);
     const trendingPredictionsRef = useRef<SectionRefreshHandle>(null);
@@ -72,11 +72,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
-    const isMusdConversionEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
+    const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
     const {
       variant: abVariant,
@@ -123,9 +119,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
     );
 
-    useFocusEffect(
+    // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
+    useThrottledFocusEffect(
       useCallback(() => {
-        detectNfts().catch(() => {
+        detectNfts(true, false).catch(() => {
           // AbortError is expected when detection is cancelled on blur
         });
 
@@ -133,21 +130,22 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           abortDetection();
         };
       }, [detectNfts, abortDetection]),
+      300_000, // 5 minutes
     );
 
     /**
-     * Compute the ordered list of enabled sections. Cash is first when enabled;
-     * Tokens are always present; NFTs, Perps, Predictions, and DeFi are conditional.
+     * Compute the ordered list of enabled sections. Tokens are always present;
+     * NFTs, Perps, Predictions, and DeFi are conditional.
      * When separateTrending is active, trending sections are appended.
      */
     const enabledSections = useMemo(() => {
       if (separateTrending) {
         // Treatment: position sections + trending sections + conditional NFT placement
         const sections: { name: HomeSectionName; enabled: boolean }[] = [
-          { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
           { name: HomeSectionNames.TOKENS, enabled: true },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
             name: HomeSectionNames.TOP_TRADERS,
             enabled: isTopTradersEnabled,
@@ -174,10 +172,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
       // Control: original layout
       return [
-        { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         {
           name: HomeSectionNames.TOP_TRADERS,
           enabled: isTopTradersEnabled,
@@ -187,12 +185,12 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       ].filter((s) => s.enabled);
     }, [
       separateTrending,
-      isCashSectionEnabled,
       isPerpsEnabled,
       isPredictEnabled,
       isDeFiEnabled,
       hasNfts,
       isTopTradersEnabled,
+      isWatchlistEnabled,
     ]);
 
     const totalSectionsLoaded = enabledSections.length;
@@ -207,8 +205,8 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     const refresh = useCallback(async () => {
       await Promise.allSettled([
-        cashSectionRef.current?.refresh(),
         tokensSectionRef.current?.refresh(),
+        watchlistSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
@@ -235,6 +233,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}
@@ -302,13 +307,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
             accessible={false}
           >
-            {/* Cash — always first */}
-            <CashSection
-              ref={cashSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-
             {/* Position sections — hidden when empty */}
             <TokensSection
               ref={tokensSectionRef}
@@ -352,11 +350,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
           accessible={false}
         >
-          <CashSection
-            ref={cashSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
           <TokensSection
             ref={tokensSectionRef}
             sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
@@ -389,6 +382,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}
