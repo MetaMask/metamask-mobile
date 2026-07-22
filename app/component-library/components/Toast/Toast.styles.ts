@@ -61,9 +61,6 @@ const styleSheet = (params: { theme: Theme }) => {
     baseWithCloseIconButton: {
       paddingRight: 8,
     },
-    label: {
-      color: colors.text.default,
-    },
     description: {
       marginTop: 2,
     },

@@ -30,13 +30,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
-import Icon, { IconSize } from '../Icons/Icon';
-import Text, { TextColor, TextVariant } from '../Texts/Text';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
   IconName as DsIconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
@@ -132,6 +137,40 @@ const mapLegacyButtonVariant = (variant?: ButtonVariants): ButtonVariant => {
     return ButtonVariant.Secondary;
   }
   return ButtonVariant.Primary;
+};
+
+const LEGACY_ICON_COLOR_TO_DS: Record<string, IconColor> = {
+  Default: IconColor.IconDefault,
+  Inverse: IconColor.OverlayInverse,
+  Alternative: IconColor.IconAlternative,
+  Muted: IconColor.IconMuted,
+  Primary: IconColor.PrimaryDefault,
+  PrimaryAlternative: IconColor.PrimaryAlternative,
+  Success: IconColor.SuccessDefault,
+  Error: IconColor.ErrorDefault,
+  ErrorAlternative: IconColor.ErrorAlternative,
+  Warning: IconColor.WarningDefault,
+  Info: IconColor.InfoDefault,
+};
+
+const resolveToastIconAppearance = (
+  iconColor?: string,
+): { color?: IconColor; style?: { color: string } } => {
+  if (!iconColor) {
+    return {};
+  }
+
+  const dsIconColors = Object.values(IconColor) as string[];
+  if (dsIconColors.includes(iconColor)) {
+    return { color: iconColor as IconColor };
+  }
+
+  if (iconColor in LEGACY_ICON_COLOR_TO_DS) {
+    return { color: LEGACY_ICON_COLOR_TO_DS[iconColor] };
+  }
+
+  // Call sites may pass raw theme colors (e.g. theme.colors.success.default).
+  return { style: { color: iconColor } };
 };
 
 /**
@@ -344,7 +383,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderInlineLabelSegments = (segments: ToastLabelOptions) => (
-    <Text variant={TextVariant.BodyMD} onTextLayout={handleTitleTextLayout}>
+    <Text variant={TextVariant.BodyMd} onTextLayout={handleTitleTextLayout}>
       {segments.map(({ label, isBold }) => {
         const weightKey = isBold === false ? 'normal' : 'bold';
         const segmentKey =
@@ -355,11 +394,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         return (
           <Text
             key={segmentKey}
-            variant={
-              isBold === false ? TextVariant.BodySM : TextVariant.BodyMDMedium
-            }
-            color={isBold === false ? TextColor.Alternative : undefined}
-            style={isBold === false ? undefined : styles.label}
+            variant={isBold === false ? TextVariant.BodySm : TextVariant.BodyMd}
+            fontWeight={isBold === false ? undefined : FontWeight.Medium}
+            color={isBold === false ? TextColor.TextAlternative : undefined}
           >
             {label}
           </Text>
@@ -389,8 +426,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           : null}
         {descriptionLabelOptions.length > 0 ? (
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
             style={styles.description}
             onTextLayout={handleDescriptionTextLayout}
           >
@@ -398,8 +435,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             {descriptionLabelOptions.map(({ label }) => (
               <Text
                 key={typeof label === 'string' ? label : 'toast-description'}
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
               >
                 {label}
               </Text>
@@ -413,8 +450,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const renderDescription = (descriptionOptions?: ToastDescriptionOptions) =>
     descriptionOptions && (
       <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
         style={styles.description}
         onTextLayout={handleDescriptionTextLayout}
       >
@@ -501,8 +538,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       }
       case ToastVariants.Icon: {
         const { iconName, iconColor, backgroundColor } = toastOptions;
+        const iconAppearance = resolveToastIconAppearance(iconColor);
         const icon = (
-          <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
+          <Icon
+            name={iconName as DsIconName}
+            size={IconSize.Lg}
+            color={iconAppearance.color}
+            style={iconAppearance.style}
+          />
         );
         const hasIconBackground =
           backgroundColor != null && backgroundColor !== 'transparent';
