@@ -1,10 +1,8 @@
+import { DEFAULT_MOBILE_MINIMUM_VERSIONS } from '../../../constants/featureFlags';
 import { FEATURE_FLAG_NAME, MinimumAppVersionType } from './types';
 
-export const defaultValues: MinimumAppVersionType = {
-  appMinimumBuild: 1243,
-  appleMinimumOS: 6,
-  androidMinimumAPIVersion: 21,
-};
+export const defaultValues: MinimumAppVersionType =
+  DEFAULT_MOBILE_MINIMUM_VERSIONS;
 
 export const mockedMinimumAppVersion = {
   [FEATURE_FLAG_NAME]: {
