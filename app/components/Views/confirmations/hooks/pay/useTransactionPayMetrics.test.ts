@@ -1453,5 +1453,60 @@ describe('useTransactionPayMetrics', () => {
         timingDispatches('confirmation_time_to_load_info_ms'),
       ).toHaveLength(1);
     });
+
+    it('dispatches mm_pay_time_to_load_quote_ms when quote arrives after request', async () => {
+      const requestTime = 1746696742000;
+      const quoteArrivalTime = 1746696742600;
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_quote_requested: false },
+      });
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+
+      jest.spyOn(Date, 'now').mockReturnValue(requestTime);
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_quote_requested: true },
+      });
+      rerender({});
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+
+      jest.spyOn(Date, 'now').mockReturnValue(quoteArrivalTime);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+      rerender({});
+      await act(async () => noop());
+
+      const calls = timingDispatches('mm_pay_time_to_load_quote_ms');
+      expect(calls).toHaveLength(1);
+      expect(calls[0][0]).toEqual({
+        id: transactionIdMock,
+        params: {
+          properties: { mm_pay_time_to_load_quote_ms: 600 },
+        },
+      });
+    });
+
+    it('does not dispatch mm_pay_time_to_load_quote_ms without a prior quote request', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+    });
   });
 });

@@ -62,10 +62,25 @@ export function useTransactionPayMetrics() {
   const source = usePaySectionSourceMetrics(hasPayToken);
   const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
 
+  const isQuoteRequested =
+    (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
+
+  const quoteRequestedAtMs = useRef<number>(0);
+  if (isQuoteRequested && quoteRequestedAtMs.current === 0) {
+    quoteRequestedAtMs.current = Date.now();
+  }
+
   const hasQuotes = (quotes?.length ?? 0) > 0;
 
+  const timeToLoadQuoteMs = useRef<number | undefined>(undefined);
   if (hasQuotes && !hasLoadedQuoteRef.current) {
     hasLoadedQuoteRef.current = true;
+
+    if (quoteRequestedAtMs.current > 0) {
+      timeToLoadQuoteMs.current = Math.round(
+        Date.now() - quoteRequestedAtMs.current,
+      );
+    }
   }
 
   const availableTokens = useMemo(
@@ -176,6 +191,26 @@ export function useTransactionPayMetrics() {
           properties: {
             confirmation_time_to_load_info_ms:
               confirmationTimeToLoadInfoMs.current,
+          },
+        },
+      }),
+    );
+  });
+
+  const didDispatchTimeToLoadQuote = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadQuote.current ||
+      timeToLoadQuoteMs.current === undefined
+    )
+      return;
+    didDispatchTimeToLoadQuote.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            mm_pay_time_to_load_quote_ms: timeToLoadQuoteMs.current,
           },
         },
       }),
