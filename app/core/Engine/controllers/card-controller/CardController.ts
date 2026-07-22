@@ -36,6 +36,7 @@ import {
   type CardProviderCapabilities,
   type CardSecureView,
   type CardSecureViewParams,
+  type CardSensitiveDetails,
   type CardSpendingPrerequisitesParams,
   type CardSpendingPrerequisitesResult,
   type CashbackWalletResponse,
@@ -1088,6 +1089,19 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
+  }
+
+  async getCardSensitiveDetails(): Promise<CardSensitiveDetails> {
+    const provider = this.getActiveProvider();
+    const getCardSensitiveDetails =
+      provider.getCardSensitiveDetails?.bind(provider);
+    if (!getCardSensitiveDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card sensitive details not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCardSensitiveDetails(tokens));
   }
 
   async createFundingSource(): Promise<CardFundingSourceResult> {

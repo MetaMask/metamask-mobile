@@ -237,13 +237,15 @@ describe('MultichainTransactionsView', () => {
     expect(ActivityListItemRow).toHaveBeenCalledWith(
       expect.objectContaining({
         index: 1,
-        title: 'Send TRX',
         item: expect.objectContaining({
           type: 'send',
         }),
       }),
       undefined,
     );
+    expect(
+      jest.mocked(ActivityListItemRow).mock.calls[0][0],
+    ).not.toHaveProperty('title');
     expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
   });
 

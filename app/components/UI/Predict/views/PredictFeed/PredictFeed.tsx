@@ -242,20 +242,22 @@ interface PredictMarketListItemProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
-  market,
-  entryPoint,
-  testID,
-  predictFeedTab,
-  transactionActiveAbTests,
-}) => (
-  <PredictMarket
-    market={market}
-    entryPoint={entryPoint}
-    testID={testID}
-    predictFeedTab={predictFeedTab}
-    transactionActiveAbTests={transactionActiveAbTests}
-  />
+const PredictMarketListItem: React.FC<PredictMarketListItemProps> = React.memo(
+  ({
+    market,
+    entryPoint,
+    testID,
+    predictFeedTab,
+    transactionActiveAbTests,
+  }) => (
+    <PredictMarket
+      market={market}
+      entryPoint={entryPoint}
+      testID={testID}
+      predictFeedTab={predictFeedTab}
+      transactionActiveAbTests={transactionActiveAbTests}
+    />
+  ),
 );
 
 interface PredictTabContentProps {
