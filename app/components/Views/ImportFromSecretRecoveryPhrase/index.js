@@ -111,6 +111,60 @@ import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+function handleWalletImportFailure({
+  importError,
+  track,
+  navigation,
+  isMetricsEnabled,
+  onboardingTraceCtx,
+}) {
+  track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+    wallet_setup_type: 'import',
+    error_type: importError.toString(),
+  });
+
+  if (onboardingTraceCtx) {
+    trace({
+      name: TraceName.OnboardingPasswordSetupError,
+      op: TraceOperation.OnboardingUserJourney,
+      parentContext: onboardingTraceCtx,
+      tags: { errorMessage: importError.toString() },
+    });
+    endTrace({ name: TraceName.OnboardingPasswordSetupError });
+  }
+
+  if (importError.toString() === PASSCODE_NOT_SET_ERROR) {
+    Alert.alert(
+      'Security Alert',
+      'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
+    );
+    return;
+  }
+
+  const metricsEnabled = isMetricsEnabled();
+
+  if (metricsEnabled) {
+    captureException(importError, {
+      tags: {
+        view: 'ImportFromSecretRecoveryPhrase',
+        context: 'Wallet import failed - auto reported',
+      },
+    });
+  }
+
+  navigation.reset({
+    routes: [
+      {
+        name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+        params: {
+          metricsEnabled,
+          error: importError,
+        },
+      },
+    ],
+  });
+}
+
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -153,7 +207,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
   const srpInputGridRef = useRef(null);
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const [slideAnim] = useState(() => new Animated.Value(0));
   const [currentInputWord, setCurrentInputWord] = useState('');
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
@@ -172,10 +226,7 @@ const ImportFromSecretRecoveryPhrase = ({
   }, [seedPhrase]);
 
   useEffect(() => {
-    if (error) {
-      setError('');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setError('');
   }, [seedPhrase]);
 
   useEffect(() => {
@@ -187,11 +238,14 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
-  const track = (event, properties) => {
-    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
-    eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
-  };
+  const track = useCallback(
+    (event, properties) => {
+      const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
+      eventBuilder.addProperties(properties);
+      trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
+    },
+    [saveOnboardingEvent],
+  );
 
   const onQrCodePress = useCallback(() => {
     let shouldHideSRP = true;
@@ -214,7 +268,7 @@ const ImportFromSecretRecoveryPhrase = ({
         }
         setHideSeedPhraseInput(shouldHideSRP);
       },
-      onScanError: (error) => {
+      onScanError: () => {
         setHideSeedPhraseInput(shouldHideSRP);
       },
     });
@@ -260,14 +314,22 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   // The header is rendered in-screen via HeaderStandard, so hide the native one.
-  const updateNavBar = () => {
+  const updateNavBar = useCallback(() => {
     navigation.setOptions({ headerShown: false });
-  };
+  }, [navigation]);
 
   useEffect(() => {
     updateNavBar();
+  }, [updateNavBar, currentStep]);
+
+  useEffect(() => {
+    let cancelled = false;
+
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
+      if (cancelled || !authData) {
+        return;
+      }
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
       } else if (authData.availableBiometryType) {
@@ -277,7 +339,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setBiometricsOption();
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+    };
   }, [currentStep]);
 
   useEffect(
@@ -387,154 +451,113 @@ const ImportFromSecretRecoveryPhrase = ({
 
     if (loading) return;
     track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
-    let error = null;
+    let setupError = null;
     if (!passwordRequirementsMet(password)) {
-      error = strings('import_from_seed.password_length_error');
+      setupError = strings('import_from_seed.password_length_error');
     } else if (password !== confirmPassword) {
-      error = strings('import_from_seed.password_dont_match');
+      setupError = strings('import_from_seed.password_dont_match');
     }
 
     if (failedSeedPhraseRequirements(parsedSeed)) {
-      error = strings('import_from_seed.seed_phrase_requirements');
+      setupError = strings('import_from_seed.seed_phrase_requirements');
     } else if (!isValidMnemonic(parsedSeed)) {
-      error = strings('import_from_seed.invalid_seed_phrase');
+      setupError = strings('import_from_seed.invalid_seed_phrase');
     }
 
-    if (error) {
+    if (setupError) {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
-        error_type: error,
+        error_type: setupError,
       });
-    } else {
-      try {
-        setLoading(true);
-        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
-        const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
-        trace({
-          name: TraceName.OnboardingSRPAccountImportTime,
-          op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
-          tags: {
-            is_social_login: oauthLoginSuccess,
-            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
-            biometrics_enabled: Boolean(biometryType),
-          },
-        });
+      return;
+    }
 
-        // latest ux changes - we are forcing user to enable biometric by default
-        const authData = await Authentication.componentAuthenticationType(
-          true,
-          false,
-        );
+    setLoading(true);
+    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+    const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
 
-        // Ask user to allow biometrics access control
-        authData.currentAuthType =
-          await Authentication.requestBiometricsAccessControlForIOS(
-            authData.currentAuthType,
-          );
-
-        await Authentication.newWalletAndRestore(
-          password,
-          authData,
-          parsedSeed,
-          true,
-          isQrSyncImport,
-        );
-
-        setBiometryType(authData.availableBiometryType);
-        setLoading(false);
-        passwordSet();
-        setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-        seedphraseBackedUp();
-        track(MetaMetricsEvents.WALLET_IMPORTED, {
+    let authData;
+    try {
+      trace({
+        name: TraceName.OnboardingSRPAccountImportTime,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+        tags: {
+          is_social_login: oauthLoginSuccess,
+          account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
           biometrics_enabled: Boolean(biometryType),
-        });
-        track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-          wallet_setup_type: 'import',
-          new_wallet: false,
-          account_type: AccountType.Imported,
-          ...walletSetupCompletedAttributionProps,
-        });
+        },
+      });
 
-        fetchAccountsWithActivity();
-        const resetAction = CommonActions.reset({
-          index: 1,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-                },
-              },
+      // latest ux changes - we are forcing user to enable biometric by default
+      authData = await Authentication.componentAuthenticationType(true, false);
+
+      // Ask user to allow biometrics access control
+      authData.currentAuthType =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          authData.currentAuthType,
+        );
+
+      await Authentication.newWalletAndRestore(
+        password,
+        authData,
+        parsedSeed,
+        true,
+        isQrSyncImport,
+      );
+    } catch (importError) {
+      setLoading(false);
+      handleWalletImportFailure({
+        importError,
+        track,
+        navigation,
+        isMetricsEnabled,
+        onboardingTraceCtx,
+      });
+      return;
+    }
+
+    setBiometryType(authData.availableBiometryType);
+    setLoading(false);
+    passwordSet();
+    setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+    seedphraseBackedUp();
+    track(MetaMetricsEvents.WALLET_IMPORTED, {
+      biometrics_enabled: Boolean(biometryType),
+    });
+    track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+      wallet_setup_type: 'import',
+      new_wallet: false,
+      account_type: AccountType.Imported,
+      ...walletSetupCompletedAttributionProps,
+    });
+
+    fetchAccountsWithActivity();
+    const resetAction = CommonActions.reset({
+      index: 1,
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
+          params: {
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
             },
-          ],
-        });
-        endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
-        endTrace({ name: TraceName.OnboardingExistingSrpImport });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
+          },
+        },
+      ],
+    });
+    endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
+    endTrace({ name: TraceName.OnboardingExistingSrpImport });
+    endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-        if (isMetricsEnabled()) {
-          navigation.dispatch(resetAction);
-        } else {
-          navigation.navigate('OptinMetrics', {
-            accountType: AccountType.Imported,
-            successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-          });
-        }
-      } catch (error) {
-        setLoading(false);
-
-        track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-          wallet_setup_type: 'import',
-          error_type: error.toString(),
-        });
-
-        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
-        if (onboardingTraceCtx) {
-          trace({
-            name: TraceName.OnboardingPasswordSetupError,
-            op: TraceOperation.OnboardingUserJourney,
-            parentContext: onboardingTraceCtx,
-            tags: { errorMessage: error.toString() },
-          });
-          endTrace({ name: TraceName.OnboardingPasswordSetupError });
-        }
-
-        if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-          Alert.alert(
-            'Security Alert',
-            'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
-          );
-          return;
-        }
-
-        // For errors, report to Sentry if metrics enabled and navigate to error screen
-        const metricsEnabled = isMetricsEnabled();
-
-        if (metricsEnabled) {
-          captureException(error, {
-            tags: {
-              view: 'ImportFromSecretRecoveryPhrase',
-              context: 'Wallet import failed - auto reported',
-            },
-          });
-        }
-
-        // Navigate to error screen based on metrics consent
-        navigation.reset({
-          routes: [
-            {
-              name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
-              params: {
-                metricsEnabled,
-                error,
-              },
-            },
-          ],
-        });
-      }
+    if (isMetricsEnabled()) {
+      navigation.dispatch(resetAction);
+    } else {
+      navigation.navigate('OptinMetrics', {
+        accountType: AccountType.Imported,
+        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      });
     }
   };
 
@@ -619,26 +642,32 @@ const ImportFromSecretRecoveryPhrase = ({
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
-                    {isAddDeviceSyncEnabled && (
-                      <>
-                        {' '}
-                        {strings('import_from_seed.or')}{' '}
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          color={TextColor.PrimaryDefault}
-                          onPress={() =>
-                            navigation.navigate(
-                              Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-                            )
-                          }
-                        >
-                          {strings(
-                            'import_from_seed.import_wallet_from_extension',
-                          )}
-                        </Text>
-                      </>
-                    )}
+                    {isAddDeviceSyncEnabled ? (
+                      <> {strings('import_from_seed.or')} </>
+                    ) : null}
                   </Text>
+                  {isAddDeviceSyncEnabled && (
+                    <TouchableOpacity
+                      accessibilityRole="link"
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+                        )
+                      }
+                      testID={
+                        ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
+                      }
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.PrimaryDefault}
+                      >
+                        {strings(
+                          'import_from_seed.import_wallet_from_extension',
+                        )}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                   {!isAddDeviceSyncEnabled && (
                     <TouchableOpacity
                       onPress={showWhatIsSeedPhrase}

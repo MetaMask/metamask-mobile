@@ -8,13 +8,18 @@ import {
   FeedViewSelectorsIDs,
   getFeedAudienceOptionTestId,
   getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
   getFeedTraderTestId,
-  getFeedTypeOptionTestId,
 } from './FeedView.testIds';
+import {
+  TypeFilterSelectorsIDs,
+  getTypeFilterOptionTestId,
+} from '../components/TypeFilter';
 import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
 const mockNavigate = jest.fn();
+let mockIsFocused = true;
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockLoadMore = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
@@ -107,6 +112,7 @@ jest.mock('./hooks/useTraderFeed', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+  useIsFocused: () => mockIsFocused,
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -149,14 +155,56 @@ jest.mock('../TraderPositionView/components/QuickBuy', () => {
   };
 });
 
+let mockAbTestVariant: { openSwaps: boolean } = { openSwaps: false };
+const mockUseABTest = jest.fn((..._args: unknown[]) => ({
+  variant: mockAbTestVariant,
+}));
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...args),
+}));
+
+const mockGoToSwaps = jest.fn();
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  SwapBridgeNavigationLocation: {
+    TokenView: 'TokenView',
+    FollowTradingFeedScreen: 'Follow Trading Feed Screen',
+  },
+  useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
+}));
+
+let mockDestToken: unknown = {
+  address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+  symbol: 'PEPE',
+  name: 'Pepe',
+  decimals: 18,
+  chainId: '0x1',
+};
+let mockQuickBuyIsLoading = false;
+jest.mock(
+  '../TraderPositionView/components/QuickBuy/hooks/useQuickBuySetup',
+  () => ({
+    useQuickBuySetup: () => ({
+      destToken: mockDestToken,
+      isLoading: mockQuickBuyIsLoading,
+      chainId: undefined,
+      isUnsupportedChain: false,
+    }),
+  }),
+);
+
 let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
 
-jest.mock('./components/FeedTypeSheet', () => {
+jest.mock('../components/TypeFilter', () => {
   const ReactActual = jest.requireActual('react');
-  const Actual = jest.requireActual('./components/FeedTypeSheet').default;
-  return (props: React.ComponentProps<typeof Actual>) => {
-    handleTypeFilterChange = props.onChange;
-    return ReactActual.createElement(Actual, props);
+  const Actual = jest.requireActual('../components/TypeFilter');
+  return {
+    ...Actual,
+    TypeFilterSheet: (
+      props: React.ComponentProps<typeof Actual.TypeFilterSheet>,
+    ) => {
+      handleTypeFilterChange = props.onChange;
+      return ReactActual.createElement(Actual.TypeFilterSheet, props);
+    },
   };
 });
 
@@ -165,13 +213,24 @@ describe('FeedView', () => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
     mockQuickBuyAnalyticsContext = undefined;
+    handleTypeFilterChange = undefined;
+    mockAbTestVariant = { openSwaps: false };
+    mockIsFocused = true;
+    mockDestToken = {
+      address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+      symbol: 'PEPE',
+      name: 'Pepe',
+      decimals: 18,
+      chainId: '0x1',
+    };
+    mockQuickBuyIsLoading = false;
   });
 
   it('renders the type selector, audience toggle, and feed list when items exist', () => {
     renderWithProvider(<FeedView />);
 
     expect(
-      screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR),
+      screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.AUDIENCE_TOGGLE),
@@ -240,6 +299,91 @@ describe('FeedView', () => {
     );
   });
 
+  it('navigates to the main swaps view (treatment) when a spot Trade is pressed', () => {
+    mockAbTestVariant = { openSwaps: true };
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({ symbol: 'PEPE', chainId: '0x1' }),
+      undefined,
+      true,
+    );
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+    // The attribution event still fires in both variants.
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
+      expect.objectContaining({ trade_type: 'spot', source: 'trader_feed' }),
+    );
+  });
+
+  it('falls back to QuickBuy (treatment) when the token metadata cannot be resolved', () => {
+    mockAbTestVariant = { openSwaps: true };
+    mockDestToken = undefined;
+    mockQuickBuyIsLoading = false;
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
+  });
+
+  it('waits (treatment) while token metadata is still loading — no premature swaps or QuickBuy fallback', () => {
+    mockAbTestVariant = { openSwaps: true };
+    mockDestToken = undefined;
+    mockQuickBuyIsLoading = true;
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+  });
+
+  it('cancels a pending swap (treatment) without navigating when the feed route loses focus', () => {
+    mockAbTestVariant = { openSwaps: true };
+    mockIsFocused = false;
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+  });
+
+  it('cancels a pending swap (treatment) when the feed is not the active pager tab', () => {
+    mockAbTestVariant = { openSwaps: true };
+    mockIsFocused = true;
+
+    renderWithProvider(<FeedView isActive={false} />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+  });
+
+  it('does not resolve the A/B test when the feed has no spot rows', () => {
+    mockFeedResult = buildResult({ items: [perpItem] });
+
+    renderWithProvider(<FeedView />);
+
+    expect(mockUseABTest).not.toHaveBeenCalled();
+  });
+
+  it('resolves the A/B test (exposure) when the feed contains a spot row', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(mockUseABTest).toHaveBeenCalled();
+  });
+
   it('navigates to the Perps market detail page when a perps Trade is pressed', () => {
     renderWithProvider(<FeedView />);
 
@@ -269,6 +413,36 @@ describe('FeedView', () => {
     );
   });
 
+  it('tracks audience filter changes via Trader Feed Interaction', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedAudienceOptionTestId('all')));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
+      {
+        interaction_type: 'audience_filter_changed',
+        feed_audience: 'all',
+      },
+    );
+  });
+
+  it('tracks type filter changes via Trader Feed Interaction', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('tokens')));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
+      {
+        interaction_type: 'type_filter_changed',
+        feed_type_filter: 'tokens',
+        previous_feed_type_filter: 'all',
+      },
+    );
+  });
+
   it('navigates to the trader profile when the trader identity is pressed', () => {
     renderWithProvider(<FeedView />);
 
@@ -285,32 +459,40 @@ describe('FeedView', () => {
     );
   });
 
-  it('tracks audience filter changes', () => {
+  it('navigates to TraderPositionView when a spot position card is pressed', () => {
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(getFeedAudienceOptionTestId('all')));
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-1')));
 
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_TRADER_FEED_AUDIENCE_FILTER_CHANGED,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
       {
-        feed_audience: 'all',
+        positionId: 'pos-feed-1',
+        traderId: 'trader-1',
+        traderAddress: '0x1111111111111111111111111111111111111111',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
       },
     );
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
-  it('tracks type filter changes', () => {
+  it('navigates to TraderPositionView when a perps position card is pressed', () => {
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-2')));
 
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
       {
-        feed_type_filter: 'tokens',
-        previous_feed_type_filter: 'all',
+        positionId: 'pos-feed-2',
+        traderId: 'trader-2',
+        traderAddress: '0x2222222222222222222222222222222222222222',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
       },
     );
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
   it('tracks chained type filter changes with the correct previous value', () => {
@@ -324,8 +506,9 @@ describe('FeedView', () => {
     expect(mockTrack).toHaveBeenCalledTimes(2);
     expect(mockTrack).toHaveBeenNthCalledWith(
       2,
-      MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED,
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
       {
+        interaction_type: 'type_filter_changed',
         feed_type_filter: 'perps',
         previous_feed_type_filter: 'tokens',
       },
@@ -393,8 +576,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('tokens')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
@@ -418,8 +601,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('perps')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
@@ -439,8 +622,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('perps')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),

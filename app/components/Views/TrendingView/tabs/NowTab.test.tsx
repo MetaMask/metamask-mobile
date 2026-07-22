@@ -3,10 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
+const mockUseIsFocused = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+  useIsFocused: () => mockUseIsFocused(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -46,8 +48,19 @@ jest.mock('../feeds/perps/usePerpsFeed', () => ({
   usePerpsFeed: () => mockUsePerpsFeed(),
 }));
 
-jest.mock('../../../UI/Perps/hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
+// usePerpsLiveMovers (used by PerpsBlock) subscribes via the stream
+// singleton — stub it so the hook's real ranking/fingerprint logic still
+// runs (preserving the filter/sort assertions below) without needing a
+// PerpsStreamProvider or real WebSocket.
+const mockSubscribeToSymbols = jest.fn(() => jest.fn());
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  usePerpsStream: () => ({
+    prices: {
+      subscribeToSymbols: (
+        ...args: Parameters<typeof mockSubscribeToSymbols>
+      ) => mockSubscribeToSymbols(...args),
+    },
+  }),
 }));
 
 jest.mock('../feeds/perps/PerpsPillItem', () => {
@@ -78,10 +91,6 @@ jest.mock('../feeds/perps/perpsNavigation', () => ({
 
 jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
   usePredictionsFeed: jest.fn(),
-}));
-
-jest.mock('../feeds/predictions/useWorldCupPredictionsFeed', () => ({
-  useWorldCupPredictionsFeed: jest.fn(),
 }));
 
 jest.mock('../feeds/predictions/PredictionRowItem', () => {
@@ -190,16 +199,16 @@ import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import NowTab from './NowTab';
+import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
+import type { ExploreTabName } from '../search/analytics';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
-const mockUseWorldCupPredictionsFeed = jest.mocked(useWorldCupPredictionsFeed);
 const mockUseStocksFeed = jest.mocked(useStocksFeed);
 const mockWhatsHappeningImpl = jest.mocked(WhatsHappeningSection);
 
@@ -238,6 +247,7 @@ const createMockSelectorImpl =
 
 const arrangeMocks = () => {
   jest.clearAllMocks();
+  mockUseIsFocused.mockReturnValue(true);
 
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
@@ -257,12 +267,6 @@ const arrangeMocks = () => {
   mockUsePredictionsFeed.mockReturnValue({
     data: [{ id: 'market-1' }] as never,
     isLoading: false,
-    refetch: jest.fn(),
-  });
-  mockUseWorldCupPredictionsFeed.mockReturnValue({
-    data: [],
-    isLoading: false,
-    isEnabled: false,
     refetch: jest.fn(),
   });
   mockUsePerpsFeed.mockReturnValue({
@@ -310,7 +314,6 @@ const arrangeMocks = () => {
     useTokensFeed: mockUseTokensFeed,
     usePerpsFeed: mockUsePerpsFeed,
     usePredictionsFeed: mockUsePredictionsFeed,
-    useWorldCupPredictionsFeed: mockUseWorldCupPredictionsFeed,
     useStocksFeed: mockUseStocksFeed,
     useWhatsHappening: mockUseWhatsHappening,
     whatsHappeningImpl: mockWhatsHappeningImpl,
@@ -320,10 +323,15 @@ const arrangeMocks = () => {
   };
 };
 
-const renderNowTab = (props = defaultTabProps) =>
+const renderNowTab = (
+  props = defaultTabProps,
+  { activeTab = 'Now' as ExploreTabName } = {},
+) =>
   render(
     <NavigationContainer>
-      <NowTab {...props} />
+      <ExploreActiveTabProvider activeTab={activeTab}>
+        <NowTab {...props} />
+      </ExploreActiveTabProvider>
     </NavigationContainer>,
   );
 
@@ -515,6 +523,58 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
 
     expect(screen.queryByTestId('section-header-view-all-perps')).toBeNull();
   });
+
+  describe('live movers subscription gating', () => {
+    it('subscribes to live prices when the Now tab is active and the screen is focused', () => {
+      arrangePerpsMoversMocks();
+
+      renderNowTab(defaultTabProps, { activeTab: 'Now' });
+
+      expect(mockSubscribeToSymbols).toHaveBeenCalled();
+    });
+
+    it('does not subscribe to live prices when a different Explore tab is active', () => {
+      arrangePerpsMoversMocks();
+
+      renderNowTab(defaultTabProps, { activeTab: 'Macro' });
+
+      expect(mockSubscribeToSymbols).not.toHaveBeenCalled();
+    });
+
+    it('does not subscribe to live prices when the Explore screen is unfocused', () => {
+      arrangePerpsMoversMocks();
+      mockUseIsFocused.mockReturnValue(false);
+
+      renderNowTab(defaultTabProps, { activeTab: 'Now' });
+
+      expect(mockSubscribeToSymbols).not.toHaveBeenCalled();
+    });
+
+    it('stops establishing new live subscriptions once the tab becomes inactive', () => {
+      arrangePerpsMoversMocks([
+        { market: { symbol: 'BTC', change24hPercent: '5' } },
+      ]);
+
+      const { rerender } = renderNowTab(defaultTabProps, {
+        activeTab: 'Now',
+      });
+
+      expect(mockSubscribeToSymbols).toHaveBeenCalled();
+      const callsWhileActive = mockSubscribeToSymbols.mock.calls.length;
+
+      rerender(
+        <NavigationContainer>
+          <ExploreActiveTabProvider activeTab="Macro">
+            <NowTab {...defaultTabProps} />
+          </ExploreActiveTabProvider>
+        </NavigationContainer>,
+      );
+
+      // No further subscriptions should be established once disabled — the
+      // count should stay exactly where it was when the tab went inactive.
+      expect(mockSubscribeToSymbols.mock.calls.length).toBe(callsWhileActive);
+    });
+  });
 });
 
 describe('NowTab — Predictions navigation', () => {
@@ -540,31 +600,6 @@ describe('NowTab — Predictions navigation', () => {
       params: {
         entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
         tab: 'trending',
-      },
-    });
-  });
-
-  it('opens the World Cup screen from the Predictions section title when World Cup predictions are enabled', () => {
-    const mocks = arrangePredictSelectionMocks();
-
-    mocks.useWorldCupPredictionsFeed.mockReturnValue({
-      data: [{ id: 'world-cup-market-1' }] as never,
-      isLoading: false,
-      isEnabled: true,
-      refetch: jest.fn(),
-    });
-
-    renderNowTab();
-
-    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId(predictSectionTestId));
-
-    expect(mocks.navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.WORLD_CUP,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        initialTab: 'all',
       },
     });
   });

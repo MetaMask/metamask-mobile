@@ -12,8 +12,12 @@ import { PendingActivityListItemRow } from './PendingActivityListItemRow';
 import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import { useNftActivityImage } from './useNftActivityImage';
+import { useSubtitleAccountParts } from './useSubtitleAccountParts';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
-import type { ActivityKind } from '../../../util/activity-adapters';
+import {
+  isPerpsOrderKind,
+  type ActivityKind,
+} from '../../../util/activity-adapters';
 
 export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
 export { resolveIconType } from './resolveIconType';
@@ -26,9 +30,7 @@ function isSingleNetworkDomainKind(type: ActivityKind): boolean {
   return (
     type.startsWith('perps') ||
     type.startsWith('prediction') ||
-    type.startsWith('market') ||
-    type.startsWith('limit') ||
-    type.startsWith('stopMarket')
+    isPerpsOrderKind(type)
   );
 }
 
@@ -67,6 +69,11 @@ function ResolvedActivityListItemRow({
 
   const nftImageUrl = useNftActivityImage(item);
   const styles = createStyles(colors, typography);
+  const subtitleParts = useSubtitleAccountParts(
+    content,
+    styles,
+    item.hash ?? index,
+  );
   const isFailed = item.status === 'failed';
   const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = isSingleNetworkDomainKind(item.type)
@@ -100,9 +107,11 @@ function ResolvedActivityListItemRow({
       primaryAmount={content.primaryAmount}
       primaryToken={content.primaryToken}
       amountIsPnl={content.isPnlAmount}
+      amountIsMuted={content.isMutedAmount}
       secondaryAmount={content.secondaryAmount}
       styles={styles}
       subtitle={content.subtitle}
+      subtitleParts={subtitleParts}
       title={titleOverride ?? content.title}
     />
   );

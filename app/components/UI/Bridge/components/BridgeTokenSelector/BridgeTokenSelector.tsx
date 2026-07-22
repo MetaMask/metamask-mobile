@@ -5,11 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import {
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  ListRenderItemInfo,
-} from 'react-native';
+import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -17,9 +13,14 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { FlatList } from 'react-native-gesture-handler';
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list';
 import { NetworkPills } from './NetworkPills';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CaipChainId } from '@metamask/utils';
@@ -138,13 +139,13 @@ const BridgeTokenSelectorRow = React.memo(
 );
 
 export const BridgeTokenSelector: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const { styles } = useStyles(createStyles, {});
   const [searchString, setSearchString] = useState<string>('');
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlashListRef<BridgeToken | null>>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
 
   // Set selecting token state to prevent quote expired modal from showing
@@ -231,7 +232,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Track the last chain ID to detect changes
   const lastChainIdRef = useRef(selectedChainId);
-  const [listKey, setListKey] = useState(0);
+  const shouldResetListPositionRef = useRef(false);
 
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
@@ -284,7 +285,7 @@ export const BridgeTokenSelector: React.FC = () => {
   useEffect(() => {
     if (lastChainIdRef.current !== selectedChainId) {
       lastChainIdRef.current = selectedChainId;
-      setListKey((prev) => prev + 1);
+      shouldResetListPositionRef.current = true;
 
       // Cancel any pending debounced searches
       debouncedSearch.cancel();
@@ -347,6 +348,21 @@ export const BridgeTokenSelector: React.FC = () => {
     currentSearchQuery,
     searchString,
   ]);
+
+  // Reset only after the replacement dataset has been committed. scrollToIndex
+  // engages and lays out the first recycled row before moving the native view.
+  useEffect(() => {
+    if (!shouldResetListPositionRef.current) {
+      return undefined;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      void flatListRef.current?.scrollToIndex({ index: 0, animated: false });
+      shouldResetListPositionRef.current = false;
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [displayData, selectedChainId]);
 
   const getIsNoFeeAsset = useCallback(
     (token: BridgeToken) => {
@@ -474,8 +490,8 @@ export const BridgeTokenSelector: React.FC = () => {
     [navigation, enabledChainRanking],
   );
 
-  const renderToken = useCallback(
-    ({ item }: ListRenderItemInfo<BridgeToken | null>) => {
+  const renderToken = useCallback<ListRenderItem<BridgeToken | null>>(
+    ({ item }) => {
       // This is to support a partial loading state for top tokens
       // We can show tokens with balance immediately, but we need to wait for the top tokens to load
       if (!item) {
@@ -644,28 +660,23 @@ export const BridgeTokenSelector: React.FC = () => {
         />
       </Box>
 
-      <FlatList
+      <FlashList
         ref={flatListRef}
-        key={listKey}
         testID="bridge-token-list"
         style={styles.tokensList}
         contentContainerStyle={styles.tokensListContainer}
         data={displayData}
         renderItem={renderToken}
         keyExtractor={keyExtractor}
-        extraData={displayData.length}
         showsVerticalScrollIndicator
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={400}
+        scrollEventThrottle={16}
         ListFooterComponent={renderFooter}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyState}
         onLayout={handleFlatListLayout}
-        initialNumToRender={8}
-        maxToRenderPerBatch={5}
-        windowSize={5}
-        removeClippedSubviews
+        maintainVisibleContentPosition={{ disabled: true }}
       />
     </SafeAreaView>
   );
