@@ -1,6 +1,7 @@
 import React from 'react';
 import ErrorView from './ErrorView';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { ScreenLocation } from '../types';
 /**
@@ -18,7 +19,7 @@ function ErrorViewWithReporting({
   location: ScreenLocation;
   asScreen?: boolean;
 }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   return (
     <ErrorView

@@ -1,5 +1,28 @@
-import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Dimensions,
+  LayoutChangeEvent,
+  StyleProp,
+  TextLayoutEvent,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
+import Animated, {
+  cancelAnimation,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   TextVariant,
@@ -15,10 +38,14 @@ import {
   ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
-import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../hooks';
-import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
+import {
+  NOTIFICATION_SPRING_CONFIG,
+  NOTIFICATION_TOP_PADDING,
+  NOTIFICATION_VISIBILITY_DURATION,
+} from './BaseNotification.constants';
+import { BaseNotificationTestIds } from './BaseNotification.testIds';
 
 import styleSheet from './BaseNotification.styles';
 import {
@@ -26,6 +53,10 @@ import {
   BaseNotificationProps,
   BaseNotificationStatus,
 } from './BaseNotification.types';
+
+const screenHeight = Dimensions.get('window').height;
+
+const getHiddenTranslateY = (height: number) => -height;
 
 export const getIcon = (status: BaseNotificationStatus | undefined) => {
   switch (status) {
@@ -73,7 +104,8 @@ const getTitle = (
     case 'pending_withdrawal':
       return strings('notifications.pending_withdrawal_title');
     case 'success': {
-      const parsed = nonce != null ? parseInt(String(nonce)) : NaN;
+      const parsed =
+        nonce != null ? Number.parseInt(String(nonce), 10) : Number.NaN;
       if (!Number.isNaN(parsed)) {
         return strings('notifications.success_title', { nonce: parsed });
       }
@@ -88,7 +120,8 @@ const getTitle = (
     case 'received':
       return strings('notifications.received_title', { amount, assetType });
     case 'speedup': {
-      const parsed = nonce != null ? parseInt(String(nonce)) : NaN;
+      const parsed =
+        nonce != null ? Number.parseInt(String(nonce), 10) : Number.NaN;
       if (!Number.isNaN(parsed)) {
         return strings('notifications.speedup_title', { nonce: parsed });
       }
@@ -117,55 +150,240 @@ export const getDescription = (
   return strings(`notifications.${status}_message`);
 };
 
+/**
+ * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
+ *
+ * The API may have changed — compare props before migrating.
+ *
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react/src/components/Toast/Toast.tsx}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#toast-component Migration docs}
+ */
 const BaseNotification: React.FC<BaseNotificationProps> = ({
   status,
   data,
   onPress,
   onHide,
   autoDismiss = false,
+  isVisible = true,
+  onDismissComplete,
+  dismissDuration,
+  persistUntilDismiss = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { top: topInset } = useSafeAreaInsets();
   const safeData: BaseNotificationData = data ?? {};
   const { description = null, title = null } = safeData;
+  const [descriptionLineCount, setDescriptionLineCount] = useState<
+    number | null
+  >(null);
+  const [titleLineCount, setTitleLineCount] = useState<number | null>(null);
+
+  const notificationHeight = useSharedValue(screenHeight);
+  const translateYProgress = useSharedValue(-screenHeight);
+  const hasEnteredRef = useRef(false);
+  const dismissCompleteCalledRef = useRef(false);
+  const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
+
+  const hasCloseIconButton = autoDismiss;
+  const resolvedDescription = !description
+    ? getDescription(status, safeData)
+    : description;
+  const hasDescription = resolvedDescription.length > 0;
+  const shouldTopAlign =
+    (titleLineCount !== null && titleLineCount > 1 && hasDescription) ||
+    (descriptionLineCount !== null && descriptionLineCount > 1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateYProgress.value }],
+  }));
+  const baseStyle: StyleProp<ViewStyle> = useMemo(
+    () => [
+      styles.base,
+      shouldTopAlign && styles.baseTopAligned,
+      hasCloseIconButton && styles.baseWithCloseIconButton,
+      animatedStyle,
+    ],
+    [
+      styles.base,
+      styles.baseTopAligned,
+      styles.baseWithCloseIconButton,
+      animatedStyle,
+      hasCloseIconButton,
+      shouldTopAlign,
+    ],
+  );
+
+  useEffect(() => {
+    setDescriptionLineCount(null);
+    setTitleLineCount(null);
+    hasEnteredRef.current = false;
+    dismissCompleteCalledRef.current = false;
+  }, [status, title, description, isVisible]);
+
+  const handleTitleTextLayout = (event: TextLayoutEvent) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setTitleLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
+
+  const handleDescriptionTextLayout = (event: TextLayoutEvent) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setDescriptionLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
+
+  const runExitAnimation = useCallback(
+    (onComplete?: () => void) => {
+      const hiddenTranslateY = getHiddenTranslateY(notificationHeight.value);
+
+      translateYProgress.value = withSpring(
+        hiddenTranslateY,
+        NOTIFICATION_SPRING_CONFIG,
+        () => {
+          if (onComplete) {
+            runOnJS(onComplete)();
+          }
+        },
+      );
+    },
+    [notificationHeight, translateYProgress],
+  );
+
+  const handleDismissComplete = useCallback(() => {
+    if (dismissCompleteCalledRef.current) {
+      return;
+    }
+
+    dismissCompleteCalledRef.current = true;
+    onDismissComplete?.();
+  }, [onDismissComplete]);
+
+  useEffect(
+    () => () => {
+      if (hasEnteredRef.current && !dismissCompleteCalledRef.current) {
+        dismissCompleteCalledRef.current = true;
+        onDismissComplete?.();
+      }
+    },
+    [onDismissComplete],
+  );
+
+  const handleManualDismiss = useCallback(() => {
+    cancelAnimation(translateYProgress);
+    runExitAnimation(() => {
+      onHide?.();
+      handleDismissComplete();
+    });
+  }, [handleDismissComplete, onHide, runExitAnimation, translateYProgress]);
+
+  const onAnimatedViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      if (!isVisible || hasEnteredRef.current) {
+        return;
+      }
+
+      hasEnteredRef.current = true;
+      const { height } = event.nativeEvent.layout;
+      const hiddenTranslateY = getHiddenTranslateY(height);
+      const visibleTranslateY = topInset + NOTIFICATION_TOP_PADDING;
+
+      notificationHeight.value = height;
+      translateYProgress.value = hiddenTranslateY;
+
+      if (persistUntilDismiss) {
+        translateYProgress.value = withSpring(
+          visibleTranslateY,
+          NOTIFICATION_SPRING_CONFIG,
+        );
+        return;
+      }
+
+      translateYProgress.value = withSpring(
+        visibleTranslateY,
+        NOTIFICATION_SPRING_CONFIG,
+        () => {
+          translateYProgress.value = withDelay(
+            dismissDurationMs,
+            withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, () => {
+              runOnJS(handleDismissComplete)();
+            }),
+          );
+        },
+      );
+    },
+    [
+      dismissDurationMs,
+      handleDismissComplete,
+      isVisible,
+      notificationHeight,
+      persistUntilDismiss,
+      topInset,
+      translateYProgress,
+    ],
+  );
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
-    <View style={baseStyles.flexGrow}>
-      <View style={styles.floatingBackground}>
-        <TouchableOpacity
-          style={styles.defaultFlashFloating}
-          onPress={onPress}
-          activeOpacity={0.8}
+    <Animated.View
+      onLayout={onAnimatedViewLayout}
+      style={baseStyle}
+      testID="base-notification-container"
+    >
+      <TouchableOpacity
+        style={[
+          styles.pressableContent,
+          shouldTopAlign && styles.pressableContentTopAligned,
+        ]}
+        onPress={onPress}
+        activeOpacity={0.8}
+        disabled={!onPress}
+      >
+        <View>{getIcon(status)}</View>
+        <View
+          style={[
+            styles.flashLabel,
+            shouldTopAlign && styles.flashLabelTopAligned,
+          ]}
+          testID={BaseNotificationTestIds.CONTAINER}
         >
-          <View style={styles.flashIcon}>{getIcon(status)}</View>
-          <View style={styles.flashLabel}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-              style={styles.flashTitle}
-              testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
-            >
-              {!title ? getTitle(status, safeData) : title}
-            </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            style={styles.flashTitle}
+            testID={BaseNotificationTestIds.NOTIFICATION_TITLE}
+            onTextLayout={handleTitleTextLayout}
+          >
+            {!title ? getTitle(status, safeData) : title}
+          </Text>
+          {hasDescription ? (
             <Text
               variant={TextVariant.BodySm}
-              color={TextColor.TextDefault}
+              color={TextColor.TextAlternative}
               style={styles.flashText}
+              onTextLayout={handleDescriptionTextLayout}
             >
-              {!description ? getDescription(status, safeData) : description}
+              {resolvedDescription}
             </Text>
-          </View>
-          {autoDismiss && (
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSize.Md}
-              onPress={onHide}
-              testID="base-notification-close"
-            />
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
+          ) : null}
+        </View>
+      </TouchableOpacity>
+      {autoDismiss && (
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Md}
+          onPress={handleManualDismiss}
+          style={shouldTopAlign ? styles.closeButton : undefined}
+          testID="base-notification-close"
+        />
+      )}
+    </Animated.View>
   );
 };
 

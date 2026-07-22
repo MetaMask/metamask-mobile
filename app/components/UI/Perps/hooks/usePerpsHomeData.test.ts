@@ -33,6 +33,9 @@ import Engine from '../../../../core/Engine';
 // Mock dependencies
 jest.mock('./stream');
 jest.mock('./usePerpsMarkets');
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
 jest.mock('@metamask/perps-controller', () => ({
   ...jest.requireActual('@metamask/perps-controller'),
   sortMarkets: jest.fn(),
@@ -439,11 +442,14 @@ describe('usePerpsHomeData', () => {
       );
     });
 
-    it('hides TP/SL and reduce-only orders from home screen', () => {
+    it('hides TP/SL orders but shows reduce-only orders (e.g. limit closes) on home screen', () => {
       renderHook(() => usePerpsHomeData());
 
       expect(mockUsePerpsLiveOrders).toHaveBeenCalledWith(
-        expect.objectContaining({ hideTpSl: true, hideReduceOnly: true }),
+        expect.objectContaining({ hideTpSl: true }),
+      );
+      expect(mockUsePerpsLiveOrders).not.toHaveBeenCalledWith(
+        expect.objectContaining({ hideReduceOnly: true }),
       );
     });
 
