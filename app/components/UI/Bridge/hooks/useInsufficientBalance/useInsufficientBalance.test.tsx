@@ -639,7 +639,7 @@ describe('useIsInsufficientBalance', () => {
     });
   });
 
-  describe('transformtotalToAtomic', () => {
+  describe('transformTotalToAtomic', () => {
     it('transforms total gas fee to atomic gas fee', () => {
       const totalGasFee = '0.000000000000000001';
       const decimals = 18;
@@ -655,7 +655,7 @@ describe('useIsInsufficientBalance', () => {
     });
   });
 
-  describe('formattotalGasFee', () => {
+  describe('formatTotalGasFee', () => {
     it('formats total gas fee to string', () => {
       const totalGasFee = '0.000000000000000001';
       const decimals = 18;

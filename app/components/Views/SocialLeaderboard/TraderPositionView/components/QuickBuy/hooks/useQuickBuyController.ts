@@ -1424,7 +1424,7 @@ export function useQuickBuyController(
       dispatch(setIsSubmittingTx(true));
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
-        activeQuote,
+        { ...activeQuote, approval: activeQuote.approval ?? undefined },
         stxEnabled,
       );
       const txHash =
