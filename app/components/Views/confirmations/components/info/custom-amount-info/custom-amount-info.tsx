@@ -101,6 +101,16 @@ import { InfoRowSkeleton } from '../../UI/info-row/info-row';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
+type QuoteHandoff =
+  | {
+      kind: 'loading';
+      quotesLastUpdated: number | undefined;
+    }
+  | {
+      kind: 'completed';
+      quotesLastUpdated: number;
+    };
+
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
   children?: ReactNode;
@@ -194,13 +204,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isKeyboardVisibleRef = useRef(isKeyboardVisible);
     isKeyboardVisibleRef.current = isKeyboardVisible;
     const [isAmountUpdating, setIsAmountUpdating] = useState(false);
-    const [isAmountUpdateComplete, setIsAmountUpdateComplete] = useState(false);
+    const [quoteHandoff, setQuoteHandoff] = useState<QuoteHandoff>();
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
-    const quotesLastUpdatedBeforeAmountUpdateRef = useRef<number | undefined>(
-      undefined,
-    );
     const quotesLastUpdatedRef = useRef<number | undefined>(undefined);
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
@@ -274,7 +281,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
 
       isAmountUpdateInProgressRef.current = true;
-      setIsAmountUpdateComplete(false);
+      setQuoteHandoff(undefined);
       setIsAmountUpdating(true);
       setIsKeyboardVisible(false);
 
@@ -291,9 +298,31 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // Amount committed (pre-quote) funnel event; only fires once the amount
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
-        quotesLastUpdatedBeforeAmountUpdateRef.current =
-          quotesLastUpdatedRef.current;
-        setIsAmountUpdateComplete(true);
+
+        const transactionData = transactionId
+          ? Engine.context.TransactionPayController.state.transactionData[
+              transactionId
+            ]
+          : undefined;
+        const controllerQuotesLastUpdated = transactionData?.quotesLastUpdated;
+
+        if (transactionData?.isLoading) {
+          setQuoteHandoff({
+            kind: 'loading',
+            quotesLastUpdated: controllerQuotesLastUpdated,
+          });
+        } else if (
+          controllerQuotesLastUpdated !== undefined &&
+          controllerQuotesLastUpdated !== quotesLastUpdatedRef.current
+        ) {
+          setQuoteHandoff({
+            kind: 'completed',
+            quotesLastUpdated: controllerQuotesLastUpdated,
+          });
+        } else {
+          setQuoteHandoff(undefined);
+          setIsAmountUpdating(false);
+        }
       } catch (error) {
         const isConfirmationDismissed =
           !Engine.context.TransactionController.state.transactions.some(
@@ -309,7 +338,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           ),
         );
         setIsKeyboardVisible(true);
-        setIsAmountUpdateComplete(false);
+        setQuoteHandoff(undefined);
         setIsAmountUpdating(false);
         // Keep keyboard visible so the user can retry; do not advance the flow.
         return;
@@ -336,30 +365,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     ]);
 
     useEffect(() => {
-      const hasCompletedQuoteRequest =
+      if (!quoteHandoff) {
+        return;
+      }
+
+      const hasObservedLoading =
+        quoteHandoff.kind === 'loading' && isQuotesLoading;
+      const hasObservedCompletedQuote =
         quotesLastUpdated !== undefined &&
-        quotesLastUpdated !== quotesLastUpdatedBeforeAmountUpdateRef.current;
+        (quoteHandoff.kind === 'completed'
+          ? quotesLastUpdated >= quoteHandoff.quotesLastUpdated
+          : quoteHandoff.quotesLastUpdated === undefined ||
+            quotesLastUpdated > quoteHandoff.quotesLastUpdated);
 
-      if (
-        isAmountUpdateComplete &&
-        (isQuotesLoading || hasCompletedQuoteRequest)
-      ) {
-        setIsAmountUpdateComplete(false);
+      if (hasObservedLoading || hasObservedCompletedQuote) {
+        setQuoteHandoff(undefined);
         setIsAmountUpdating(false);
-        return;
       }
-
-      if (!isAmountUpdateComplete) {
-        return;
-      }
-
-      const handoffTimeout = setTimeout(() => {
-        setIsAmountUpdateComplete(false);
-        setIsAmountUpdating(false);
-      }, 0);
-
-      return () => clearTimeout(handoffTimeout);
-    }, [isAmountUpdateComplete, isQuotesLoading, quotesLastUpdated]);
+    }, [isQuotesLoading, quoteHandoff, quotesLastUpdated]);
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {

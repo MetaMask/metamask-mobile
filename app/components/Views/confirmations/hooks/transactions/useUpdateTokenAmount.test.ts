@@ -1,3 +1,4 @@
+import { act } from 'react';
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
@@ -12,7 +13,9 @@ import {
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { toHex } from 'viem';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../util/transaction-controller');
 
@@ -111,6 +114,74 @@ describe('useUpdateTokenAmount', () => {
           TOKEN_TRANSFER_DATA_MOCK.length - 4,
         ) + toHex(15000).substring(2),
     });
+  });
+
+  it('returns the nested update promise', async () => {
+    let resolveUpdate: () => void = () => undefined;
+    const updatePromise = new Promise<Hex>((resolve) => {
+      resolveUpdate = () => resolve('0x0');
+    });
+    updateAtomicBatchDataMock.mockReturnValue(updatePromise);
+    const { result } = runHook({
+      transactionMeta: {
+        nestedTransactions: [
+          {
+            data: '0x1234',
+          },
+          {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+            to: tokenAddress1Mock,
+          },
+        ],
+      },
+    });
+
+    let resultPromise: Promise<unknown> = Promise.resolve();
+    act(() => {
+      resultPromise = Promise.resolve(result.current.updateTokenAmount('1.5'));
+    });
+    let isSettled = false;
+    resultPromise.then(() => {
+      isSettled = true;
+    });
+    await Promise.resolve();
+
+    expect(isSettled).toBe(false);
+
+    resolveUpdate();
+    await resultPromise;
+
+    expect(isSettled).toBe(true);
+  });
+
+  it('logs nested update failures without rejecting', async () => {
+    const error = new Error('update failed');
+    const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();
+    updateAtomicBatchDataMock.mockRejectedValue(error);
+    const { result } = runHook({
+      transactionMeta: {
+        nestedTransactions: [
+          {
+            data: '0x1234',
+          },
+          {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+            to: tokenAddress1Mock,
+          },
+        ],
+      },
+    });
+
+    let updatePromise: Promise<unknown> = Promise.resolve();
+    act(() => {
+      updatePromise = Promise.resolve(result.current.updateTokenAmount('1.5'));
+    });
+
+    await expect(updatePromise).resolves.toBeUndefined();
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      error,
+      'Failed to update token amount in nested transaction',
+    );
   });
 
   it('does not update amount if new amount is equal to current amount', () => {
