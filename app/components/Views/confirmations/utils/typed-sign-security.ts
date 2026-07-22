@@ -59,3 +59,9 @@ export function rejectExtraneousTypedMessageKeys(data: TypedMessageData): void {
     }
   }
 }
+
+export function preprocessTypedSignRequest(data: TypedMessageData): string {
+  const canonicalData = canonicalizeTypedMessageData(data);
+  rejectExtraneousTypedMessageKeys(canonicalData);
+  return canonicalData;
+}

@@ -1,6 +1,7 @@
 import {
   canonicalizeTypedMessageData,
   rejectExtraneousTypedMessageKeys,
+  preprocessTypedSignRequest,
 } from './typed-sign-security';
 
 const validPayload = {
@@ -101,5 +102,33 @@ describe('rejectExtraneousTypedMessageKeys', () => {
         rejectExtraneousTypedMessageKeys(withExtra as unknown as string),
       ).toThrow(expect.objectContaining({ code: -32000 }));
     });
+  });
+});
+
+describe('preprocessTypedSignRequest', () => {
+  it('returns canonical JSON for valid payloads', () => {
+    const result = preprocessTypedSignRequest(JSON.stringify(validPayload));
+    expect(JSON.parse(result)).toStrictEqual(validPayload);
+    expect(JSON.stringify(JSON.parse(result))).toBe(result);
+  });
+
+  it('rejects payloads with extraneous keys', () => {
+    const withExtra = { ...validPayload, intent: { grant: '0xbad' } };
+    expect(() => preprocessTypedSignRequest(JSON.stringify(withExtra))).toThrow(
+      expect.objectContaining({ code: -32000 }),
+    );
+  });
+
+  it('returns the original string for malformed JSON', () => {
+    expect(preprocessTypedSignRequest('not-json')).toBe('not-json');
+  });
+
+  it('canonicalizes duplicate keys before validating', () => {
+    const raw = [
+      '{"types":{},"primaryType":"Permit","domain":{},"message":{',
+      '"value":"small","value":"large"}}',
+    ].join('');
+    const result = preprocessTypedSignRequest(raw);
+    expect(JSON.parse(result).message.value).toBe('large');
   });
 });

@@ -47,10 +47,7 @@ import {
   getCaip25PermissionFromLegacyPermissions,
   requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
-import {
-  canonicalizeTypedMessageData,
-  rejectExtraneousTypedMessageKeys,
-} from '../../components/Views/confirmations/utils/typed-sign-security';
+import { preprocessTypedSignRequest } from '../../components/Views/confirmations/utils/typed-sign-security';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -277,12 +274,9 @@ const generateRawSignature = async ({
     networkClientId: req.networkClientId,
   });
 
-  const canonicalData = canonicalizeTypedMessageData(req.params[1]);
-  rejectExtraneousTypedMessageKeys(canonicalData);
-
   const rawSig = await signatureController.newUnsignedTypedMessage(
     {
-      data: canonicalData,
+      data: preprocessTypedSignRequest(req.params[1]),
       from: req.params[0],
       requestId: req.id,
       ...pageMeta,
