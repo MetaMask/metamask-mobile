@@ -1758,6 +1758,44 @@ describe('BridgeTokenSelector', () => {
       expect(mockHandleTokenPress).toHaveBeenCalled();
     });
 
+    it('does not track Token List Item Clicked during watchlist search', async () => {
+      mockIsWatchlistEnabled = true;
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('WETH')],
+        currentSearchQuery: 'eth',
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'eth');
+
+      await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+      fireEvent.press(getByTestId('token-WETH'));
+
+      expect(mockAnalyticsTrackEvent).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        'Token List Item Clicked',
+      );
+      expect(mockHandleTokenPress).toHaveBeenCalled();
+    });
+
     it('clears network filter when watchlist filter is activated', () => {
       mockIsWatchlistEnabled = true;
       const store = createMockStore({

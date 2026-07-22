@@ -264,7 +264,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleWatchlistTokenPress = useCallback(
     (token: BridgeToken) => {
-      if (isWatchlistListMode) {
+      if (isWatchlistListMode && !isWatchlistSearchActive) {
         trackEvent(
           createEventBuilder(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED)
             .addProperties({
@@ -277,7 +277,13 @@ export const BridgeTokenSelector: React.FC = () => {
       }
       handleTokenPress(token);
     },
-    [createEventBuilder, handleTokenPress, isWatchlistListMode, trackEvent],
+    [
+      createEventBuilder,
+      handleTokenPress,
+      isWatchlistListMode,
+      isWatchlistSearchActive,
+      trackEvent,
+    ],
   );
 
   // Compute the initial network filter synchronously so the first render
