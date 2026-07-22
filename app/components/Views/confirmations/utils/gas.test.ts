@@ -203,5 +203,29 @@ describe('gas utils', () => {
       expect(mockMultiplyHexes).toHaveBeenCalledWith('0x200', '0x5208');
       expect(mockGetFeesFromHexFn).toHaveBeenCalledWith('0xdef');
     });
+
+    it('adds layer1GasFee when receipt gas price is provided', () => {
+      const { addHexes } = jest.requireMock('../../../../util/conversions') as {
+        addHexes: jest.Mock;
+      };
+      mockMultiplyHexes.mockReturnValue('0xdef' as never);
+      addHexes.mockReturnValue('0xabcdef' as never);
+
+      calculateGasEstimate({
+        feePerGas: '0x100',
+        priorityFeePerGas: '0x10',
+        gasPrice: '0x50',
+        gas: '0x5208',
+        shouldUseEIP1559FeeLogic: true,
+        estimatedBaseFee: '10',
+        layer1GasFee: '0x100',
+        getFeesFromHexFn: mockGetFeesFromHexFn,
+        receiptGasPrice: '0x200',
+      });
+
+      expect(mockMultiplyHexes).toHaveBeenCalledWith('0x200', '0x5208');
+      expect(addHexes).toHaveBeenCalledWith('0xdef', '0x100');
+      expect(mockGetFeesFromHexFn).toHaveBeenCalledWith('0xabcdef');
+    });
   });
 });
