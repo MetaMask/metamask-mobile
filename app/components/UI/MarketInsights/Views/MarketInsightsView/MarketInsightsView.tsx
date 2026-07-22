@@ -27,6 +27,7 @@ const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundLastFrameDark = require('../../animations/market-insights-background-dark-last-frame.png');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -187,7 +188,7 @@ export interface MarketInsightsRouteParams {
  */
 const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const isTokenInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);

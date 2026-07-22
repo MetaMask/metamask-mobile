@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
@@ -85,7 +86,7 @@ export interface FeedViewProps {
 const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = useSocialLeaderboardAnalytics();
 
   // Default to "Following": the backend "leaderboard" scope isn't implemented
