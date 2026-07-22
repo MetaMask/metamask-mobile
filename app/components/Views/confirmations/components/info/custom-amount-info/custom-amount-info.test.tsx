@@ -681,6 +681,7 @@ describe('CustomAmountInfo', () => {
         type: TransactionType.moneyAccountDeposit,
         txParams: { from: '0x123' },
       } as never);
+      setControllerTransactions([{ id: transactionId }]);
       useTransactionCustomAmountMock.mockReturnValue({
         ...useTransactionCustomAmountMock(),
         updateTokenAmount,
