@@ -3,7 +3,6 @@ import { CARD_BUTTON_BADGE_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI
 import { NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
 import { POST_TRADE_MODAL_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/PostTradeBottomSheet/abTestConfig';
-import { BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/TokenButton.abTestConfig';
 import { TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
@@ -28,7 +27,6 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING,
   POST_TRADE_MODAL_AB_TEST_ANALYTICS_MAPPING,
   SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING,
-  BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_TEST_ANALYTICS_MAPPING,
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING,
 
   // Homepage

@@ -24,6 +24,17 @@ interface CardNestedNavigationParams {
 }
 
 /**
+ * Post-auth redirect target. Matches `LinkFlowOrigin` (Money link flow) plus
+ * plain `{ screen, params }` redirects used elsewhere in Card.
+ */
+export interface CardPostAuthRedirect {
+  screen?: string;
+  params?: object;
+  /** Money-account link entrypoint when redirecting from that flow. */
+  entrypoint?: string;
+}
+
+/**
  * Param list for screens inside the Card main stack (`MainRoutes`).
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -39,7 +50,7 @@ export type CardScreensStackParamList = {
   CardAuthentication:
     | {
         showAuthPrompt?: boolean;
-        postAuthRedirect?: { screen: string; params?: object };
+        postAuthRedirect?: CardPostAuthRedirect;
       }
     | undefined;
   CardSpendingLimit:
@@ -49,12 +60,44 @@ export type CardScreensStackParamList = {
       }
     | undefined;
   CardOnboarding:
-    | (CardNestedNavigationParams & { cardUserPhase?: CardUserPhase })
+    | (CardNestedNavigationParams & {
+        cardUserPhase?: CardUserPhase;
+        postAuthRedirect?: CardPostAuthRedirect;
+      })
     | undefined;
   CardOnboardingKYCProcessing:
     | { countryKey?: string; kycUrl?: string }
     | undefined;
   CardOnboardingFundingApproval: { countryKey?: string } | undefined;
+};
+
+/**
+ * Onboarding leaf screens registered on the root stack / onboarding navigator.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CardOnboardingStackParamList = {
+  CardOnboardingSignUp: undefined;
+  CardOnboardingConfirmEmail:
+    | {
+        email: string;
+        password: string;
+        countryKey: string;
+      }
+    | undefined;
+  CardOnboardingSetPhoneNumber: { countryKey?: string } | undefined;
+  CardOnboardingConfirmPhoneNumber:
+    | {
+        phoneCountryCode: string;
+        phoneNumber: string;
+      }
+    | undefined;
+  CardOnboardingVerifyIdentity: undefined;
+  CardOnboardingVerifyingVeriffKYC: undefined;
+  CardOnboardingPersonalDetails: undefined;
+  CardOnboardingPhysicalAddress: undefined;
+  CardOnboardingComplete: undefined;
+  CardOnboardingKYCFailed: undefined;
+  CardOnboardingKYCPending: undefined;
 };
 
 /**
