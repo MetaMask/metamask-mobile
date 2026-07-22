@@ -67,14 +67,13 @@ const isPerpsControllerOrigin = (context) =>
     .includes('/@metamask/perps-controller/');
 
 // Ledger DMK-family packages whose published `exports` field routes
-// `require`/`import` of the bare specifier to a CJS build under
-// `lib/cjs/`. The CJS output wraps `reflect-metadata` (and the rest of
-// the module body) in TypeScript's `__esModule` interop helpers, which
-// causes Metro's CJS interop to re-execute the `reflect-metadata` IIFE
-// whenever Fast Refresh re-evaluates a DMK module group. The IIFE is
-// not idempotent on Hermes (it calls `Object.defineProperty` on
-// `globalThis.Reflect` with `configurable: false`), and re-execution
-// throws `TypeError: property is not configurable`.
+// CommonJS imports to a CJS build under `lib/cjs/`. The CJS output wraps
+// `reflect-metadata` (and the rest of the module body) in TypeScript's
+// `__esModule` interop helpers, which causes Metro's CJS interop to re-execute
+// the `reflect-metadata` IIFE whenever Fast Refresh re-evaluates a DMK module
+// group. The IIFE is not idempotent on Hermes (it calls
+// `Object.defineProperty` on `globalThis.Reflect` with `configurable: false`),
+// and re-execution throws `TypeError: property is not configurable`.
 //
 // Each of these packages ships a parallel ESM build at
 // `lib/esm/index.js` whose top-level statement is the single canonical
@@ -83,10 +82,10 @@ const isPerpsControllerOrigin = (context) =>
 // runtime, matching the working configuration validated on
 // `poc/dmk-test-page`.
 //
-// We bypass the package's `exports` field by resolving the file path
-// directly under `node_modules`; `require.resolve` cannot reach
-// `lib/esm/index.js` while `unstable_enablePackageExports: true` is
-// active.
+// Marking these requests as ESM lets Metro resolve each package's `import`
+// export from the requesting module's dependency tree. This is important for
+// transitive packages that Yarn nests instead of hoisting to the root
+// `node_modules`.
 const LEDGER_DMK_ESM_PACKAGES = [
   '@ledgerhq/context-module',
   '@ledgerhq/device-management-kit',
@@ -199,15 +198,11 @@ module.exports = function (baseConfig) {
               // IIFE under Fast Refresh and Hermes rejects the second
               // `Object.defineProperty` on the registry symbol.
               if (LEDGER_DMK_ESM_PACKAGES.includes(moduleName)) {
-                return {
-                  filePath: path.resolve(
-                    __dirname,
-                    'node_modules',
-                    moduleName,
-                    'lib/esm/index.js',
-                  ),
-                  type: 'sourceFile',
-                };
+                return context.resolveRequest(
+                  { ...context, isESMImport: true },
+                  moduleName,
+                  platform,
+                );
               }
               // Reroute `reflect-metadata` imports from the Ledger DMK
               // closure (DMK packages + inversify DI substrate) through an
