@@ -132,7 +132,7 @@ describe('feedConfig', () => {
       tags: ['100639'],
       status: 'open',
       order: 'start_time',
-      startTimeMinHoursAgo: 3,
+      startTimeMinMinutesAgo: 180,
     });
     expect(allTab.filters.static[1].params).toEqual({
       tagSlugs: ['sports'],
@@ -158,7 +158,7 @@ describe('feedConfig', () => {
       tags: ['100639'],
       status: 'open',
       order: 'start_time',
-      startTimeMinHoursAgo: 3,
+      startTimeMinMinutesAgo: 180,
     });
     expect(
       soccerTab.filters.static.find((filter) => filter.id === 'mls')?.params
@@ -198,12 +198,96 @@ describe('feedConfig', () => {
     );
   });
 
+  it('uses custom chip query params instead of generated sports params', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      gamesTagId: '100639',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'custom-chip',
+              kind: 'tag',
+              tagSlug: 'ignored-slug',
+              queryParams:
+                'limit=10&closed=true&tag_slug=remote-slug&tag_id=remote-tag-id&order=volume&ascending=false',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      queryParams:
+        'limit=10&closed=true&tag_slug=remote-slug&tag_id=remote-tag-id&order=volume&ascending=false',
+    });
+  });
+
+  it('applies chip start time minute overrides on generated params', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      gamesTagId: '100639',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+              startTimeMinMinutesAgo: 30,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      tagSlugs: ['custom-tab'],
+      tags: ['100639'],
+      status: 'open',
+      order: 'start_time',
+      startTimeMinMinutesAgo: 30,
+    });
+  });
+
+  it('applies chip start time minute overrides on custom query params', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      gamesTagId: '100639',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'custom-chip',
+              kind: 'tag',
+              queryParams: 'tag_slug=remote-slug&order=startTime',
+              startTimeMinMinutesAgo: 15,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      queryParams: 'tag_slug=remote-slug&order=startTime',
+      startTimeMinMinutesAgo: 15,
+    });
+  });
+
   it('applies the sports start time lower bound to non-props filters', () => {
     PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
       tab.filters.static
         .filter((filter) => filter.id !== 'props')
         .forEach((filter) => {
-          expect(filter.params.startTimeMinHoursAgo).toBe(3);
+          expect(filter.params.startTimeMinMinutesAgo).toBe(180);
         });
     });
   });
@@ -215,8 +299,7 @@ describe('feedConfig', () => {
       );
 
       expect(propsFilter?.params.startTimeMin).toBeUndefined();
-      expect(propsFilter?.params.startTimeMinHoursAgo).toBeUndefined();
-      expect(propsFilter?.params.startTimeMinDaysAgo).toBeUndefined();
+      expect(propsFilter?.params.startTimeMinMinutesAgo).toBeUndefined();
     });
   });
 
@@ -276,9 +359,9 @@ describe('feedConfig', () => {
       'order',
       'status',
       'live',
+      'queryParams',
       'startTimeMin',
-      'startTimeMinHoursAgo',
-      'startTimeMinDaysAgo',
+      'startTimeMinMinutesAgo',
       'search',
       'limit',
       'afterCursor',

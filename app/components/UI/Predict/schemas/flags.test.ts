@@ -306,6 +306,9 @@ describe('PredictSportsFeedSchema', () => {
               kind: 'tag',
               titleKey: 'predict.feed.filters.mls',
               tagSlug: 'mls',
+              startTimeMinMinutesAgo: 45,
+              queryParams:
+                'active=true&closed=false&tag_slug=custom-mls&order=startTime&ascending=true',
             },
           ],
         },

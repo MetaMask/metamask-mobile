@@ -127,6 +127,8 @@ export const PredictSportsFeedChipSchema = type({
   titleKey: optional(string()),
   label: optional(string()),
   tagSlug: optional(string()),
+  queryParams: optional(string()),
+  startTimeMinMinutesAgo: optional(number()),
 });
 
 export const PredictSportsFeedTabSchema = type({

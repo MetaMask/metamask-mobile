@@ -27,6 +27,7 @@ export const normalizeMarketListParams = (
   const search = params.search?.trim();
 
   return {
+    queryParams: params.queryParams?.trim() || undefined,
     tags: params.tags?.length
       ? [...params.tags].sort((a, b) => a.localeCompare(b))
       : undefined,
@@ -43,8 +44,7 @@ export const normalizeMarketListParams = (
     status: params.status,
     live: params.live === true ? true : undefined,
     startTimeMin: params.startTimeMin,
-    startTimeMinHoursAgo: params.startTimeMinHoursAgo,
-    startTimeMinDaysAgo: params.startTimeMinDaysAgo,
+    startTimeMinMinutesAgo: params.startTimeMinMinutesAgo,
     search: search || undefined,
     limit: params.limit ?? PREDICT_MARKET_LIST_PAGE_SIZE,
   };

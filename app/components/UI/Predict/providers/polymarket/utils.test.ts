@@ -1466,6 +1466,43 @@ describe('polymarket utils', () => {
       expect(params.get('after_cursor')).toBe('cursor-1');
     });
 
+    it('uses raw queryParams as the base query when provided', () => {
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'limit=10&active=true&closed=false&tag_slug=soccer&order=startTime&ascending=true',
+      });
+
+      expect(params.toString()).toBe(
+        'limit=10&active=true&closed=false&tag_slug=soccer&order=startTime&ascending=true',
+      );
+    });
+
+    it('adds pagination to raw queryParams when afterCursor is provided', () => {
+      const params = buildMarketListQueryParams({
+        queryParams: '?limit=10&tag_slug=soccer',
+        afterCursor: 'cursor-1',
+      });
+
+      expect(params.get('limit')).toBe('10');
+      expect(params.get('tag_slug')).toBe('soccer');
+      expect(params.get('after_cursor')).toBe('cursor-1');
+    });
+
+    it('applies startTimeMinMinutesAgo on top of raw queryParams', () => {
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(new Date('2026-01-17T10:00:00.000Z').getTime());
+
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'limit=10&tag_slug=soccer&start_time_min=2026-01-01T00%3A00%3A00.000Z',
+        startTimeMinMinutesAgo: 30,
+      });
+
+      expect(params.get('start_time_min')).toBe('2026-01-17T09:30:00.000Z');
+      dateNowSpy.mockRestore();
+    });
+
     it('maps startTimeMin to the start_time_min param', () => {
       const params = buildMarketListQueryParams({
         startTimeMin: '2026-01-12T10:00:00.000Z',
@@ -1474,29 +1511,16 @@ describe('polymarket utils', () => {
       expect(params.get('start_time_min')).toBe('2026-01-12T10:00:00.000Z');
     });
 
-    it('maps startTimeMinHoursAgo to a relative start_time_min param', () => {
+    it('maps startTimeMinMinutesAgo to a relative start_time_min param', () => {
       const dateNowSpy = jest
         .spyOn(Date, 'now')
         .mockReturnValue(new Date('2026-01-17T10:00:00.000Z').getTime());
 
       const params = buildMarketListQueryParams({
-        startTimeMinHoursAgo: 3,
+        startTimeMinMinutesAgo: 30,
       });
 
-      expect(params.get('start_time_min')).toBe('2026-01-17T07:00:00.000Z');
-      dateNowSpy.mockRestore();
-    });
-
-    it('maps startTimeMinDaysAgo to a relative start_time_min param', () => {
-      const dateNowSpy = jest
-        .spyOn(Date, 'now')
-        .mockReturnValue(new Date('2026-01-17T10:00:00.000Z').getTime());
-
-      const params = buildMarketListQueryParams({
-        startTimeMinDaysAgo: 5,
-      });
-
-      expect(params.get('start_time_min')).toBe('2026-01-12T10:00:00.000Z');
+      expect(params.get('start_time_min')).toBe('2026-01-17T09:30:00.000Z');
       dateNowSpy.mockRestore();
     });
 

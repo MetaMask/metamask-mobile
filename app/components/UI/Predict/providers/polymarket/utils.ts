@@ -1379,16 +1379,44 @@ export const fetchEventsFromPolymarketApi = async (
  * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
  * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `excludedTags` -> repeated `exclude_tag_id`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
- * - `startTimeMin`/`startTimeMinHoursAgo`/`startTimeMinDaysAgo` -> `start_time_min`.
+ * - `queryParams` -> raw query string override; `afterCursor` and start-time overrides are still applied.
+ * - `startTimeMin`/`startTimeMinMinutesAgo` -> `start_time_min`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
  */
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const MS_PER_HOUR = 60 * 60 * 1000;
+const MS_PER_MINUTE = 60 * 1000;
+
+const normalizeRawQueryParams = (queryParams: string): string =>
+  queryParams.trim().replace(/^\?/, '');
+
+const applyStartTimeMinQueryParam = ({
+  queryParams,
+  startTimeMin,
+  startTimeMinMinutesAgo,
+}: {
+  queryParams: URLSearchParams;
+  startTimeMin?: string;
+  startTimeMinMinutesAgo?: number;
+}): void => {
+  if (startTimeMin) {
+    queryParams.set('start_time_min', startTimeMin);
+  } else if (
+    startTimeMinMinutesAgo !== undefined &&
+    Number.isFinite(startTimeMinMinutesAgo)
+  ) {
+    queryParams.set(
+      'start_time_min',
+      new Date(
+        Date.now() - startTimeMinMinutesAgo * MS_PER_MINUTE,
+      ).toISOString(),
+    );
+  }
+};
 
 export const buildMarketListQueryParams = (
   params: PredictMarketListParams = {},
 ): URLSearchParams => {
   const {
+    queryParams: rawQueryParams,
     tags,
     tagSlugs,
     excludedTags,
@@ -1400,9 +1428,23 @@ export const buildMarketListQueryParams = (
     afterCursor,
     search,
     startTimeMin,
-    startTimeMinHoursAgo,
-    startTimeMinDaysAgo,
+    startTimeMinMinutesAgo,
   } = params;
+
+  if (rawQueryParams?.trim()) {
+    const queryParams = new URLSearchParams(
+      normalizeRawQueryParams(rawQueryParams),
+    );
+    if (afterCursor) {
+      queryParams.set('after_cursor', afterCursor);
+    }
+    applyStartTimeMinQueryParam({
+      queryParams,
+      startTimeMin,
+      startTimeMinMinutesAgo,
+    });
+    return queryParams;
+  }
 
   const queryParams = new URLSearchParams({
     limit: String(limit),
@@ -1467,25 +1509,11 @@ export const buildMarketListQueryParams = (
     queryParams.set('after_cursor', afterCursor);
   }
 
-  if (startTimeMin) {
-    queryParams.set('start_time_min', startTimeMin);
-  } else if (
-    startTimeMinHoursAgo !== undefined &&
-    Number.isFinite(startTimeMinHoursAgo)
-  ) {
-    queryParams.set(
-      'start_time_min',
-      new Date(Date.now() - startTimeMinHoursAgo * MS_PER_HOUR).toISOString(),
-    );
-  } else if (
-    startTimeMinDaysAgo !== undefined &&
-    Number.isFinite(startTimeMinDaysAgo)
-  ) {
-    queryParams.set(
-      'start_time_min',
-      new Date(Date.now() - startTimeMinDaysAgo * MS_PER_DAY).toISOString(),
-    );
-  }
+  applyStartTimeMinQueryParam({
+    queryParams,
+    startTimeMin,
+    startTimeMinMinutesAgo,
+  });
 
   const trimmedSearch = search?.trim();
   if (trimmedSearch) {

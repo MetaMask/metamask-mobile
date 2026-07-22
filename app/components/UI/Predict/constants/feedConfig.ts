@@ -65,7 +65,7 @@ const FILTER_TITLE_KEYS = {
   games: 'predict.feed.filters.games',
   props: 'predict.feed.filters.props',
 } as const;
-const SPORTS_START_TIME_MIN_HOURS_AGO = 3;
+const SPORTS_START_TIME_MIN_MINUTES_AGO = 180;
 
 const createAllFilter = (
   params: PredictMarketListParams,
@@ -86,6 +86,25 @@ const createLiveFilter = (
   },
 });
 
+const withSportsChipOverrides = (
+  params: PredictMarketListParams,
+  chip: PredictSportsFeedChipConfig,
+): PredictMarketListParams => {
+  const resolvedParams: PredictMarketListParams = chip.queryParams
+    ? { queryParams: chip.queryParams }
+    : { ...params };
+
+  if (
+    chip.startTimeMinMinutesAgo !== undefined &&
+    Number.isFinite(chip.startTimeMinMinutesAgo)
+  ) {
+    delete resolvedParams.startTimeMin;
+    resolvedParams.startTimeMinMinutesAgo = chip.startTimeMinMinutesAgo;
+  }
+
+  return resolvedParams;
+};
+
 const createGamesFilter = (
   params: PredictMarketListParams,
   gamesTagId: string,
@@ -94,11 +113,14 @@ const createGamesFilter = (
   id: chip.id,
   titleKey: chip.titleKey ?? FILTER_TITLE_KEYS.games,
   label: chip.label,
-  params: {
-    ...params,
-    tags: [...(params.tags ?? []), gamesTagId],
-    order: 'start_time',
-  },
+  params: withSportsChipOverrides(
+    {
+      ...params,
+      tags: [...(params.tags ?? []), gamesTagId],
+      order: 'start_time',
+    },
+    chip,
+  ),
 });
 
 const createPropsFilter = (
@@ -108,17 +130,19 @@ const createPropsFilter = (
 ): PredictFeedFilterConfig => {
   const propsParams: PredictMarketListParams = { ...params };
   delete propsParams.startTimeMin;
-  delete propsParams.startTimeMinHoursAgo;
-  delete propsParams.startTimeMinDaysAgo;
+  delete propsParams.startTimeMinMinutesAgo;
 
   return {
     id: chip.id,
     titleKey: chip.titleKey ?? FILTER_TITLE_KEYS.props,
     label: chip.label,
-    params: {
-      ...propsParams,
-      excludedTags: [...(propsParams.excludedTags ?? []), gamesTagId],
-    },
+    params: withSportsChipOverrides(
+      {
+        ...propsParams,
+        excludedTags: [...(propsParams.excludedTags ?? []), gamesTagId],
+      },
+      chip,
+    ),
   };
 };
 
@@ -127,7 +151,7 @@ const createTagFilter = (
   chip: PredictSportsFeedChipConfig,
 ): PredictFeedFilterConfig | undefined => {
   const tagSlug = chip.tagSlug ?? chip.id;
-  if (!tagSlug) {
+  if (!tagSlug && !chip.queryParams) {
     return undefined;
   }
 
@@ -135,11 +159,16 @@ const createTagFilter = (
     id: chip.id,
     titleKey: chip.titleKey,
     label: chip.label,
-    params: {
-      ...params,
-      tagSlugs: [tagSlug],
-      order: 'start_time',
-    },
+    params: withSportsChipOverrides(
+      tagSlug
+        ? {
+            ...params,
+            tagSlugs: [tagSlug],
+            order: 'start_time',
+          }
+        : params,
+      chip,
+    ),
   };
 };
 
@@ -215,7 +244,7 @@ const createSportsTab = (
     tagSlugs: [sportTagSlug],
     status: 'open',
     order: 'upcoming',
-    startTimeMinHoursAgo: SPORTS_START_TIME_MIN_HOURS_AGO,
+    startTimeMinMinutesAgo: SPORTS_START_TIME_MIN_MINUTES_AGO,
   };
   const staticFilters = tab.chips
     .map((chip) => createSportsFilter(baseParams, gamesTagId, chip))

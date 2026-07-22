@@ -649,12 +649,12 @@ export interface PredictMarketListParams {
   // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
   status?: 'open' | 'closed' | 'resolved';
   live?: boolean;
+  // Raw query string override for `/events/keyset` without a leading `?`.
+  queryParams?: string;
   // Lower bound for event start time -> start_time_min.
   startTimeMin?: string;
-  // Relative lower bound computed in hours when the request is built.
-  startTimeMinHoursAgo?: number;
-  // Relative lower bound computed when the request is built.
-  startTimeMinDaysAgo?: number;
+  // Relative lower bound computed in minutes when the request is built.
+  startTimeMinMinutesAgo?: number;
   // Free-text title filter. The provider maps this to Polymarket's
   // `title_search` query param, which composes with cursor pagination, so
   // search stays on the same feed endpoint (handled in the provider layer, not

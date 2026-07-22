@@ -23,6 +23,7 @@ describe('marketList query', () => {
   describe('normalizeMarketListParams', () => {
     it('defaults limit to the page size and drops absent fields', () => {
       expect(normalizeMarketListParams()).toEqual({
+        queryParams: undefined,
         tags: undefined,
         tagSlugs: undefined,
         excludedTags: undefined,
@@ -31,8 +32,7 @@ describe('marketList query', () => {
         status: undefined,
         live: undefined,
         startTimeMin: undefined,
-        startTimeMinHoursAgo: undefined,
-        startTimeMinDaysAgo: undefined,
+        startTimeMinMinutesAgo: undefined,
         search: undefined,
         limit: PREDICT_MARKET_LIST_PAGE_SIZE,
       });
@@ -80,11 +80,26 @@ describe('marketList query', () => {
           tags: ['100639'],
           tagSlugs: ['soccer'],
           order: 'start_time',
-          startTimeMinHoursAgo: 3,
+          startTimeMinMinutesAgo: 30,
         }),
       );
 
       expect(withStartTimeMin).not.toEqual(withoutStartTimeMin);
+    });
+
+    it('produces distinct keys for raw query params', () => {
+      const generated = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+        }),
+      );
+      const raw = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&order=startTime',
+        }),
+      );
+
+      expect(raw).not.toEqual(generated);
     });
 
     it('produces distinct keys for excluded tags', () => {

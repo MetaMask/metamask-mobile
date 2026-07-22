@@ -58,6 +58,18 @@ export interface PredictSportsFeedChipConfig {
   titleKey?: string;
   label?: string;
   tagSlug?: string;
+  /**
+   * Optional raw `/events/keyset` query string without a leading `?`. When
+   * present, this replaces the generated chip params entirely, so the flag owns
+   * the request shape.
+   */
+  queryParams?: string;
+  /**
+   * Optional start-time lower bound in minutes relative to request time. Applies
+   * on top of generated params or `queryParams` and overrides any default
+   * start-time lower bound for this chip.
+   */
+  startTimeMinMinutesAgo?: number;
 }
 
 export interface PredictSportsFeedTabConfig {
