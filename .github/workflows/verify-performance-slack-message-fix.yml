@@ -1,0 +1,31 @@
+# Temporary trigger used to verify the Slack category-status fix on this branch.
+# The cloud agent token cannot workflow_dispatch run-performance-e2e.yml (403).
+# Remove this file before merging the PR.
+name: Verify Performance Slack Message Fix
+
+on:
+  push:
+    branches:
+      - MMQA-performance-slack-message-fix
+
+permissions:
+  contents: write
+  id-token: write
+  actions: write
+  pull-requests: write
+
+concurrency:
+  group: verify-performance-slack-message-fix
+  cancel-in-progress: false
+
+jobs:
+  run-performance-e2e:
+    name: Run full Performance E2E (Slack fix verification)
+    uses: ./.github/workflows/run-performance-e2e.yml
+    with:
+      description: 'Verify Slack category status reflects quality gate failures (MMQA-performance-slack-message-fix)'
+      sentry_target: test
+      branch_name: MMQA-performance-slack-message-fix
+      build_variant: e2e
+      pr_number: '33631'
+    secrets: inherit
