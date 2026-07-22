@@ -85,6 +85,7 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
+  selectIsFirstTimePerpsUser,
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
@@ -179,10 +180,18 @@ const PerpsHomeView = ({
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
+      // First-time users must still go through onboarding (same as Trade sheet):
+      // routing straight into the Pro market would skip the tutorial otherwise,
+      // so no mode-switch flash is shown here.
+      if (isFirstTimePerpsUser) {
+        navigation.navigate(Routes.PERPS.TUTORIAL);
+        return;
+      }
       // Flash the destination mode on top of the current screen.
       showPerpsModeFlash(nextMode);
       // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
@@ -193,7 +202,7 @@ const PerpsHomeView = ({
         });
       }
     },
-    [navigation, setPerpsMode],
+    [isFirstTimePerpsUser, navigation, setPerpsMode],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least

@@ -10,6 +10,7 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -646,6 +647,27 @@ describe('PerpsHomeView', () => {
       expect.objectContaining({
         market: expect.objectContaining({ symbol: 'BTC' }),
       }),
+    );
+  });
+
+  it('routes first-time users to the Perps tutorial when the header toggle switches mode', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectPerpsProModeEnabledFlag ||
+        selector === selectIsFirstTimePerpsUser,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Act
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    // Assert - mode is persisted, but onboarding is not skipped
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MARKET_DETAILS,
+      expect.anything(),
     );
   });
 
