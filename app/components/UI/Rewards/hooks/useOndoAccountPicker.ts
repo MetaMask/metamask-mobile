@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
@@ -15,7 +12,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 
 export const useOndoAccountPicker = (campaignId: string | undefined) => {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const [pendingPicker, setPendingPicker] =
     useState<AccountPickerConfig | null>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -32,6 +29,10 @@ export const useOndoAccountPicker = (campaignId: string | undefined) => {
   const handleGroupSelect = useCallback(
     (group: AccountGroupObject) => {
       if (!pendingPicker) return;
+      if (!campaignId) {
+        setPendingPicker(null);
+        return;
+      }
       Engine.context.AccountTreeController.setSelectedAccountGroup(group.id);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)

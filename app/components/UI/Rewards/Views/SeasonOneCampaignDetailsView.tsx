@@ -6,6 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -24,7 +25,7 @@ type SeasonOneCampaignDetailsRouteParams = {
 
 const SeasonOneCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<SeasonOneCampaignDetailsRouteParams, 'SeasonOneCampaignDetails'>
