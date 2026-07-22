@@ -10,6 +10,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -145,7 +146,7 @@ function TransactionFeeRow({
     ? TextColor.TextMuted
     : hasAlert
       ? TextColor.ErrorDefault
-      : TextColor.TextAlternative;
+      : TextColor.TextDefault;
 
   return (
     <Box testID="bridge-fee-row">
@@ -171,6 +172,7 @@ function TransactionFeeRow({
           ) : (
             <Text
               variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={valueColor}
               testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
             >
@@ -205,7 +207,11 @@ function PaidByLabel() {
         color={IconColor.SuccessDefault}
         size={IconSize.Sm}
       />
-      <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.SuccessDefault}
+      >
         {strings('transactions.paid_by_metamask')}
       </Text>
     </Box>

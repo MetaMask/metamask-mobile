@@ -12,7 +12,7 @@ import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransacti
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, Pressable, StyleSheet } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
 import {
   Box,
@@ -26,6 +26,9 @@ import {
   IconSize,
   KeyValueRow,
   KeyValueRowVariant,
+  SelectButton,
+  SelectButtonSize,
+  SelectButtonVariant,
   Skeleton,
   Text,
   TextColor,
@@ -111,53 +114,98 @@ function PayWithRowLayout({
   disabled,
   showArrow,
   onPress,
-  valueStartAccessory,
-  children,
+  startAccessory,
+  value,
+  balance,
+  placeholder,
 }: {
   label: string;
   disabled?: boolean;
   showArrow?: boolean;
   onPress?: () => void;
-  valueStartAccessory?: React.ReactNode;
-  children: React.ReactNode;
+  startAccessory?: React.ReactNode;
+  /** Selected label for the SelectButton. Null/undefined shows placeholder. */
+  value?: string | null;
+  /** Optional balance shown after the value (e.g. "($8.92)"). */
+  balance?: string;
+  placeholder?: string;
 }) {
+  const handlePress = () => {
+    if (disabled) {
+      return;
+    }
+    onPress?.();
+  };
+
+  const selectPlaceholder =
+    placeholder ?? strings('confirm.label.select_token');
+
+  const endAccessory =
+    balance != null ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
+          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+        >
+          {`(${balance})`}
+        </Text>
+        {showArrow && (
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={disabled ? IconColor.IconMuted : IconColor.IconAlternative}
+          />
+        )}
+      </Box>
+    ) : undefined;
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
+    <Pressable
+      onPress={handlePress}
       disabled={disabled}
+      accessibilityRole="button"
       testID={ConfirmationRowComponentIDs.PAY_WITH}
+      style={({ pressed }) => ({
+        opacity: pressed && !disabled ? 0.7 : 1,
+      })}
     >
       <KeyValueRow
-        variant={KeyValueRowVariant.Input}
+        // Parent scroll content is padded 16px; cancel it (-mr-4) then apply
+        // 4px row padding (pr-1) so with SelectButton Md's 12px right padding
+        // (px-3) the caret sits 16px from the screen edge.
+        twClassName="-mr-4 pr-1"
+        variant={KeyValueRowVariant.Summary}
         keyLabel={
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
           >
             {label}
           </Text>
         }
-        valueStartAccessory={valueStartAccessory}
         value={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            {children}
-            {showArrow && (
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Sm}
-                color={
-                  disabled ? IconColor.IconMuted : IconColor.IconAlternative
-                }
-              />
-            )}
-          </Box>
+          <SelectButton
+            size={SelectButtonSize.Md}
+            variant={SelectButtonVariant.Secondary}
+            placeholder={selectPlaceholder}
+            value={value}
+            startAccessory={startAccessory}
+            onPress={handlePress}
+            isDisabled={disabled}
+            hideEndArrow={Boolean(endAccessory) || !showArrow}
+            endAccessory={endAccessory}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          />
         }
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -262,7 +310,7 @@ function PayWithRowInteractive() {
       disabled={isDisabled}
       showArrow={Boolean(from)}
       onPress={handleClick}
-      valueStartAccessory={
+      startAccessory={
         <TokenIcon
           address={displayToken.address}
           chainId={displayToken.chainId}
@@ -270,24 +318,9 @@ function PayWithRowInteractive() {
           variant={TokenIconVariant.Row}
         />
       }
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
-        testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-      >
-        {displayToken.symbol}
-        {!isWithdraw && (
-          <Text
-            color={TextColor.TextAlternative}
-            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
-          >
-            {` (${balanceUsdFormatted})`}
-          </Text>
-        )}
-      </Text>
-    </PayWithRowLayout>
+      value={displayToken.symbol}
+      balance={isWithdraw ? undefined : balanceUsdFormatted}
+    />
   );
 }
 
@@ -312,23 +345,15 @@ function PayWithFiatPaymentMethodRow({
       disabled={disabled}
       showArrow={hasFrom}
       onPress={onPress}
-      valueStartAccessory={
+      startAccessory={
         <PaymentMethodIcon
           paymentMethodType={paymentMethod.paymentType as PaymentType}
           size={20}
           color={disabled ? colors.icon.muted : colors.icon.default}
         />
       }
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
-        testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-      >
-        {paymentMethod.name}
-      </Text>
-    </PayWithRowLayout>
+      value={paymentMethod.name}
+    />
   );
 }
 
@@ -349,16 +374,8 @@ function PayWithRowEmpty({
       disabled={disabled}
       showArrow={hasFrom}
       onPress={onPress}
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-        testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-      >
-        {strings('confirm.label.select_token')}
-      </Text>
-    </PayWithRowLayout>
+      value={null}
+    />
   );
 }
 
@@ -387,7 +404,7 @@ function PayWithRowMoneyAccount() {
       }
       showArrow
       onPress={handleClick}
-      valueStartAccessory={
+      startAccessory={
         <Image
           source={MoneyIcon}
           style={[
@@ -396,16 +413,8 @@ function PayWithRowMoneyAccount() {
           ]}
         />
       }
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-        testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-      >
-        {strings('confirm.pay_with_bottom_sheet.money_account')}
-      </Text>
-    </PayWithRowLayout>
+      value={strings('confirm.pay_with_bottom_sheet.money_account')}
+    />
   );
 }
 

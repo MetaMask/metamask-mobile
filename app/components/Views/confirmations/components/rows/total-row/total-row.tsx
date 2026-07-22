@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import {
   Box,
+  FontWeight,
   KeyValueRow,
   KeyValueRowVariant,
   Text,
@@ -49,7 +50,7 @@ export function TotalRow() {
 
   const textColor = isHeadlessBuyInProgress
     ? TextColor.TextMuted
-    : TextColor.TextAlternative;
+    : TextColor.TextDefault;
 
   return (
     <Box testID="total-row">
@@ -59,6 +60,7 @@ export function TotalRow() {
         value={
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             color={textColor}
             testID={ConfirmationRowComponentIDs.TOTAL}
           >

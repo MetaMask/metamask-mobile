@@ -3,6 +3,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   KeyValueRow,
   KeyValueRowVariant,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -57,7 +58,8 @@ export function BridgeTimeRow() {
       value={
         <Text
           variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
           testID={ConfirmationRowComponentIDs.BRIDGE_TIME}
         >
           {formattedSeconds}
