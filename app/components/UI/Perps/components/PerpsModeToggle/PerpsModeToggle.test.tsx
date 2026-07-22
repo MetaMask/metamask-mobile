@@ -15,10 +15,12 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: { mode?: string }) => {
     const translations: Record<string, string> = {
       'perps.mode.lite': 'Lite',
       'perps.mode.pro': 'Pro',
+      'perps.mode.active_pill_accessibility_label': `Currently ${params?.mode ?? ''} mode`,
+      'perps.mode.active_pill_accessibility_hint': `Switches to ${params?.mode ?? ''} mode`,
     };
     return translations[key] || key;
   }),
@@ -34,12 +36,21 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
       testID,
       onPress,
+      accessibilityLabel,
+      accessibilityHint,
     }: {
       children: React.ReactNode;
       testID?: string;
       onPress?: () => void;
+      accessibilityLabel?: string;
+      accessibilityHint?: string;
     }) => (
-      <TouchableOpacity testID={testID} onPress={onPress}>
+      <TouchableOpacity
+        testID={testID}
+        onPress={onPress}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
+      >
         <Text>{children}</Text>
       </TouchableOpacity>
     ),
@@ -218,5 +229,33 @@ describe('PerpsModeToggle', () => {
           PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       },
     );
+  });
+
+  it('exposes VoiceOver label and hint for the active Pro pill', () => {
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Pro}
+        onChange={jest.fn()}
+        variant="active"
+      />,
+    );
+
+    const pill = getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT);
+    expect(pill.props.accessibilityLabel).toBe('Currently Pro mode');
+    expect(pill.props.accessibilityHint).toBe('Switches to Lite mode');
+  });
+
+  it('exposes VoiceOver label and hint for the active Lite pill', () => {
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Lite}
+        onChange={jest.fn()}
+        variant="active"
+      />,
+    );
+
+    const pill = getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT);
+    expect(pill.props.accessibilityLabel).toBe('Currently Lite mode');
+    expect(pill.props.accessibilityHint).toBe('Switches to Pro mode');
   });
 });

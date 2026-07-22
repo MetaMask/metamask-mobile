@@ -1284,7 +1284,9 @@
       "lite": "Lite",
       "pro": "Pro",
       "lite_transition_title": "Lite Mode",
-      "pro_transition_title": "Pro Mode"
+      "pro_transition_title": "Pro Mode",
+      "active_pill_accessibility_label": "Currently {{mode}} mode",
+      "active_pill_accessibility_hint": "Switches to {{mode}} mode"
     },
     "send_to_perps": "Send to Perps",
     "perps_trading": "Perps trading",
@@ -1813,6 +1815,7 @@
     "errors": {
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "unsupportedCollateral": "This market uses an unsupported collateral token. Only USDC-collateral markets are available.",
       "unknownError": "Unknown error occurred",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",

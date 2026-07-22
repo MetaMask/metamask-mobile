@@ -410,7 +410,7 @@ function TradeWalletActions() {
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
           endAccessory={
-            isPerpsProModeEnabled ? (
+            isPerpsProModeEnabled && canSignTransactions ? (
               <PerpsModeToggle
                 mode={perpsMode}
                 onChange={onPerpsModeChange}

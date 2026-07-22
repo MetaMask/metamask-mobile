@@ -76,11 +76,21 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   // toggle).
   if (variant === 'active') {
     const isPro = mode === PerpsMode.Pro;
+    const nextModeLabel = isPro ? liteLabel : proLabel;
+    const currentModeLabel = isPro ? proLabel : liteLabel;
     return (
       <ButtonBase
         size={ButtonBaseSize.Sm}
         twClassName="bg-transparent border border-border-muted"
         onPress={() => handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)}
+        accessibilityLabel={strings(
+          'perps.mode.active_pill_accessibility_label',
+          { mode: currentModeLabel },
+        )}
+        accessibilityHint={strings(
+          'perps.mode.active_pill_accessibility_hint',
+          { mode: nextModeLabel },
+        )}
         testID={
           isPro
             ? PerpsModeToggleSelectorsIDs.PRO_SEGMENT

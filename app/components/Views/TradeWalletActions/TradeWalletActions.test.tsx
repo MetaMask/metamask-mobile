@@ -751,6 +751,39 @@ describe('TradeWalletActions', () => {
     });
   });
 
+  it('hides the Lite/Pro toggle when the selected account cannot sign transactions', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    ).toBeDefined();
+    expect(queryByTestId('perps-mode-toggle')).toBeNull();
+
+    // Without the toggle, mode switching / navigation into Perps cannot be
+    // triggered from the Trade menu accessory.
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.anything(),
+    );
+  });
+
   it('routes first-time users to the Perps tutorial when the toggle switches mode', async () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
