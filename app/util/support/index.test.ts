@@ -5,9 +5,11 @@ import Routes from '../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../constants/urls';
 import {
   buildSupportUrl,
+  confirmSupportConsent,
   getEnrichedSupportUrl,
   navigateToSupportConsent,
   redactCustomerServiceToken,
+  rejectSupportConsent,
   SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN,
   SUPPORT_URL_PARAM_VERSION,
 } from './index';
@@ -166,6 +168,134 @@ describe('getEnrichedSupportUrl', () => {
   });
 });
 
+describe('confirmSupportConsent', () => {
+  const mockOpen = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(getVersion).mockReturnValue('7.1.0');
+  });
+
+  it('opens the enriched support URL', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+
+    await confirmSupportConsent(mockOpen, METAMASK_SUPPORT_URL);
+
+    expect(mockOpen).toHaveBeenCalledWith(
+      expect.stringContaining('customer_service_token=jwt-token'),
+    );
+  });
+
+  it('logs and swallows errors thrown by the opener', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    mockOpen.mockRejectedValueOnce(new Error('failed to open'));
+
+    await expect(
+      confirmSupportConsent(mockOpen, METAMASK_SUPPORT_URL),
+    ).resolves.toBeUndefined();
+
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[SupportConsent] Failed to open support URL',
+      expect.any(Error),
+    );
+  });
+
+  it('fires onOpenSupport once the opener resolves', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    const mockOnOpenSupport = jest.fn();
+
+    await confirmSupportConsent(
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+
+    expect(mockOnOpenSupport).toHaveBeenCalledTimes(1);
+  });
+
+  // Analytics should reflect a URL that actually opened, not merely a
+  // confirm tap that could still fail (e.g. no browser available).
+  it('does not fire onOpenSupport when the opener throws', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    mockOpen.mockRejectedValueOnce(new Error('failed to open'));
+    const mockOnOpenSupport = jest.fn();
+
+    await confirmSupportConsent(
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+
+    expect(mockOnOpenSupport).not.toHaveBeenCalled();
+  });
+});
+
+describe('rejectSupportConsent', () => {
+  const mockOpen = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the raw base URL with no device details', async () => {
+    await rejectSupportConsent(mockOpen, METAMASK_SUPPORT_URL);
+
+    const openedUrl = mockOpen.mock.calls[0][0] as string;
+    expect(openedUrl).toBe(METAMASK_SUPPORT_URL);
+    const params = new URL(openedUrl).searchParams;
+    expect(params.has(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)).toBe(false);
+    expect(params.has(SUPPORT_URL_PARAM_VERSION)).toBe(false);
+  });
+
+  it('logs and swallows errors thrown by the opener', async () => {
+    mockOpen.mockRejectedValueOnce(new Error('failed to open'));
+
+    await expect(
+      rejectSupportConsent(mockOpen, METAMASK_SUPPORT_URL),
+    ).resolves.toBeUndefined();
+
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[SupportConsent] Failed to open support URL',
+      expect.any(Error),
+    );
+  });
+
+  it('fires onOpenSupport once the opener resolves', async () => {
+    const mockOnOpenSupport = jest.fn();
+
+    await rejectSupportConsent(
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+
+    expect(mockOnOpenSupport).toHaveBeenCalledTimes(1);
+  });
+
+  // Analytics should reflect a URL that actually opened, not merely a
+  // reject tap that could still fail (e.g. no browser available).
+  it('does not fire onOpenSupport when the opener throws', async () => {
+    mockOpen.mockRejectedValueOnce(new Error('failed to open'));
+    const mockOnOpenSupport = jest.fn();
+
+    await rejectSupportConsent(
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+
+    expect(mockOnOpenSupport).not.toHaveBeenCalled();
+  });
+});
+
 describe('navigateToSupportConsent', () => {
   const mockNavigate = jest.fn();
   const mockNavigation: Parameters<typeof navigateToSupportConsent>[0] = {
@@ -214,5 +344,67 @@ describe('navigateToSupportConsent', () => {
     const params = new URL(openedUrl).searchParams;
     expect(params.has(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)).toBe(false);
     expect(params.has(SUPPORT_URL_PARAM_VERSION)).toBe(false);
+  });
+
+  it('fires onOpenSupport and opens the enriched URL when onConfirm runs', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    const mockOnOpenSupport = jest.fn();
+
+    navigateToSupportConsent(
+      mockNavigation,
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+    const { onConfirm } = mockNavigate.mock.calls[0][1].params;
+    await onConfirm();
+
+    expect(mockOnOpenSupport).toHaveBeenCalledTimes(1);
+    expect(mockOpen).toHaveBeenCalledWith(
+      expect.stringContaining('customer_service_token=jwt-token'),
+    );
+  });
+
+  it('fires onOpenSupport and opens the raw URL when onReject runs', async () => {
+    const mockOnOpenSupport = jest.fn();
+
+    navigateToSupportConsent(
+      mockNavigation,
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+    const { onReject } = mockNavigate.mock.calls[0][1].params;
+    // onReject now delegates to the async rejectSupportConsent, which fires
+    // onOpenSupport only after the opener resolves — await so that
+    // microtask has a chance to run before asserting.
+    await onReject();
+
+    expect(mockOnOpenSupport).toHaveBeenCalledTimes(1);
+    expect(mockOpen).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+  });
+
+  // Guards against a regression of the Bugbot-flagged timing bug: onOpenSupport
+  // must not fire merely because onConfirm/onReject was invoked — only once the
+  // opener itself has actually succeeded.
+  it('does not fire onOpenSupport when the opener throws on confirm', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    mockOpen.mockRejectedValueOnce(new Error('failed to open'));
+    const mockOnOpenSupport = jest.fn();
+
+    navigateToSupportConsent(
+      mockNavigation,
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+    const { onConfirm } = mockNavigate.mock.calls[0][1].params;
+    await onConfirm();
+
+    expect(mockOnOpenSupport).not.toHaveBeenCalled();
   });
 });

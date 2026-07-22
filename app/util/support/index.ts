@@ -90,6 +90,65 @@ export const getEnrichedSupportUrl = async (
 export type OpenSupportUrl = (url: string) => void | Promise<void>;
 
 /**
+ * Resolves the enriched support URL and opens it via the caller-provided
+ * `open` function. Shared by the navigation-based consent sheet
+ * (`navigateToSupportConsent`) and the navigation-free standalone consent
+ * modal (used where there is no `NavigationContainer`, e.g. the root
+ * `ErrorBoundary`), so both paths behave identically.
+ *
+ * @param open - Callback invoked with the final support URL once resolved.
+ * @param baseUrl - Support URL to enrich (defaults to the generic help center URL).
+ * @param onOpenSupport - Optional callback fired once `open` has resolved
+ * successfully, so a call site's "support opened" analytics event reflects
+ * an actual opened URL rather than a mere confirm tap that could still fail.
+ */
+export const confirmSupportConsent = async (
+  open: OpenSupportUrl,
+  baseUrl?: string,
+  onOpenSupport?: () => void,
+): Promise<void> => {
+  const url = await getEnrichedSupportUrl(baseUrl);
+  try {
+    await open(url);
+    onOpenSupport?.();
+  } catch (error) {
+    Logger.log('[SupportConsent] Failed to open support URL', error);
+  }
+};
+
+/**
+ * Opens the raw base URL with no device details, honoring the "Don't share"
+ * choice literally. Shared by the navigation-based consent sheet
+ * (`navigateToSupportConsent`) and the navigation-free standalone consent
+ * modal.
+ *
+ * @param open - Callback invoked with the final support URL once resolved.
+ * @param baseUrl - Support URL to fall back to (defaults to the generic help center URL).
+ * @param onOpenSupport - Optional callback fired once `open` has resolved
+ * successfully, so a call site's "support opened" analytics event reflects
+ * an actual opened URL rather than a mere reject tap that could still fail.
+ */
+export const rejectSupportConsent = async (
+  open: OpenSupportUrl,
+  baseUrl?: string,
+  onOpenSupport?: () => void,
+): Promise<void> => {
+  // Honor the "Don't share" choice literally: open the raw base URL without
+  // appending metamask_version (or any device detail), matching the consent copy.
+  const url = baseUrl ?? METAMASK_SUPPORT_URL;
+  Logger.log(
+    '[SupportConsent] Opening support URL without device details',
+    url,
+  );
+  try {
+    await open(url);
+    onOpenSupport?.();
+  } catch (error) {
+    Logger.log('[SupportConsent] Failed to open support URL', error);
+  }
+};
+
+/**
  * Shows the support consent sheet, then opens the support URL via the
  * caller-provided `open` function (e.g. navigating to SimpleWebview,
  * `Linking.openURL`, or an in-app browser), keeping each entry point's
@@ -104,6 +163,11 @@ export type OpenSupportUrl = (url: string) => void | Promise<void>;
  * @param navigation - Navigation object used to open the consent sheet.
  * @param open - Callback invoked with the final support URL once the user responds.
  * @param baseUrl - Support URL to enrich or fall back to (defaults to the generic help center URL).
+ * @param onOpenSupport - Optional callback fired once the support URL has
+ * successfully opened (after confirm or reject; never on dismiss, and never
+ * if `open` throws). Lets a call site record its "support opened" analytics
+ * event at the moment support is actually opened rather than when the user
+ * merely taps confirm/reject.
  */
 export const navigateToSupportConsent = (
   // Only `navigate` is needed; Pick avoids coupling to the caller's exact
@@ -111,33 +175,13 @@ export const navigateToSupportConsent = (
   navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,
   open: OpenSupportUrl,
   baseUrl?: string,
+  onOpenSupport?: () => void,
 ): void => {
-  const onConfirm = async () => {
-    const url = await getEnrichedSupportUrl(baseUrl);
-    try {
-      await open(url);
-    } catch (error) {
-      Logger.log('[SupportConsent] Failed to open support URL', error);
-    }
-  };
-
-  const onReject = async () => {
-    // Honor the "Don't share" choice literally: open the raw base URL without
-    // appending metamask_version (or any device detail), matching the consent copy.
-    const url = baseUrl ?? METAMASK_SUPPORT_URL;
-    Logger.log(
-      '[SupportConsent] Opening support URL without device details',
-      url,
-    );
-    try {
-      await open(url);
-    } catch (error) {
-      Logger.log('[SupportConsent] Failed to open support URL', error);
-    }
-  };
-
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
-    params: { onConfirm, onReject },
+    params: {
+      onConfirm: () => confirmSupportConsent(open, baseUrl, onOpenSupport),
+      onReject: () => rejectSupportConsent(open, baseUrl, onOpenSupport),
+    },
   });
 };
