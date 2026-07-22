@@ -240,7 +240,6 @@ const Routes = {
     REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
-    ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
@@ -501,6 +500,7 @@ const Routes = {
   },
   IMPORT_PRIVATE_KEY_VIEW: 'ImportPrivateKeyView',
   MULTICHAIN_ACCOUNTS: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',

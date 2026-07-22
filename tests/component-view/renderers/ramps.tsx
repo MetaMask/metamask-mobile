@@ -209,7 +209,8 @@ interface RootModalFlowProps {
 }
 
 const RootModalFlow = ({ route }: RootModalFlowProps) => {
-  const initialScreen = route.params?.screen ?? Routes.SHEET.ACCOUNT_SELECTOR;
+  const initialScreen =
+    route.params?.screen ?? Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR;
   const ModalStack = createNativeStackNavigator();
 
   return (
@@ -218,7 +219,7 @@ const RootModalFlow = ({ route }: RootModalFlowProps) => {
       screenOptions={{ headerShown: false }}
     >
       <ModalStack.Screen
-        name={Routes.SHEET.ACCOUNT_SELECTOR}
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
         component={AccountSelector}
         initialParams={route.params?.params}
       />

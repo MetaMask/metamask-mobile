@@ -199,7 +199,7 @@ describe('AccountSelector', () => {
     it('renders the component with account list', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -216,7 +216,7 @@ describe('AccountSelector', () => {
     it('renders add wallet button by default', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -233,7 +233,7 @@ describe('AccountSelector', () => {
     it('displays "Add wallet" text on the button', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -249,7 +249,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -283,7 +283,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -303,7 +303,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -328,7 +328,7 @@ describe('AccountSelector', () => {
 
       const { unmount } = renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -349,7 +349,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -369,7 +369,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -393,7 +393,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={routeWithDisabledButton} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
       );
 
@@ -413,7 +413,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={routeWithEnabledButton} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
       );
 
@@ -426,7 +426,7 @@ describe('AccountSelector', () => {
     it('shows add button when disableAddAccountButton is undefined', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -452,7 +452,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={routeWithNavigation} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
       );
 
@@ -478,7 +478,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -507,7 +507,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -542,7 +542,7 @@ describe('AccountSelector', () => {
       // Redux state change.
       renderScreen(
         () => <AccountSelector route={routeWithCallback} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -577,7 +577,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -607,7 +607,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params: paramsWithoutCallback }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         paramsWithoutCallback,
       );
@@ -640,7 +640,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -683,7 +683,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -720,7 +720,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -756,7 +756,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -793,7 +793,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -828,7 +828,7 @@ describe('AccountSelector', () => {
 
       const { store } = renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: stateWithReload },
         mockRoute.params,
       );
@@ -845,7 +845,7 @@ describe('AccountSelector', () => {
 
       const { store } = renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -866,7 +866,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -896,7 +896,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: emptyState },
         mockRoute.params,
       );

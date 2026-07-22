@@ -30,7 +30,7 @@ export const AccountDetails = () => {
 
   const renderAccountDetails = useMemo(() => {
     if (!account) {
-      navigation.navigate(Routes.SHEET.ACCOUNT_SELECTOR);
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR);
       return null;
     }
 
