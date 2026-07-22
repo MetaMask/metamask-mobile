@@ -361,6 +361,22 @@ describe('UnconnectedTransactions', () => {
   });
 
   describe('list lifecycle', () => {
+    it('passes the list ref to the parent after initialization', () => {
+      const onRefSet = jest.fn();
+
+      renderTransactions({ onRefSet });
+
+      expect(onRefSet).toHaveBeenCalledWith(
+        expect.objectContaining({ current: expect.anything() }),
+      );
+    });
+
+    it('omits the empty-state footer when requested', () => {
+      renderTransactions({ hideEmptyState: true });
+
+      expect(screen.getByTestId('transactions-container')).toBeOnTheScreen();
+    });
+
     it('expands the transaction selected by a notification', () => {
       const transaction = { id: 'notification-transaction', time: 2 };
       (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
