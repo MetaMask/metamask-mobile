@@ -58,7 +58,6 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreRwasStocks,
   TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
-  TokenDetailsSource.ExploreWatchlistFilter,
 ]);
 
 /**

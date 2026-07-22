@@ -18,6 +18,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -188,7 +189,7 @@ const BridgeTokenSelectorSearchEmptyState = React.memo(
 );
 
 export const BridgeTokenSelector: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
