@@ -1662,6 +1662,28 @@ describe('BridgeTokenSelector', () => {
       ).toBeUndefined();
     });
 
+    it('restores network filter when watchlist filter is deactivated', () => {
+      mockIsWatchlistEnabled = true;
+      const store = createMockStore({
+        tokenSelectorNetworkFilter: MOCK_CHAIN_IDS.ethereum,
+      });
+
+      const { getByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+        store,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      expect(
+        store.getState().bridge.tokenSelectorNetworkFilter,
+      ).toBeUndefined();
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      expect(store.getState().bridge.tokenSelectorNetworkFilter).toBe(
+        MOCK_CHAIN_IDS.ethereum,
+      );
+    });
+
     it('deactivates watchlist when network filter is set externally', async () => {
       mockIsWatchlistEnabled = true;
       mockUseTokenWatchlistQuery.mockReturnValue({

@@ -255,16 +255,6 @@ export const BridgeTokenSelector: React.FC = () => {
   const { data: watchlistData, isLoading: isWatchlistLoading } =
     useTokenWatchlistQuery();
 
-  const handleWatchlistFilterPress = useCallback(() => {
-    setShowWatchlistOnly((previous) => {
-      const next = !previous;
-      if (next) {
-        dispatch(setTokenSelectorNetworkFilter(undefined));
-      }
-      return next;
-    });
-  }, [dispatch]);
-
   const handleWatchlistTokenPress = useCallback(
     (token: BridgeToken) => {
       if (isWatchlistListMode) {
@@ -332,6 +322,24 @@ export const BridgeTokenSelector: React.FC = () => {
   const shouldResetListPositionRef = useRef(false);
   const prevWatchlistListModeRef = useRef(isWatchlistListMode);
   const watchlistSessionChainIdRef = useRef(selectedChainId);
+  const networkFilterBeforeWatchlistRef = useRef<CaipChainId | undefined>();
+
+  const handleWatchlistFilterPress = useCallback(() => {
+    setShowWatchlistOnly((previous) => {
+      const next = !previous;
+      if (next) {
+        networkFilterBeforeWatchlistRef.current = selectedChainId;
+        dispatch(setTokenSelectorNetworkFilter(undefined));
+      } else {
+        dispatch(
+          setTokenSelectorNetworkFilter(
+            networkFilterBeforeWatchlistRef.current,
+          ),
+        );
+      }
+      return next;
+    });
+  }, [dispatch, selectedChainId]);
 
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
