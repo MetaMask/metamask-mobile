@@ -94,11 +94,11 @@ export const mapWatchlistTokenToBridgeToken = (
  * Needed after wallet balance merge, which can overwrite sub-cent values with
  * `$0.00` / `<$0.01` from the generic bridge balance formatter.
  */
-export const applyWatchlistBridgeTokenFiatDisplay = (
-  token: BridgeToken,
+export const applyWatchlistBridgeTokenFiatDisplay = <T extends BridgeToken>(
+  token: T,
   currency: string | undefined,
   locale: string = I18n.locale,
-): BridgeToken => {
+): T => {
   const fiatAmount =
     token.tokenFiatAmount ??
     (isZeroBalance(token.balance) && currency ? 0 : undefined);

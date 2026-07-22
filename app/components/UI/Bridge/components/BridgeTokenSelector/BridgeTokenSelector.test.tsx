@@ -138,6 +138,10 @@ jest.mock('../../../../../selectors/networkController', () => ({
   })),
 }));
 
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'usd'),
+}));
+
 jest.mock('../../../../../selectors/featureFlagController/rwa', () => ({
   selectRWAEnabledFlag: jest.fn(() => false),
 }));
