@@ -68,9 +68,11 @@ import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
-import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import {
-  getSwapBridgeTxActivityTitle,
+  useBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemBySrcTxHash,
+} from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import {
   handleUnifiedSwapsTxHistoryItemClick,
   isBridgeTxHistoryItemBridge,
 } from '../../UI/Bridge/utils/transaction-history';
@@ -217,19 +219,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
     const getBridgeHistoryItemByHash = useCallback(
-      (hash?: string) => {
-        if (!hash) {
-          return undefined;
-        }
-
-        const normalizedHash = hash.toLowerCase();
-        return (
-          bridgeHistoryItemsBySrcTxHash[hash] ??
-          Object.entries(bridgeHistoryItemsBySrcTxHash).find(
-            ([key]) => key.toLowerCase() === normalizedHash,
-          )?.[1]
-        );
-      },
+      (hash?: string) =>
+        findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, hash),
       [bridgeHistoryItemsBySrcTxHash],
     );
 
@@ -911,9 +902,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
         const actionKey = resolveActivityListItemTitle(
           item,
-          itemBridgeHistoryItem
-            ? getSwapBridgeTxActivityTitle(itemBridgeHistoryItem)
-            : undefined,
+          itemBridgeHistoryItem,
         );
 
         const selectedEvmAddress =
@@ -1251,16 +1240,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
       const { item } = groupedItem;
 
-      // All items (API EVM confirmed, completed local EVM, non-EVM) render from
-      // the shared ActivityListItem shape.
-      //
-      // Preserve the legacy Activity title for swap/bridge rows (e.g.
-      // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
-      // history. Falls back to the kind-based title.
       const bridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
-      const title = bridgeHistoryItem
-        ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
-        : undefined;
 
       return (
         <ActivityListItemRow
@@ -1268,7 +1248,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           item={item}
           index={index}
           onPress={handleActivityItemPress}
-          title={title}
           isQRHardwareAccount={isQRHardwareAccount}
           isLedgerAccount={isLedgerAccount}
           onSpeedUpAction={onSpeedUpAction}
