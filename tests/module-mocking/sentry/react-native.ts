@@ -10,6 +10,13 @@ export const init = (_options?: unknown) => {
   console.log('[E2E Sentry Mock] init', _options ?? '(no options)');
 };
 
+/** Used by isSentryEnabled() during onboarding social login (main-e2e build). */
+export const getClient = (): undefined => {
+  // eslint-disable-next-line no-console
+  console.log('[E2E Sentry Mock] getClient');
+  return undefined;
+};
+
 export const wrap = <T>(component: T): T => {
   // eslint-disable-next-line no-console
   console.log('[E2E Sentry Mock] wrap');

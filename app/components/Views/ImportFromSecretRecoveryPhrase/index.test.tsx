@@ -6,6 +6,7 @@ import ReduxService from '../../../core/redux';
 import type { ReduxStore } from '../../../core/redux/types';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
+import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -1960,6 +1961,55 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
       });
+    });
+
+    it('ends onboarding-owned traces on unmount when opened from onboarding', () => {
+      const { unmount } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+        { [PREVIOUS_SCREEN]: ONBOARDING },
+      );
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingExistingSrpImport,
+        data: { success: false },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingSRPAccountImportTime,
+        data: { success: false },
+      });
+    });
+
+    it('does not end onboarding traces on unmount when opened outside onboarding', () => {
+      // e.g. the QR device-sync flow opens this screen without the
+      // PREVIOUS_SCREEN === ONBOARDING ownership marker.
+      const { unmount } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+        { qrSyncImport: true },
+      );
+
+      unmount();
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingExistingSrpImport,
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSRPAccountImportTime,
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingJourneyOverall,
+        }),
+      );
     });
 
     it('does not start trace and end trace when moving to password setup step without onboardingTraceCtx', async () => {

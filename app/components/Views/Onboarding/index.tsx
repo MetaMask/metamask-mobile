@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   BackHandler,
   ScrollView,
   InteractionManager,
@@ -32,6 +33,7 @@ import {
 } from '../../../actions/onboarding';
 import {
   AccountType,
+  OnboardingMethod,
   getSocialAccountType,
 } from '../../../constants/onboarding';
 import {
@@ -71,8 +73,10 @@ import {
   TraceContext,
   endTrace,
   trace,
+  annotateTrace,
   hasMetricsConsent,
   discardBufferedTraces,
+  updateCachedConsent,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -94,7 +98,7 @@ import {
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { setupSentry } from '../../../util/sentry/utils';
+import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -150,6 +154,9 @@ interface OnboardingRouteParams {
   showErrorReportSentToast?: boolean;
 }
 
+// Production p95 is spent in the external browser. After foregrounding, the
+// redirect and token exchange should finish within this grace period.
+export const OAUTH_TRACE_ABANDONMENT_GRACE_MS = 25_000;
 const styles = StyleSheet.create({
   androidNotificationOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -232,6 +239,36 @@ const Onboarding = () => {
       socialLoginTraceCtx.current = undefined;
     }
   }, []);
+
+  // Ending the social-login attempt (or the overall journey) does not automatically end the
+  // OAuth child spans started inside OAuthService (provider login, BYOA token request, seedless
+  // authenticate). Their finally blocks only run when the underlying promises settle, which never
+  // happens if the user abandons the flow in the external browser. The underlying operations
+  // cannot safely be aborted, so finalize their traces here through the central capped lifecycle:
+  // endTrace records at most startTime + TRACES_CLEANUP_INTERVAL, and safely no-ops when the span
+  // has already been closed by its own finally block.
+  const finalizeInFlightOAuthTraces = useCallback(() => {
+    endTrace({
+      name: TraceName.OnboardingOAuthProviderLogin,
+      data: { success: false, abandoned: true },
+    });
+    endTrace({
+      name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+      data: { success: false, abandoned: true },
+    });
+    endTrace({
+      name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+      data: { success: false, abandoned: true },
+    });
+  }, []);
+
+  // Fix 5 (OAuth abandonment): OAuth normally backgrounds the app to open the browser, so we must
+  // NOT end the social-login span on 'background' — that would truncate every healthy login.
+  // Instead we arm on background-during-attempt and evaluate on FOREGROUND RETURN.
+  const appBackgroundedDuringSocialLoginRef = useRef(false);
+  const abandonmentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
@@ -370,8 +407,11 @@ const Onboarding = () => {
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
-    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
+      annotateTrace(onboardingTraceCtx.current, {
+        'onboarding.method': OnboardingMethod.Srp,
+        account_type: AccountType.Metamask,
+      });
       trace({
         name: TraceName.OnboardingNewSrpCreateWallet,
         op: TraceOperation.OnboardingUserJourney,
@@ -394,7 +434,6 @@ const Onboarding = () => {
     };
 
     handleExistingUser(action);
-    endTrace({ name: TraceName.OnboardingCreateWallet });
   }, [
     metrics,
     navigation,
@@ -416,6 +455,10 @@ const Onboarding = () => {
     await hasMetricsConsent();
 
     const action = async () => {
+      annotateTrace(onboardingTraceCtx.current, {
+        'onboarding.method': OnboardingMethod.Srp,
+        account_type: AccountType.Imported,
+      });
       trace({
         name: TraceName.OnboardingExistingSrpImport,
         op: TraceOperation.OnboardingUserJourney,
@@ -641,6 +684,8 @@ const Onboarding = () => {
               const result = await OAuthLoginService.handleOAuthLogin(
                 fallbackHandler,
                 !createWallet,
+                // Nest the retry's auth spans under the still-open social-login attempt.
+                socialLoginTraceCtx.current,
               );
               handlePostSocialLogin(
                 result as OAuthLoginResult,
@@ -793,12 +838,32 @@ const Onboarding = () => {
       // Continue with the social login flow
       navigation.navigate('Onboarding');
 
-      // Enable metrics for OAuth users
+      // Enable metrics for OAuth users. Social login opts in before any real Sentry
+      // onboarding spans can be created. Order matters:
+      // 1) persist controller opt-in
+      // 2) update the sync consent cache so trace() is not buffered
+      // 3) re-init Sentry ONLY when it isn't already enabled — calling Sentry.init
+      //    again mid-journey overwrites the client and orphans in-flight
+      //    OnboardingJourneyOverall transactions (they finish in logs but never land).
+      //    In __DEV__, index.js already force-enabled via setupSentry(__DEV__).
+      // 4) drop pre-consent buffered starts; mount journey was undefined and must be
+      //    recreated below after consent is live. If we had to re-init, also drop any
+      //    journey context created under the previous client.
       await metrics.enable(true);
+      updateCachedConsent(true);
+      const sentryWasAlreadyEnabled = isSentryEnabled();
+      if (!sentryWasAlreadyEnabled) {
+        await setupSentry(true);
+        // Spans started under the previous (disabled/rebuilt) client are invalid.
+        onboardingTraceCtx.current = undefined;
+      }
       discardBufferedTraces();
-      await setupSentry();
 
       const accountType = getSocialAccountType(provider, !createWallet);
+      const onboardingPathTags = {
+        'onboarding.method': OnboardingMethod.Social,
+        account_type: accountType,
+      };
       metrics.trackEvent(
         metrics
           .createEventBuilder(MetaMetricsEvents.METRICS_OPT_IN)
@@ -810,12 +875,23 @@ const Onboarding = () => {
           .build(),
       );
 
-      // use new trace instead of buffered trace for social login
-      onboardingTraceCtx.current = trace({
-        name: TraceName.OnboardingJourneyOverall,
-        op: TraceOperation.OnboardingUserJourney,
-        tags: getTraceTags(store.getState()),
-      });
+      // The mount effect (below) already started an OnboardingJourneyOverall span. If metrics
+      // opt-in consent was already granted at mount (or __DEV__ force-enabled Sentry), that
+      // span is a REAL span in tracesByKey and the user is actively continuing their journey
+      // — reuse it rather than ending it, which would record a continuing journey as abandoned
+      // and inflate abandonment metrics.
+      // If consent was still buffered at mount, or we re-inited Sentry above, start a real
+      // journey span now. Duplicate keys are handled centrally in startTrace.
+      if (!onboardingTraceCtx.current) {
+        onboardingTraceCtx.current = trace({
+          name: TraceName.OnboardingJourneyOverall,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: { ...getTraceTags(store.getState()), ...onboardingPathTags },
+        });
+      }
+      // Always annotate so reused mount journeys (and spans started without path
+      // tags) get filterable attributes in Sentry.
+      annotateTrace(onboardingTraceCtx.current, onboardingPathTags);
 
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -900,6 +976,9 @@ const Onboarding = () => {
             const result = await OAuthLoginService.handleOAuthLogin(
               loginHandler,
               !createWallet,
+              // Nest provider-login / get-auth-tokens / seedless-authenticate spans under
+              // the social-login attempt so backend + web3auth time shows in the journey.
+              socialLoginTraceCtx.current,
             );
             handlePostSocialLogin(
               result as OAuthLoginResult,
@@ -1169,11 +1248,81 @@ const Onboarding = () => {
 
     return () => {
       mounted.current = false;
+      if (notificationTimer.current) {
+        clearTimeout(notificationTimer.current);
+      }
+      // Journey-level cleanup: if a social-login attempt is still in flight when the screen
+      // unmounts, close it and its OAuth child spans — their finally blocks may never run if the
+      // underlying promises never settle after the app was backgrounded for OAuth.
+      if (socialLoginTraceCtx.current) {
+        finalizeInFlightOAuthTraces();
+        endSocialLoginAttemptTrace(false);
+      }
+      // Close the overall-journey span on unmount so it is never left open to be force-closed
+      // by the 5-min trace cleanup timer (which also does not fire reliably while the app is
+      // backgrounded during OAuth). success:false is correct here because every SUCCESSFUL
+      // terminal (SRP import, backup skip/confirm, social/password rehydration) calls endTrace
+      // on this span BEFORE navigating away — so by the time this unmount cleanup runs on a
+      // completed journey, the span is already gone from tracesByKey and this call no-ops.
+      // It therefore only records a value when the user actually abandoned onboarding.
+      endTrace({
+        name: TraceName.OnboardingJourneyOverall,
+        data: { success: false },
+      });
+      onboardingTraceCtx.current = undefined;
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fix 5: end OnboardingSocialLoginAttempt as abandoned only on foreground return when no OAuth
+  // result arrived. socialLoginTraceCtx.current is set while an attempt is in flight and cleared
+  // by endSocialLoginAttemptTrace on success/failure, so "still set" == "no result yet".
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      // Arm ONLY when the app leaves while a social-login attempt is genuinely in flight.
+      if (
+        (nextState === 'background' || nextState === 'inactive') &&
+        socialLoginTraceCtx.current
+      ) {
+        appBackgroundedDuringSocialLoginRef.current = true;
+        // Returning to the external browser means the login is still active.
+        // Cancel any grace countdown started by a brief foreground transition.
+        if (abandonmentTimerRef.current) {
+          clearTimeout(abandonmentTimerRef.current);
+          abandonmentTimerRef.current = null;
+        }
+        return;
+      }
+      // Foreground return after such a background: wait the grace window, then if the attempt
+      // is still in flight (no success/failure cleared the ctx) treat it as abandoned.
+      if (
+        nextState === 'active' &&
+        appBackgroundedDuringSocialLoginRef.current
+      ) {
+        appBackgroundedDuringSocialLoginRef.current = false;
+        if (abandonmentTimerRef.current) {
+          clearTimeout(abandonmentTimerRef.current);
+        }
+        abandonmentTimerRef.current = setTimeout(() => {
+          if (socialLoginTraceCtx.current) {
+            // Finalize the OAuth child spans (provider login, token request) before the
+            // attempt span: their promises may never settle after abandonment.
+            finalizeInFlightOAuthTraces();
+            endSocialLoginAttemptTrace(false);
+          }
+        }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
+      }
+    });
+    return () => {
+      subscription.remove();
+      if (abandonmentTimerRef.current) {
+        clearTimeout(abandonmentTimerRef.current);
+        abandonmentTimerRef.current = null;
+      }
+    };
+  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces]);
 
   useEffect(() => {
     updateNavBar();

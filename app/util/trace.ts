@@ -460,24 +460,112 @@ export function trace<T>(
 }
 
 /**
+ * Compute the effective end timestamp for a pending trace, capped at the
+ * trace's maximum lifetime (startTime + TRACES_CLEANUP_INTERVAL).
+ *
+ * JavaScript timers can execute hours late when the app is backgrounded, and
+ * endTrace can likewise be invoked long after the app returns to the
+ * foreground. Capping the end timestamp guarantees a manual trace governed by
+ * the cleanup interval is never recorded with a duration exceeding it.
+ *
+ * @param pendingTrace - The pending trace being finished.
+ * @param requestedEndTime - The requested end timestamp, if any.
+ * @returns The capped end timestamp to record on the span.
+ */
+function getEffectiveEndTime(
+  pendingTrace: PendingTrace,
+  requestedEndTime?: number,
+): number {
+  const maximumEndTime = pendingTrace.startTime + TRACES_CLEANUP_INTERVAL;
+  const endTime = requestedEndTime ?? getPerformanceTimestamp();
+
+  // Guard against non-finite timestamps (e.g. environments without a
+  // performance implementation) so NaN never propagates into span.end().
+  if (!Number.isFinite(maximumEndTime)) {
+    return endTime;
+  }
+  if (!Number.isFinite(endTime)) {
+    return maximumEndTime;
+  }
+
+  return Math.min(endTime, maximumEndTime);
+}
+
+/**
+ * Finish a pending trace and remove it from the pending map.
+ * The recorded end timestamp is capped at the trace's maximum lifetime.
+ *
+ * @param key - The trace key in the pending map.
+ * @param pendingTrace - The pending trace to finish.
+ * @param requestedEndTime - The requested end timestamp, if any.
+ * @returns The effective (capped) end timestamp that was recorded.
+ */
+function finishPendingTrace(
+  key: string,
+  pendingTrace: PendingTrace,
+  requestedEndTime?: number,
+): number {
+  const effectiveEndTime = getEffectiveEndTime(pendingTrace, requestedEndTime);
+
+  pendingTrace.end(effectiveEndTime);
+  clearTimeout(pendingTrace.timeoutId);
+  tracesByKey.delete(key);
+
+  return effectiveEndTime;
+}
+
+/**
  * End a pending trace that was started without a callback.
  * Does nothing if the pending trace cannot be found.
  *
  * @param request - The data necessary to identify and end the pending trace.
  */
-export function endTrace(request: EndTraceRequest): void {
-  const { name, timestamp } = request;
-  const id = getTraceId(request);
+/**
+ * Return the in-flight span for a pending manual trace, if any.
+ * Used to nest a security op (e.g. Create Key and Backup SRP) under an
+ * already-open journey span (e.g. New Social Create Wallet) without
+ * threading the span through route params.
+ */
+export function getTraceContext(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+): TraceContext {
+  return tracesByKey.get(getTraceKey(request))?.span;
+}
 
-  if (getCachedConsent() !== true) {
-    bufferTraceEndCallLocal(request);
+/**
+ * Attach tags/attributes to an already-started span (e.g. set
+ * `onboarding.method` on the Overall Journey once the user picks a path).
+ * No-ops when context is undefined (buffered/consent-disabled).
+ */
+export function annotateTrace(
+  context: TraceContext,
+  tags: Record<string, TraceValue>,
+): void {
+  if (!context) {
     return;
   }
 
+  for (const [key, value] of Object.entries(tags)) {
+    context.setAttribute(key, value);
+  }
+}
+
+export function endTrace(request: EndTraceRequest): void {
+  const { name, timestamp } = request;
+  const id = getTraceId(request);
   const key = getTraceKey(request);
   const pendingTrace = tracesByKey.get(key);
 
+  // An active span (started while consent was enabled) must remain closable
+  // even if the cached consent changes afterwards, so check the pending map
+  // before consulting consent. Only buffer the end request when there is no
+  // active trace to finish.
   if (!pendingTrace) {
+    if (getCachedConsent() !== true) {
+      bufferTraceEndCallLocal(request);
+      return;
+    }
+
     log('No pending trace found', name, id);
     return;
   }
@@ -489,13 +577,9 @@ export function endTrace(request: EndTraceRequest): void {
     }
   }
 
-  pendingTrace.end(timestamp);
-
-  clearTimeout(pendingTrace.timeoutId);
-  tracesByKey.delete(key);
+  const endTime = finishPendingTrace(key, pendingTrace, timestamp);
 
   const { request: pendingRequest, startTime } = pendingTrace;
-  const endTime = timestamp ?? getPerformanceTimestamp();
   const duration = endTime - startTime;
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
@@ -730,14 +814,41 @@ function startTrace(request: TraceRequest): TraceContext {
       initSpan(span, request);
     }
 
+    const key = getTraceKey(request);
+
+    // Duplicate key: safely finish the previous span with a capped timestamp
+    // and clear its timeout before registering the new trace, so the previous
+    // cleanup timer can never delete or interfere with the newer trace.
+    const previousTrace = tracesByKey.get(key);
+    if (previousTrace) {
+      log('Replacing pending trace with duplicate key', name, id);
+      finishPendingTrace(key, previousTrace);
+    }
+
     const timeoutId = setTimeout(() => {
+      // Defensive identity check: a stale timer must never touch a newer
+      // trace registered under the same key.
+      if (tracesByKey.get(key)?.end !== end) {
+        return;
+      }
+
       log('Trace cleanup due to timeout', name, id);
-      end();
-      tracesByKey.delete(getTraceKey(request));
+
+      // The timer only fires at or after the maximum lifetime (possibly hours
+      // late when the app was backgrounded), so record the capped timestamp
+      // rather than the current time.
+      end(startTime + TRACES_CLEANUP_INTERVAL);
+      tracesByKey.delete(key);
     }, TRACES_CLEANUP_INTERVAL);
 
-    const pendingTrace = { end, request, startTime, timeoutId, span };
-    const key = getTraceKey(request);
+    const pendingTrace: PendingTrace = {
+      end,
+      request,
+      startTime,
+      timeoutId,
+      span,
+    };
+
     tracesByKey.set(key, pendingTrace);
 
     log('Started trace', name, id, request);
@@ -745,7 +856,11 @@ function startTrace(request: TraceRequest): TraceContext {
     return span;
   };
 
-  return startSpan(request, (spanOptions) =>
+  // Pass the resolved epoch-ms startTime so start/end share one clock. Omitting
+  // it lets Sentry pick wall-clock start while endTrace still passes our
+  // performance-based stamp — when timeOrigin is broken that pair is invalid
+  // and Sentry silently drops the transaction.
+  return startSpan({ ...request, startTime }, (spanOptions) =>
     startSpanManual(spanOptions, callback),
   );
 }
@@ -817,8 +932,23 @@ function initSpan(_span: Span, request: TraceRequest) {
   }
 }
 
+/**
+ * Absolute timestamp in milliseconds since the Unix epoch.
+ *
+ * Used as Sentry `startTime` / `span.end(timestamp)`. The SDK converts values
+ * `> 9999999999` from ms → seconds; smaller values are treated as seconds as-is.
+ * On some React Native Android builds `performance.timeOrigin` is `0`, so
+ * `timeOrigin + now` is only a few million (uptime ms) and gets misread as
+ * "seconds since 1970" — Sentry then silently drops the transaction. Fall back
+ * to `Date.now()` whenever the performance clock is not a plausible epoch ms.
+ */
 function getPerformanceTimestamp(): number {
-  return performance.timeOrigin + performance.now();
+  const performanceMs = performance.timeOrigin + performance.now();
+  // Any real epoch-ms timestamp for MetaMask is well above 1e11 (≈ 1973).
+  if (!Number.isFinite(performanceMs) || performanceMs < 1e11) {
+    return Date.now();
+  }
+  return performanceMs;
 }
 
 function tryCatchMaybePromise<T>(

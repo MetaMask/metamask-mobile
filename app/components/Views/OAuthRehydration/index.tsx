@@ -37,6 +37,7 @@ import {
   TraceOperation,
   TraceContext,
   endTrace,
+  getTraceContext,
 } from '../../../util/trace';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
@@ -465,7 +466,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           name: TraceName.OnboardingPasswordLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage: loginErrorMessage },
-          parentContext: route.params.onboardingTraceCtx,
+          parentContext:
+            passwordLoginAttemptTraceCtxRef.current ??
+            route.params.onboardingTraceCtx,
         });
         endTrace({ name: TraceName.OnboardingPasswordLoginError });
       }
@@ -553,6 +556,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
+      // Start on submit (not mount) so duration is unlock work, not typing/dwell.
+      // Nest under Existing Social Login when that phase span is open; else journey.
+      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+      if (onboardingTraceCtx) {
+        passwordLoginAttemptTraceCtxRef.current = trace({
+          name: TraceName.OnboardingPasswordLoginAttempt,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext:
+            getTraceContext({
+              name: TraceName.OnboardingExistingSocialLogin,
+            }) ?? onboardingTraceCtx,
+        });
+      }
+      const passwordLoginAttemptCtx = passwordLoginAttemptTraceCtxRef.current;
+
       // Password first: do not prompt biometrics until unlock succeeds
       const authData: AuthData = {
         currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -563,12 +581,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
+          parentContext: passwordLoginAttemptCtx ?? undefined,
         },
         async () => {
           await unlockWallet({
             password,
             authPreference: authData,
             onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+            // Nest OnboardingFetchSrps under Password Login Attempt when present.
+            parentContext: passwordLoginAttemptCtx ?? onboardingTraceCtx,
           });
         },
       );
@@ -590,7 +611,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         failed_attempts: rehydrationFailedAttempts,
       });
 
-      if (passwordLoginAttemptTraceCtxRef?.current) {
+      if (passwordLoginAttemptTraceCtxRef.current) {
         endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
         passwordLoginAttemptTraceCtxRef.current = null;
       }
@@ -601,6 +622,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setError(null);
     } catch (loginErr) {
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
+      if (passwordLoginAttemptTraceCtxRef.current) {
+        endTrace({
+          name: TraceName.OnboardingPasswordLoginAttempt,
+          data: { success: false },
+        });
+        passwordLoginAttemptTraceCtxRef.current = null;
+      }
     }
   }, [
     password,
@@ -608,13 +636,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     finalLoading,
     rehydrationFailedAttempts,
     handleLoginError,
-    passwordLoginAttemptTraceCtxRef,
     track,
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
     syncMarketingOptInAfterUnlock,
+    route.params?.onboardingTraceCtx,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -701,17 +729,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       backHandlerSubscription.remove();
     };
   }, [handleBackPress]);
-
-  useEffect(() => {
-    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
-    if (onboardingTraceCtxFromRoute) {
-      passwordLoginAttemptTraceCtxRef.current = trace({
-        name: TraceName.OnboardingPasswordLoginAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtxFromRoute,
-      });
-    }
-  }, [route.params?.onboardingTraceCtx]);
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
