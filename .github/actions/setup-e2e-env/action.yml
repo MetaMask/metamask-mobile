@@ -155,22 +155,38 @@ runs:
       # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
       # are baked into the metamask-android-build image.
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-      with:
-        timeout_minutes: 5
-        max_attempts: 3
-        retry_wait_seconds: 30
-        retry_on: error
-        on_retry_command: sudo apt-get clean
-        command: |
-          set -euo pipefail
-          sudo apt-get -o DPkg::Lock::Timeout=120 update
-          sudo apt-get -o DPkg::Lock::Timeout=120 install -y \
-            libpulse0 \
-            libglu1-mesa \
-            libnss3 \
-            libxss1
-          echo "✅ Linux dependencies installed successfully"
+      # Self-contained bash retry loop instead of nick-fields/retry.
+      # The apt commands run as root via sudo; on self-hosted runners the runner
+      # agent is non-root, so when nick-fields/retry timed out it could not kill the
+      # root-owned apt process and crashed with `kill EPERM` (see #29715, #29236).
+      # `sudo timeout` makes the process self-terminate cleanly — no external kill of a
+      # root PID — while a slow Ubuntu mirror is tolerated by the 10-minute per-attempt
+      # budget and per-download `Acquire::Retries`.
+      shell: bash
+      run: |
+        set -euo pipefail
+        for attempt in 1 2 3; do
+          echo "::group::apt install attempt ${attempt}/3"
+          if sudo timeout 600 bash -c '
+            set -euo pipefail
+            apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update
+            apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y \
+              libpulse0 \
+              libglu1-mesa \
+              libnss3 \
+              libxss1
+          '; then
+            echo "✅ Linux dependencies installed successfully"
+            echo '::endgroup::'
+            exit 0
+          fi
+          echo '::endgroup::'
+          echo "⚠️ Attempt ${attempt}/3 failed; cleaning apt cache and retrying..."
+          sudo apt-get clean || true
+          sleep 30
+        done
+        echo '❌ Failed to install Linux dependencies after 3 attempts'
+        exit 1
 
     ## Android System Image Setup (only when simulator/emulator is needed)
 
