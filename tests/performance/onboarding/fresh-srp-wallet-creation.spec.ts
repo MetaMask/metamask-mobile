@@ -133,16 +133,15 @@ const waitForPostOnboardingDestination = async (
   // a mounted-but-covered route (e.g. Wallet behind a sheet) can win before
   // the topmost sheet is dismissed. Assert the specific candidate element is
   // actually displayed to guard against selecting a covered screen.
-  const displayedProbeStartedAt = Date.now();
+  // Note: expectElementToBeVisible internally accounts for probe overhead
+  // where appropriate; do not wrap it in addOverhead here — that would also
+  // subtract legitimate UI-wait time and under-report the transition.
   await PlaywrightAssertions.expectElementToBeVisible(
     resolvedCandidate.getElement(),
     {
       description: `${POST_ONBOARDING_DESTINATION_LABELS[resolvedCandidate.destination]} should be visible`,
     },
   );
-  if (isOverheadTrackingActive()) {
-    addOverhead(Date.now() - displayedProbeStartedAt);
-  }
 
   return resolvedCandidate.destination;
 };
