@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -27,12 +26,10 @@ export const buildShareCopiedToastOptions = ({
   iconColor: successColor,
   hasNoTimeout: false,
   startAccessory: (
-    <Box twClassName="items-center justify-center pr-3">
-      <Icon
-        name={IconName.Confirmation}
-        color={successColor}
-        size={IconSize.Lg}
-      />
-    </Box>
+    <Icon
+      name={IconName.Confirmation}
+      color={successColor}
+      size={IconSize.Lg}
+    />
   ),
 });
