@@ -118,7 +118,7 @@ const PerpsOrderRedirect: React.FC = () => {
     PerpsToastOptions,
   ]);
 
-  // Match PerpsLoadingSkeleton layout ("Connecting to Perps") so both loaders look the same: top-aligned, centered, pt-20
+  // Match PerpsLoader connecting layout so both loaders look the same: top-aligned, centered, pt-20
   return (
     <Box
       twClassName="flex-1 bg-default pt-20"

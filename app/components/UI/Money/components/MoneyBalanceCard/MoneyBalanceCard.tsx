@@ -60,7 +60,7 @@ const MoneyBalanceCard = () => {
     apyPercent,
     isBalanceLoading,
     isBalanceFetchError,
-    isBalanceFetching,
+    moneyBalanceQuery,
     refetchBalance,
     vaultApyQuery,
   } = useMoneyAccountBalance();
@@ -85,6 +85,8 @@ const MoneyBalanceCard = () => {
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
   });
+
+  const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;

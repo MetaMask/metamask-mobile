@@ -4,19 +4,15 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Card,
-} from '@metamask/design-system-react-native';
-import Text, {
+  FontWeight,
+  ListItem,
+  ListItemVariant,
+  SensitiveText,
+  SensitiveTextLength,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
+} from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,6 +21,7 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
   type Order,
+  type PerpsMarketData,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -46,61 +43,74 @@ import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
-interface CardDisplayData {
-  primaryText: string;
-  secondaryText: string;
+interface PositionListDisplay {
+  title: string;
+  description: string;
   valueText: string;
-  labelText: string;
-  valueColor: TextColor;
+  subvalueText: string;
+  subvalueColor: TextColor;
 }
 
-const getPositionDisplayData = (position: Position): CardDisplayData => {
-  const leverage = position.leverage.value;
+interface OrderListDisplay {
+  title: string;
+  description: string;
+  valueText: string;
+  subvalueText: string;
+  subvalueColor: TextColor;
+}
+
+const getPositionListDisplay = (position: Position): PositionListDisplay => {
   const isLong = parseFloat(position.size) > 0;
   const displaySymbol = getPerpsDisplaySymbol(position.symbol);
-  const primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
-  const secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
+  const absoluteSize = Math.abs(parseFloat(position.size));
+  const directionLower = isLong
+    ? strings('perps.market.long_lowercase')
+    : strings('perps.market.short_lowercase');
 
   const pnlValue = parseFloat(position.unrealizedPnl);
-  const valueText = formatPerpsFiat(position.positionValue, {
-    ranges: PRICE_RANGES_MINIMAL_VIEW,
-  });
   const roeValue = parseFloat(position.returnOnEquity) * 100;
-  const labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
-  const valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
-
-  return { primaryText, secondaryText, valueText, labelText, valueColor };
-};
-
-const getOrderDisplayData = (order: Order): CardDisplayData => {
-  const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-  const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
-  const primaryText = formatOrderLabel(order);
-  const secondaryText = `${formatPositionSize(order.originalSize)} ${displaySymbol}`;
-  const valueText =
-    priceValue !== null
-      ? formatPerpsFiat(priceValue, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        })
-      : strings('perps.order.market');
-  const labelText = strings(labelKey);
 
   return {
-    primaryText,
-    secondaryText,
-    valueText,
-    labelText,
-    valueColor: TextColor.Alternative,
+    // Match main: leverage lives in the title string (e.g. "ETH 3x long")
+    title: `${displaySymbol} ${position.leverage.value}x ${directionLower}`,
+    description: `${formatPositionSize(absoluteSize.toString())} ${displaySymbol}`,
+    valueText: formatPerpsFiat(position.positionValue, {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
+    }),
+    subvalueText: `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`,
+    subvalueColor:
+      pnlValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
   };
 };
 
+const getOrderListDisplay = (order: Order): OrderListDisplay => {
+  const displaySymbol = getPerpsDisplaySymbol(order.symbol);
+  const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+
+  return {
+    title: formatOrderLabel(order),
+    description: `${formatPositionSize(order.originalSize)} ${displaySymbol}`,
+    valueText:
+      priceValue !== null
+        ? formatPerpsFiat(priceValue, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
+        : strings('perps.order.market'),
+    subvalueText: strings(labelKey),
+    subvalueColor: TextColor.TextAlternative,
+  };
+};
+
+interface PerpsCardContentProps extends PerpsCardProps {
+  /** Market used for default navigation when `onPress` is not provided */
+  market?: PerpsMarketData;
+}
+
 /**
- * PerpsCard Component
- *
- * A unified card component for displaying both positions and orders in the Perps tab.
- * Handles navigation to the market details screen when pressed.
+ * Shared list row UI. Does not call stream hooks — safe outside PerpsStreamProvider
+ * when a custom `onPress` is supplied.
  */
-const PerpsCard: React.FC<PerpsCardProps> = ({
+const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
   position,
   order,
   onPress,
@@ -108,6 +118,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   source,
   source_section,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  market,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
@@ -115,18 +126,8 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
   const symbol = position?.symbol || order?.symbol || '';
 
-  const { markets } = usePerpsMarkets();
-
-  const displayData = position
-    ? getPositionDisplayData(position)
-    : order
-      ? getOrderDisplayData(order)
-      : null;
-
-  const market = useMemo(
-    () => markets.find((m) => m.symbol === symbol),
-    [markets, symbol],
-  );
+  const positionDisplay = position ? getPositionListDisplay(position) : null;
+  const orderDisplay = order ? getOrderListDisplay(order) : null;
 
   const handlePress = useCallback(() => {
     if (onPress) {
@@ -178,65 +179,101 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     return null;
   }
 
+  const title = positionDisplay?.title ?? orderDisplay?.title ?? '';
+  const descriptionNode = (
+    <SensitiveText
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      isHidden={Boolean(privacyMode && position)}
+      length={SensitiveTextLength.Short}
+    >
+      {positionDisplay?.description ?? orderDisplay?.description ?? ''}
+    </SensitiveText>
+  );
+  const valueNode = (
+    <SensitiveText
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Short}
+    >
+      {positionDisplay?.valueText ?? orderDisplay?.valueText ?? ''}
+    </SensitiveText>
+  );
+  const subvalueColor =
+    privacyMode && position
+      ? TextColor.TextDefault
+      : (positionDisplay?.subvalueColor ??
+        orderDisplay?.subvalueColor ??
+        TextColor.TextDefault);
+  const subvalueNode = position ? (
+    <SensitiveText
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={subvalueColor}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Short}
+    >
+      {positionDisplay?.subvalueText ?? ''}
+    </SensitiveText>
+  ) : (
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={subvalueColor}
+    >
+      {orderDisplay?.subvalueText ?? ''}
+    </Text>
+  );
+
   return (
-    <Card
+    <ListItem
+      isInteractive
+      variant={ListItemVariant.TwoLines}
+      avatar={
+        symbol ? <PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
+      }
+      title={title}
+      description={descriptionNode}
+      value={valueNode}
+      subvalue={subvalueNode}
       onPress={handlePress}
       testID={testID}
-      touchableOpacityProps={{ activeOpacity: 0.7 }}
-      twClassName="py-3 px-0 border-0 rounded-none bg-transparent"
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        alignItems={BoxAlignItems.Center}
-      >
-        {/* Left side: Icon and info */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1"
-        >
-          {symbol && (
-            <Box marginRight={4}>
-              <PerpsTokenLogo symbol={symbol} size={iconSize} />
-            </Box>
-          )}
-          <Box twClassName="flex-1">
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {displayData?.primaryText ?? ''}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {displayData?.secondaryText ?? ''}
-            </Text>
-          </Box>
-        </Box>
-
-        {/* Right side: Value and label */}
-        <Box alignItems={BoxAlignItems.End}>
-          <SensitiveText
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
-            {displayData?.valueText ?? ''}
-          </SensitiveText>
-          <SensitiveText
-            variant={TextVariant.BodySM}
-            color={
-              privacyMode && !!position
-                ? TextColor.Default
-                : (displayData?.valueColor ?? TextColor.Default)
-            }
-            isHidden={privacyMode && !!position}
-            length={SensitiveTextLength.Short}
-          >
-            {displayData?.labelText ?? ''}
-          </SensitiveText>
-        </Box>
-      </Box>
-    </Card>
+    />
   );
+};
+
+/**
+ * Resolves market via stream for default navigation. Requires PerpsStreamProvider.
+ */
+const PerpsCardWithMarketLookup: React.FC<PerpsCardProps> = (props) => {
+  const symbol = props.position?.symbol || props.order?.symbol || '';
+  const { markets } = usePerpsMarkets();
+  const market = useMemo(
+    () => markets.find((m) => m.symbol === symbol),
+    [markets, symbol],
+  );
+
+  return <PerpsCardContent {...props} market={market} />;
+};
+
+/**
+ * PerpsCard Component
+ *
+ * A unified list row for positions and orders on the Perps home tab.
+ * Uses MMDS ListItem defaults (including horizontal padding).
+ *
+ * When `onPress` is provided, stream/market lookup is skipped so the card can
+ * render outside PerpsStreamProvider (e.g. Asset overview).
+ */
+const PerpsCard: React.FC<PerpsCardProps> = (props) => {
+  if (props.onPress) {
+    return <PerpsCardContent {...props} />;
+  }
+
+  return <PerpsCardWithMarketLookup {...props} />;
 };
 
 export default React.memo(PerpsCard);
