@@ -24,8 +24,6 @@ const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
   'app/components/UI/AccountInfoCard/index.js',
-  'app/components/UI/AssetOverview/Price/Price.advanced.tsx',
-  'app/components/UI/AssetOverview/Price/Price.legacy.tsx',
   'app/components/UI/AssetOverview/utils/marketDetails.ts',
   'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
   'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
