@@ -1849,8 +1849,14 @@ export class PredictController extends BaseController<
             });
           }
         } else {
+          const serviceFee = preview.fees?.totalFee ?? 0;
+          const marketFee = preview.fees?.marketFee ?? 0;
           realAmountUsd = parseFloat(receivedAmount);
           realSharePrice = parseFloat(receivedAmount) / parseFloat(spentAmount);
+          const netAmountUsd = Math.max(
+            0,
+            realAmountUsd - serviceFee - marketFee,
+          );
 
           if (hasBalanceBaseline) {
             // Optimistically update balance. Held until a confirmed
@@ -1858,7 +1864,7 @@ export class PredictController extends BaseController<
             // on-chain settlement.
             this.update((state) => {
               state.balances[signer.address] = {
-                balance: cachedBalance + realAmountUsd,
+                balance: cachedBalance + netAmountUsd,
                 validUntil: Date.now() + OPTIMISTIC_BALANCE_MAX_AGE_MS,
               };
             });

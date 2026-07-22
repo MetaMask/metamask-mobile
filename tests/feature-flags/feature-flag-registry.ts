@@ -4667,6 +4667,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialAiTSA901AbtestTopTradersBuyAction: {
+    name: 'socialAiTSA901AbtestTopTradersBuyAction',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 0.5,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   solanaOnboardingModal: {
     name: 'solanaOnboardingModal',
     type: FeatureFlagType.Remote,
