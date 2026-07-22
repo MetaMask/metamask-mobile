@@ -379,10 +379,6 @@ const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
   }),
 );
 
-jest.mock('../../hooks/usePerpsOpenOrders', () => ({
-  usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
-}));
-
 const mockUsePerpsLiveFillsImpl = jest.fn<
   ReturnType<
     typeof import('../../hooks/stream/usePerpsLiveFills').usePerpsLiveFills
@@ -554,19 +550,6 @@ jest.mock('../../hooks', () => ({
     resetError: jest.fn(),
     reconnectWithNewContext: jest.fn(),
   }),
-  usePerpsOpenOrders: () => ({
-    orders: [],
-    refresh: mockRefreshOrders,
-    isLoading: false,
-    error: null,
-  }),
-  usePerpsPositions: jest.fn(() => ({
-    positions: [],
-    isLoading: false,
-    isRefreshing: false,
-    error: null,
-    loadPositions: jest.fn(),
-  })),
   usePerpsTPSLUpdate: jest.fn(() => ({
     updateTPSL: jest.fn(),
     isUpdating: false,
@@ -764,12 +747,6 @@ jest.mock('../../components/PerpsNotificationTooltip', () => ({
     const { View } = jest.requireActual('react-native');
     return orderSuccess ? <View testID={testID} /> : null;
   },
-}));
-
-// Mock PerpsOpenOrderCard
-jest.mock('../../components/PerpsOpenOrderCard', () => ({
-  __esModule: true,
-  default: () => null,
 }));
 
 // Mock PerpsBottomSheetTooltip to avoid SafeAreaProvider issues

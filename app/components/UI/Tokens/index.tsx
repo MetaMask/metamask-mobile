@@ -122,10 +122,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
     const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled =
+    const shouldExcludeMusdFromMainList =
       isMusdConversionFlowEnabled && isMoneyHubEnabled && isGeoEligible;
-
-    const shouldExcludeMusdFromMainList = isCashSectionEnabled;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -135,7 +133,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectSortedAssetsBySelectedAccountGroup,
     );
 
-    // When showOnlyMusd: only mUSD. When Cash section is enabled: exclude mUSD (shown in Cash section). Otherwise include all.
+    // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
+    // in the Money hub.
     const tokenKeysForList = useMemo(
       () =>
         showOnlyMusd

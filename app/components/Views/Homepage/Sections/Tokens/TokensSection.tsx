@@ -150,34 +150,33 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     );
     const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled =
+    const shouldExcludeMusd =
       isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
+    // Exclude mUSD while it is surfaced in the Money hub; otherwise include all tokens.
     const displayTokenKeys = useMemo(
       () =>
         sortedTokenKeys
           .filter((key) =>
-            isCashSectionEnabled ? !isMusdToken(key.address) : true,
+            shouldExcludeMusd ? !isMusdToken(key.address) : true,
           )
           .slice(0, MAX_TOKENS_DISPLAYED),
-      [sortedTokenKeys, isCashSectionEnabled],
+      [sortedTokenKeys, shouldExcludeMusd],
     );
 
     // Show error when an explicit refresh failed, or when balance data has loaded
     // and the account has balance but the selector returned no tokens (controllers
     // failed to load data). The accountGroupBalance null-check prevents a false
     // positive on cold start or for legitimately empty token lists.
-    // When Cash section is enabled, displayTokenKeys can be empty because we filter
-    // out mUSD (shown in Cash section); do not treat "balance but no non-mUSD tokens"
-    // as an error.
+    // When mUSD is surfaced in the Money hub, displayTokenKeys can be empty because
+    // it is filtered out; do not treat "balance but no non-mUSD tokens" as an error.
     const hasBalanceButNoTokens =
       accountGroupBalance != null &&
       accountGroupBalance.totalBalanceInUserCurrency > 0 &&
       displayTokenKeys.length === 0 &&
-      (!isCashSectionEnabled || sortedTokenKeys.length === 0);
+      (!shouldExcludeMusd || sortedTokenKeys.length === 0);
     const showTokensError = hasTokensError || hasBalanceButNoTokens;
 
     const isPositionsOnly = mode === 'positions-only';
