@@ -109,7 +109,6 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
   HomeSectionNames: {
-    CASH: 'cash',
     TOKENS: 'tokens',
     WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
