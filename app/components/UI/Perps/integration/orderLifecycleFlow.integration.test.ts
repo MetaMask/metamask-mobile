@@ -227,5 +227,49 @@ describe('Perps order lifecycle — FLOW integration', () => {
         asset: 'BTC',
       });
     });
+
+    it('emits a partially_filled Perp Position Close Transaction when the fill is partial', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.subscription.getCachedPositions.mockReturnValue([
+        openLongBTC,
+      ]);
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { filled: { oid: 123, totalSz: '0.05', avgPx: '50000' } },
+            ],
+          },
+        },
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let closeResult: OrderResult | null = null;
+      await act(async () => {
+        closeResult = await result.current.closePosition({
+          symbol: 'BTC',
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50_000,
+        });
+      });
+
+      expect(closeResult).toMatchObject({ success: true });
+
+      const events = perps.analytics.byName(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+      );
+      const partialEvent = events.find(
+        (e) => e.status === PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+      );
+      expect(partialEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+        asset: 'BTC',
+        amount_filled: 0.05,
+        remaining_amount: 0.05,
+      });
+    });
   });
 });
