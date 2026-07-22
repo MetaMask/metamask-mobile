@@ -343,20 +343,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isWatchlist = useSelector(selectIsWatchlist);
 
   // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Pressing it
-  // flips the shared mode and flashes the switch on top of the screen.
+  // flips the shared mode and flashes the switch on top of the current market
+  // screen — no navigation either direction.
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
       showPerpsModeFlash(nextMode);
-      // Already on a market page: per AC, Pro stays here; Lite returns to
-      // Perps home.
-      if (nextMode === PerpsMode.Lite) {
-        navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
-      }
     },
-    [navigateToHome, setPerpsMode],
+    [setPerpsMode],
   );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
