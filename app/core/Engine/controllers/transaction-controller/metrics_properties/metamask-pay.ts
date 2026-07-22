@@ -189,9 +189,8 @@ function addPayTypeProperties(
   const tokenAddress = metamaskPay?.tokenAddress;
 
   if (
-    !chainId &&
-    !tokenAddress &&
-    !hasTransactionType(transaction, PAY_TYPES)
+    !hasTransactionType(transaction, PAY_TYPES) &&
+    (!chainId || !tokenAddress)
   ) {
     return;
   }

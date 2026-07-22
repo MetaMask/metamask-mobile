@@ -201,6 +201,30 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('does not derive baseline for non-PAY_TYPE with only chainId in metamaskPay', () => {
+    request.transactionMeta.type = TransactionType.simpleSend;
+    request.transactionMeta.metamaskPay = { chainId: '0x1' } as never;
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {},
+      sensitiveProperties: {},
+    });
+  });
+
+  it('does not derive baseline for non-PAY_TYPE with only tokenAddress in metamaskPay', () => {
+    request.transactionMeta.type = TransactionType.simpleSend;
+    request.transactionMeta.metamaskPay = { tokenAddress: '0x123' } as never;
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {},
+      sensitiveProperties: {},
+    });
+  });
+
   it.each([
     [TransactionType.moneyAccountDeposit, 'money_account_deposit'],
     [TransactionType.moneyAccountWithdraw, 'money_account_withdraw'],
