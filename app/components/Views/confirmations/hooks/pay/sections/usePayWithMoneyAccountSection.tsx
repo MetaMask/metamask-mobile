@@ -11,10 +11,7 @@ import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagC
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
-import {
-  getTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { getTransactionType } from '../../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
 import {
   PayWithRowConfig,
@@ -50,18 +47,16 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     transactionType && enableMoneyAccountTransactions[transactionType],
   );
 
-  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-
   const handlePress = useCallback(() => {
     if (transactionId) {
       applyMoneyAccountOverride(
         transactionId,
         moneyAccount?.address,
-        isWithdraw,
+        transactionMeta,
       );
     }
     navigation.goBack();
-  }, [isWithdraw, moneyAccount?.address, navigation, transactionId]);
+  }, [moneyAccount?.address, navigation, transactionId, transactionMeta]);
 
   return useMemo(() => {
     if (!isEnabled || !moneyAccount) {
