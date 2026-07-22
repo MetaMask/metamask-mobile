@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type LayoutChangeEvent, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
@@ -49,7 +50,7 @@ export function usePredictWorldCupFeedSession<T extends string>({
   transactionActiveAbTests,
 }: UsePredictWorldCupFeedSessionOptions<T>): UsePredictWorldCupFeedSessionResult<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const tabsScrollViewRef = useRef<ScrollView>(null);
   const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
