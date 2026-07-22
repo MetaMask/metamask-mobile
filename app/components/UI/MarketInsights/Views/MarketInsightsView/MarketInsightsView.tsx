@@ -155,6 +155,8 @@ export interface MarketInsightsRouteParams {
   /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
   assetIdentifier: string;
   tokenImageUrl?: string;
+  /** 24h price percent change forwarded from Token Details (currently unused here). */
+  pricePercentChange?: number;
   /** Full token object for the sticky footer (buy/swap actions). Passed from Token Details. */
   token?: TokenDetailsRouteParams;
   /** When true, indicates the view was opened from the Perps market details view */

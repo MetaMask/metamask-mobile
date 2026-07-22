@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
@@ -89,7 +90,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
 
   // Prevent rapid navigation clicks - locks all buttons during navigation

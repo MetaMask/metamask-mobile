@@ -32,6 +32,9 @@ import type {
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { Nft } from '@metamask/assets-controllers';
+import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
+import type { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DeFiProtocolPositionDetails';
 
 // Bridge params
 import type {
@@ -354,7 +357,7 @@ type TraderPositionViewParams =
 export type RootModalFlowParamList = {
   WalletActions: undefined;
   TradeWalletActions: undefined;
-  FundActionMenu: undefined;
+  FundActionMenu: FundActionMenuParams | undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
@@ -391,7 +394,9 @@ export type RootModalFlowParamList = {
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   TurnOffRememberMeModal: undefined;
   AssetHideConfirmation: { onConfirm: () => void } | undefined;
-  NftOptions: { collectible: Collectible } | undefined;
+  // Caller (NftDetails) forwards a raw `Nft`; the NftOptions component reads
+  // only fields common to both, so accept either shape.
+  NftOptions: { collectible: Collectible | Nft } | undefined;
   UpdateNeededModal: undefined;
   OTAUpdatesModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
@@ -614,7 +619,7 @@ export type RootStackParamList = {
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
   WalletActions: undefined;
   TradeWalletActions: undefined;
-  FundActionMenu: undefined;
+  FundActionMenu: FundActionMenuParams | undefined;
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
   MaxBrowserTabsModal: undefined;
@@ -1063,6 +1068,7 @@ export type RootStackParamList = {
   // NFT detail routes
   NftDetails: NftDetailsParams;
   NftDetailsFullImage: NftDetailsParams;
+  DeFiProtocolPositionDetails: DeFiProtocolPositionDetailsParams | undefined;
 
   // SDK routes
   ReturnToDappToast: ReturnToDappNotificationParams | undefined;

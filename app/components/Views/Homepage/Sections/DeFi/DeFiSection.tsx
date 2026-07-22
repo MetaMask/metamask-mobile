@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -83,7 +84,7 @@ const DeFiPositionsSkeleton = () => {
 const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
 
     // TODO(ASSETS-3658): Replace with a proper polling mechanism in DeFiPositionsController.

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStore } from 'react-redux';
 import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
@@ -358,7 +359,7 @@ export const useHandleOnSwap = ({
  * non-EVM send flow first; falls through to the EVM send page otherwise.
  */
 export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigateToSendPage } = useSendNavigation();
@@ -438,7 +439,7 @@ export const useHandleOnReceive = ({
   /** Optional network name displayed in the share-address QR sheet. */
   networkName?: string;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 

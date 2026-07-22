@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, TouchableOpacity } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   Button,
   ButtonIcon,
@@ -30,7 +31,7 @@ const ANIMATION_DURATION = 250;
 
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { data, isLoading } = useTokenWatchlistQuery();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);

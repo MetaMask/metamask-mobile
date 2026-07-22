@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   SectionDivider,
@@ -86,7 +87,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const isZeroBalanceAccount = useIsZeroBalanceAccount();
     const { popularNetworks: popularChainIds } = useNetworkEnablement();
     const sortedTokenKeys = useSelector((state: RootState) =>
@@ -316,7 +317,7 @@ const TokensSectionTrendingOnly = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
     const trendingTransactionActiveAbTests =
