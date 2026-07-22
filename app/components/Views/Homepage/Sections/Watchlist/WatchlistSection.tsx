@@ -19,6 +19,7 @@ import WatchlistEmptyState from './components/WatchlistEmptyState';
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
 import { mapWatchlistTokenToTrendingAsset } from './utils/mapWatchlistTokenToTrendingAsset';
+import { WatchlistAnalytics } from '../../../../UI/Assets/watchlist/constants/watchlistAnalytics';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -62,7 +63,12 @@ const WatchlistSection = forwardRef<
   const itemCount = displayTokens.length;
 
   const handleSectionPress = useCallback(() => {
-    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW as never);
+    navigation.navigate(
+      Routes.WALLET.WATCHLIST_FULL_VIEW as never,
+      {
+        source: WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE,
+      } as never,
+    );
   }, [navigation]);
 
   const refresh = useCallback(async () => {
