@@ -201,6 +201,15 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(isSettled).toBe(true);
   });
 
+  it('rejects when a delegated nested amount update fails', async () => {
+    updateTokenAmountMock.mockRejectedValue(new Error('update failed'));
+    const { result } = runHook();
+
+    await expect(
+      result.current.updateTransactionPayAmount('1.23'),
+    ).rejects.toThrow('update failed');
+  });
+
   it('rejects and logs when updateAtomicBatchData rejects', async () => {
     const error = new Error('boom');
     updateAtomicBatchDataMock.mockRejectedValue(error);

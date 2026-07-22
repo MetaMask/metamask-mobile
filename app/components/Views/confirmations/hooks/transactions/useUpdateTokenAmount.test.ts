@@ -154,7 +154,7 @@ describe('useUpdateTokenAmount', () => {
     expect(isSettled).toBe(true);
   });
 
-  it('logs nested update failures without rejecting', async () => {
+  it('logs and rejects nested update failures', async () => {
     const error = new Error('update failed');
     const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();
     updateAtomicBatchDataMock.mockRejectedValue(error);
@@ -177,7 +177,7 @@ describe('useUpdateTokenAmount', () => {
       updatePromise = Promise.resolve(result.current.updateTokenAmount('1.5'));
     });
 
-    await expect(updatePromise).resolves.toBeUndefined();
+    await expect(updatePromise).rejects.toThrow('update failed');
     expect(loggerErrorSpy).toHaveBeenCalledWith(
       error,
       'Failed to update token amount in nested transaction',

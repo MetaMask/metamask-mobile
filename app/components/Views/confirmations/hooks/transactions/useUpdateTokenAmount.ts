@@ -89,6 +89,7 @@ export function useUpdateTokenAmount() {
             error,
             'Failed to update token amount in nested transaction',
           );
+          throw error;
         });
       }
 
