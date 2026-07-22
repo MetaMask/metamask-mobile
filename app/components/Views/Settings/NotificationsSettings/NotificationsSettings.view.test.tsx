@@ -145,7 +145,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(3);
+    expect(await findAllByText('Push, In app')).toHaveLength(4);
   });
 
   it('renders price alerts section when notifications are enabled', async () => {
