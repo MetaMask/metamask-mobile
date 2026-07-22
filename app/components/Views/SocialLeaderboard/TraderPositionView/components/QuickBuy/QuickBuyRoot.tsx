@@ -109,7 +109,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
 
   // Keyboard vs slider A/B test. Resolved here so `Experiment Viewed` fires
   // once the sheet is actually shown (this component only mounts when visible).
-  const { variant } = useABTest(
+  const { variant, variantName } = useABTest(
     SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
     SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
     SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
@@ -208,6 +208,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     >
       {isContentReady ? (
         <QuickBuyProvider
+          key={variantName}
           target={target}
           onClose={requestClose}
           features={features}

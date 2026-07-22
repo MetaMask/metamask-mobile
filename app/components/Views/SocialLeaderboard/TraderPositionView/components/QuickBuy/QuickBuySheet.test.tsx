@@ -469,6 +469,60 @@ describe('QuickBuy.Root', () => {
       expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
     });
 
+    it('remounts input state when the keyboard A/B assignment flips to treatment', () => {
+      mockUseKeyboard = false;
+      (useQuickBuyController as jest.Mock).mockImplementation(
+        (
+          _target: unknown,
+          _onClose: unknown,
+          _analytics: unknown,
+          useKeyboard: boolean,
+        ) => {
+          const result = buildHookResult({
+            isUnsupportedChain: false,
+            fiatAmountLabel: useKeyboard ? '$0.00' : '$50.00',
+            sliderPercent: useKeyboard ? 0 : 50,
+          });
+          mockControllerState.getResult = () => result;
+          return result;
+        },
+      );
+
+      const target = positionToQuickBuyTarget(createPosition());
+      const { rerender } = renderWithProvider(
+        <QuickBuy.Root
+          isVisible
+          target={target}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        />,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
+      expect((useQuickBuyController as jest.Mock).mock.calls[0]?.[3]).toBe(
+        false,
+      );
+
+      mockUseKeyboard = true;
+      rerender(
+        <QuickBuy.Root
+          isVisible
+          target={target}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
+      const lastCall = (useQuickBuyController as jest.Mock).mock.calls.at(-1);
+      expect(lastCall?.[3]).toBe(true);
+      expect(mockControllerState.getResult().fiatAmountLabel).toBe('$0.00');
+      expect(mockControllerState.getResult().sliderPercent).toBe(0);
+    });
+
     it('calls handleConfirm from the sticky confirm button', () => {
       const handleConfirm = jest.fn();
       setMockQuickBuyController({ isUnsupportedChain: false, handleConfirm });
