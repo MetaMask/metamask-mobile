@@ -1,5 +1,15 @@
 {
   "name": "metamask",
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "breaking",
+      "previewVersion": "17.0.0-preview-acc8294b8"
+    },
+    "@metamask/profile-sync-controller": {
+      "type": "breaking",
+      "previewVersion": "28.3.0-preview-acc8294b8"
+    }
+  },
   "version": "8.4.0",
   "private": true,
   "repository": {

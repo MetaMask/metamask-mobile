@@ -45,10 +45,9 @@ export function getRampsControllerMessenger(
       // itself for quote widening.
       'RemoteFeatureFlagController:getState',
       'UserStorageController:getState',
-      'UserStorageController:performGetStorage',
       'UserStorageController:performGetStorageAllFeatureEntries',
-      'UserStorageController:performSetStorage',
       'UserStorageController:performBatchSetStorage',
+      'UserStorageController:listEntropySources',
       'AuthenticationController:isSignedIn',
     ],
     events: [],
