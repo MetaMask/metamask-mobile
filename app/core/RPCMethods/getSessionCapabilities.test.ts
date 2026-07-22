@@ -254,25 +254,20 @@ describe('getSessionCapabilities', () => {
       expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
     });
 
-    it('treats chain ID order as irrelevant to the cache key', async () => {
+    it('treats chain ID order and address casing as irrelevant to the cache key', async () => {
       mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
 
       await getSessionCapabilities(SELECTED_ADDRESS, ['0x1', '0xa']);
       await getSessionCapabilities(SELECTED_ADDRESS, ['0xa', '0x1']);
+      await getSessionCapabilities(SELECTED_ADDRESS.toUpperCase(), [
+        '0x1',
+        '0xa',
+      ]);
 
       expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
     });
 
-    it('treats address casing as irrelevant to the cache key', async () => {
-      mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
-
-      await getSessionCapabilities(SELECTED_ADDRESS.toLowerCase(), ['0x1']);
-      await getSessionCapabilities(SELECTED_ADDRESS.toUpperCase(), ['0x1']);
-
-      expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
-    });
-
-    it('recomputes for a different address or chain set', async () => {
+    it('recomputes for a different address or chain set, or after the cache is cleared', async () => {
       mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
 
       await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
@@ -281,8 +276,10 @@ describe('getSessionCapabilities', () => {
         '0xAbcDef0123456789012345678901234567890123',
         ['0x1'],
       );
+      clearSessionCapabilitiesCache();
+      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
 
-      expect(mockGetCapabilities).toHaveBeenCalledTimes(3);
+      expect(mockGetCapabilities).toHaveBeenCalledTimes(4);
     });
 
     it('recomputes once the TTL has expired', async () => {
@@ -309,16 +306,6 @@ describe('getSessionCapabilities', () => {
       const result = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
 
       expect(result).toBe(CAPABILITIES);
-      expect(mockGetCapabilities).toHaveBeenCalledTimes(2);
-    });
-
-    it('recomputes after the cache is cleared', async () => {
-      mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
-
-      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-      clearSessionCapabilitiesCache();
-      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-
       expect(mockGetCapabilities).toHaveBeenCalledTimes(2);
     });
   });

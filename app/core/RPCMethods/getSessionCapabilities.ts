@@ -18,29 +18,13 @@ import { isRelaySupported } from '../../util/transactions/transaction-relay';
 
 type SessionCapabilities = Awaited<ReturnType<typeof getCapabilities>>;
 
-/**
- * In-memory cache for computed session capabilities, following the same
- * TTL + in-flight-deduplication pattern as
- * `app/util/transactions/sentinel-api.ts`.
- *
- * Capability computation fans out per-chain RPC calls
- * (`isAtomicBatchSupported` issues one `eth_getCode` per permitted chain), so
- * hydrating `sessionProperties.eip155Capabilities` inline can make
- * `wallet_getSession` slow on sessions with many permitted chains — and the
- * multichain-api-client SDK calls `wallet_getSession` with a short timeout
- * while restoring a session on dapp page load. Caching keeps that call fast:
- * `wallet_createSession` seeds the cache at connect time, so the
- * post-reload `wallet_getSession` is a cache hit.
- *
- * Deduplication matters independently of the TTL: the SDK retries its
- * session-restore call, and without it each retry would launch another
- * full RPC fan-out.
- *
- * Capabilities are a property of account x chains (never of the requesting
- * origin), so entries are safely shared across dapps and bridges. Staleness
- * is bounded by the TTL; a permission change alters the permitted chain IDs
- * and therefore the cache key, immediately bypassing stale entries.
- */
+// In-memory session-capabilities cache (TTL + in-flight deduplication,
+// mirroring `app/util/transactions/sentinel-api.ts`). Computation fans out
+// per-chain RPC calls, which can make `wallet_getSession` too slow for the
+// multichain-api-client SDK's short session-restore timeout on dapp page
+// load; `wallet_createSession` seeds the cache at connect time so the
+// post-reload `wallet_getSession` is a hit. Capabilities depend only on
+// account and chains (never the origin), so entries are shared across dapps.
 const CACHE_TTL_MS = 300_000; // 5 minutes
 
 interface SessionCapabilitiesCacheEntry {
@@ -54,25 +38,17 @@ const sessionCapabilitiesCache = new Map<
   SessionCapabilitiesCacheEntry
 >();
 
-/**
- * Clears the in-memory session capabilities cache.
- * Exported for testing purposes only.
- */
+// Clears the session capabilities cache. Exported for testing purposes only.
 export function clearSessionCapabilitiesCache(): void {
   sessionCapabilitiesCache.clear();
 }
 
-/**
- * Builds a cache key for a capability computation. Chain ID order is
- * irrelevant to the result, so the key is order-insensitive.
- *
- * @param address - The EVM address capabilities are computed for.
- * @param chainIds - The chains in scope; `undefined`/empty means all
- * configured chains.
- * @returns The cache key.
- */
+// Order- and case-insensitive; `undefined`/empty chainIds = all configured
+// chains.
 function buildCacheKey(address: string, chainIds?: Hex[]): string {
-  const chainsKey = chainIds?.length ? [...chainIds].sort().join(',') : '*';
+  const chainsKey = chainIds?.length
+    ? [...chainIds].sort((a, b) => a.localeCompare(b)).join(',')
+    : '*';
   return `${address.toLowerCase()}:${chainsKey}`;
 }
 
@@ -136,10 +112,7 @@ export function buildGetCapabilitiesHooks(targetAddress?: Hex) {
  * permitted eip155 chains so we neither fan out RPC calls to, nor disclose,
  * networks the dapp was not granted. Intentional divergence: a direct
  * `wallet_getCapabilities` answered by the wallet still covers all configured
- * chains.
- *
- * Results are cached (see `CACHE_TTL_MS`) and concurrent computations for the
- * same address/chains are deduplicated. Failed computations are never cached.
+ * chains. Results are cached (see `CACHE_TTL_MS`); failures are never cached.
  * @returns Per-chain capabilities keyed by chain ID.
  */
 export function getSessionCapabilities(
