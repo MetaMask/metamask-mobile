@@ -21,9 +21,16 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
 import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
+import type {
+  MoneyConfirmationsNavigationParamList,
+  MoneyModalsNavigationParamList,
+  MoneyScreensStackParamList,
+} from '../types/navigation';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const TabStack = createNativeStackNavigator<MoneyScreensStackParamList>();
+const ConfirmationStack =
+  createNativeStackNavigator<MoneyConfirmationsNavigationParamList>();
+const ModalStack = createNativeStackNavigator<MoneyModalsNavigationParamList>();
 
 // For Money screens that require bottom navbar.
 const MoneyTabScreenStack = () => {
@@ -32,23 +39,23 @@ const MoneyTabScreenStack = () => {
   useUpgradeMoneyAccountOnMount();
 
   return (
-    <Stack.Navigator
+    <TabStack.Navigator
       initialRouteName={Routes.MONEY.HOME}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
-      <Stack.Screen
+      <TabStack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
+      <TabStack.Screen
         name={Routes.MONEY.ACTIVITY}
         component={MoneyActivityView}
       />
-      <Stack.Screen
+      <TabStack.Screen
         name={Routes.MONEY.HOW_IT_WORKS}
         component={MoneyHowItWorksView}
       />
-    </Stack.Navigator>
+    </TabStack.Navigator>
   );
 };
 
@@ -61,7 +68,7 @@ const MoneyConfirmationScreenStack = () => {
   useUpgradeMoneyAccountOnMount();
 
   return (
-    <Stack.Navigator
+    <ConfirmationStack.Navigator
       initialRouteName={
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
       }
@@ -70,68 +77,75 @@ const MoneyConfirmationScreenStack = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <ConfirmationStack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
       />
-    </Stack.Navigator>
+    </ConfirmationStack.Navigator>
   );
 };
 
-const MoneyModalStack = () => (
-  <ModalStack.Navigator
-    screenOptions={{
-      ...clearNativeStackNavigatorOptions,
-      ...transparentModalScreenOptions,
-    }}
-  >
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.ADD_MONEY_SHEET}
-      component={MoneyAddMoneySheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.MORE_SHEET}
-      component={MoneyMoreSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET}
-      component={MoneyTransferSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.APY_INFO_SHEET}
-      component={MoneyApyInfoSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.EARNINGS_INFO_SHEET}
-      component={MoneyEarningsInfoSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET}
-      component={MoneyBalanceInfoSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.LINK_CARD_SHEET}
-      component={MoneyLinkCardSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET}
-      component={MoneyEarnCryptoInfoSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
-      component={MoneyGeoBlockSheet}
-      options={{ headerShown: false }}
-    />
-  </ModalStack.Navigator>
-);
+// Money modals are reachable without the Money tab (e.g. Card Home's "Add
+// money" action), so this stack must also kick off the account upgrade —
+// opening any Money sheet is the user's signal of intent to use the feature.
+const MoneyModalStack = () => {
+  useUpgradeMoneyAccountOnMount();
+
+  return (
+    <ModalStack.Navigator
+      screenOptions={{
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }}
+    >
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.ADD_MONEY_SHEET}
+        component={MoneyAddMoneySheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.MORE_SHEET}
+        component={MoneyMoreSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET}
+        component={MoneyTransferSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.APY_INFO_SHEET}
+        component={MoneyApyInfoSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.EARNINGS_INFO_SHEET}
+        component={MoneyEarningsInfoSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET}
+        component={MoneyBalanceInfoSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.LINK_CARD_SHEET}
+        component={MoneyLinkCardSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET}
+        component={MoneyEarnCryptoInfoSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
+        component={MoneyGeoBlockSheet}
+        options={{ headerShown: false }}
+      />
+    </ModalStack.Navigator>
+  );
+};
 
 export { MoneyConfirmationScreenStack, MoneyModalStack, MoneyTabScreenStack };

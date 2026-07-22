@@ -1,6 +1,7 @@
 // Third party dependencies
 import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies
@@ -40,7 +41,7 @@ export const createActivationKeyFormNavDetails =
   );
 
 function ActivationKeyForm() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     key,
     label: initialLabel,

@@ -1,20 +1,12 @@
-import React, { useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo } from 'react';
 import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
-import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
+  BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+  ListItemSelect,
+  Tag,
+  TagSeverity,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import type {
@@ -22,7 +14,6 @@ import type {
   ProviderNetworkOption,
 } from './PerpsProviderSelector.types';
 import { PROVIDER_NETWORK_OPTIONS } from './PerpsProviderSelector.constants';
-import { styleSheet } from './PerpsProviderSelector.styles';
 
 /**
  * PerpsProviderSelectorSheet Component
@@ -30,13 +21,11 @@ import { styleSheet } from './PerpsProviderSelector.styles';
  * Bottom sheet for selecting between available perps provider + network combinations.
  */
 const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
-  isVisible,
   onClose,
   selectedOptionId,
   onOptionSelect,
   testID,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { availableProviders } = usePerpsProvider();
 
@@ -48,18 +37,9 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
     [availableProviders],
   );
 
-  useEffect(() => {
-    const sheet = bottomSheetRef.current;
-    if (isVisible) {
-      sheet?.onOpenBottomSheet();
-    } else {
-      sheet?.onCloseBottomSheet();
-    }
-
-    return () => {
-      sheet?.onCloseBottomSheet();
-    };
-  }, [isVisible]);
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const handleOptionPress = useCallback(
     async (option: ProviderNetworkOption) => {
@@ -69,82 +49,46 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
     [onOptionSelect],
   );
 
-  if (!isVisible) return null;
-
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-      isFullscreen={false}
-      testID={testID}
-    >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.provider_selector.title')}
-        </Text>
+    <BottomSheet ref={bottomSheetRef} goBack={onClose} testID={testID}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: testID ? `${testID}-close-button` : undefined,
+        }}
+      >
+        {strings('perps.provider_selector.title')}
       </BottomSheetHeader>
-      <View style={styles.optionsList}>
-        {filteredOptions.map((option) => {
-          const isSelected = selectedOptionId === option.id;
+      {filteredOptions.map((option) => {
+        const isSelected = selectedOptionId === option.id;
 
-          return (
-            <TouchableOpacity
-              key={option.id}
-              style={[styles.optionRow, isSelected && styles.optionRowSelected]}
-              activeOpacity={0.7}
-              onPress={() => handleOptionPress(option)}
-              testID={testID ? `${testID}-option-${option.id}` : undefined}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: isSelected }}
-            >
-              <View style={styles.optionContent}>
-                <View style={styles.optionNameRow}>
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.optionName}
-                  >
-                    {option.name}
-                  </Text>
-                  {option.isTestnet ? (
-                    <View style={styles.testnetTag}>
-                      <View style={styles.testnetDot} />
-                      <Text
-                        variant={TextVariant.BodyXS}
-                        color={TextColor.Warning}
-                      >
-                        {option.network}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text
-                      variant={TextVariant.BodyXS}
-                      color={TextColor.Alternative}
-                    >
-                      {option.network}
-                    </Text>
-                  )}
-                </View>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {option.description}
-                </Text>
-              </View>
-              {isSelected && (
-                <Icon
-                  name={IconName.Check}
-                  size={IconSize.Md}
-                  color={IconColor.PrimaryDefault}
-                  style={styles.checkIcon}
-                  testID={testID ? `${testID}-check-${option.id}` : undefined}
-                />
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+        return (
+          <ListItemSelect
+            key={option.id}
+            title={option.name}
+            description={option.description}
+            titleEndAccessory={
+              <Tag
+                severity={
+                  option.isTestnet ? TagSeverity.Warning : TagSeverity.Neutral
+                }
+                twClassName="self-center"
+                testID={
+                  testID ? `${testID}-option-${option.id}-tag` : undefined
+                }
+              >
+                {option.network}
+              </Tag>
+            }
+            isSelected={isSelected}
+            showSelectedIcon
+            onPress={() => handleOptionPress(option)}
+            testID={testID ? `${testID}-option-${option.id}` : undefined}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: isSelected }}
+          />
+        );
+      })}
     </BottomSheet>
   );
 };
