@@ -24,6 +24,8 @@ import { type OrderResult, type Position } from '@metamask/perps-controller';
 
 import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
 describe('Perps order lifecycle — FLOW integration', () => {
   describe('opening a position via the hook chain', () => {
@@ -63,6 +65,81 @@ describe('Perps order lifecycle — FLOW integration', () => {
           ],
         }),
       );
+    });
+
+    it('emits Perp Trade Transaction with status executed on a successful market open', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { filled: { oid: 123, totalSz: '0.1', avgPx: '50000' } },
+            ],
+          },
+        },
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50_000,
+          trackingData: {
+            totalFee: 5,
+            marketPrice: 50_000,
+            source: 'perp_asset_screen',
+            tradeAction: 'create_position',
+          },
+        });
+      });
+
+      const tradeEvent = perps.analytics.lastByName(
+        PerpsAnalyticsEvent.TradeTransaction,
+      );
+      expect(tradeEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+        asset: 'BTC',
+        direction: PERPS_EVENT_VALUE.DIRECTION.LONG,
+        order_type: 'market',
+        order_size: 0.1,
+        order_value: 5000,
+        fees: 5,
+        source: 'perp_asset_screen',
+        action: 'create_position',
+      });
+    });
+
+    it('emits Perp Trade Transaction with status failed when the provider rejects the order', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'err',
+        response: 'Insufficient margin',
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50_000,
+        });
+      });
+
+      const tradeEvent = perps.analytics.lastByName(
+        PerpsAnalyticsEvent.TradeTransaction,
+      );
+      expect(tradeEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.FAILED,
+        asset: 'BTC',
+      });
     });
   });
 
