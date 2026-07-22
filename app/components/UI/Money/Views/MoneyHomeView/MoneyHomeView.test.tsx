@@ -522,6 +522,10 @@ describe('MoneyHomeView', () => {
     mockRefetchBalance.mockResolvedValue([]);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders the main container', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
