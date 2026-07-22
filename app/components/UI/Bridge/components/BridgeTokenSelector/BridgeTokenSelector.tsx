@@ -258,13 +258,12 @@ export const BridgeTokenSelector: React.FC = () => {
     useTokenWatchlistQuery();
 
   const hasWatchlistItems = (watchlistData?.length ?? 0) > 0;
-  const isWatchlistSearchActive = Boolean(searchString.trim());
   const useWatchlistMergedSearch =
     isWatchlistListMode && hasWatchlistItems && isValidSearch;
 
   const handleWatchlistTokenPress = useCallback(
     (token: BridgeToken) => {
-      if (isWatchlistListMode && !isWatchlistSearchActive) {
+      if (isWatchlistListMode && !isValidSearch) {
         trackEvent(
           createEventBuilder(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED)
             .addProperties({
@@ -281,7 +280,7 @@ export const BridgeTokenSelector: React.FC = () => {
       createEventBuilder,
       handleTokenPress,
       isWatchlistListMode,
-      isWatchlistSearchActive,
+      isValidSearch,
       trackEvent,
     ],
   );
@@ -598,7 +597,7 @@ export const BridgeTokenSelector: React.FC = () => {
     isWatchlistListMode &&
     !isWatchlistLoading &&
     !hasWatchlistItems &&
-    !isWatchlistSearchActive;
+    !isValidSearch;
 
   // Reset only after the replacement dataset has been committed. scrollToIndex
   // engages and lays out the first recycled row before moving the native view.
