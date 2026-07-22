@@ -26,8 +26,6 @@ type DataServiceGranularCacheUpdatedHandler = (
  * wrap and thus lazily access the root messenger.
  */
 export class RootMessengerAdapter {
-  #messenger = Engine.controllerMessenger;
-
   call(
     actionType: Extract<GlobalActions['type'], `${DataServiceName}:${string}`>,
     ...params: ExtractActionParameters<
@@ -35,21 +33,21 @@ export class RootMessengerAdapter {
       Extract<GlobalActions['type'], `${DataServiceName}:${string}`>
     >
   ): unknown {
-    return this.#messenger.call(actionType, ...params);
+    return Engine.controllerMessenger.call(actionType, ...params);
   }
 
   subscribe(
     eventType: `${DataServiceName}:cacheUpdated:${string}`,
     handler: DataServiceGranularCacheUpdatedHandler,
   ): void {
-    this.#messenger.subscribe(eventType, handler);
+    Engine.controllerMessenger.subscribe(eventType, handler);
   }
 
   unsubscribe(
     eventType: `${DataServiceName}:cacheUpdated:${string}`,
     handler: DataServiceGranularCacheUpdatedHandler,
   ): void {
-    this.#messenger.unsubscribe(eventType, handler);
+    Engine.controllerMessenger.unsubscribe(eventType, handler);
   }
 }
 
