@@ -305,11 +305,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             ]
           : undefined;
         const controllerQuotesLastUpdated = transactionData?.quotesLastUpdated;
+        const reduxQuotesLastUpdated = quotesLastUpdatedRef.current;
+        const latestQuotesLastUpdated =
+          controllerQuotesLastUpdated === undefined
+            ? reduxQuotesLastUpdated
+            : reduxQuotesLastUpdated === undefined
+              ? controllerQuotesLastUpdated
+              : Math.max(controllerQuotesLastUpdated, reduxQuotesLastUpdated);
 
         if (transactionData?.isLoading) {
           setQuoteHandoff({
             kind: 'loading',
-            quotesLastUpdated: controllerQuotesLastUpdated,
+            quotesLastUpdated: latestQuotesLastUpdated,
           });
         } else if (
           controllerQuotesLastUpdated !== undefined &&

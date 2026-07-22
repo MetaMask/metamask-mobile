@@ -828,6 +828,38 @@ describe('CustomAmountInfo', () => {
       ).not.toBeDisabled();
     });
 
+    it('ignores a stale Redux quote timestamp during controller loading handoff', async () => {
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(100);
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+      setControllerTransactionData({ isLoading: true });
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(101);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
+    });
+
     it('keeps the loading review until Redux observes a fast completed quote', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
