@@ -14,6 +14,11 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
 import { selectTransactionMetadataById } from '../../../selectors/transactionController';
+// eslint-disable-next-line import-x/no-restricted-paths
+import {
+  useBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemBySrcTxHash,
+} from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import type { RootState } from '../../../reducers';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the confirmations speed-up/cancel modal; route-isolation backlog
@@ -62,8 +67,13 @@ const ActivityDetails = () => {
   const preloadedItem = preloadedRef.current.item;
 
   const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
+    bridgeHistoryItemsBySrcTxHash,
+    item?.hash,
+  );
   const title = item
-    ? resolveActivityListItemTitle(item)
+    ? resolveActivityListItemTitle(item, bridgeHistoryItem)
     : strings('activity_details.not_found');
 
   // Pending speed-up / cancel: resolve the live local `TransactionMeta` for the
