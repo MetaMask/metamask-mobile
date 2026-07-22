@@ -11,6 +11,7 @@ import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet';
 import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
@@ -82,6 +83,9 @@ describe(RegressionTrade('Swap from Token view'), (): void => {
 
         // After the swap is complete, the DAI balance shouldn't be 0
         await Assertions.expectTextNotDisplayed('0 DAI', { timeout: 60000 });
+
+        // Post-trade modal is always shown after confirm; open Activity from there.
+        await PostTradeBottomSheet.tapViewActivity();
 
         // Check the swap activity completed
         await Assertions.expectElementToBeVisible(ActivitiesView.title);
