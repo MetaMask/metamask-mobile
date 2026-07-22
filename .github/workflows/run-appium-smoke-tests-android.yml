@@ -220,6 +220,30 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  appium-stake-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeStake'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-stake-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeStake
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 60
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
   appium-mmconnect-android-smoke:
     if: >-
       ${{
