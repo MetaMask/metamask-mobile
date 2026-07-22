@@ -651,6 +651,29 @@ describe('useMoneyAccountBalance', () => {
         refetchType: 'all',
       });
     });
+
+    it('refetchBalance is a no-op when no primary Money Account exists', async () => {
+      setupDefaultSelectors();
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return undefined;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'usd';
+        }
+        if (selector === selectMoneyVaultApyRemoteConfig) {
+          return DEFAULT_REMOTE_APY_CONFIG;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      await expect(result.current.refetchBalance()).resolves.toBeUndefined();
+
+      expect(mockControllerMessengerCall).not.toHaveBeenCalled();
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    });
   });
 
   describe('last known balance', () => {

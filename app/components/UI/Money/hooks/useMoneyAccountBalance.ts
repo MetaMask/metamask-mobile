@@ -102,7 +102,10 @@ const useMoneyAccountBalance = (
   const isBalanceDegraded = usedFallback;
 
   const refetchBalance = useCallback(
-    () => invalidateMoneyAccountBalanceCaches(moneyAccountAddress as string),
+    () =>
+      moneyAccountAddress
+        ? invalidateMoneyAccountBalanceCaches(moneyAccountAddress)
+        : Promise.resolve(),
     [moneyAccountAddress],
   );
 
