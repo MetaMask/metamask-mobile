@@ -85,8 +85,6 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     // cause the effect to re-run when NFTs load in and reset the throttle prematurely.
     const hasNftsRef = useRef(hasNfts);
     hasNftsRef.current = hasNfts;
-    const onViewportLayoutRef = useRef(onViewportLayout);
-    onViewportLayoutRef.current = onViewportLayout;
     const [hasDetected, setHasDetected] = useState(hasNfts);
 
     // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
@@ -99,7 +97,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
         prevAddressRef.current = selectedAddress;
         lastDetectionRef.current = null;
         setHasDetected(hasNftsRef.current);
-        onViewportLayoutRef.current();
+        onViewportLayout();
       }
 
       if (!isVisible) {
@@ -119,7 +117,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       detectNftsRef.current(true, false).catch(() => {
         // detection errors are non-fatal
       });
-    }, [isVisible, visitId, selectedAddress]);
+    }, [isVisible, visitId, selectedAddress, onViewportLayout]);
 
     const displayNfts = useMemo(
       () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),

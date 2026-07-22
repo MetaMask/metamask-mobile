@@ -1202,7 +1202,7 @@ describe('NftGrid', () => {
   });
 
   describe('skeleton sentinels during detection', () => {
-    it('shows skeleton cells after existing NFTs while fetching', async () => {
+    it('shows skeleton cells after existing NFTs while fetching', () => {
       const mockCollectibles = { '0x1': [mockNft] };
       setupSelectorMocks({
         collectibles: mockCollectibles,
@@ -1220,15 +1220,13 @@ describe('NftGrid', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        // Real NFT still rendered
-        expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
-        // 1 NFT → rowRemainder = (3-1)%3 = 2, skeletonCount = 2+6 = 8
-        expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(8);
-      });
+      // Real NFT still rendered
+      expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      // 1 NFT → rowRemainder = (3-1)%3 = 2, skeletonCount = 2+6 = 8
+      expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(8);
     });
 
-    it('does not show skeleton cells when not fetching', async () => {
+    it('does not show skeleton cells when not fetching', () => {
       const mockCollectibles = { '0x1': [mockNft] };
       setupSelectorMocks({
         collectibles: mockCollectibles,
@@ -1246,12 +1244,10 @@ describe('NftGrid', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(queryAllByTestId('nft-skeleton-cell')).toHaveLength(0);
-      });
+      expect(queryAllByTestId('nft-skeleton-cell')).toHaveLength(0);
     });
 
-    it('appends row-completing + 6 extra skeletons for partial rows', async () => {
+    it('appends row-completing + 6 extra skeletons for partial rows', () => {
       // 5 NFTs: rowRemainder = (3-2)%3 = 1, skeletonCount = 1+6 = 7
       const mockCollectibles = {
         '0x1': Array.from({ length: 5 }, (_, i) => ({
@@ -1276,12 +1272,10 @@ describe('NftGrid', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(7);
-      });
+      expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(7);
     });
 
-    it('appends exactly 6 skeletons when NFT count is a multiple of 3', async () => {
+    it('appends exactly 6 skeletons when NFT count is a multiple of 3', () => {
       // 3 NFTs: rowRemainder = 0, skeletonCount = 0+6 = 6
       const mockCollectibles = {
         '0x1': Array.from({ length: 3 }, (_, i) => ({
@@ -1306,12 +1300,10 @@ describe('NftGrid', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(6);
-      });
+      expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(6);
     });
 
-    it('shows full skeleton grid (NftGridSkeleton) when 0 NFTs and fetching', async () => {
+    it('shows full skeleton grid (NftGridSkeleton) when 0 NFTs and fetching', () => {
       setupSelectorMocks({ collectibles: {}, isNftFetching: true });
       const store = mockStore(initialState);
 
@@ -1325,10 +1317,8 @@ describe('NftGrid', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(getByTestId('nft-grid-skeleton')).toBeOnTheScreen();
-        expect(queryAllByTestId('nft-skeleton-cell')).toHaveLength(0);
-      });
+      expect(getByTestId('nft-grid-skeleton')).toBeOnTheScreen();
+      expect(queryAllByTestId('nft-skeleton-cell')).toHaveLength(0);
     });
   });
 

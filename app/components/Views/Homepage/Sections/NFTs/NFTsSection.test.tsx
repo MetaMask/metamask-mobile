@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { screen, fireEvent, act } from '@testing-library/react-native';
+import { screen, fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import NFTsSection from './NFTsSection';
@@ -425,9 +425,9 @@ describe('NFTsSection', () => {
         { state: stateWithNftPreferences },
       );
 
-      await act(async () => undefined);
-
-      expect(screen.getByText('NFTs')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(screen.getByText('NFTs')).toBeOnTheScreen();
+      });
     });
 
     it('calls detectNfts for a new account even within the throttle window of the previous account', () => {

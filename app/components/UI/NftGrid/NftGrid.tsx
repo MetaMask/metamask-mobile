@@ -55,7 +55,6 @@ interface SkeletonSentinel {
   skeleton: true;
   key: string;
 }
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type GridItem = Nft | SkeletonSentinel;
 
 const NftGridContent = ({

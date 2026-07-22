@@ -636,15 +636,15 @@ describe('Homepage', () => {
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
       expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
       expect(callBySectionName('defi')?.sectionIndex).toBe(4);
-      expect(callBySectionName('nfts')).toBeUndefined();
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
     });
 
-    it('passes totalSectionsLoaded=5 when Watchlist flag is on and there are no NFTs', () => {
+    it('passes totalSectionsLoaded=6 when Watchlist flag is on (NFTs always present)', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(5);
+        expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
     });
 
@@ -667,10 +667,10 @@ describe('Homepage', () => {
       expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(4);
       expect(callBySectionName('defi')?.sectionIndex).toBe(5);
-      expect(callBySectionName('nfts')).toBeUndefined();
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
 
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(6);
+        expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
     });
 
@@ -710,9 +710,10 @@ describe('Homepage', () => {
       expect(callBySectionName('predict')?.sectionIndex).toBe(3);
       expect(callBySectionName('watchlist')?.sectionIndex).toBe(4);
       expect(callBySectionName('defi')?.sectionIndex).toBe(5);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
 
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(6);
+        expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
     });
   });
@@ -812,13 +813,13 @@ describe('Homepage', () => {
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
       expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
       expect(callBySectionName('defi')?.sectionIndex).toBe(4);
-      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(5);
-      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(6);
-      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(7);
-      expect(callBySectionName('nfts')).toBeUndefined();
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
+      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(6);
+      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(7);
+      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(8);
 
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(8);
+        expect(call[0]?.totalSectionsLoaded).toBe(9);
       });
     });
 
