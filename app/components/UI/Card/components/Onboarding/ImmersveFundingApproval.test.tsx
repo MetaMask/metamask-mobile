@@ -10,8 +10,6 @@ import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
-  useRoute: jest.fn(() => ({ params: {} })),
-  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('../../../../../util/networks');
@@ -28,23 +26,9 @@ jest.mock('../../../../../selectors/settings', () => ({
   selectAvatarAccountType: 'select-avatar-account-type',
 }));
 
-jest.mock('../../../../../selectors/featureFlagController/card', () => ({
-  selectCardFeatureFlag: 'select-card-feature-flag',
-}));
-
 jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
   useAccountGroupName: jest.fn(() => null),
 }));
-
-jest.mock(
-  '../../Views/SpendingLimit/components/SpendingLimitOptionsSheet',
-  () => ({
-    createSpendingLimitOptionsNavigationDetails: jest.fn(
-      (params: unknown) =>
-        ['CardModals', { screen: 'SpendingLimitOptions', params }] as const,
-    ),
-  }),
-);
 
 const MOCK_ACCOUNT = {
   address: '0xAccount',
@@ -61,8 +45,6 @@ jest.mock('react-redux', () => ({
         return mockSelectAccountByScope;
       case 'select-avatar-account-type':
         return 'default';
-      case 'select-card-feature-flag':
-        return { immersve: { network: 'base-sepolia' } };
       default:
         return undefined;
     }
@@ -150,9 +132,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: { BodyMd: 'BodyMd', HeadingLg: 'HeadingLg' },
     AvatarBaseSize: { Sm: 'Sm' },
     BadgeWrapperPosition: { BottomRight: 'BottomRight' },
-    IconName: { Danger: 'Danger', ArrowDown: 'ArrowDown' },
-    IconSize: { Xl: 'Xl', Md: 'Md' },
-    IconColor: { ErrorDefault: 'ErrorDefault', IconDefault: 'IconDefault' },
+    IconName: { Danger: 'Danger' },
+    IconSize: { Xl: 'Xl' },
+    IconColor: { ErrorDefault: 'ErrorDefault' },
   };
 });
 
@@ -160,7 +142,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 
 const WRITE = {
@@ -198,9 +179,7 @@ describe('ImmersveFundingApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
       reset: mockReset,
-      setParams: jest.fn(),
     });
     (useImmersveOnboardingRouter as jest.Mock).mockReturnValue(mockRoute);
     mockExecuteFunding.mockResolvedValue('0xtxhash');
@@ -230,9 +209,6 @@ describe('ImmersveFundingApproval', () => {
 
     expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
     expect(getByTestId('immersve-funding-approval-token-row')).toBeTruthy();
-    expect(
-      getByTestId('immersve-funding-approval-spending-limit-row'),
-    ).toBeTruthy();
     const button = getByTestId('immersve-funding-approval-confirm-button');
     expect(button.props.accessibilityState.disabled).toBeFalsy();
   });
@@ -336,26 +312,6 @@ describe('ImmersveFundingApproval', () => {
 
     fireEvent.press(retryButton);
     expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');
-  });
-
-  it('opens the spending limit options sheet from the spending limit row', () => {
-    setNextAction({ type: 'funding', write: WRITE });
-    const { getByTestId } = render(<ImmersveFundingApproval />);
-
-    fireEvent.press(
-      getByTestId('immersve-funding-approval-spending-limit-row'),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'CardModals',
-      expect.objectContaining({
-        screen: 'SpendingLimitOptions',
-        params: expect.objectContaining({
-          currentLimitType: 'full',
-          callerRoute: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-        }),
-      }),
-    );
   });
 
   it('shows an inline error and retries createCard when it fails', () => {
