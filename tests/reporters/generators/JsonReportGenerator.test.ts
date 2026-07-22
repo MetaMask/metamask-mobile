@@ -111,9 +111,10 @@ describe('JsonReportGenerator', () => {
     expect(mockWriteFileSync).toHaveBeenCalledTimes(2);
 
     // Pixel 6 file should contain 2 metrics
-    const pixelCall = mockWriteFileSync.mock.calls.find((c: unknown[]) =>
-      (c[0] as string).includes('performance-metrics') &&
-      (c[0] as string).includes('Pixel_6'),
+    const pixelCall = mockWriteFileSync.mock.calls.find(
+      (c: unknown[]) =>
+        (c[0] as string).includes('performance-metrics') &&
+        (c[0] as string).includes('Pixel_6'),
     );
     const pixelData = JSON.parse(pixelCall[1] as string);
     expect(pixelData).toHaveLength(2);
@@ -295,7 +296,11 @@ describe('JsonReportGenerator', () => {
           makeMetricsEntry({
             testName: 'API Only Scenario',
             apiCalls: [
-              { method: 'POST', url: 'https://api.example.com/rpc', status: 200 },
+              {
+                method: 'POST',
+                url: 'https://api.example.com/rpc',
+                status: 200,
+              },
             ],
           }),
         ],
