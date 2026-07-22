@@ -32,48 +32,19 @@ describe('usePriceImpactFiat', () => {
     expect(result.current).toBeUndefined();
   });
 
-  it('returns undefined when sentAmount.valueInCurrency is null', () => {
+  it('returns undefined when priceImpact.valueInCurrency is undefined', () => {
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: undefined, usd: undefined },
-      toTokenAmount: { amount: '0.9', valueInCurrency: '90', usd: undefined },
+      priceImpact: { valueInCurrency: undefined },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     expect(result.current).toBeUndefined();
-  });
-
-  it('returns undefined when toTokenAmount.valueInCurrency is null', () => {
-    const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
-      toTokenAmount: {
-        amount: '0.9',
-        valueInCurrency: undefined,
-        usd: undefined,
-      },
-    } as Parameters<typeof usePriceImpactFiat>[0]);
-
-    expect(result.current).toBeUndefined();
-  });
-
-  it('returns the formatted absolute difference when source fiat is greater than dest fiat', () => {
-    const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
-      toTokenAmount: {
-        amount: '0.9',
-        valueInCurrency: '92.95',
-        usd: undefined,
-      },
-    } as Parameters<typeof usePriceImpactFiat>[0]);
-
-    // $100 - $92.95 = $7.05
-    expect(result.current).toBe('$7.05');
   });
 
   it('formats result with the user currency symbol', () => {
     mockSelectCurrentCurrency.mockReturnValue('EUR');
 
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '50', usd: undefined },
-      toTokenAmount: { amount: '0.9', valueInCurrency: '45', usd: undefined },
+      priceImpact: { valueInCurrency: '5' },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     // €50 - €45 = €5
@@ -81,20 +52,9 @@ describe('usePriceImpactFiat', () => {
     expect(result.current).toMatch(/€|EUR/);
   });
 
-  it('returns the absolute difference when dest fiat is greater than source fiat', () => {
+  it('returns a formatted zero value when priceImpact.valueInCurrency is zero', () => {
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '90', usd: undefined },
-      toTokenAmount: { amount: '1.1', valueInCurrency: '100', usd: undefined },
-    } as Parameters<typeof usePriceImpactFiat>[0]);
-
-    // abs(90 - 100) = 10
-    expect(result.current).toBe('$10.00');
-  });
-
-  it('returns a formatted zero value when source and dest fiat are equal', () => {
-    const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
-      toTokenAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
+      priceImpact: { valueInCurrency: '0' },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     expect(result.current).toBe('$0.00');
