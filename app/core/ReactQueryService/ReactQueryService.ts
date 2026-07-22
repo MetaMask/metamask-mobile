@@ -39,8 +39,6 @@ export class ReactQueryService {
   #netInfoUnsubscribe?: () => void;
 
   constructor() {
-    // Cast: @metamask/react-data-query still types against query-core v4; a
-    // separate PR updates that package for v5. Runtime QueryClient shape matches.
     this.queryClient = createUIQueryClient(DATA_SERVICES, adapter, {
       defaultOptions: {
         queries: {
@@ -52,7 +50,7 @@ export class ReactQueryService {
           gcTime: 1000 * 60 * 60 * 24, // 24 hours
         },
       },
-    } as Parameters<typeof createUIQueryClient>[2]) as unknown as QueryClient;
+    });
 
     this.#subscribeToAppFocusState();
     this.#subscribeToOnlineState();
