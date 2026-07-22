@@ -186,23 +186,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: 'Text',
-  TextColor: {
-    Alternative: 'Alternative',
-    Error: 'Error',
-  },
-  TextVariant: {
-    HeadingMD: 'HeadingMD',
-    BodyMD: 'BodyMD',
-    BodyMDMedium: 'BodyMDMedium',
-    BodyLGMedium: 'BodyLGMedium',
-    BodySM: 'BodySM',
-    DisplayMD: 'DisplayMD',
-  },
-}));
-
 // Mock Avatar types
 jest.mock(
   '../../../../../component-library/components/Avatars/Avatar/Avatar.types',
