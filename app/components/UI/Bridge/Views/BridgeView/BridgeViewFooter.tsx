@@ -1,11 +1,8 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '../../../Box/Box';
-import {
-  FlexDirection,
-  AlignItems,
-  JustifyContent,
-} from '../../../Box/box.types';
+import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
@@ -19,7 +16,6 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import ApprovalTooltip from '../../components/ApprovalText';
 import {
   DiscountType,
   MetaMetricsSwapsEventSource,
@@ -50,6 +46,7 @@ export const BridgeViewFooter = ({
   transactionActiveAbTests,
 }: Props) => {
   const { styles } = useStyles(createStyles);
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
@@ -74,9 +71,14 @@ export const BridgeViewFooter = ({
     return null;
   }
 
+  const footerContainerStyle = [
+    styles.buttonContainer,
+    { paddingBottom: bottomInset },
+  ];
+
   if (needsNewQuote) {
     return (
-      <Box style={styles.buttonContainer}>
+      <Box style={footerContainerStyle}>
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
@@ -90,16 +92,11 @@ export const BridgeViewFooter = ({
     return null;
   }
 
-  const approval =
-    activeQuote?.approval && sourceAmount && sourceToken
-      ? { amount: sourceAmount, symbol: sourceToken.symbol }
-      : null;
-
   return (
     isValidSourceAmount &&
     activeQuote &&
     quotesLastFetched && (
-      <Box style={styles.buttonContainer}>
+      <Box style={footerContainerStyle}>
         {isHardwareAddress && isSolanaSourced && (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
@@ -160,27 +157,6 @@ export const BridgeViewFooter = ({
               </Text>
             )}
           </Box>
-
-          {approval && (
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              justifyContent={JustifyContent.center}
-              testID={BridgeViewSelectorsIDs.APPROVAL_TOOLTIP}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                testID={BridgeViewSelectorsIDs.APPROVAL_TOOLTIP}
-              >
-                {strings('bridge.approval_needed', approval)}
-              </Text>
-              <ApprovalTooltip
-                amount={approval.amount}
-                symbol={approval.symbol}
-              />
-            </Box>
-          )}
         </Box>
       </Box>
     )

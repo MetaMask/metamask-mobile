@@ -8,9 +8,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -36,10 +38,7 @@ import {
   PredictOutcomeToken,
   type PredictMarketBuyButtonPress,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -76,8 +75,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 }) => {
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
@@ -212,7 +210,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Image
                     source={{ uri: market.image }}
                     style={tw.style('w-full h-full')}
-                    resizeMode="cover"
+                    contentFit="cover"
+                    recyclingKey={market.image}
                   />
                 </Box>
               )}

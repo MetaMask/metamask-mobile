@@ -1,6 +1,6 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -42,27 +42,30 @@ const getNetworkPriority = (chainId: CaipChainId): number => {
   if (chainId === TrxScope.Mainnet) {
     return 3;
   } // Tron fourth
-  if (hexChainId === CHAIN_IDS.LINEA_MAINNET) {
+  if (chainId === XlmScope.Pubnet) {
     return 4;
-  } // Linea fifth
+  } // Stellar fifth
+  if (hexChainId === CHAIN_IDS.LINEA_MAINNET) {
+    return 5;
+  } // Linea sixth
   if (
     TEST_NETWORK_IDS.includes(hexChainId as (typeof TEST_NETWORK_IDS)[number])
   ) {
-    return 7;
+    return 8;
   } // Test networks last
 
   // Featured networks (popular networks)
   const popularChainIds = PopularList.map((network) => network.chainId);
   if (popularChainIds.includes(hexChainId as `0x${string}`)) {
-    return 5;
+    return 6;
   }
 
-  return 6; // Other custom networks
+  return 7; // Other custom networks
 };
 
 /**
  * Sorts network address items according to priority:
- * 1. Ethereum, 2. Bitcoin, 3. Solana, 4. Tron, 5. Linea, 6. Featured networks, 7. Other custom networks, 8. Test networks last
+ * 1. Ethereum, 2. Bitcoin, 3. Solana, 4. Tron, 5. Stellar, 6. Linea, 7. Featured networks, 8. Other custom networks, 9. Test networks last
  *
  * @param items - Array of NetworkAddressItem objects to sort
  * @returns Sorted array of NetworkAddressItem objects

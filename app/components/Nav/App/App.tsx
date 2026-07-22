@@ -8,6 +8,7 @@ import {
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
+import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -35,6 +36,7 @@ import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import {
+  addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
   slideFromRightNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -128,7 +130,6 @@ import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWall
 import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
-import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
@@ -403,6 +404,11 @@ const OnboardingRootNav = () => (
       options={{ presentation: 'modal' }}
     />
     <NativeStack.Screen
+      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+      component={VerificationCodeBottomSheet}
+      options={addDeviceVerificationCodeScreenOptions}
+    />
+    <NativeStack.Screen
       name={Routes.WEBVIEW.MAIN}
       component={SimpleWebviewScreen}
       options={{ presentation: 'modal' }}
@@ -634,6 +640,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
       component={VerificationCodeBottomSheet}
+      options={addDeviceVerificationCodeScreenOptions}
     />
     <NativeStack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
@@ -1143,6 +1150,16 @@ const AppFlow = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
+        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+        component={VerificationCodeBottomSheet}
+        options={addDeviceVerificationCodeScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+        component={ImportFromSecretRecoveryPhrase}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
         component={MultichainAccountDetails}
       />
@@ -1280,7 +1297,7 @@ const AppFlow = () => {
           headerShown: false,
           gestureEnabled: true,
           presentation: 'modal',
-          contentStyle: { backgroundColor: importedColors.white },
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
       <NativeStack.Screen
@@ -1294,7 +1311,7 @@ const AppFlow = () => {
           headerShown: true,
           gestureEnabled: true,
           presentation: 'modal',
-          contentStyle: { backgroundColor: importedColors.white },
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
     </NativeStack.Navigator>
@@ -1394,10 +1411,15 @@ const App: React.FC = () => {
         {/*
           FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native
           layer — including native-stack card screens — which a plain absolute View as a
-          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render 
+          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render
           behind the native stack card screens and are not visible.
+          unstable_accessibilityContainerViewIsModal={false} prevents react-native-screens
+          from marking the native container as accessibilityViewIsModal=YES, which would
+          otherwise hide the entire app's AX tree from VoiceOver/XCUITest/Appium whenever
+          no toast is active. Toasts are non-blocking so non-modal AX behaviour is correct.
+          See: https://consensyssoftware.atlassian.net/browse/DSYS-931
         */}
-        <FullWindowOverlay>
+        <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
           <Toaster />
         </FullWindowOverlay>
         <PerpsWebSocketHealthToast />

@@ -1,17 +1,26 @@
 import React, { useMemo } from 'react';
 import {
-  Icon,
-  IconColor,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
-import { TouchableOpacity, View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import Text, {
+  KeyValueColumn,
+  SectionHeader,
+  Tag,
+  TagSeverity,
+  Text as DSText,
   TextColor,
   TextVariant,
+} from '@metamask/design-system-react-native';
+import { View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Text, {
+  TextColor as CLTextColor,
+  TextVariant as CLTextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
@@ -27,7 +36,6 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -40,44 +48,36 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  // Subscribe to live price updates including funding rate
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
-    throttleMs: 2000, // Update every 2 seconds for funding rate
+    throttleMs: 2000,
   });
 
-  // Get live funding rate and oracle price from WebSocket subscription
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
-  // Use markPrice (oracle/mark price) for oracle price display, not price (mid price)
   const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
 
-  // Compute funding rate value and display once
   const fundingRateData = useMemo(() => {
-    // Determine the actual funding value to use
     let fundingValue: number;
     let displayText: string;
 
     if (liveFunding !== undefined) {
-      // Use live funding if available
       fundingValue = liveFunding;
       displayText = formatFundingRate(liveFunding);
     } else if (
       marketStats.fundingRate &&
       marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
     ) {
-      // Fall back to marketStats if no live data
       fundingValue =
         parseFloat(marketStats.fundingRate.replace('%', '')) /
         FUNDING_RATE_CONFIG.PercentageMultiplier;
       displayText = marketStats.fundingRate;
     } else {
-      // Default to zero
       fundingValue = 0;
       displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
     }
 
-    // Determine color based on value
-    const color = fundingValue >= 0 ? TextColor.Success : TextColor.Error;
+    const color =
+      fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
     return {
       value: fundingValue,
@@ -86,16 +86,15 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     };
   }, [liveFunding, marketStats.fundingRate]);
 
-  // Render funding rate value with countdown
   const fundingValueContent = useMemo(
     () => (
       <View style={styles.fundingRateContainer}>
-        <Text variant={TextVariant.BodyMD} color={fundingRateData.color}>
+        <DSText variant={TextVariant.BodyMd} color={fundingRateData.color}>
           {fundingRateData.displayText}
-        </Text>
+        </DSText>
         <FundingCountdown
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={CLTextVariant.BodySM}
+          color={CLTextColor.Alternative}
           style={styles.fundingCountdown}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
@@ -114,166 +113,105 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     ],
   );
 
-  return (
-    <View style={styles.container}>
-      {/* Header with title with DEX badge */}
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('perps.market.stats')}
-        </Text>
-        {dexName && <Tag label={dexName.toUpperCase()} style={styles.dexTag} />}
-      </View>
+  const oraclePriceContent = useMemo(
+    () => (
+      <DSText
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE}
+      >
+        {liveOraclePrice
+          ? formatPerpsFiat(parseFloat(liveOraclePrice), {
+              ranges: PRICE_RANGES_UNIVERSAL,
+            })
+          : '-'}
+      </DSText>
+    ),
+    [liveOraclePrice],
+  );
 
-      {/* Stats rows with card background */}
-      <View style={styles.statsRowsContainer}>
-        {/* Order Book - Clickable row */}
-        {onOrderBookPress && (
-          <TouchableOpacity
-            style={[styles.orderBookRow, styles.statsRowFirst]}
+  const statsTitle = useMemo(
+    () => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        <DSText variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+          {strings('perps.market.stats')}
+        </DSText>
+        {dexName ? (
+          <Tag severity={TagSeverity.Neutral}>{dexName.toUpperCase()}</Tag>
+        ) : null}
+      </Box>
+    ),
+    [dexName],
+  );
+
+  return (
+    <Box paddingBottom={3}>
+      <SectionHeader title={statsTitle} />
+
+      <Box paddingHorizontal={4}>
+        <View style={styles.statisticsGrid}>
+          <View style={styles.statisticsRow}>
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.24h_volume')}
+              value={marketStats.volume24h}
+            />
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.open_interest')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('open_interest'),
+                testID:
+                  PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
+              }}
+              value={marketStats.openInterest}
+            />
+          </View>
+
+          <View style={styles.statisticsRow}>
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.funding_rate')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('funding_rate'),
+                testID:
+                  PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
+              }}
+              value={fundingValueContent}
+            />
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.oracle_price')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('oracle_price'),
+                testID: 'perps-market-details-oracle-price-info-icon',
+              }}
+              value={oraclePriceContent}
+            />
+          </View>
+        </View>
+
+        {onOrderBookPress ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            size={ButtonSize.Lg}
             onPress={onOrderBookPress}
+            style={styles.orderBookButton}
             testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
           >
-            <View style={styles.orderBookRowContent}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.market.order_book')}
-              </Text>
-            </View>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </TouchableOpacity>
-        )}
-
-        {/* 24h volume */}
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('perps.market.24h_volume'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
-            },
-          }}
-          value={{
-            label: {
-              text: marketStats.volume24h,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
-            },
-          }}
-          style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
-        />
-
-        {/* Open interest with tooltip */}
-        <KeyValueRow
-          field={{
-            label: (
-              <View style={styles.labelWithIcon}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.open_interest')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => onTooltipPress('open_interest')}
-                  testID="perps-market-details-open-interest-info-icon"
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </TouchableOpacity>
-              </View>
-            ),
-          }}
-          value={{
-            label: {
-              text: marketStats.openInterest,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
-            },
-          }}
-          style={styles.statsRow}
-        />
-
-        {/* Funding rate with tooltip and countdown */}
-        <KeyValueRow
-          field={{
-            label: (
-              <View style={styles.labelWithIcon}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.funding_rate')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => onTooltipPress('funding_rate')}
-                  testID="perps-market-details-funding-rate-info-icon"
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </TouchableOpacity>
-              </View>
-            ),
-          }}
-          value={{
-            label: fundingValueContent,
-          }}
-          style={styles.statsRow}
-        />
-
-        {/* Oracle price (markPrice) - last row without bottom border */}
-        <KeyValueRow
-          field={{
-            label: (
-              <View style={styles.labelWithIcon}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.oracle_price')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => onTooltipPress('oracle_price')}
-                  testID="perps-market-details-oracle-price-info-icon"
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </TouchableOpacity>
-              </View>
-            ),
-          }}
-          value={{
-            label: (
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE
-                }
-              >
-                {liveOraclePrice
-                  ? formatPerpsFiat(parseFloat(liveOraclePrice), {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })
-                  : '-'}
-              </Text>
-            ),
-          }}
-          style={styles.statsRowLast}
-        />
-      </View>
-    </View>
+            {strings('perps.market.order_book')}
+          </Button>
+        ) : null}
+      </Box>
+    </Box>
   );
 };
 

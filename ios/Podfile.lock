@@ -509,7 +509,7 @@ PODS:
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
   - lottie-ios (4.6.0)
-  - lottie-react-native (7.3.6):
+  - lottie-react-native (7.3.8):
     - boost
     - DoubleConversion
     - fast_float
@@ -2683,8 +2683,34 @@ PODS:
     - React-Core
   - react-native-fast-crypto (2.2.0):
     - React
-  - react-native-get-random-values (1.11.0):
+  - react-native-get-random-values (2.0.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - react-native-gzip (1.1.0):
     - Base64
     - boost
@@ -2953,7 +2979,7 @@ PODS:
     - Yoga
   - react-native-render-html (6.3.4):
     - React-Core
-  - react-native-safe-area-context (5.6.2):
+  - react-native-safe-area-context (5.8.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2971,8 +2997,8 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-safe-area-context/common (= 5.6.2)
-    - react-native-safe-area-context/fabric (= 5.6.2)
+    - react-native-safe-area-context/common (= 5.8.0)
+    - react-native-safe-area-context/fabric (= 5.8.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2983,7 +3009,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context/common (5.6.2):
+  - react-native-safe-area-context/common (5.8.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3011,7 +3037,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context/fabric (5.6.2):
+  - react-native-safe-area-context/fabric (5.8.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3043,7 +3069,7 @@ PODS:
   - react-native-sdk (11.2.0):
     - React
     - VeriffSDK (= 8.12.0)
-  - react-native-slider (5.1.2):
+  - react-native-slider (5.2.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3061,7 +3087,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-slider/common (= 5.1.2)
+    - react-native-slider/common (= 5.2.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -3072,7 +3098,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-slider/common (5.1.2):
+  - react-native-slider/common (5.2.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4152,7 +4178,7 @@ PODS:
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNScreens (4.23.0):
+  - RNScreens (4.25.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4179,10 +4205,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 4.23.0)
+    - RNScreens/common (= 4.25.2)
     - SocketRocket
     - Yoga
-  - RNScreens/common (4.23.0):
+  - RNScreens/common (4.25.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4245,7 +4271,7 @@ PODS:
     - Yoga
   - RNShare (7.3.7):
     - React-Core
-  - RNSVG (15.15.3):
+  - RNSVG (15.15.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -4271,10 +4297,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.15.3)
+    - RNSVG/common (= 15.15.5)
     - SocketRocket
     - Yoga
-  - RNSVG/common (15.15.3):
+  - RNSVG/common (15.15.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -5098,7 +5124,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
-  lottie-react-native: 983fd0489530e8d40f173de7f04e2f88b9317a15
+  lottie-react-native: b410d8c9dcaf536198ce852ea47e73c9158ad04e
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
@@ -5155,7 +5181,7 @@ SPEC CHECKSUMS:
   react-native-compat: 1d99f40b51a8c8efcd57a921d5ab3b1ab5608736
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
   react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
-  react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
+  react-native-get-random-values: e2acf4070fe4b7325705a05af047449637a27a21
   react-native-gzip: ac876c009a2a75f72e82b84fb3f721933c173ab8
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
   react-native-keyboard-controller: dbf568b5d029cdc5b26667a7c2323b160c25dc00
@@ -5169,9 +5195,9 @@ SPEC CHECKSUMS:
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-release-profiler: 12729af9f7bd9b14426bd4610af28d5e4b4a0f0c
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
-  react-native-safe-area-context: c00143b4823773bba23f2f19f85663ae89ceb460
+  react-native-safe-area-context: ebd2c2ece5e6e650a6963184039ec8cfd8960d86
   react-native-sdk: 6eb6c9de60e510a9ea93ddc09a3822cddf04f8cb
-  react-native-slider: 34064ca1a6864d7b263e44dd76a2d794e8d26744
+  react-native-slider: 4faf1b2266c73f1afb7b30cc6ebb3df238a37c0b
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: ce907959c67ad2abaa0411082db621036944737a
   react-native-view-shot: 6c008e58f4720de58370848201c5d4a082c6d4ca
@@ -5231,11 +5257,11 @@ SPEC CHECKSUMS:
   RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3
   RNPermissions: b65e9cc101a4e6b58ec1f8d018b0b167f6eb63d5
   RNReanimated: 292cd58688552a22b3fc1cefcfbc49b336dfed68
-  RNScreens: afaf526a9c804c3b4503f950cf3e67ed81e29ada
+  RNScreens: 9269ab4971b2bd24917be84295d2c2ae7d06e9be
   RNSensors: 4690be00931bc60be7c7bd457701edefaff965e3
   RNSentry: 2511157b1e29381d4b1aee195e3ede5e685e8862
   RNShare: d03cdc71e750246a48b81dcd62bd792bf57a758e
-  RNSVG: 595abfa0f9ac26d56afcaaedf4e37a00f54cab71
+  RNSVG: 6470d6f2636d71bd4bbc44a4f27fb7444e437b2f
   RNVectorIcons: c13cc1db346e960ecd0aafcdd5d0bb458133b9c1
   RNWorklets: a3184955a41f2be46898a937e2821469c8c8da42
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf

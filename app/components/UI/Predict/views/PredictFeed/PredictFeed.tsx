@@ -37,6 +37,7 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
@@ -242,20 +243,22 @@ interface PredictMarketListItemProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
-  market,
-  entryPoint,
-  testID,
-  predictFeedTab,
-  transactionActiveAbTests,
-}) => (
-  <PredictMarket
-    market={market}
-    entryPoint={entryPoint}
-    testID={testID}
-    predictFeedTab={predictFeedTab}
-    transactionActiveAbTests={transactionActiveAbTests}
-  />
+const PredictMarketListItem: React.FC<PredictMarketListItemProps> = React.memo(
+  ({
+    market,
+    entryPoint,
+    testID,
+    predictFeedTab,
+    transactionActiveAbTests,
+  }) => (
+    <PredictMarket
+      market={market}
+      entryPoint={entryPoint}
+      testID={testID}
+      predictFeedTab={predictFeedTab}
+      transactionActiveAbTests={transactionActiveAbTests}
+    />
+  ),
 );
 
 interface PredictTabContentProps {
@@ -286,13 +289,20 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   const [hasEverBeenActive, setHasEverBeenActive] = useState(isActive);
   useEffect(() => {
-    if (isActive && !hasEverBeenActive) {
+    if (isActive) {
       setHasEverBeenActive(true);
     }
-  }, [isActive, hasEverBeenActive]);
+  }, [isActive]);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
+  // Skip getMarkets for tabs that have never been visible. PagerView mounts
+  // every PredictTabContent at once, so without this gate each tab fetches on
+  // mount. The `isActive` term covers the first render a tab activates, before
+  // the effect above flips `hasEverBeenActive`; `hasEverBeenActive` then keeps
+  // already-visited tabs warm when swiping back.
+  const fetchEnabled = isActive || hasEverBeenActive;
 
   const {
     marketData,
@@ -307,6 +317,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     pageSize: 20,
     customQueryParams,
     refine,
+    enabled: fetchEnabled,
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -553,7 +564,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;

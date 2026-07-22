@@ -5,7 +5,6 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
 
 export const HomeSectionNames = {
-  CASH: 'cash',
   TOKENS: 'tokens',
   WHATS_HAPPENING: 'whats_happening',
   PERPS: 'perps',
@@ -16,6 +15,7 @@ export const HomeSectionNames = {
   TRENDING_TOKENS: 'trending_tokens',
   TRENDING_PERPS: 'trending_perps',
   TRENDING_PREDICT: 'trending_predict',
+  WATCHLIST: 'watchlist',
 } as const;
 
 export type HomeSectionName =

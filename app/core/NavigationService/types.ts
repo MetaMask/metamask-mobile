@@ -2,6 +2,7 @@ import type {
   ParamListBase,
   NavigationProp,
   NavigationState,
+  NavigatorScreenParams,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
@@ -17,30 +18,27 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
+import type {
+  AssetStackParamList,
+  BrowserTabHomeParamList,
+  HomeTabsParamList,
+  ImportPrivateKeyStackParamList,
+  MainFlowParamList,
+  SettingsStackParamList,
+  SetPasswordFlowParamList,
+  TrendingViewStackParamList,
+  WalletTabHomeParamList,
+  WalletTabStackParamList,
+  WebviewStackParamList,
+} from '../../components/Nav/Main/types/navigation';
+import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
 
 // Bridge params
-import type { BatchSellTokenSelectRouteParams } from '../../components/UI/Bridge/Views/BatchSellTokenSelect/types';
-import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
-import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
-import type { HardwareWalletsSwapsRouteParams } from '../../components/UI/HardwareWallet/Swaps/flowStrategy';
-import type { HwQrScannerRouteParams } from '../../components/UI/HardwareWallet/Swaps/HwQrScanner';
-import type { PriceImpactModalRouterParams } from '../../components/UI/Bridge/components/PriceImpactModal/types';
-import type { MissingPriceModalParams } from '../../components/UI/Bridge/components/MissingPriceModal';
-import type { TokenWarningModalParams } from '../../components/UI/Bridge/components/TokenWarningModal';
-import type { HighRateAlertModalParams } from '../../components/UI/Bridge/components/HighRateAlertModal';
-import type { PostTradeBottomSheetParams } from '../../components/UI/Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
-import type { BatchSellPriceImpactInfoModalParams } from '../../components/UI/Bridge/components/BatchSellPriceImpactInfoModal/BatchSellPriceImpactInfoModal.types';
-import type { BatchSellNetworkFeeInfoModalParams } from '../../components/UI/Bridge/components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
-import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
-  BatchSellSlippageModalParams,
-  SwapSlippageModalParams,
-} from '../../components/UI/Bridge/components/SlippageModal/types';
-import type {
-  TransactionDetailsBlockExplorerParams,
-  BlockaidModalParams,
-  BridgeTransactionDetailsParams,
-} from '../../components/UI/Bridge/Bridge.types';
+  BridgeModalsNavigationParamList,
+  BridgeScreensStackParamList,
+} from '../../components/UI/Bridge/types/navigation';
+import type { BridgeTransactionDetailsParams } from '../../components/UI/Bridge/Bridge.types';
 import type { SetPayTokenRequest } from '../../components/Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
 
 // Manual backup params
@@ -65,10 +63,25 @@ import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/type
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
+import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
-import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
-import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
+import type {
+  PerpsNavigationParamList,
+  PerpsStackParamList,
+} from '../../components/UI/Perps/types/navigation';
+import type {
+  MoneyNavigationParamList,
+  MoneyScreensStackParamList,
+  MoneyModalsNavigationParamList,
+  MoneyConfirmationsNavigationParamList,
+} from '../../components/UI/Money/types/navigation';
+import type {
+  CardModalsNavigationParamList,
+  CardOnboardingStackParamList,
+  CardRootParamList,
+  CardScreensStackParamList,
+} from '../../components/UI/Card/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
@@ -76,11 +89,8 @@ import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDe
 import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedChart/MAPickerSheet';
 import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
-import type { CreditBalanceTooltipParams } from '../../components/UI/Card/components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
-import type { MoneyUnlinkCardSheetRouteParams } from '../../components/UI/Card/components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
-import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 
 // QR Scanner params
@@ -95,7 +105,12 @@ import type {
   WebviewModalParams,
   KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
-import type { RampNavigationParamList } from '../../components/UI/Ramp/types/navigation';
+import type {
+  RampNavigationParamList,
+  RampModalsNavigationParamList,
+  RampScreensStackParamList,
+  RampTokenListRootParamList,
+} from '../../components/UI/Ramp/types/navigation';
 import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
 
 // Transactions params
@@ -110,11 +125,6 @@ import type {
   AssetViewParams,
 } from '../../components/Views/Asset/Asset.types';
 import type { NftDetailsParams } from '../../components/Views/NftDetails/NftDetails.types';
-import type { TokenDetailsRouteParams } from '../../components/UI/TokenDetails/constants/constants';
-import type {
-  PriceAlertRouteParams,
-  CreatePriceAlertRouteParams,
-} from '../../components/UI/Assets/PriceAlerts/constants';
 
 // Stake params
 import type {
@@ -129,21 +139,14 @@ import type {
   SendFlowParams,
   SendAmountParams,
   SendConfirmParams,
-  SendRecipientParams,
-  SendAssetParams,
-  SendParams,
 } from '../../components/Views/SendFlow/SendFlow.types';
+import type { SendStackParamList } from '../../components/Views/confirmations/components/send/types/navigation';
 
 // Predict params
 import type {
-  PredictMarketListRouteParams,
-  PredictMarketDetailsParams,
-  PredictActivityDetailParams,
-  PredictBuyPreviewParams,
-  PredictSellPreviewParams,
-  PredictFeedRouteParams,
-  PredictWorldCupParams,
-  PredictPositionsParams,
+  PredictStackParamList,
+  PredictModalsNavigationParamList,
+  PredictNavigationParamList,
 } from '../../components/UI/Predict/types/navigation';
 
 // Account status params
@@ -193,9 +196,6 @@ import type {
 } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
 
 // Card params
-import type { CardConfirmModalParams } from '../../components/UI/Card/Card.types';
-import type { ShippingAddress } from '../../components/UI/Card/util/buildUserAddress';
-
 // Account actions params
 import type {
   AccountActionsParams,
@@ -235,17 +235,15 @@ import type {
   LearnMoreModalParams,
   MaxInputModalParams,
   GasImpactModalParams,
-  EarnScreensParams,
-  LendingDepositConfirmationParams,
-  LendingWithdrawalConfirmationParams,
-  LendingMaxWithdrawalModalParams,
 } from '../../components/UI/Earn/Earn.types';
 import type { EarnTokenListViewRouteParams } from '../../components/UI/Earn/components/EarnTokenList';
-import type { EarnMusdConversionEducationViewRouteParams } from '../../components/UI/Earn/Views/EarnMusdConversionEducationView';
+import type {
+  EarnModalsNavigationParamList,
+  EarnScreensStackParamList,
+} from '../../components/UI/Earn/types/navigation';
 
 // Modal params
 import type {
-  RootModalFlowParams,
   ModalConfirmationParams,
   ModalMandatoryParams,
   OptionsSheetParams,
@@ -261,13 +259,11 @@ import type {
 
 // Rewards params
 import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
-import type { RewardsNavigationParamList } from '../../components/UI/Rewards/types/navigation';
-
-// Webview params
 import type {
-  WebviewParams,
-  SimpleWebviewParams,
-} from '../../components/Views/Webview/Webview.types';
+  RewardsNavigationParamList,
+  RewardsStackParamList,
+} from '../../components/UI/Rewards/types/navigation';
+
 import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
 /**
@@ -287,8 +283,10 @@ type SocialLoginRouteParams = AccountStatusParams & {
 
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
-  previous_screen: string;
-  onboardingTraceCtx: TraceContext;
+  previous_screen?: string;
+  onboardingTraceCtx?: TraceContext;
+  initialStep?: number;
+  qrSyncImport?: boolean;
 }
 
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
@@ -314,6 +312,8 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Upstream journey attribution for Quick Buy when opened from the trade screen. */
+      originalEntryPoint?: string;
       /** Whether the tapped position came from the closed list. Authoritative
        * closed/open signal (more reliable than re-deriving from fields). */
       isClosed?: boolean;
@@ -335,6 +335,8 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Upstream journey attribution for Quick Buy when opened from the trade screen. */
+      originalEntryPoint?: string;
       /** Deep links have no list context; resolved heuristically downstream. */
       isClosed?: never;
       /** Notification subtype forwarded from the social-trader-position
@@ -342,6 +344,79 @@ type TraderPositionViewParams =
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
     };
+
+/**
+ * Screens registered inside App's `RootModalFlow` stack.
+ * Param shapes match the flat RootStack leaf entries for those routes.
+ */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RootModalFlowParamList = {
+  WalletActions: undefined;
+  TradeWalletActions: undefined;
+  FundActionMenu: undefined;
+  MoreTokenActionsMenu: MoreTokenActionsMenuParams;
+  MAPicker: MAPickerSheetParams | undefined;
+  SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
+  DeleteWalletModal: undefined;
+  ModalConfirmation: ModalConfirmationParams | undefined;
+  ModalMandatory: ModalMandatoryParams | undefined;
+  OnboardingSheet: OnboardingSheetParams | undefined;
+  SeedphraseModal: SeedphraseModalParams | undefined;
+  SkipAccountSecurityModal: undefined;
+  SuccessErrorSheet: SuccessErrorSheetParams | undefined;
+  EligibilityFailedModal: undefined;
+  UnsupportedRegionModal: undefined;
+  RampsServiceDisruptionModal: undefined;
+  AccountSelector: AccountSelectorParams | undefined;
+  AddWallet: undefined;
+  AddressSelector: AddressSelectorParams | undefined;
+  SDKLoading: SDKLoadingParams | undefined;
+  SDKFeedback: SDKFeedbackParams | undefined;
+  SDKConnectV2Otp: SDKConnectV2OtpModalParams;
+  SDKManageConnections: undefined;
+  ExperienceEnhancer: undefined;
+  DataCollection: undefined;
+  SDKDisconnect: SDKDisconnectParams | undefined;
+  AccountConnect: AccountConnectParams | undefined;
+  AccountPermissions: AccountPermissionsParams | undefined;
+  RevokeAllAccountPermissions: RevokeAllAccountPermissionsParams | undefined;
+  ConnectionDetails: ConnectionDetailsParams | undefined;
+  PermittedNetworksInfoSheet: undefined;
+  NetworkSelector: NetworkSelectorParams | undefined;
+  TokenSort: undefined;
+  NetworkManager: undefined;
+  BasicFunctionality: undefined;
+  ConfirmTurnOnBackupAndSync: undefined;
+  AmbiguousAddress: AmbiguousAddressParams | undefined;
+  TurnOffRememberMeModal: undefined;
+  AssetHideConfirmation: { onConfirm: () => void } | undefined;
+  NftOptions: { collectible: Collectible } | undefined;
+  UpdateNeededModal: undefined;
+  OTAUpdatesModal: undefined;
+  SelectSRP: SelectSRPParams | undefined;
+  AddDeviceVerificationCode: undefined;
+  SRPRevealQuiz: SRPRevealQuizParams | undefined;
+  AccountActions: AccountActionsParams;
+  SettingsAdvancedFiatOnTestnetsFriction: undefined;
+  ShowIpfs: ShowIpfsGatewaySheetParams | undefined;
+  ShowNftDisplayMedia: ShowNftDisplayMediaParams | undefined;
+  NFTAutoDetectionModal: undefined;
+  MultiRPcMigrationModal: undefined;
+  ShowTokenId: ShowTokenIdSheetParams | undefined;
+  OriginSpamModal: OriginSpamModalParams | undefined;
+  ChangeInSimulationModal: undefined;
+  tooltipModal: TooltipModalRouteParams | undefined;
+  DeepLinkModal: DeepLinkModalParams | undefined;
+  MultichainAccountsIntroModal: undefined;
+  MultichainAccountsLearnMoreBottomSheet: undefined;
+  Pna25BottomSheet: undefined;
+  ReturnToDappToast: ReturnToDappNotificationParams | undefined;
+  MultichainTransactionDetails: MultichainTransactionDetailsParams | undefined;
+  TransactionDetailsSheet: TransactionDetailsSheetParams | undefined;
+  ImportWalletTipSheet: undefined;
+  SimpleWebview: WebviewStackParamList['SimpleWebview'];
+};
 
 /**
  * Flattened param list for React Navigation compatibility.
@@ -358,19 +433,23 @@ type TraderPositionViewParams =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootStackParamList = {
   // Top-level routes
-  Main: NestedNavigationParams | undefined;
+  Main: NavigatorScreenParams<MainFlowParamList> | undefined;
   WalletView: undefined;
-  BrowserTabHome: BrowserParams | NestedNavigationParams | undefined;
+  BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
-  SettingsView: NestedNavigationParams | undefined;
+  SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
   Ramp: undefined;
   RampBuy: RampBuySellParams | undefined;
   RampSell: RampBuySellParams | undefined;
-  RampTokenSelection: undefined;
-  RampHeadlessEntry: undefined;
+  RampTokenSelection:
+    | NavigatorScreenParams<RampTokenListRootParamList>
+    | undefined;
+  RampHeadlessEntry:
+    | NavigatorScreenParams<RampTokenListRootParamList>
+    | undefined;
   GetStarted: undefined;
   /**
    * BuildQuote route is shared between:
@@ -385,27 +464,29 @@ export type RootStackParamList = {
   Quotes: undefined;
   Checkout: undefined;
   OrderDetails: RampOrderDetailsParams | undefined;
-  SendTransaction: undefined;
+  /** Aggregator sell flow — send crypto for an off-ramp order. */
+  SendTransaction: { orderId?: string } | undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;
-  RampAmountInput:
-    | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
-    | undefined;
-  RampModals: NestedNavigationParams | undefined;
-  RampTokenSelectorModal: undefined;
-  RampFiatSelectorModal: undefined;
-  RampIncompatibleAccountTokenModal: undefined;
-  RampRegionSelectorModal: undefined;
-  RampPhoneCountrySelectorModal: undefined;
-  RampUnsupportedRegionModal: undefined;
-  RampUnsupportedTokenModal: undefined;
-  RampPaymentMethodSelectorModal: undefined;
-  RampSettingsModal: undefined;
-  RampBuildQuoteSettingsModal: undefined;
+  RampAmountInput: RampNavigationParamList['RampAmountInput'];
+
+  RampModals: NavigatorScreenParams<RampModalsNavigationParamList> | undefined;
+  RampTokenSelectorModal: RampModalsNavigationParamList['RampTokenSelectorModal'];
+  RampFiatSelectorModal: RampModalsNavigationParamList['RampFiatSelectorModal'];
+  RampIncompatibleAccountTokenModal: RampModalsNavigationParamList['RampIncompatibleAccountTokenModal'];
+  RampRegionSelectorModal: RampModalsNavigationParamList['RampRegionSelectorModal'];
+  RampPhoneCountrySelectorModal: RampModalsNavigationParamList['RampPhoneCountrySelectorModal'];
+  RampUnsupportedRegionModal: RampModalsNavigationParamList['RampUnsupportedRegionModal'];
+  RampUnsupportedTokenModal: RampModalsNavigationParamList['RampUnsupportedTokenModal'];
+  RampPaymentMethodSelectorModal: RampModalsNavigationParamList['RampPaymentMethodSelectorModal'];
+  RampSettingsModal: RampModalsNavigationParamList['RampSettingsModal'];
+  RampBuildQuoteSettingsModal: RampModalsNavigationParamList['RampBuildQuoteSettingsModal'];
 
   // Ramp native (V2) flow screens + modals — see RampNavigationParamList.
-  RampTokenSelectionRoot: RampNavigationParamList['RampTokenSelectionRoot'];
+  RampTokenSelectionRoot:
+    | NavigatorScreenParams<RampScreensStackParamList>
+    | undefined;
   RampsOrderDetails: RampNavigationParamList['RampsOrderDetails'];
   RampHeadlessHost: RampNavigationParamList['RampHeadlessHost'];
   RampEnterEmail: RampNavigationParamList['RampEnterEmail'];
@@ -465,21 +546,25 @@ export type RootStackParamList = {
   LedgerMessageSignModal: LedgerMessageSignModalParams | undefined;
   LedgerTransactionModal: LedgerTransactionModalParams | undefined;
   QRSigningTransactionModal: undefined;
-  QRTabSwitcher: undefined;
+  QRTabSwitcher: QRTabSwitcherParams | undefined;
 
   // Misc top-level routes
   OptionsSheet: OptionsSheetParams | undefined;
   QRScanner: QRScannerParams;
-  TransactionsView: TransactionsViewParams | undefined;
+  /**
+   * Flat params (`redirectToOrders`, etc.) or nested navigator params when
+   * opened as the activity / orders stack (e.g. Ramp → OrderDetails).
+   */
+  TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
-  RewardsFlow: NestedNavigationParams | undefined;
+  RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
-  TrendingView: NestedNavigationParams | undefined;
-  TrendingFeed: ExploreFeedRouteParams | undefined;
+  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
+  TrendingFeed: TrendingViewStackParamList['TrendingFeed'];
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
@@ -521,7 +606,7 @@ export type RootStackParamList = {
 
   // Modal routes
   DeleteWalletModal: undefined;
-  RootModalFlow: RootModalFlowParams | NestedNavigationParams | undefined;
+  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   TurnOffRememberMeModal: undefined;
@@ -540,12 +625,20 @@ export type RootStackParamList = {
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal: undefined;
-  RewardsClaimBottomSheetModal: undefined;
-  RewardOptInAccountGroupModal: undefined;
+  RewardsBottomSheetModal:
+    | RewardsNavigationParamList['RewardsBottomSheetModal']
+    | undefined;
+  RewardsClaimBottomSheetModal:
+    | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
+    | undefined;
+  RewardOptInAccountGroupModal:
+    | RewardsNavigationParamList['RewardOptInAccountGroupModal']
+    | undefined;
   RewardsReferralBottomSheetModal: undefined;
   OTAUpdatesModal: undefined;
-  EndOfSeasonClaimBottomSheet: undefined;
+  EndOfSeasonClaimBottomSheet:
+    | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
+    | undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -556,7 +649,7 @@ export type RootStackParamList = {
   AssetsSettings: undefined;
   SecuritySettings: undefined;
   HomeNav: undefined;
-  Home: NestedNavigationParams | undefined;
+  Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
   Login: undefined;
   OnboardingNav: undefined;
@@ -580,11 +673,13 @@ export type RootStackParamList = {
   WalletCreationError: WalletCreationErrorParams | undefined;
   AddDeviceToWallet: undefined;
   AddDeviceVerificationCode: undefined;
-  ImportPrivateKeyView: NestedNavigationParams | undefined;
+  ImportPrivateKeyView:
+    | NavigatorScreenParams<ImportPrivateKeyStackParamList>
+    | undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
-  Amount: SendAmountParams | undefined;
+  Amount: SendAmountParams | SendStackParamList['Amount'];
   Confirm: SendConfirmParams | undefined;
 
   // Account backup routes
@@ -594,7 +689,7 @@ export type RootStackParamList = {
   Settings: undefined;
   ContactsSettings: undefined;
   CompanySettings: undefined;
-  AdvancedSettings: undefined;
+  AdvancedSettings: SettingsStackParamList['AdvancedSettings'];
   ResetPassword: undefined;
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
@@ -670,12 +765,14 @@ export type RootStackParamList = {
   AssetView: AssetViewParams | undefined;
 
   // Webview routes
-  Webview: WebviewParams | NestedNavigationParams | undefined;
-  SimpleWebview: SimpleWebviewParams | undefined;
+  Webview: NavigatorScreenParams<WebviewStackParamList> | undefined;
+  SimpleWebview: WebviewStackParamList['SimpleWebview'];
 
   // Wallet routes
-  WalletTabHome: NestedNavigationParams | undefined;
-  WalletTabStackFlow: NestedNavigationParams | undefined;
+  WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
+  WalletTabStackFlow:
+    | NavigatorScreenParams<WalletTabStackParamList>
+    | undefined;
   WalletConnectSessionsView: undefined;
   DeFiFullView: undefined;
   NftFullView: undefined;
@@ -684,9 +781,13 @@ export type RootStackParamList = {
 
   // Money routes — `MoneyScreens`/`MoneyModals`/`MoneyConfirmations` are nested
   // navigators; their screens are enumerated in `MoneyNavigationParamList`.
-  MoneyScreens: NestedNavigationParams | undefined;
-  MoneyModals: NestedNavigationParams | undefined;
-  MoneyConfirmations: NestedNavigationParams | undefined;
+  MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
+  MoneyModals:
+    | NavigatorScreenParams<MoneyModalsNavigationParamList>
+    | undefined;
+  MoneyConfirmations:
+    | NavigatorScreenParams<MoneyConfirmationsNavigationParamList>
+    | undefined;
   MoneyHome: MoneyNavigationParamList['MoneyHome'];
   MoneyActivity: MoneyNavigationParamList['MoneyActivity'];
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
@@ -718,49 +819,46 @@ export type RootStackParamList = {
   EditNetwork: EditNetworkParams | undefined;
 
   // Bridge routes
-  Bridge: BridgeRouteParams | undefined;
-  BridgeView: BridgeRouteParams | undefined;
-  BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
-  BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
-  BatchSellReview: undefined;
-  QuoteSelectorView: undefined;
-  HwQrScanner: HwQrScannerRouteParams | undefined;
-  BridgeModals: undefined;
-  MarketClosedModal: undefined;
-  NetworkListModal: undefined;
-  PriceImpactModal: PriceImpactModalRouterParams;
-  MissingPriceModal: MissingPriceModalParams;
-  TokenWarningModal: TokenWarningModalParams;
-  HighRateAlertModal: HighRateAlertModalParams;
-  PostTradeModal: PostTradeBottomSheetParams;
-  BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
-  SwapDefaultSlippageModal: SwapSlippageModalParams | undefined;
-  SwapCustomSlippageModal: SwapSlippageModalParams | undefined;
-  BatchSellDefaultSlippageModal: BatchSellSlippageModalParams | undefined;
-  BatchSellCustomSlippageModal: BatchSellSlippageModalParams | undefined;
-  TransactionDetailsBlockExplorer:
-    | TransactionDetailsBlockExplorerParams
+  Bridge: NavigatorScreenParams<BridgeScreensStackParamList> | undefined;
+  BridgeView: BridgeScreensStackParamList['BridgeView'];
+  BridgeTokenSelector: BridgeScreensStackParamList['BridgeTokenSelector'];
+  BatchSellTokenSelect: BridgeScreensStackParamList['BatchSellTokenSelect'];
+  BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
+  QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
+  HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
+  HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
+  BridgeModals:
+    | NavigatorScreenParams<BridgeModalsNavigationParamList>
     | undefined;
-  BlockaidModal: BlockaidModalParams;
-  RecipientSelectorModal: undefined;
-  BatchSellDestinationTokenSelectorModal: undefined;
-  BatchSellQuoteDetailsModal: undefined;
-  BatchSellFinalReviewModal: undefined;
-  BatchSellNetworkFeeInfoModal: BatchSellNetworkFeeInfoModalParams | undefined;
-  BatchSellMinimumReceivedInfoModal:
-    | BatchSellMinimumReceivedInfoModalParams
-    | undefined;
+  MarketClosedModal: BridgeModalsNavigationParamList['MarketClosedModal'];
+  NetworkListModal: BridgeModalsNavigationParamList['NetworkListModal'];
+  PriceImpactModal: BridgeModalsNavigationParamList['PriceImpactModal'];
+  MissingPriceModal: BridgeModalsNavigationParamList['MissingPriceModal'];
+  TokenWarningModal: BridgeModalsNavigationParamList['TokenWarningModal'];
+  HighRateAlertModal: BridgeModalsNavigationParamList['HighRateAlertModal'];
+  PostTradeModal: BridgeModalsNavigationParamList['PostTradeModal'];
+  BatchSellPriceImpactInfoModal: BridgeModalsNavigationParamList['BatchSellPriceImpactInfoModal'];
+  SwapDefaultSlippageModal: BridgeModalsNavigationParamList['SwapDefaultSlippageModal'];
+  SwapCustomSlippageModal: BridgeModalsNavigationParamList['SwapCustomSlippageModal'];
+  BatchSellDefaultSlippageModal: BridgeModalsNavigationParamList['BatchSellDefaultSlippageModal'];
+  BatchSellCustomSlippageModal: BridgeModalsNavigationParamList['BatchSellCustomSlippageModal'];
+  TransactionDetailsBlockExplorer: BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
+  BlockaidModal: BridgeModalsNavigationParamList['BlockaidModal'];
+  RecipientSelectorModal: BridgeModalsNavigationParamList['RecipientSelectorModal'];
+  BatchSellDestinationTokenSelectorModal: BridgeModalsNavigationParamList['BatchSellDestinationTokenSelectorModal'];
+  BatchSellQuoteDetailsModal: BridgeModalsNavigationParamList['BatchSellQuoteDetailsModal'];
+  BatchSellFinalReviewModal: BridgeModalsNavigationParamList['BatchSellFinalReviewModal'];
+  BatchSellNetworkFeeInfoModal: BridgeModalsNavigationParamList['BatchSellNetworkFeeInfoModal'];
+  BatchSellMinimumReceivedInfoModal: BridgeModalsNavigationParamList['BatchSellMinimumReceivedInfoModal'];
   BridgeTransactionDetails:
     | BridgeTransactionDetailsParams
-    | TransactionDetailsBlockExplorerParams
-    | undefined;
-  HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
+    | BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
 
   // Perps routes - use PerpsNavigationParamList for type-safe perps navigation.
   // The `Perps` root is a nested stack navigator, so it also accepts the
   // `{ screen, params }` form for cross-stack navigation (e.g. from the social
   // leaderboard into PerpsMarketDetails).
-  Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
+  Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
@@ -794,18 +892,20 @@ export type RootStackParamList = {
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
 
   // Predict routes — `Predict` is a nested stack navigator.
-  Predict: NestedNavigationParams | undefined;
-  PredictMarketList: PredictMarketListRouteParams | undefined;
-  PredictFeed: PredictFeedRouteParams | undefined;
-  PredictMarketDetails: PredictMarketDetailsParams | undefined;
-  PredictPositions: PredictPositionsParams | undefined;
-  PredictWorldCup: PredictWorldCupParams | undefined;
-  PredictActivityDetail: PredictActivityDetailParams;
-  PredictModals: undefined;
-  PredictBuyPreview: PredictBuyPreviewParams;
-  PredictSellPreview: PredictSellPreviewParams;
+  Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
+  PredictMarketList: PredictNavigationParamList['PredictMarketList'];
+  PredictFeed: PredictNavigationParamList['PredictFeed'];
+  PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
+  PredictPositions: PredictNavigationParamList['PredictPositions'];
+  PredictWorldCup: PredictNavigationParamList['PredictWorldCup'];
+  PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
+  PredictModals:
+    | NavigatorScreenParams<PredictModalsNavigationParamList>
+    | undefined;
+  PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
+  PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
-  PredictAddFundsSheet: undefined;
+  PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
   PredictGTMModal: undefined;
 
   // Social Leaderboard routes
@@ -814,6 +914,10 @@ export type RootStackParamList = {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
         source?: string;
+        /** Set by onboarding when the user tapped "Allow notifications" but the
+         * OS denied permission. Shows a one-shot, auto-dismissing nudge banner
+         * on the leaderboard with a CTA to open device settings. */
+        showNotificationsBanner?: boolean;
       }
     | undefined;
   TraderProfileView: {
@@ -828,6 +932,7 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  SocialLeaderboardOnboarding: undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
@@ -863,17 +968,13 @@ export type RootStackParamList = {
   EarnTokenList: EarnTokenListViewRouteParams | undefined;
 
   // Earn routes
-  EarnScreens: EarnScreensParams | undefined;
-  EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
-  EarnLendingWithdrawalConfirmation:
-    | LendingWithdrawalConfirmationParams
-    | undefined;
-  EarnMusdConversionEducation:
-    | EarnMusdConversionEducationViewRouteParams
-    | undefined;
-  EarnModals: NestedNavigationParams | undefined;
-  EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
-  EarnLendingLearnMoreModal: undefined;
+  EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
+  EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
+  EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
+  EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
+  EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
+  EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
+  EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
   RedesignedConfirmations: undefined;
@@ -902,7 +1003,7 @@ export type RootStackParamList = {
 
   // Misc routes
   FoxLoader: FoxLoaderParams | undefined;
-  SetPasswordFlow: NestedNavigationParams | undefined;
+  SetPasswordFlow: NavigatorScreenParams<SetPasswordFlowParamList> | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -911,74 +1012,61 @@ export type RootStackParamList = {
   ///: END:ONLY_INCLUDE_IF
 
   // Card routes
-  CardScreens: undefined;
-  CardHome: undefined;
-  CardWelcome: undefined;
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
-  CardSpendingLimit: { flow: string } | undefined;
-  ChooseYourCard:
-    | { flow: string; shippingAddress?: ShippingAddress }
-    | undefined;
-  CardCashback: undefined;
-  CardCreditRedeem: undefined;
-  ReviewOrder: undefined;
-  OrderCompleted:
-    | {
-        paymentMethod?: string;
-        transactionHash?: string;
-        fromUpgrade?: boolean;
-      }
-    | undefined;
-  CardOnboarding: undefined;
-  CardOnboardingSignUp: undefined;
-  CardOnboardingConfirmEmail: undefined;
-  CardOnboardingSetPhoneNumber: undefined;
-  CardOnboardingConfirmPhoneNumber: undefined;
-  CardOnboardingVerifyIdentity: undefined;
-  CardOnboardingVerifyingVeriffKYC: undefined;
-  CardOnboardingPersonalDetails: undefined;
-  CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingComplete: undefined;
-  CardOnboardingKYCFailed: undefined;
-  CardOnboardingKYCPending: undefined;
-  CardModals: NestedNavigationParams | undefined;
-  CardAddFundsModal: undefined;
-  CardAssetSelectionModal: undefined;
-  CardRegionSelectionModal: undefined;
-  CardConfirmModal: CardConfirmModalParams | undefined;
-  CardPasswordModal: undefined;
-  CardRecurringFeeModal: undefined;
-  CardDaimoPayModal: undefined;
-  CardViewPinModal: { imageUrl: string };
-  CardSpendingLimitOptionsModal: {
-    currentLimitType: 'full' | 'restricted';
-    currentCustomLimit: string;
-    callerRoute: string;
-    callerParams?: Record<string, unknown>;
-  };
-  CardWaitlistFormModal: { url: string };
-  CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
-  CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
-  CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
-  CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
+  CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
+  CardHome: CardScreensStackParamList['CardHome'];
+  CardWelcome: CardScreensStackParamList['CardWelcome'];
+  CardAuthentication: CardScreensStackParamList['CardAuthentication'];
+  CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
+  ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
+  CardCashback: CardScreensStackParamList['CardCashback'];
+  CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  ReviewOrder: CardScreensStackParamList['ReviewOrder'];
+  OrderCompleted: CardScreensStackParamList['OrderCompleted'];
+  CardOnboarding: CardScreensStackParamList['CardOnboarding'];
+  CardOnboardingSignUp: CardOnboardingStackParamList['CardOnboardingSignUp'];
+  CardOnboardingConfirmEmail: CardOnboardingStackParamList['CardOnboardingConfirmEmail'];
+  CardOnboardingSetPhoneNumber: CardOnboardingStackParamList['CardOnboardingSetPhoneNumber'];
+  CardOnboardingConfirmPhoneNumber: CardOnboardingStackParamList['CardOnboardingConfirmPhoneNumber'];
+  CardOnboardingVerifyIdentity: CardOnboardingStackParamList['CardOnboardingVerifyIdentity'];
+  CardOnboardingVerifyingVeriffKYC: CardOnboardingStackParamList['CardOnboardingVerifyingVeriffKYC'];
+  CardOnboardingPersonalDetails: CardOnboardingStackParamList['CardOnboardingPersonalDetails'];
+  CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
+  CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
+  CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
+  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
+  CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
+  CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
+  CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
+  CardAddFundsModal: CardModalsNavigationParamList['CardAddFundsModal'];
+  CardAssetSelectionModal: CardModalsNavigationParamList['CardAssetSelectionModal'];
+  CardRegionSelectionModal: CardModalsNavigationParamList['CardRegionSelectionModal'];
+  CardConfirmModal: CardModalsNavigationParamList['CardConfirmModal'];
+  CardPasswordModal: CardModalsNavigationParamList['CardPasswordModal'];
+  CardRecurringFeeModal: CardModalsNavigationParamList['CardRecurringFeeModal'];
+  CardDaimoPayModal: CardModalsNavigationParamList['CardDaimoPayModal'];
+  CardViewPinModal: CardModalsNavigationParamList['CardViewPinModal'];
+  CardSpendingLimitOptionsModal: CardModalsNavigationParamList['CardSpendingLimitOptionsModal'];
+  CardWaitlistFormModal: CardModalsNavigationParamList['CardWaitlistFormModal'];
+  CardImmersveKYCModal: CardModalsNavigationParamList['CardImmersveKYCModal'];
+  CardForgotPasswordModal: CardModalsNavigationParamList['CardForgotPasswordModal'];
+  CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
+  CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
+  CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
 
   // Send routes
-  Recipient: SendRecipientParams | undefined;
-  Asset: AssetViewParams | SendAssetParams | undefined;
-  Send: NestedNavigationParams | SendParams | undefined;
+  Recipient: SendStackParamList['Recipient'];
+  Asset: AssetViewParams | SendStackParamList['Asset'];
+  Send: NavigatorScreenParams<SendStackParamList> | undefined;
 
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
   // Asset detail stack routes (nested under the `Asset` navigator)
-  AssetStackFlow: NestedNavigationParams | undefined;
-  SecurityTrust: TokenDetailsRouteParams & {
-    isPricePositive?: boolean;
-    useAmbientColor?: boolean;
-  };
-  CreatePriceAlert: CreatePriceAlertRouteParams;
-  ManagePriceAlerts: PriceAlertRouteParams;
+  AssetStackFlow: NavigatorScreenParams<AssetStackParamList> | undefined;
+  SecurityTrust: AssetStackParamList['SecurityTrust'];
+  CreatePriceAlert: AssetStackParamList['CreatePriceAlert'];
+  ManagePriceAlerts: AssetStackParamList['ManagePriceAlerts'];
 
   // NFT detail routes
   NftDetails: NftDetailsParams;
@@ -1024,9 +1112,14 @@ export type AppNavigationProp = Omit<
 };
 
 /**
- * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`).
+ * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`,
+ * native-stack events like `transitionEnd`).
  * Mirrors {@link AppNavigationProp}'s `getState()` override, which accounts for
  * `getState()` potentially returning undefined when the navigator is not mounted.
+ *
+ * Note: still keyed to the loose global `RootParamList` during Phase 4. Prefer
+ * {@link AppNavigationProp} for strict route/param checking unless you need
+ * stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
   NativeStackNavigationProp<ReactNavigation.RootParamList>,

@@ -4,7 +4,10 @@ import {
 } from '@react-navigation/native-stack';
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { PerpsNavigationParamList } from '../types/navigation';
+import type {
+  PerpsNavigationParamList,
+  PerpsStackParamList,
+} from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
@@ -16,7 +19,7 @@ import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
-import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
+import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
@@ -54,7 +57,7 @@ import {
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
 
-const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
+const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
 
 const styles = StyleSheet.create({
@@ -297,7 +300,7 @@ const PerpsScreenStack = () => {
 
             <Stack.Screen
               name={Routes.PERPS.MARKET_DETAILS}
-              component={PerpsMarketDetailsView}
+              component={PerpsMarketDetailsRouter}
               options={{
                 title: strings('perps.market.details.title'),
                 headerShown: false,
@@ -328,7 +331,7 @@ const PerpsScreenStack = () => {
                 component={HIP3DebugView}
                 options={{
                   title: 'HIP-3 Debug Tools',
-                  headerShown: true,
+                  headerShown: false,
                 }}
               />
             )}

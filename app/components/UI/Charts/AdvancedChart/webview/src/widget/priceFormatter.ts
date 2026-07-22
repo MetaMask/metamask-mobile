@@ -47,6 +47,39 @@ export function formatSubscriptNotation(abs: number): string | null {
   return `0.0${toSubscriptDigits(leadingZeros)}${significantDigits}`;
 }
 
+export function getConfiguredPriceDecimals(): number | null {
+  const decimals = window.CONFIG?.priceDecimals;
+  if (typeof decimals !== 'number' || !Number.isFinite(decimals)) {
+    return null;
+  }
+  return Math.max(0, Math.floor(decimals));
+}
+
+export function formatPriceWithConfiguredDecimals(
+  price: unknown,
+  maxDecimals: number,
+): string {
+  const p = Number(price);
+  if (p === 0) {
+    return '0';
+  }
+
+  const abs = Math.abs(p);
+  let decimals = maxDecimals;
+
+  if (abs >= 1) {
+    const integerDigits = Math.floor(Math.log10(abs)) + 1;
+    decimals = Math.min(maxDecimals, Math.max(0, 5 - integerDigits));
+  }
+
+  const rounded = Number(p.toFixed(decimals));
+  return new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals,
+  }).format(rounded);
+}
+
 /**
  * Formats a price for the TV built-in price scale + crosshair label. Zero-
  * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
@@ -61,6 +94,10 @@ export function formatCrosshairPrice(price: unknown): string {
   const sub = formatSubscriptNotation(abs);
   if (sub) {
     return p < 0 ? `-${sub}` : sub;
+  }
+  const configuredPriceDecimals = getConfiguredPriceDecimals();
+  if (configuredPriceDecimals !== null) {
+    return formatPriceWithConfiguredDecimals(p, configuredPriceDecimals);
   }
   return new Intl.NumberFormat('en-US', {
     style: 'decimal',
@@ -90,7 +127,11 @@ export function advancedChartPriceFormatterFactory(
   if (symbolInfo === null || symbolInfo.format === 'volume') {
     return null;
   }
-  if (!window.CONFIG?.useSubscriptPriceFormat) {
+  if (
+    !window.CONFIG ||
+    (!window.CONFIG.useSubscriptPriceFormat &&
+      getConfiguredPriceDecimals() === null)
+  ) {
     return null;
   }
   return {
