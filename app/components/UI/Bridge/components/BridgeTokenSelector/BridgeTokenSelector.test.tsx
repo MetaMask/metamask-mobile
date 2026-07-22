@@ -1613,7 +1613,7 @@ describe('BridgeTokenSelector', () => {
       expect(queryByTestId('token-USDC')).toBeNull();
     });
 
-    it('filters watchlist tokens locally without calling search API', async () => {
+    it('keeps full watchlist list for queries below minimum length', async () => {
       mockIsWatchlistEnabled = true;
       mockUseTokenWatchlistQuery.mockReturnValue({
         data: [
@@ -1642,16 +1642,91 @@ describe('BridgeTokenSelector', () => {
         isLoading: false,
       });
 
-      const { getByTestId, queryByTestId } = renderWithReduxProvider(
-        <BridgeTokenSelector />,
-      );
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'us');
+
+      await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
+      expect(getByTestId('token-USDC')).toBeTruthy();
+      expect(mockDebouncedSearch).not.toHaveBeenCalled();
+    });
+
+    it('calls debounced search for valid watchlist queries', async () => {
+      mockIsWatchlistEnabled = true;
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+          {
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            name: 'USD Coin',
+            symbol: 'USDC',
+            decimals: 6,
+            balance: '10',
+            balanceFiat: 10,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
       fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'usd');
 
-      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-      expect(queryByTestId('token-ETH')).toBeNull();
-      expect(mockDebouncedSearch).not.toHaveBeenCalled();
+      expect(mockDebouncedSearch).toHaveBeenCalledWith('usd');
+    });
+
+    it('prepends watchlist matches ahead of default search results', async () => {
+      mockIsWatchlistEnabled = true;
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('WETH')],
+        currentSearchQuery: 'eth',
+      };
+
+      const { getByTestId, getAllByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'eth');
+
+      await waitFor(() => {
+        const symbols = getAllByTestId(/^token-/).map(
+          (node) => node.props.testID,
+        );
+        expect(symbols.indexOf('token-ETH')).toBeLessThan(
+          symbols.indexOf('token-WETH'),
+        );
+      });
     });
 
     it('tracks watchlist token selection analytics', async () => {
@@ -1687,6 +1762,44 @@ describe('BridgeTokenSelector', () => {
         source: TokenDetailsSource.SwapWatchlistFilter,
         position: 0,
       });
+      expect(mockHandleTokenPress).toHaveBeenCalled();
+    });
+
+    it('does not track Token List Item Clicked during watchlist search', async () => {
+      mockIsWatchlistEnabled = true;
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('WETH')],
+        currentSearchQuery: 'eth',
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'eth');
+
+      await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+      fireEvent.press(getByTestId('token-WETH'));
+
+      expect(mockAnalyticsTrackEvent).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        'Token List Item Clicked',
+      );
       expect(mockHandleTokenPress).toHaveBeenCalled();
     });
 
@@ -1910,14 +2023,12 @@ describe('BridgeTokenSelector', () => {
         isLoading: false,
       });
 
-      const { getByTestId, queryByTestId } = renderWithReduxProvider(
-        <BridgeTokenSelector />,
-      );
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
       fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
       await waitFor(() => expect(getByTestId('token-PEPE')).toBeTruthy());
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'pe');
-      expect(queryByTestId('token-ETH')).toBeNull();
+      expect(getByTestId('token-ETH')).toBeTruthy();
 
       mockSearchTokens.mockClear();
       mockResetSearch.mockClear();
@@ -2000,6 +2111,12 @@ describe('BridgeTokenSelector', () => {
         ],
         isLoading: false,
       });
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [],
+        isSearchLoading: false,
+        currentSearchQuery: 'ZZZ',
+      };
 
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
@@ -2011,7 +2128,73 @@ describe('BridgeTokenSelector', () => {
       );
     });
 
-    it('clears watchlist search locally without resetting API search state', async () => {
+    it('shows empty state during watchlist search when popular tokens are still loading', async () => {
+      mockIsWatchlistEnabled = true;
+      mockPopularTokensState = { popularTokens: [], isLoading: true };
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [],
+        isSearchLoading: false,
+        currentSearchQuery: 'ZZZ',
+      };
+
+      const { getByTestId, queryAllByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ZZZ');
+
+      await waitFor(() =>
+        expect(getByTestId('bridge-token-selector-empty-state')).toBeTruthy(),
+      );
+      expect(queryAllByTestId('skeleton-item')).toHaveLength(0);
+    });
+
+    it('uses default swap search when empty watchlist query is active', async () => {
+      mockIsWatchlistEnabled = true;
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [],
+        isLoading: false,
+      });
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('WETH')],
+        currentSearchQuery: 'wet',
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      expect(getByTestId('watchlist-empty-cta-container')).toBeTruthy();
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'wet');
+
+      await waitFor(() => {
+        expect(queryByTestId('watchlist-empty-cta-container')).toBeNull();
+        expect(getByTestId('token-WETH')).toBeTruthy();
+      });
+      expect(mockDebouncedSearch).toHaveBeenCalledWith('wet');
+    });
+
+    it('resets API search when clearing valid watchlist query', async () => {
       mockIsWatchlistEnabled = true;
       mockUseTokenWatchlistQuery.mockReturnValue({
         data: [
@@ -2044,8 +2227,8 @@ describe('BridgeTokenSelector', () => {
         fireEvent.press(getByTestId('bridge-token-search-clear-button'));
       });
 
-      expect(mockDebouncedSearch.cancel).not.toHaveBeenCalled();
-      expect(mockResetSearch).not.toHaveBeenCalled();
+      expect(mockDebouncedSearch.cancel).toHaveBeenCalled();
+      expect(mockResetSearch).toHaveBeenCalled();
     });
 
     it('uses SwapWatchlistFilter source when info is pressed in watchlist mode', async () => {

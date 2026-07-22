@@ -83,6 +83,7 @@ import {
 } from '../../utils/mapWatchlistTokenToBridgeToken';
 import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWithBalances';
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
+import { prependWatchlistToSearchResults } from '../../utils/prependWatchlistToSearchResults';
 import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -256,9 +257,13 @@ export const BridgeTokenSelector: React.FC = () => {
   const { data: watchlistData, isLoading: isWatchlistLoading } =
     useTokenWatchlistQuery();
 
+  const hasWatchlistItems = (watchlistData?.length ?? 0) > 0;
+  const useWatchlistMergedSearch =
+    isWatchlistListMode && hasWatchlistItems && isValidSearch;
+
   const handleWatchlistTokenPress = useCallback(
     (token: BridgeToken & { assetId?: CaipAssetType }, position: number) => {
-      if (isWatchlistListMode && token.assetId) {
+      if (isWatchlistListMode && !isValidSearch && token.assetId) {
         trackTokenListItemClicked(trackEvent, createEventBuilder, {
           asset: String(token.assetId),
           source: TokenDetailsSource.SwapWatchlistFilter,
@@ -267,7 +272,13 @@ export const BridgeTokenSelector: React.FC = () => {
       }
       handleTokenPress(token);
     },
-    [createEventBuilder, handleTokenPress, isWatchlistListMode, trackEvent],
+    [
+      createEventBuilder,
+      handleTokenPress,
+      isWatchlistListMode,
+      isValidSearch,
+      trackEvent,
+    ],
   );
 
   // Compute the initial network filter synchronously so the first render
@@ -478,10 +489,11 @@ export const BridgeTokenSelector: React.FC = () => {
 
     return filterWatchlistBridgeTokens(mappedTokens, {
       selectedChainId,
-      searchQuery: searchString,
+      searchQuery: isValidSearch ? searchString : undefined,
     });
   }, [
     isWatchlistListMode,
+    isValidSearch,
     searchString,
     selectedChainId,
     watchlistData,
@@ -489,62 +501,99 @@ export const BridgeTokenSelector: React.FC = () => {
     currentCurrency,
   ]);
 
-  const isWatchlistSearchActive = Boolean(searchString.trim());
-
-  const displayData = useMemo(() => {
-    if (isWatchlistListMode) {
-      if (isWatchlistLoading) {
-        return Array(8).fill(null);
-      }
-      return watchlistBridgeTokens;
+  const watchlistMergedSearchResults = useMemo(() => {
+    if (!useWatchlistMergedSearch) {
+      return [];
     }
 
-    const isLoading = isPopularTokensLoading || isSearchLoading;
+    return prependWatchlistToSearchResults(
+      watchlistBridgeTokens,
+      searchResultsWithBalance,
+    );
+  }, [
+    useWatchlistMergedSearch,
+    watchlistBridgeTokens,
+    searchResultsWithBalance,
+  ]);
 
-    if (isValidSearch) {
-      // Debounce creates a gap between user typing and search API call.
-      // During this gap, returning an empty array collapses the FlatList layout,
-      // which never recovers when results arrive. Skeletons maintain the layout.
+  const buildSearchDisplayData = useCallback(
+    (
+      results: BridgeToken[],
+      {
+        includePopularLoading = true,
+      }: { includePopularLoading?: boolean } = {},
+    ) => {
+      const isLoading =
+        isSearchLoading || (includePopularLoading && isPopularTokensLoading);
       const isWaitingForDebounce =
         !isSearchLoading && currentSearchQuery !== searchString.trim();
 
       if (isLoading || isWaitingForDebounce) {
-        const skeletonItemsCount = 8 - searchResultsWithBalance.length;
-        // Show skeleton items while loading
+        const skeletonItemsCount = 8 - results.length;
         return [
-          ...searchResultsWithBalance,
+          ...results,
           ...Array(Math.max(1, skeletonItemsCount)).fill(null),
         ];
       }
-      return searchResultsWithBalance;
+
+      return results;
+    },
+    [currentSearchQuery, isPopularTokensLoading, isSearchLoading, searchString],
+  );
+
+  const displayData = useMemo(() => {
+    if (isWatchlistListMode && isWatchlistLoading) {
+      return Array(8).fill(null);
     }
 
-    if (isLoading) {
-      // Show skeleton items while loading
-      const skeletonItemsCount = 8 - popularTokensWithBalance.length;
-      return [
-        ...popularTokensWithBalance,
-        ...Array(Math.max(1, skeletonItemsCount)).fill(null),
-      ];
+    const useDefaultDisplay =
+      !isWatchlistListMode || (isWatchlistListMode && !hasWatchlistItems);
+
+    if (useDefaultDisplay) {
+      const isLoading = isPopularTokensLoading || isSearchLoading;
+
+      if (isValidSearch) {
+        return buildSearchDisplayData(searchResultsWithBalance);
+      }
+
+      if (isLoading) {
+        const skeletonItemsCount = 8 - popularTokensWithBalance.length;
+        return [
+          ...popularTokensWithBalance,
+          ...Array(Math.max(1, skeletonItemsCount)).fill(null),
+        ];
+      }
+
+      return popularTokensWithBalance;
     }
-    return popularTokensWithBalance;
+
+    if (useWatchlistMergedSearch) {
+      return buildSearchDisplayData(watchlistMergedSearchResults, {
+        includePopularLoading: false,
+      });
+    }
+
+    return watchlistBridgeTokens;
   }, [
+    buildSearchDisplayData,
+    hasWatchlistItems,
     isWatchlistListMode,
     isWatchlistLoading,
-    watchlistBridgeTokens,
     isPopularTokensLoading,
     isSearchLoading,
     isValidSearch,
-    searchResultsWithBalance,
     popularTokensWithBalance,
-    currentSearchQuery,
-    searchString,
+    searchResultsWithBalance,
+    useWatchlistMergedSearch,
+    watchlistBridgeTokens,
+    watchlistMergedSearchResults,
   ]);
 
   const showWatchlistEmptyCta =
     isWatchlistListMode &&
     !isWatchlistLoading &&
-    (watchlistData?.length ?? 0) === 0;
+    !hasWatchlistItems &&
+    !isValidSearch;
 
   // Reset only after the replacement dataset has been committed. scrollToIndex
   // engages and lays out the first recycled row before moving the native view.
@@ -661,18 +710,36 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleSearchTextChange = (text: string) => {
     setSearchString(text);
-    if (!isWatchlistListMode) {
+
+    const trimmedLength = text.trim().length;
+    const shouldRunDebouncedSearch =
+      !isWatchlistListMode ||
+      !hasWatchlistItems ||
+      trimmedLength >= MIN_SEARCH_LENGTH ||
+      trimmedLength === 0;
+
+    if (shouldRunDebouncedSearch) {
       debouncedSearch(text);
     }
   };
 
   const handleClearSearch = useCallback(() => {
     setSearchString('');
-    if (!isWatchlistListMode) {
+
+    const shouldResetApiSearch =
+      !isWatchlistListMode || !hasWatchlistItems || isValidSearch;
+
+    if (shouldResetApiSearch) {
       debouncedSearch.cancel();
       resetSearch();
     }
-  }, [debouncedSearch, resetSearch, isWatchlistListMode]);
+  }, [
+    debouncedSearch,
+    hasWatchlistItems,
+    isValidSearch,
+    isWatchlistListMode,
+    resetSearch,
+  ]);
 
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
@@ -814,8 +881,8 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const renderEmptyState = useCallback(() => {
-    if (isWatchlistListMode) {
-      if (isWatchlistLoading || !isWatchlistSearchActive) {
+    if (isWatchlistListMode && hasWatchlistItems) {
+      if (isWatchlistLoading || !isValidSearch || isSearchLoading) {
         return null;
       }
 
@@ -839,9 +906,9 @@ export const BridgeTokenSelector: React.FC = () => {
       />
     );
   }, [
+    hasWatchlistItems,
     isWatchlistListMode,
     isWatchlistLoading,
-    isWatchlistSearchActive,
     isValidSearch,
     isSearchLoading,
     styles.emptyStateContainer,
