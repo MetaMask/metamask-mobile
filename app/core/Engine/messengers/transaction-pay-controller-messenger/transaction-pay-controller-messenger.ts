@@ -40,7 +40,7 @@ export function getTransactionPayControllerMessenger(
       'TokenBalancesController:getState',
       'TokenRatesController:getState',
       'TokensController:getState',
-      'TransactionController:beginAtomicBatchUpdate',
+      'TransactionController:updateTransactionCallback',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
       'TransactionController:getGasFeeTokens',
