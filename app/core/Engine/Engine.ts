@@ -190,6 +190,8 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { kycServiceInit } from './controllers/kyc/kyc-service-init';
+import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { configRegistryApiServiceInit } from './controllers/config-registry-api-service-init.ts';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
@@ -404,6 +406,8 @@ export class Engine {
         QrSyncProvisioningService: qrSyncProvisioningServiceInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        KycService: kycServiceInit,
+        KycController: kycControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
@@ -467,6 +471,8 @@ export class Engine {
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
+    const kycService = messengerClientsByName.KycService;
+    const kycController = messengerClientsByName.KycController;
     const qrSyncProvisioningService =
       messengerClientsByName.QrSyncProvisioningService;
 
@@ -668,6 +674,8 @@ export class Engine {
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      KycService: kycService,
+      KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
@@ -1506,6 +1514,7 @@ export default {
       ClientController,
       SocialController,
       ComplianceController,
+      KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
@@ -1582,6 +1591,7 @@ export default {
       CardController: CardController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
+      KycController: KycController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
