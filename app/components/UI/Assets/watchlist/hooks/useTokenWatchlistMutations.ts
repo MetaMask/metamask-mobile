@@ -8,6 +8,7 @@ import {
   writeToTokenWatchList,
 } from '../storage';
 import { createAsyncBatcher } from '../utils/createAsyncBatcher';
+import type { WatchlistTokenMetadata } from '../utils/getTokens';
 import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
 export type WatchlistAddInput = CaipAssetType | CaipAssetType[];
@@ -26,7 +27,8 @@ export type WatchlistOp =
   | { kind: 'replace'; list: string[] };
 
 interface WatchlistMutationContext {
-  prev: WatchlistBlob | undefined;
+  prevBlob: WatchlistBlob | undefined;
+  prevHydrated: WatchlistTokenMetadata[] | undefined;
 }
 
 const toStrings = (input: readonly CaipAssetType[]): string[] =>
@@ -44,8 +46,49 @@ const filterAssets = (
   base: readonly string[],
   removals: readonly string[],
 ): string[] => {
-  const remove = new Set(removals);
-  return base.filter((id) => !remove.has(id));
+  const removeLower = new Set(removals.map((id) => id.toLowerCase()));
+  return base.filter((id) => !removeLower.has(id.toLowerCase()));
+};
+
+/**
+ * Blob cache is only populated when `useTokenWatchlist` is mounted (e.g. TDP
+ * star). List surfaces use the hydrated query alone, so fall back to hydrated
+ * asset IDs when the blob cache has never been read.
+ */
+const resolveOptimisticBaseAssets = (
+  prevBlob: WatchlistBlob | undefined,
+  prevHydrated: WatchlistTokenMetadata[] | undefined,
+): readonly string[] => {
+  if (prevBlob !== undefined) {
+    return prevBlob.assets;
+  }
+  if (prevHydrated !== undefined && prevHydrated.length > 0) {
+    return prevHydrated.map((token) => String(token.assetId));
+  }
+  return EMPTY_BLOB.assets;
+};
+
+/**
+ * Reconcile the hydrated token list against the optimistically updated blob
+ * IDs. Removes dropped IDs immediately and reorders survivors to match the
+ * blob. IDs not yet present in the hydrated cache (e.g. a freshly added
+ * asset before `getTokens` resolves) are omitted until the settled refetch.
+ */
+const applyOptimisticToHydrated = (
+  hydrated: WatchlistTokenMetadata[] | undefined,
+  newAssetIds: readonly string[],
+): WatchlistTokenMetadata[] | undefined => {
+  if (hydrated === undefined) {
+    return undefined;
+  }
+
+  const byId = new Map(
+    hydrated.map((token) => [String(token.assetId).toLowerCase(), token]),
+  );
+
+  return newAssetIds
+    .map((id) => byId.get(id.toLowerCase()))
+    .filter((token): token is WatchlistTokenMetadata => token !== undefined);
 };
 
 const applyOp = (acc: string[], op: WatchlistOp): string[] => {
@@ -75,12 +118,21 @@ export const tokenWatchlistBatcher = createAsyncBatcher<WatchlistOp>(
   },
 );
 
+interface InvalidateOnSettledOptions {
+  /** Refetch the ID blob from storage. Defaults to true. */
+  blob?: boolean;
+  /** Refetch enriched tokens via the Token API. Defaults to true. */
+  hydrated?: boolean;
+}
+
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
   toOp,
+  invalidateOnSettled = { blob: true, hydrated: true },
 }: {
   applyOptimistic: (current: readonly string[], input: TInput) => string[];
   toOp: (input: TInput) => WatchlistOp;
+  invalidateOnSettled?: InvalidateOnSettledOptions;
 }) => {
   const queryClient = useQueryClient();
 
@@ -90,30 +142,57 @@ const useWatchlistMutation = <TInput>({
       await queryClient.cancelQueries({
         queryKey: tokenWatchlistQueryKeys.blob,
       });
-      const prev = queryClient.getQueryData<WatchlistBlob>(
+      await queryClient.cancelQueries({
+        queryKey: tokenWatchlistQueryKeys.hydrated,
+      });
+
+      const prevBlob = queryClient.getQueryData<WatchlistBlob>(
         tokenWatchlistQueryKeys.blob,
       );
-      queryClient.setQueryData<WatchlistBlob>(
-        tokenWatchlistQueryKeys.blob,
-        (old) => ({
-          assets: applyOptimistic((old ?? EMPTY_BLOB).assets, input),
-          version: 1,
-        }),
+      const prevHydrated = queryClient.getQueryData<WatchlistTokenMetadata[]>(
+        tokenWatchlistQueryKeys.hydrated,
       );
-      return { prev };
+      const nextAssets = applyOptimistic(
+        resolveOptimisticBaseAssets(prevBlob, prevHydrated),
+        input,
+      );
+
+      queryClient.setQueryData<WatchlistBlob>(tokenWatchlistQueryKeys.blob, {
+        assets: nextAssets,
+        version: 1,
+      });
+      queryClient.setQueryData<WatchlistTokenMetadata[]>(
+        tokenWatchlistQueryKeys.hydrated,
+        (old) => applyOptimisticToHydrated(old, nextAssets) ?? old,
+      );
+
+      return { prevBlob, prevHydrated };
     },
     onError: (_err, _vars, ctx) => {
-      if (ctx?.prev !== undefined) {
-        queryClient.setQueryData(tokenWatchlistQueryKeys.blob, ctx.prev);
+      if (ctx?.prevBlob !== undefined) {
+        queryClient.setQueryData(tokenWatchlistQueryKeys.blob, ctx.prevBlob);
+      } else {
+        // onMutate seeds blob when the cache was cold; drop it on rollback.
+        queryClient.removeQueries({ queryKey: tokenWatchlistQueryKeys.blob });
+      }
+      if (ctx?.prevHydrated !== undefined) {
+        queryClient.setQueryData(
+          tokenWatchlistQueryKeys.hydrated,
+          ctx.prevHydrated,
+        );
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: tokenWatchlistQueryKeys.blob,
-      });
-      queryClient.invalidateQueries({
-        queryKey: tokenWatchlistQueryKeys.hydrated,
-      });
+      if (invalidateOnSettled.blob !== false) {
+        queryClient.invalidateQueries({
+          queryKey: tokenWatchlistQueryKeys.blob,
+        });
+      }
+      if (invalidateOnSettled.hydrated !== false) {
+        queryClient.invalidateQueries({
+          queryKey: tokenWatchlistQueryKeys.hydrated,
+        });
+      }
     },
   });
 };
@@ -128,6 +207,8 @@ export const useTokenWatchlistAddItemMutation = () =>
     applyOptimistic: (current, input) =>
       mergeAssets(current, toStrings(asArray(input))),
     toOp: (input) => ({ kind: 'add', ids: toStrings(asArray(input)) }),
+    // Blob is already correct after onMutate; hydrated needs getTokens for metadata.
+    invalidateOnSettled: { blob: false, hydrated: true },
   });
 
 /**
@@ -139,6 +220,8 @@ export const useTokenWatchlistRemoveItemMutation = () =>
     applyOptimistic: (current, input) =>
       filterAssets(current, toStrings(asArray(input))),
     toOp: (input) => ({ kind: 'remove', ids: toStrings(asArray(input)) }),
+    // Optimistic blob + hydrated updates are sufficient; no Token API refetch.
+    invalidateOnSettled: { blob: false, hydrated: false },
   });
 
 /**
@@ -150,4 +233,6 @@ export const useTokenWatchlistUpdateListMutation = () =>
   useWatchlistMutation<WatchlistUpdateListInput>({
     applyOptimistic: (_current, input) => toStrings(input),
     toOp: (input) => ({ kind: 'replace', list: toStrings(input) }),
+    // Reorder only shuffles cached metadata; no Token API refetch.
+    invalidateOnSettled: { blob: false, hydrated: false },
   });

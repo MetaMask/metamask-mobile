@@ -724,6 +724,15 @@ describe('PredictFeed', () => {
   });
 
   describe('market list rendering', () => {
+    it('does not re-render market list items when feed props are unchanged', () => {
+      const { rerender } = render(<PredictFeed />);
+      const initialRenderCount = mockPredictMarket.mock.calls.length;
+
+      rerender(<PredictFeed />);
+
+      expect(mockPredictMarket).toHaveBeenCalledTimes(initialRenderCount);
+    });
+
     it('renders market cards with correct testIDs using 1-based indexing', () => {
       const { getByTestId } = render(<PredictFeed />);
 
