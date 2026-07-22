@@ -289,6 +289,42 @@ describe('Toast', () => {
       expect(screen.getByText('Description line')).toBeOnTheScreen();
     });
 
+    it('renders non-bold label segments alongside bold segments', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Normal weight', isBold: false },
+          { label: ' Bold weight', isBold: true },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Normal weight')).toBeOnTheScreen();
+      expect(screen.getByText(' Bold weight')).toBeOnTheScreen();
+    });
+
+    it('falls back to stable keys when label is not a string', async () => {
+      render(<Toast ref={toastRef} />);
+      // Runtime-only path for Sonar S6479 key fallbacks (`typeof label === 'string'`).
+      const nonStringLabel = 42 as unknown as string;
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: nonStringLabel, isBold: false },
+          { label: '\n' },
+          { label: nonStringLabel },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getAllByText('42')).toHaveLength(2);
+    });
+
     it('uses custom startAccessory instead of avatar', async () => {
       render(<Toast ref={toastRef} />);
       const options: ToastOptions = {
