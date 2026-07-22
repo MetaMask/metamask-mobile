@@ -597,7 +597,7 @@ describe('useTrendingRequest', () => {
   });
 
   describe('per-network threshold integration', () => {
-    it('uses per-network liquidity threshold when single chainId provided - Ethereum', async () => {
+    it('uses per-network liquidity and volume threshold when single chainId provided - Ethereum', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,
         'getTrendingTokens',
@@ -624,7 +624,7 @@ describe('useTrendingRequest', () => {
       spyGetTrendingTokens.mockRestore();
     });
 
-    it('uses per-network volume threshold when single chainId provided - SEI', async () => {
+    it('uses per-network liquidity and volume threshold when single chainId provided - SEI', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,
         'getTrendingTokens',
@@ -651,7 +651,7 @@ describe('useTrendingRequest', () => {
       spyGetTrendingTokens.mockRestore();
     });
 
-    it('uses per-network volume threshold when single chainId provided - Monad', async () => {
+    it('uses per-network liquidity and volume threshold when single chainId provided - Monad', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,
         'getTrendingTokens',
