@@ -161,20 +161,6 @@ export const useDeviceConnectionFlow = ({
     [updateConnectionState],
   );
 
-  const ensureDeviceReadyOrError = useCallback(
-    async (
-      adapter: HardwareWalletAdapter,
-      targetDeviceId: string,
-    ): Promise<boolean> => {
-      const isReady = await adapter.ensureDeviceReady(targetDeviceId);
-      if (!isReady) {
-        handleError(new Error('Device not ready'));
-      }
-      return isReady;
-    },
-    [handleError],
-  );
-
   const connect = useCallback(
     async (targetDeviceId: string): Promise<void> => {
       if (refs.isConnectingRef.current) {
@@ -274,7 +260,10 @@ export const useDeviceConnectionFlow = ({
         );
         try {
           refs.abortControllerRef.current = new AbortController();
-          return await ensureDeviceReadyOrError(adapter, targetDeviceId);
+          const isReady = await tryEnsureReady(adapter, targetDeviceId);
+          if (isReady) {
+            return true;
+          }
         } catch (error) {
           DevLogger.log(
             '[HardwareWallet] Direct readiness check failed, falling through to full flow',
@@ -290,27 +279,17 @@ export const useDeviceConnectionFlow = ({
         !adapter.isConnected?.() &&
         adapter.backgroundReconnect
       ) {
-        DevLogger.log(
-          '[HardwareWallet] Not connected, trying background reconnect to:',
-          targetDeviceId,
-        );
         try {
           refs.abortControllerRef.current = new AbortController();
           const reconnected = await adapter.backgroundReconnect(targetDeviceId);
           if (reconnected) {
-            DevLogger.log(
-              '[HardwareWallet] Background reconnect succeeded, checking readiness',
-            );
-            return await ensureDeviceReadyOrError(adapter, targetDeviceId);
+            const isReady = await tryEnsureReady(adapter, targetDeviceId);
+            if (isReady) {
+              return true;
+            }
           }
-          DevLogger.log(
-            '[HardwareWallet] Background reconnect failed, falling through to scanning UI',
-          );
-        } catch (error) {
-          DevLogger.log(
-            '[HardwareWallet] Background reconnect error, falling through to scanning UI',
-            error,
-          );
+        } catch {
+          // Fall through to guided scanning/connecting UI.
         } finally {
           refs.abortControllerRef.current = null;
         }
@@ -387,7 +366,6 @@ export const useDeviceConnectionFlow = ({
       updateConnectionState,
       resolveOrCreateAdapter,
       tryEnsureReady,
-      ensureDeviceReadyOrError,
       checkTransportEnabledOrShowError,
       createBlockingPromise,
       onFlowStart,
