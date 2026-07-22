@@ -8510,9 +8510,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.36.0":
-  version: 0.36.0
-  resolution: "@metamask/design-system-react-native@npm:0.36.0"
+"@metamask/design-system-react-native@npm:^0.37.0":
+  version: 0.37.0
+  resolution: "@metamask/design-system-react-native@npm:0.37.0"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.30.0"
     react-native-jazzicon: "npm:^0.1.2"
@@ -8527,7 +8527,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/22347d4047bc856c654a19ed2925eb037ba7c9bba96111ebe0b69137e735f9798416b8de845611493f4bee42e159bc0f5c3dcedfd67369904ebc6f64c5ffef44
+  checksum: 10/27df9fffb6a875329dc82cf124cdfe55d651291b56f659719e89093ca57c30324360d08b17fbbe95c8e094a1957a1f694a011218b18128850f7dbd6b35c4d57c
   languageName: node
   linkType: hard
 
@@ -10670,10 +10670,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.31.0":
-  version: 1.31.0
-  resolution: "@metamask/tron-wallet-snap@npm:1.31.0"
-  checksum: 10/01c81d25c3893abd4cfbc3e88e30f5f7dca9fac363d9c996ce2c727e6ae5b6829963a5734ca96342703bb44bf9729002905df51a20bc1ee311ef344af3fba11d
+"@metamask/tron-wallet-snap@npm:^1.33.0":
+  version: 1.33.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.33.0"
+  checksum: 10/1a7a68460bdefc7a65709ffea310ba55c2e974c2fddacaa20d800cad892596a4f0d61257ec31c633a2468f0969b312a6c3fb9a1574620d03998d37491c9b0ad0
   languageName: node
   linkType: hard
 
@@ -35877,7 +35877,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.36.0"
+    "@metamask/design-system-react-native": "npm:^0.37.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/earn-controller": "npm:^12.1.0"
@@ -35981,7 +35981,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^69.0.0"
     "@metamask/transaction-pay-controller": "npm:^25.0.0"
-    "@metamask/tron-wallet-snap": "npm:^1.31.0"
+    "@metamask/tron-wallet-snap": "npm:^1.33.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^7.0.1"
     "@myx-trade/sdk": "npm:^0.1.265"

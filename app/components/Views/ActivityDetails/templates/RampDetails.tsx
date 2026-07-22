@@ -1,202 +1,24 @@
-import React, { useMemo } from 'react';
-import { Pressable } from 'react-native';
-import {
-  AvatarTokenSize,
-  Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import ClipboardManager from '../../../../core/ClipboardManager';
-import { getProviderName } from '../../../../reducers/fiatOrders';
+import React from 'react';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { renderShortAddress } from '../../../../util/address';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
-import { ActivityDetailsAvatar } from '../components/ActivityDetailsAvatar';
-import { ActivityDetailsBlockExplorerButton } from '../components/ActivityDetailsFooter';
-import { ActivityDetailsStatus } from '../components/ActivityDetailsStatus';
-import { ActivityDetailsTemplateFrame } from '../components/ActivityDetailsTemplateFrame';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import {
-  ActivityDetailRow,
-  ActivityDetailSection,
-} from '../components/ActivityDetailsLayout';
-import { ActivityDetailsAccountValue } from '../components/ActivityDetailsAccountValue';
+  isRampFiatOrder,
+  isRampRampsOrder,
+  type ActivityListItem,
+} from '../../../../util/activity-adapters';
 import {
-  formatRampActivityDate,
-  formatRampActivityFiatAmount,
-  formatRampActivityFiatTotal,
-  getRampActivityExplorerChainId,
-  getRampActivityHeroAmount,
-  getRampActivityHeroToken,
-  getRampActivityTransactionHash,
-  isRampSellOrder,
-  mapRampActivityStatus,
-  valueOrUnavailable,
-} from './rampDetailsUtils';
+  RampFiatOrderDetails,
+  type RampFiatActivityListItem,
+} from './RampFiatOrderDetails';
+import {
+  RampRampsOrderDetails,
+  type RampRampsActivityListItem,
+} from './RampRampsOrderDetails';
 
 export type RampActivityListItem = ActivityListItem & {
   type: 'buy' | 'sell';
-  raw: { type: 'rampOrder'; data: FiatOrder };
+  raw: { type: 'rampOrder'; data: FiatOrder | RampsOrder };
 };
-
-function RampDetailsHero({ order }: Readonly<{ order: FiatOrder }>) {
-  const token = getRampActivityHeroToken(order);
-
-  return (
-    <Box
-      twClassName="flex-row items-center gap-3"
-      testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
-    >
-      <ActivityDetailsAvatar
-        tokens={[token]}
-        chainId={getRampActivityExplorerChainId(order.network)}
-        size={AvatarTokenSize.Xl}
-        showNetworkBadge
-      />
-      <Text
-        variant={TextVariant.DisplayMd}
-        twClassName="shrink"
-        color={
-          isRampSellOrder(order)
-            ? TextColor.TextDefault
-            : TextColor.SuccessDefault
-        }
-      >
-        {getRampActivityHeroAmount(order)}
-      </Text>
-    </Box>
-  );
-}
-
-function RampTransactionIdValue({ hash }: Readonly<{ hash?: string }>) {
-  if (!hash) {
-    return <Text>{strings('transactions.tx_details_not_available')}</Text>;
-  }
-
-  return (
-    <Box twClassName="flex-row items-center gap-1">
-      <Text>{renderShortAddress(hash, 4)}</Text>
-      <Pressable
-        onPress={() => ClipboardManager.setString(hash)}
-        testID="ramp-transaction-id-copy"
-      >
-        <Icon
-          name={IconName.Copy}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
-      </Pressable>
-    </Box>
-  );
-}
-
-function RampDetailsMetadata({
-  chainId,
-  formattedDate,
-  order,
-  providerName,
-  transactionHash,
-}: {
-  readonly chainId: string;
-  readonly formattedDate: string;
-  readonly order: FiatOrder;
-  readonly providerName: string;
-  readonly transactionHash?: string;
-}) {
-  const isSell = isRampSellOrder(order);
-
-  return (
-    <ActivityDetailSection>
-      <ActivityDetailRow
-        label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={mapRampActivityStatus(order)} />}
-        testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
-      />
-
-      <ActivityDetailRow
-        label={strings('activity_details.date')}
-        value={formattedDate}
-        testID={ActivityDetailsSelectorsIDs.DATE_ROW}
-      />
-
-      <ActivityDetailRow
-        label={strings('transaction_details.label.order_id')}
-        value={order.id}
-      />
-
-      <ActivityDetailRow
-        label={strings('activity_details.account')}
-        value={
-          <ActivityDetailsAccountValue
-            address={order.account}
-            chainId={chainId}
-          />
-        }
-        testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}
-      />
-
-      {isSell ? (
-        <ActivityDetailRow label="Destination" value={providerName} />
-      ) : null}
-
-      <ActivityDetailRow
-        label={strings('activity_details.transaction_id')}
-        value={<RampTransactionIdValue hash={transactionHash} />}
-        testID={ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW}
-      />
-    </ActivityDetailSection>
-  );
-}
-
-function RampDetailsAmounts({
-  fiatValue,
-  order,
-  totalReceived,
-  transactionFee,
-}: {
-  readonly fiatValue?: string;
-  readonly order: FiatOrder;
-  readonly totalReceived?: string;
-  readonly transactionFee?: string;
-}) {
-  if (isRampSellOrder(order)) {
-    return (
-      <ActivityDetailSection>
-        <ActivityDetailRow
-          label={`${order.currency} value`}
-          value={valueOrUnavailable(fiatValue)}
-        />
-        <ActivityDetailRow
-          label="Fees"
-          value={valueOrUnavailable(transactionFee)}
-        />
-        <ActivityDetailRow
-          label="Total received"
-          value={valueOrUnavailable(totalReceived)}
-        />
-      </ActivityDetailSection>
-    );
-  }
-
-  return (
-    <ActivityDetailSection>
-      <ActivityDetailRow
-        label={strings('transaction_details.label.transaction_fee')}
-        value={valueOrUnavailable(transactionFee)}
-      />
-      <ActivityDetailRow
-        label={strings('transaction_details.label.total_amount')}
-        value={valueOrUnavailable(fiatValue)}
-      />
-    </ActivityDetailSection>
-  );
-}
 
 export function isRampActivityListItem(
   item: ActivityListItem,
@@ -204,55 +26,22 @@ export function isRampActivityListItem(
   return item.raw?.type === 'rampOrder';
 }
 
+/**
+ * Dispatches to FiatOrder or RampsOrder details. Branch only on data shape —
+ * not provider / navigation target.
+ */
 export function RampDetails({
   item,
 }: Readonly<{ item: RampActivityListItem }>) {
-  const order = item.raw.data;
-  const transactionHash = getRampActivityTransactionHash(order);
-  const chainId = getRampActivityExplorerChainId(order.network);
-  const providerName = getProviderName(order.provider, order.data);
+  const { data } = item.raw;
 
-  const formattedDate = useMemo(
-    () => formatRampActivityDate(order.createdAt),
-    [order.createdAt],
-  );
+  if (isRampRampsOrder(data)) {
+    return <RampRampsOrderDetails item={item as RampRampsActivityListItem} />;
+  }
 
-  const transactionFee =
-    formatRampActivityFiatAmount(order.fee, order.currency) ??
-    formatRampActivityFiatAmount(order.cryptoFee, order.currency);
-  const fiatValue = formatRampActivityFiatAmount(order.amount, order.currency);
-  const totalReceived = formatRampActivityFiatTotal(
-    order.amount,
-    order.fee,
-    order.currency,
-  );
+  if (isRampFiatOrder(data)) {
+    return <RampFiatOrderDetails item={item as RampFiatActivityListItem} />;
+  }
 
-  return (
-    <ActivityDetailsTemplateFrame
-      hero={<RampDetailsHero order={order} />}
-      metadata={
-        <RampDetailsMetadata
-          chainId={chainId}
-          formattedDate={formattedDate}
-          order={order}
-          providerName={providerName}
-          transactionHash={transactionHash}
-        />
-      }
-      details={
-        <RampDetailsAmounts
-          fiatValue={fiatValue}
-          order={order}
-          totalReceived={totalReceived}
-          transactionFee={transactionFee}
-        />
-      }
-      footer={
-        <ActivityDetailsBlockExplorerButton
-          chainId={chainId}
-          hash={transactionHash}
-        />
-      }
-    />
-  );
+  return null;
 }

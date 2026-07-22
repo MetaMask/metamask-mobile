@@ -25,9 +25,8 @@ export const useCopyTokenContractAddress = (
 
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
-      iconName: IconName.CheckBold,
-      iconColor: colors.accent03.dark,
-      backgroundColor: colors.accent03.normal,
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
       labelOptions: [
         { label: strings('account_details.account_copied_to_clipboard') },
       ],
