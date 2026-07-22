@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import StorageWrapper from '../../../store/storage-wrapper';
 import {
   createSession,
   checkKycRequired,
@@ -34,6 +35,11 @@ const FRAMES_BASE_URL = 'https://blocks.moonpay.com/platform/v1';
 
 const CHANNEL_CHECK = 'ch_1';
 const CHANNEL_AUTH = 'ch_2';
+
+// Persisted Terms-of-Use acceptance. When both values are present we can skip
+// the "Accept terms and start" button and create the session in the background.
+const STORAGE_KEY_TERMS_ACCEPTED_AT = '@MoonpayDemo:termsAcceptedAt';
+const STORAGE_KEY_DISCLAIMER_IDS = '@MoonpayDemo:disclaimerIds';
 
 const DEMO_EMAIL = 'jiexi.luan@consensys.net';
 
@@ -99,6 +105,68 @@ const truncate = (s: string, head = 12, tail = 6): string =>
   s.length <= head + tail + 3 ? s : `${s.slice(0, head)}…${s.slice(-tail)}`;
 
 // ---------------------------------------------------------------------------
+// Persisted Terms-of-Use acceptance helpers
+// ---------------------------------------------------------------------------
+
+interface StoredTerms {
+  // ISO 8601 timestamp of the customer's original Terms-of-Use acceptance.
+  termsAcceptedAt: string;
+  // IDs of the disclaimers the customer accepted alongside the terms.
+  disclaimerIds: string[];
+}
+
+// Returns the persisted terms acceptance, or null when it is absent/invalid.
+async function loadStoredTerms(): Promise<StoredTerms | null> {
+  try {
+    const [termsAcceptedAt, disclaimerIdsRaw] = await Promise.all([
+      StorageWrapper.getItem(STORAGE_KEY_TERMS_ACCEPTED_AT),
+      StorageWrapper.getItem(STORAGE_KEY_DISCLAIMER_IDS),
+    ]);
+    if (!termsAcceptedAt || !disclaimerIdsRaw) return null;
+    const disclaimerIds = JSON.parse(disclaimerIdsRaw) as unknown;
+    if (
+      !Array.isArray(disclaimerIds) ||
+      disclaimerIds.length === 0 ||
+      !disclaimerIds.every((id) => typeof id === 'string')
+    ) {
+      return null;
+    }
+    return { termsAcceptedAt, disclaimerIds: disclaimerIds as string[] };
+  } catch {
+    return null;
+  }
+}
+
+async function persistTerms({
+  termsAcceptedAt,
+  disclaimerIds,
+}: StoredTerms): Promise<void> {
+  try {
+    await Promise.all([
+      StorageWrapper.setItem(STORAGE_KEY_TERMS_ACCEPTED_AT, termsAcceptedAt),
+      StorageWrapper.setItem(
+        STORAGE_KEY_DISCLAIMER_IDS,
+        JSON.stringify(disclaimerIds),
+      ),
+    ]);
+  } catch {
+    // Best-effort persistence; a failure here only means the customer will be
+    // asked to accept the terms again on the next launch.
+  }
+}
+
+async function clearStoredTerms(): Promise<void> {
+  try {
+    await Promise.all([
+      StorageWrapper.removeItem(STORAGE_KEY_TERMS_ACCEPTED_AT),
+      StorageWrapper.removeItem(STORAGE_KEY_DISCLAIMER_IDS),
+    ]);
+  } catch {
+    // Ignore — the stale values will simply be overwritten or re-validated.
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 
@@ -129,11 +197,25 @@ const useMoonpayIdentityFlow = ({
 
   // ---- Geolocation country (resolved from the GeolocationController) ----
   const [geoCountry, setGeoCountry] = useState<string | null>(null);
+  const geoCountryRef = useRef<string | null>(null);
 
   // ---- Disclaimers (fetched before showing the terms of service) ----
   const [disclaimers, setDisclaimers] = useState<Disclaimer[]>([]);
   const [disclaimersError, setDisclaimersError] = useState<string | null>(null);
   const [disclaimersLoaded, setDisclaimersLoaded] = useState(false);
+  const disclaimersFetchingRef = useRef(false);
+
+  // ---- Initialization gate ----
+  // While `true` we are still resolving persisted terms acceptance and, when
+  // present, kicking off the background session creation. This prevents a
+  // flash of the terms panel before we know whether the customer has to
+  // interact at all.
+  const [initializing, setInitializing] = useState(true);
+  const initRef = useRef(false);
+
+  // ---- Persisted terms acceptance presence (drives the "Clear saved terms"
+  // control) ----
+  const [hasSavedTerms, setHasSavedTerms] = useState(false);
 
   // ---- Debug surface ----
   const [debugEvents, setDebugEvents] = useState<DebugEvent[]>([]);
@@ -185,70 +267,150 @@ const useMoonpayIdentityFlow = ({
   }
   const keypair = keypairRef.current;
 
-  // ---------- Step 0: resolve country from geolocation, then fetch
-  // disclaimers before showing the terms ----------
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      let country: string;
-      try {
+  // ---------- Step 0: fetch disclaimers before showing the terms ----------
+  // Resolves the country from geolocation (cached across calls) and fetches
+  // the disclaimers the customer must accept. Guarded so concurrent callers
+  // (init + terms-phase effect + session-failure fallback) only fetch once.
+  const loadDisclaimers = useCallback(async () => {
+    if (disclaimersFetchingRef.current) return;
+    disclaimersFetchingRef.current = true;
+    try {
+      let country = geoCountryRef.current;
+      if (!country) {
         country = await fetchGeolocationCountry();
-        if (cancelled) return;
+        geoCountryRef.current = country;
         setGeoCountry(country);
         pushDebug('Step 0 geolocation resolved', { country }, 'success');
-      } catch (err) {
-        if (cancelled) return;
-        setDisclaimersError(`Failed to resolve geolocation: ${err}`);
-        pushDebug(
-          'Step 0 geolocation resolve failed',
-          { error: String(err) },
-          'error',
-        );
-        return;
       }
+      const result = await fetchDisclaimers({ country });
+      setDisclaimers(result);
+      setDisclaimersError(null);
+      setDisclaimersLoaded(true);
+      pushDebug('Step 0 disclaimers fetched', result, 'success');
+    } catch (err) {
+      setDisclaimersError(`Failed to load disclaimers: ${err}`);
+      pushDebug(
+        'Step 0 disclaimers fetch failed',
+        { error: String(err) },
+        'error',
+      );
+    } finally {
+      disclaimersFetchingRef.current = false;
+    }
+  }, [pushDebug]);
 
+  // ---------- Step 1 → Step 2: create the session for a given terms
+  // acceptance ----------
+  // On success the acceptance is persisted so subsequent launches can skip the
+  // terms panel. On failure the persisted acceptance is cleared, the terms
+  // panel is shown again, and the disclaimers are (re)fetched so the customer
+  // can retry.
+  const createSessionWithTerms = useCallback(
+    async ({ termsAcceptedAt, disclaimerIds }: StoredTerms) => {
+      setErrorMessage('');
+      setPhase('session');
+      setStatusMessage('Creating MoonPay session via local UKYC...');
       try {
-        const result = await fetchDisclaimers({ country });
-        if (cancelled) return;
-        setDisclaimers(result);
-        setDisclaimersError(null);
-        setDisclaimersLoaded(true);
-        pushDebug('Step 0 disclaimers fetched', result, 'success');
+        const session = await createSession({
+          email,
+          termsAcceptedAt,
+          disclaimerIds,
+        });
+        setSessionToken(session.sessionToken);
+        await persistTerms({ termsAcceptedAt, disclaimerIds });
+        setHasSavedTerms(true);
+        setPhase('check');
+        setStatusMessage('Authenticating via Check frame...');
       } catch (err) {
-        if (cancelled) return;
-        setDisclaimersError(`Failed to load disclaimers: ${err}`);
+        await clearStoredTerms();
+        setHasSavedTerms(false);
         pushDebug(
-          'Step 0 disclaimers fetch failed',
+          'Step 2 (create session) failed',
           { error: String(err) },
           'error',
         );
+        setErrorMessage(`Step 2 (create session) failed: ${err}`);
+        setStatusMessage(
+          'Session creation failed — accept the terms to try again.',
+        );
+        setPhase('terms');
+        // The stored disclaimers may have been skipped on this launch; fetch
+        // them so the manual "Accept terms and start" button becomes usable.
+        loadDisclaimers();
       }
+    },
+    [email, loadDisclaimers, pushDebug],
+  );
+
+  // ---------- Step 1 → Step 2: accept terms (manual), create session ----------
+  const acceptTermsAndCreateSession = useCallback(() => {
+    const termsAcceptedAt = new Date().toISOString();
+    const disclaimerIds = disclaimers.map((disclaimer) => disclaimer.id);
+    return createSessionWithTerms({ termsAcceptedAt, disclaimerIds });
+  }, [disclaimers, createSessionWithTerms]);
+
+  // ---------- Init: resolve persisted terms acceptance ----------
+  // If both `termsAcceptedAt` and `disclaimerIds` are stored, create the
+  // session in the background (skipping the terms panel and the disclaimers
+  // fetch). Otherwise fall through to the normal terms flow.
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+    let cancelled = false;
+    (async () => {
+      // Resolve the country for display (and to pre-warm the disclaimers
+      // fallback) without blocking the stored-terms fast path.
+      fetchGeolocationCountry()
+        .then((country) => {
+          if (cancelled) return;
+          geoCountryRef.current = country;
+          setGeoCountry(country);
+          pushDebug('Step 0 geolocation resolved', { country }, 'success');
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          pushDebug(
+            'Step 0 geolocation resolve failed',
+            { error: String(err) },
+            'error',
+          );
+        });
+
+      const stored = await loadStoredTerms();
+      if (cancelled) return;
+      if (stored) {
+        setHasSavedTerms(true);
+        pushDebug(
+          'Stored terms acceptance found — creating session in background',
+          stored,
+          'info',
+        );
+        createSessionWithTerms(stored);
+      }
+      setInitializing(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [pushDebug]);
+  }, [createSessionWithTerms, pushDebug]);
 
-  // ---------- Step 1 → Step 2: accept terms, create session ----------
-  const acceptTermsAndCreateSession = useCallback(async () => {
-    setErrorMessage('');
-    setPhase('session');
-    setStatusMessage('Creating MoonPay session via local UKYC...');
-    try {
-      const acceptedAt = new Date().toISOString();
-      const session = await createSession({
-        email,
-        termsAcceptedAt: acceptedAt,
-        disclaimerIds: disclaimers.map((disclaimer) => disclaimer.id),
-      });
-      setSessionToken(session.sessionToken);
-      setPhase('check');
-      setStatusMessage('Authenticating via Check frame...');
-    } catch (err) {
-      setErrorMessage(`Step 2 (create session) failed: ${err}`);
-      setPhase('error');
-    }
-  }, [email, disclaimers]);
+  // ---------- Ensure disclaimers are loaded whenever the terms panel is
+  // shown ----------
+  // Covers the fresh flow (no stored acceptance) as well as the cases where we
+  // return to the terms panel (session failure or a frame requesting
+  // re-acceptance) after having skipped the initial disclaimers fetch.
+  useEffect(() => {
+    if (initializing) return;
+    if (phase !== 'terms') return;
+    if (disclaimersLoaded || disclaimersError) return;
+    loadDisclaimers();
+  }, [
+    initializing,
+    phase,
+    disclaimersLoaded,
+    disclaimersError,
+    loadDisclaimers,
+  ]);
 
   // ---------- Step 3a / 3b: Check + Auth frame message handler ----------
   const handleFrameMessage = useCallback(
@@ -338,6 +500,10 @@ const useMoonpayIdentityFlow = ({
           return;
         }
         if (status === 'termsAcceptanceRequired') {
+          // MoonPay rejected the stored acceptance — invalidate it so the next
+          // launch requires a fresh acceptance instead of auto-starting.
+          clearStoredTerms();
+          setHasSavedTerms(false);
           setPhase('terms');
           setStatusMessage(
             'MoonPay updated its Terms of Use — please re-accept.',
@@ -363,6 +529,10 @@ const useMoonpayIdentityFlow = ({
           return;
         }
         if (status === 'termsAcceptanceRequired') {
+          // MoonPay rejected the stored acceptance — invalidate it so the next
+          // launch requires a fresh acceptance instead of auto-starting.
+          clearStoredTerms();
+          setHasSavedTerms(false);
           setPhase('terms');
           setStatusMessage(
             'MoonPay updated its Terms of Use — please re-accept.',
@@ -451,6 +621,15 @@ const useMoonpayIdentityFlow = ({
     setPhase('error');
   }, []);
 
+  // ---------- Clear persisted terms acceptance ----------
+  // Wipes the stored `termsAcceptedAt` / `disclaimerIds` so the next launch
+  // asks the customer to accept the terms again.
+  const clearSavedTerms = useCallback(async () => {
+    await clearStoredTerms();
+    setHasSavedTerms(false);
+    pushDebug('Cleared stored terms acceptance', null, 'info');
+  }, [pushDebug]);
+
   return {
     accessToken,
     phase,
@@ -464,6 +643,9 @@ const useMoonpayIdentityFlow = ({
     disclaimers,
     disclaimersError,
     disclaimersLoaded,
+    initializing,
+    hasSavedTerms,
+    clearSavedTerms,
     debugEvents,
     clearDebug,
     showCheckFrame,
