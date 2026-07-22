@@ -6,6 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
   Box,
   FontWeight,
@@ -27,10 +29,7 @@ import { validateEmail } from '../../../Ramp/utils/depositUtils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';
-import {
-  setContactVerificationId,
-  setImmersveFundingSourceId,
-} from '../../../../../core/redux/slices/card';
+import { setContactVerificationId } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { validatePassword } from '../../util/validatePassword';
@@ -38,9 +37,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { safeToChecksumAddress } from '../../../../../util/address';
-import { useImmersveSiweAuth } from '../../hooks/useImmersveSiweAuth';
-import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
-import { deriveNextImmersveAction } from '../../util/immersvePrerequisites';
+import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboarding';
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -59,7 +56,7 @@ import {
   selectCardFeatureFlag,
   selectImmersveOnboardingEnabled,
 } from '../../../../../selectors/featureFlagController/card';
-import { HUBSPOT_WAITLIST_URL, KYC_REDIRECT_URL } from '../../constants';
+import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
@@ -70,7 +67,7 @@ const buildWaitlistUrl = (countryName: string, email?: string): string => {
 };
 
 const SignUp = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
@@ -102,8 +99,7 @@ const SignUp = () => {
   const immersveAddress = safeToChecksumAddress(
     selectAccountByScope('eip155:0')?.address,
   );
-  const { signIn: immersveSignIn } = useImmersveSiweAuth();
-  const routeImmersve = useImmersveOnboardingRouter();
+  const resumeImmersveOnboarding = useImmersveResumeOnboarding();
   const [isImmersveSubmitting, setIsImmersveSubmitting] = useState(false);
   const [immersveError, setImmersveError] = useState<string | null>(null);
 
@@ -220,8 +216,9 @@ const SignUp = () => {
   ]);
 
   const openAccountSelector = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         isEvmOnly: true,
         isSelectOnly: true,
         disableAddAccountButton: true,
@@ -236,42 +233,17 @@ const SignUp = () => {
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
-      const controller = Engine.context.CardController;
-      await immersveSignIn({
+      await resumeImmersveOnboarding({
         country: selectedCountry.key,
         address: immersveAddress,
-      });
-      // Resume existing cardholders instead of blindly creating a funding source
-      // (which 403s FUNDING_SOURCE_EXISTS): fetch their funding source, create one
-      // only if none exists.
-      // ponytail: one funding source per cardholder in this program — take the
-      // first; match by fundingChannelId if multiple channels ever appear.
-      const existing = await controller.getFundingSources();
-      const { id } = existing[0] ?? (await controller.createFundingSource());
-      dispatch(setImmersveFundingSourceId(id));
-
-      // Read where the user actually stopped and route there.
-      const { prerequisites } = await controller.getSpendingPrerequisites(id, {
-        kycRegion: selectedCountry.key,
-        kycRedirectUrl: KYC_REDIRECT_URL,
-      });
-      routeImmersve(deriveNextImmersveAction(prerequisites), {
         email,
-        countryKey: selectedCountry.key,
       });
     } catch (e) {
       setImmersveError(getCardProviderErrorMessage(e));
     } finally {
       setIsImmersveSubmitting(false);
     }
-  }, [
-    immersveAddress,
-    selectedCountry,
-    email,
-    immersveSignIn,
-    dispatch,
-    routeImmersve,
-  ]);
+  }, [immersveAddress, selectedCountry, email, resumeImmersveOnboarding]);
 
   const handleJoinWaitlist = useCallback(() => {
     if (!selectedCountry) return;
@@ -362,8 +334,9 @@ const SignUp = () => {
       Engine.context.CardController.setSelectedCountry(region.key);
     });
 
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: allRegions,
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
