@@ -36,9 +36,6 @@ import {
   HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
   HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
 } from './abTestConfig';
-import { useOwnedNfts } from './Sections/NFTs/hooks';
-import { useNftDetection } from '../../hooks/useNftDetection';
-import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -98,12 +95,8 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       [isAbActive, abVariantName],
     );
 
-    const ownedNfts = useOwnedNfts();
-    const hasNfts = ownedNfts.length > 0;
-
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
-    const { detectNfts, abortDetection } = useNftDetection();
     const popularNetworksKey = popularNetworks.join(',');
     const areAllPopularNetworksEnabled = useMemo(() => {
       if (popularNetworksKey === '') {
@@ -128,20 +121,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
     );
 
-    // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
-    useThrottledFocusEffect(
-      useCallback(() => {
-        detectNfts(true, false).catch(() => {
-          // AbortError is expected when detection is cancelled on blur
-        });
-
-        return () => {
-          abortDetection();
-        };
-      }, [detectNfts, abortDetection]),
-      300_000, // 5 minutes
-    );
-
     /**
      * Compute the ordered list of enabled sections. Cash is first when enabled;
      * Tokens are always present; NFTs, Perps, Predictions, and DeFi are conditional.
@@ -163,9 +142,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         ];
 
-        if (hasNfts) {
-          sections.push({ name: HomeSectionNames.NFTS, enabled: true });
-        }
+        sections.push({ name: HomeSectionNames.NFTS, enabled: true });
 
         // Always-on trending sections
         sections.push(
@@ -192,7 +169,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           enabled: isTopTradersEnabled,
         },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
-        { name: HomeSectionNames.NFTS, enabled: hasNfts },
+        { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled);
     }, [
       separateTrending,
@@ -200,7 +177,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       isPerpsEnabled,
       isPredictEnabled,
       isDeFiEnabled,
-      hasNfts,
       isTopTradersEnabled,
       isWatchlistEnabled,
     ]);
@@ -261,14 +237,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             />
           )}
 
-          {/* NFTs above trending when user has NFTs */}
-          {hasNfts && (
-            <NFTsSection
-              ref={nftsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-          )}
+          <NFTsSection
+            ref={nftsSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
 
           {/* Always-on trending sections */}
           <TokensSection
@@ -426,13 +399,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
             totalSectionsLoaded={totalSectionsLoaded}
           />
-          {hasNfts && (
-            <NFTsSection
-              ref={nftsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-          )}
+          <NFTsSection
+            ref={nftsSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
           <MoreSection />
         </Box>
       </HomepageTrendingAbTestContext.Provider>
