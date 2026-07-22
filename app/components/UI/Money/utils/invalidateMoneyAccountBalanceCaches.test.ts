@@ -36,8 +36,9 @@ describe('invalidateMoneyAccountBalanceCaches', () => {
 
   it('invalidates both source service caches via messenger before the UI facade', async () => {
     const callOrder: string[] = [];
-    mockMessengerCall.mockImplementation(async (action) => {
-      callOrder.push(String(action));
+    mockMessengerCall.mockImplementation((...args: unknown[]) => {
+      callOrder.push(String(args[0]));
+      return Promise.resolve(undefined);
     });
     mockInvalidateQueries.mockImplementation(async () => {
       callOrder.push('UI:invalidateQueries');

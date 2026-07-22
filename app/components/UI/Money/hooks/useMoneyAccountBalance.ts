@@ -39,7 +39,6 @@ interface UseMoneyAccountBalanceResult {
   vaultApyQuery: UseQueryResult<NormalizedVaultApyResponse>;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
-  isBalanceFetching: boolean;
   isBalanceUnavailable: boolean;
   /**
    * True when the canonical balance was served from the fallback source
@@ -97,12 +96,6 @@ const useMoneyAccountBalance = (
 
   /** Any balance fetch failure → full error state. */
   const isBalanceFetchError = moneyBalanceQuery.isError;
-
-  /**
-   * True while a refetch is in flight. Combined with isError, lets callers
-   * distinguish retry-in-flight (show skeleton) from silent auto-refetch.
-   */
-  const isBalanceFetching = moneyBalanceQuery.isFetching;
 
   const balanceSource = moneyBalanceQuery.data?.source;
   const usedFallback = moneyBalanceQuery.data?.usedFallback === true;
@@ -235,7 +228,6 @@ const useMoneyAccountBalance = (
     vaultApyQuery,
     isBalanceLoading,
     isBalanceFetchError,
-    isBalanceFetching,
     isBalanceUnavailable,
     isBalanceDegraded,
     balanceSource,

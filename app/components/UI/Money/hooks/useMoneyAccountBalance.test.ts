@@ -604,7 +604,7 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.tokenTotal).toBeUndefined();
     });
 
-    it('exposes isBalanceFetching true when balance query is fetching', () => {
+    it('surfaces the balance query object so callers can read isFetching directly', () => {
       setupDefaultQueries({
         data: undefined,
         isLoading: false,
@@ -614,7 +614,7 @@ describe('useMoneyAccountBalance', () => {
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
-      expect(result.current.isBalanceFetching).toBe(true);
+      expect(result.current.moneyBalanceQuery.isFetching).toBe(true);
     });
 
     it('refetchBalance invalidates source service caches then the UI facade', async () => {
