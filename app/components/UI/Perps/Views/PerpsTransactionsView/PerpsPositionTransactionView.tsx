@@ -142,20 +142,19 @@ const PerpsPositionTransactionView: React.FC = () => {
   ].filter(Boolean);
 
   // Secondary detail rows - only show if values exist
-  interface SecondaryDetailRow {
+  const secondaryDetailRows: {
     label: string;
     value: string;
     textColor: TextColor;
-  }
+  }[] = [];
 
-  const secondaryDetailRows: SecondaryDetailRow[] = [
-    transaction.fill?.fee !== undefined &&
-      transaction.fill?.fee !== null && {
-        label: strings('perps.transactions.position.fees'),
-        value: formatPositiveFiat(transaction.fill.fee),
-        textColor: TextColor.TextDefault,
-      },
-  ].filter((row): row is SecondaryDetailRow => Boolean(row));
+  if (transaction.fill?.fee !== undefined && transaction.fill?.fee !== null) {
+    secondaryDetailRows.push({
+      label: strings('perps.transactions.position.fees'),
+      value: formatPositiveFiat(transaction.fill.fee),
+      textColor: TextColor.TextDefault,
+    });
+  }
 
   if (
     transaction.fill?.pnl &&
