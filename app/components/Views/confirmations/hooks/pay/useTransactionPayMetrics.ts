@@ -24,6 +24,7 @@ import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -54,6 +55,8 @@ export function useTransactionPayMetrics() {
   const storedMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, transactionId),
   );
+
+  const accountOverride = useTransactionAccountOverride();
 
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
@@ -119,12 +122,68 @@ export function useTransactionPayMetrics() {
     );
   }
 
+  const needsAccountSelect = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const isInfoLoaded =
+    hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
+
+  const confirmationTimeToLoadInfoMs = useRef<number | undefined>(undefined);
+  if (
+    confirmationTimeToLoadInfoMs.current === undefined &&
+    isInfoLoaded &&
+    confirmationTimeToOpenMs.current !== undefined &&
+    typeof transactionMeta?.time === 'number'
+  ) {
+    confirmationTimeToLoadInfoMs.current =
+      Math.round(Date.now() - transactionMeta.time) -
+      confirmationTimeToOpenMs.current;
+  }
+
+  const didDispatchTimeToOpen = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToOpen.current ||
+      confirmationTimeToOpenMs.current === undefined
+    )
+      return;
+    didDispatchTimeToOpen.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_open_ms: confirmationTimeToOpenMs.current,
+          },
+        },
+      }),
+    );
+  });
+
+  const didDispatchTimeToLoadInfo = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadInfo.current ||
+      confirmationTimeToLoadInfoMs.current === undefined
+    )
+      return;
+    didDispatchTimeToLoadInfo.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_load_info_ms:
+              confirmationTimeToLoadInfoMs.current,
+          },
+        },
+      }),
+    );
+  });
+
   const properties: Json = {};
   const sensitiveProperties: Json = {};
-
-  if (confirmationTimeToOpenMs.current !== undefined) {
-    properties.confirmation_time_to_open_ms = confirmationTimeToOpenMs.current;
-  }
 
   if (payToken) {
     properties.mm_pay_token_presented =
