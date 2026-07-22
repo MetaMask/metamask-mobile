@@ -625,12 +625,20 @@ export type RootStackParamList = {
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal: undefined;
-  RewardsClaimBottomSheetModal: undefined;
-  RewardOptInAccountGroupModal: undefined;
+  RewardsBottomSheetModal:
+    | RewardsNavigationParamList['RewardsBottomSheetModal']
+    | undefined;
+  RewardsClaimBottomSheetModal:
+    | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
+    | undefined;
+  RewardOptInAccountGroupModal:
+    | RewardsNavigationParamList['RewardOptInAccountGroupModal']
+    | undefined;
   RewardsReferralBottomSheetModal: undefined;
   OTAUpdatesModal: undefined;
-  EndOfSeasonClaimBottomSheet: undefined;
+  EndOfSeasonClaimBottomSheet:
+    | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
+    | undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -1116,9 +1124,14 @@ export type AppNavigationProp = Omit<
 };
 
 /**
- * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`).
+ * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`,
+ * native-stack events like `transitionEnd`).
  * Mirrors {@link AppNavigationProp}'s `getState()` override, which accounts for
  * `getState()` potentially returning undefined when the navigator is not mounted.
+ *
+ * Note: still keyed to the loose global `RootParamList` during Phase 4. Prefer
+ * {@link AppNavigationProp} for strict route/param checking unless you need
+ * stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
   NativeStackNavigationProp<ReactNavigation.RootParamList>,
