@@ -155,28 +155,70 @@ runs:
       # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
       # are baked into the metamask-android-build image.
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
-      # Self-contained bash retry loop instead of nick-fields/retry.
-      # The apt commands run as root via sudo; on self-hosted runners the runner
-      # agent is non-root, so when nick-fields/retry timed out it could not kill the
-      # root-owned apt process and crashed with `kill EPERM` (see #29715, #29236).
-      # `sudo timeout` makes the process self-terminate cleanly — no external kill of a
-      # root PID — while a slow Ubuntu mirror is tolerated by the 10-minute per-attempt
-      # budget and per-download `Acquire::Retries`.
+      # Resilient apt installer: skips if deps already present, forces IPv4, and fails
+      # over across full Ubuntu archive mirrors when archive.ubuntu.com is unreachable.
+      # NB: all four packages live in the base `main` pool (no security update), so the
+      # fallbacks must be FULL mirrors — security.ubuntu.com only serves the -security
+      # pocket and cannot supply them. Runs under `sudo timeout` so a stuck attempt
+      # self-terminates cleanly instead of crashing on a cross-privilege kill (#29715, #29236).
       shell: bash
       run: |
         set -euo pipefail
+
+        PKGS=(libpulse0 libglu1-mesa libnss3 libxss1)
+
+        # Skip if already installed (e.g. baked into the image).
+        if dpkg -s "${PKGS[@]}" >/dev/null 2>&1; then
+          echo "✅ Linux dependencies already present — skipping apt install"
+          exit 0
+        fi
+
+        CODENAME="$(. /etc/os-release && echo "${VERSION_CODENAME:-noble}")"
+
+        # Full archive mirrors in priority order. Must be full mirrors (they carry the
+        # base `main` pool); security.ubuntu.com is intentionally excluded.
+        MIRRORS=(
+          "http://archive.ubuntu.com/ubuntu"
+          "http://us.archive.ubuntu.com/ubuntu"
+          "http://mirrors.kernel.org/ubuntu"
+          "http://mirror.enzu.com/ubuntu"
+        )
+
+        # Return the first mirror that serves the base `main` component (-4 dodges broken
+        # IPv6 routes). Probing the main Packages index (not just InRelease) confirms the
+        # mirror actually carries our packages, not merely the release metadata.
+        pick_mirror() {
+          local m
+          for m in "${MIRRORS[@]}"; do
+            if curl -4 -fsS --connect-timeout 10 -o /dev/null "${m}/dists/${CODENAME}/main/binary-amd64/Packages.gz"; then
+              echo "$m"
+              return 0
+            fi
+          done
+          return 1
+        }
+
+        # Each attempt re-selects a reachable mirror, then installs from it, so a mirror
+        # that flaked (or died mid-install) is swapped out on the next round instead of
+        # retried blindly.
         for attempt in 1 2 3; do
           echo "::group::apt install attempt ${attempt}/3"
-          if sudo timeout 600 bash -c '
+          if ! MIRROR="$(pick_mirror)"; then
+            echo "  no reachable mirror this round" >&2
+          elif sudo timeout 600 bash -c "
             set -euo pipefail
-            apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update
-            apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y \
-              libpulse0 \
-              libglu1-mesa \
-              libnss3 \
-              libxss1
-          '; then
-            echo "✅ Linux dependencies installed successfully"
+            SRC=\$(mktemp)
+            echo 'deb ${MIRROR} ${CODENAME} main universe' > \"\$SRC\"
+            apt-get -o Acquire::ForceIPv4=true \
+              -o Dir::Etc::SourceList=\"\$SRC\" \
+              -o Dir::Etc::SourceParts=/dev/null \
+              -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update
+            apt-get -o Acquire::ForceIPv4=true \
+              -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 \
+              install -y ${PKGS[*]}
+            rm -f \"\$SRC\"
+          "; then
+            echo "✅ Linux dependencies installed successfully via ${MIRROR}"
             echo '::endgroup::'
             exit 0
           fi
@@ -185,7 +227,7 @@ runs:
           sudo apt-get clean || true
           sleep 30
         done
-        echo '❌ Failed to install Linux dependencies after 3 attempts'
+        echo "::error::Failed to install emulator dependencies after 3 attempts — no full Ubuntu mirror was reachable from this runner (network egress issue) and the deps are not baked into the image."
         exit 1
 
     ## Android System Image Setup (only when simulator/emulator is needed)
