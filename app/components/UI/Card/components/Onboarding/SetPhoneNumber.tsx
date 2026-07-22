@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   Label,
@@ -22,7 +23,10 @@ import OnboardingStep from './OnboardingStep';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import useRegions from '../../hooks/useRegions';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  useParams,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import Engine from '../../../../../core/Engine';
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import {
@@ -45,7 +49,7 @@ import SelectField from './SelectField';
 const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
 
 const SetPhoneNumber = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -192,8 +196,9 @@ const SetPhoneNumber = () => {
       setSelectedCountry(region);
     });
 
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: availableRegions,
         renderAreaCode: true,
         selectedRegionKey: selectedCountry?.key ?? null,

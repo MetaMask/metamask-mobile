@@ -190,6 +190,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(
       !isAddMusdIntent && !isDepositPrefillEnabled,
     );
+    const isKeyboardVisibleRef = useRef(isKeyboardVisible);
+    isKeyboardVisibleRef.current = isKeyboardVisible;
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
       wasKeyboardEverVisible.current = true;
@@ -248,7 +250,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingFiatAmount: amountFiatDebounced,
     });
 
+    const hasAutoSubmittedPrefill = useRef(false);
+
     const handleDone = useCallback(async () => {
+      const keyboardVisibleAtStart = isKeyboardVisibleRef.current;
       try {
         await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
@@ -280,6 +285,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
       EngineService.flushState();
+      hasAutoSubmittedPrefill.current = true;
+      // If the keyboard was closed when handleDone started (auto-submit) but
+      // the user opened it during the await, don't dismiss it.
+      if (!keyboardVisibleAtStart && isKeyboardVisibleRef.current) {
+        return;
+      }
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
     }, [
@@ -300,7 +311,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       wasPrefillPending.current = isPrefillPending;
     }, [isPrefillPending, handleDone]);
 
-    const hasAutoSubmittedPrefill = useRef(false);
     useEffect(() => {
       // Reset when prefill drops (e.g. pay token changed) so handleDone
       // re-fires once the new prefill amount is ready.
@@ -309,11 +319,39 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
 
+      // Never auto-submit while the user is actively editing on the keyboard.
+      // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
+      // (true → false → true) during background state changes, which resets
+      // the guard above and would otherwise dismiss the keyboard mid-edit.
+      if (isKeyboardVisible) {
+        return;
+      }
+
       if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
         handleDone();
       }
-    }, [isDepositPrefilled, amountFiat, handleDone]);
+    }, [isDepositPrefilled, amountFiat, handleDone, isKeyboardVisible]);
+
+    const isMaxAutoSubmitPending = useRef(false);
+
+    const handlePercentagePress = useCallback(
+      (percentage: number) => {
+        updatePendingAmountPercentage(percentage);
+        if (percentage === 100) {
+          isMaxAutoSubmitPending.current = true;
+          setIsKeyboardVisible(false);
+        }
+      },
+      [updatePendingAmountPercentage],
+    );
+
+    useEffect(() => {
+      if (isMaxAutoSubmitPending.current && amountFiat !== '0') {
+        isMaxAutoSubmitPending.current = false;
+        handleDone();
+      }
+    }, [amountFiat, handleDone]);
 
     const handleAmountPress = useCallback(() => {
       wasKeyboardEverVisible.current = true;
@@ -426,7 +464,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               value={amountFiat}
               onChange={updatePendingAmount}
               onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
+              onPercentagePress={handlePercentagePress}
               hasInput={hasInput}
               hasMax={
                 (hasMax || isMoneyDepositNoFee) &&
