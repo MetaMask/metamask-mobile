@@ -787,10 +787,34 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: CaipChainId[]) => {
+      // Recompute the selected account ids against the new chain selection so
+      // that scopes added here (e.g. manually checking EVM networks) get
+      // accounts attached when the permission is granted. Without this, newly
+      // selected chains would be persisted with empty account lists.
+      const selectedGroupIds = new Set(selectedAccountGroupIds);
+      const selectedAccountGroups = Array.from(
+        new Set([
+          ...supportedAccountGroups,
+          ...connectedAccountGroupWithRequested,
+        ]),
+      ).filter((group: AccountGroupWithInternalAccounts) =>
+        selectedGroupIds.has(group.id),
+      );
+
+      const caip25AccountIds = getCaip25AccountIdsFromAccountGroupAndScope(
+        selectedAccountGroups,
+        newSelectedChainIds,
+      );
+
       setSelectedChainIds(newSelectedChainIds);
+      setSelectedCaipAccountIds(caip25AccountIds);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [setScreen, setSelectedChainIds],
+    [
+      selectedAccountGroupIds,
+      supportedAccountGroups,
+      connectedAccountGroupWithRequested,
+    ],
   );
 
   const handleConfirm = useCallback(async () => {
