@@ -1,8 +1,28 @@
 /* eslint-disable import-x/no-commonjs */
-
+const babelParser = require('@babel/eslint-parser');
+const eslintJs = require('@eslint/js');
+const { fixupConfigRules } = require('@eslint/compat');
+const designTokensPlugin = require('@metamask/eslint-plugin-design-tokens');
+const typescriptConfig = require('@metamask/eslint-config-typescript').default;
+const reactNativeConfig = require('@react-native/eslint-config/flat');
+const { defineConfig } = require('eslint/config');
+const { importX } = require('eslint-plugin-import-x');
+const jestPlugin = require('eslint-plugin-jest');
+const jsdocPlugin = require('eslint-plugin-jsdoc');
+const pluginPromise = require('eslint-plugin-promise');
+const reactPlugin = require('eslint-plugin-react');
+const reactCompilerPlugin = require('eslint-plugin-react-compiler');
+const tailwindCssPlugin = require('eslint-plugin-tailwindcss');
+const typescriptEslint = require('typescript-eslint');
 const {
   routeIsolationZones,
 } = require('./scripts/eslint-route-isolation-zones');
+
+// Filter out Flow-related lint rules because the Flow plugin does not yet
+// support ESLint v9 in this version of the config.
+const filteredReactNativeConfig = reactNativeConfig.filter(
+  (entry) => entry.plugins?.['ft-flow'] === undefined,
+);
 
 // Existing BN.js migration zone, kept in a named const so it can be
 // re-declared by the route-isolation overrides below without duplicating
@@ -130,163 +150,428 @@ const utilNumberImportBurndownFiles = [
   'app/util/transactions/index.test.ts',
 ];
 
-module.exports = {
-  root: true,
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    project: './tsconfig.json',
+module.exports = defineConfig([
+  {
+    // Globally ignored files
+    ignores: [
+      '**/.*',
+      'scripts/inpage-bridge',
+      'app/core/InpageBridgeWeb3.js',
+      'app/components/UI/Charts/AdvancedChart/webview/chartLogic.js',
+      'app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts',
+      'app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js',
+      'app/util/blockies.js',
+      '**/__snapshots__',
+      'android',
+      'build',
+      'coverage',
+      'ios',
+      'jest.preprocessor.js',
+      '**/node_modules',
+      'CHANGELOG.md',
+      'wdio',
+      'app/util/test/testSetup.js',
+      'junitProperties.js',
+      'tests/scripts/ai-e2e-tags-selector.ts',
+      'tests/scripts/aggregate-performance-reports.mjs',
+      'app/**/*-method-action-types.ts',
+      'wdio.conf.js',
+      'app/util/termsOfUse/termsOfUseContent.ts',
+    ],
   },
-  extends: [
-    '@react-native',
-    'eslint:recommended',
-    // '@metamask/eslint-config', // TODO: Enable when ready
-    'plugin:import-x/warnings',
-    'plugin:react/recommended',
-  ],
-  // ESLint can find the plugin without the `eslint-plugin-` prefix. Ex. `eslint-plugin-react-compiler` -> `react-compiler`
-  plugins: [
-    '@typescript-eslint',
-    '@metamask/design-tokens',
-    'promise',
-    'react-compiler',
-    'tailwindcss',
-  ],
-  overrides: [
-    {
-      files: ['tests/**/*.{js,ts}'],
-      extends: ['./tests/framework/.eslintrc.js'],
-    },
-    {
-      // These files intentionally omit dependencies from a useEffect/useCallback
-      // (documented inline at each call site). The React Compiler refuses to
-      // optimize any file containing an inline `eslint-disable` for a React
-      // rule, so the suppression is relocated here (invisible to the compiler)
-      // instead of being a per-line comment. Runtime behavior is unchanged.
-      files: [
-        'app/components/hooks/useAsyncResult.ts',
-        'app/components/hooks/useOTAUpdates.ts',
-        'app/components/Nav/Main/index.js',
-        'app/components/Nav/App/App.tsx',
-      ],
-      rules: {
-        'react-hooks/exhaustive-deps': 'off',
+  {
+    languageOptions: {
+      parser: typescriptEslint.parser,
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+      globals: {
+        process: true,
+        beforeAll: true,
+        afterAll: true,
+        describe: true,
+        expect: true,
+        it: true,
+        jasmine: true,
+        jest: true,
+        spyOn: true,
+        element: true,
+        by: true,
+        beforeEach: true,
+        device: true,
+        __DEV__: true,
+        driver: true,
+        $: true,
+        $$: true,
       },
     },
-    {
-      files: ['*.{ts,tsx}'],
-      extends: ['@metamask/eslint-config-typescript'],
-      rules: {
-        // TODO: re-enable
-        'jsdoc/no-types': 'off',
-        'react/display-name': 'off',
-        'react/no-unused-prop-types': 'off',
-        'react/prop-types': 'off',
-        'react/self-closing-comp': 'off',
-        // Temporarily overriding this rule to postpone this breaking change: https://github.com/MetaMask/eslint-config/pull/216
-        // TODO: Remove this override and align on prefering type over interface.
-        '@typescript-eslint/consistent-type-definitions': [
-          'error',
-          'interface',
-        ],
-        '@typescript-eslint/no-explicit-any': 'error',
-        // Surface JSDoc @deprecated annotations at every use-site (warn for now;
-        // ratchet to 'error' once the BN.js → BigInt migration is complete).
-        // Pairs with the `import-x/no-restricted-paths` fence on
-        // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
-        // Under discussion
-        '@typescript-eslint/no-duplicate-enum-values': 'off',
-        '@typescript-eslint/no-shadow': [
-          'warn',
-          {
-            builtinGlobals: true,
-            allow: ['Text'],
-          },
-        ],
+    linterOptions: {
+      // TODO: set this to `error`
+      reportUnusedDisableDirectives: 'off',
+    },
+    extends: [
+      filteredReactNativeConfig,
+      eslintJs.configs.recommended,
+      // '@metamask/eslint-config', // TODO: Enable when ready
+      importX.flatConfigs.warnings,
+      reactPlugin.configs.flat.recommended,
+    ],
+    plugins: {
+      '@typescript-eslint': typescriptEslint.plugin,
+      '@metamask/design-tokens': designTokensPlugin,
+      promise: pluginPromise,
+      'react-compiler': reactCompilerPlugin,
+      tailwindcss: tailwindCssPlugin,
+    },
 
-        // These rule modifications are removing changes to our shared ESLint config made after
-        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-        // at which point we can restore the intended rules and use error suppression instead.
-        //
-        // TODO: Remove these modifications after the ESLint v9 update
-        '@typescript-eslint/await-thenable': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
-        '@typescript-eslint/consistent-type-exports': 'off',
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/naming-convention': 'off',
-        '@typescript-eslint/no-base-to-string': 'off',
-        '@typescript-eslint/no-duplicate-type-constituents': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
-        '@typescript-eslint/no-floating-promises': 'off',
-        '@typescript-eslint/no-implied-eval': 'off',
-        '@typescript-eslint/no-misused-promises': 'off',
-        '@typescript-eslint/no-redundant-type-constituents': 'off',
-        '@typescript-eslint/no-throw-literal': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
-        '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
-        '@typescript-eslint/only-throw-error': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
-        '@typescript-eslint/prefer-includes': 'off',
-        '@typescript-eslint/prefer-nullish-coalescing': 'off',
-        '@typescript-eslint/prefer-optional-chain': 'off',
-        '@typescript-eslint/prefer-promise-reject-errors': 'off',
-        '@typescript-eslint/prefer-readonly': 'off',
-        '@typescript-eslint/prefer-reduce-type-parameter': 'off',
-        '@typescript-eslint/prefer-string-starts-ends-with': 'off',
-        '@typescript-eslint/promise-function-async': 'off',
-        '@typescript-eslint/restrict-plus-operands': 'off',
-        '@typescript-eslint/restrict-template-expressions': 'off',
-        '@typescript-eslint/switch-exhaustiveness-check': 'off',
-        '@typescript-eslint/unbound-method': 'off',
-        'no-restricted-syntax': [
-          'error',
-          {
-            selector: 'WithStatement',
-            message: 'With statements are not allowed',
-          },
-          {
-            selector: 'SequenceExpression',
-            message: 'Sequence expressions are not allowed',
-          },
-          // {
-          //   selector: "BinaryExpression[operator='in']",
-          //   message: 'The "in" operator is not allowed',
-          // },
-          // {
-          //   selector:
-          //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
-          //   message: 'Use a hash name instead.',
-          // },
-        ],
+    settings: {
+      'import-x/resolver': {
+        typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
       },
+      'import-x/internal-regex': '^@metamask/perps-controller',
     },
-    {
-      files: ['*.js', '*.jsx'],
-      parser: '@babel/eslint-parser',
+
+    rules: {
+      // Set to error once all warnings reported by React Compiler are resolved
+      'react-compiler/react-compiler': 'warn',
+      'no-catch-shadow': 'off',
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+      quotes: [
+        'error',
+        'single',
+        {
+          avoidEscape: true,
+          allowTemplateLiterals: true,
+        },
+      ],
+      'comma-dangle': 'off',
+      curly: 'off',
+      'no-shadow': 'off',
+      'no-bitwise': 'off',
+      'class-methods-use-this': 'off',
+      'eol-last': 'warn',
+      'import-x/no-named-as-default': 'off',
+      'no-invalid-this': 'off',
+      'no-new': 'off',
+      'react/jsx-handler-names': 'off',
+      'react/no-did-mount-set-state': 'off',
+      'react/prefer-stateless-function': 'off',
+      'require-atomic-updates': 'off',
+      'array-callback-return': 'error',
+      'arrow-body-style': 'error',
+      'dot-notation': 'error',
+      eqeqeq: 'error',
+      'import-x/no-amd': 'error',
+      'import-x/no-commonjs': 'error',
+      'import-x/no-duplicates': 'error',
+      'import-x/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
+      'import-x/no-mutable-exports': 'error',
+      'import-x/no-namespace': 'error',
+      'import-x/no-nodejs-modules': 'error',
+      'import-x/prefer-default-export': 'off',
+      'no-alert': 'error',
+      'no-constant-condition': [
+        'error',
+        {
+          checkLoops: false,
+        },
+      ],
+      'no-duplicate-imports': 'error',
+      'no-empty-function': 'error',
+      'no-else-return': 'error',
+      'no-eval': 'error',
+      'no-extend-native': 'error',
+      'no-extra-bind': 'error',
+      'no-global-assign': 'error',
+      'no-implicit-globals': 'error',
+      'no-implied-eval': 'error',
+      'no-lonely-if': 'error',
+      'no-loop-func': 'error',
+      'no-new-func': 'error',
+      'no-new-wrappers': 'error',
+      'no-proto': 'error',
+      'no-script-url': 'error',
+      'no-self-compare': 'error',
+      'no-throw-literal': 'error',
+      'no-unmodified-loop-condition': 'error',
+      'no-unneeded-ternary': [
+        'error',
+        {
+          defaultAssignment: false,
+        },
+      ],
+      'no-unsafe-negation': 'error',
+      'no-unused-expressions': 'off',
+      'no-use-before-define': ['error', 'nofunc'],
+      'no-useless-call': 'error',
+      'no-useless-computed-key': 'error',
+      'no-useless-concat': 'error',
+      'no-useless-constructor': 'error',
+      'no-useless-rename': 'error',
+      'no-var': 'error',
+      'no-with': 'error',
+      'object-shorthand': 'error',
+      'operator-assignment': 'error',
+      'prefer-arrow-callback': 'error',
+      'prefer-const': 'error',
+      'prefer-rest-params': 'error',
+      'prefer-spread': 'error',
+      'import-x/no-unresolved': 'error',
+      'eslint-comments/no-unlimited-disable': 'off',
+      'eslint-comments/no-unused-disable': 'off',
+      'react-native/no-color-literals': 'error',
+      'react-native/no-inline-styles': 'error',
+      'react-native/no-unused-styles': 'off',
+      'react-native/split-platform-components': 'error',
+      'react/jsx-boolean-value': 'error',
+      'react/jsx-key': 'warn',
+      'react/jsx-no-bind': 'off',
+      'react/jsx-pascal-case': 'error',
+      'react/jsx-wrap-multilines': 'error',
+      'react/no-danger': 'error',
+      'react/no-did-update-set-state': 'error',
+      'react/no-find-dom-node': 'error',
+      'react/no-multi-comp': [
+        'error',
+        {
+          ignoreStateless: true,
+        },
+      ],
+      'react/no-render-return-value': 'error',
+      'react/no-string-refs': 'error',
+      'react/no-unused-prop-types': 'error',
+      'react/prefer-es6-class': 'error',
+      '@metamask/design-tokens/color-no-hex': 'off',
+      radix: 'off',
+
+      // These rule modifications are removing changes to our shared ESLint config made after
+      // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
+      // at which point we can restore the intended rules and use error suppression instead.
+      //
+      // TODO: Remove these modifications after the ESLint v9 update
+      'react-hooks/rules-of-hooks': 'off',
+      'no-loss-of-precision': 'off',
+    },
+  },
+  {
+    files: ['tests/**/*.{js,ts}'],
+    rules: {
+      // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
+      'no-console': 'off',
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector:
+            "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
+          message:
+            'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['tests/**/specs/**/*.{js,ts}'],
+    ignores: ['tests/**/specs/**/*.failing.{js,ts}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '../api-mocking/mock-server',
+              message:
+                'Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
+            },
+            {
+              name: '../../api-mocking/mock-server',
+              message:
+                'Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['**/api-mocking/mock-server*'],
+              message:
+                'Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector:
+            "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
+          message:
+            'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
+        },
+        {
+          selector: "CallExpression[callee.name='element']",
+          message:
+            'Avoid direct element() calls in test specs. Use Page Object methods or Matchers utility instead to follow POM patterns.',
+        },
+        {
+          selector:
+            "CallExpression[callee.object.name='by'][callee.property.name=/^(id|text|label|type|accessibilityLabel)$/]",
+          message:
+            'Avoid direct by.* selectors in test specs. Move element selectors to Page Objects or selector files to follow POM patterns.',
+        },
+        {
+          selector: "CallExpression[callee.name='waitFor']",
+          message:
+            'Avoid direct waitFor() calls in test specs. Use Assertions utility methods (from tests/framework/Assertions.ts) for better error handling.',
+        },
+        {
+          selector:
+            "CallExpression[callee.object.callee.name='waitFor'][callee.property.name=/^(toBeVisible|toExist|toHaveText|withTimeout)$/]",
+          message:
+            'Avoid direct waitFor() chains in test specs. Use Assertions utility methods (from tests/framework/Assertions.ts) for better error handling.',
+        },
+        {
+          selector: "CallExpression[callee.name='startMockServer']",
+          message:
+            'Do not call startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
+        },
+        {
+          selector:
+            "Program:not(:has(CallExpression[callee.name=/^with.*Fixtures$/])):has(CallExpression[callee.name='describe']):has(CallExpression[callee.name=/^(it|test)$/])",
+          message:
+            'All E2E spec files must use withFixtures() or other with*Fixtures() methods for consistent test setup, mocking, and fixture management.',
+        },
+      ],
+    },
+  },
+  {
+    // These files intentionally omit dependencies from a useEffect/useCallback
+    // (documented inline at each call site). The React Compiler refuses to
+    // optimize any file containing an inline `eslint-disable` for a React
+    // rule, so the suppression is relocated here (invisible to the compiler)
+    // instead of being a per-line comment. Runtime behavior is unchanged.
+    files: [
+      'app/components/hooks/useAsyncResult.ts',
+      'app/components/hooks/useOTAUpdates.ts',
+      'app/components/Nav/Main/index.js',
+      'app/components/Nav/App/App.tsx',
+    ],
+    rules: {
+      'react-hooks/exhaustive-deps': 'off',
+    },
+  },
+  {
+    files: ['*.{ts,tsx}'],
+    extends: [typescriptConfig],
+    rules: {
+      // TODO: re-enable
+      'jsdoc/no-types': 'off',
+      'react/display-name': 'off',
+      'react/no-unused-prop-types': 'off',
+      'react/prop-types': 'off',
+      'react/self-closing-comp': 'off',
+      // Temporarily overriding this rule to postpone this breaking change: https://github.com/MetaMask/eslint-config/pull/216
+      // TODO: Remove this override and align on prefering type over interface.
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      '@typescript-eslint/no-explicit-any': 'error',
+      // Surface JSDoc @deprecated annotations at every use-site (warn for now;
+      // ratchet to 'error' once the BN.js → BigInt migration is complete).
+      // Pairs with the `import-x/no-restricted-paths` fence on
+      // `app/util/number/index.js` in the app import-fence override below.
+      '@typescript-eslint/no-deprecated': 'warn',
+      // Under discussion
+      '@typescript-eslint/no-duplicate-enum-values': 'off',
+      '@typescript-eslint/no-shadow': [
+        'warn',
+        {
+          builtinGlobals: true,
+          allow: ['Text'],
+        },
+      ],
+
+      // These rule modifications are removing changes to our shared ESLint config made after
+      // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
+      // at which point we can restore the intended rules and use error suppression instead.
+      //
+      // TODO: Remove these modifications after the ESLint v9 update
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/consistent-type-imports': 'off',
+      '@typescript-eslint/consistent-type-exports': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/naming-convention': 'off',
+      '@typescript-eslint/no-base-to-string': 'off',
+      '@typescript-eslint/no-duplicate-type-constituents': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-implied-eval': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-throw-literal': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-wrapper-object-types': 'off',
+      '@typescript-eslint/only-throw-error': 'off',
+      '@typescript-eslint/prefer-enum-initializers': 'off',
+      '@typescript-eslint/prefer-includes': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
+      '@typescript-eslint/prefer-promise-reject-errors': 'off',
+      '@typescript-eslint/prefer-readonly': 'off',
+      '@typescript-eslint/prefer-reduce-type-parameter': 'off',
+      '@typescript-eslint/prefer-string-starts-ends-with': 'off',
+      '@typescript-eslint/promise-function-async': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/switch-exhaustiveness-check': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'WithStatement',
+          message: 'With statements are not allowed',
+        },
+        {
+          selector: 'SequenceExpression',
+          message: 'Sequence expressions are not allowed',
+        },
+        // {
+        //   selector: "BinaryExpression[operator='in']",
+        //   message: 'The "in" operator is not allowed',
+        // },
+        // {
+        //   selector:
+        //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
+        //   message: 'Use a hash name instead.',
+        // },
+      ],
+    },
+  },
+  {
+    files: ['*.js', '*.jsx'],
+    languageOptions: {
+      parser: babelParser,
       parserOptions: {
         requireConfigFile: false,
         babelOptions: {
           presets: ['@babel/preset-env'],
         },
       },
-      rules: {
-        // under discussion
-        'no-unused-vars': 'off',
-        'react/no-unstable-nested-components': [
-          'warn',
-          {
-            allowAsProps: true,
-          },
-        ],
-      },
     },
-    {
-      files: ['scripts/**/*.mjs'],
-      parser: '@babel/eslint-parser',
+    rules: {
+      // under discussion
+      'no-unused-vars': 'off',
+      'react/no-unstable-nested-components': [
+        'warn',
+        {
+          allowAsProps: true,
+        },
+      ],
+    },
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      parser: babelParser,
       parserOptions: {
         requireConfigFile: false,
         babelOptions: {
@@ -295,608 +580,460 @@ module.exports = {
         ecmaVersion: 2022,
         sourceType: 'module',
       },
-      rules: {
-        'no-console': 'off',
-        'import-x/no-commonjs': 'off',
-        'import-x/no-nodejs-modules': 'off',
-      },
     },
-    {
-      files: [
-        'scripts/**/*.{js,ts}',
-        'tests/tools/**/*.{js,ts}',
-        'app.config.js',
-      ],
-      rules: {
-        'no-console': 'off',
-        'import-x/no-commonjs': 'off',
-        'import-x/no-nodejs-modules': 'off',
-      },
+    rules: {
+      'no-console': 'off',
+      'import-x/no-commonjs': 'off',
+      'import-x/no-nodejs-modules': 'off',
     },
-    {
-      files: ['tests/module-mocking/**/*.{js,ts}'],
-      rules: {
-        'no-console': 'off',
-      },
+  },
+  {
+    files: [
+      'scripts/**/*.{js,ts}',
+      'tests/tools/**/*.{js,ts}',
+      'app.config.js',
+    ],
+    rules: {
+      'no-console': 'off',
+      'import-x/no-commonjs': 'off',
+      'import-x/no-nodejs-modules': 'off',
     },
-    {
-      files: [
-        'app/components/**/*.{js,jsx,ts,tsx}',
-        'app/component-library/**/*.{js,jsx,ts,tsx}',
-      ],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
-      },
+  },
+  {
+    files: ['tests/module-mocking/**/*.{js,ts}'],
+    rules: {
+      'no-console': 'off',
     },
+  },
+  {
+    files: [
+      'app/components/**/*.{js,jsx,ts,tsx}',
+      'app/component-library/**/*.{js,jsx,ts,tsx}',
+    ],
+    rules: {
+      '@metamask/design-tokens/color-no-hex': 'error',
+    },
+  },
 
-    {
-      files: [
-        'app/components/UI/Name/**/*.{js,ts,tsx}',
-        'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
-        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/**/*.{js,ts,tsx}',
-      ],
-      excludedFiles: [
-        'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}',
-      ],
-      rules: {
-        'no-restricted-syntax': [
-          'error',
-          {
-            selector: `ImportSpecifier[imported.name=/${[
-              'selectChainId',
-              'selectContractExchangeRates',
-              'selectConversionRate',
-              'selectNetworkClientId',
-              'selectNetworkStatus',
-              'selectNickname',
-              'selectProviderConfig',
-              'selectProviderType',
-              'selectRpcUrl',
-              'selectSelectedNetworkClientId',
-              'selectEvmTicker',
-            ]
-              .map((method) => `^${method}$`)
-              .join('|')}/]`,
-            message: 'Avoid using global network selectors in confirmations',
-          },
-        ],
-      },
-    },
-    {
-      files: [
-        'app/component-library/**/*.{js,ts,tsx}',
-        'app/components/**/*.{js,ts,tsx}',
-      ],
-      plugins: ['tailwindcss'],
-      rules: {
-        'tailwindcss/classnames-order': 'error',
-        'tailwindcss/enforces-negative-arbitrary-values': 'error',
-        'tailwindcss/enforces-shorthand': 'error',
-        'tailwindcss/no-arbitrary-value': 'off', // There are legitimate reasons to use arbitrary values but we should specifically error on static colors
-        'tailwindcss/no-custom-classname': 'error',
-        'tailwindcss/no-contradicting-classname': 'error',
-        'tailwindcss/no-unnecessary-arbitrary-value': 'error',
-      },
-      settings: {
-        tailwindcss: {
-          callees: ['twClassName', 'tw'],
-          config: './tailwind.config.js',
-          tags: ['tw'], // Enable template literal support for tw`classnames`
+  {
+    files: [
+      'app/components/UI/Name/**/*.{js,ts,tsx}',
+      'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
+      'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
+      'app/components/Views/confirmations/**/*.{js,ts,tsx}',
+    ],
+    ignores: [
+      'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: `ImportSpecifier[imported.name=/${[
+            'selectChainId',
+            'selectContractExchangeRates',
+            'selectConversionRate',
+            'selectNetworkClientId',
+            'selectNetworkStatus',
+            'selectNickname',
+            'selectProviderConfig',
+            'selectProviderType',
+            'selectRpcUrl',
+            'selectSelectedNetworkClientId',
+            'selectEvmTicker',
+          ]
+            .map((method) => `^${method}$`)
+            .join('|')}/]`,
+          message: 'Avoid using global network selectors in confirmations',
         },
-      },
-    },
-    {
-      files: ['**/*.view.test.{js,ts,tsx,jsx}'],
-      rules: {
-        'no-restricted-syntax': [
-          'error',
-          {
-            selector:
-              "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
-            message:
-              'Only Engine and react-native-device-info can be mocked in component-view tests.',
-          },
-        ],
-      },
-    },
-    {
-      files: ['**/*.test.{js,ts,tsx,jsx}', '**/*.spec.{js,ts,tsx,jsx}'],
-      plugins: ['jest'],
-      rules: {
-        // Prevent new file-based snapshots. Inline snapshots (toMatchInlineSnapshot)
-        // are still allowed as they keep assertions co-located with the test.
-        'jest/no-restricted-matchers': [
-          'error',
-          {
-            toMatchSnapshot:
-              'Use toMatchInlineSnapshot() or an explicit assertion instead. File-based snapshots are being phased out.',
-          },
-        ],
-      },
-    },
-    {
-      // Matches CODEOWNERS `**/snaps/**` and `**/Snaps/**` (@MetaMask/core-platform).
-      // ESLint cannot read CODEOWNERS.
-      files: [
-        '**/snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
-        '**/Snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
       ],
-      plugins: ['jest'],
-      rules: {
-        'jest/no-restricted-matchers': 'off',
+    },
+  },
+  {
+    files: [
+      'app/component-library/**/*.{js,ts,tsx}',
+      'app/components/**/*.{js,ts,tsx}',
+    ],
+    plugins: {
+      tailwindcss: tailwindCssPlugin,
+    },
+    rules: {
+      'tailwindcss/classnames-order': 'error',
+      'tailwindcss/enforces-negative-arbitrary-values': 'error',
+      'tailwindcss/enforces-shorthand': 'error',
+      'tailwindcss/no-arbitrary-value': 'off', // There are legitimate reasons to use arbitrary values but we should specifically error on static colors
+      'tailwindcss/no-custom-classname': 'error',
+      'tailwindcss/no-contradicting-classname': 'error',
+      'tailwindcss/no-unnecessary-arbitrary-value': 'error',
+    },
+    settings: {
+      tailwindcss: {
+        callees: ['twClassName', 'tw'],
+        config: './tailwind.config.js',
+        tags: ['tw'], // Enable template literal support for tw`classnames`
       },
     },
-    // ── Perps controller Core-alignment override ──
-    // Enforces the same ESLint rules that Core's @metamask/eslint-config
-    // applies to packages/perps-controller so that code written in mobile
-    // passes Core's linter after a straight copy.
-    //
-    // Plugin differences from Core:
-    //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
-    //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
-    //     handles any formatting delta.
-    //
-    // See docs/perps/perps-core-sync.md for the full sync workflow.
-    {
-      files: ['app/**/*-method-action-types*.ts'],
-      excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
-      rules: {
-        // === Existing rule ===
-        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+  },
+  {
+    files: ['**/*.view.test.{js,ts,tsx,jsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
+          message:
+            'Only Engine and react-native-device-info can be mocked in component-view tests.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*.test.{js,ts,tsx,jsx}', '**/*.spec.{js,ts,tsx,jsx}'],
+    plugins: {
+      jest: jestPlugin,
+    },
+    rules: {
+      // Prevent new file-based snapshots. Inline snapshots (toMatchInlineSnapshot)
+      // are still allowed as they keep assertions co-located with the test.
+      'jest/no-restricted-matchers': [
+        'error',
+        {
+          toMatchSnapshot:
+            'Use toMatchInlineSnapshot() or an explicit assertion instead. File-based snapshots are being phased out.',
+        },
+      ],
+    },
+  },
+  {
+    // Matches CODEOWNERS `**/snaps/**` and `**/Snaps/**` (@MetaMask/core-platform).
+    // ESLint cannot read CODEOWNERS.
+    files: [
+      '**/snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+      '**/Snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+    ],
+    plugins: {
+      jest: jestPlugin,
+    },
+    rules: {
+      'jest/no-restricted-matchers': 'off',
+    },
+  },
+  // ── Perps controller Core-alignment override ──
+  // Enforces the same ESLint rules that Core's @metamask/eslint-config
+  // applies to packages/perps-controller so that code written in mobile
+  // passes Core's linter after a straight copy.
+  //
+  // Plugin differences from Core:
+  //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
+  //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
+  //     handles any formatting delta.
+  //
+  // See docs/perps/perps-core-sync.md for the full sync workflow.
+  {
+    files: ['app/**/*-method-action-types*.ts'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    plugins: {
+      jsdoc: jsdocPlugin,
+    },
+    rules: {
+      // === Existing rule ===
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
 
-        // === Core base rules (from @metamask/eslint-config) ===
-        'no-restricted-syntax': [
-          'error',
-          {
-            selector: 'TSParameterProperty',
-            message:
-              'Prefer explicit property declaration and assignment in constructor.',
-          },
-          {
-            selector: "MethodDefinition[accessibility='private']",
-            message:
-              'Use ES private class fields (#field) instead of TypeScript private keyword.',
-          },
-          {
-            selector: "PropertyDefinition[accessibility='private']",
-            message:
-              'Use ES private class fields (#field) instead of TypeScript private keyword.',
-          },
-          // Mirror @metamask/eslint-config base rule — prevents `'x' in obj`
-          // type-guards that would land in core as new `no-restricted-syntax`
-          // suppressions. Use `hasProperty()` from `@metamask/utils` instead.
-          {
-            selector: "BinaryExpression[operator='in']",
-            message:
-              'The "in" operator is not allowed. Use `hasProperty()` from `@metamask/utils` instead.',
-          },
-          {
-            selector: 'WithStatement',
-            message: 'With statements are not allowed',
-          },
-          {
-            selector: 'SequenceExpression',
-            message: 'Sequence expressions are not allowed',
-          },
-        ],
-        'id-denylist': [
-          'error',
-          'buf',
-          'cat',
-          'err',
-          'cb',
-          'cfg',
-          'hex',
-          'int',
-          'msg',
-          'num',
-          'opt',
-          'sig',
-        ],
-        'id-length': [
-          'error',
-          {
-            min: 2,
-            exceptionPatterns: ['_', 'a', 'b', 'i', 'j', 'k'],
-            properties: 'never',
-          },
-        ],
-        'no-negated-condition': 'error',
-        'no-eq-null': 'error',
-        'no-nested-ternary': 'error',
-        'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
-        'require-unicode-regexp': 'error',
-        'consistent-return': 'error',
-        'prefer-template': 'error',
-        'prefer-destructuring': [
-          'error',
-          {
-            VariableDeclarator: { array: false, object: true },
-            AssignmentExpression: { array: false, object: false },
-          },
-          { enforceForRenamedProperties: false },
-        ],
-        'no-implicit-coercion': 'error',
-        'no-param-reassign': 'error',
-        'no-duplicate-imports': 'off',
-        curly: ['error', 'all'],
-        'no-void': 'error',
+      // === Core base rules (from @metamask/eslint-config) ===
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'TSParameterProperty',
+          message:
+            'Prefer explicit property declaration and assignment in constructor.',
+        },
+        {
+          selector: "MethodDefinition[accessibility='private']",
+          message:
+            'Use ES private class fields (#field) instead of TypeScript private keyword.',
+        },
+        {
+          selector: "PropertyDefinition[accessibility='private']",
+          message:
+            'Use ES private class fields (#field) instead of TypeScript private keyword.',
+        },
+        // Mirror @metamask/eslint-config base rule — prevents `'x' in obj`
+        // type-guards that would land in core as new `no-restricted-syntax`
+        // suppressions. Use `hasProperty()` from `@metamask/utils` instead.
+        {
+          selector: "BinaryExpression[operator='in']",
+          message:
+            'The "in" operator is not allowed. Use `hasProperty()` from `@metamask/utils` instead.',
+        },
+        {
+          selector: 'WithStatement',
+          message: 'With statements are not allowed',
+        },
+        {
+          selector: 'SequenceExpression',
+          message: 'Sequence expressions are not allowed',
+        },
+      ],
+      'id-denylist': [
+        'error',
+        'buf',
+        'cat',
+        'err',
+        'cb',
+        'cfg',
+        'hex',
+        'int',
+        'msg',
+        'num',
+        'opt',
+        'sig',
+      ],
+      'id-length': [
+        'error',
+        {
+          min: 2,
+          exceptionPatterns: ['_', 'a', 'b', 'i', 'j', 'k'],
+          properties: 'never',
+        },
+      ],
+      'no-negated-condition': 'error',
+      'no-eq-null': 'error',
+      'no-nested-ternary': 'error',
+      'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
+      'require-unicode-regexp': 'error',
+      'consistent-return': 'error',
+      'prefer-template': 'error',
+      'prefer-destructuring': [
+        'error',
+        {
+          VariableDeclarator: { array: false, object: true },
+          AssignmentExpression: { array: false, object: false },
+        },
+        { enforceForRenamedProperties: false },
+      ],
+      'no-implicit-coercion': 'error',
+      'no-param-reassign': 'error',
+      'no-duplicate-imports': 'off',
+      curly: ['error', 'all'],
+      'no-void': 'error',
 
-        // === TypeScript type-aware rules ===
-        'no-shadow': 'off',
-        '@typescript-eslint/no-shadow': ['error', { builtinGlobals: true }],
-        '@typescript-eslint/prefer-nullish-coalescing': 'error',
-        '@typescript-eslint/prefer-readonly': 'error',
-        '@typescript-eslint/explicit-function-return-type': 'error',
-        '@typescript-eslint/naming-convention': [
-          'error',
-          {
-            selector: 'default',
-            format: ['camelCase'],
-            leadingUnderscore: 'allow',
-            trailingUnderscore: 'forbid',
+      // === TypeScript type-aware rules ===
+      'no-shadow': 'off',
+      '@typescript-eslint/no-shadow': ['error', { builtinGlobals: true }],
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/prefer-readonly': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'error',
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'default',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+          trailingUnderscore: 'forbid',
+        },
+        {
+          selector: 'enumMember',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'import',
+          format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+        },
+        {
+          selector: 'interface',
+          format: ['PascalCase'],
+          custom: {
+            regex: '^I[A-Z]',
+            match: false,
           },
-          {
-            selector: 'enumMember',
-            format: ['PascalCase'],
-          },
-          {
-            selector: 'import',
-            format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
-          },
-          {
-            selector: 'interface',
-            format: ['PascalCase'],
-            custom: {
-              regex: '^I[A-Z]',
-              match: false,
+        },
+        {
+          selector: 'objectLiteralMethod',
+          format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+        },
+        {
+          selector: 'objectLiteralProperty',
+          format: null,
+        },
+        {
+          selector: 'typeLike',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'typeParameter',
+          format: ['PascalCase'],
+          custom: { regex: '^.{3,}', match: true },
+        },
+        {
+          selector: 'variable',
+          format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+          leadingUnderscore: 'allow',
+        },
+        {
+          selector: 'parameter',
+          format: ['camelCase', 'PascalCase'],
+          leadingUnderscore: 'allow',
+        },
+        {
+          selector: [
+            'classProperty',
+            'objectLiteralProperty',
+            'typeProperty',
+            'classMethod',
+            'objectLiteralMethod',
+            'typeMethod',
+            'accessor',
+            'enumMember',
+          ],
+          format: null,
+          modifiers: ['requiresQuotes'],
+        },
+      ],
+      '@typescript-eslint/consistent-type-exports': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/restrict-template-expressions': 'error',
+
+      // === Import rules ===
+      'import-x/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+      'import-x/no-named-as-default': 'error',
+      'import-x/order': [
+        'error',
+        {
+          groups: [
+            ['builtin', 'external'],
+            ['internal', 'parent', 'sibling', 'index'],
+          ],
+          alphabetize: { order: 'asc', caseInsensitive: true },
+          'newlines-between': 'always',
+        },
+      ],
+
+      // === JSDoc rules ===
+      'jsdoc/check-alignment': 'error',
+      'jsdoc/tag-lines': ['error', 'any', { startLines: 1 }],
+      'jsdoc/check-param-names': 'error',
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-param-description': 'error',
+      'jsdoc/require-returns': 'error',
+      'jsdoc/require-returns-description': 'error',
+
+      // === Promise rules (eslint-plugin-promise) ===
+      'promise/always-return': 'error',
+      'promise/no-nesting': 'error',
+      'promise/no-callback-in-promise': 'error',
+      'promise/param-names': 'error',
+    },
+  },
+  {
+    // Default app import fences (expo-haptics, perps, deprecated util/number/index.js).
+    // `excludedFiles` applies to the whole override — listing burn-down paths
+    // here would incorrectly skip expo/perps for those files, so burn-down is
+    // excluded from *this* block only and picked up by the next override.
+    files: ['app/**/*.{ts,tsx,js,jsx}'],
+    ignores: [
+      // Designated expo-haptics wrapper — only this tree may import expo-haptics.
+      'app/util/haptics/**/*.{ts,tsx,js,jsx}',
+      // Legacy number utils + parity tests.
+      'app/util/number/**',
+      // BN.js → BigInt burn-down: still allowed util/number imports; see next override.
+      ...utilNumberImportBurndownFiles,
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'expo-haptics',
+              message:
+                'Import from app/util/haptics instead of expo-haptics directly.',
             },
-          },
-          {
-            selector: 'objectLiteralMethod',
-            format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
-          },
-          {
-            selector: 'objectLiteralProperty',
-            format: null,
-          },
-          {
-            selector: 'typeLike',
-            format: ['PascalCase'],
-          },
-          {
-            selector: 'typeParameter',
-            format: ['PascalCase'],
-            custom: { regex: '^.{3,}', match: true },
-          },
-          {
-            selector: 'variable',
-            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
-            leadingUnderscore: 'allow',
-          },
-          {
-            selector: 'parameter',
-            format: ['camelCase', 'PascalCase'],
-            leadingUnderscore: 'allow',
-          },
-          {
-            selector: [
-              'classProperty',
-              'objectLiteralProperty',
-              'typeProperty',
-              'classMethod',
-              'objectLiteralMethod',
-              'typeMethod',
-              'accessor',
-              'enumMember',
-            ],
-            format: null,
-            modifiers: ['requiresQuotes'],
-          },
-        ],
-        '@typescript-eslint/consistent-type-exports': 'error',
-        '@typescript-eslint/no-floating-promises': 'error',
-        '@typescript-eslint/restrict-template-expressions': 'error',
-
-        // === Import rules ===
-        'import-x/consistent-type-specifier-style': [
-          'error',
-          'prefer-top-level',
-        ],
-        'import-x/no-named-as-default': 'error',
-        'import-x/order': [
-          'error',
-          {
-            groups: [
-              ['builtin', 'external'],
-              ['internal', 'parent', 'sibling', 'index'],
-            ],
-            alphabetize: { order: 'asc', caseInsensitive: true },
-            'newlines-between': 'always',
-          },
-        ],
-
-        // === JSDoc rules ===
-        'jsdoc/check-alignment': 'error',
-        'jsdoc/tag-lines': ['error', 'any', { startLines: 1 }],
-        'jsdoc/check-param-names': 'error',
-        'jsdoc/require-param': 'error',
-        'jsdoc/require-param-description': 'error',
-        'jsdoc/require-returns': 'error',
-        'jsdoc/require-returns-description': 'error',
-
-        // === Promise rules (eslint-plugin-promise) ===
-        'promise/always-return': 'error',
-        'promise/no-nesting': 'error',
-        'promise/no-callback-in-promise': 'error',
-        'promise/param-names': 'error',
-      },
-    },
-    {
-      // Default app import fences (expo-haptics, perps, deprecated util/number/index.js).
-      // `excludedFiles` applies to the whole override — listing burn-down paths
-      // here would incorrectly skip expo/perps for those files, so burn-down is
-      // excluded from *this* block only and picked up by the next override.
-      files: ['app/**/*.{ts,tsx,js,jsx}'],
-      excludedFiles: [
-        // Designated expo-haptics wrapper — only this tree may import expo-haptics.
-        'app/util/haptics/**/*.{ts,tsx,js,jsx}',
-        // Legacy number utils + parity tests.
-        'app/util/number/**',
-        // BN.js → BigInt burn-down: still allowed util/number imports; see next override.
-        ...utilNumberImportBurndownFiles,
+          ],
+          patterns: [
+            {
+              group: ['expo-haptics/*'],
+              message:
+                'Import from app/util/haptics instead of expo-haptics directly.',
+            },
+          ],
+        },
       ],
-      rules: {
-        'no-restricted-imports': [
-          'error',
-          {
-            paths: [
-              {
-                name: 'expo-haptics',
-                message:
-                  'Import from app/util/haptics instead of expo-haptics directly.',
-              },
-            ],
-            patterns: [
-              {
-                group: ['expo-haptics/*'],
-                message:
-                  'Import from app/util/haptics instead of expo-haptics directly.',
-              },
-            ],
-          },
-        ],
-        // Fences the deprecated `app/util/number/index.js` module. We use
-        // `import-x/no-restricted-paths` (not `no-restricted-imports`) because
-        // it resolves each import to its absolute file, which means a single
-        // entry catches every spelling that lands on `index.js` — bare
-        // (`from '../util/number'`), explicit (`'../util/number/index'`),
-        // and explicit-with-extension. Sibling modules like `bigint`,
-        // `bignumber`, and `subscriptNotation` resolve to different files
-        // and are unaffected, so no negation list is needed. Inherits the
-        // burn-down allowlist from this override's `excludedFiles`; the
-        // burn-down override below intentionally does not re-declare this
-        // rule, so allow-listed files remain exempt.
-        'import-x/no-restricted-paths': [
-          'error',
-          { zones: [utilNumberDeprecationZone] },
-        ],
-      },
+      // Fences the deprecated `app/util/number/index.js` module. We use
+      // `import-x/no-restricted-paths` (not `no-restricted-imports`) because
+      // it resolves each import to its absolute file, which means a single
+      // entry catches every spelling that lands on `index.js` — bare
+      // (`from '../util/number'`), explicit (`'../util/number/index'`),
+      // and explicit-with-extension. Sibling modules like `bigint`,
+      // `bignumber`, and `subscriptNotation` resolve to different files
+      // and are unaffected, so no negation list is needed. Inherits the
+      // burn-down allowlist from this override's `excludedFiles`; the
+      // burn-down override below intentionally does not re-declare this
+      // rule, so allow-listed files remain exempt.
+      'import-x/no-restricted-paths': [
+        'error',
+        { zones: [utilNumberDeprecationZone] },
+      ],
     },
-    {
-      // Re-apply expo-haptics + perps only for burn-down files. A second
-      // override is required because ESLint replaces `no-restricted-imports`
-      // when the same rule is set again — we cannot use one override with only
-      // `excludedFiles` for util/number without silently dropping other fences.
-      files: utilNumberImportBurndownFiles,
-      rules: {
-        'no-restricted-imports': [
-          'error',
-          {
-            paths: [
-              {
-                name: 'expo-haptics',
-                message:
-                  'Import from app/util/haptics instead of expo-haptics directly.',
-              },
-            ],
-            patterns: [
-              {
-                group: ['expo-haptics/*'],
-                message:
-                  'Import from app/util/haptics instead of expo-haptics directly.',
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      // Route-module isolation per ADR 0020 (modularize-routes), scoped to
-      // `app/components/Views/**`. Declared in its own override because the
-      // BN.js migration override above excludes `excludedFiles`, which would
-      // otherwise silently exempt every Views file on the burn-down list
-      // from route isolation. Re-declares the BN.js zone here so that
-      // non-burn-down Views files keep their BN.js fence (ESLint replaces
-      // `import-x/no-restricted-paths` per override rather than merging).
-      // See scripts/eslint-route-isolation-zones.js for zone generation.
-      files: ['app/components/Views/**/*.{ts,tsx,js,jsx}'],
-      excludedFiles: utilNumberImportBurndownFiles,
-      rules: {
-        'import-x/no-restricted-paths': [
-          'error',
-          {
-            zones: [utilNumberDeprecationZone, ...routeIsolationZones],
-          },
-        ],
-      },
-    },
-    {
-      // Burn-down Views files (and all other burn-down files): apply only
-      // the route-isolation zones. The BN.js fence stays disabled while
-      // those files complete their BigInt migration; route isolation must
-      // still apply so new cross-route imports added to a burn-down file
-      // are caught. Route-isolation zones target only `Views/<route>`
-      // paths, so this override is a no-op for non-Views burn-down files.
-      files: utilNumberImportBurndownFiles,
-      rules: {
-        'import-x/no-restricted-paths': [
-          'error',
-          { zones: routeIsolationZones },
-        ],
-      },
-    },
-  ],
-
-  globals: {
-    process: true,
-    beforeAll: true,
-    afterAll: true,
-    describe: true,
-    expect: true,
-    it: true,
-    jasmine: true,
-    jest: true,
-    spyOn: true,
-    element: true,
-    by: true,
-    beforeEach: true,
-    device: true,
-    __DEV__: true,
-    driver: true,
-    $: true,
-    $$: true,
   },
-
-  settings: {
-    'import-x/resolver': {
-      typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
+  {
+    // Re-apply expo-haptics + perps only for burn-down files. A second
+    // override is required because ESLint replaces `no-restricted-imports`
+    // when the same rule is set again — we cannot use one override with only
+    // `excludedFiles` for util/number without silently dropping other fences.
+    files: utilNumberImportBurndownFiles,
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'expo-haptics',
+              message:
+                'Import from app/util/haptics instead of expo-haptics directly.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['expo-haptics/*'],
+              message:
+                'Import from app/util/haptics instead of expo-haptics directly.',
+            },
+          ],
+        },
+      ],
     },
-    'import-x/internal-regex': '^@metamask/perps-controller',
   },
-
-  rules: {
-    // Set to error once all warnings reported by React Compiler are resolved
-    'react-compiler/react-compiler': 'warn',
-    'no-catch-shadow': 'off',
-    'no-console': ['error', { allow: ['warn', 'error'] }],
-    quotes: [
-      'error',
-      'single',
-      {
-        avoidEscape: true,
-        allowTemplateLiterals: true,
-      },
-    ],
-    'comma-dangle': 'off',
-    curly: 'off',
-    'no-shadow': 'off',
-    'no-bitwise': 'off',
-    'class-methods-use-this': 'off',
-    'eol-last': 'warn',
-    'import-x/no-named-as-default': 'off',
-    'no-invalid-this': 'off',
-    'no-new': 'off',
-    'react/jsx-handler-names': 'off',
-    'react/no-did-mount-set-state': 'off',
-    'react/prefer-stateless-function': 'off',
-    'require-atomic-updates': 'off',
-    'array-callback-return': 'error',
-    'arrow-body-style': 'error',
-    'dot-notation': 'error',
-    eqeqeq: 'error',
-    'import-x/no-amd': 'error',
-    'import-x/no-commonjs': 'error',
-    'import-x/no-duplicates': 'error',
-    'import-x/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
-    'import-x/no-mutable-exports': 'error',
-    'import-x/no-namespace': 'error',
-    'import-x/no-nodejs-modules': 'error',
-    'import-x/prefer-default-export': 'off',
-    'no-alert': 'error',
-    'no-constant-condition': [
-      'error',
-      {
-        checkLoops: false,
-      },
-    ],
-    'no-duplicate-imports': 'error',
-    'no-empty-function': 'error',
-    'no-else-return': 'error',
-    'no-eval': 'error',
-    'no-extend-native': 'error',
-    'no-extra-bind': 'error',
-    'no-global-assign': 'error',
-    'no-implicit-globals': 'error',
-    'no-implied-eval': 'error',
-    'no-lonely-if': 'error',
-    'no-loop-func': 'error',
-    'no-new-func': 'error',
-    'no-new-wrappers': 'error',
-    'no-proto': 'error',
-    'no-script-url': 'error',
-    'no-self-compare': 'error',
-    'no-throw-literal': 'error',
-    'no-unmodified-loop-condition': 'error',
-    'no-unneeded-ternary': [
-      'error',
-      {
-        defaultAssignment: false,
-      },
-    ],
-    'no-unsafe-negation': 'error',
-    'no-unused-expressions': 'off',
-    'no-use-before-define': ['error', 'nofunc'],
-    'no-useless-call': 'error',
-    'no-useless-computed-key': 'error',
-    'no-useless-concat': 'error',
-    'no-useless-constructor': 'error',
-    'no-useless-rename': 'error',
-    'no-var': 'error',
-    'no-with': 'error',
-    'object-shorthand': 'error',
-    'operator-assignment': 'error',
-    'prefer-arrow-callback': 'error',
-    'prefer-const': 'error',
-    'prefer-rest-params': 'error',
-    'prefer-spread': 'error',
-    'import-x/no-unresolved': 'error',
-    'eslint-comments/no-unlimited-disable': 'off',
-    'eslint-comments/no-unused-disable': 'off',
-    'react-native/no-color-literals': 'error',
-    'react-native/no-inline-styles': 'error',
-    'react-native/no-unused-styles': 'off',
-    'react-native/split-platform-components': 'error',
-    'react/jsx-boolean-value': 'error',
-    'react/jsx-key': 'warn',
-    'react/jsx-no-bind': 'off',
-    'react/jsx-pascal-case': 'error',
-    'react/jsx-wrap-multilines': 'error',
-    'react/no-danger': 'error',
-    'react/no-did-update-set-state': 'error',
-    'react/no-find-dom-node': 'error',
-    'react/no-multi-comp': [
-      'error',
-      {
-        ignoreStateless: true,
-      },
-    ],
-    'react/no-render-return-value': 'error',
-    'react/no-string-refs': 'error',
-    'react/no-unused-prop-types': 'error',
-    'react/prefer-es6-class': 'error',
-    '@metamask/design-tokens/color-no-hex': 'off',
-    radix: 'off',
-
-    // These rule modifications are removing changes to our shared ESLint config made after
-    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-    // at which point we can restore the intended rules and use error suppression instead.
-    //
-    // TODO: Remove these modifications after the ESLint v9 update
-    'react-hooks/rules-of-hooks': 'off',
-    'no-loss-of-precision': 'off',
+  {
+    // Route-module isolation per ADR 0020 (modularize-routes), scoped to
+    // `app/components/Views/**`. Declared in its own override because the
+    // BN.js migration override above excludes `excludedFiles`, which would
+    // otherwise silently exempt every Views file on the burn-down list
+    // from route isolation. Re-declares the BN.js zone here so that
+    // non-burn-down Views files keep their BN.js fence (ESLint replaces
+    // `import-x/no-restricted-paths` per override rather than merging).
+    // See scripts/eslint-route-isolation-zones.js for zone generation.
+    files: ['app/components/Views/**/*.{ts,tsx,js,jsx}'],
+    ignores: utilNumberImportBurndownFiles,
+    rules: {
+      'import-x/no-restricted-paths': [
+        'error',
+        {
+          zones: [utilNumberDeprecationZone, ...routeIsolationZones],
+        },
+      ],
+    },
   },
-
-  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
-};
+  {
+    // Burn-down Views files (and all other burn-down files): apply only
+    // the route-isolation zones. The BN.js fence stays disabled while
+    // those files complete their BigInt migration; route isolation must
+    // still apply so new cross-route imports added to a burn-down file
+    // are caught. Route-isolation zones target only `Views/<route>`
+    // paths, so this override is a no-op for non-Views burn-down files.
+    files: utilNumberImportBurndownFiles,
+    rules: {
+      'import-x/no-restricted-paths': ['error', { zones: routeIsolationZones }],
+    },
+  },
+]);
