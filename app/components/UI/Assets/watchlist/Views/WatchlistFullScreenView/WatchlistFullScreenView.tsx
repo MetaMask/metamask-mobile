@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, TouchableOpacity } from 'react-native';
-import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
+import { View, TouchableOpacity } from 'react-native';
+import ReorderableList, {
+  reorderItems,
+  type ReorderableListReorderEvent,
+} from 'react-native-reorderable-list';
 import { useNavigation } from '@react-navigation/native';
+import type { CaipAssetType } from '@metamask/utils';
+import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   Button,
   ButtonIcon,
@@ -16,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
+import { useTokenWatchlistUpdateListMutation } from '../../hooks/useTokenWatchlistMutations';
 import { mapWatchlistTokenToTrendingAsset } from '../../../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
 import TrendingTokensSkeleton from '../../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { strings } from '../../../../../../../locales/i18n';
@@ -26,21 +32,27 @@ import WatchlistSearchContent from './WatchlistSearchContent';
 import styleSheet from './WatchlistFullScreenView.styles';
 
 const SKELETON_COUNT = 5;
-const ANIMATION_DURATION = 250;
 
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { data, isLoading } = useTokenWatchlistQuery();
+  const updateListMutation = useTokenWatchlistUpdateListMutation();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [localTokens, setLocalTokens] = useState<TrendingAsset[]>([]);
 
-  const displayTokens = useMemo(
+  const queryTokens = useMemo(
     () => (data ?? []).slice().reverse().map(mapWatchlistTokenToTrendingAsset),
     [data],
   );
 
+  const displayTokens = localTokens.length > 0 ? localTokens : queryTokens;
   const hasItems = displayTokens.length > 0;
+
+  useEffect(() => {
+    setLocalTokens((prev) => (prev.length > 0 ? [] : prev));
+  }, [data]);
 
   useEffect(() => {
     if (isEditMode && !hasItems) {
@@ -62,8 +74,38 @@ const WatchlistFullScreenView = () => {
     setIsSearchMode(true);
   }, []);
 
-  const handleEditPress = useCallback(() => setIsEditMode(true), []);
-  const handleDonePress = useCallback(() => setIsEditMode(false), []);
+  const handleEditPress = useCallback(() => {
+    setLocalTokens(displayTokens);
+    setIsEditMode(true);
+  }, [displayTokens]);
+
+  const handleDonePress = useCallback(() => {
+    if (localTokens.length > 0) {
+      const storageOrder = localTokens.map((token) => token.assetId).reverse();
+      updateListMutation.mutate(storageOrder as CaipAssetType[]);
+    }
+    setIsEditMode(false);
+  }, [updateListMutation, localTokens]);
+
+  const handleReorder = useCallback(
+    ({ from, to }: ReorderableListReorderEvent) => {
+      setLocalTokens((prev) => reorderItems(prev, from, to));
+    },
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: TrendingAsset; index: number }) => (
+      <WatchlistEditableRow
+        token={item}
+        position={index}
+        isEditMode={isEditMode}
+      />
+    ),
+    [isEditMode],
+  );
+
+  const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
 
   const endAccessory = useMemo(() => {
     if (isSearchMode) {
@@ -143,42 +185,27 @@ const WatchlistFullScreenView = () => {
       );
     }
 
-    const rowExitAnimation = isEditMode
-      ? FadeOut.duration(ANIMATION_DURATION)
-      : undefined;
-    const rowLayoutAnimation = isEditMode
-      ? LinearTransition.duration(ANIMATION_DURATION)
-      : undefined;
-
     return (
-      <ScrollView
+      <ReorderableList
+        data={displayTokens}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        onReorder={handleReorder}
+        dragEnabled={isEditMode}
         style={styles.listContainer}
         showsVerticalScrollIndicator={false}
         testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
-      >
-        <Animated.View layout={rowLayoutAnimation}>
-          {displayTokens.map((token, index) => (
-            <Animated.View
-              key={token.assetId}
-              exiting={rowExitAnimation}
-              layout={rowLayoutAnimation}
-            >
-              <WatchlistEditableRow
-                token={token}
-                position={index}
-                isEditMode={isEditMode}
-              />
-            </Animated.View>
-          ))}
-        </Animated.View>
-      </ScrollView>
+      />
     );
   }, [
     displayTokens,
+    handleReorder,
     hasItems,
     isEditMode,
     isLoading,
     isSearchMode,
+    keyExtractor,
+    renderItem,
     styles.emptyContentContainer,
     styles.listContainer,
   ]);

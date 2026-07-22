@@ -6,11 +6,16 @@ import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.t
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 
 const mockMutate = jest.fn();
+const mockDrag = jest.fn();
 
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
   useTokenWatchlistRemoveItemMutation: () => ({
     mutate: mockMutate,
   }),
+}));
+
+jest.mock('react-native-reorderable-list', () => ({
+  useReorderableDrag: () => mockDrag,
 }));
 
 jest.mock(
@@ -73,6 +78,29 @@ describe('WatchlistEditableRow', () => {
       TokenDetailsSource.WatchlistFullscreen,
     );
     expect(getByText('Ethereum')).toBeDefined();
+  });
+
+  it('renders drag handle in edit mode', () => {
+    const { getByTestId } = render(
+      <WatchlistEditableRow token={createToken()} position={0} isEditMode />,
+    );
+
+    expect(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE),
+    ).toBeDefined();
+  });
+
+  it('calls reorderable drag on long press of drag handle in edit mode', () => {
+    const { getByTestId } = render(
+      <WatchlistEditableRow token={createToken()} position={0} isEditMode />,
+    );
+
+    fireEvent(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE),
+      'longPress',
+    );
+
+    expect(mockDrag).toHaveBeenCalledTimes(1);
   });
 
   it('calls remove mutation when unwatch star is pressed in edit mode', () => {

@@ -6,6 +6,7 @@ import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.t
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockUseTokenWatchlistQuery = jest.fn();
+const mockUpdateListMutate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -17,6 +18,61 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useTokenWatchlistQuery', () => ({
   useTokenWatchlistQuery: () => mockUseTokenWatchlistQuery(),
 }));
+
+jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
+  useTokenWatchlistUpdateListMutation: () => ({
+    mutate: mockUpdateListMutate,
+  }),
+}));
+
+jest.mock('react-native-reorderable-list', () => {
+  const { Pressable, View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+
+  const ReorderableList = ({
+    data,
+    renderItem,
+    testID,
+    onReorder,
+  }: {
+    data: { assetId: string }[];
+    renderItem: (info: {
+      item: { assetId: string };
+      index: number;
+    }) => React.ReactNode;
+    testID?: string;
+    onReorder?: (event: { from: number; to: number }) => void;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID },
+      data.map((item, index) =>
+        ReactActual.createElement(
+          View,
+          { key: item.assetId, testID: `reorderable-item-${item.assetId}` },
+          renderItem({ item, index }),
+        ),
+      ),
+      onReorder
+        ? ReactActual.createElement(Pressable, {
+            testID: 'mock-reorder-trigger',
+            onPress: () => onReorder({ from: 0, to: 1 }),
+          })
+        : null,
+    );
+
+  return {
+    __esModule: true,
+    default: ReorderableList,
+    reorderItems: <T,>(arr: T[], from: number, to: number) => {
+      const result = [...arr];
+      const [removed] = result.splice(from, 1);
+      result.splice(to, 0, removed);
+      return result;
+    },
+    useReorderableDrag: () => jest.fn(),
+  };
+});
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -337,5 +393,33 @@ describe('WatchlistFullScreenView', () => {
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.HEADER),
     ).toBeDefined();
+  });
+
+  it('persists reordered list when Done is pressed in edit mode', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [
+        makeWatchlistToken('eth'),
+        makeWatchlistToken('btc'),
+        makeWatchlistToken('sol'),
+      ],
+      isLoading: false,
+    });
+
+    const { getByTestId } = render(<WatchlistFullScreenView />);
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    );
+    fireEvent.press(getByTestId('mock-reorder-trigger'));
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    );
+
+    expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
+    expect(mockUpdateListMutate).toHaveBeenCalledWith([
+      'eip155:1/erc20:0xeth',
+      'eip155:1/erc20:0xsol',
+      'eip155:1/erc20:0xbtc',
+    ]);
   });
 });

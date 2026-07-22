@@ -36256,6 +36256,7 @@ __metadata:
     react-native-reanimated: "npm:4.2.1"
     react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
+    react-native-reorderable-list: "npm:^0.18.1"
     react-native-safe-area-context: "npm:~5.8.0"
     react-native-screens: "npm:~4.25.2"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
@@ -40932,6 +40933,18 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/a29899f657a2a6bda4e9fa4f9ba234998beac9fddb409d6bd08d7be53548bb789cbbcddb60576f4192729d71b41109ba25073c2f4f1d134b74a3805eb35f0623
+  languageName: node
+  linkType: hard
+
+"react-native-reorderable-list@npm:^0.18.1":
+  version: 0.18.1
+  resolution: "react-native-reorderable-list@npm:0.18.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: ">=2.12.0"
+    react-native-reanimated: ">=3.12.0"
+  checksum: 10/5a97898c7e790dfb8b563742b596cd8a0705d97f261d634465e7ec03c5ceda49690f814744cd7d78d003f1cd857adf8f6189684a97035e6a0ad781445f09d115
   languageName: node
   linkType: hard
 

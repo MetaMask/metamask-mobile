@@ -8,9 +8,31 @@ import BadgeWrapper from './BadgeWrapper';
 import {
   SAMPLE_BADGEWRAPPER_PROPS,
   BADGE_WRAPPER_BADGE_TEST_ID,
+  BOTTOM_BADGEWRAPPER_BADGEPOSITION,
 } from './BadgeWrapper.constants';
 
+const mockUseComponentSize = jest.fn(() => ({
+  size: null,
+  onLayout: jest.fn(),
+}));
+
+jest.mock('../../../hooks', () => {
+  const actual = jest.requireActual('../../../hooks');
+  return {
+    ...actual,
+    useComponentSize: (...args: unknown[]) => mockUseComponentSize(...args),
+  };
+});
+
 describe('BadgeWrapper', () => {
+  beforeEach(() => {
+    mockUseComponentSize.mockClear();
+    mockUseComponentSize.mockImplementation(() => ({
+      size: null,
+      onLayout: jest.fn(),
+    }));
+  });
+
   it('renders anchor content, network badge, and wrapper test id', () => {
     render(<BadgeWrapper {...SAMPLE_BADGEWRAPPER_PROPS} />);
 
@@ -18,5 +40,19 @@ describe('BadgeWrapper', () => {
     expect(screen.getByText('C')).toBeOnTheScreen();
     expect(screen.getByTestId(BADGENETWORK_TEST_ID)).toBeOnTheScreen();
     expect(screen.getByTestId('network-avatar-image')).toBeOnTheScreen();
+  });
+
+  it('passes anchorSize to useComponentSize for immediate badge positioning', () => {
+    const anchorSize = { width: 24, height: 24 };
+
+    render(
+      <BadgeWrapper
+        {...SAMPLE_BADGEWRAPPER_PROPS}
+        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+        anchorSize={anchorSize}
+      />,
+    );
+
+    expect(mockUseComponentSize).toHaveBeenCalledWith(anchorSize);
   });
 });

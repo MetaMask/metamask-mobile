@@ -205,6 +205,7 @@ const TrendingTokenRowItem = ({
       <BadgeWrapper
         style={styles.badge}
         badgePosition={BadgePosition.BottomRight}
+        anchorSize={{ width: 40, height: 40 }}
         badgeElement={
           <Badge
             size={AvatarSize.Xs}

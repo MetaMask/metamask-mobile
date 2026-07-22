@@ -31,6 +31,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    dragHandle: {
+      paddingRight: 16,
+    },
     unwatchStar: {
       paddingLeft: 16,
       zIndex: 1,
