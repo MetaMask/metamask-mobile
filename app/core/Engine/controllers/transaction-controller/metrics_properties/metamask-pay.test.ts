@@ -148,6 +148,7 @@ describe('Metamask Pay Metrics', () => {
       properties: {
         mm_pay: true,
         mm_pay_payment_method_selected: 'crypto',
+        mm_pay_quote_skipped: false,
         mm_pay_token_selected: 'USDC',
         mm_pay_use_case: 'money_account_deposit',
         mm_pay_transaction_step_total: 1,
@@ -182,6 +183,7 @@ describe('Metamask Pay Metrics', () => {
       properties: {
         mm_pay: true,
         mm_pay_payment_method_selected: 'debit_credit_card',
+        mm_pay_quote_skipped: false,
         mm_pay_use_case: 'money_account_deposit',
         mm_pay_transaction_step_total: 1,
         mm_pay_transaction_step: 1,
