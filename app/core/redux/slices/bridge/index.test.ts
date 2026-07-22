@@ -6,6 +6,7 @@ import reducer, {
   setDestAmount,
   resetBridgeState,
   setSlippage,
+  setSlippageUserOverride,
   setBridgeViewMode,
   selectBridgeViewMode,
   setSourceToken,
@@ -33,7 +34,10 @@ import reducer, {
   selectBatchSellDestStablecoinsByChain,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
+  selectBridgeQuotes,
   selectBatchSellQuotes,
+  selectBatchSellTrades,
+  selectControllerFields,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
@@ -119,7 +123,8 @@ describe('bridge slice', () => {
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
-        slippage: '0.5',
+        slippage: undefined,
+        isSlippageUserOverride: false,
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isSelectingToken: false,
@@ -225,6 +230,12 @@ describe('bridge slice', () => {
 
       expect(state.slippage).toBe(slippage);
     });
+
+    it('records an explicit Auto override', () => {
+      const state = reducer(initialState, setSlippageUserOverride(undefined));
+
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
   });
 
   describe('setDestAmount', () => {
@@ -271,6 +282,16 @@ describe('bridge slice', () => {
       const state = reducer(stateWithManualFlag, action);
 
       expect(state.isDestTokenManuallySet).toBe(true);
+    });
+
+    it('clears slippage when the token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setDestToken(mockDestToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
     });
   });
 
@@ -947,6 +968,82 @@ describe('bridge slice', () => {
       const result = selectBatchSellQuotes(mockState as unknown as RootState);
 
       expect(result.recommendedQuotes).toHaveLength(2);
+    });
+  });
+
+  describe('bridge controller quote selectors', () => {
+    beforeEach(() => {
+      selectControllerFields.resetRecomputations();
+      selectBridgeQuotes.resetRecomputations();
+      selectBatchSellQuotes.resetRecomputations();
+      selectBatchSellTrades.resetRecomputations();
+    });
+
+    it('updates controller fields when analytics opt-in changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.AnalyticsController = {
+        ...mockState.engine.backgroundState.AnalyticsController,
+        optedIn: false,
+        analyticsId: 'test-analytics-id',
+      };
+
+      expect(selectControllerFields(mockState).participateInMetaMetrics).toBe(
+        false,
+      );
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+
+      const optedInState = cloneDeep(mockState);
+      optedInState.engine.backgroundState.AnalyticsController.optedIn = true;
+
+      expect(
+        selectControllerFields(optedInState).participateInMetaMetrics,
+      ).toBe(true);
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations + 1,
+      );
+    });
+
+    it('does not recompute when unrelated bridge UI state changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+
+      selectBridgeQuotes(mockState);
+      selectBatchSellQuotes(mockState);
+      selectBatchSellTrades(mockState);
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+      const bridgeQuotesRecomputations = selectBridgeQuotes.recomputations();
+      const batchSellQuotesRecomputations =
+        selectBatchSellQuotes.recomputations();
+      const batchSellTradesRecomputations =
+        selectBatchSellTrades.recomputations();
+
+      const unrelatedState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceAmount: '1',
+        },
+      } as RootState;
+
+      selectBridgeQuotes(unrelatedState);
+      selectBatchSellQuotes(unrelatedState);
+      selectBatchSellTrades(unrelatedState);
+
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations,
+      );
+      expect(selectBridgeQuotes.recomputations()).toBe(
+        bridgeQuotesRecomputations,
+      );
+      expect(selectBatchSellQuotes.recomputations()).toBe(
+        batchSellQuotesRecomputations,
+      );
+      expect(selectBatchSellTrades.recomputations()).toBe(
+        batchSellTradesRecomputations,
+      );
     });
   });
 

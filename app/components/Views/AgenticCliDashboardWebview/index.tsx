@@ -104,18 +104,20 @@ const AgenticCliDashboardWebview: React.FC = () => {
       getHeaderCompactStandardNavbarOptions({
         title: strings('sdk_connect_v2.agentic_cli_dashboard_webview.title'),
         onBack: close,
-        includesTopInset: true,
+        includesTopInset: Platform.OS === 'android',
         twClassName: 'bg-default rounded-t-2xl',
       }),
     );
   }, [close, navigation]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      if (completedRef.current) return;
       rejectOnce(DASHBOARD_CLOSED_MESSAGE);
-    },
-    [rejectOnce],
-  );
+    });
+
+    return unsubscribe;
+  }, [navigation, rejectOnce]);
 
   const handleMessage = useCallback(
     (messageEvent: WebViewMessageEvent) => {

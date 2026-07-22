@@ -42,7 +42,6 @@ import useHomeViewedEvent, {
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -54,6 +53,8 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -98,7 +99,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       selectAccountGroupBalanceForEmptyState,
     );
     const privacyMode = useSelector(selectPrivacyMode);
-    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+    const { tokenListItemCta } = useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME);
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -148,34 +149,33 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     );
     const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled =
+    const shouldExcludeMusd =
       isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
+    // Exclude mUSD while it is surfaced in the Money hub; otherwise include all tokens.
     const displayTokenKeys = useMemo(
       () =>
         sortedTokenKeys
           .filter((key) =>
-            isCashSectionEnabled ? !isMusdToken(key.address) : true,
+            shouldExcludeMusd ? !isMusdToken(key.address) : true,
           )
           .slice(0, MAX_TOKENS_DISPLAYED),
-      [sortedTokenKeys, isCashSectionEnabled],
+      [sortedTokenKeys, shouldExcludeMusd],
     );
 
     // Show error when an explicit refresh failed, or when balance data has loaded
     // and the account has balance but the selector returned no tokens (controllers
     // failed to load data). The accountGroupBalance null-check prevents a false
     // positive on cold start or for legitimately empty token lists.
-    // When Cash section is enabled, displayTokenKeys can be empty because we filter
-    // out mUSD (shown in Cash section); do not treat "balance but no non-mUSD tokens"
-    // as an error.
+    // When mUSD is surfaced in the Money hub, displayTokenKeys can be empty because
+    // it is filtered out; do not treat "balance but no non-mUSD tokens" as an error.
     const hasBalanceButNoTokens =
       accountGroupBalance != null &&
       accountGroupBalance.totalBalanceInUserCurrency > 0 &&
       displayTokenKeys.length === 0 &&
-      (!isCashSectionEnabled || sortedTokenKeys.length === 0);
+      (!shouldExcludeMusd || sortedTokenKeys.length === 0);
     const showTokensError = hasTokensError || hasBalanceButNoTokens;
 
     const isPositionsOnly = mode === 'positions-only';
@@ -278,7 +278,9 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     setShowScamWarningModal={setShowScamWarningModal}
                     privacyMode={privacyMode}
                     showPercentageChange
-                    shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+                    tokenListItemCta={tokenListItemCta}
+                    tokenPositionInList={index + 1}
+                    tokensInList={displayTokenKeys.length}
                   />
                 ))
               )}

@@ -13,13 +13,13 @@ import {
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 import { PredictEventValues } from '../../../../constants/eventNames';
-import type { PredictNavigationParamList } from '../../../../types/navigation';
 import {
   PREDICT_HOME_CATEGORIES,
   type PredictHomeCategory,
@@ -35,19 +35,28 @@ interface PredictCategoriesSectionProps {
  *
  * A static row of large destination tiles (Politics / Sports / Crypto). Each
  * tile deep-links into the generic `PredictFeedView` route for its `feedId` and
- * fires a `PREDICT_CATEGORY_CLICKED` analytics event identifying the tile. This
- * section has no market fetch and is always rendered.
+ * fires both `PREDICT_CATEGORY_CLICKED` (legacy, for backward compatibility)
+ * and `PREDICT_HOME_SECTION_INTERACTION` (`action_type: clicked`, consistent
+ * with other home sections). This section has no market fetch and is always
+ * rendered.
  */
 const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   testID = PREDICT_CATEGORIES_SECTION_TEST_IDS.SECTION,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(
     (category: PredictHomeCategory) => {
+      // Fire legacy event for backward-compatibility with existing consumers,
+      // alongside the consolidated home-section interaction event.
       Engine.context.PredictController.trackCategoryClicked({
+        categoryName: category.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+      Engine.context.PredictController.trackHomeSectionInteraction({
+        sectionId: PredictEventValues.SECTION_ID.CATEGORIES,
+        actionType: PredictEventValues.ACTION_TYPE.CLICKED,
         categoryName: category.id,
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       });
@@ -64,7 +73,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   );
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       <SectionHeader
         testID={PREDICT_CATEGORIES_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.categories_title')}

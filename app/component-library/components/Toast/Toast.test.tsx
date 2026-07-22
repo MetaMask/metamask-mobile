@@ -1,14 +1,52 @@
 // Third party dependencies.
 import React, { createRef } from 'react';
-import { StyleSheet } from 'react-native';
-import { render, screen, act } from '@testing-library/react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { render, screen, act, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
-import Toast from './Toast';
-import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import Toast, { shouldTopAlignToastContent } from './Toast';
+import { AvatarAccountType } from '../Avatars/Avatar';
+import { AVATARFAVICON_IMAGE_TESTID } from '../Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.constants';
+import { AVATARNETWORK_IMAGE_TESTID } from '../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { ButtonVariants } from '../Buttons/Button/Button.types';
+import { IconColor, IconName } from '../Icons/Icon';
+import {
+  ButtonIconVariant,
+  ToastRef,
+  ToastVariants,
+  ToastOptions,
+} from './Toast.types';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
+import { lightTheme } from '@metamask/design-tokens';
+import { visibilityDuration } from './Toast.constants';
+
+const TEST_ACCOUNT_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
+const TEST_NETWORK_NAME = 'Ethereum Mainnet';
+const TEST_NETWORK_IMAGE_SOURCE = {
+  uri: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
+};
+const TEST_APP_ICON_SOURCE = {
+  uri: 'https://app.uniswap.org/favicon.ico',
+};
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
+
+const triggerToastLayout = (view: ReturnType<typeof render>, height = 120) => {
+  fireEvent(view.UNSAFE_getByType(Animated.View), 'onLayout', {
+    nativeEvent: { layout: { height, width: 320, x: 0, y: 0 } },
+  });
+};
+
+const showToast = async (
+  toastRef: React.RefObject<ToastRef | null>,
+  options: ToastOptions,
+) => {
+  await act(async () => {
+    toastRef.current?.showToast(options);
+    jest.runAllTimers();
+  });
+};
 
 // Mock safe area context
 describe('Toast', () => {
@@ -23,45 +61,6 @@ describe('Toast', () => {
   afterEach(() => {
     jest.resetAllMocks();
     jest.useRealTimers();
-  });
-
-  it('renders correctly with default state', () => {
-    const { toJSON } = render(<Toast ref={toastRef} />);
-    expect(toJSON()).toBeDefined();
-  });
-
-  it('displays toast with correct label when showToast is called', async () => {
-    const toastOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Test Label' }],
-      hasNoTimeout: true,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    await act(async () => {
-      toastRef.current?.showToast(toastOptions);
-      jest.runAllTimers();
-    });
-
-    expect(screen.getByText('Test Label')).toBeOnTheScreen();
-  });
-
-  it('displays toast with bold label when isBold is true', async () => {
-    const toastOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Bold Test Label', isBold: true }],
-      hasNoTimeout: true,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    await act(async () => {
-      toastRef.current?.showToast(toastOptions);
-      jest.runAllTimers();
-    });
-
-    expect(screen.getByText('Bold Test Label')).toBeOnTheScreen();
   });
 
   it('displays toast with multiple label parts', async () => {
@@ -106,30 +105,29 @@ describe('Toast', () => {
     expect(screen.getByText('Test description')).toBeOnTheScreen();
   });
 
-  it('hides toast when closeToast is called', async () => {
+  it('hides toast with customTopOffset when closeToast is called', async () => {
     const toastOptions: ToastOptions = {
       variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Test Label' }],
+      labelOptions: [{ label: 'Offset toast' }],
       hasNoTimeout: true,
+      customTopOffset: 24,
     };
 
     render(<Toast ref={toastRef} />);
 
-    // Show toast first
     await act(async () => {
       toastRef.current?.showToast(toastOptions);
       jest.runAllTimers();
     });
 
-    expect(screen.getByText('Test Label')).toBeOnTheScreen();
+    expect(screen.getByText('Offset toast')).toBeOnTheScreen();
 
-    // Close toast
     await act(async () => {
       toastRef.current?.closeToast();
       jest.runAllTimers();
     });
 
-    expect(screen.queryByText('Test Label')).toBeNull();
+    expect(screen.queryByText('Offset toast')).toBeNull();
   });
 
   it('cancels pending toast when showToast is called rapidly in succession', async () => {
@@ -166,10 +164,556 @@ describe('Toast', () => {
     expect(screen.getByText('Success')).toBeOnTheScreen();
   });
 
-  it('uses flex-start justifyContent on labels container by default', async () => {
+  describe('shouldTopAlignToastContent', () => {
+    it('top-aligns below-the-text action buttons with a single-line description', () => {
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 1,
+          hasDescription: true,
+          descriptionLineCount: 1,
+          hasActionButton: true,
+          hasTrailingTextButton: false,
+        }),
+      ).toBe(true);
+    });
+
+    it('top-aligns when description line count is greater than one', () => {
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 1,
+          hasDescription: true,
+          descriptionLineCount: 2,
+          hasActionButton: false,
+          hasTrailingTextButton: false,
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('avatar variants', () => {
+    it('renders account avatar for Account variant', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Account,
+        accountAddress: TEST_ACCOUNT_ADDRESS,
+        accountAvatarType: AvatarAccountType.JazzIcon,
+        labelOptions: [{ label: 'Account toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Account toast')).toBeOnTheScreen();
+    });
+
+    it('renders network avatar for Network variant', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Network,
+        networkName: TEST_NETWORK_NAME,
+        networkImageSource: TEST_NETWORK_IMAGE_SOURCE,
+        labelOptions: [{ label: 'Network toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Network toast')).toBeOnTheScreen();
+      expect(view.getByTestId(AVATARNETWORK_IMAGE_TESTID)).toBeOnTheScreen();
+    });
+
+    it('renders favicon avatar for App variant', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.App,
+        appIconSource: TEST_APP_ICON_SOURCE,
+        labelOptions: [{ label: 'App toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('App toast')).toBeOnTheScreen();
+      expect(view.getByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeOnTheScreen();
+    });
+
+    it('renders icon accessory for Icon variant without background', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        iconColor: IconColor.Success,
+        backgroundColor: 'transparent',
+        labelOptions: [{ label: 'Icon toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Icon toast')).toBeOnTheScreen();
+    });
+
+    it('renders icon accessory with circular background for Icon variant', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        iconColor: IconColor.Success,
+        backgroundColor: lightTheme.colors.success.muted,
+        labelOptions: [{ label: 'Icon background toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Icon background toast')).toBeOnTheScreen();
+    });
+  });
+
+  describe('label and description rendering', () => {
+    it('renders inline description from newline-separated label options', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Title line', isBold: true },
+          { label: '\n' },
+          { label: 'Description line' },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Title line')).toBeOnTheScreen();
+      expect(screen.getByText('Description line')).toBeOnTheScreen();
+    });
+
+    it('renders non-bold label segments alongside bold segments', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Normal weight', isBold: false },
+          { label: ' Bold weight', isBold: true },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Normal weight')).toBeOnTheScreen();
+      expect(screen.getByText(' Bold weight')).toBeOnTheScreen();
+    });
+
+    it('falls back to stable keys when label is not a string', async () => {
+      render(<Toast ref={toastRef} />);
+      // Runtime-only path for Sonar S6479 key fallbacks (`typeof label === 'string'`).
+      const nonStringLabel = 42 as unknown as string;
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: nonStringLabel, isBold: false },
+          { label: '\n' },
+          { label: nonStringLabel },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getAllByText('42')).toHaveLength(2);
+    });
+
+    it('uses custom startAccessory instead of avatar', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Account,
+        accountAddress: TEST_ACCOUNT_ADDRESS,
+        accountAvatarType: AvatarAccountType.JazzIcon,
+        labelOptions: [{ label: 'Custom accessory toast' }],
+        hasNoTimeout: true,
+        startAccessory: <View testID="custom-start-accessory" />,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByTestId('custom-start-accessory')).toBeOnTheScreen();
+      expect(screen.queryByTestId('avatar-JazzIcon')).toBeNull();
+    });
+  });
+
+  describe('action and close buttons', () => {
+    it('renders link action button and invokes onPress', async () => {
+      const onPress = jest.fn();
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Action toast' }],
+        linkButtonOptions: { label: 'Retry', onPress },
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      fireEvent.press(screen.getByText('Retry'));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders icon close button and invokes onPress', async () => {
+      const onPress = jest.fn();
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Close icon toast' }],
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress,
+        },
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      const [closeButton] = view.UNSAFE_getAllByType(TouchableOpacity);
+      fireEvent.press(closeButton);
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      [ButtonVariants.Primary, 'Done'],
+      [ButtonVariants.Secondary, 'Track'],
+      [ButtonVariants.Link, 'Dismiss'],
+    ] as const)(
+      'renders legacy %s close button and invokes onPress',
+      async (variant, label) => {
+        const onPress = jest.fn();
+        render(<Toast ref={toastRef} />);
+        const options: ToastOptions = {
+          variant: ToastVariants.Plain,
+          labelOptions: [{ label: `${label} close toast` }],
+          closeButtonOptions: {
+            variant,
+            label,
+            onPress,
+          },
+          hasNoTimeout: true,
+        };
+
+        await showToast(toastRef, options);
+
+        fireEvent.press(screen.getByText(label));
+
+        expect(onPress).toHaveBeenCalledTimes(1);
+      },
+    );
+  });
+
+  describe('layout and animation behavior', () => {
+    it('replaces a visible toast after the replacement delay', async () => {
+      render(<Toast ref={toastRef} />);
+      const firstOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'First toast' }],
+        hasNoTimeout: true,
+      };
+      const secondOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Second toast' }],
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, firstOptions);
+      expect(screen.getByText('First toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        toastRef.current?.showToast(secondOptions);
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(screen.queryByText('First toast')).toBeNull();
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Second toast')).toBeOnTheScreen();
+    });
+
+    it('keeps persistent toast visible after layout when hasNoTimeout is true', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Persistent toast' }],
+        hasNoTimeout: true,
+        customTopOffset: 12,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Persistent toast')).toBeOnTheScreen();
+    });
+
+    it('auto-dismisses toast after layout when hasNoTimeout is false', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Auto dismiss toast' }],
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Auto dismiss toast')).toBeNull();
+    });
+
+    it('top-aligns labels after multi-line title and description layout events', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const onPress = jest.fn();
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Wrapped title', isBold: true },
+          { label: '\n' },
+          { label: 'Wrapped description' },
+        ],
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress,
+        },
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        fireEvent(screen.getByText('Wrapped title'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
+        });
+        fireEvent(screen.getByText('Wrapped description'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'description line' }] },
+        });
+      });
+
+      const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+      const flat = StyleSheet.flatten(labelsContainer.props.style);
+
+      expect(flat.justifyContent).toBe('flex-start');
+
+      const [closeButton] = view.UNSAFE_getAllByType(TouchableOpacity);
+      const closeButtonStyle = StyleSheet.flatten(closeButton.props.style);
+
+      expect(closeButtonStyle.marginTop).toBeDefined();
+    });
+
+    it('does not restart auto-dismiss when text layout triggers a remeasure', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Wrapped title', isBold: true },
+          { label: '\n' },
+          { label: 'Wrapped description' },
+        ],
+        descriptionOptions: { description: 'Extra description' },
+        linkButtonOptions: { label: 'Retry', onPress: jest.fn() },
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.advanceTimersByTime(visibilityDuration - 500);
+      });
+
+      expect(screen.getByText('Wrapped title')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent(screen.getByText('Wrapped title'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
+        });
+        fireEvent(screen.getByText('Wrapped description'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'description line' }] },
+        });
+        fireEvent(screen.getByText('Extra description'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'extra description line' }] },
+        });
+      });
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.advanceTimersByTime(500);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Wrapped title')).toBeNull();
+    });
+
+    it('auto-dismisses after remeasure with a taller toast height', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Growing toast' }],
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 80);
+        jest.advanceTimersByTime(visibilityDuration - 500);
+      });
+
+      expect(screen.getByText('Growing toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        triggerToastLayout(view, 160);
+        jest.advanceTimersByTime(500);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Growing toast')).toBeNull();
+    });
+  });
+
+  it('wraps toast content in a pressable when onPress is provided', async () => {
     const toastOptions: ToastOptions = {
       variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Aligned label' }],
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByTestId(ToastSelectorsIDs.PRESSABLE)).toBeOnTheScreen();
+  });
+
+  it('vertically centers pressable toast content by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Conversion complete', isBold: true },
+        { label: '\n' },
+        { label: '$50.00 added to Money account.' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Conversion complete'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Conversion complete' }] },
+      });
+      fireEvent(
+        screen.getByText('$50.00 added to Money account.'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: '$50.00 added to Money account.' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('center');
+  });
+
+  it('top-aligns pressable toast content when multi-line description requires it', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Title', isBold: true },
+        { label: '\n' },
+        { label: 'Long description that wraps' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Title'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Title' }] },
+      });
+      fireEvent(
+        screen.getByText('Long description that wraps'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: 'Long description' }, { text: 'that wraps' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('flex-start');
+  });
+
+  it('calls onPress when the toast content is pressed', async () => {
+    const onPress = jest.fn();
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    fireEvent.press(screen.getByTestId(ToastSelectorsIDs.PRESSABLE));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render a pressable wrapper when onPress is absent', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Plain Label' }],
       hasNoTimeout: true,
     };
 
@@ -180,9 +724,34 @@ describe('Toast', () => {
       jest.runAllTimers();
     });
 
-    const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
-    const flat = StyleSheet.flatten(labelsContainer.props.style);
+    expect(screen.queryByTestId(ToastSelectorsIDs.PRESSABLE)).toBeNull();
+  });
 
-    expect(flat.justifyContent).toBe('flex-start');
+  it('calls the close button onPress without triggering the toast onPress', async () => {
+    const onPress = jest.fn();
+    const onCloseButtonPress = jest.fn();
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress,
+      closeButtonOptions: {
+        variant: ButtonVariants.Primary,
+        label: 'Close',
+        onPress: onCloseButtonPress,
+      },
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    fireEvent.press(screen.getByText('Close'));
+
+    expect(onCloseButtonPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
   });
 });

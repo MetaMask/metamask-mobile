@@ -5,11 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import {
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  ListRenderItemInfo,
-} from 'react-native';
+import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -17,9 +13,14 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { FlatList } from 'react-native-gesture-handler';
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list';
 import { NetworkPills } from './NetworkPills';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CaipChainId } from '@metamask/utils';
@@ -27,6 +28,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
   selectAllowedChainRanking,
+  selectBridgeFeatureFlags,
   selectTokenSelectorNetworkFilter,
   setIsSelectingToken,
   setTokenSelectorNetworkFilter,
@@ -63,6 +65,17 @@ import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
+import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
+import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
+import { useABTest } from '../../../../../hooks';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutConfig,
+  TokenSelectorBalanceLayoutVariant,
+} from '../TokenSelectorItem.abTestConfig';
+import { BatchSellAssetPickerBanner } from './BatchSellAssetPickerBanner';
+import { useBatchSellAssetPickerBanner } from './useBatchSellAssetPickerBanner';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -72,14 +85,67 @@ const MIN_SEARCH_LENGTH = 3;
 const ESTIMATED_ITEM_HEIGHT = 68; // container paddingVertical(4×2) + itemWrapper paddingVertical(10×2) + AvatarSize.Lg(40px)
 const LOAD_MORE_DISTANCE_THRESHOLD = 300; // Distance from bottom to trigger load
 
+interface BridgeTokenSelectorRowProps {
+  token: BridgeToken;
+  isSelected: boolean;
+  isNoFeeAsset: boolean;
+  showStockBadge: boolean;
+  balanceLayoutConfig: TokenSelectorBalanceLayoutConfig;
+  onTokenPress: (token: BridgeToken) => void;
+  onInfoPress: (token: BridgeToken) => void;
+}
+
+const BridgeTokenSelectorRow = React.memo(
+  ({
+    token,
+    isSelected,
+    isNoFeeAsset,
+    showStockBadge,
+    balanceLayoutConfig,
+    onTokenPress,
+    onInfoPress,
+  }: BridgeTokenSelectorRowProps) => {
+    const handleInfoPress = useCallback(() => {
+      onInfoPress(token);
+    }, [onInfoPress, token]);
+
+    const networkImageSource = useMemo(
+      () =>
+        getNetworkImageSource({
+          chainId: token.chainId,
+        }),
+      [token.chainId],
+    );
+
+    return (
+      <TokenSelectorItem
+        token={token}
+        isSelected={isSelected}
+        onPress={onTokenPress}
+        networkImageSource={networkImageSource}
+        isNoFeeAsset={isNoFeeAsset}
+        showStockBadge={showStockBadge}
+        balanceLayoutConfigOverride={balanceLayoutConfig}
+      >
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSize.Sm}
+          onPress={handleInfoPress}
+          iconProps={{ color: IconColor.IconAlternative }}
+        />
+      </TokenSelectorItem>
+    );
+  },
+);
+
 export const BridgeTokenSelector: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const { styles } = useStyles(createStyles, {});
   const [searchString, setSearchString] = useState<string>('');
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlashListRef<BridgeToken | null>>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
 
   // Set selecting token state to prevent quote expired modal from showing
@@ -104,6 +170,25 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const isRWAEnabled = useSelector(selectRWAEnabledFlag);
+  const {
+    dismiss: dismissBatchSellBanner,
+    handlePress: handleBatchSellBannerPress,
+    shouldShow: shouldShowBatchSellBanner,
+  } = useBatchSellAssetPickerBanner({
+    isSearchActive: isValidSearch,
+    pickerType: route.params?.type,
+  });
+  const { variant: balanceLayoutConfig } = useABTest(
+    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
+  const tokenBalanceLayoutConfig =
+    balanceLayoutConfig ??
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+      TokenSelectorBalanceLayoutVariant.Control
+    ];
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -147,7 +232,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Track the last chain ID to detect changes
   const lastChainIdRef = useRef(selectedChainId);
-  const [listKey, setListKey] = useState(0);
+  const shouldResetListPositionRef = useRef(false);
 
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
@@ -200,7 +285,7 @@ export const BridgeTokenSelector: React.FC = () => {
   useEffect(() => {
     if (lastChainIdRef.current !== selectedChainId) {
       lastChainIdRef.current = selectedChainId;
-      setListKey((prev) => prev + 1);
+      shouldResetListPositionRef.current = true;
 
       // Cancel any pending debounced searches
       debouncedSearch.cancel();
@@ -263,6 +348,42 @@ export const BridgeTokenSelector: React.FC = () => {
     currentSearchQuery,
     searchString,
   ]);
+
+  // Reset only after the replacement dataset has been committed. scrollToIndex
+  // engages and lays out the first recycled row before moving the native view.
+  useEffect(() => {
+    if (!shouldResetListPositionRef.current) {
+      return undefined;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      void flatListRef.current?.scrollToIndex({ index: 0, animated: false });
+      shouldResetListPositionRef.current = false;
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [displayData, selectedChainId]);
+
+  const getIsNoFeeAsset = useCallback(
+    (token: BridgeToken) => {
+      const routeNoFee =
+        route.params?.type === TokenSelectorType.Source
+          ? token.noFee?.isSource
+          : token.noFee?.isDestination;
+
+      if (routeNoFee) {
+        return true;
+      }
+
+      const caipChainId = formatChainIdToCaip(token.chainId);
+      return (
+        bridgeFeatureFlags.chains?.[caipChainId]?.noFeeAssets?.includes(
+          token.address,
+        ) ?? false
+      );
+    },
+    [bridgeFeatureFlags.chains, route.params?.type],
+  );
 
   // Re-trigger search when chain IDs change if there's an active search
   useEffect(() => {
@@ -369,46 +490,37 @@ export const BridgeTokenSelector: React.FC = () => {
     [navigation, enabledChainRanking],
   );
 
-  const renderToken = useCallback(
-    ({ item }: ListRenderItemInfo<BridgeToken | null>) => {
+  const renderToken = useCallback<ListRenderItem<BridgeToken | null>>(
+    ({ item }) => {
       // This is to support a partial loading state for top tokens
       // We can show tokens with balance immediately, but we need to wait for the top tokens to load
       if (!item) {
         return <SkeletonItem />;
       }
 
-      const isNoFeeAsset =
-        route.params?.type === TokenSelectorType.Source
-          ? item.noFee?.isSource
-          : item.noFee?.isDestination;
+      const isSelected =
+        selectedToken?.address === item.address &&
+        selectedToken?.chainId === item.chainId;
+
       return (
-        <TokenSelectorItem
+        <BridgeTokenSelectorRow
           token={item}
-          isSelected={
-            selectedToken &&
-            selectedToken.address === item.address &&
-            selectedToken.chainId === item.chainId
-          }
-          onPress={handleTokenPress}
-          networkImageSource={getNetworkImageSource({
-            chainId: item.chainId,
-          })}
-          isNoFeeAsset={isNoFeeAsset}
-        >
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSize.Sm}
-            onPress={() => handleInfoButtonPress(item)}
-            iconProps={{ color: IconColor.IconAlternative }}
-          />
-        </TokenSelectorItem>
+          isSelected={isSelected}
+          onTokenPress={handleTokenPress}
+          onInfoPress={handleInfoButtonPress}
+          isNoFeeAsset={getIsNoFeeAsset(item)}
+          showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
+          balanceLayoutConfig={tokenBalanceLayoutConfig}
+        />
       );
     },
     [
       selectedToken,
       handleTokenPress,
-      route.params?.type,
       handleInfoButtonPress,
+      getIsNoFeeAsset,
+      isRWAEnabled,
+      tokenBalanceLayoutConfig,
     ],
   );
 
@@ -455,6 +567,23 @@ export const BridgeTokenSelector: React.FC = () => {
     }
     return <SkeletonItem />;
   }, [isLoadingMore]);
+
+  const renderListHeader = useCallback(() => {
+    if (!shouldShowBatchSellBanner) {
+      return null;
+    }
+
+    return (
+      <BatchSellAssetPickerBanner
+        onDismiss={dismissBatchSellBanner}
+        onPress={handleBatchSellBannerPress}
+      />
+    );
+  }, [
+    dismissBatchSellBanner,
+    handleBatchSellBannerPress,
+    shouldShowBatchSellBanner,
+  ]);
 
   // Capture FlatList height for auto-load logic
   const handleFlatListLayout = useCallback(
@@ -531,27 +660,23 @@ export const BridgeTokenSelector: React.FC = () => {
         />
       </Box>
 
-      <FlatList
+      <FlashList
         ref={flatListRef}
-        key={listKey}
         testID="bridge-token-list"
         style={styles.tokensList}
         contentContainerStyle={styles.tokensListContainer}
         data={displayData}
         renderItem={renderToken}
         keyExtractor={keyExtractor}
-        extraData={displayData.length}
         showsVerticalScrollIndicator
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={400}
+        scrollEventThrottle={16}
         ListFooterComponent={renderFooter}
+        ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyState}
         onLayout={handleFlatListLayout}
-        initialNumToRender={8}
-        maxToRenderPerBatch={5}
-        windowSize={5}
-        removeClippedSubviews
+        maintainVisibleContentPosition={{ disabled: true }}
       />
     </SafeAreaView>
   );

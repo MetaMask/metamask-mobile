@@ -6,9 +6,11 @@ import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
@@ -119,6 +121,12 @@ jest.mock('../../hooks', () => ({
 // Mock direct import of usePerpsCategories (used for sections_displayed gating)
 jest.mock('../../hooks/usePerpsCategories', () => ({
   usePerpsCategories: jest.fn(() => []),
+}));
+
+// Mock direct import of useHasNewMarkets (used for sections_displayed gating,
+// mirroring PerpsProducts' own visibility check).
+jest.mock('../../hooks/useHasNewMarkets', () => ({
+  useHasNewMarkets: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/usePerpsTopMovers', () => ({
@@ -368,18 +376,21 @@ jest.mock(
   },
 );
 jest.mock('../../components/PerpsCard', () => 'PerpsCard');
-jest.mock('../../components/PerpsNavigationCard/PerpsNavigationCard', () => {
+jest.mock('../../components/PerpsMoreSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
   return {
     __esModule: true,
-    default: function MockPerpsNavigationCard({
+    default: function MockPerpsMoreSection({
       items,
+      testID,
     }: {
       items: { label: string; onPress: () => void; testID?: string }[];
+      testID?: string;
     }) {
       return (
-        <View testID="perps-navigation-card">
+        <View testID={testID ?? 'perps-more-section'}>
+          <Text>More</Text>
           {items.map(
             (
               item: { label: string; onPress: () => void; testID?: string },
@@ -487,6 +498,7 @@ describe('PerpsHomeView', () => {
     stocksMarkets: [],
     commoditiesMarkets: [],
     forexMarkets: [],
+    recentlyAddedMarkets: [],
     hasMarkets: false,
     recentActivity: [],
     sortBy: 'name',
@@ -781,16 +793,14 @@ describe('PerpsHomeView', () => {
   });
 
   // Note: PerpsHomeView does not render a bottom tab bar
-  // The component uses PerpsNavigationCard for navigation instead
-  it('renders navigation card', () => {
-    // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+  // The component uses PerpsMoreSection for footer actions
+  it('renders more section', () => {
+    const { getByTestId, getByText } = render(<PerpsHomeView />);
 
-    // Assert - Verify navigation card is rendered (if it has a testID)
-    // Or just verify component renders without error
-    // The navigation card is tested separately
+    expect(getByText('More')).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON)).toBeTruthy();
     expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      getByTestId(PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON),
     ).toBeTruthy();
   });
 
@@ -1286,6 +1296,40 @@ describe('PerpsHomeView', () => {
       expect(properties?.sections_displayed).not.toContain('products');
     });
 
+    it('includes products when enabled and there is at least one recently listed market, even with no categories', () => {
+      // Regression test: PerpsProducts renders a "New" pill on its own via
+      // useHasNewMarkets even when usePerpsCategories is empty, so the home
+      // screen's own gating must account for that too or the section never
+      // mounts and the pill is unreachable.
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsProductsEnabledFlag,
+      );
+      (usePerpsCategories as jest.Mock).mockReturnValue([]);
+      (useHasNewMarkets as jest.Mock).mockReturnValue(true);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('products');
+    });
+
+    it('excludes products when enabled but there are no categories and no recently listed markets', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsProductsEnabledFlag,
+      );
+      (usePerpsCategories as jest.Mock).mockReturnValue([]);
+      (useHasNewMarkets as jest.Mock).mockReturnValue(false);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('products');
+    });
+
     it('includes top_movers when enabled and top movers feed has data', () => {
       mockUseSelector.mockImplementation(
         (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
@@ -1358,6 +1402,81 @@ describe('PerpsHomeView', () => {
         mockUsePerpsEventTracking.mock.calls,
       );
       expect(properties?.sections_displayed).not.toContain('top_movers');
+    });
+
+    it('excludes recently_added when the feature flag is off even though data is present', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('recently_added');
+    });
+
+    it('includes recently_added when the feature flag is on and data is present', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('recently_added');
+    });
+  });
+
+  describe('Recently Added header navigation', () => {
+    it('navigates to the market list filtered to new markets when the header is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(
+        getByTestId(PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER),
+      );
+
+      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+        defaultMarketTypeFilter: 'new',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
     });
   });
 });

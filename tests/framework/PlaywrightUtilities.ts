@@ -12,6 +12,7 @@ import {
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   FALLBACK_MOCKSERVER_PORT,
   resolveE2EWaitTimeoutMs,
+  isReleaseE2eArtifactForPlatform,
 } from './Constants';
 import Utilities from './Utilities';
 import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
@@ -19,6 +20,7 @@ import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 const logger = createPlaywrightLogger('PlaywrightUtilities');
 
@@ -59,17 +61,6 @@ const IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS = [
 const getMetroPort = (): string =>
   process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
 
-const isCiEnvironment = (): boolean => {
-  const ci = process.env.CI?.toLowerCase();
-  return ci === 'true' || ci === '1';
-};
-
-/**
- * Whether local debug builds should bypass the Expo dev server picker via deep link.
- * Mirrors Detox `TestHelpers.launchAppForDebugBuild` (non-CI configs).
- */
-const shouldUseDebugDeepLinkLaunch = (): boolean => !isCiEnvironment();
-
 /**
  * Get the driver instance.
  * @returns The driver instance.
@@ -78,6 +69,51 @@ export function getDriver(): WebdriverIO.Browser {
   const drv = globalThis.driver;
   if (!drv) throw new Error('driver is not available');
   return drv;
+}
+
+interface AppiumDeepLinkArgs {
+  url: string;
+  package?: string;
+}
+
+type AndroidSessionCapabilities = WebdriverIO.Capabilities & {
+  'appium:appPackage'?: string;
+  appPackage?: string;
+};
+
+function getAndroidSessionPackage(
+  drv: WebdriverIO.Browser,
+): string | undefined {
+  const caps = drv.capabilities as AndroidSessionCapabilities;
+  return (caps['appium:appPackage'] ?? caps.appPackage)?.trim();
+}
+
+/**
+ * Opens a deep link via Appium `mobile: deepLink`.
+ * On Android, scopes the intent to the active app package so the system
+ * "Open with" chooser is not shown (see launchAppAndroidForDebugBuild).
+ */
+export async function executeMobileDeepLink(
+  url: string,
+  options: { package?: string } = {},
+): Promise<void> {
+  const drv = getDriver();
+  const args: AppiumDeepLinkArgs = { url };
+
+  const explicitPackage = options.package?.trim();
+  if (explicitPackage) {
+    args.package = explicitPackage;
+  } else if (PlatformDetector.isAndroid()) {
+    const pkg = getAndroidSessionPackage(drv);
+    if (!pkg) {
+      throw new Error(
+        'Android mobile: deepLink requires appium:appPackage or appPackage in session capabilities.',
+      );
+    }
+    args.package = pkg;
+  }
+
+  await drv.execute('mobile: deepLink', args);
 }
 
 /**
@@ -226,19 +262,57 @@ export function boxedStep<This, Args extends unknown[], Return>(
  * Lightweight Appium overhead accumulator for performance measurements.
  *
  * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
- * infrastructure latency — on BrowserStack this can be 3-18 s per command.
- * Without compensation a 3 s app-load would be reported as 20+ s.
+ * infrastructure latency — on cloud device farms this can dominate the timer.
  *
- * Solution: framework methods call `addOverhead(ms)` for operations whose
- * duration is *pure infra cost* (element resolution, post-detection probes).
- * `TimerHelper.measure()` activates tracking before the action and subtracts
- * the accumulated value after the timer stops.
+ * Conservative model while `TimerHelper.measure()` is active (click stays outside):
+ * - Probe only: post-detect `isExisting` (pure RTT we add after the UI is up).
+ * - Resolution / success confirms are not subtracted — they often include app load and under-reported on-device time when capped as infra.
  *
- * When no `measure()` is active (`_tracking === false`) all functions are
- * no-ops, so regular (non-performance) tests pay zero cost.
+ * When no `measure()` is active all functions are no-ops.
  */
-let _overheadMs = 0;
+export interface OverheadAccumulatorState {
+  directMs: number;
+  sleepMs: number;
+  failedPollDurationsMs: number[];
+  successPollMs: number | null;
+  probeMs: number | null;
+}
+
 let _tracking = false;
+let _directMs = 0;
+let _sleepMs = 0;
+let _failedPollDurationsMs: number[] = [];
+let _successPollMs: number | null = null;
+let _probeMs: number | null = null;
+
+function resetOverheadState(): void {
+  _directMs = 0;
+  _sleepMs = 0;
+  _failedPollDurationsMs = [];
+  _successPollMs = null;
+  _probeMs = null;
+}
+
+/**
+ * Computes infra ms to subtract from wall-clock.
+ *
+ * Only the post-detect probe is subtracted. That call is pure Appium/network
+ * overhead we add after the screen is already visible.
+ *
+ * Resolution and success-confirm durations often include real app load (cold
+ * start findElement / waitForDisplayed). Subtracting them (even capped to RTT)
+ * under-reports app time vs on-device video.
+ *
+ * Exported for unit tests.
+ */
+export function computeAppiumInfraOverheadMs(
+  state: OverheadAccumulatorState,
+): number {
+  if (state.probeMs == null || state.probeMs <= 0) {
+    return 0;
+  }
+  return state.probeMs;
+}
 
 export function startOverheadTracking(): void {
   if (_tracking) {
@@ -247,18 +321,46 @@ export function startOverheadTracking(): void {
     );
     return;
   }
-  _overheadMs = 0;
+  resetOverheadState();
   _tracking = true;
 }
 
 export function addOverhead(ms: number): void {
-  if (_tracking) _overheadMs += ms;
+  if (_tracking) _directMs += ms;
+}
+
+export function addOverheadSleep(ms: number): void {
+  if (_tracking && ms > 0) _sleepMs += ms;
+}
+
+export function recordFailedPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _failedPollDurationsMs.push(durationMs);
+  }
+}
+
+export function recordSuccessPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _successPollMs = durationMs;
+  }
+}
+
+export function recordOverheadProbe(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _probeMs = durationMs;
+  }
 }
 
 export function stopOverheadTracking(): number {
   _tracking = false;
-  const result = _overheadMs;
-  _overheadMs = 0;
+  const result = computeAppiumInfraOverheadMs({
+    directMs: _directMs,
+    sleepMs: _sleepMs,
+    failedPollDurationsMs: _failedPollDurationsMs,
+    successPollMs: _successPollMs,
+    probeMs: _probeMs,
+  });
+  resetOverheadState();
   return result;
 }
 
@@ -627,10 +729,7 @@ class PlaywrightUtilities {
     });
 
     logger.debug(`Opening Android debug deep link in ${pkg}: ${deepLinkUrl}`);
-    await drv.execute('mobile: deepLink', {
-      url: deepLinkUrl,
-      package: pkg,
-    });
+    await executeMobileDeepLink(deepLinkUrl, { package: pkg });
     await new Promise((resolve) =>
       setTimeout(resolve, ANDROID_POST_DEEPLINK_SETTLE_MS),
     );
@@ -651,7 +750,7 @@ class PlaywrightUtilities {
       this.getDevLauncherPackagerUrl('ios'),
     );
     logger.debug(`Opening iOS debug deep link: ${deepLinkUrl}`);
-    await getDriver().execute('mobile: deepLink', { url: deepLinkUrl });
+    await executeMobileDeepLink(deepLinkUrl);
   }
 
   /**
@@ -756,8 +855,11 @@ class PlaywrightUtilities {
       throw new Error('Package name or app id is not available');
     }
 
+    const platform = currentDeviceDetails.platform as 'android' | 'ios';
+    const useDebugDeepLinkLaunch = !isReleaseE2eArtifactForPlatform(platform);
+
     if (currentDeviceDetails.platform === 'android') {
-      if (shouldUseDebugDeepLinkLaunch()) {
+      if (useDebugDeepLinkLaunch) {
         await this.launchAppAndroidForDebugBuild(currentDeviceDetails, {
           launchArgs,
         });
@@ -767,7 +869,7 @@ class PlaywrightUtilities {
         });
       }
     } else if (currentDeviceDetails.platform === 'ios') {
-      if (shouldUseDebugDeepLinkLaunch()) {
+      if (useDebugDeepLinkLaunch) {
         await this.launchAppIOSForDebugBuild(currentDeviceDetails, {
           launchArgs,
         });

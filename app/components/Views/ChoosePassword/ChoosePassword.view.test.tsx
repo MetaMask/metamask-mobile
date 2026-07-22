@@ -188,7 +188,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     },
   );
 
-  it('posts marketing opt-in to auth server and navigates to onboarding success after wallet creation', async () => {
+  it('posts marketing opt-in to auth server and navigates to interest questionnaire after wallet creation', async () => {
     setupSeedlessAuthServerMocks({ marketingOptIn: true });
     mockAuthenticationForSocialWalletCreation();
 
@@ -218,6 +218,6 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
     );
 
-    await findByTestId(`route-${Routes.ONBOARDING.SUCCESS_FLOW}`);
+    await findByTestId(`route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`);
   });
 });

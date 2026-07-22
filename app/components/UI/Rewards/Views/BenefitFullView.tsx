@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -27,20 +29,37 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import { useSelector } from 'react-redux';
+import URLParse from 'url-parse';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import Engine from '../../../../core/Engine';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const BENEFIT_CLAIM_BUTTON_TYPE = 'claim';
+const BENEFIT_URL_WALLET_PARAM = 'wallet';
+
+const getBenefitWalletAddress = (url: string): string | undefined => {
+  if (!url) return undefined;
+  try {
+    const { query } = new URLParse(url, true);
+    return query[BENEFIT_URL_WALLET_PARAM] || undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 const BenefitFullView = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const walletAddress = useMemo(
+    () => getBenefitWalletAddress(benefit.url),
+    [benefit.url],
+  );
 
   useEffect(() => {
     trackEvent(
@@ -62,9 +81,10 @@ const BenefitFullView = () => {
         subscriptionId,
         benefit.id,
         benefit.type.id,
+        walletAddress,
       )
       .catch();
-  }, [benefit, subscriptionId]);
+  }, [benefit, subscriptionId, walletAddress]);
 
   const handleClaim = () => {
     trackEvent(
@@ -97,6 +117,7 @@ const BenefitFullView = () => {
         : formatDateRemaining(benefit.actionDate, Date.now()),
     [benefit.actionDate],
   );
+  const companyName = benefit.companyName?.trim();
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">
@@ -132,25 +153,48 @@ const BenefitFullView = () => {
             >
               {benefit.longTitle}
             </Text>
-            {remainingTime != null && (
+            {(remainingTime != null || companyName) && (
               <Box
                 marginTop={1}
                 marginBottom={2}
-                gap={1}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="gap-2"
               >
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Md}
-                  color={IconColor.IconAlternative}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {remainingTime}
-                </Text>
+                {remainingTime != null ? (
+                  <Box
+                    gap={1}
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="flex-1"
+                  >
+                    <Icon
+                      name={IconName.Clock}
+                      size={IconSize.Md}
+                      color={IconColor.IconAlternative}
+                    />
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                      numberOfLines={1}
+                    >
+                      {remainingTime}
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box twClassName="flex-1" />
+                )}
+                {companyName ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    twClassName="max-w-[55%]"
+                    numberOfLines={1}
+                  >
+                    {companyName}
+                  </Text>
+                ) : null}
               </Box>
             )}
             <Text

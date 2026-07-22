@@ -15,6 +15,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import {
+  BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -62,9 +63,11 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -97,9 +100,12 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
+import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
@@ -108,14 +114,14 @@ import {
 } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import PerpsNavigationCard, {
-  NavigationItem,
-} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsMoreSection, {
+  type PerpsMoreItem,
+} from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
+import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
 import {
   isPerpsTopMoversSectionVisible,
   usePerpsTopMovers,
@@ -162,9 +168,17 @@ const PerpsHomeView = ({
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isProductsEnabled = useSelector(selectPerpsProductsEnabledFlag);
   const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  const isRecentlyAddedEnabled = useSelector(
+    selectPerpsRecentlyAddedEnabledFlag,
+  );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
-  // Mirrors PerpsProducts' own visibility check (enabled + has categories).
+  // Mirrors PerpsProducts' own visibility check (enabled + has categories,
+  // or a "New" pill on its own when there are no categories but at least
+  // one recently listed market — see useHasNewMarkets).
   const productCategories = usePerpsCategories();
+  const hasNewProducts = useHasNewMarkets();
+  const isProductsVisible =
+    isProductsEnabled && (productCategories.length > 0 || hasNewProducts);
   const topMoversFeed = usePerpsTopMovers({
     direction: 'desc',
     enabled: isTopMoversEnabled,
@@ -290,10 +304,17 @@ const PerpsHomeView = ({
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
+    recentlyAddedMarkets,
+    hasMarkets,
     recentActivity,
     sortBy,
     isLoading,
   } = usePerpsHomeData({});
+
+  // Independently gates the section from the Terminal backend flag that
+  // supplies `listedAt` data, so it can be hidden even when that data flows.
+  const isRecentlyAddedVisible =
+    isRecentlyAddedEnabled && recentlyAddedMarkets.length > 0;
 
   // Mirrors PerpsWatchlistMarkets V1/V2 gating: suggestions only count toward
   // section visibility when the redesigned watchlist flag is on.
@@ -344,6 +365,34 @@ const PerpsHomeView = ({
     conditions: [!isAnyLoading],
   });
 
+  const entryCufVariant = hasPositions
+    ? PERPS_CUF_VARIANT.POSITION
+    : PERPS_CUF_VARIANT.EMPTY;
+  const entryCufEndData = {
+    [PERPS_CUF_TAG.VARIANT]:
+      orders.length > 0 ? PERPS_CUF_VARIANT.ORDER : entryCufVariant,
+  };
+
+  // Entry CUF: enter Perps -> live market list. Starts at mount; launch-context
+  // tag splits cold from warm p75. Captured at mount so the tag is the launch
+  // context, not the post-settle value.
+  const entryCufTags = useMemo(() => buildPerpsCufStartTags(), []);
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsEntryToLiveMarketList,
+    // endConditions (not the simple `conditions` API): this span must measure
+    // mount -> live data. The simple API auto-resets whenever its first
+    // condition is false, which for a readiness flag means the span restarts on
+    // every render during loading and under-reports the true latency. Using
+    // endConditions starts at mount and never resets.
+    // The variant endData reads orders.length, so — unlike the screen-load
+    // metric above, which deliberately ignores orders for speed — this span
+    // must wait for the orders stream too, or a user with open orders is
+    // misrecorded as empty/position.
+    endConditions: [!isAnyLoading, !isLoading.orders],
+    tags: entryCufTags,
+    endData: entryCufEndData,
+  });
+
   // Reset section tracking when screen comes into focus
   // This ensures sections can be tracked again when navigating back to the screen
   useFocusEffect(
@@ -385,8 +434,9 @@ const PerpsHomeView = ({
     if (isWatchlistVisible) {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
     }
-    // Products self-hides when disabled or when no categories are available.
-    if (isProductsEnabled && productCategories.length > 0)
+    // Products self-hides when disabled, or when there are neither
+    // categories nor a "New" pill to show (see isProductsVisible above).
+    if (isProductsVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     // Top Movers self-hides when its feed finishes empty; mirror that here so
     // PerpsHomeSectionList does not render an orphan divider.
@@ -402,6 +452,9 @@ const PerpsHomeView = ({
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
     if (isLoading.markets || forexMarkets.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
+    // Recently Added self-hides when there are no markets listed in the last
+    // 30 days, or when the feature flag is off.
+    if (isRecentlyAddedVisible) sections.push('recently_added');
     // Recent activity shows a skeleton while loading, then self-hides when empty.
     if (isLoading.activity || recentActivity.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
@@ -412,9 +465,9 @@ const PerpsHomeView = ({
     orders,
     isWhatsHappeningVisible,
     isWatchlistVisible,
-    isProductsEnabled,
-    productCategories,
+    isProductsVisible,
     isTopMoversVisible,
+    isRecentlyAddedVisible,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
@@ -486,6 +539,24 @@ const PerpsHomeView = ({
     });
   }, [track]);
 
+  const handleRecentlyAddedMarketPress = useCallback(
+    (market: PerpsMarketData) => {
+      perpsNavigation.navigateToMarketDetails(
+        market,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      );
+    },
+    [perpsNavigation],
+  );
+
+  const handleRecentlyAddedHeaderPress = useCallback(() => {
+    perpsNavigation.navigateToMarketList({
+      defaultMarketTypeFilter: 'new',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
+    });
+  }, [perpsNavigation, transactionActiveAbTests]);
+
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
     trackEvent(
@@ -554,19 +625,20 @@ const PerpsHomeView = ({
     });
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const navigationItems: NavigationItem[] = useMemo(() => {
-    const items: NavigationItem[] = [
+  const moreItems: PerpsMoreItem[] = useMemo(() => {
+    const items: PerpsMoreItem[] = [
       {
         label: strings(SUPPORT_CONFIG.TitleKey),
+        startIconName: IconName.Sms,
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
     ];
 
-    // Add feedback button when feature flag is enabled
     if (isFeedbackEnabled) {
       items.push({
         label: strings(FEEDBACK_CONFIG.TitleKey),
+        startIconName: IconName.Mail,
         onPress: handleGiveFeedback,
         testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
       });
@@ -574,6 +646,7 @@ const PerpsHomeView = ({
 
     items.push({
       label: strings(LEARN_MORE_CONFIG.TitleKey),
+      startIconName: IconName.Book,
       onPress: () => navigtateToTutorial(),
       testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
     });
@@ -632,7 +705,7 @@ const PerpsHomeView = ({
             onActionPress={handleCloseAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {positions.map((position, index) => (
                 <PerpsCard
                   key={`${position.symbol}-${index}`}
@@ -659,7 +732,7 @@ const PerpsHomeView = ({
             onActionPress={handleCancelAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {orders.map((order, index) => (
                 <PerpsCard
                   key={order.orderId}
@@ -712,7 +785,7 @@ const PerpsHomeView = ({
       },
       {
         key: 'products',
-        visible: isProductsEnabled && productCategories.length > 0,
+        visible: isProductsVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS),
         content: (
           <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
@@ -807,6 +880,21 @@ const PerpsHomeView = ({
         ),
       },
       {
+        key: 'recently-added',
+        // Mirrors PerpsRecentlyAddedSection's own render gate (markets.length
+        // === 0 -> null) plus the feature flag, so PerpsHomeSectionList does
+        // not render an orphan divider for an empty/disabled rail.
+        visible: isRecentlyAddedVisible,
+        onLayout: handleSectionLayout('recently_added'),
+        content: (
+          <PerpsRecentlyAddedSection
+            markets={recentlyAddedMarkets}
+            onMarketPress={handleRecentlyAddedMarketPress}
+            onViewAllPress={handleRecentlyAddedHeaderPress}
+          />
+        ),
+      },
+      {
         key: 'recent-activity',
         visible: isLoading.activity || recentActivity.length > 0,
         onLayout: handleSectionLayout(
@@ -819,6 +907,11 @@ const PerpsHomeView = ({
           />
         ),
       },
+      {
+        key: 'more',
+        visible: true,
+        content: <PerpsMoreSection items={moreItems} />,
+      },
     ],
     [
       isLoading,
@@ -830,7 +923,6 @@ const PerpsHomeView = ({
       positionsSubtitleSuffix,
       handleCloseAllPress,
       handleCancelAllPress,
-      styles.positionsOrdersContainer,
       isWhatsHappeningVisible,
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,
@@ -839,9 +931,12 @@ const PerpsHomeView = ({
       suggestedWatchlistMarkets,
       handleWatchlistSeeAllPress,
       transactionActiveAbTests,
-      isProductsEnabled,
-      productCategories.length,
+      isProductsVisible,
       isTopMoversVisible,
+      isRecentlyAddedVisible,
+      recentlyAddedMarkets,
+      handleRecentlyAddedMarketPress,
+      handleRecentlyAddedHeaderPress,
       perpsMarkets,
       commoditiesMarkets,
       stocksMarkets,
@@ -849,6 +944,7 @@ const PerpsHomeView = ({
       sortBy,
       recentActivity,
       handleSectionLayout,
+      moreItems,
     ],
   );
 
@@ -933,6 +1029,7 @@ const PerpsHomeView = ({
         <Tag
           severity={TagSeverity.Warning}
           testID={`${homeHeadingTestID}-testnet-badge`}
+          twClassName="self-center"
         >
           Testnet
         </Tag>
@@ -980,86 +1077,79 @@ const PerpsHomeView = ({
         scrollEventThrottle={16}
         testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
       >
-        <Box
-          onLayout={(event) =>
-            setTitleSectionHeight(event.nativeEvent.layout.height)
-          }
-        >
-          <TitleHub
-            testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-            title={hideHeader ? undefined : perpsScreenTitle}
-            titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
-            titleProps={
-              hideHeader
-                ? undefined
-                : {
-                    testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-                  }
-            }
-            amount={
-              !isBalanceEmpty ? (
-                <SensitiveText
-                  variant={TextVariant.DisplayLg}
-                  color={TextColor.TextDefault}
-                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Medium}
-                >
-                  {formatPerpsBalance(totalBalance)}
-                </SensitiveText>
-              ) : undefined
-            }
-            bottomLabel={
-              !isBalanceEmpty ? (
-                <Box flexDirection={BoxFlexDirection.Row}>
-                  <SensitiveText
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    isHidden={privacyMode}
-                    length={SensitiveTextLength.Short}
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                    }
-                  >
-                    {formatPerpsBalance(spendableBalance)}
-                  </SensitiveText>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {' '}
-                    {strings('perps.available')}
-                  </Text>
-                </Box>
-              ) : undefined
-            }
-            twClassName="px-4 pb-3"
-          />
-        </Box>
-
         <Box paddingBottom={3}>
-          {/* Service Interruption Banner */}
-          <PerpsServiceInterruptionBanner
-            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-          />
-
-          {/* Balance Actions Component */}
           <PerpsMarketBalanceActions
             showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
             hideBalanceSection
-          />
+            onTitleSectionLayout={(event) =>
+              setTitleSectionHeight(event.nativeEvent.layout.height)
+            }
+          >
+            {isServiceInterruptionBannerEnabled && (
+              <Box twClassName="px-4 mb-4">
+                <PerpsServiceInterruptionBanner
+                  testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+                />
+              </Box>
+            )}
+            <TitleHub
+              testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+              title={hideHeader ? undefined : perpsScreenTitle}
+              titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+              titleProps={
+                hideHeader
+                  ? undefined
+                  : {
+                      testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                    }
+              }
+              amount={
+                !isBalanceEmpty ? (
+                  <SensitiveText
+                    variant={TextVariant.DisplayLg}
+                    color={TextColor.TextDefault}
+                    testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Medium}
+                  >
+                    {formatPerpsBalance(totalBalance)}
+                  </SensitiveText>
+                ) : undefined
+              }
+              bottomLabel={
+                !isBalanceEmpty ? (
+                  <Box flexDirection={BoxFlexDirection.Row}>
+                    <SensitiveText
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                      testID={
+                        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                      }
+                    >
+                      {formatPerpsBalance(spendableBalance)}
+                    </SensitiveText>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {' '}
+                      {strings('perps.available')}
+                    </Text>
+                  </Box>
+                ) : undefined
+              }
+              twClassName="px-4 pb-3"
+            />
+          </PerpsMarketBalanceActions>
 
-          {/* Competition Banner */}
           <PerpsCompetitionBanner
             testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
           />
         </Box>
 
         <PerpsHomeSectionList sections={homeSections} />
-
-        <View style={styles.sectionContent}>
-          <PerpsNavigationCard items={navigationItems} />
-        </View>
 
         {/* Bottom spacing for tab bar */}
         <View style={bottomSpacerStyle} />

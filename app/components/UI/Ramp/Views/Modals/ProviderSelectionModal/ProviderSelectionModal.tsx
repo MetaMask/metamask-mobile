@@ -8,6 +8,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   createNavigationDetails,
   useParams,
@@ -28,7 +29,6 @@ import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -49,7 +49,7 @@ function ProviderSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     amount: routeAmount,
     assetId: paramAssetId,
@@ -136,7 +136,6 @@ function ProviderSelectionModal() {
     loading: quotesLoading,
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
-  const surfaceClass = useElevatedSurface();
 
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
@@ -182,7 +181,6 @@ function ProviderSelectionModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       onClose={handleDismiss}
-      twClassName={surfaceClass}
     >
       <View style={styles.container}>
         <ProviderSelection

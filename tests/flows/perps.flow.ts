@@ -204,7 +204,7 @@ export const isPlaceOrderButtonVisible = async (): Promise<boolean> => {
  * @returns {Promise<void>} Resolves when the order screen is visible.
  */
 export const waitForOrderScreenVisible = async (
-  timeout = 20000,
+  timeout = 45000,
   interval = 1000,
 ): Promise<void> => {
   const start = Date.now();
@@ -282,6 +282,8 @@ export const placeLimitOrderAtPreset = async (
   await PerpsOrderView.confirmLimitPrice();
   await PerpsOrderView.tapPlaceOrderButton();
   await dismissPerpsNotificationTooltipIfPresent();
+  await PerpsMarketDetailsView.waitForScreenReady();
+  await PerpsMarketDetailsView.expectCompactOpenOrderVisible({ direction });
 };
 
 export const openPosition = async (

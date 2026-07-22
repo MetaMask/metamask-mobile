@@ -2,7 +2,13 @@ import React, { useCallback, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,6 +17,7 @@ import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
+import { usePredictSectionImpressions } from '../../hooks/usePredictSectionImpressions';
 import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictHeaderStacked from '../../components/PredictHeaderStacked';
@@ -40,7 +47,7 @@ import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
 const PredictHome: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -52,6 +59,35 @@ const PredictHome: React.FC = () => {
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
+
+  const handleSectionViewed = useCallback(
+    (sectionId: string) => {
+      Engine.context.PredictController.trackHomeSectionInteraction({
+        sectionId,
+        actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+        entryPoint,
+      });
+    },
+    [entryPoint],
+  );
+
+  const {
+    registerSection,
+    setViewportHeight,
+    reset: resetImpressions,
+  } = usePredictSectionImpressions({
+    scrollY,
+    onSectionViewed: handleSectionViewed,
+  });
+
+  // Fire "home viewed" once per focus, and reset section impressions so a
+  // return visit can re-fire section-viewed events.
+  useFocusEffect(
+    useCallback(() => {
+      Engine.context.PredictController.trackHomeViewed({ entryPoint });
+      resetImpressions();
+    }, [entryPoint, resetImpressions]),
+  );
 
   const {
     isSearchVisible,
@@ -94,7 +130,7 @@ const PredictHome: React.FC = () => {
 
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={{ bottom: 'off' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -112,6 +148,7 @@ const PredictHome: React.FC = () => {
         <Animated.ScrollView
           testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
           onScroll={onScroll}
+          onLayout={setViewportHeight}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
@@ -124,19 +161,45 @@ const PredictHome: React.FC = () => {
           >
             <Text
               testID={PredictHomeSelectorsIDs.TITLE}
-              variant={TextVariant.DisplayMd}
+              variant={TextVariant.HeadingMd}
             >
               {strings('wallet.predict')}
             </Text>
           </Box>
 
-          <PredictPortfolioModule
-            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-          />
-          <PredictLiveNowSection />
-          <PredictCategoriesSection />
-          <PredictPopularTodaySection />
-          <PredictTrendingSection />
+          <Box twClassName="gap-6">
+            <PredictPortfolioModule
+              onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            />
+            <Box
+              testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+              onLayout={registerSection(PredictEventValues.SECTION_ID.LIVE_NOW)}
+            >
+              <PredictLiveNowSection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
+              onLayout={registerSection(
+                PredictEventValues.SECTION_ID.CATEGORIES,
+              )}
+            >
+              <PredictCategoriesSection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+              onLayout={registerSection(
+                PredictEventValues.SECTION_ID.POPULAR_TODAY,
+              )}
+            >
+              <PredictPopularTodaySection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
+              onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
+            >
+              <PredictTrendingSection />
+            </Box>
+          </Box>
         </Animated.ScrollView>
 
         <PredictSearchOverlay

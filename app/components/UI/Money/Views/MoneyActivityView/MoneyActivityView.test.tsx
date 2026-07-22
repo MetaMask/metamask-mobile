@@ -1,6 +1,10 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
@@ -9,7 +13,8 @@ import {
   isMoneyActivityTransfer,
 } from '../../constants/moneyActivityFilters';
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
-import MoneyActivityView from './MoneyActivityView';
+import MoneyActivityView, { INITIAL_FILL_COUNT } from './MoneyActivityView';
+import { AUTO_FILL_MAX_PAGES } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -46,6 +51,20 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 48, bottom: 34, left: 0, right: 0 }),
 }));
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableActivityDetailsFlag: jest.fn(),
+}));
+
+const mockedSelectActivityDetailsFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsFlag,
+);
+
 // The view consumes `useMoneyActivityItems`, which fans out to these two data
 // hooks. Mocking the data hooks (not the bucketing hook) keeps the
 // merge/bucket/filter wiring under test end-to-end through the real view.
@@ -64,15 +83,20 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
     default: ({
       tx,
       onPress,
+      privacyMode,
     }: {
       tx: { id: string };
       onPress?: (tx: { id: string }) => void;
+      privacyMode?: boolean;
     }) => (
       <RNPressable
         testID={`activity-mock-tx-${tx.id}`}
         onPress={() => onPress?.(tx)}
       >
         <Text>{tx.id}</Text>
+        <Text testID={`activity-mock-tx-${tx.id}-privacy-mode`}>
+          {String(privacyMode)}
+        </Text>
       </RNPressable>
     ),
   };
@@ -84,9 +108,18 @@ jest.mock(
     const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ activity }: { activity: { hash: string } }) => (
+      default: ({
+        activity,
+        privacyMode,
+      }: {
+        activity: { hash: string };
+        privacyMode?: boolean;
+      }) => (
         <RNPressable testID={`activity-mock-api-${activity.hash}`}>
           <Text>{activity.hash}</Text>
+          <Text testID={`activity-mock-api-${activity.hash}-privacy-mode`}>
+            {String(privacyMode)}
+          </Text>
         </RNPressable>
       ),
     };
@@ -162,15 +195,26 @@ const REFUND_TX: AccountsApiActivity = {
   receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
 };
 const REFUND_ROW_TEST_ID = `activity-mock-api-${REFUND_TX.hash}`;
+const mockLoadMore = jest.fn();
+const mockRefetch = jest.fn();
 
 function mockApiActivity(
   overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
 ) {
   mockUseMoneyAccountApiActivity.mockReturnValue({
     activity: [],
+    watermark: Number.NEGATIVE_INFINITY,
+    isComplete: true,
+    // At the fill page budget by default so the auto-fill stays inert in
+    // tests that aren't exercising it; tests that want the fill drop this
+    // to 0/1.
+    pageCount: AUTO_FILL_MAX_PAGES,
+    hasMore: false,
+    loadMore: mockLoadMore,
+    isLoadingMore: false,
     isLoading: false,
     error: false,
-    refetch: jest.fn(),
+    refetch: mockRefetch,
     ...overrides,
   });
 }
@@ -178,6 +222,7 @@ function mockApiActivity(
 describe('MoneyActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedSelectActivityDetailsFlag.mockReturnValue(true);
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: MOCK_MONEY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
@@ -250,6 +295,39 @@ describe('MoneyActivityView', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('privacy mode', () => {
+    const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
+
+    it('forwards privacyMode=false to on-chain rows by default', () => {
+      mockSelectPrivacyMode.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId('activity-mock-tx-money-tx-converted-privacy-mode'),
+      ).toHaveTextContent('false');
+    });
+
+    it('forwards privacyMode=true to on-chain rows when privacy mode is on', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId('activity-mock-tx-money-tx-converted-privacy-mode'),
+      ).toHaveTextContent('true');
+    });
+
+    it('forwards privacyMode=true to Accounts-API rows when privacy mode is on', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      mockApiActivity({ activity: [CARD_TX] });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(getByTestId(`${CARD_ROW_TEST_ID}-privacy-mode`)).toHaveTextContent(
+        'true',
+      );
+    });
+  });
+
   it('renders a Pending section for in-flight rows', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
@@ -279,6 +357,44 @@ describe('MoneyActivityView', () => {
     expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
   });
 
+  describe('date headers', () => {
+    function mockSettledTransactionAt(time: number) {
+      const settled = MOCK_DEPOSITS.filter(
+        (tx) => tx.id === 'money-tx-converted',
+      ).map((tx) => ({ ...tx, time }));
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: settled,
+        deposits: settled,
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+    }
+
+    it('renders the date header in the design format (Jan 26, 2026)', () => {
+      mockSettledTransactionAt(Date.UTC(2026, 0, 26, 12, 0, 0));
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.DATE_HEADER),
+      ).toHaveTextContent('Jan 26, 2026');
+    });
+
+    it('labels the header with the same UTC day the row was bucketed under', () => {
+      // 02:00 UTC on Jan 26 is still Jan 25 in the jest timezone
+      // (America/Toronto); the header must name the UTC bucket day.
+      mockSettledTransactionAt(Date.UTC(2026, 0, 26, 2, 0, 0));
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.DATE_HEADER),
+      ).toHaveTextContent('Jan 26, 2026');
+    });
+  });
+
   it('shows only deposit rows when the Deposits filter is selected', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyActivityView />,
@@ -301,6 +417,55 @@ describe('MoneyActivityView', () => {
 
     expect(getByTestId('activity-mock-tx-money-tx-sent')).toBeOnTheScreen();
     expect(queryByTestId('activity-mock-tx-money-tx-converted')).toBeNull();
+  });
+
+  describe('filter tab active state', () => {
+    const backgroundColorOf = (chip: ReactTestInstance) =>
+      StyleSheet.flatten(chip.props.style as StyleProp<ViewStyle>)
+        ?.backgroundColor;
+
+    it('marks the All tab active and the other tabs inactive on first render', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      const allBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_ALL),
+      );
+      const depositsBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+      );
+      const transfersBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS),
+      );
+      const purchasesBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES),
+      );
+
+      expect(allBackground).toBeDefined();
+      expect(allBackground).not.toEqual(depositsBackground);
+      expect(transfersBackground).toEqual(depositsBackground);
+      expect(purchasesBackground).toEqual(depositsBackground);
+    });
+
+    it('moves the active background to the Deposits tab when it is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      const activeBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_ALL),
+      );
+      const inactiveBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+      );
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
+
+      expect(
+        backgroundColorOf(
+          getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+        ),
+      ).toEqual(activeBackground);
+      expect(
+        backgroundColorOf(getByTestId(MoneyActivityViewTestIds.FILTER_ALL)),
+      ).toEqual(inactiveBackground);
+    });
   });
 
   it('renders empty state when there are no transactions', () => {
@@ -327,6 +492,16 @@ describe('MoneyActivityView', () => {
     fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not navigate on row press when the activity-details flag is disabled', () => {
+    mockedSelectActivityDetailsFlag.mockReturnValue(false);
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockTrackActivitySurfaceClicked).not.toHaveBeenCalled();
   });
 
   it('renders Accounts-API rows merged into the list', () => {
@@ -422,6 +597,297 @@ describe('MoneyActivityView', () => {
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
 
     expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
+  });
+
+  describe('infinite scroll', () => {
+    it('fetches the next page when the list end is reached and more remain', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      // The initial-fill effect may fetch on mount (bucket below a screenful);
+      // clear it so this asserts only the scroll-driven fetch.
+      mockLoadMore.mockClear();
+      fireEvent(getByTestId(MoneyActivityViewTestIds.LIST), 'onEndReached');
+
+      expect(mockLoadMore).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch on end-reached once the activity is exhausted', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: false,
+        isComplete: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      fireEvent(getByTestId(MoneyActivityViewTestIds.LIST), 'onEndReached');
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch on end-reached while a page is already in flight', () => {
+      // Momentum scrolling fires onEndReached in bursts; without the guard
+      // each one would cancel and re-issue the in-flight fetch.
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        isLoadingMore: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      mockLoadMore.mockClear();
+      fireEvent(getByTestId(MoneyActivityViewTestIds.LIST), 'onEndReached');
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('shows a footer spinner while a follow-up page is loading', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        isLoadingMore: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.LOAD_MORE_SPINNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the footer spinner when no follow-up page is loading', () => {
+      mockApiActivity({ activity: [CARD_TX] });
+
+      const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        queryByTestId(MoneyActivityViewTestIds.LOAD_MORE_SPINNER),
+      ).toBeNull();
+    });
+  });
+
+  describe('initial fill', () => {
+    const withoutLocalTransactions = () =>
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+    it('fetches more pages on mount while the active bucket is below a screenful and pages remain', () => {
+      withoutLocalTransactions();
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        pageCount: 1,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).toHaveBeenCalled();
+    });
+
+    it('does not fetch on mount once the active bucket already holds a screenful', () => {
+      withoutLocalTransactions();
+      const rows = Array.from({ length: INITIAL_FILL_COUNT }, (_, i) => ({
+        ...CARD_TX,
+        hash: `0xcardfill${i}` as `0x${string}`,
+      }));
+      mockApiActivity({
+        activity: rows,
+        hasMore: true,
+        isComplete: false,
+        pageCount: 1,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch on mount once the activity is exhausted', () => {
+      withoutLocalTransactions();
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: false,
+        isComplete: true,
+        pageCount: 1,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('stops fetching at the fill page budget even while the bucket is sparse', () => {
+      // A sparse bucket that can never reach the fill count must not page
+      // through the account's entire remote history to prove it.
+      withoutLocalTransactions();
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        pageCount: AUTO_FILL_MAX_PAGES,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch on mount in mock-data mode', () => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: true,
+      });
+      mockApiActivity({
+        activity: [],
+        hasMore: true,
+        isComplete: false,
+        pageCount: 1,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('empty vs. still-loading', () => {
+    const noLocalTransactions = () =>
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+    it('keeps the skeleton (not the empty message) while no rows yet and pages remain', () => {
+      noLocalTransactions();
+      mockApiActivity({
+        activity: [],
+        hasMore: true,
+        isComplete: false,
+        pageCount: 0,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityLoadingTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyActivityViewTestIds.EMPTY_LIST)).toBeNull();
+    });
+
+    it('shows the empty message only once the activity is exhausted', () => {
+      noLocalTransactions();
+      mockApiActivity({ activity: [], hasMore: false, isComplete: true });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.EMPTY_LIST),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
+    });
+
+    it('drops the skeleton once the fill page budget is spent with no rows', () => {
+      // The fill loop has stopped, so the skeleton must settle rather than
+      // spin forever on a bucket that will not fill.
+      noLocalTransactions();
+      mockApiActivity({
+        activity: [],
+        hasMore: true,
+        isComplete: false,
+        pageCount: AUTO_FILL_MAX_PAGES,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.EMPTY_LIST),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
+    });
+  });
+
+  describe('load errors', () => {
+    const noLocalTransactions = () =>
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+    it('shows an error footer with retry (not a spinner) when paging fails mid-list', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        error: true,
+        hasMore: false,
+        isComplete: true,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.LOAD_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyActivityViewTestIds.LOAD_MORE_SPINNER),
+      ).toBeNull();
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.RETRY_BUTTON));
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows an error message with retry (never "No activity") when the first fetch fails', () => {
+      noLocalTransactions();
+      mockApiActivity({
+        activity: [],
+        error: true,
+        hasMore: false,
+        isComplete: true,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE),
+      ).toHaveTextContent('money.activity.load_error');
+      expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.RETRY_BUTTON));
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('analytics', () => {
