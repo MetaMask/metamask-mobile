@@ -153,6 +153,10 @@ export const rejectSupportConsent = async (
  * @param navigation - Navigation object used to open the consent sheet.
  * @param open - Callback invoked with the final support URL once the user responds.
  * @param baseUrl - Support URL to enrich or fall back to (defaults to the generic help center URL).
+ * @param onOpenSupport - Optional callback fired when the user opens support (on
+ * confirm or reject, never on dismiss). Lets a call site record its "support
+ * opened" analytics event at the moment support is actually opened rather than
+ * when the sheet is merely shown.
  */
 export const navigateToSupportConsent = (
   // Only `navigate` is needed; Pick avoids coupling to the caller's exact
@@ -160,12 +164,19 @@ export const navigateToSupportConsent = (
   navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,
   open: OpenSupportUrl,
   baseUrl?: string,
+  onOpenSupport?: () => void,
 ): void => {
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
     params: {
-      onConfirm: () => confirmSupportConsent(open, baseUrl),
-      onReject: () => rejectSupportConsent(open, baseUrl),
+      onConfirm: () => {
+        onOpenSupport?.();
+        return confirmSupportConsent(open, baseUrl);
+      },
+      onReject: () => {
+        onOpenSupport?.();
+        return rejectSupportConsent(open, baseUrl);
+      },
     },
   });
 };

@@ -285,4 +285,41 @@ describe('navigateToSupportConsent', () => {
     expect(params.has(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)).toBe(false);
     expect(params.has(SUPPORT_URL_PARAM_VERSION)).toBe(false);
   });
+
+  it('fires onOpenSupport and opens the enriched URL when onConfirm runs', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    const mockOnOpenSupport = jest.fn();
+
+    navigateToSupportConsent(
+      mockNavigation,
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+    const { onConfirm } = mockNavigate.mock.calls[0][1].params;
+    await onConfirm();
+
+    expect(mockOnOpenSupport).toHaveBeenCalledTimes(1);
+    expect(mockOpen).toHaveBeenCalledWith(
+      expect.stringContaining('customer_service_token=jwt-token'),
+    );
+  });
+
+  it('fires onOpenSupport and opens the raw URL when onReject runs', () => {
+    const mockOnOpenSupport = jest.fn();
+
+    navigateToSupportConsent(
+      mockNavigation,
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+    const { onReject } = mockNavigate.mock.calls[0][1].params;
+    onReject();
+
+    expect(mockOnOpenSupport).toHaveBeenCalledTimes(1);
+    expect(mockOpen).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+  });
 });
