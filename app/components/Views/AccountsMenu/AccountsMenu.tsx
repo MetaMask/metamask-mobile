@@ -81,8 +81,8 @@ const AccountsMenu = () => {
   ]);
 
   const onPressNotifications = useCallback(() => {
+    navigation.navigate(Routes.NOTIFICATIONS.VIEW);
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
-      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
         createEventBuilder(EVENT_NAME.NOTIFICATIONS_MENU_OPENED)
           .addProperties({
