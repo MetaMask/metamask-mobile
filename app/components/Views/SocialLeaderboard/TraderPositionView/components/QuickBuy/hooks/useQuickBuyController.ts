@@ -74,6 +74,7 @@ import {
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
+  selectIsSlippageUserOverride,
   selectSlippage,
   setDestToken,
   setIsSubmittingTx,
@@ -314,6 +315,7 @@ export function useQuickBuyController(
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -548,7 +550,6 @@ export function useQuickBuyController(
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
-  useInitialSlippage();
 
   useEffect(() => {
     if (sourceToken && destToken) {
@@ -770,10 +771,11 @@ export function useQuickBuyController(
       return;
     }
     const prev = prevSlippageRef.current;
-    if (prev === slippage) return;
     prevSlippageRef.current = slippage;
-    trackSlippageChanged(slippage ?? '', prev ?? '');
-  }, [slippage, trackSlippageChanged]);
+    if (prev !== slippage && isSlippageUserOverride) {
+      trackSlippageChanged(slippage ?? 'Auto', prev ?? 'Auto');
+    }
+  }, [slippage, isSlippageUserOverride, trackSlippageChanged]);
 
   const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
 
@@ -792,7 +794,7 @@ export function useQuickBuyController(
   }, [activeQuote]);
 
   const formattedSlippage = useMemo(() => {
-    if (slippage == null) return '-';
+    if (slippage == null) return 'Auto';
     return `${slippage}%`;
   }, [slippage]);
 
@@ -1633,6 +1635,11 @@ export function useQuickBuyController(
     !isPendingQuoteRefresh &&
     !isAmountUncommitted &&
     !isQuoteRequestStale;
+
+  useInitialSlippage(
+    activeQuote?.quote.slippage,
+    isActiveQuoteForCurrentTokenPair && hasUsableQuoteOnScreen,
+  );
 
   // Loading that should block the UI: first load or an input change with no
   // usable quote yet. A plain background refresh is excluded so the CTA and the

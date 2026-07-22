@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ImageSourcePropType, Linking, StyleSheet, View } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -76,7 +77,7 @@ const DaimoPayModal: React.FC = () => {
   const titleRef = useRef<string>('Daimo Pay');
   const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const queryClient = useQueryClient();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { payId, fromUpgrade, orderId } = useParams<DaimoPayModalParams>();
