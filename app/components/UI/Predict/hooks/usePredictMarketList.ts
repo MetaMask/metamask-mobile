@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
@@ -50,8 +50,9 @@ export const usePredictMarketList = (
   const queryResult = useInfiniteQuery<
     PredictMarketListResponse,
     Error,
-    PredictMarketListResponse,
-    ReturnType<typeof predictQueries.marketList.keys.list>
+    InfiniteData<PredictMarketListResponse>,
+    ReturnType<typeof predictQueries.marketList.keys.list>,
+    string | undefined
   >({
     ...predictQueries.marketList.options(params),
     enabled,
@@ -108,11 +109,9 @@ export const usePredictMarketList = (
 
   return {
     markets,
-    // isInitialLoading (not isLoading) so a disabled query (enabled: false)
-    // reports false instead of being stuck "loading": React Query v4 keeps a
-    // never-fetched query in `status: 'loading'`, which would otherwise leave a
-    // feature-gated section showing a permanent skeleton.
-    isLoading: queryResult.isInitialLoading,
+    // isLoading is false for disabled queries in v5 (status: 'pending' with
+    // fetchStatus: 'idle'), so feature-gated sections don't show a permanent skeleton.
+    isLoading: queryResult.isLoading,
     isFetching: queryResult.isFetching,
     isFetchingNextPage: queryResult.isFetchingNextPage,
     error: queryResult.error ?? null,

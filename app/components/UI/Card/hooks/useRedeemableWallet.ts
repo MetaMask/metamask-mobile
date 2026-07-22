@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryFunction, QueryKey } from '@tanstack/query-core';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type QueryFunction,
+  type QueryKey,
+} from '@tanstack/react-query';
 import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
 import Engine from '../../../../core/Engine';
@@ -92,23 +97,19 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   );
   const modeQueryKey = useMemo(() => queryKeyForMode(mode), [mode]);
 
-  const walletQuery = useQuery<RedeemableWalletResponse>(
-    walletOptions.queryKey,
-    walletOptions.queryFn,
-    {
-      enabled: isAuthenticated,
-      staleTime: walletOptions.staleTime,
-    },
-  );
+  const walletQuery = useQuery<RedeemableWalletResponse>({
+    queryKey: walletOptions.queryKey,
+    queryFn: walletOptions.queryFn,
+    enabled: isAuthenticated,
+    staleTime: walletOptions.staleTime,
+  });
 
-  const estimationQuery = useQuery<RedeemableWithdrawEstimationResponse>(
-    withdrawEstimationOptions.queryKey,
-    withdrawEstimationOptions.queryFn,
-    {
-      enabled: false,
-      staleTime: withdrawEstimationOptions.staleTime,
-    },
-  );
+  const estimationQuery = useQuery<RedeemableWithdrawEstimationResponse>({
+    queryKey: withdrawEstimationOptions.queryKey,
+    queryFn: withdrawEstimationOptions.queryFn,
+    enabled: false,
+    staleTime: withdrawEstimationOptions.staleTime,
+  });
 
   const [monitoringStatus, setMonitoringStatus] =
     useState<MonitoringStatus>('idle');
@@ -130,11 +131,11 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
 
   const fetchEstimation = useCallback(
     async () =>
-      queryClient.fetchQuery<RedeemableWithdrawEstimationResponse>(
-        withdrawEstimationOptions.queryKey,
-        withdrawEstimationOptions.queryFn,
-        { staleTime: withdrawEstimationOptions.staleTime },
-      ),
+      queryClient.fetchQuery<RedeemableWithdrawEstimationResponse>({
+        queryKey: withdrawEstimationOptions.queryKey,
+        queryFn: withdrawEstimationOptions.queryFn,
+        staleTime: withdrawEstimationOptions.staleTime,
+      }),
     [queryClient, withdrawEstimationOptions],
   );
 

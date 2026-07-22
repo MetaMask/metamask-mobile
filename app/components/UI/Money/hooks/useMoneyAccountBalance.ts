@@ -73,12 +73,12 @@ const useMoneyAccountBalance = (
     ],
     enabled: Boolean(moneyAccountAddress),
     refetchInterval,
-  }) as UseQueryResult<MoneyAccountBalanceResponse>;
+  }) as unknown as UseQueryResult<MoneyAccountBalanceResponse>;
 
   const vaultApyQuery = useQuery({
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
     refetchInterval: FIVE_MINUTES_MS,
-  }) as UseQueryResult<NormalizedVaultApyResponse>;
+  }) as unknown as UseQueryResult<NormalizedVaultApyResponse>;
 
   /**
    * True while the balance query is loading with no cached data (even if stale).

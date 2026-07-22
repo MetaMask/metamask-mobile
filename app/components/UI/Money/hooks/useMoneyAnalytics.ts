@@ -115,15 +115,15 @@ export const useMoneyAnalytics = ({
     // Undefined while loading or on error so a genuine zero can be told apart.
     const totalFiatRaw =
       balanceQueryState === undefined ||
-      balanceQueryState.status === 'loading' ||
+      balanceQueryState.status === 'pending' ||
       balanceQueryState.status === 'error'
         ? undefined
         : new BigNumber(balanceQueryState.data?.totalBalance ?? 0)
             .shiftedBy(-MUSD_DECIMALS)
             .toString();
 
-    // react-query v4 keeps disabled queries (no money account) at status: 'loading'
-    // forever, so status alone would falsely flag empty-state users as "loading" permanently.
+    // Disabled queries stay at status: 'pending' with fetchStatus: 'idle' in v5,
+    // so status alone would falsely flag empty-state users as "loading" permanently.
     // isBalanceFetching + no settled value = a genuine in-flight first fetch.
     const isMoneyBalanceLoading =
       isBalanceFetching && totalFiatRaw === undefined;

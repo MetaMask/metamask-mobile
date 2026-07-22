@@ -65,7 +65,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        cacheTime: 0,
+        gcTime: 0,
         retry: false,
       },
     },
@@ -167,14 +167,20 @@ describe('useCryptoUpDownChartData', () => {
     };
 
     const recordFailures = (count: number): void => {
-      const onError = mockLastUseQueryConfig.current?.onError as () => void;
+      const meta = mockLastUseQueryConfig.current?.meta as {
+        recordPollFailure: () => void;
+      };
       for (let i = 0; i < count; i += 1) {
-        onError();
+        meta.recordPollFailure();
       }
     };
 
     const recordSuccess = (): void => {
-      (mockLastUseQueryConfig.current?.onSuccess as () => void)();
+      (
+        mockLastUseQueryConfig.current?.meta as {
+          recordPollSuccess: () => void;
+        }
+      ).recordPollSuccess();
     };
 
     const sendLiveTick = (price = 51000, timestamp = 100): void => {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
 import {
@@ -330,22 +330,44 @@ export const useCryptoUpDownChartData = (
     }
   }, [liveStreamStale]);
 
+  const recordPollFailure = useCallback(() => {
+    consecutivePollFailuresRef.current += 1;
+  }, []);
+
+  const recordPollSuccess = useCallback(() => {
+    consecutivePollFailuresRef.current = 0;
+  }, []);
+
+  const historicalQueryOptions = predictQueries.cryptoPriceHistory.options({
+    symbol: symbol ?? '',
+    eventStartTime: historyStartDate ?? '',
+    variant,
+    endDate: historyEndDate,
+  });
+
   const historicalQuery = useQuery({
-    ...predictQueries.cryptoPriceHistory.options({
-      symbol: symbol ?? '',
-      eventStartTime: historyStartDate ?? '',
-      variant,
-      endDate: historyEndDate,
-    }),
+    ...historicalQueryOptions,
+    queryFn: async (context) => {
+      const queryFn = historicalQueryOptions.queryFn;
+      if (!queryFn) {
+        throw new Error('Missing crypto price history queryFn');
+      }
+      try {
+        const data = await queryFn(context);
+        recordPollSuccess();
+        return data;
+      } catch (error) {
+        recordPollFailure();
+        throw error;
+      }
+    },
     enabled: enabled && !!symbol && !!historyStartDate,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
-    onError: () => {
-      consecutivePollFailuresRef.current += 1;
-    },
-    onSuccess: () => {
-      consecutivePollFailuresRef.current = 0;
+    meta: {
+      recordPollFailure,
+      recordPollSuccess,
     },
     // Only poll while streaming live AND the live stream is not currently
     // delivering fresh ticks (`liveStreamStale`). `refetchOnMount` still seeds

@@ -24,7 +24,7 @@ function withQueryClient(
     const queryClient = React.useMemo(
       () =>
         new QueryClient({
-          defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+          defaultOptions: { queries: { retry: false, gcTime: 0 } },
         }),
       [],
     );

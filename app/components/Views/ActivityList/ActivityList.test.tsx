@@ -716,7 +716,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: true,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
     (useLocalActivityItems as jest.Mock).mockReturnValue([localPendingItem]);
@@ -819,7 +819,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
 
@@ -901,7 +901,7 @@ describe('ActivityList', () => {
         fetchNextPage: mockFetchNextPage,
         hasNextPage: false,
         isFetchingNextPage: false,
-        isInitialLoading: false,
+        isLoading: false,
         refetch: mockRefetch,
       });
 
@@ -923,7 +923,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
 
@@ -953,7 +953,7 @@ describe('ActivityList', () => {
         fetchNextPage: mockFetchNextPage,
         hasNextPage: false,
         isFetchingNextPage: false,
-        isInitialLoading: false,
+        isLoading: false,
         refetch: mockRefetch,
       });
 
@@ -973,7 +973,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
 
@@ -1025,7 +1025,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
 
@@ -1083,7 +1083,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
 
@@ -1145,7 +1145,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
 
@@ -1476,7 +1476,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
     (useLocalActivityItems as jest.Mock).mockReturnValue([]);
@@ -1733,7 +1733,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
     (useLocalActivityItems as jest.Mock).mockReturnValue([]);
@@ -1754,7 +1754,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
     (useLocalActivityItems as jest.Mock).mockReturnValue([]);
@@ -1777,7 +1777,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
     (useLocalActivityItems as jest.Mock).mockReturnValue([]);
@@ -2042,7 +2042,7 @@ describe('ActivityList', () => {
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetchingNextPage: false,
-      isInitialLoading: false,
+      isLoading: false,
       refetch: mockRefetch,
     });
     (useLocalActivityItems as jest.Mock).mockReturnValue([]);

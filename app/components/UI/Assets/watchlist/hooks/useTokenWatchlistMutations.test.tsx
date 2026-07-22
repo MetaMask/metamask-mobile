@@ -78,7 +78,7 @@ let activeQueryClient: QueryClient | null = null;
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { retry: false, cacheTime: Infinity },
+      queries: { retry: false, gcTime: Infinity },
       mutations: { retry: false },
     },
   });

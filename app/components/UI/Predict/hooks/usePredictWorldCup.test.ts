@@ -40,7 +40,7 @@ const createOutcome = (
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { cacheTime: Infinity, retry: false } },
+    defaultOptions: { queries: { gcTime: Infinity, retry: false } },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);

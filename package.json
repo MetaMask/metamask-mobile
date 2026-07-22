@@ -183,6 +183,8 @@
     ]
   },
   "resolutions": {
+    "metamask@workspace:./@metamask/react-data-query@^0.2.2": "npm:@metamask-previews/react-data-query@0.2.2-preview-dc3ab8b12",
+    "@tanstack/query-core@npm:^5.62.16": "5.101.2",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -413,7 +415,7 @@
     "@sentry/react-native": "patch:@sentry/react-native@npm%3A7.11.0#~/.yarn/patches/@sentry-react-native-npm-7.11.0-a49fbd89e3.patch",
     "@shopify/flash-list": "2.0.2",
     "@solana/addresses": "2.0.0",
-    "@tanstack/react-query": "^4.43.0",
+    "@tanstack/react-query": "^5.101.2",
     "@tommasini/react-native-scrollable-tab-view": "patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch",
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
@@ -622,7 +624,7 @@
     "@storybook/addon-ondevice-controls": "^6.5.6",
     "@storybook/builder-webpack5": "^7.5.1",
     "@storybook/react-native": "^6.5.6",
-    "@tanstack/query-core": "4.43.0",
+    "@tanstack/query-core": "^5.101.2",
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^13.2.0",

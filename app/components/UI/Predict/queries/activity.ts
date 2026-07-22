@@ -19,8 +19,9 @@ export const predictActivityOptions = ({
   limit?: number;
 }) => ({
   queryKey: predictActivityKeys.byAddress(address, limit),
+  initialPageParam: 0,
   queryFn: async ({
-    pageParam = 0,
+    pageParam,
   }: QueryFunctionContext<PredictActivityQueryKey, number>): Promise<
     PredictActivity[]
   > =>

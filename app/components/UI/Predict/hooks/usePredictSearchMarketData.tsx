@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
@@ -46,10 +46,17 @@ export const usePredictSearchMarketData = ({
     hasNextPage,
     fetchNextPage,
     refetch: queryRefetch,
-  } = useInfiniteQuery<SearchPage, Error>({
+  } = useInfiniteQuery<
+    SearchPage,
+    Error,
+    InfiniteData<SearchPage>,
+    readonly unknown[],
+    number
+  >({
     queryKey: ['predict', 'markets', 'search', trimmedQuery, pageSize],
     enabled,
-    queryFn: async ({ pageParam = 1 }) => {
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
       if (!Engine?.context) {
         throw new Error('Engine not initialized');
       }
@@ -62,7 +69,7 @@ export const usePredictSearchMarketData = ({
       return controller.searchMarkets({
         q: trimmedQuery,
         limit: pageSize,
-        page: pageParam as number,
+        page: pageParam,
       });
     },
     getNextPageParam: (lastPage, allPages) => {

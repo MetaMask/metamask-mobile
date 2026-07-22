@@ -94,7 +94,7 @@ function mockQueryResult(
 ) {
   mockUseInfiniteQuery.mockReturnValue({
     data: undefined,
-    isInitialLoading: false,
+    isLoading: false,
     isError: false,
     isFetchingNextPage: false,
     hasNextPage: undefined,
@@ -334,7 +334,7 @@ describe('useMoneyAccountApiActivity', () => {
   });
 
   it('reports loading only on the initial fetch and shows no rows', () => {
-    mockQueryResult({ isInitialLoading: true });
+    mockQueryResult({ isLoading: true });
 
     const { result } = renderHook(() => useMoneyAccountApiActivity());
 

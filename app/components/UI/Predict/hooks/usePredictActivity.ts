@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import {
   useInfiniteQuery,
+  type InfiniteData,
   type UseInfiniteQueryResult,
 } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
@@ -19,7 +20,10 @@ export interface UsePredictActivityOptions {
 }
 
 export interface UsePredictActivityResult
-  extends Omit<UseInfiniteQueryResult<PredictActivity[], Error>, 'data'> {
+  extends Omit<
+    UseInfiniteQueryResult<InfiniteData<PredictActivity[]>, Error>,
+    'data'
+  > {
   activity: PredictActivity[];
   data: PredictActivity[];
 }
@@ -44,8 +48,9 @@ export function usePredictActivity({
   const queryResult = useInfiniteQuery<
     PredictActivity[],
     Error,
-    PredictActivity[],
-    PredictActivityQueryKey
+    InfiniteData<PredictActivity[]>,
+    PredictActivityQueryKey,
+    number
   >({
     ...predictQueries.activity.options({ address: address ?? '', limit }),
     enabled: Boolean(address),

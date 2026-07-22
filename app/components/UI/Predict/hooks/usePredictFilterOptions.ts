@@ -66,10 +66,9 @@ export const usePredictFilterOptions = (
 
   return {
     filterOptions,
-    // isInitialLoading (not isLoading) so a disabled query (enabled: false)
-    // reports false instead of being stuck "loading": React Query v4 keeps a
-    // never-fetched query in `status: 'loading'`.
-    isLoading: query.isInitialLoading,
+    // isLoading is false for disabled queries in v5 (status: 'pending' with
+    // fetchStatus: 'idle').
+    isLoading: query.isLoading,
     error: query.error ?? null,
     refetch: query.refetch,
   };
