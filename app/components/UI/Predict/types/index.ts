@@ -636,11 +636,25 @@ export interface GetMarketsResult {
 export interface PredictMarketListParams {
   tags?: string[]; // tag IDs -> tag_id (multi).
   tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
+  excludedTags?: string[]; // tag IDs -> exclude_tag_id (multi).
   series?: string[]; // series IDs -> series_id (multi)
-  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  order?:
+    | 'volume24hr'
+    | 'volume'
+    | 'liquidity'
+    | 'ending_soon'
+    | 'newest'
+    | 'upcoming'
+    | 'start_time';
   // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
   status?: 'open' | 'closed' | 'resolved';
   live?: boolean;
+  // Lower bound for event start time -> start_time_min.
+  startTimeMin?: string;
+  // Relative lower bound computed in hours when the request is built.
+  startTimeMinHoursAgo?: number;
+  // Relative lower bound computed when the request is built.
+  startTimeMinDaysAgo?: number;
   // Free-text title filter. The provider maps this to Polymarket's
   // `title_search` query param, which composes with cursor pagination, so
   // search stays on the same feed endpoint (handled in the provider layer, not

@@ -1,8 +1,8 @@
-import { strings } from '../../../../../locales/i18n';
 import type {
   PredictWorldCupConfig,
   PredictWorldCupStageConfig,
 } from '../types/flags';
+import { translateIfPresent } from './translations';
 
 export type PredictWorldCupQueryType = 'all' | 'props' | 'live';
 
@@ -86,14 +86,6 @@ export const buildPredictWorldCupQuery = (
     default:
       return buildPredictWorldCupAllQuery(config);
   }
-};
-
-const isMissingTranslation = (value: string, key: string): boolean =>
-  value === key || value.startsWith('[missing');
-
-const translateIfPresent = (key: string): string | undefined => {
-  const value = strings(key);
-  return isMissingTranslation(value, key) ? undefined : value;
 };
 
 export const getPredictWorldCupStageDerivedLabelKey = (

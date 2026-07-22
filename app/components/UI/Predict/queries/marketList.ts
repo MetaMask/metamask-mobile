@@ -12,10 +12,11 @@ export const PREDICT_MARKET_LIST_PAGE_SIZE = 20;
  * FIXED order and normalizes equivalent inputs to the same shape so the
  * React Query key is stable regardless of caller object key order or array order.
  *
- * `tags`/`tagSlugs`/`series` are sorted (order-insensitive). `search` is trimmed and
- * blank/whitespace becomes `undefined` (browse mode). `live` only matters when
- * `true` (matches the provider query builder), so `false`/`undefined` collapse
- * to `undefined`. `limit` defaults to `PREDICT_MARKET_LIST_PAGE_SIZE`.
+ * `tags`/`tagSlugs`/`excludedTags`/`series` are sorted (order-insensitive).
+ * `search` is trimmed and blank/whitespace becomes `undefined` (browse mode).
+ * `live` only matters when `true` (matches the provider query builder), so
+ * `false`/`undefined` collapse to `undefined`. `limit` defaults to
+ * `PREDICT_MARKET_LIST_PAGE_SIZE`.
  *
  * `afterCursor` is intentionally excluded — it is the infinite-query page
  * param, not part of the cache key.
@@ -32,12 +33,18 @@ export const normalizeMarketListParams = (
     tagSlugs: params.tagSlugs?.length
       ? [...params.tagSlugs].sort((a, b) => a.localeCompare(b))
       : undefined,
+    excludedTags: params.excludedTags?.length
+      ? [...params.excludedTags].sort((a, b) => a.localeCompare(b))
+      : undefined,
     series: params.series?.length
       ? [...params.series].sort((a, b) => a.localeCompare(b))
       : undefined,
     order: params.order,
     status: params.status,
     live: params.live === true ? true : undefined,
+    startTimeMin: params.startTimeMin,
+    startTimeMinHoursAgo: params.startTimeMinHoursAgo,
+    startTimeMinDaysAgo: params.startTimeMinDaysAgo,
     search: search || undefined,
     limit: params.limit ?? PREDICT_MARKET_LIST_PAGE_SIZE,
   };

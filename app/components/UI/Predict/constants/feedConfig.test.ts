@@ -1,6 +1,7 @@
 import {
   PREDICT_FEED_IDS,
   PREDICT_FEED_REGISTRY,
+  createPredictSportsFeedConfig,
   isPredictFeedId,
   resolvePredictFeedConfig,
   resolvePredictFeedDefaultFilter,
@@ -102,12 +103,141 @@ describe('feedConfig', () => {
 
   it('defines the v1 sports tabs from the Figma shell', () => {
     expect(PREDICT_FEED_REGISTRY.sports.tabs.map((tab) => tab.id)).toEqual([
-      'basketball',
-      'tennis',
+      'all',
       'soccer',
       'baseball',
       'football',
+      'basketball',
+      'esports',
+      'tennis',
+      'cricket',
+      'golf',
+      'combat',
+      'hockey',
     ]);
+  });
+
+  it('uses static sports filters from the configured sports feed', () => {
+    const [allTab, soccerTab] = PREDICT_FEED_REGISTRY.sports.tabs;
+
+    expect(allTab.id).toBe('all');
+    expect(allTab.defaultFilterId).toBe('games');
+    expect(allTab.filters.dynamic).toBeUndefined();
+    expect(allTab.filters.static.map((filter) => filter.id)).toEqual([
+      'games',
+      'props',
+    ]);
+    expect(allTab.filters.static[0].params).toEqual({
+      tagSlugs: ['sports'],
+      tags: ['100639'],
+      status: 'open',
+      order: 'start_time',
+      startTimeMinHoursAgo: 3,
+    });
+    expect(allTab.filters.static[1].params).toEqual({
+      tagSlugs: ['sports'],
+      excludedTags: ['100639'],
+      status: 'open',
+      order: 'upcoming',
+    });
+    expect(soccerTab.filters.static.map((filter) => filter.id)).toEqual([
+      'games',
+      'props',
+      'mls',
+      'champions-league',
+      'EPL',
+      'uel',
+      'la-liga',
+      'serie-a',
+      'bundesliga',
+      'ligue-1',
+      'lib',
+    ]);
+    expect(soccerTab.filters.static[0].params).toEqual({
+      tagSlugs: ['soccer'],
+      tags: ['100639'],
+      status: 'open',
+      order: 'start_time',
+      startTimeMinHoursAgo: 3,
+    });
+    expect(
+      soccerTab.filters.static.find((filter) => filter.id === 'mls')?.params
+        .tagSlugs,
+    ).toEqual(['mls']);
+    expect(
+      soccerTab.filters.static.find((filter) => filter.id === 'mls')?.params
+        .order,
+    ).toBe('start_time');
+  });
+
+  it('preserves remote sports tab labels', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      gamesTagId: '100639',
+      tabs: [
+        {
+          id: 'custom-tab',
+          label: 'Custom Tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0]).toEqual(
+      expect.objectContaining({
+        id: 'custom-tab',
+        label: 'Custom Tab',
+      }),
+    );
+  });
+
+  it('applies the sports start time lower bound to non-props filters', () => {
+    PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
+      tab.filters.static
+        .filter((filter) => filter.id !== 'props')
+        .forEach((filter) => {
+          expect(filter.params.startTimeMinHoursAgo).toBe(3);
+        });
+    });
+  });
+
+  it('does not apply the sports start time lower bound to props filters', () => {
+    PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
+      const propsFilter = tab.filters.static.find(
+        (filter) => filter.id === 'props',
+      );
+
+      expect(propsFilter?.params.startTimeMin).toBeUndefined();
+      expect(propsFilter?.params.startTimeMinHoursAgo).toBeUndefined();
+      expect(propsFilter?.params.startTimeMinDaysAgo).toBeUndefined();
+    });
+  });
+
+  it('sorts games and league chip filters by soonest start time first', () => {
+    PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
+      tab.filters.static
+        .filter((filter) => filter.id !== 'props')
+        .forEach((filter) => {
+          expect(filter.params.order).toBe('start_time');
+        });
+    });
+  });
+
+  it('sorts props filters by soonest start date first', () => {
+    PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
+      const propsFilter = tab.filters.static.find(
+        (filter) => filter.id === 'props',
+      );
+
+      expect(propsFilter?.params.order).toBe('upcoming');
+    });
   });
 
   it('uses related-tags dynamic filters with supported base slugs', () => {
@@ -120,9 +250,7 @@ describe('feedConfig', () => {
     );
 
     expect(sources).toEqual(new Set(['related-tags']));
-    expect(baseTagSlugs).toEqual(
-      new Set(['sports', 'politics', 'crypto', 'all']),
-    );
+    expect(baseTagSlugs).toEqual(new Set(['politics', 'crypto', 'all']));
   });
 
   it('resolves the dynamic filter config for a feed from the registry', () => {
@@ -143,10 +271,14 @@ describe('feedConfig', () => {
     const allowedParamKeys = new Set([
       'tags',
       'tagSlugs',
+      'excludedTags',
       'series',
       'order',
       'status',
       'live',
+      'startTimeMin',
+      'startTimeMinHoursAgo',
+      'startTimeMinDaysAgo',
       'search',
       'limit',
       'afterCursor',

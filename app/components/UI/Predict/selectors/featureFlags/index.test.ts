@@ -12,6 +12,7 @@ import {
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
+  selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictWimbledonTabFlag,
@@ -34,6 +35,7 @@ import {
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
 import {
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -1626,6 +1628,82 @@ describe('Predict Feature Flag Selectors', () => {
 
       expect(selectPredictWorldCupConfig(state)).toEqual(
         DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      );
+    });
+  });
+
+  describe('selectPredictSportsFeedConfig', () => {
+    it('returns bundled sports config when flag is missing', () => {
+      expect(selectPredictSportsFeedConfig(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
+    });
+
+    it('returns remote sports config when enabled and version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const remoteSportsFeed = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        gamesTagId: 'games-tag',
+        tabs: [
+          {
+            id: 'soccer',
+            titleKey: 'predict.feed.tabs.soccer',
+            tagSlug: 'soccer',
+            chips: [
+              {
+                id: 'games',
+                kind: 'games',
+                titleKey: 'predict.feed.filters.games',
+              },
+              {
+                id: 'mls',
+                kind: 'tag',
+                titleKey: 'predict.feed.filters.mls',
+                tagSlug: 'mls',
+              },
+            ],
+          },
+        ],
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictSportsFeed: JSON.parse(JSON.stringify(remoteSportsFeed)),
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictSportsFeedConfig(state)).toEqual(remoteSportsFeed);
+    });
+
+    it('returns bundled sports config when version requirement is not met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictSportsFeed: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                  gamesTagId: 'games-tag',
+                  tabs: [],
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictSportsFeedConfig(state)).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       );
     });
   });

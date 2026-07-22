@@ -39,11 +39,22 @@ const createWrapper = () => {
 const createMarket = (id: string): PredictMarket =>
   ({ id, parentMarketId: undefined }) as unknown as PredictMarket;
 
+const createChildMarket = (id: string): PredictMarket =>
+  ({ id, parentMarketId: 'parent-1' }) as unknown as PredictMarket;
+
 const createPage = (
   ids: string[],
   nextCursor: string | null = null,
 ): PredictMarketListResponse => ({
   markets: ids.map(createMarket),
+  nextCursor,
+});
+
+const createChildPage = (
+  ids: string[],
+  nextCursor: string | null = null,
+): PredictMarketListResponse => ({
+  markets: ids.map(createChildMarket),
   nextCursor,
 });
 
@@ -140,6 +151,33 @@ describe('usePredictMarketList', () => {
         'c',
         'd',
       ]);
+    });
+    expect(result.current.hasNextPage).toBe(false);
+  });
+
+  it('auto-fetches the next page when the current page has no visible markets', async () => {
+    const { Wrapper } = createWrapper();
+    mockListMarkets
+      .mockResolvedValueOnce(createChildPage(['child-a'], 'cursor-1'))
+      .mockResolvedValueOnce(createPage(['parent-a'], null));
+
+    const { result } = renderHook(() => usePredictMarketList(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(mockListMarkets).toHaveBeenCalledTimes(2);
+    });
+
+    expect(mockListMarkets).toHaveBeenNthCalledWith(1, {
+      afterCursor: null,
+    });
+    expect(mockListMarkets).toHaveBeenNthCalledWith(2, {
+      afterCursor: 'cursor-1',
+    });
+
+    await waitFor(() => {
+      expect(result.current.markets.map((m) => m.id)).toEqual(['parent-a']);
     });
     expect(result.current.hasNextPage).toBe(false);
   });

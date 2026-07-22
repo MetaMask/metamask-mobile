@@ -1375,18 +1375,23 @@ export const fetchEventsFromPolymarketApi = async (
  * param mapping easy to audit and test.
  *
  * Mapping rules:
- * - `order`: `volume24hr`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`. Defaults to `volume24hr` (descending).
+ * - `order`: `volume24hr`/`volume`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`; `upcoming` -> `order=startDate&ascending=true`; `start_time` -> `order=startTime&ascending=true`. Defaults to `volume24hr` (descending).
  * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
- * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `series` -> repeated `series_id`.
+ * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `excludedTags` -> repeated `exclude_tag_id`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
+ * - `startTimeMin`/`startTimeMinHoursAgo`/`startTimeMinDaysAgo` -> `start_time_min`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
  */
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const MS_PER_HOUR = 60 * 60 * 1000;
+
 export const buildMarketListQueryParams = (
   params: PredictMarketListParams = {},
 ): URLSearchParams => {
   const {
     tags,
     tagSlugs,
+    excludedTags,
     series,
     order = 'volume24hr',
     status = 'open',
@@ -1394,6 +1399,9 @@ export const buildMarketListQueryParams = (
     limit = 20,
     afterCursor,
     search,
+    startTimeMin,
+    startTimeMinHoursAgo,
+    startTimeMinDaysAgo,
   } = params;
 
   const queryParams = new URLSearchParams({
@@ -1419,6 +1427,10 @@ export const buildMarketListQueryParams = (
       queryParams.set('order', 'liquidity');
       queryParams.set('ascending', 'false');
       break;
+    case 'volume':
+      queryParams.set('order', 'volume');
+      queryParams.set('ascending', 'false');
+      break;
     case 'ending_soon':
       queryParams.set('order', 'endDate');
       queryParams.set('ascending', 'true');
@@ -1426,6 +1438,14 @@ export const buildMarketListQueryParams = (
     case 'newest':
       queryParams.set('order', 'startDate');
       queryParams.set('ascending', 'false');
+      break;
+    case 'upcoming':
+      queryParams.set('order', 'startDate');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'start_time':
+      queryParams.set('order', 'startTime');
+      queryParams.set('ascending', 'true');
       break;
     case 'volume24hr':
     default:
@@ -1436,6 +1456,7 @@ export const buildMarketListQueryParams = (
 
   tags?.forEach((tagId) => queryParams.append('tag_id', tagId));
   tagSlugs?.forEach((tagSlug) => queryParams.append('tag_slug', tagSlug));
+  excludedTags?.forEach((tagId) => queryParams.append('exclude_tag_id', tagId));
   series?.forEach((seriesId) => queryParams.append('series_id', seriesId));
 
   if (live) {
@@ -1444,6 +1465,26 @@ export const buildMarketListQueryParams = (
 
   if (afterCursor) {
     queryParams.set('after_cursor', afterCursor);
+  }
+
+  if (startTimeMin) {
+    queryParams.set('start_time_min', startTimeMin);
+  } else if (
+    startTimeMinHoursAgo !== undefined &&
+    Number.isFinite(startTimeMinHoursAgo)
+  ) {
+    queryParams.set(
+      'start_time_min',
+      new Date(Date.now() - startTimeMinHoursAgo * MS_PER_HOUR).toISOString(),
+    );
+  } else if (
+    startTimeMinDaysAgo !== undefined &&
+    Number.isFinite(startTimeMinDaysAgo)
+  ) {
+    queryParams.set(
+      'start_time_min',
+      new Date(Date.now() - startTimeMinDaysAgo * MS_PER_DAY).toISOString(),
+    );
   }
 
   const trimmedSearch = search?.trim();

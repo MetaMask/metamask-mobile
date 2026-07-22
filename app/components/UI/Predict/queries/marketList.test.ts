@@ -25,26 +25,32 @@ describe('marketList query', () => {
       expect(normalizeMarketListParams()).toEqual({
         tags: undefined,
         tagSlugs: undefined,
+        excludedTags: undefined,
         series: undefined,
         order: undefined,
         status: undefined,
         live: undefined,
+        startTimeMin: undefined,
+        startTimeMinHoursAgo: undefined,
+        startTimeMinDaysAgo: undefined,
         search: undefined,
         limit: PREDICT_MARKET_LIST_PAGE_SIZE,
       });
     });
 
-    it('sorts tags, tagSlugs and series so array order does not affect the result', () => {
+    it('sorts tags, tagSlugs, excludedTags and series so array order does not affect the result', () => {
       expect(
         normalizeMarketListParams({
           tags: ['b', 'a'],
           tagSlugs: ['nfl', 'nba'],
+          excludedTags: ['200', '100'],
           series: ['2', '1'],
         }),
       ).toEqual(
         expect.objectContaining({
           tags: ['a', 'b'],
           tagSlugs: ['nba', 'nfl'],
+          excludedTags: ['100', '200'],
           series: ['1', '2'],
         }),
       );
@@ -59,6 +65,42 @@ describe('marketList query', () => {
       );
 
       expect(nba).not.toEqual(nfl);
+    });
+
+    it('produces distinct keys for different lower-bound params', () => {
+      const withoutStartTimeMin = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tags: ['100639'],
+          tagSlugs: ['soccer'],
+          order: 'start_time',
+        }),
+      );
+      const withStartTimeMin = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tags: ['100639'],
+          tagSlugs: ['soccer'],
+          order: 'start_time',
+          startTimeMinHoursAgo: 3,
+        }),
+      );
+
+      expect(withStartTimeMin).not.toEqual(withoutStartTimeMin);
+    });
+
+    it('produces distinct keys for excluded tags', () => {
+      const props = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+          excludedTags: ['100639'],
+        }),
+      );
+      const allSoccer = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+        }),
+      );
+
+      expect(props).not.toEqual(allSoccer);
     });
 
     it('trims search and treats blank/whitespace as absent', () => {

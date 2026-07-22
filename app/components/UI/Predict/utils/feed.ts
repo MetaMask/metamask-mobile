@@ -1,5 +1,6 @@
 import type { PredictMarket } from '../types';
 import { isCryptoUpDown } from './cryptoUpDown';
+import { translateIfPresent } from './translations';
 
 export function isStandaloneMarket(market: PredictMarket): boolean {
   const { parentMarketId } = market;
@@ -39,3 +40,30 @@ export function deduplicateSeriesMarkets(
     return true;
   });
 }
+
+export const humanizePredictFilterId = (id: string): string =>
+  id
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+export const resolvePredictFilterLabel = ({
+  id,
+  titleKey,
+  label,
+}: {
+  id: string;
+  titleKey?: string;
+  label?: string;
+}): string => {
+  if (titleKey) {
+    const translatedLabel = translateIfPresent(titleKey);
+    if (translatedLabel) {
+      return translatedLabel;
+    }
+  }
+
+  const trimmedLabel = label?.trim();
+  return trimmedLabel || humanizePredictFilterId(id);
+};

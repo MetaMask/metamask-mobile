@@ -14,11 +14,11 @@ import {
   getSportTeamDisplayOrder,
   outcomeMatchesTeam,
 } from '../../utils/sports';
+import { isMissingTranslation } from '../../utils/translations';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 
 const I18N_PREFIX = 'predict.sports_market_types';
-const MISSING_TRANSLATION_PREFIX = '[missing';
 const DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES = [
   'soccer_player_goals-',
   'soccer_team_totals-',
@@ -44,9 +44,6 @@ const toTitleCase = (str: string): string =>
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-
-const isMissingTranslation = (value: string, key: string): boolean =>
-  value === key || value.startsWith(MISSING_TRANSLATION_PREFIX);
 
 const isDynamicSportsMarketTypeKey = (type: string): boolean => {
   const normalizedType = type.toLowerCase();
