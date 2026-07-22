@@ -3567,7 +3567,8 @@
       "solana_account_name": "Solana Account",
       "tron_account_name": "Tron Account",
       "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_shasta_account_name": "Tron Shasta Account",
+      "stellar_account_name": "Stellar Account"
     },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
