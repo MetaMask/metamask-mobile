@@ -284,6 +284,7 @@ export interface BackupAndSyncSettings {
   isBackupAndSyncEnabled: boolean;
   isAccountSyncingEnabled: boolean;
   isContactSyncingEnabled: boolean;
+  isRampsSyncingEnabled: boolean;
 }
 
 export interface LaunchArgs {

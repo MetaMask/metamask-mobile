@@ -41,16 +41,20 @@ export function mapRampOrder({
 
   const isSell = type === 'sell';
   const transactionHash = getRampOrderTransactionHash(order, type);
-  // Some Ramp orders exist before an on-chain tx hash is available. Use the
-  // order id for stable row identity, but those entries cannot dedup against an
-  // eventual EVM API copy until the real tx hash lands.
+  // Some Ramp orders exist before an on-chain tx hash is available (or only
+  // have a placeholder like DUMMY_TX_ID). Use the order id for stable row
+  // identity so Activity hash-dedup does not collapse distinct orders.
   const hash = transactionHash || order.id;
+  const timestamp =
+    typeof order.createdAt === 'number'
+      ? order.createdAt
+      : new Date(order.createdAt).getTime();
 
   return {
     type,
     chainId,
     status: mapRampOrderStatus(order.state),
-    timestamp: order.createdAt,
+    timestamp: Number.isFinite(timestamp) ? timestamp : 0,
     hash,
     raw: { type: 'rampOrder', data: order },
     data: {

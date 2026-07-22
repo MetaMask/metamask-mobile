@@ -69,11 +69,37 @@ export function toRampOrderCaipChainId(network: string): CaipChainId | null {
   }
 }
 
+/**
+ * Placeholder / non-on-chain values that must not be used as Activity dedup
+ * keys. Multiple completed test/provider orders have been observed with
+ * `txHash: "DUMMY_TX_ID"`, which collapsed distinct buys into one Activity row.
+ */
+function isUsableRampTransactionHash(
+  hash: string | undefined | null,
+): hash is string {
+  if (typeof hash !== 'string') {
+    return false;
+  }
+  const normalized = hash.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+  if (
+    normalized === 'dummy_tx_id' ||
+    normalized === 'null' ||
+    normalized === 'undefined'
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export function getRampOrderTransactionHash(
   order: FiatOrder,
   kind: RampActivityKind,
 ): string | undefined {
-  return kind === 'sell' ? order.sellTxHash : order.txHash;
+  const hash = kind === 'sell' ? order.sellTxHash : order.txHash;
+  return isUsableRampTransactionHash(hash) ? hash : undefined;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {

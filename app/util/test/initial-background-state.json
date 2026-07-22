@@ -595,7 +595,8 @@
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
     "isContactSyncingEnabled": true,
-    "isContactSyncingInProgress": false
+    "isContactSyncingInProgress": false,
+    "isRampsSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}
