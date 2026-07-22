@@ -115,9 +115,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       () =>
         [
           { name: HomeSectionNames.TOKENS, enabled: true },
-          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
             name: HomeSectionNames.TOP_TRADERS,
             enabled: isTopTradersEnabled,
@@ -148,9 +148,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const refresh = useCallback(async () => {
       await Promise.allSettled([
         tokensSectionRef.current?.refresh(),
-        watchlistSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
+        watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
         defiSectionRef.current?.refresh(),
         nftsSectionRef.current?.refresh(),
@@ -170,13 +170,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
           totalSectionsLoaded={totalSectionsLoaded}
         />
-        {isWatchlistEnabled && (
-          <WatchlistSection
-            ref={watchlistSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
         {isPerpsEnabled &&
           (perpsProvidersHoisted ? (
             <HomepagePerpsHomeSlot
@@ -200,6 +193,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
           totalSectionsLoaded={totalSectionsLoaded}
         />
+        {isWatchlistEnabled && (
+          <WatchlistSection
+            ref={watchlistSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
         {isTopTradersEnabled && (
           <TopTradersSection
             ref={topTradersSectionRef}

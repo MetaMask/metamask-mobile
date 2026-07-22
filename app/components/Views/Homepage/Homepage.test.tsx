@@ -638,7 +638,7 @@ describe('Homepage', () => {
         .selectTokenWatchlistEnabled.mockReturnValue(true);
     });
 
-    it('places watchlist before Perps when all core flags are on', () => {
+    it('places watchlist after Predictions when all core flags are on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
@@ -646,9 +646,9 @@ describe('Homepage', () => {
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('watchlist')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
       expect(callBySectionName('defi')?.sectionIndex).toBe(4);
       expect(callBySectionName('nfts')).toBeUndefined();
     });
@@ -662,7 +662,7 @@ describe('Homepage', () => {
       });
     });
 
-    it('places watchlist before top_traders when Social Leaderboard is also enabled', () => {
+    it('places watchlist after Predictions when Social Leaderboard is also enabled', () => {
       jest
         .requireMock(
           '../../../selectors/featureFlagController/socialLeaderboard',
@@ -676,9 +676,9 @@ describe('Homepage', () => {
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('watchlist')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(4);
       expect(callBySectionName('defi')?.sectionIndex).toBe(5);
       expect(callBySectionName('nfts')).toBeUndefined();
@@ -688,7 +688,7 @@ describe('Homepage', () => {
       });
     });
 
-    it('places watchlist before Perps when user has NFTs', () => {
+    it('places watchlist after Predictions when user has NFTs', () => {
       mockUseOwnedNfts.mockReturnValue([mockOwnedNft]);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
@@ -697,7 +697,7 @@ describe('Homepage', () => {
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
-      expect(callBySectionName('watchlist')?.sectionIndex).toBe(1);
+      expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
       expect(callBySectionName('defi')?.sectionIndex).toBe(4);
       expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
 
