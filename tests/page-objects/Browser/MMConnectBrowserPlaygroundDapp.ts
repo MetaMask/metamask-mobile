@@ -20,7 +20,7 @@ const logger = createLogger({
 });
 
 /**
- * Mirror of `@metamask/playground-ui` `escapeTestId`: lowercase, `:` → `-`,
+ * Mirror of `@metamask/playground-ui` `escapeTestId()`: lowercase, `:` → `-`,
  * `_` → `-`, spaces → `-`, strip any remaining non `[a-z0-9-]` characters.
  */
 function escapeTestId(value: string): string {
