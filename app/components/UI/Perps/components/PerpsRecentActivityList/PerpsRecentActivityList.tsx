@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, FlatList } from 'react-native';
+import { FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Box, SectionHeader } from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
+import {
+  Box,
+  ListItem,
+  SectionHeader,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -15,8 +16,6 @@ import {
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PerpsRecentActivityList.styles';
 import {
   HOME_SCREEN_CONFIG,
   PERPS_BALANCE_CHAIN_ID,
@@ -40,7 +39,6 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activityTitle = strings('perps.home.recent_activity');
@@ -76,66 +74,42 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     [navigation, trackEvent, createEventBuilder],
   );
 
-  const renderRightContent = useCallback((transaction: PerpsTransaction) => {
-    if (!transaction.fill) return null;
-
-    const pnlColor = transaction.fill.isPositive
-      ? TextColor.Success
-      : TextColor.Error;
-    return (
-      <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
-        {transaction.fill.amount}
-      </Text>
-    );
-  }, []);
-
   const renderItem = useCallback(
     (props: { item: PerpsTransaction }) => {
       const { item } = props;
+      const fill = item.fill;
 
       return (
-        <TouchableOpacity
-          style={styles.activityItem}
+        <ListItem
+          isInteractive
+          avatar={
+            <PerpsTokenLogo
+              symbol={item.asset}
+              size={iconSize}
+              recyclingKey={`${item.asset}-${item.id}`}
+            />
+          }
+          title={item.title}
+          titleEndAccessory={
+            <PerpsFillTag
+              transaction={item}
+              screenName={PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_HOME}
+            />
+          }
+          description={
+            item.subtitle ? getPerpsDisplaySymbol(item.subtitle) : undefined
+          }
+          value={fill?.amount}
+          valueProps={{
+            color: fill?.isPositive
+              ? TextColor.SuccessDefault
+              : TextColor.ErrorDefault,
+          }}
           onPress={() => handleTransactionPress(item)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.leftSection}>
-            <View style={styles.iconContainer}>
-              <PerpsTokenLogo
-                symbol={item.asset}
-                size={iconSize}
-                recyclingKey={`${item.asset}-${item.id}`}
-              />
-            </View>
-            <View style={styles.activityInfo}>
-              <View style={styles.activityTitleRow}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                  style={styles.activityType}
-                >
-                  {item.title}
-                </Text>
-                <PerpsFillTag
-                  transaction={item}
-                  screenName={PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_HOME}
-                />
-              </View>
-              {!!item.subtitle && (
-                <Text
-                  variant={TextVariant.BodySM}
-                  style={styles.activityAmount}
-                >
-                  {getPerpsDisplaySymbol(item.subtitle)}
-                </Text>
-              )}
-            </View>
-          </View>
-          <View style={styles.rightSection}>{renderRightContent(item)}</View>
-        </TouchableOpacity>
+        />
       );
     },
-    [styles, handleTransactionPress, iconSize, renderRightContent],
+    [handleTransactionPress, iconSize],
   );
 
   if (isLoading) {

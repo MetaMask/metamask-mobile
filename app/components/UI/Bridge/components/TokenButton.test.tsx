@@ -1,11 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useABTest } from '../../../../hooks';
 import { TokenButton } from './TokenButton';
-
-jest.mock('../../../../hooks', () => ({
-  useABTest: jest.fn(),
-}));
 
 jest.mock('../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
@@ -92,38 +87,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockUseABTest = jest.mocked(useABTest);
-
 describe('TokenButton', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('hides security badge in control variant', () => {
-    mockUseABTest.mockReturnValue({
-      variant: { showVerifiedBadge: false },
-      variantName: 'control',
-      isActive: true,
-    });
-
-    const { queryByTestId } = render(
-      <TokenButton
-        symbol="ETH"
-        iconUrl="https://example.com/eth"
-        securityBadgeAssetId="eip155:1/slip44:60"
-      />,
-    );
-
-    expect(queryByTestId('swaps-token-security-badge')).toBeNull();
-  });
-
-  it('shows security badge in treatment variant when asset id is available', () => {
-    mockUseABTest.mockReturnValue({
-      variant: { showVerifiedBadge: true },
-      variantName: 'treatment',
-      isActive: true,
-    });
-
+  it('shows security badge when asset id is available', () => {
     const { getByTestId } = render(
       <TokenButton
         symbol="ETH"
@@ -135,13 +100,7 @@ describe('TokenButton', () => {
     expect(getByTestId('swaps-token-security-badge')).toBeOnTheScreen();
   });
 
-  it('hides security badge in treatment variant when asset id is unavailable', () => {
-    mockUseABTest.mockReturnValue({
-      variant: { showVerifiedBadge: true },
-      variantName: 'treatment',
-      isActive: true,
-    });
-
+  it('hides security badge when asset id is unavailable', () => {
     const { queryByTestId } = render(
       <TokenButton symbol="ETH" iconUrl="https://example.com/eth" />,
     );
