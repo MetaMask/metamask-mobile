@@ -198,6 +198,78 @@ export type VipFeesResponseDto = {
   updatedAt: string | null;
 };
 
+export type VipTransactionType = 'PERPS' | 'SWAP';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsTransactionDetailDto = {
+  coin: string;
+  feeCoin: string;
+  rawFee: string;
+  rawNotionalVolume: string;
+  tradeId: string;
+  orderId: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipSwapTransactionDetailDto = {
+  quoteId: string;
+  bridgeId?: string;
+  srcChainId: string;
+  srcAssetSymbol?: string;
+  destChainId: string;
+  destAssetSymbol?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionDto = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PaginatedVipTransactionsDto = {
+  results: VipTransactionDto[];
+  has_more: boolean;
+  cursor: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type GetVipTransactionsDto = {
+  subscriptionId: string;
+  type: VipTransactionType;
+  cursor: string | null;
+  forceFresh?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsLastUpdatedDto = {
+  lastUpdated: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionEntryState = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsState = {
+  results: VipTransactionEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
+};
+
 // Per-subscription cache for VIP perps builder fee.
 // We store the raw bips string from the backend rather than a derived
 // discount so the cache stays valid if the perps base fee constant changes.
@@ -2371,6 +2443,10 @@ export type RewardsControllerState = {
   };
   vipPerpsFees: {
     [subscriptionId: string]: VipPerpsFeesState;
+  };
+  /** First-page VIP transactions keyed by subscriptionId:type. */
+  vipTransactions: {
+    [compositeId: string]: VipTransactionsState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };

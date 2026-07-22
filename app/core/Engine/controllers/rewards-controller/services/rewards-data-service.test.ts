@@ -214,6 +214,18 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactions',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:lookupVipTransaction',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactionsLastUpdated',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:postBenefitImpression',
         expect.any(Function),
       );
@@ -4639,6 +4651,126 @@ describe('RewardsDataService', () => {
       await expect(service.getVipFees(mockSubscriptionId)).rejects.toThrow(
         'Get VIP fees failed: 500',
       );
+    });
+  });
+
+  describe('VIP transactions', () => {
+    const subscriptionId = 'sub-vip-transactions';
+    const token = 'vip-transactions-token';
+    const transaction = {
+      id: 'transaction-id',
+      type: 'PERPS' as const,
+      timestamp: '2026-07-20T12:00:00.000Z',
+      feeUsd: '1.00',
+      volumeUsd: '100.00',
+      perps: {
+        coin: 'ETH',
+        feeCoin: 'USDC',
+        rawFee: '1',
+        rawNotionalVolume: '100',
+        tradeId: '123',
+        orderId: '456',
+      },
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token,
+      });
+    });
+
+    it('fetches an encoded page of VIP transactions', async () => {
+      const page = {
+        results: [transaction],
+        has_more: false,
+        cursor: null,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(page),
+      } as unknown as Response);
+
+      const result = await service.getVipTransactions(
+        subscriptionId,
+        'PERPS',
+        'next cursor',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions?type=PERPS&cursor=next%20cursor',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(page);
+    });
+
+    it('looks up a VIP transaction by encoded natural key', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(transaction),
+      } as unknown as Response);
+
+      await expect(
+        service.lookupVipTransaction(subscriptionId, 'quote/id?'),
+      ).resolves.toEqual(transaction);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions/lookup?key=quote%2Fid%3F',
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('returns the VIP transaction last-updated timestamp as a Date', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({
+          lastUpdated: '2026-07-20T12:00:00.000Z',
+        }),
+      } as unknown as Response);
+
+      await expect(
+        service.getVipTransactionsLastUpdated(subscriptionId, 'SWAP'),
+      ).resolves.toEqual(new Date('2026-07-20T12:00:00.000Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions/last-updated?type=SWAP',
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('returns null when no VIP transaction has been recorded', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({ lastUpdated: null }),
+      } as unknown as Response);
+
+      await expect(
+        service.getVipTransactionsLastUpdated(subscriptionId, 'PERPS'),
+      ).resolves.toBeNull();
+    });
+
+    it.each([
+      [
+        'getVipTransactions',
+        () => service.getVipTransactions(subscriptionId, 'PERPS', null),
+      ],
+      [
+        'lookupVipTransaction',
+        () => service.lookupVipTransaction(subscriptionId, '123'),
+      ],
+      [
+        'getVipTransactionsLastUpdated',
+        () => service.getVipTransactionsLastUpdated(subscriptionId, 'PERPS'),
+      ],
+    ])('throws when %s receives an unsuccessful response', async (_, call) => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(call()).rejects.toThrow('failed: 500');
     });
   });
 

@@ -21963,6 +21963,251 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('VIP transactions', () => {
+    const subscriptionId = 'sub-vip-transactions';
+    const transaction = {
+      id: 'transaction-id',
+      type: 'PERPS' as const,
+      timestamp: '2026-07-20T12:00:00.000Z',
+      feeUsd: '1.00',
+      volumeUsd: '100.00',
+      perps: {
+        coin: 'ETH',
+        feeCoin: 'USDC',
+        rawFee: '1',
+        rawNotionalVolume: '100',
+        tradeId: '123',
+        orderId: '456',
+      },
+    };
+    const page = {
+      results: [transaction],
+      has_more: false,
+      cursor: null,
+    };
+    let vipTransactionsMessenger: jest.Mocked<RewardsControllerMessenger>;
+
+    beforeEach(() => {
+      vipTransactionsMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('does not fetch transactions when VIP is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: getRewardsControllerDefaultState(),
+        isVipDisabled: () => true,
+      });
+
+      await expect(
+        disabledController.getVipTransactions({
+          subscriptionId,
+          type: 'PERPS',
+          cursor: null,
+        }),
+      ).resolves.toEqual({ results: [], has_more: false, cursor: null });
+      expect(vipTransactionsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches and caches the first page by subscription and type', async () => {
+      const ctrl = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      vipTransactionsMessenger.call.mockResolvedValue(page as never);
+
+      await expect(
+        ctrl.getVipTransactions({
+          subscriptionId,
+          type: 'PERPS',
+          cursor: null,
+        }),
+      ).resolves.toEqual(page);
+
+      expect(vipTransactionsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactions',
+        subscriptionId,
+        'PERPS',
+        null,
+      );
+      expect(ctrl.state.vipTransactions[`${subscriptionId}:PERPS`]).toEqual(
+        expect.objectContaining(page),
+      );
+    });
+
+    it('uses the cached first page when last-updated has not changed', async () => {
+      const ctrl = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipTransactions: {
+            [`${subscriptionId}:PERPS`]: {
+              ...page,
+              lastFetched: Date.now() - 1000,
+            },
+          },
+        },
+      });
+      vipTransactionsMessenger.call.mockResolvedValue(
+        new Date(transaction.timestamp) as never,
+      );
+
+      await expect(
+        ctrl.getVipTransactions({
+          subscriptionId,
+          type: 'PERPS',
+          cursor: null,
+          forceFresh: true,
+        }),
+      ).resolves.toEqual(page);
+      expect(vipTransactionsMessenger.call).toHaveBeenCalledTimes(1);
+      expect(vipTransactionsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactionsLastUpdated',
+        subscriptionId,
+        'PERPS',
+      );
+    });
+
+    it('replaces a stale first page when the newest timestamp changes', async () => {
+      const freshPage = {
+        ...page,
+        results: [
+          {
+            ...transaction,
+            id: 'fresh-transaction-id',
+            timestamp: '2026-07-21T12:00:00.000Z',
+          },
+        ],
+      };
+      const ctrl = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipTransactions: {
+            [`${subscriptionId}:PERPS`]: {
+              ...page,
+              lastFetched: Date.now() - 1000,
+            },
+          },
+        },
+      });
+      vipTransactionsMessenger.call
+        .mockResolvedValueOnce(
+          new Date(freshPage.results[0].timestamp) as never,
+        )
+        .mockResolvedValueOnce(freshPage as never);
+
+      await expect(
+        ctrl.getVipTransactions({
+          subscriptionId,
+          type: 'PERPS',
+          cursor: null,
+        }),
+      ).resolves.toEqual(freshPage);
+      expect(vipTransactionsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactions',
+        subscriptionId,
+        'PERPS',
+        null,
+      );
+      expect(
+        ctrl.state.vipTransactions[`${subscriptionId}:PERPS`].results[0].id,
+      ).toBe('fresh-transaction-id');
+    });
+
+    it('fetches cursor pages directly without changing first-page cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      vipTransactionsMessenger.call.mockResolvedValue(page as never);
+
+      await ctrl.getVipTransactions({
+        subscriptionId,
+        type: 'SWAP',
+        cursor: 'page-2',
+      });
+
+      expect(vipTransactionsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactions',
+        subscriptionId,
+        'SWAP',
+        'page-2',
+      );
+      expect(ctrl.state.vipTransactions).toEqual({});
+    });
+
+    it('looks up a transaction without caching it', async () => {
+      const ctrl = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      vipTransactionsMessenger.call.mockResolvedValue(transaction as never);
+
+      await expect(
+        ctrl.lookupVipTransaction(subscriptionId, '123'),
+      ).resolves.toEqual(transaction);
+      expect(vipTransactionsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:lookupVipTransaction',
+        subscriptionId,
+        '123',
+      );
+      expect(ctrl.state.vipTransactions).toEqual({});
+    });
+
+    it('returns null from lookup without a network call when VIP is disabled', async () => {
+      const ctrl = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: getRewardsControllerDefaultState(),
+        isVipDisabled: () => true,
+      });
+
+      await expect(
+        ctrl.lookupVipTransaction(subscriptionId, '123'),
+      ).resolves.toBeNull();
+      expect(vipTransactionsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('invalidates every transaction type for the subscription', () => {
+      const otherSubscriptionId = 'other-subscription';
+      const ctrl = new RewardsController({
+        messenger: vipTransactionsMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipTransactions: {
+            [`${subscriptionId}:PERPS`]: {
+              ...page,
+              lastFetched: Date.now(),
+            },
+            [`${subscriptionId}:SWAP`]: {
+              ...page,
+              lastFetched: Date.now(),
+            },
+            [`${otherSubscriptionId}:PERPS`]: {
+              ...page,
+              lastFetched: Date.now(),
+            },
+          },
+        },
+      });
+
+      ctrl.invalidateSubscriptionCache({ subscriptionId });
+
+      expect(ctrl.state.vipTransactions).toEqual({
+        [`${otherSubscriptionId}:PERPS`]: expect.any(Object),
+      });
+    });
+  });
+
   describe('getOndoCampaignActivity', () => {
     let ondoActivityMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-activity';

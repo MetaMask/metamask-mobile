@@ -665,6 +665,31 @@ export type RewardsControllerGetVipRefereeDashboardAction = {
   handler: RewardsController['getVipRefereeDashboard'];
 };
 
+export type RewardsControllerGetVipTransactionsAction = {
+  type: `RewardsController:getVipTransactions`;
+  handler: RewardsController['getVipTransactions'];
+};
+
+export type RewardsControllerGetVipTransactionsIfChangedAction = {
+  type: `RewardsController:getVipTransactionsIfChanged`;
+  handler: RewardsController['getVipTransactionsIfChanged'];
+};
+
+export type RewardsControllerGetVipTransactionsLastUpdatedAction = {
+  type: `RewardsController:getVipTransactionsLastUpdated`;
+  handler: RewardsController['getVipTransactionsLastUpdated'];
+};
+
+export type RewardsControllerHasVipTransactionsChangedAction = {
+  type: `RewardsController:hasVipTransactionsChanged`;
+  handler: RewardsController['hasVipTransactionsChanged'];
+};
+
+export type RewardsControllerLookupVipTransactionAction = {
+  type: `RewardsController:lookupVipTransaction`;
+  handler: RewardsController['lookupVipTransaction'];
+};
+
 /**
  * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
  * @param subscriptionId - The subscription ID for authentication
@@ -884,6 +909,11 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetBenefitsAction
   | RewardsControllerGetVIPDashboardAction
   | RewardsControllerGetVipRefereeDashboardAction
+  | RewardsControllerGetVipTransactionsAction
+  | RewardsControllerGetVipTransactionsIfChangedAction
+  | RewardsControllerGetVipTransactionsLastUpdatedAction
+  | RewardsControllerHasVipTransactionsChangedAction
+  | RewardsControllerLookupVipTransactionAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
