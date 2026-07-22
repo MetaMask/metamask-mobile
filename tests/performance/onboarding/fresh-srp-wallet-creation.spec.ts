@@ -29,11 +29,17 @@ import {
   System,
 } from '../../tags.performance.js';
 
-type PostOnboardingDestination =
-  | 'interest-questionnaire'
-  | 'push-notification'
-  | 'predict-modal'
-  | 'wallet';
+// Single source of truth for post-onboarding destinations. The count is used
+// as the loop safety cap so adding a new destination automatically extends
+// the cap.
+const POST_ONBOARDING_DESTINATIONS = [
+  'interest-questionnaire',
+  'push-notification',
+  'predict-modal',
+  'wallet',
+] as const;
+
+type PostOnboardingDestination = (typeof POST_ONBOARDING_DESTINATIONS)[number];
 
 type PostOnboardingSource =
   | 'metametrics'
@@ -229,6 +235,12 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         );
       });
 
+      // Note: `IMPORT_SEED_BUTTON` is the testID name, but the underlying
+      // component (app/components/Views/OnboardingSheet/index.tsx) toggles
+      // its behavior on the `createWallet` prop. Because we entered via
+      // "Create a new wallet", tapping this button fires `onPressCreate` and
+      // navigates to ChoosePassword — i.e. it starts a fresh SRP creation,
+      // not an import. The Page Object method name mirrors the testID.
       await OnboardingSheet.tapImportSeedButton();
       await passwordScreenTimer.measure(async () => {
         await CreatePasswordView.isVisible();
@@ -272,17 +284,23 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       const postOnboardingTimers: TimerHelper[] = [];
       let source: PostOnboardingSource = 'metametrics';
       const dismissedDestinations = new Set<PostOnboardingDestination>();
-      let step = 1;
+      let destination: PostOnboardingDestination | undefined;
 
       await MetaMetricsOptInView.tapAgreeButton();
 
-      while (step <= 4) {
+      // Safety cap derived from POST_ONBOARDING_DESTINATIONS so adding a
+      // new destination extends the cap automatically.
+      for (
+        let hop = 1;
+        hop <= POST_ONBOARDING_DESTINATIONS.length && destination !== 'wallet';
+        hop += 1
+      ) {
         const transitionTimer = new TimerHelper(
-          `Fresh SRP post-onboarding transition ${step}`,
+          `Fresh SRP post-onboarding transition ${hop}`,
           POST_ONBOARDING_THRESHOLD,
           currentDeviceDetails.platform,
         );
-        const destination = await measurePostOnboardingDestination(
+        destination = await measurePostOnboardingDestination(
           appDriver,
           transitionTimer,
           dismissedDestinations,
@@ -300,14 +318,15 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await dismissPostOnboardingDestination(destination);
         dismissedDestinations.add(destination);
         source = destination;
-        step += 1;
       }
 
-      if (postOnboardingTimers.length === 4) {
-        const lastTimer = postOnboardingTimers.at(-1);
-        if (!lastTimer?.id.includes('usable wallet')) {
-          throw new Error('Usable wallet was not reached after onboarding');
-        }
+      // Assert on the resolved destination, not on the timer count or label
+      // string — the loop must reach the usable wallet regardless of how many
+      // post-onboarding prompts appeared along the way.
+      if (destination !== 'wallet') {
+        throw new Error(
+          `Fresh SRP onboarding did not reach the usable wallet after ${postOnboardingTimers.length} post-onboarding transition(s)`,
+        );
       }
 
       performanceTracker.addTimers(...postOnboardingTimers);
