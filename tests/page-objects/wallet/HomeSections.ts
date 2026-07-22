@@ -46,7 +46,7 @@ class TokensFullView {
             .withDescendant(by.text(stakedLabel))
             .withDescendant(by.text(amountText))
             .withDescendant(by.text(WalletAssetSelectorsRegex.FIAT_BALANCE)),
-        ),
+        ) as unknown as EncapsulatedElementType,
       appium: () => {
         if (PlatformDetector.isIOS()) {
           return PlaywrightMatchers.getElementByIOSPredicate(
