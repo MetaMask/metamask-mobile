@@ -227,6 +227,9 @@ describe('SocialLoginErrorSheet', () => {
     );
   });
 
+  // Covers only the call-site opener wiring: invoking the opener passed to
+  // openSupportWithConsent opens the URL via Linking. The consent modal
+  // internals are covered by the core support-consent tests.
   it('opens the support URL via Linking when the opener callback is invoked', () => {
     const { getByText } = renderSheet({}, initialState);
     const supportLink = getByText('MetaMask Support');
