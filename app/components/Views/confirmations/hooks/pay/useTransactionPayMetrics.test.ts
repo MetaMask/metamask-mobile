@@ -1348,4 +1348,45 @@ describe('useTransactionPayMetrics', () => {
       expect(calledProps).not.toHaveProperty('mm_pay_entry_point');
     });
   });
+
+  describe('confirmation_time_to_open_ms', () => {
+    it('captures timing on first render', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: expect.objectContaining({
+          properties: expect.objectContaining({
+            confirmation_time_to_open_ms: 1000,
+          }),
+        }),
+      });
+    });
+
+    it('preserves the first captured value across re-renders', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      jest.spyOn(Date, 'now').mockReturnValue(1746696750000);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      const lastCall = updateConfirmationMetricMock.mock.calls.at(-1)?.[0] as {
+        params: { properties: Record<string, unknown> };
+      };
+
+      expect(lastCall.params.properties.confirmation_time_to_open_ms).toBe(
+        1000,
+      );
+    });
+  });
 });

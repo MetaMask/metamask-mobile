@@ -108,8 +108,23 @@ export function useTransactionPayMetrics() {
     automaticPayToken.current = payToken;
   }
 
+  const confirmationTimeToOpenMs = useRef<number | undefined>(undefined);
+  if (
+    confirmationTimeToOpenMs.current === undefined &&
+    typeof transactionMeta?.time === 'number' &&
+    transactionMeta.time > 0
+  ) {
+    confirmationTimeToOpenMs.current = Math.round(
+      Date.now() - transactionMeta.time,
+    );
+  }
+
   const properties: Json = {};
   const sensitiveProperties: Json = {};
+
+  if (confirmationTimeToOpenMs.current !== undefined) {
+    properties.confirmation_time_to_open_ms = confirmationTimeToOpenMs.current;
+  }
 
   if (payToken) {
     properties.mm_pay_token_presented =
