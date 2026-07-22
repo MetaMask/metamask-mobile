@@ -162,7 +162,7 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 
 // Mock design system components - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
-  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const { TouchableOpacity } = jest.requireActual('react-native');
   const React = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
@@ -175,17 +175,9 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       onPress?: () => void;
     }) => React.createElement(TouchableOpacity, { testID, onPress }),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
   };
 });
 
-// Mock Text component
 // Mock Avatar types
 jest.mock(
   '../../../../../component-library/components/Avatars/Avatar/Avatar.types',

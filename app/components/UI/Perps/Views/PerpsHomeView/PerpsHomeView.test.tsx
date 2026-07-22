@@ -215,7 +215,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
-  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const { TouchableOpacity } = jest.requireActual('react-native');
   const React = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
@@ -226,13 +226,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       onPress?: () => void;
     }) => React.createElement(TouchableOpacity, { testID, onPress }),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
     Box: 'Box',
   };
 });
