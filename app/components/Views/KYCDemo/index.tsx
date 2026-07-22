@@ -14,9 +14,9 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths
 import MoonpayDemo from '../MoonpayDemo/';
 // eslint-disable-next-line import-x/no-restricted-paths
-import SumSubDemo from '../SumSubDemo/';
+import useKycFlow from '../MoonpayDemo/useKycFlow';
 // eslint-disable-next-line import-x/no-restricted-paths
-import useSumSubDemo from '../SumSubDemo/useSumSubDemo';
+import SumSubDemo from '../SumSubDemo/';
 
 const styles = StyleSheet.create({
   container: {
@@ -34,17 +34,29 @@ const styles = StyleSheet.create({
   },
 });
 
+// Human-readable label for each SumSub sub-flow status.
+const SUMSUB_STATUS_LABEL: Record<string, string> = {
+  creatingSession: 'Creating UKYC session...',
+  fetchingToken: 'Fetching access token...',
+  launching: 'Launching SumSub SDK...',
+  inProgress: 'Verification in progress...',
+  complete: 'Complete',
+  failed: 'Failed',
+};
+
 const KYCDemo = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  // Single shared SumSub instance: MoonpayDemo triggers `launchSumSubSDK` once
-  // KYC is required, and SumSubDemo renders that same instance's progress.
-  const { isLoading, launchSumSubSDK, sdkResult, status } = useSumSubDemo();
+  // Single shared KYC flow bound to the platform-agnostic KycController.
+  // MoonpayDemo drives the identity flow and triggers the SumSub hand-off;
+  // SumSubDemo renders the sub-flow's progress/result from controller state.
+  const flow = useKycFlow();
+  const { sumsub } = flow;
 
-  // Switch to the SumSub view as soon as it is launched, and keep it visible
-  // through completion (status/result persist after loading finishes).
-  const showSumSubDemo = isLoading || status !== null;
+  // Switch to the SumSub view as soon as the sub-flow starts, and keep it
+  // visible through completion.
+  const showSumSubDemo = sumsub.status !== 'idle';
 
   return (
     <SafeAreaView
@@ -60,8 +72,13 @@ const KYCDemo = () => {
           KYC Demo
         </Text>
       </View>
-      {!showSumSubDemo && <MoonpayDemo launchSumSubSDK={launchSumSubSDK} />}
-      {showSumSubDemo && <SumSubDemo sdkResult={sdkResult} status={status} />}
+      {!showSumSubDemo && <MoonpayDemo flow={flow} />}
+      {showSumSubDemo && (
+        <SumSubDemo
+          sdkResult={sumsub.result as Record<string, unknown> | null}
+          status={SUMSUB_STATUS_LABEL[sumsub.status] ?? sumsub.status}
+        />
+      )}
     </SafeAreaView>
   );
 };
