@@ -830,6 +830,7 @@ const ConnectHardwareWalletFlow = () => {
   return (
     <NativeStack.Navigator
       screenOptions={{
+        headerShown: false,
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
