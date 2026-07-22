@@ -209,6 +209,8 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
 const mockSetPerpsMode = jest.fn();
+// Mutable active mode surfaced by the mocked usePerpsMode hook.
+let mockPerpsModeValue = 'lite';
 
 // usePerpsNavigation mock functions
 const mockNavigateToHome = jest.fn();
@@ -589,7 +591,7 @@ jest.mock('../../hooks', () => ({
     refetch: jest.fn(),
   })),
   usePerpsMode: jest.fn(() => ({
-    mode: 'lite',
+    mode: mockPerpsModeValue,
     setMode: mockSetPerpsMode,
   })),
   usePerpsTrading: jest.fn(() => ({
@@ -950,6 +952,8 @@ describe('PerpsMarketDetailsView', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockSetPerpsMode.mockClear();
+    mockNavigateToHome.mockClear();
+    mockPerpsModeValue = 'lite';
   });
 
   it('renders correctly', () => {
@@ -1025,7 +1029,7 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('flips the mode and shows the transition screen when the active-mode pill is pressed', () => {
+  it('flips to Pro and stays on the current market when the active-mode pill is pressed', () => {
     enableProModeFlag();
 
     const { getByTestId } = renderWithProvider(
@@ -1040,10 +1044,30 @@ describe('PerpsMarketDetailsView', () => {
     // Mocked mode is Lite, so pressing the pill flips to Pro.
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
 
+    // Switching to Pro persists the mode but keeps the user on the current
+    // market (the flash overlay is triggered via Redux, not navigation).
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODE_TRANSITION, {
-      mode: 'pro',
-    });
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+  });
+
+  it('flips to Lite and navigates back to Perps home when the active-mode pill is pressed', () => {
+    enableProModeFlag();
+    mockPerpsModeValue = PerpsMode.Pro;
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    // Mocked mode is Pro, so pressing the pill flips to Lite.
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockNavigateToHome).toHaveBeenCalled();
   });
 
   it('does not show the active-mode pill when the Pro mode flag is disabled', () => {

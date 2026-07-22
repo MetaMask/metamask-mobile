@@ -212,6 +212,7 @@ const persistConfig = {
     'engine',
     'qrKeyringScanner',
     'securityAlerts',
+    'perpsModeFlash',
   ],
   storage: MigratedStorage,
   transforms: [

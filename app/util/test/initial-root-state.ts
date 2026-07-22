@@ -9,6 +9,7 @@ import { initialState as initialBridgeState } from '../../core/redux/slices/brid
 import { initialState as initialQrKeyringScannerState } from '../../core/redux/slices/qrKeyringScanner';
 import { initialState as initialCardState } from '../../core/redux/slices/card';
 import { initialState as initialMoneyBalanceState } from '../../core/redux/slices/moneyBalance';
+import { initialState as initialPerpsModeFlashState } from '../../core/redux/slices/perpsModeFlash';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
@@ -76,6 +77,7 @@ const initialRootState: RootState = {
   sampleCounter: initialSampleCounterState,
   card: initialCardState,
   moneyBalance: initialMoneyBalanceState,
+  perpsModeFlash: initialPerpsModeFlashState,
   rewards: initialRewardsState,
   networkConnectionBanner: initialNetworkConnectionBannerState,
   attribution: {

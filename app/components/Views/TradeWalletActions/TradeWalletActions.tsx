@@ -48,7 +48,7 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -80,6 +80,8 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { usePerpsMode } from '../../UI/Perps/hooks';
 import PerpsModeToggle from '../../UI/Perps/components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../../core/redux/slices/perpsModeFlash';
+import { buildDefaultProMarket } from '../../UI/Perps/utils/perpsModeSwitch';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -111,6 +113,7 @@ interface TradeWalletActionsParams {
 
 function TradeWalletActions() {
   const { navigate } = useNavigation();
+  const dispatch = useDispatch();
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
@@ -247,23 +250,42 @@ function TradeWalletActions() {
       // Dismiss the Trade sheet, then route the user into Perps.
       postCallback.current = () => {
         // First-time users must still go through onboarding (same as tapping
-        // the Perps row): the mode-transition screen redirects to Perps home,
-        // which would skip the tutorial otherwise.
+        // the Perps row): routing straight into Perps would skip the tutorial
+        // otherwise, so no mode-switch flash is shown here.
         if (isFirstTimePerpsUser) {
           navigate(Routes.PERPS.TUTORIAL);
           return;
         }
-        // Returning users see the full-screen mode-switch interstitial (which
-        // auto-redirects to Perps home).
+        // Flash the destination mode on top of the Perps stack once it mounts.
+        dispatch(showPerpsModeFlash(nextMode));
+        if (nextMode === PerpsMode.Pro) {
+          // Pro lands on the default (BTC) market screen, with Perps home
+          // seeded beneath it (initial: false) so back navigation works.
+          navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.MARKET_DETAILS,
+            params: {
+              market: buildDefaultProMarket(),
+              source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+            },
+            initial: false,
+          });
+          return;
+        }
+        // Lite lands on Perps home.
         navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MODE_TRANSITION,
-          params: { mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite' },
+          screen: Routes.PERPS.PERPS_HOME,
           initial: false,
         });
       };
       handleNavigateBack();
     },
-    [handleNavigateBack, navigate, setPerpsMode, isFirstTimePerpsUser],
+    [
+      handleNavigateBack,
+      navigate,
+      setPerpsMode,
+      isFirstTimePerpsUser,
+      dispatch,
+    ],
   );
 
   const onPredict = useCallback(() => {

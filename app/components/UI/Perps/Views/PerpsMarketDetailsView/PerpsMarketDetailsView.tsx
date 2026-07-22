@@ -73,6 +73,7 @@ import {
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../../../../core/redux/slices/perpsModeFlash';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
@@ -342,17 +343,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isWatchlist = useSelector(selectIsWatchlist);
 
   // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Pressing it
-  // flips the shared mode and shows the switch interstitial.
+  // flips the shared mode and flashes the switch on top of the screen.
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
-      navigation.navigate(Routes.PERPS.MODE_TRANSITION, {
-        mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite',
-      });
+      dispatch(showPerpsModeFlash(nextMode));
+      // Already on a market page: per AC, Pro stays here; Lite returns to
+      // Perps home.
+      if (nextMode === PerpsMode.Lite) {
+        navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
+      }
     },
-    [navigation, setPerpsMode],
+    [dispatch, navigateToHome, setPerpsMode],
   );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks

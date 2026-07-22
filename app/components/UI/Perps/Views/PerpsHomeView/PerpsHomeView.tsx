@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -70,6 +70,8 @@ import {
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../../../../core/redux/slices/perpsModeFlash';
+import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
@@ -158,6 +160,7 @@ const PerpsHomeView = ({
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -181,12 +184,17 @@ const PerpsHomeView = ({
   const handleModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
-      // Show the full-screen interstitial, which auto-redirects to Perps home.
-      navigation.navigate(Routes.PERPS.MODE_TRANSITION, {
-        mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite',
-      });
+      // Flash the destination mode on top of the current screen.
+      dispatch(showPerpsModeFlash(nextMode));
+      // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
+      if (nextMode === PerpsMode.Pro) {
+        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+          market: buildDefaultProMarket(),
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        });
+      }
     },
-    [navigation, setPerpsMode],
+    [navigation, setPerpsMode, dispatch],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();

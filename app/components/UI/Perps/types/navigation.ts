@@ -205,12 +205,6 @@ export type PerpsStackParamList = {
     redirectParams?: Record<string, unknown>;
   };
 
-  // Lite/Pro mode-switch interstitial
-  PerpsModeTransition: {
-    /** Destination mode being switched to; drives the "Pro Mode"/"Lite Mode" title. */
-    mode: 'lite' | 'pro';
-  };
-
   // TP/SL screen
   PerpsTPSL: {
     asset: string;

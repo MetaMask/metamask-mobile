@@ -721,7 +721,7 @@ describe('TradeWalletActions', () => {
     expect(queryByTestId('perps-mode-toggle')).toBeNull();
   });
 
-  it('shows the mode-transition screen after dismissing the sheet when the toggle switches mode', async () => {
+  it('routes into the default Pro market after dismissing the sheet when the toggle switches to Pro', async () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -743,8 +743,10 @@ describe('TradeWalletActions', () => {
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MODE_TRANSITION,
-      params: { mode: 'pro' },
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: expect.objectContaining({
+        market: expect.objectContaining({ symbol: 'BTC' }),
+      }),
       initial: false,
     });
   });
@@ -775,12 +777,12 @@ describe('TradeWalletActions', () => {
     await pressActionButton(getByTestId, 'perps-mode-toggle');
 
     // Mode is still persisted, but onboarding is not skipped: the user is sent
-    // to the tutorial instead of the mode-transition/home shortcut.
+    // to the tutorial instead of the mode-switch/home shortcut.
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.ROOT,
-      expect.objectContaining({ screen: Routes.PERPS.MODE_TRANSITION }),
+      expect.objectContaining({ screen: Routes.PERPS.MARKET_DETAILS }),
     );
   });
 

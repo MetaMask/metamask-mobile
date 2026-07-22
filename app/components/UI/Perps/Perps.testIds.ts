@@ -942,10 +942,10 @@ export const PerpsModeToggleSelectorsIDs = {
 } as const;
 
 // ========================================
-// PERPS MODE TRANSITION SELECTORS
+// PERPS MODE FLASH SELECTORS
 // ========================================
 
-export const PerpsModeTransitionSelectorsIDs = {
-  CONTAINER: 'perps-mode-transition',
-  TITLE: 'perps-mode-transition-title',
+export const PerpsModeFlashSelectorsIDs = {
+  CONTAINER: 'perps-mode-flash',
+  TITLE: 'perps-mode-flash-title',
 } as const;

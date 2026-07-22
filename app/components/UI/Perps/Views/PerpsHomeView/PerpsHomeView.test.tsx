@@ -622,7 +622,7 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
   });
 
-  it('navigates to the mode-transition screen when the header toggle switches mode', () => {
+  it('navigates to the default Pro market when the header toggle switches to Pro', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -632,11 +632,14 @@ describe('PerpsHomeView', () => {
     // Act - stubbed toggle switches to Pro on press
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - persists the new mode and shows the transition interstitial
+    // Assert - persists the new mode and lands on the default (BTC) market
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODE_TRANSITION, {
-      mode: 'pro',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PERPS.MARKET_DETAILS,
+      expect.objectContaining({
+        market: expect.objectContaining({ symbol: 'BTC' }),
+      }),
+    );
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {

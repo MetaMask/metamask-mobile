@@ -19,7 +19,7 @@ import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
 
 /**
  * Perps "Pro" accent colors from Figma, not yet part of the shared design-token
- * palette (see also `PerpsModeTransition`), so they are defined locally.
+ * palette (see also `PerpsModeFlashContainer`), so they are defined locally.
  *
  * `PERPS_PRO_ACCENT_COLOR` is `accent/02/normal` — the purple "Pro" text.
  * `PERPS_PRO_ACCENT_SELECTED_BG` is `accent/02/normal` at ~18% over

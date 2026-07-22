@@ -371,7 +371,6 @@ const Routes = {
     MARKET_DETAILS: 'PerpsMarketDetails',
     MARKET_LIST: 'PerpsTrendingView',
     TUTORIAL: 'PerpsTutorial',
-    MODE_TRANSITION: 'PerpsModeTransition', // Full-screen Lite/Pro switch interstitial
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
