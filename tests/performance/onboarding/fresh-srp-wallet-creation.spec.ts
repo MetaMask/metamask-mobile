@@ -5,12 +5,12 @@ import {
   isOverheadTrackingActive,
   PlaywrightAssertions,
   PlaywrightGestures,
-  PlaywrightMatchers,
 } from '../../framework';
 import { OnboardingInterestQuestionnaireTestIds } from '../../../app/components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.testIds';
 import { NewUserSheetSelectorsIDs } from '../../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import { PREDICT_GTM_MODAL_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictGTMModal/PredictGTMModal.testIds';
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import TimerHelper, {
   type PlatformThreshold,
 } from '../../framework/TimerHelper';
@@ -88,13 +88,12 @@ const waitForPostOnboardingDestination = async (
       getElement: () => asPlaywrightElement(PredictModalView.notNowButton),
     },
     {
+      // Wait on the tab-bar Wallet button (matches import-wallet.spec.ts) so
+      // the timer stops when the home experience is actually usable, not
+      // just when the wallet shell mounts.
       destination: 'wallet',
-      marker: WalletViewSelectorsIDs.WALLET_CONTAINER,
-      getElement: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.WALLET_CONTAINER,
-          { exact: true },
-        ),
+      marker: TabBarSelectorIDs.WALLET,
+      getElement: () => asPlaywrightElement(TabBarComponent.tabBarWalletButton),
     },
   ];
 
@@ -104,20 +103,19 @@ const waitForPostOnboardingDestination = async (
     async () => {
       const probeStartedAt = Date.now();
       const pageSource = await appDriver.getPageSource();
+      // Every getPageSource poll is Appium round-trip work, not app work —
+      // account for the full probe so cumulative polling latency doesn't
+      // inflate the measured transition duration. The `waitForDisplayed`
+      // check below adds its own bounded probe on top.
+      if (isOverheadTrackingActive()) {
+        addOverhead(Date.now() - probeStartedAt);
+      }
       visibleCandidate = candidates.find(
         (candidate) =>
           !dismissedDestinations.has(candidate.destination) &&
           pageSource.includes(candidate.marker),
       );
-
-      if (visibleCandidate) {
-        if (isOverheadTrackingActive()) {
-          addOverhead(Date.now() - probeStartedAt);
-        }
-        return true;
-      }
-
-      return false;
+      return Boolean(visibleCandidate);
     },
     {
       timeout: 30_000,
@@ -131,12 +129,20 @@ const waitForPostOnboardingDestination = async (
     throw new Error('Post-onboarding destination was not resolved');
   }
 
+  // `pageSource.includes(marker)` matches any occurrence in the hierarchy —
+  // a mounted-but-covered route (e.g. Wallet behind a sheet) can win before
+  // the topmost sheet is dismissed. Assert the specific candidate element is
+  // actually displayed to guard against selecting a covered screen.
+  const displayedProbeStartedAt = Date.now();
   await PlaywrightAssertions.expectElementToBeVisible(
     resolvedCandidate.getElement(),
     {
       description: `${POST_ONBOARDING_DESTINATION_LABELS[resolvedCandidate.destination]} should be visible`,
     },
   );
+  if (isOverheadTrackingActive()) {
+    addOverhead(Date.now() - displayedProbeStartedAt);
+  }
 
   return resolvedCandidate.destination;
 };
