@@ -85,6 +85,7 @@ export function useUpdateTokenAmount() {
           transactionIndex: nestedCallIndex,
           transactionData: newData,
         }).catch((error) => {
+          setPreviousAmountRaw(undefined);
           Logger.error(
             error,
             'Failed to update token amount in nested transaction',

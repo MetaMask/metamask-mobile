@@ -16,8 +16,10 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { toHex } from 'viem';
 import Logger from '../../../../../util/Logger';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 jest.mock('../../../../../util/transaction-controller');
+jest.mock('../../context/confirmation-context');
 
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...(jest.requireActual(
@@ -58,11 +60,16 @@ function runHook({
 describe('useUpdateTokenAmount', () => {
   const updateEditableParamsMock = jest.mocked(updateEditableParams);
   const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
+  const useConfirmationContextMock = jest.mocked(useConfirmationContext);
+  const setIsTransactionDataUpdatingMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     updateAtomicBatchDataMock.mockResolvedValue('0x0');
+    useConfirmationContextMock.mockReturnValue({
+      setIsTransactionDataUpdating: setIsTransactionDataUpdatingMock,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
   });
 
   it('updates all transaction data with new amount', () => {
@@ -173,15 +180,16 @@ describe('useUpdateTokenAmount', () => {
     });
 
     let updatePromise: Promise<unknown> = Promise.resolve();
-    act(() => {
+    await act(async () => {
       updatePromise = Promise.resolve(result.current.updateTokenAmount('1.5'));
+      await expect(updatePromise).rejects.toThrow('update failed');
     });
 
-    await expect(updatePromise).rejects.toThrow('update failed');
     expect(loggerErrorSpy).toHaveBeenCalledWith(
       error,
       'Failed to update token amount in nested transaction',
     );
+    expect(setIsTransactionDataUpdatingMock).toHaveBeenLastCalledWith(false);
   });
 
   it('does not update amount if new amount is equal to current amount', () => {
