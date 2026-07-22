@@ -107,6 +107,8 @@ function findAppProfilingFiles(dir, profilingFiles = []) {
 /**
  * Copy per-scenario app profiling artifacts into the aggregated reports output
  * so the pipeline's aggregated-reports artifact includes one file per scenario.
+ * Clears any previously collected profiling files first so re-aggregation does
+ * not leave stale scenario files from an earlier run.
  * @param {string[]} searchDirs - Directories to search for profiling files
  * @param {string} outputDir - Aggregated reports directory
  * @returns {number} Number of profiling files copied
@@ -115,6 +117,12 @@ function collectAppProfilingArtifacts(searchDirs, outputDir) {
   const profilingOutputDir = path.join(outputDir, 'app-profiling');
   const usedNames = new Map();
   let copiedCount = 0;
+
+  // Reset output dir so a later aggregation with fewer scenarios does not keep
+  // stale app-profiling-*.json files from a previous run.
+  if (fs.existsSync(profilingOutputDir)) {
+    fs.rmSync(profilingOutputDir, { recursive: true, force: true });
+  }
 
   const profilingFiles = [];
   searchDirs.forEach((dir) => {
@@ -128,9 +136,7 @@ function collectAppProfilingArtifacts(searchDirs, outputDir) {
     return 0;
   }
 
-  if (!fs.existsSync(profilingOutputDir)) {
-    fs.mkdirSync(profilingOutputDir, { recursive: true });
-  }
+  fs.mkdirSync(profilingOutputDir, { recursive: true });
 
   for (const sourcePath of profilingFiles) {
     let fileName = path.basename(sourcePath);
@@ -1580,23 +1586,22 @@ function generateHtmlReport(groupedResults, summary) {
  * Main aggregation function
  */
 function aggregateReports() {
+  const outputDir = 'tests/aggregated-reports';
+  const searchDirs = [
+    './test-results',
+    './performance-results',
+    './onboarding-results',
+    './tests/reporters/reports',
+  ];
+
   try {
     console.log('🔍 Looking for performance JSON reports...');
     
     // Ensure output directory exists
-    const outputDir = 'tests/aggregated-reports';
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
       console.log(`📁 Created output directory: ${outputDir}`);
     }
-    
-    // Search only in directories where CI artifacts are downloaded
-    const searchDirs = [
-      './test-results',
-      './performance-results',
-      './onboarding-results',
-      './tests/reporters/reports',
-    ];
     
     const jsonFiles = [];
     
@@ -1619,8 +1624,6 @@ function aggregateReports() {
     
     if (jsonFiles.length === 0) {
       createEmptyReport(outputPath);
-      // Still collect any per-scenario profiling artifacts that may exist
-      collectAppProfilingArtifacts(searchDirs, outputDir);
       return;
     }
     
@@ -1736,12 +1739,12 @@ function aggregateReports() {
     const htmlReportPath = 'tests/aggregated-reports/performance-report.html';
     fs.writeFileSync(htmlReportPath, htmlReport);
     console.log(`🌐 HTML report saved to: ${htmlReportPath}`);
-
-    // Collect per-scenario app profiling artifacts into aggregated-reports/
-    collectAppProfilingArtifacts(searchDirs, outputDir);
-    
   } catch (error) {
     createFallbackReport('tests/aggregated-reports/performance-results.json', error);
+  } finally {
+    // Always collect profiling sidecars, including after aggregation failure,
+    // so per-job app-profiling artifacts still land in aggregated-reports.
+    collectAppProfilingArtifacts(searchDirs, outputDir);
   }
 }
 
