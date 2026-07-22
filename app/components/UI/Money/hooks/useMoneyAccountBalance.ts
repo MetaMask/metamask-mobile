@@ -12,7 +12,7 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
-import ReactQueryService from '../../../../core/ReactQueryService';
+import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 import {
   isPersistedMoneyBalanceUsable,
@@ -109,14 +109,7 @@ const useMoneyAccountBalance = (
   const isBalanceDegraded = usedFallback;
 
   const refetchBalance = useCallback(
-    () =>
-      ReactQueryService.queryClient.invalidateQueries({
-        queryKey: [
-          MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
-          moneyAccountAddress,
-        ],
-        refetchType: 'all',
-      }),
+    () => invalidateMoneyAccountBalanceCaches(moneyAccountAddress as string),
     [moneyAccountAddress],
   );
 

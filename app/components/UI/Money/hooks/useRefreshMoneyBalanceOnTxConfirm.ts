@@ -13,6 +13,7 @@ import {
   isMoneyAccountTx,
   isPerpsPredictMoneyActivity,
 } from '../utils/moneyTransactionGuards';
+import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import Logger from '../../../../util/Logger';
 import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 
@@ -38,21 +39,12 @@ const didBalanceChange = (
   after: MoneyBalanceSnapshot,
 ) => before?.totalBalance !== after?.totalBalance;
 
-const invalidateBalanceQueries = async (address: string) =>
-  ReactQueryService.queryClient.invalidateQueries({
-    queryKey: [
-      MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
-      address,
-    ],
-    refetchType: 'all',
-  });
-
 /**
  * Capture the pre-invalidation cached snapshot as a baseline, then invalidate +
  * refetch and compare. Retry up to MAX_RETRIES times if subsequent reads are
- * byte-identical to baseline. Guards against RPC nodes serving stale reads
- * immediately after a `transactionConfirmed` event. Fails visibly via
- * Logger.error if the retry budget exhausts.
+ * byte-identical to baseline. Guards against RPC nodes / API indexes serving
+ * stale reads immediately after a `transactionConfirmed` event. Fails visibly
+ * via Logger.error if the retry budget exhausts.
  */
 const refreshMoneyBalanceQueries = async (address: string) => {
   const baseline = readBalanceSnapshot(address);
@@ -70,7 +62,7 @@ const refreshMoneyBalanceQueries = async (address: string) => {
       );
     }
 
-    await invalidateBalanceQueries(address);
+    await invalidateMoneyAccountBalanceCaches(address);
     const next = readBalanceSnapshot(address);
     const changed = didBalanceChange(baseline, next);
 

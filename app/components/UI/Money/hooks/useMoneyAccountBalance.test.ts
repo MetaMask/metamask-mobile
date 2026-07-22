@@ -617,11 +617,31 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.isBalanceFetching).toBe(true);
     });
 
-    it('refetchBalance invalidates the balance query via ReactQueryService', async () => {
+    it('refetchBalance invalidates source service caches then the UI facade', async () => {
+      mockControllerMessengerCall.mockResolvedValue(undefined as never);
+
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       await result.current.refetchBalance();
 
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'MoneyAccountBalanceService:invalidateQueries',
+        {
+          queryKey: [
+            'MoneyAccountBalanceService:getMoneyAccountBalance',
+            MOCK_ADDRESS,
+          ],
+        },
+      );
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'MoneyAccountApiDataService:invalidateQueries',
+        {
+          queryKey: [
+            'MoneyAccountApiDataService:fetchPositions',
+            MOCK_ADDRESS.toLowerCase(),
+          ],
+        },
+      );
       expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: [

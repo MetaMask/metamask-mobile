@@ -10,7 +10,7 @@ import { waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
+import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 
 jest.mock('../../../../core/Engine');
@@ -31,12 +31,19 @@ jest.mock('../../../../core/ReactQueryService', () => ({
   },
 }));
 
+jest.mock('../utils/invalidateMoneyAccountBalanceCaches', () => ({
+  invalidateMoneyAccountBalanceCaches: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockQueryClient = ReactQueryService.queryClient as unknown as {
   invalidateQueries: jest.Mock;
   getQueryData: jest.Mock;
 };
-const mockInvalidateQueries = mockQueryClient.invalidateQueries;
 const mockGetQueryData = mockQueryClient.getQueryData;
+
+const mockInvalidateMoneyAccountBalanceCaches = jest.mocked(
+  invalidateMoneyAccountBalanceCaches,
+);
 
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as jest.MockedFunction<
@@ -125,16 +132,12 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
-        MOCK_ADDRESS,
-      ],
-      refetchType: 'all',
-    });
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledWith(
+      MOCK_ADDRESS,
+    );
   });
 
   it('invalidates the balance query on confirmed withdraw tx', async () => {
@@ -143,10 +146,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountWithdraw));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on confirmed tx with nested deposit', async () => {
@@ -159,10 +162,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on confirmed tx with nested withdraw', async () => {
@@ -175,10 +178,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
   });
 
   const MUSD_ON_MONAD = {
@@ -195,10 +198,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       metamaskPay: MUSD_ON_MONAD,
     } as unknown as TransactionMeta);
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on a confirmed Predict withdraw landing in the Money account', async () => {
@@ -212,10 +215,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       metamaskPay: MUSD_ON_MONAD,
     } as unknown as TransactionMeta);
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
   });
 
   it('does not invalidate for a Perps deposit NOT funded from the Money account', () => {
@@ -230,7 +233,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       },
     } as unknown as TransactionMeta);
 
-    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
   });
 
   it('does not invalidate for non-confirmed status', () => {
@@ -241,7 +244,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       makeTx(TransactionType.moneyAccountDeposit, TransactionStatus.failed),
     );
 
-    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
   });
 
   it('does not invalidate for unrelated tx type', () => {
@@ -250,7 +253,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.contractInteraction));
 
-    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
   });
 
   it('does not invalidate when no primary money account address', () => {
@@ -260,7 +263,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
 
-    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
   });
 
   it('reads store state at call time (not stale closure)', async () => {
@@ -275,9 +278,9 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
   });
 });
