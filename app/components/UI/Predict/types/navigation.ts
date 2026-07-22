@@ -133,14 +133,6 @@ export interface PredictBuyPreviewParams {
   /** Screen context the trade originated from (e.g. "world_cup"). */
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /**
-   * When true, the beforeRemove listener in PredictBuyPreview will fire
-   * trackBetslipDismissed for swipe/hardware-back dismissals. Only set by
-   * PredictPreviewSheetProvider when disableBottomSheet is active — keeps the
-   * analytics change scoped to the new HomepageDiscoveryTabs flow and avoids
-   * changing event volume for the pre-existing flagless screen-mode path.
-   */
-  trackSwipeDismiss?: boolean;
 }
 
 /** Predict sell preview parameters */

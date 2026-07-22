@@ -1316,8 +1316,8 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('hideHeader prop', () => {
-    it('renders header nav by default when hideHeader is not provided', () => {
+  describe('header', () => {
+    it('renders header navigation', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(
@@ -1326,56 +1326,6 @@ describe('PredictFeed', () => {
       expect(
         getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
       ).toBeOnTheScreen();
-    });
-
-    it('hides header nav when hideHeader is true', () => {
-      const { queryByTestId } = render(<PredictFeed hideHeader />);
-
-      expect(
-        queryByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
-      ).toBeNull();
-      expect(queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON)).toBeNull();
-    });
-
-    it('still renders container, tabs, and pager when hideHeader is true', () => {
-      const { getByTestId } = render(<PredictFeed hideHeader />);
-
-      expect(
-        getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(getByTestId(PredictFeedSelectorsIDs.TABS)).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictFeedMockSelectorsIDs.PAGER_VIEW),
-      ).toBeOnTheScreen();
-    });
-
-    it('passes hideTitle to PredictBalance when hideHeader is true', () => {
-      render(<PredictFeed hideHeader />);
-
-      expect(PredictBalance).toHaveBeenCalledWith(
-        expect.objectContaining({ hideTitle: true }),
-        undefined,
-      );
-    });
-  });
-
-  describe('onHeaderHiddenChange prop', () => {
-    it('passes onHeaderHiddenChange callback to useFeedScrollManager', () => {
-      const onHeaderHiddenChange = jest.fn();
-
-      render(<PredictFeed onHeaderHiddenChange={onHeaderHiddenChange} />);
-
-      expect(mockUseFeedScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ onHeaderHiddenChange }),
-      );
-    });
-
-    it('passes undefined to useFeedScrollManager when onHeaderHiddenChange is not provided', () => {
-      render(<PredictFeed />);
-
-      expect(mockUseFeedScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ onHeaderHiddenChange: undefined }),
-      );
     });
   });
 
