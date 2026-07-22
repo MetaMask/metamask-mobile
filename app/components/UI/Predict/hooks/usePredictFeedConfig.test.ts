@@ -1,4 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import { DEFAULT_PREDICT_SPORTS_FEED_FLAG } from '../constants/flags';
 import type { PredictFilterOption } from '../types';
 import {
   usePredictFilterOptions,
@@ -7,11 +9,15 @@ import {
 import { usePredictFeedConfig } from './usePredictFeedConfig';
 
 jest.mock('./usePredictFilterOptions');
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 const mockUsePredictFilterOptions =
   usePredictFilterOptions as jest.MockedFunction<
     typeof usePredictFilterOptions
   >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const createOption = (id: string): PredictFilterOption => ({
   id,
@@ -35,6 +41,7 @@ const ids = (filters: { id: string }[]) => filters.map((filter) => filter.id);
 describe('usePredictFeedConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(DEFAULT_PREDICT_SPORTS_FEED_FLAG);
     mockUsePredictFilterOptions.mockReturnValue(filterOptionsResult());
   });
 
@@ -197,7 +204,6 @@ describe('usePredictFeedConfig', () => {
     it.each([
       ['politics', 'politics'],
       ['crypto', 'crypto'],
-      ['sports', 'sports'],
       ['trending', 'all'],
     ])(
       'passes baseTagSlug "%s" -> "%s" to usePredictFilterOptions',
@@ -229,16 +235,16 @@ describe('usePredictFeedConfig', () => {
         usePredictFeedConfig('sports', { initialTabId: 'curling' }),
       );
 
-      expect(result.current.activeTabId).toBe('basketball');
+      expect(result.current.activeTabId).toBe('all');
     });
 
     it('selects a static initial filter immediately', () => {
       const { result } = renderHook(() =>
-        usePredictFeedConfig('sports', { initialFilterId: 'live' }),
+        usePredictFeedConfig('sports', { initialFilterId: 'props' }),
       );
 
-      expect(result.current.activeFilterId).toBe('live');
-      expect(result.current.activeFilter?.id).toBe('live');
+      expect(result.current.activeFilterId).toBe('props');
+      expect(result.current.activeFilter?.id).toBe('props');
     });
 
     it('falls back to the tab default for an invalid initial filter id', () => {
@@ -246,7 +252,7 @@ describe('usePredictFeedConfig', () => {
         usePredictFeedConfig('sports', { initialFilterId: 'nope' }),
       );
 
-      expect(result.current.activeFilterId).toBe('all');
+      expect(result.current.activeFilterId).toBe('games');
     });
   });
 
@@ -296,27 +302,27 @@ describe('usePredictFeedConfig', () => {
       const { result } = renderHook(() => usePredictFeedConfig('sports'));
 
       act(() => {
-        result.current.setActiveFilterId('live');
+        result.current.setActiveFilterId('props');
       });
-      expect(result.current.activeFilterId).toBe('live');
+      expect(result.current.activeFilterId).toBe('props');
 
       act(() => {
         result.current.setActiveTabId('tennis');
       });
 
       expect(result.current.activeTabId).toBe('tennis');
-      expect(result.current.activeFilterId).toBe('all');
+      expect(result.current.activeFilterId).toBe('games');
     });
 
     it('selects an explicitly chosen filter', () => {
       const { result } = renderHook(() => usePredictFeedConfig('sports'));
 
       act(() => {
-        result.current.setActiveFilterId('live');
+        result.current.setActiveFilterId('props');
       });
 
-      expect(result.current.activeFilterId).toBe('live');
-      expect(result.current.activeFilter?.id).toBe('live');
+      expect(result.current.activeFilterId).toBe('props');
+      expect(result.current.activeFilter?.id).toBe('props');
     });
 
     it('ignores an unknown tab id so selection stays in sync with content', () => {
@@ -328,8 +334,8 @@ describe('usePredictFeedConfig', () => {
 
       // The invalid id is rejected: the active tab is unchanged, so the tab
       // bar selection and the rendered filters/content stay consistent.
-      expect(result.current.activeTabId).toBe('basketball');
-      expect(ids(result.current.filters)).toEqual(['all', 'live']);
+      expect(result.current.activeTabId).toBe('all');
+      expect(ids(result.current.filters)).toEqual(['games', 'props']);
 
       act(() => {
         result.current.setActiveTabId('tennis');
@@ -344,8 +350,8 @@ describe('usePredictFeedConfig', () => {
         result.current.setActiveFilterId('nope');
       });
 
-      expect(result.current.activeFilterId).toBe('all');
-      expect(result.current.activeFilter?.id).toBe('all');
+      expect(result.current.activeFilterId).toBe('games');
+      expect(result.current.activeFilter?.id).toBe('games');
     });
   });
 
@@ -354,10 +360,10 @@ describe('usePredictFeedConfig', () => {
       const { result, rerender } = renderHook(
         ({ initialTabId }: { initialTabId?: string }) =>
           usePredictFeedConfig('sports', { initialTabId }),
-        { initialProps: { initialTabId: 'basketball' } },
+        { initialProps: { initialTabId: 'all' } },
       );
 
-      expect(result.current.activeTabId).toBe('basketball');
+      expect(result.current.activeTabId).toBe('all');
 
       rerender({ initialTabId: 'tennis' });
 
@@ -375,11 +381,11 @@ describe('usePredictFeedConfig', () => {
         },
       );
 
-      expect(result.current.activeFilterId).toBe('all');
+      expect(result.current.activeFilterId).toBe('games');
 
-      rerender({ initialFilterId: 'live' });
+      rerender({ initialFilterId: 'props' });
 
-      expect(result.current.activeFilterId).toBe('live');
+      expect(result.current.activeFilterId).toBe('props');
     });
 
     it('re-seeds a pending dynamic filter when initialFilterId changes and selects it once it appears', async () => {

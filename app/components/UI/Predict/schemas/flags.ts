@@ -3,6 +3,7 @@ import {
   boolean,
   defaulted,
   literal,
+  enums,
   number,
   object,
   optional,
@@ -17,6 +18,7 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
@@ -215,4 +217,43 @@ export const PredictWimbledonTabSchema = defaulted(
     ),
   }),
   () => DEFAULT_WIMBLEDON_TAB_FLAG,
+);
+
+export const PredictSportsFeedChipSchema = type({
+  id: string(),
+  kind: enums(['games', 'props', 'tag']),
+  titleKey: optional(string()),
+  label: optional(string()),
+  tagSlug: optional(string()),
+});
+
+export const PredictSportsFeedTabSchema = type({
+  id: string(),
+  titleKey: optional(string()),
+  label: optional(string()),
+  tagSlug: optional(string()),
+  defaultFilterId: optional(string()),
+  chips: defaulted(array(PredictSportsFeedChipSchema), () => []),
+});
+
+export const PredictSportsFeedSchema = defaulted(
+  type({
+    enabled: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.enabled,
+    ),
+    minimumVersion: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.minimumVersion,
+    ),
+    gamesTagId: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.gamesTagId,
+    ),
+    tabs: defaulted(
+      array(PredictSportsFeedTabSchema),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.tabs,
+    ),
+  }),
+  () => DEFAULT_PREDICT_SPORTS_FEED_FLAG,
 );

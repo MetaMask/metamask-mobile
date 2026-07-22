@@ -39,6 +39,7 @@ import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
+import { resolvePredictFilterLabel } from '../../utils/feed';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictMarket as PredictMarketType } from '../../types';
 
@@ -186,7 +187,7 @@ const PredictFeedView: React.FC = () => {
     () =>
       tabs.map((tab) => ({
         key: tab.id,
-        label: strings(tab.titleKey),
+        label: resolvePredictFilterLabel(tab),
         content: null,
       })),
     [tabs],
@@ -246,9 +247,7 @@ const PredictFeedView: React.FC = () => {
     () =>
       filters.map((filter) => ({
         key: filter.id,
-        label: filter.titleKey
-          ? strings(filter.titleKey)
-          : (filter.label ?? ''),
+        label: resolvePredictFilterLabel(filter),
       })),
     [filters],
   );

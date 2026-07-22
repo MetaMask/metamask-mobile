@@ -28,6 +28,8 @@ export interface UsePredictMarketListResult {
   fetchNextPage: () => Promise<unknown>;
 }
 
+const EMPTY_VISIBLE_MARKETS_PREFETCH_PAGE_LIMIT = 3;
+
 /**
  * React Query (infinite) market-list hook for the redesigned Predict feed.
  *
@@ -56,9 +58,17 @@ export const usePredictMarketList = (
     ...predictQueries.marketList.options(params),
     enabled,
   });
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+  } = queryResult;
 
   const markets = useMemo(() => {
-    const pages = queryResult.data?.pages ?? [];
+    const pages = data?.pages ?? [];
 
     // Rank visibility/staleness PER PAGE, then append, so loading more pages
     // never re-orders markets already on screen. `getVisiblePredictMarkets`
@@ -83,14 +93,44 @@ export const usePredictMarketList = (
     }
 
     return accumulated;
-  }, [queryResult.data]);
+  }, [data]);
 
   useEffect(() => {
-    if (!queryResult.error) {
+    const fetchedPageCount = data?.pages.length ?? 0;
+    if (
+      !enabled ||
+      error ||
+      isFetching ||
+      isFetchingNextPage ||
+      !hasNextPage ||
+      fetchedPageCount === 0 ||
+      fetchedPageCount >= EMPTY_VISIBLE_MARKETS_PREFETCH_PAGE_LIMIT ||
+      markets.length > 0
+    ) {
       return;
     }
 
-    Logger.error(ensureError(queryResult.error), {
+    // Gamma sports pages can be child-heavy. If every fetched item is filtered
+    // out client-side, advance once so the user does not see an empty page while
+    // later cursors contain visible parent markets.
+    fetchNextPage().catch(() => undefined);
+  }, [
+    data?.pages.length,
+    enabled,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    markets.length,
+  ]);
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    Logger.error(ensureError(error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictMarketList',
@@ -104,7 +144,7 @@ export const usePredictMarketList = (
         },
       },
     });
-  }, [queryResult.error]);
+  }, [error]);
 
   return {
     markets,

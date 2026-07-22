@@ -77,6 +77,30 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
   stages: PredictWorldCupStageConfig[];
 }
 
+export type PredictSportsFeedChipKind = 'games' | 'props' | 'tag';
+
+export interface PredictSportsFeedChipConfig {
+  id: string;
+  kind: PredictSportsFeedChipKind;
+  titleKey?: string;
+  label?: string;
+  tagSlug?: string;
+}
+
+export interface PredictSportsFeedTabConfig {
+  id: string;
+  titleKey?: string;
+  label?: string;
+  tagSlug?: string;
+  defaultFilterId?: string;
+  chips: PredictSportsFeedChipConfig[];
+}
+
+export interface PredictSportsFeedConfig extends VersionGatedFeatureFlag {
+  gamesTagId: string;
+  tabs: PredictSportsFeedTabConfig[];
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -88,6 +112,7 @@ export interface PredictFeatureFlags {
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictSportsFeed: PredictSportsFeedConfig;
   predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
