@@ -38,7 +38,12 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
-import { navigateToSupportConsent } from '../../../util/support';
+import {
+  confirmSupportConsent,
+  navigateToSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
+import StandaloneSupportConsentModal from '../../UI/SupportConsentSheet/StandaloneSupportConsentModal';
 import { useSelector } from 'react-redux';
 import { isTestEnvironment } from '../../../util/test/utils';
 import Button, {
@@ -139,6 +144,7 @@ export const Fallback = (props) => {
   const styles = createStyles(colors);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [feedback, setFeedback] = React.useState('');
+  const [isConsentModalVisible, setConsentModalVisible] = React.useState(false);
   const isOnboardingError = Boolean(props.onboardingErrorConfig);
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
@@ -153,7 +159,26 @@ export const Fallback = (props) => {
   // Delegate to the class-level openTicket instead of calling the
   // useSupportConsent hook here: this fallback can render at the root boundary,
   // which sits outside NavigationProvider, so navigation hooks would throw.
-  const handleContactSupport = () => props.openTicket?.();
+  // Without a navigation prop, openTicket can't show the (navigation-based)
+  // consent sheet either, so fall back to the standalone, navigation-free
+  // modal instead of skipping consent altogether.
+  const handleContactSupport = () => {
+    if (props.navigation) {
+      props.openTicket?.();
+      return;
+    }
+    setConsentModalVisible(true);
+  };
+
+  const handleConfirmStandaloneConsent = () => {
+    setConsentModalVisible(false);
+    confirmSupportConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+  };
+
+  const handleRejectStandaloneConsent = () => {
+    setConsentModalVisible(false);
+    rejectSupportConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+  };
 
   const handleTryAgain = () => {
     reloadAppAsync('Error boundary Try again').catch((error) => {
@@ -388,6 +413,13 @@ export const Fallback = (props) => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <StandaloneSupportConsentModal
+        visible={isConsentModalVisible}
+        onConfirm={handleConfirmStandaloneConsent}
+        onReject={handleRejectStandaloneConsent}
+        onDismiss={() => setConsentModalVisible(false)}
+      />
     </View>
   );
 };
@@ -397,6 +429,7 @@ Fallback.propTypes = {
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
   openTicket: PropTypes.func,
+  navigation: PropTypes.object,
   sentryId: PropTypes.string,
   onboardingErrorConfig: PropTypes.shape({
     navigation: PropTypes.object,
@@ -524,6 +557,7 @@ class ErrorBoundary extends Component {
               showExportSeedphrase={this.showExportSeedphrase}
               copyErrorToClipboard={this.copyErrorToClipboard}
               openTicket={this.openTicket}
+              navigation={this.props.navigation}
               sentryId={this.state.sentryId}
               onboardingErrorConfig={onboardingErrorConfig}
             />,
