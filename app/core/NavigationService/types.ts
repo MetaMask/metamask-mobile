@@ -83,6 +83,7 @@ import type {
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import type { WatchlistFullViewRouteParams } from '../../components/UI/Assets/watchlist/Views/WatchlistFullScreenView/WatchlistFullScreenView';
 import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
 import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDetails/components/SecurityBadgeBottomSheet';
@@ -778,6 +779,7 @@ export type RootStackParamList = {
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
+  WatchlistFullView: WatchlistFullViewRouteParams | undefined;
 
   // Money routes — `MoneyScreens`/`MoneyModals`/`MoneyConfirmations` are nested
   // navigators; their screens are enumerated in `MoneyNavigationParamList`.

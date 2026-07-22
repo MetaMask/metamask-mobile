@@ -1,4 +1,5 @@
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { UseAnalyticsHook } from '../../../../hooks/useAnalytics/useAnalytics.types';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import {
   isWatchlistTokenListItemSource,
@@ -11,6 +12,9 @@ describe('trackTokenListItemClicked', () => {
   const mockBuild = jest.fn(() => ({ name: 'built-event' }));
   const mockCreateEventBuilder = jest.fn(() => ({
     addProperties: mockAddProperties,
+    addSensitiveProperties: jest.fn().mockReturnThis(),
+    removeProperties: jest.fn().mockReturnThis(),
+    removeSensitiveProperties: jest.fn().mockReturnThis(),
     build: mockBuild,
   }));
 
@@ -19,11 +23,15 @@ describe('trackTokenListItemClicked', () => {
   });
 
   it('tracks Token List Item Clicked with asset, source, and position', () => {
-    trackTokenListItemClicked(mockTrackEvent, mockCreateEventBuilder, {
-      asset: 'eip155:1/slip44:60',
-      source: TokenDetailsSource.WatchlistHomepage,
-      position: 2,
-    });
+    trackTokenListItemClicked(
+      mockTrackEvent,
+      mockCreateEventBuilder as unknown as UseAnalyticsHook['createEventBuilder'],
+      {
+        asset: 'eip155:1/slip44:60',
+        source: TokenDetailsSource.WatchlistHomepage,
+        position: 2,
+      },
+    );
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.TOKEN_LIST_ITEM_CLICKED,

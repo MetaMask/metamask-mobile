@@ -27,6 +27,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { SectionRefreshHandle } from '../../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -43,7 +44,7 @@ const WatchlistSection = forwardRef<
   WatchlistSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { data, isLoading, refetch } = useTokenWatchlistQuery();
 
@@ -63,12 +64,9 @@ const WatchlistSection = forwardRef<
   const itemCount = displayTokens.length;
 
   const handleSectionPress = useCallback(() => {
-    navigation.navigate(
-      Routes.WALLET.WATCHLIST_FULL_VIEW as never,
-      {
-        source: WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE,
-      } as never,
-    );
+    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW, {
+      source: WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE,
+    });
   }, [navigation]);
 
   const refresh = useCallback(async () => {
