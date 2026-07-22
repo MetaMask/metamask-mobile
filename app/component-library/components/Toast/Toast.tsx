@@ -345,22 +345,26 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const renderInlineLabelSegments = (segments: ToastLabelOptions) => (
     <Text variant={TextVariant.BodyMD} onTextLayout={handleTitleTextLayout}>
-      {segments.map(({ label, isBold }) => (
-        <Text
-          key={
-            typeof label === 'string'
-              ? `${label}-${isBold === false ? 'normal' : 'bold'}`
-              : `toast-label-${isBold === false ? 'normal' : 'bold'}`
-          }
-          variant={
-            isBold === false ? TextVariant.BodySM : TextVariant.BodyMDMedium
-          }
-          color={isBold === false ? TextColor.Alternative : undefined}
-          style={isBold === false ? undefined : styles.label}
-        >
-          {label}
-        </Text>
-      ))}
+      {segments.map(({ label, isBold }) => {
+        const weightKey = isBold === false ? 'normal' : 'bold';
+        const segmentKey =
+          typeof label === 'string'
+            ? `${label}-${weightKey}`
+            : `toast-label-${weightKey}`;
+
+        return (
+          <Text
+            key={segmentKey}
+            variant={
+              isBold === false ? TextVariant.BodySM : TextVariant.BodyMDMedium
+            }
+            color={isBold === false ? TextColor.Alternative : undefined}
+            style={isBold === false ? undefined : styles.label}
+          >
+            {label}
+          </Text>
+        );
+      })}
     </Text>
   );
 
