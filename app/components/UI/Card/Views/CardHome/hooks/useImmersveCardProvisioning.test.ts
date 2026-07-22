@@ -298,15 +298,29 @@ describe('useImmersveCardProvisioning', () => {
 
     it('resolves + persists the funding source when the Redux id is empty', async () => {
       mockReduxFundingSourceId = null;
+      mockDispatch.mockImplementation(
+        (action: { type?: string; payload?: string }) => {
+          if (action?.type === 'card/setImmersveFundingSourceId') {
+            mockReduxFundingSourceId = action.payload ?? null;
+          }
+        },
+      );
 
-      renderHook(() => useImmersveCardProvisioning(provisioningData));
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
 
-      await waitFor(() =>
+      await waitFor(() => expect(mockDispatch).toHaveBeenCalled());
+      // Simulate Redux subscription updating the selector after dispatch.
+      rerender(undefined);
+
+      await waitFor(() => {
         expect(controller.getSpendingPrerequisites).toHaveBeenCalledWith(
           'fs-resolved',
           expect.any(Object),
-        ),
-      );
+        );
+        expect(result.current.isReconciling).toBe(false);
+      });
       expect(mockResolve).toHaveBeenCalledWith({
         fundingChannelId: 'base-channel',
         existingId: null,

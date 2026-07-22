@@ -44,6 +44,10 @@ export function useImmersveCardProvisioning(
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const handled = useRef(false);
+  // Read via ref so persisting the resolved id does not re-run reconcile and
+  // cancel the in-flight attempt (which previously left handled=true forever).
+  const reduxFundingSourceIdRef = useRef(reduxFundingSourceId);
+  reduxFundingSourceIdRef.current = reduxFundingSourceId;
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
     null,
   );
@@ -77,15 +81,16 @@ export function useImmersveCardProvisioning(
     }
     handled.current = true;
     let cancelled = false;
+    const existingId = reduxFundingSourceIdRef.current;
     (async () => {
       try {
         const controller = Engine.context.CardController;
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId,
-          existingId: reduxFundingSourceId,
+          existingId,
         });
         if (cancelled) return;
-        if (!reduxFundingSourceId) {
+        if (!existingId) {
           dispatch(setImmersveFundingSourceId(id));
         }
         const { prerequisites } = await controller.getSpendingPrerequisites(
@@ -122,14 +127,9 @@ export function useImmersveCardProvisioning(
     })();
     return () => {
       cancelled = true;
+      handled.current = false;
     };
-  }, [
-    isProvisioning,
-    reduxFundingSourceId,
-    kycRegion,
-    fundingChannelId,
-    dispatch,
-  ]);
+  }, [isProvisioning, kycRegion, fundingChannelId, dispatch]);
 
   const resumePendingAction = useCallback(() => {
     if (!pendingAction) return;
