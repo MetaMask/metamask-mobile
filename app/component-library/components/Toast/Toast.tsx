@@ -553,7 +553,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
       {toastOptions.onPress ? (
         <Pressable
-          style={styles.pressableContent}
+          style={[
+            styles.pressableContent,
+            shouldTopAlign && styles.pressableContentTopAligned,
+          ]}
           onPress={toastOptions.onPress}
           testID={ToastSelectorsIDs.PRESSABLE}
         >

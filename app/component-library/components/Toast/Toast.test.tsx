@@ -573,6 +573,86 @@ describe('Toast', () => {
     expect(screen.getByTestId(ToastSelectorsIDs.PRESSABLE)).toBeOnTheScreen();
   });
 
+  it('vertically centers pressable toast content by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Conversion complete', isBold: true },
+        { label: '\n' },
+        { label: '$50.00 added to Money account.' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Conversion complete'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Conversion complete' }] },
+      });
+      fireEvent(
+        screen.getByText('$50.00 added to Money account.'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: '$50.00 added to Money account.' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('center');
+  });
+
+  it('top-aligns pressable toast content when multi-line description requires it', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Title', isBold: true },
+        { label: '\n' },
+        { label: 'Long description that wraps' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Title'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Title' }] },
+      });
+      fireEvent(
+        screen.getByText('Long description that wraps'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: 'Long description' }, { text: 'that wraps' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('flex-start');
+  });
+
   it('calls onPress when the toast content is pressed', async () => {
     const onPress = jest.fn();
     const toastOptions: ToastOptions = {

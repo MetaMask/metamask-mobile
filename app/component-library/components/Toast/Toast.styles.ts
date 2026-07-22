@@ -79,6 +79,10 @@ const styleSheet = (params: { theme: Theme }) => {
     pressableContent: {
       flex: 1,
       flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    pressableContentTopAligned: {
       alignItems: 'flex-start',
     },
   });
