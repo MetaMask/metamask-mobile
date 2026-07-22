@@ -23,6 +23,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
+  navigateWithDetails: jest.fn(
+    (
+      navigation: { navigate: (...args: unknown[]) => void },
+      details: readonly [string] | readonly [string, object | undefined],
+    ) => navigation.navigate(...details),
+  ),
 }));
 
 // Mock i18n
@@ -36,6 +42,17 @@ jest.mock('../../hooks/useRegions');
 jest.mock('../../../../hooks/useDebouncedValue');
 jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
+}));
+
+// Immersve contact-details submission
+const mockPatchContactDetails = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      patchContactDetails: (...args: unknown[]) =>
+        mockPatchContactDetails(...args),
+    },
+  },
 }));
 
 // Capture setOnValueChange callbacks and navigation args so tests can simulate
@@ -1345,6 +1362,51 @@ describe('SetPhoneNumber Component', () => {
       const navigateCall = mockNavigate.mock.calls[0];
       const regionsArg = navigateCall[1]?.params?.regions || [];
       expect(regionsArg.length).toBeGreaterThan(1);
+    });
+  });
+
+  describe('Immersve mode', () => {
+    beforeEach(() => {
+      jest
+        .requireMock('../../../../../util/navigation/navUtils')
+        .useParams.mockReturnValue({
+          countryKey: 'GB',
+          immersve: true,
+          email: 'gb@example.com',
+        });
+    });
+
+    it('submits contact-details (no verification) and routes to the KYC processing step', async () => {
+      mockPatchContactDetails.mockResolvedValue(undefined);
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      fireEvent.changeText(
+        getByTestId('set-phone-number-phone-number-input'),
+        '7911123456',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId('set-phone-number-continue-button'));
+      });
+
+      expect(mockPatchContactDetails).toHaveBeenCalledWith({
+        email: 'gb@example.com',
+        phone: '+447911123456',
+      });
+      // No phone verification is sent in Immersve mode.
+      expect(mockSendPhoneVerification).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingKYCProcessing',
+          {
+            countryKey: 'GB',
+          },
+        ),
+      );
     });
   });
 });
