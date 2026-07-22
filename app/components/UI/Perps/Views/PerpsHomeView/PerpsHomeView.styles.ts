@@ -113,9 +113,6 @@ const styleSheet = (params: { theme: Theme }) => {
     sectionContent: {
       paddingHorizontal: 16,
     },
-    positionsOrdersContainer: {
-      paddingHorizontal: 16,
-    },
   });
 };
 

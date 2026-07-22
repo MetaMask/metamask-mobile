@@ -11,6 +11,7 @@ import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCa
 import { getCampaignStatus } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import useRewardsToast from '../../hooks/useRewardsToast';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
@@ -45,7 +46,7 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   campaignId,
   notEligibleForCampaign = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const [isNotEligibleSheetOpen, setIsNotEligibleSheetOpen] = useState(false);
