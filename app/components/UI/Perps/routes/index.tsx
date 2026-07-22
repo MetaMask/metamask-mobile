@@ -19,7 +19,7 @@ import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
-import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
+import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
 import PerpsModeFlashContainer from '../components/PerpsModeFlashContainer';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
@@ -302,7 +302,7 @@ const PerpsScreenStack = () => {
 
               <Stack.Screen
                 name={Routes.PERPS.MARKET_DETAILS}
-                component={PerpsMarketDetailsView}
+                component={PerpsMarketDetailsRouter}
                 options={{
                   title: strings('perps.market.details.title'),
                   headerShown: false,
