@@ -17,9 +17,10 @@ export type { OpenSupportUrl };
  * matching the extension's behavior (see extension PR #44482).
  *
  * `openSupportWithConsent` accepts an optional `onOpenSupport` callback fired
- * when the user opens support (on confirm or reject, never on dismiss), so a
- * call site can record its "support opened" analytics event at the moment
- * support is actually opened rather than when the sheet is merely shown.
+ * once the support URL has successfully opened (after confirm or reject;
+ * never on dismiss, and never if the opener throws), so a call site can
+ * record its "support opened" analytics event at the moment support is
+ * actually opened rather than when the user merely taps confirm/reject.
  */
 export const useSupportConsent = () => {
   const navigation = useNavigation();
