@@ -270,6 +270,8 @@ const MoneyBalanceCard = () => {
         color={TextColor.TextDefault}
         isHidden={privacyMode}
         length={SensitiveTextLength.Medium}
+        numberOfLines={1}
+        twClassName="shrink"
         testID={MoneyBalanceCardTestIds.BALANCE}
       >
         {balanceText}
@@ -289,7 +291,7 @@ const MoneyBalanceCard = () => {
         ),
       ]}
     >
-      <Box twClassName="flex-1 gap-1 pr-3">
+      <Box twClassName="min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -301,6 +303,14 @@ const MoneyBalanceCard = () => {
             testID={MoneyBalanceCardTestIds.LABEL}
           >
             {strings('money.balance_card.label')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceCardTestIds.CURRENCY_SUFFIX}
+          >
+            {strings('money.balance_card.currency_suffix')}
           </Text>
           <ButtonIcon
             iconName={IconName.Info}
@@ -321,6 +331,7 @@ const MoneyBalanceCard = () => {
             <Skeleton
               height={20}
               width={60}
+              twClassName="shrink-0"
               testID={MoneyBalanceCardTestIds.APY_TAG_SKELETON}
             />
           ) : (
@@ -328,16 +339,10 @@ const MoneyBalanceCard = () => {
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
+              twClassName="shrink-0"
               testID={MoneyBalanceCardTestIds.APY_TAG}
             >
               {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.apy_currency_suffix')}
-              </Text>
             </Text>
           )}
         </Box>

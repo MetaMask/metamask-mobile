@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import BaseNotification, { getDescription } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
@@ -29,6 +29,20 @@ const allStatuses: BaseNotificationStatus[] = [
   'simple_notification',
   'simple_notification_rejected',
 ];
+
+const mockLayoutEvent = {
+  nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
+};
+
+const triggerEnterLayout = (
+  getByTestId: ReturnType<typeof renderWithProvider>['getByTestId'],
+) => {
+  fireEvent(
+    getByTestId('base-notification-container'),
+    'layout',
+    mockLayoutEvent,
+  );
+};
 
 describe('BaseNotification', () => {
   it.each(allStatuses)('renders for status %s', (status) => {
@@ -85,18 +99,82 @@ describe('BaseNotification', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the close affordance when autoDismiss is true', () => {
+  it('invokes onHide when the close affordance is pressed', async () => {
+    jest.useFakeTimers();
     const onHide = jest.fn();
     const { getByTestId } = renderWithProvider(
       <BaseNotification
         status="success"
         data={defaultData}
         autoDismiss
+        persistUntilDismiss
         onHide={onHide}
       />,
     );
-    fireEvent.press(getByTestId('base-notification-close'));
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('base-notification-close'));
+      jest.runAllTimers();
+    });
+
     expect(onHide).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('renders nothing when isVisible is false', () => {
+    const { queryByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        isVisible={false}
+      />,
+    );
+
+    expect(queryByTestId('base-notification-container')).not.toBeOnTheScreen();
+  });
+
+  it('invokes onDismissComplete after the auto dismiss animation completes', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={100}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('handles unmount and ignores duplicate layout after enter', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId, unmount } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={5000}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+    triggerEnterLayout(getByTestId);
+    unmount();
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
   });
 
   describe('EIP-7702 transactions (without nonce)', () => {
