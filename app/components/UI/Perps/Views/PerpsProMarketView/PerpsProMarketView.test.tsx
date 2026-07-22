@@ -5,7 +5,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 
-const mockRouteParams = {
+interface MockRouteParams {
+  market?: { symbol: string };
+}
+
+let mockRouteParams: MockRouteParams | undefined = {
   market: { symbol: 'BTC' },
 };
 
@@ -24,8 +28,31 @@ const renderView = () =>
 
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
-    mockRouteParams.market.symbol = 'BTC';
+    mockRouteParams = { market: { symbol: 'BTC' } };
   });
+
+  it.each([
+    ['params', undefined],
+    ['market', {}],
+    ['symbol', { market: { symbol: '' } }],
+  ] as const)(
+    'renders the error state when route %s are invalid',
+    (_missingField, params) => {
+      mockRouteParams = params;
+
+      const { getByTestId, queryByTestId, getByText } = renderView();
+
+      expect(
+        getByTestId(PerpsProMarketViewSelectorsIDs.ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        getByText('Market data not found. Please go back and try again.'),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
+    },
+  );
 
   it('renders the screen inside every safe-area edge', () => {
     const { getByTestId } = renderView();
@@ -89,7 +116,7 @@ describe('PerpsProMarketView', () => {
   });
 
   it('removes the HIP-3 dex prefix from the header symbol', () => {
-    mockRouteParams.market.symbol = 'xyz:TSLA';
+    mockRouteParams = { market: { symbol: 'xyz:TSLA' } };
 
     const { getByTestId } = renderView();
 

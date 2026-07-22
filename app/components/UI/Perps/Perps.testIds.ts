@@ -462,6 +462,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
 
 export const PerpsProMarketViewSelectorsIDs = {
   CONTAINER: 'perps-pro-market-view',
+  ERROR: 'perps-pro-market-error',
   SCROLL_VIEW: 'perps-pro-market-scroll-view',
   HEADER: 'perps-pro-market-header',
   HEADER_SYMBOL: 'perps-pro-market-header-symbol',
