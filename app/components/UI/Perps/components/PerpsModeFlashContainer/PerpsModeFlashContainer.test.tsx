@@ -1,38 +1,27 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, renderHook, act } from '@testing-library/react-native';
 import { PerpsMode } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
-import { hidePerpsModeFlash } from '../../../../../core/redux/slices/perpsModeFlash';
+import {
+  hidePerpsModeFlash,
+  showPerpsModeFlash,
+  usePerpsModeFlash,
+} from '../../utils/perpsModeFlash';
 import { PerpsModeFlashSelectorsIDs } from '../../Perps.testIds';
 import PerpsModeFlashContainer from './PerpsModeFlashContainer';
 
-// Controllable transient flash mode surfaced by the mocked selector.
-let mockFlashMode: PerpsMode | null = null;
-const mockDispatch = jest.fn();
-const mockRunSelector = (selector: unknown) =>
-  (
-    selector as (arg: { perpsModeFlash: { mode: PerpsMode | null } }) => unknown
-  )({
-    perpsModeFlash: { mode: mockFlashMode },
-  });
-
-jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => mockRunSelector(selector),
-  useDispatch: () => mockDispatch,
-}));
-
 describe('PerpsModeFlashContainer', () => {
   beforeEach(() => {
-    mockFlashMode = null;
-    mockDispatch.mockClear();
+    hidePerpsModeFlash();
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    hidePerpsModeFlash();
   });
 
   it('renders nothing when no mode is set', () => {
-    // Arrange - default (no flash mode)
+    // Arrange - store cleared in beforeEach
 
     // Act
     const { queryByTestId } = render(<PerpsModeFlashContainer />);
@@ -43,7 +32,7 @@ describe('PerpsModeFlashContainer', () => {
 
   it('renders the Lite mode title when flashing Lite', () => {
     // Arrange
-    mockFlashMode = PerpsMode.Lite;
+    showPerpsModeFlash(PerpsMode.Lite);
 
     // Act
     const { getByTestId } = render(<PerpsModeFlashContainer />);
@@ -57,7 +46,7 @@ describe('PerpsModeFlashContainer', () => {
 
   it('renders the gradient Pro mode title when flashing Pro', () => {
     // Arrange
-    mockFlashMode = PerpsMode.Pro;
+    showPerpsModeFlash(PerpsMode.Pro);
 
     // Act
     const { getByTestId } = render(<PerpsModeFlashContainer />);
@@ -72,28 +61,33 @@ describe('PerpsModeFlashContainer', () => {
   it('auto-dismisses the flash after the configured duration', () => {
     // Arrange
     jest.useFakeTimers();
-    mockFlashMode = PerpsMode.Pro;
+    showPerpsModeFlash(PerpsMode.Pro);
+    const probe = renderHook(() => usePerpsModeFlash());
+    render(<PerpsModeFlashContainer durationMs={500} />);
+    expect(probe.result.current).toBe(PerpsMode.Pro);
 
     // Act
-    render(<PerpsModeFlashContainer durationMs={500} />);
     act(() => {
       jest.advanceTimersByTime(500);
     });
 
     // Assert
-    expect(mockDispatch).toHaveBeenCalledWith(hidePerpsModeFlash());
+    expect(probe.result.current).toBeNull();
   });
 
   it('clears any lingering flash on unmount', () => {
     // Arrange
-    mockFlashMode = PerpsMode.Pro;
+    showPerpsModeFlash(PerpsMode.Pro);
+    const probe = renderHook(() => usePerpsModeFlash());
     const { unmount } = render(<PerpsModeFlashContainer />);
-    mockDispatch.mockClear();
+    expect(probe.result.current).toBe(PerpsMode.Pro);
 
     // Act
-    unmount();
+    act(() => {
+      unmount();
+    });
 
     // Assert
-    expect(mockDispatch).toHaveBeenCalledWith(hidePerpsModeFlash());
+    expect(probe.result.current).toBeNull();
   });
 });

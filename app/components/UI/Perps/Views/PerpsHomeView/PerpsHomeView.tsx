@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -70,7 +70,7 @@ import {
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../../../../core/redux/slices/perpsModeFlash';
+import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
 import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -160,7 +160,6 @@ const PerpsHomeView = ({
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -185,7 +184,7 @@ const PerpsHomeView = ({
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
       // Flash the destination mode on top of the current screen.
-      dispatch(showPerpsModeFlash(nextMode));
+      showPerpsModeFlash(nextMode);
       // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
       if (nextMode === PerpsMode.Pro) {
         navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
@@ -194,7 +193,7 @@ const PerpsHomeView = ({
         });
       }
     },
-    [navigation, setPerpsMode, dispatch],
+    [navigation, setPerpsMode],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();

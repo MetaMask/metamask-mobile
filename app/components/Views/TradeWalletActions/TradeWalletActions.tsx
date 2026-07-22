@@ -48,7 +48,7 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -80,7 +80,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { usePerpsMode } from '../../UI/Perps/hooks';
 import PerpsModeToggle from '../../UI/Perps/components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../../core/redux/slices/perpsModeFlash';
+import { showPerpsModeFlash } from '../../UI/Perps/utils/perpsModeFlash';
 import { buildDefaultProMarket } from '../../UI/Perps/utils/perpsModeSwitch';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
@@ -113,7 +113,6 @@ interface TradeWalletActionsParams {
 
 function TradeWalletActions() {
   const { navigate } = useNavigation();
-  const dispatch = useDispatch();
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
@@ -257,7 +256,7 @@ function TradeWalletActions() {
           return;
         }
         // Flash the destination mode on top of the Perps stack once it mounts.
-        dispatch(showPerpsModeFlash(nextMode));
+        showPerpsModeFlash(nextMode);
         if (nextMode === PerpsMode.Pro) {
           // Pro lands on the default (BTC) market screen, with Perps home
           // seeded beneath it (initial: false) so back navigation works.
@@ -279,13 +278,7 @@ function TradeWalletActions() {
       };
       handleNavigateBack();
     },
-    [
-      handleNavigateBack,
-      navigate,
-      setPerpsMode,
-      isFirstTimePerpsUser,
-      dispatch,
-    ],
+    [handleNavigateBack, navigate, setPerpsMode, isFirstTimePerpsUser],
   );
 
   const onPredict = useCallback(() => {

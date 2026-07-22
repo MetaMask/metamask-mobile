@@ -47,7 +47,6 @@ import rewardsReducer, { RewardsState } from './rewards';
 import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
 import headlessOrderContextsReducer from '../core/redux/slices/headlessOrderContexts';
-import perpsModeFlashReducer from '../core/redux/slices/perpsModeFlash';
 
 /**
  * Infer state from a reducer
@@ -139,7 +138,6 @@ export interface RootState {
   networkConnectionBanner: NetworkConnectionBannerState;
   attribution: StateFromReducer<typeof attributionReducer>;
   headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
-  perpsModeFlash: StateFromReducer<typeof perpsModeFlashReducer>;
 }
 
 const baseReducers = {
@@ -198,7 +196,6 @@ const rootReducer = combineReducers<RootState, any>({
   ...baseReducers,
   attribution: attributionReducer,
   headlessOrderContexts: headlessOrderContextsReducer,
-  perpsModeFlash: perpsModeFlashReducer,
 });
 
 export default rootReducer;

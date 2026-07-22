@@ -9,14 +9,13 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { useDispatch, useSelector } from 'react-redux';
 import { PerpsMode } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   hidePerpsModeFlash,
-  selectPerpsModeFlashMode,
-} from '../../../../../core/redux/slices/perpsModeFlash';
+  usePerpsModeFlash,
+} from '../../utils/perpsModeFlash';
 import { PerpsModeFlashSelectorsIDs } from '../../Perps.testIds';
 import styleSheet, {
   PERPS_MODE_FLASH_PRO_GRADIENT,
@@ -36,7 +35,7 @@ const TITLE_SPRING_CONFIG = {
  * Global Perps Lite ⇄ Pro mode-switch flash (TAT-3551).
  *
  * Rendered once at the root of the Perps stack. It subscribes to the transient
- * `perpsModeFlash` Redux state; whenever a mode is set (by any entry point that
+ * `perpsModeFlash` store; whenever a mode is set (by any entry point that
  * toggles Lite/Pro) it briefly flashes the destination mode name on top of the
  * current Perps screen — mimicking the QuickBuy Buy/Sell transition feel — then
  * clears the state so the flash disappears. Navigation to the destination
@@ -46,8 +45,7 @@ const PerpsModeFlashContainer: React.FC<PerpsModeFlashContainerProps> = ({
   durationMs = DEFAULT_DURATION_MS,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const dispatch = useDispatch();
-  const mode = useSelector(selectPerpsModeFlashMode);
+  const mode = usePerpsModeFlash();
 
   const titleProgress = useSharedValue(0);
   const titleAnimatedStyle = useAnimatedStyle(() => ({
@@ -68,19 +66,14 @@ const PerpsModeFlashContainer: React.FC<PerpsModeFlashContainerProps> = ({
     titleProgress.value = 0;
     titleProgress.value = withSpring(1, TITLE_SPRING_CONFIG);
     const timer = setTimeout(() => {
-      dispatch(hidePerpsModeFlash());
+      hidePerpsModeFlash();
     }, durationMs);
     return () => clearTimeout(timer);
-  }, [mode, durationMs, dispatch, titleProgress]);
+  }, [mode, durationMs, titleProgress]);
 
   // Clear any lingering flash when leaving the Perps stack so it never replays
   // on re-entry.
-  useEffect(
-    () => () => {
-      dispatch(hidePerpsModeFlash());
-    },
-    [dispatch],
-  );
+  useEffect(() => () => hidePerpsModeFlash(), []);
 
   if (!mode) {
     return null;

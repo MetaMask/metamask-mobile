@@ -73,7 +73,7 @@ import {
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../../../../core/redux/slices/perpsModeFlash';
+import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
@@ -349,14 +349,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
-      dispatch(showPerpsModeFlash(nextMode));
+      showPerpsModeFlash(nextMode);
       // Already on a market page: per AC, Pro stays here; Lite returns to
       // Perps home.
       if (nextMode === PerpsMode.Lite) {
         navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
       }
     },
-    [dispatch, navigateToHome, setPerpsMode],
+    [navigateToHome, setPerpsMode],
   );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
