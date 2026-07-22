@@ -6,6 +6,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCampaignParticipantStatus';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -27,7 +28,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
   campaign,
   participantStatus,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isEligible: isPredictEligible } = usePredictEligibility();
   const campaignStatus = getCampaignStatus(campaign);
   const isLoading = participantStatus.isLoading;

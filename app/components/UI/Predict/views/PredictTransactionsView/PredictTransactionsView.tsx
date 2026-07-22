@@ -17,7 +17,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image } from 'expo-image';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import {
   PredictActivityType,
@@ -39,7 +40,6 @@ import {
   getPredictPositionsHistoryListSelector,
   PredictPositionsHistoryListSelectorsIDs,
 } from '../../Predict.testIds';
-import type { PredictNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictTransactionsViewProps {
@@ -106,8 +106,7 @@ const ClaimPendingPositionRow = ({
   position,
 }: ClaimPendingPositionRowProps) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
