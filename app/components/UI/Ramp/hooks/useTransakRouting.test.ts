@@ -1530,7 +1530,7 @@ describe('useTransakRouting', () => {
               name: 'RampsOrderDetails',
               params: expect.objectContaining({
                 callbackUrl: url,
-                providerCode: '/providers/transak-native-staging',
+                providerCode: 'transak-native-staging',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
                 cryptocurrency: 'ETH',
@@ -1575,7 +1575,7 @@ describe('useTransakRouting', () => {
               name: 'RampsOrderDetails',
               params: expect.objectContaining({
                 callbackUrl,
-                providerCode: '/providers/transak-native-staging',
+                providerCode: 'transak-native-staging',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
                 cryptocurrency: 'ETH',
@@ -2052,7 +2052,7 @@ describe('useTransakRouting', () => {
               name: 'RampsOrderDetails',
               params: expect.objectContaining({
                 callbackUrl,
-                providerCode: '/providers/transak-native-staging',
+                providerCode: 'transak-native-staging',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
                 cryptocurrency: 'ETH',
