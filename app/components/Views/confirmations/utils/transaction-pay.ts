@@ -315,16 +315,13 @@ export function resolvePreferredPayToken({
  * previously selected fiat payment method.
  *
  * `paymentOverride` is set unconditionally; the additional non-atomic fields
- * are set only for the flows that need them:
+ * are set only for the flows that need them.
  *
- * - `atomic: false` and `recipient: MA` — only for Perps/Predict withdraw → MA.
- *   Source `from` is the Perps/Predict Safe, so `recipient` must be redirected
- *   to the Money Account and the second leg (transfer to MA) runs
- *   post-Relay via `submitPostCompletionBatch`.
- * - `refundTo: MA` — only for Money Account deposits, so failed Relay bridges
- *   refund to the MA rather than the funding EOA.
- * - Money Account deposits also flip `atomic: false` later via
- *   `setMoneyAccountDepositMaxAtomic` when the user toggles max amount.
+ * Perps/Predict withdraw → MA sets `atomic: false` and `recipient: MA` so the
+ * post-Relay transfer to the Money Account runs in `submitPostCompletionBatch`.
+ * Money Account deposits set `refundTo: MA` so failed Relay bridges refund to
+ * the MA rather than the funding EOA, and flip `atomic: false` later via
+ * `setMoneyAccountDepositMaxAtomic` when the user toggles max amount.
  *
  * Money Account withdraw (`moneyAccountWithdraw`) keeps the default atomic
  * path with no recipient override: `processTransactions` overwrites the quote

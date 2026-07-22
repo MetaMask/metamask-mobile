@@ -14,6 +14,7 @@ import {
   isTokenBlocked,
   replaceAccountInNestedTransactions,
   resolvePreferredPayToken,
+  setMoneyAccountDepositMaxAtomic,
 } from './transaction-pay';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import Logger from '../../../../util/Logger';
@@ -886,43 +887,128 @@ describe('Transaction Pay Utils', () => {
       Engine.context.TransactionPayController.updateFiatPayment,
     );
 
-    it('sets PaymentOverride.MoneyAccount with refundTo for deposit', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, false);
+    function buildTransactionMeta(
+      type: TransactionType,
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta {
+      return {
+        id: TRANSACTION_ID,
+        type,
+        ...overrides,
+      } as TransactionMeta;
+    }
 
-      expect(setTransactionConfigMock).toHaveBeenCalledWith(
-        TRANSACTION_ID,
-        expect.any(Function),
-      );
-
+    function runConfigCallback(): Record<string, unknown> {
       const config: Record<string, unknown> = {};
       setTransactionConfigMock.mock.calls[0][1](config as never);
+      return config;
+    }
+
+    it('sets paymentOverride, atomic:false, and recipient for perpsWithdraw', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.perpsWithdraw),
+      );
+
+      const config = runConfigCallback();
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.recipient).toBe(MONEY_ADDRESS);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets paymentOverride, atomic:false, and recipient for predictWithdraw', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.predictWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.recipient).toBe(MONEY_ADDRESS);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets paymentOverride and refundTo but leaves atomic and recipient unset for moneyAccountDeposit', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
+      expect(config.recipient).toBeUndefined();
       expect(config.refundTo).toBe(MONEY_ADDRESS);
     });
 
-    it('sets PaymentOverride.MoneyAccount without refundTo for withdraw', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, true);
+    it('sets only paymentOverride for moneyAccountWithdraw (no atomic, recipient, or refundTo)', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountWithdraw),
+      );
 
-      const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
+      expect(config.recipient).toBeUndefined();
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('omits recipient when moneyAccountAddress is undefined for perps/predict withdraws', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        undefined,
+        buildTransactionMeta(TransactionType.perpsWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.recipient).toBeUndefined();
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('omits refundTo when moneyAccountAddress is undefined for moneyAccountDeposit', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        undefined,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
+
+      const config = runConfigCallback();
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.refundTo).toBeUndefined();
     });
 
-    it('omits refundTo when moneyAccountAddress is undefined', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, undefined, false);
+    it('sets only paymentOverride when transactionMeta is undefined', () => {
+      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, undefined);
 
-      const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
+      const config = runConfigCallback();
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
+      expect(config.recipient).toBeUndefined();
       expect(config.refundTo).toBeUndefined();
     });
 
     it('clears selectedPaymentMethodId via updateFiatPayment', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, false);
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
 
       expect(updateFiatPaymentMock).toHaveBeenCalledWith({
         transactionId: TRANSACTION_ID,
@@ -936,6 +1022,32 @@ describe('Transaction Pay Utils', () => {
       updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
 
       expect(fp.selectedPaymentMethodId).toBeUndefined();
+    });
+  });
+
+  describe('setMoneyAccountDepositMaxAtomic', () => {
+    const TRANSACTION_ID = 'tx-max-atomic';
+
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+
+    it('sets atomic to false when isMax is true', () => {
+      setMoneyAccountDepositMaxAtomic(TRANSACTION_ID, true);
+
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.atomic).toBe(false);
+    });
+
+    it('clears atomic (to undefined) when isMax is false', () => {
+      setMoneyAccountDepositMaxAtomic(TRANSACTION_ID, false);
+
+      const config: Record<string, unknown> = { atomic: false };
+      setTransactionConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.atomic).toBeUndefined();
     });
   });
 });

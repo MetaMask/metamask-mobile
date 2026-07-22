@@ -37,7 +37,7 @@ describe('useClearPaymentOverride', () => {
     } as never);
   });
 
-  it('clears paymentOverride and refundTo when override is active', () => {
+  it('clears paymentOverride, refundTo, recipient, and atomic when override is active', () => {
     useSelectorMock.mockReturnValue(PaymentOverride.MoneyAccount);
 
     const { result } = renderHook(() => useClearPaymentOverride());
@@ -52,12 +52,17 @@ describe('useClearPaymentOverride', () => {
     );
 
     const config = {
+      paymentOverride: PaymentOverride.MoneyAccount,
       refundTo: '0xsomeaddress',
+      recipient: '0xanotheraddress',
+      atomic: false,
     } as Record<string, unknown>;
     setTransactionConfigMock.mock.calls[0][1](config as never);
 
     expect(config.paymentOverride).toBeUndefined();
     expect(config.refundTo).toBeUndefined();
+    expect(config.recipient).toBeUndefined();
+    expect(config.atomic).toBeUndefined();
   });
 
   it('does not call setTransactionConfig when no override is active', () => {
