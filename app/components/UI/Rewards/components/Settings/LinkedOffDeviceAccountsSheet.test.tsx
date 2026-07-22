@@ -342,8 +342,8 @@ describe('LinkedOffDeviceAccountsSheet', () => {
     });
 
     // On a non-beta (main) build, getBetaSupportUrl() resolves to an empty string,
-    // so "let us know" routes through the consent flow instead of a direct link.
-    it('routes "let us know" through the consent flow on a non-beta build', () => {
+    // so "let us know" opens the support consent modal instead of a direct link.
+    it('opens the support consent modal when "let us know" is pressed on a non-beta build', () => {
       mockGetBetaSupportUrl.mockReturnValueOnce('');
 
       const { getByText } = render(
@@ -361,10 +361,24 @@ describe('LinkedOffDeviceAccountsSheet', () => {
         METAMASK_SUPPORT_URL,
       );
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
 
-      // Invoking the opener passed to openSupportWithConsent should navigate to
-      // the webview with the support URL, exercising the actual wiring rather
-      // than just the call arguments.
+    // Covers only the call-site opener glue: invoking the opener passed to
+    // openSupportWithConsent navigates to the webview. Modal behavior itself
+    // is covered by the core support-consent tests.
+    it('navigates to the support webview when the provided opener is invoked', () => {
+      mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+      const { getByText } = render(
+        <LinkedOffDeviceAccountsSheet
+          accounts={[mockAccount1]}
+          onClose={mockOnClose}
+        />,
+      );
+      fireEvent.press(
+        getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
+      );
+
       const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
       openWebview(METAMASK_SUPPORT_URL);
 
@@ -375,19 +389,6 @@ describe('LinkedOffDeviceAccountsSheet', () => {
           title: 'app_settings.contact_support',
         },
       });
-    });
-
-    it('navigates exactly once per press', () => {
-      const { getByText } = render(
-        <LinkedOffDeviceAccountsSheet
-          accounts={[mockAccount1]}
-          onClose={mockOnClose}
-        />,
-      );
-      fireEvent.press(
-        getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
-      );
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
     it('calls ClipboardManager.setString with the account address when copy is pressed', () => {

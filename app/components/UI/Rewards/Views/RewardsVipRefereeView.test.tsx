@@ -49,9 +49,7 @@ jest.mock('../utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
 
-const mockOpenSupportWithConsent = jest.fn(
-  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
-);
+const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
     openSupportWithConsent: mockOpenSupportWithConsent,
@@ -553,8 +551,28 @@ describe('RewardsVipRefereeView', () => {
       expect.any(Function),
       expectedUrl,
     );
-    // The mocked hook implementation invokes the opener immediately, so the
-    // webview navigation call itself is also verified end-to-end here.
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  // Covers only the call-site opener glue: invoking the opener passed to
+  // openSupportWithConsent navigates to the webview. The consent modal
+  // behavior itself is covered by the core support-consent tests.
+  it('navigates to the priority support webview when the provided opener is invoked', () => {
+    mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    const expectedUrl = buildVipPrioritySupportUrl(mockAccountAddress);
+    const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
+    openWebview(expectedUrl);
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
@@ -562,10 +580,6 @@ describe('RewardsVipRefereeView', () => {
         title: 'Contact support',
       },
     });
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
-    );
-    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('does not open support when the selected account address is missing', () => {
