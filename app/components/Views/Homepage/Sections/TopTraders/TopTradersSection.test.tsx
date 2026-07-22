@@ -497,7 +497,9 @@ describe('TopTradersSection', () => {
     });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Retry'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Retry'));
+    });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
