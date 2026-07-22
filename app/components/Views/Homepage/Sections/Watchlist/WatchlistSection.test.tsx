@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import WatchlistSection from './WatchlistSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { WatchlistAnalytics } from '../../../../UI/Assets/watchlist/constants/watchlistAnalytics';
 
 let mockIsWatchlistEnabled = true;
 const mockNavigate = jest.fn();
@@ -227,6 +228,7 @@ describe('WatchlistSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.WATCHLIST_FULL_VIEW,
+      { source: WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE },
     );
   });
 });
