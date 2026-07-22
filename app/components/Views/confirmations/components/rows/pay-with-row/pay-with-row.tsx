@@ -12,27 +12,25 @@ import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransacti
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
-import { Box } from '../../../../../UI/Box/Box';
 import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../../../UI/Box/box.types';
-import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  KeyValueRow,
+  KeyValueRowVariant,
   Skeleton,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
@@ -56,6 +54,14 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+
+const moneyIconStyles = StyleSheet.create({
+  moneyIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+  },
+});
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -105,49 +111,52 @@ function PayWithRowLayout({
   disabled,
   showArrow,
   onPress,
+  valueStartAccessory,
   children,
 }: {
   label: string;
   disabled?: boolean;
   showArrow?: boolean;
   onPress?: () => void;
+  valueStartAccessory?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const { styles } = useStyles(styleSheet, {});
-
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        justifyContent={JustifyContent.spaceBetween}
-        style={styles.container}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
-        >
-          {label}
-        </Text>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={8}
-        >
-          {children}
-          {showArrow && (
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={disabled ? IconColor.IconMuted : IconColor.IconAlternative}
-            />
-          )}
-        </Box>
-      </Box>
+      <KeyValueRow
+        variant={KeyValueRowVariant.Input}
+        keyLabel={
+          <Text
+            variant={TextVariant.BodyMd}
+            color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
+          >
+            {label}
+          </Text>
+        }
+        valueStartAccessory={valueStartAccessory}
+        value={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {children}
+            {showArrow && (
+              <Icon
+                name={IconName.ArrowDown}
+                size={IconSize.Sm}
+                color={
+                  disabled ? IconColor.IconMuted : IconColor.IconAlternative
+                }
+              />
+            )}
+          </Box>
+        }
+      />
     </TouchableOpacity>
   );
 }
@@ -253,13 +262,15 @@ function PayWithRowInteractive() {
       disabled={isDisabled}
       showArrow={Boolean(from)}
       onPress={handleClick}
+      valueStartAccessory={
+        <TokenIcon
+          address={displayToken.address}
+          chainId={displayToken.chainId}
+          symbol={displayToken.symbol}
+          variant={TokenIconVariant.Row}
+        />
+      }
     >
-      <TokenIcon
-        address={displayToken.address}
-        chainId={displayToken.chainId}
-        symbol={displayToken.symbol}
-        variant={TokenIconVariant.Row}
-      />
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -301,12 +312,14 @@ function PayWithFiatPaymentMethodRow({
       disabled={disabled}
       showArrow={hasFrom}
       onPress={onPress}
+      valueStartAccessory={
+        <PaymentMethodIcon
+          paymentMethodType={paymentMethod.paymentType as PaymentType}
+          size={20}
+          color={disabled ? colors.icon.muted : colors.icon.default}
+        />
+      }
     >
-      <PaymentMethodIcon
-        paymentMethodType={paymentMethod.paymentType as PaymentType}
-        size={20}
-        color={disabled ? colors.icon.muted : colors.icon.default}
-      />
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -352,9 +365,9 @@ function PayWithRowEmpty({
 function PayWithRowMoneyAccount() {
   const navigation = useNavigation();
   const { isWithdraw } = useTransactionPayWithdraw();
-  const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
+  const { colors } = useTheme();
 
   const handleClick = useCallback(() => {
     setConfirmationMetric({
@@ -374,8 +387,16 @@ function PayWithRowMoneyAccount() {
       }
       showArrow
       onPress={handleClick}
+      valueStartAccessory={
+        <Image
+          source={MoneyIcon}
+          style={[
+            moneyIconStyles.moneyIcon,
+            { backgroundColor: colors.accent04.light },
+          ]}
+        />
+      }
     >
-      <Image source={MoneyIcon} style={styles.moneyIcon} />
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -389,24 +410,22 @@ function PayWithRowMoneyAccount() {
 }
 
 export function PayWithRowSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
-
   return (
     <Box
       testID="pay-with-row-skeleton"
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      justifyContent={JustifyContent.spaceBetween}
-      style={styles.skeletonContainer}
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="px-2 py-3"
     >
-      <Skeleton height={18} width={60} style={styles.skeletonTop} />
+      <Skeleton height={18} width={60} />
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        gap={8}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
       >
-        <Skeleton height={32} width={32} style={styles.skeletonCircle} />
-        <Skeleton height={18} width={120} style={styles.skeletonTop} />
+        <Skeleton height={32} width={32} twClassName="rounded-full" />
+        <Skeleton height={18} width={120} />
       </Box>
     </Box>
   );

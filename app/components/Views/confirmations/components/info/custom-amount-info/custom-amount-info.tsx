@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Platform } from 'react-native';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -22,9 +22,6 @@ import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
 } from '../../deposit-keyboard';
-import { Box } from '../../../../../UI/Box/Box';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
@@ -51,13 +48,8 @@ import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransact
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   hasTransactionType,
@@ -70,9 +62,14 @@ import {
 } from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
+  Box,
+  BoxAlignItems,
   Button,
   ButtonSize,
   ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
@@ -96,7 +93,7 @@ import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
-import { InfoRowSkeleton } from '../../UI/info-row/info-row';
+import { KeyValueRowSkeleton } from '../../rows/key-value-row-skeleton';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -169,7 +166,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
-    const { styles } = useStyles(styleSheet, {});
 
     const {
       amountFiat,
@@ -367,8 +363,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { headlessBuyError } = useConfirmationContext();
 
     return (
-      <Box style={styles.container}>
-        <Box style={styles.inputContainer}>
+      <Box twClassName="flex-1 flex-col justify-between">
+        <Box twClassName="flex-1 justify-center items-center gap-3.5">
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
@@ -394,9 +390,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hidePayTokenAmount && children}
         </Box>
         <Box
-          gap={16}
+          gap={4}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
-          style={styles.bottomBlock}
+          twClassName={Platform.OS === 'android' ? 'pb-4' : 'pb-0'}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
@@ -404,7 +400,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && (
-                  <PayAccountSelector style={styles.separator} />
+                  <Box twClassName="border-b border-muted mb-[-4px]">
+                    <PayAccountSelector />
+                  </Box>
                 )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
@@ -436,9 +434,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 ) : (
                   (isAddMusdIntent || isAwaitingPrefillResult) && (
                     <>
-                      <InfoRowSkeleton />
-                      <InfoRowSkeleton />
-                      <InfoRowSkeleton />
+                      <KeyValueRowSkeleton />
+                      <KeyValueRowSkeleton />
+                      <KeyValueRowSkeleton />
                     </>
                   )
                 ))}
@@ -447,9 +445,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {footerText && (
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={styles.footerText}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="self-center"
             >
               {footerText}
             </Text>
@@ -494,11 +492,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 );
 
 export function CustomAmountInfoSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
-
   return (
-    <Box style={styles.container}>
-      <Box style={styles.inputContainer}>
+    <Box twClassName="flex-1 flex-col justify-between">
+      <Box twClassName="flex-1 justify-center items-center gap-3.5">
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </Box>
@@ -511,22 +507,21 @@ export function CustomAmountInfoSkeleton() {
 }
 
 export function AdvancedCustomAmountInfoSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
   const params = useParams<ConfirmationParams>();
   // Fiat flows never render the account selector or pay-with rows while the
   // keyboard is up, so their skeletons would cause a layout shift on load.
   const hideAccountRows = Boolean(params?.autoSelectFiatPayment);
 
   return (
-    <View
-      style={styles.container}
+    <Box
+      twClassName="flex-1 flex-col justify-between"
       testID="advanced-custom-amount-info-skeleton"
     >
-      <View style={styles.inputContainer}>
+      <Box twClassName="flex-1 justify-center items-center gap-3.5">
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
-      </View>
-      <View>
+      </Box>
+      <Box>
         {!hideAccountRows && (
           <>
             <AccountSelectorSkeleton />
@@ -534,8 +529,8 @@ export function AdvancedCustomAmountInfoSkeleton() {
           </>
         )}
         <DepositKeyboardSkeleton />
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 }
 
@@ -579,9 +574,9 @@ function BuySection() {
   }
 
   return (
-    <Box alignItems={AlignItems.center} gap={20}>
+    <Box alignItems={BoxAlignItems.Center} gap={5}>
       {message && (
-        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+        <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
           {message}
         </Text>
       )}
@@ -606,7 +601,6 @@ function ConfirmButton({
   disableConfirm?: boolean;
   onContinue?: () => void;
 }>) {
-  const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
@@ -633,7 +627,7 @@ function ConfirmButton({
 
   return (
     <Button
-      style={[disabled && styles.disabledButton]}
+      twClassName={disabled ? 'opacity-50' : undefined}
       size={ButtonSize.Lg}
       variant={ButtonVariant.Primary}
       isFullWidth

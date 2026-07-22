@@ -1,23 +1,25 @@
 import React, { useMemo } from 'react';
-import Text, {
+import {
+  Box,
+  KeyValueRow,
+  KeyValueRowVariant,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import InfoRow from '../../UI/info-row';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
-import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../../utils/transaction';
+import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
 
 const HIDE_TYPES = [TransactionType.musdConversion];
 
@@ -42,28 +44,28 @@ export function TotalRow() {
   }
 
   if (isLoading) {
-    return <InfoRowSkeleton testId="total-row-skeleton" />;
+    return <KeyValueRowSkeleton testID="total-row-skeleton" />;
   }
 
   const textColor = isHeadlessBuyInProgress
-    ? TextColor.Muted
-    : TextColor.Alternative;
+    ? TextColor.TextMuted
+    : TextColor.TextAlternative;
 
   return (
-    <View testID="total-row">
-      <InfoRow
-        label={strings('confirm.label.total')}
-        variant={textColor}
-        rowVariant={InfoRowVariant.Small}
-      >
-        <Text
-          variant={TextVariant.BodyMD}
-          color={textColor}
-          testID={ConfirmationRowComponentIDs.TOTAL}
-        >
-          {totalUsd}
-        </Text>
-      </InfoRow>
-    </View>
+    <Box testID="total-row">
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('confirm.label.total')}
+        value={
+          <Text
+            variant={TextVariant.BodyMd}
+            color={textColor}
+            testID={ConfirmationRowComponentIDs.TOTAL}
+          >
+            {totalUsd}
+          </Text>
+        }
+      />
+    </Box>
   );
 }
