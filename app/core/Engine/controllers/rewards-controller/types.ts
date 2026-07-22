@@ -107,6 +107,7 @@ export type VipTierDto = {
 export type VipLocalizedTextDto = {
   periodTitle: string;
   memberIdTitle: string;
+  transactionsTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   revenueShareTitle: string;

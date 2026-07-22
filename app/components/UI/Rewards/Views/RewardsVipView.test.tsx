@@ -140,6 +140,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       WarningDefault: 'warning',
     },
     IconName: {
+      Activity: 'Activity',
       ArrowDown: 'ArrowDown',
       ArrowRight: 'ArrowRight',
       ArrowUp: 'ArrowUp',
@@ -333,6 +334,7 @@ const defaultDashboard: VipDashboardState = {
   localizedText: {
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
+    transactionsTitle: 'Transactions',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
     revenueShareTitle: 'Revenue share',
@@ -444,10 +446,31 @@ describe('RewardsVipView', () => {
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON),
+    ).toBeOnTheScreen();
     expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({
       page_type: 'vip',
       enabled: true,
     });
+  });
+
+  it('navigates to VIP transactions view when the transactions button is pressed', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    fireEvent.press(getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_VIP_TRANSACTIONS_VIEW,
+    );
   });
 
   it('renders the "Last updated" row when computedAt is present', () => {
@@ -705,6 +728,7 @@ describe('RewardsVipView', () => {
         program: { id: 'mock-vip-program', name: 'Acme Rewards Beta — Custom' },
         localizedText: {
           memberIdTitle: 'Member ID',
+          transactionsTitle: 'Transactions',
           swapsFeeTitle: 'Swap fees',
           perpsFeeTitle: 'Perp fees',
           revenueShareTitle: 'Revenue',

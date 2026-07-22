@@ -7436,6 +7436,7 @@ describe('RewardsController', () => {
       localizedText: {
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
+        transactionsTitle: 'Transactions',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -10628,6 +10629,7 @@ describe('RewardsController', () => {
               localizedText: {
                 periodTitle: 'Jun 1 - Jun 30',
                 memberIdTitle: 'Member ID',
+                transactionsTitle: 'Transactions',
                 swapsFeeTitle: 'Swaps fee',
                 perpsFeeTitle: 'Perps fee',
                 nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -17525,6 +17527,7 @@ describe('RewardsController', () => {
       vipDashboard: {},
       vipRefereeDashboard: {},
       vipPerpsFees: {},
+      vipTransactions: {},
     });
   });
 
@@ -17564,6 +17567,7 @@ describe('RewardsController', () => {
       vipDashboard: {},
       vipRefereeDashboard: {},
       vipPerpsFees: {},
+      vipTransactions: {},
     });
   });
 
@@ -17605,6 +17609,7 @@ describe('RewardsController', () => {
       unlockedRewards: {},
       vipDashboard: {},
       vipRefereeDashboard: {},
+      vipTransactions: {},
     });
   });
 

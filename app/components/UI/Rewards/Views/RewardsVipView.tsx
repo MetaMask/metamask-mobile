@@ -56,6 +56,7 @@ import {
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
   INVITE_BUTTON: 'rewards-vip-view-invite-button',
+  TRANSACTIONS_BUTTON: 'rewards-vip-view-transactions-button',
   SCROLL: 'rewards-vip-view-scroll',
   SKELETON: 'rewards-vip-view-skeleton',
   ERROR: 'rewards-vip-view-error',
@@ -174,6 +175,14 @@ const RewardsVipViewContent: React.FC = () => {
               onPress: () =>
                 navigation.navigate(Routes.REFERRAL_REWARDS_VIEW as never),
               testID: REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON,
+            },
+            {
+              iconName: IconName.Activity,
+              onPress: () =>
+                navigation.navigate(
+                  Routes.REWARDS_VIP_TRANSACTIONS_VIEW as never,
+                ),
+              testID: REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON,
             },
           ]}
         />

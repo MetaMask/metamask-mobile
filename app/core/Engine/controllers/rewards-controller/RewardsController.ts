@@ -979,6 +979,16 @@ export class RewardsController extends BaseController<
     return `${subscriptionId}:${campaignId}`;
   }
 
+  /**
+   * Create VIP transactions composite key for state storage
+   */
+  #createVIPCompositeKey(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): string {
+    return `${subscriptionId}:${type}`;
+  }
+
   #matchesSeasonSubscriptionCacheKey(
     key: string,
     subscriptionId: string,
@@ -4663,7 +4673,7 @@ export class RewardsController extends BaseController<
       );
     }
 
-    const key = `${subscriptionId}:${type}`;
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
     return wrapWithCache<PaginatedVipTransactionsDto>({
       key,
       ttl: VIP_TRANSACTIONS_CACHE_THRESHOLD_MS,
@@ -4698,7 +4708,7 @@ export class RewardsController extends BaseController<
       return { results: [], has_more: false, cursor: null };
     }
 
-    const key = `${subscriptionId}:${type}`;
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
     if (!(await this.hasVipTransactionsChanged(subscriptionId, type))) {
       const cached = this.state.vipTransactions[key];
       return cached
@@ -4736,7 +4746,10 @@ export class RewardsController extends BaseController<
   ): Promise<boolean> {
     if (!this.isVipFeatureEnabled()) return false;
 
-    const cached = this.state.vipTransactions[`${subscriptionId}:${type}`];
+    const cached =
+      this.state.vipTransactions[
+        this.#createVIPCompositeKey(subscriptionId, type)
+      ];
     const cachedLatestTimestamp = cached?.results[0]?.timestamp;
     if (!cachedLatestTimestamp) return true;
 

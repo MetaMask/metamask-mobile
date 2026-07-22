@@ -77,6 +77,7 @@ import {
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
   selectOndoCampaignActivityById,
+  selectVipTransactionsById,
   selectPredictThePitchLeaderboardByCampaignId,
   selectPredictThePitchLeaderboardLoadingByCampaignId,
   selectPredictThePitchLeaderboardErrorByCampaignId,
@@ -103,6 +104,7 @@ import {
   OndoGmActivityEntryDto,
   SubscriptionBenefitDto,
   VipDashboardState,
+  VipTransactionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -3251,6 +3253,7 @@ describe('Rewards selectors', () => {
       localizedText: {
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
+        transactionsTitle: 'Transactions',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -4253,6 +4256,51 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
       ).toEqual(mockEntries);
+    });
+  });
+
+  describe('selectVipTransactionsById', () => {
+    const mockTransactions: VipTransactionDto[] = [
+      {
+        id: 'transaction-1',
+        type: 'PERPS',
+        timestamp: '2026-07-22T12:00:00.000Z',
+        feeUsd: '2.50',
+        volumeUsd: '500.00',
+        perps: {
+          coin: 'ETH',
+          feeCoin: 'USDC',
+          rawFee: '2.50',
+          rawNotionalVolume: '500.00',
+          tradeId: 'trade-1',
+          orderId: 'order-1',
+        },
+      },
+    ];
+
+    it('returns null when an identifier is undefined', () => {
+      const state = createMockRootState({
+        vipTransactions: { 'sub-1:PERPS': mockTransactions },
+      });
+
+      expect(selectVipTransactionsById(undefined, 'PERPS')(state)).toBeNull();
+      expect(selectVipTransactionsById('sub-1', undefined)(state)).toBeNull();
+    });
+
+    it('returns null when transactions do not exist', () => {
+      const state = createMockRootState({ vipTransactions: {} });
+
+      expect(selectVipTransactionsById('sub-1', 'PERPS')(state)).toBeNull();
+    });
+
+    it('returns transactions for the specified subscription and type', () => {
+      const state = createMockRootState({
+        vipTransactions: { 'sub-1:PERPS': mockTransactions },
+      });
+
+      expect(selectVipTransactionsById('sub-1', 'PERPS')(state)).toEqual(
+        mockTransactions,
+      );
     });
   });
 
