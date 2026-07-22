@@ -207,16 +207,15 @@ runs:
             echo "  no reachable mirror this round" >&2
           elif sudo timeout 600 bash -c "
             set -euo pipefail
+            # Point BOTH update and install at only the reachable mirror. Applying the
+            # SourceList override to update alone (as before) left install reading the
+            # default, unreachable sources — causing 'Unable to locate package'.
             SRC=\$(mktemp)
             echo 'deb ${MIRROR} ${CODENAME} main universe' > \"\$SRC\"
-            apt-get -o Acquire::ForceIPv4=true \
-              -o Dir::Etc::SourceList=\"\$SRC\" \
-              -o Dir::Etc::SourceParts=/dev/null \
-              -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update
-            apt-get -o Acquire::ForceIPv4=true \
-              -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 \
-              install -y ${PKGS[*]}
-            rm -f \"\$SRC\"
+            trap 'rm -f \"\$SRC\"' EXIT
+            APT_OPTS=(-o Acquire::ForceIPv4=true -o Dir::Etc::SourceList=\"\$SRC\" -o Dir::Etc::SourceParts=/dev/null -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3)
+            apt-get \"\${APT_OPTS[@]}\" update
+            apt-get \"\${APT_OPTS[@]}\" install -y ${PKGS[*]}
           "; then
             echo "✅ Linux dependencies installed successfully via ${MIRROR}"
             echo '::endgroup::'
