@@ -1,13 +1,18 @@
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+} from '../../../framework/fixtures/FixtureBuilder.js';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils.js';
+import { AnvilManager } from '../../../seeder/anvil-manager.js';
+import { createAnvilClients } from '../../../seeder/anvil-clients.js';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { keccak256, encodePacked, pad, toHex, type Hex } from 'viem';
 import type { AssetsControllerState } from '@metamask/assets-controller';
+
+/** Forked Aave `supply` can exceed viem's default HTTP timeout on cold Infura fetches. */
+const AAVE_SEED_RPC_TIMEOUT_MS = 120_000;
+const AAVE_SUPPLY_MAX_ATTEMPTS = 2;
 
 /** Lowercase USDC mainnet address — must stay lowercase so the earn selector lookup matches. */
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -82,29 +87,49 @@ async function seedAethUsdcViaDeposit(
   account: Hex,
   amount: bigint,
 ): Promise<void> {
-  const { testClient, walletClient, publicClient } = node.getProvider();
+  const port = node.getPort() ?? AnvilPort();
+  // Longer timeout than default Anvil clients — supply pulls heavy fork state.
+  const { testClient, walletClient, publicClient } = createAnvilClients(
+    Number(CHAIN_IDS.MAINNET),
+    port,
+    { timeout: AAVE_SEED_RPC_TIMEOUT_MS },
+  );
 
   await testClient.impersonateAccount({ address: account });
 
-  const approveTx = await walletClient.writeContract({
-    account,
-    address: USDC_MAINNET as Hex,
-    abi: ERC20_APPROVE_ABI,
-    functionName: 'approve',
-    args: [AAVE_POOL as Hex, amount],
-  });
-  await publicClient.waitForTransactionReceipt({ hash: approveTx });
+  try {
+    const approveTx = await walletClient.writeContract({
+      account,
+      address: USDC_MAINNET as Hex,
+      abi: ERC20_APPROVE_ABI,
+      functionName: 'approve',
+      args: [AAVE_POOL as Hex, amount],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
-  const supplyTx = await walletClient.writeContract({
-    account,
-    address: AAVE_POOL as Hex,
-    abi: AAVE_SUPPLY_ABI,
-    functionName: 'supply',
-    args: [USDC_MAINNET as Hex, amount, account, 0],
-  });
-  await publicClient.waitForTransactionReceipt({ hash: supplyTx });
-
-  await testClient.stopImpersonatingAccount({ address: account });
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= AAVE_SUPPLY_MAX_ATTEMPTS; attempt++) {
+      try {
+        const supplyTx = await walletClient.writeContract({
+          account,
+          address: AAVE_POOL as Hex,
+          abi: AAVE_SUPPLY_ABI,
+          functionName: 'supply',
+          args: [USDC_MAINNET as Hex, amount, account, 0],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: supplyTx });
+        return;
+      } catch (error) {
+        lastError = error;
+        if (attempt === AAVE_SUPPLY_MAX_ATTEMPTS) {
+          break;
+        }
+      }
+    }
+    throw lastError;
+  } finally {
+    await testClient.stopImpersonatingAccount({ address: account });
+  }
 }
 
 export async function createLendingFixture(
