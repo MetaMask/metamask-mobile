@@ -92,7 +92,7 @@ describe('PerpsModeToggle', () => {
   });
 
   it('renders both Lite and Pro segments in the default toggle variant', () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, getAllByText } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
     );
 
@@ -106,7 +106,8 @@ describe('PerpsModeToggle', () => {
       getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
     ).toBeOnTheScreen();
     expect(getByText('Lite')).toBeOnTheScreen();
-    expect(getByText('Pro')).toBeOnTheScreen();
+    // Gradient label renders the string twice (mask + sizing text).
+    expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
   it('calls onChange with the newly selected mode', () => {
@@ -175,7 +176,7 @@ describe('PerpsModeToggle', () => {
   });
 
   it('renders only the active mode as a single pill in the active variant', () => {
-    const { getByTestId, queryByTestId, getByText } = render(
+    const { getByTestId, queryByTestId, getAllByText } = render(
       <PerpsModeToggle
         mode={PerpsMode.Pro}
         onChange={jest.fn()}
@@ -187,7 +188,8 @@ describe('PerpsModeToggle', () => {
       getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
     ).toBeOnTheScreen();
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
-    expect(getByText('Pro')).toBeOnTheScreen();
+    // Gradient label renders the string twice (mask + sizing text).
+    expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
   it('flips to the opposite mode and tracks the change when the active pill is pressed', () => {

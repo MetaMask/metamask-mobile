@@ -16,17 +16,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
+import PerpsProGradientLabel from './PerpsProGradientLabel';
 
 /**
- * Perps "Pro" accent colors from Figma, not yet part of the shared design-token
- * palette (see also `PerpsModeFlashContainer`), so they are defined locally.
- *
- * `PERPS_PRO_ACCENT_COLOR` is `accent/02/normal` — the purple "Pro" text.
- * `PERPS_PRO_ACCENT_SELECTED_BG` is `accent/02/normal` at ~18% over
- * `background/muted` — the purple fill of the selected "Pro" segment.
+ * Selected "Pro" segment fill from Figma — `accent/02/normal` at ~18% over
+ * `background/muted`. Not yet part of the shared design-token palette.
  */
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const PERPS_PRO_ACCENT_COLOR = '#d075ff';
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const PERPS_PRO_ACCENT_SELECTED_BG = '#382b43';
 
@@ -71,11 +66,14 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
 
   const liteLabel = strings('perps.mode.lite');
   const proLabel = strings('perps.mode.pro');
+  const proGradientLabel = (
+    <PerpsProGradientLabel>{proLabel}</PerpsProGradientLabel>
+  );
 
   // Market header: single outlined pill showing only the active mode, per Figma
-  // (transparent fill, `border/muted` border, `accent/02` purple text for Pro).
-  // Pressing it flips to the opposite mode (same analytics + onChange path as
-  // the full toggle).
+  // (transparent fill, `border/muted` border, gradient "Pro" text). Pressing it
+  // flips to the opposite mode (same analytics + onChange path as the full
+  // toggle).
   if (variant === 'active') {
     const isPro = mode === PerpsMode.Pro;
     return (
@@ -83,16 +81,13 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
         size={ButtonBaseSize.Sm}
         twClassName="bg-transparent border border-border-muted"
         onPress={() => handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)}
-        textProps={
-          isPro ? { style: { color: PERPS_PRO_ACCENT_COLOR } } : undefined
-        }
         testID={
           isPro
             ? PerpsModeToggleSelectorsIDs.PRO_SEGMENT
             : PerpsModeToggleSelectorsIDs.LITE_SEGMENT
         }
       >
-        {isPro ? proLabel : liteLabel}
+        {isPro ? proGradientLabel : liteLabel}
       </ButtonBase>
     );
   }
@@ -114,17 +109,15 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
       <FilterButton
         value={PerpsMode.Pro}
         testID={PerpsModeToggleSelectorsIDs.PRO_SEGMENT}
-        // Pro is the purple-branded mode: its label is always the accent color,
-        // and when selected the segment fills with the accent tint (Lite keeps
-        // the default segmented-control styling).
-        textProps={{ style: { color: PERPS_PRO_ACCENT_COLOR } }}
+        // Pro label uses the Figma accent gradient; when selected the segment
+        // fills with the accent tint (Lite keeps the default styling).
         style={
           mode === PerpsMode.Pro
             ? { backgroundColor: PERPS_PRO_ACCENT_SELECTED_BG }
             : undefined
         }
       >
-        {proLabel}
+        {proGradientLabel}
       </FilterButton>
     </SegmentedControl>
   );
