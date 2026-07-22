@@ -30,6 +30,9 @@ ignores:
   - 'rive-react-native'
   # Appwright will be used in a follow up PR. We will remove once PR is ready
   - 'appwright'
+  # Ledger DMK packages staged for subsequent PRs (already wired in metro.config.js)
+  - '@ledgerhq/context-module'
+  - '@ledgerhq/device-signer-kit-ethereum'
   # Appium drivers are used by Appwright for mobile automation
   - 'appium-adb'
   - 'appium-chromium-driver'

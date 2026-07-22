@@ -27,6 +27,8 @@ const createMockAdapter = (overrides = {}) => ({
   ensurePermissions: jest.fn().mockResolvedValue(true),
   reset: jest.fn(),
   isFlowComplete: jest.fn().mockReturnValue(false),
+  onTransportStateChange: jest.fn(() => jest.fn()),
+  destroy: jest.fn(),
   ...overrides,
 });
 

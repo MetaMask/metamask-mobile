@@ -184,4 +184,10 @@ describe('NonHardwareAdapter', () => {
       expect(adapter.getRequiredAppName()).toBeUndefined();
     });
   });
+
+  describe('destroy', () => {
+    it('is a no-op', () => {
+      expect(() => adapter.destroy()).not.toThrow();
+    });
+  });
 });
