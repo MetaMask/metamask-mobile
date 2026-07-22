@@ -101,6 +101,7 @@ e2e_relevant_workflows:
   - '.github/workflows/update-e2e-fixtures.yml'
   - '.github/workflows/build.yml'
   - '.github/scripts/e2e-*.mjs'
+  - '.github/actions/setup-e2e-env/**'
 
 android:
   - 'android/**'
