@@ -28,4 +28,6 @@ jobs:
       branch_name: MMQA-performance-slack-message-fix
       build_variant: e2e
       pr_number: '33631'
+      # Reuse main BrowserStack apps — avoids flaky feature-branch Android builds (NDK).
+      reuse_main_builds: true
     secrets: inherit
