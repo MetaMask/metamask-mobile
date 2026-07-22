@@ -7,19 +7,11 @@ import {
 } from './AccessRestrictedContext';
 import { AccessRestrictedModalSelectorsIDs } from '../AccessRestrictedModal/AccessRestrictedModal.testIds';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
-}));
-
-const mockOpenSupportWithConsent = jest.fn(
-  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
-);
-jest.mock('../../../hooks/useSupportConsent', () => ({
-  useSupportConsent: () => ({
-    openSupportWithConsent: mockOpenSupportWithConsent,
-  }),
 }));
 
 jest.mock(
@@ -116,7 +108,7 @@ describe('AccessRestrictedContext', () => {
     spy.mockRestore();
   });
 
-  it('navigates to support webview when contact support is tapped', () => {
+  it('opens the support consent sheet when contact support is tapped', () => {
     const { getByTestId } = render(
       <AccessRestrictedProvider>
         <TestConsumer />
@@ -134,14 +126,43 @@ describe('AccessRestrictedContext', () => {
       fireEvent.press(contactSupportBtn);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        params: expect.objectContaining({
-          url: METAMASK_SUPPORT_URL,
-        }),
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
+      params: {
+        onConfirm: expect.any(Function),
+        onReject: expect.any(Function),
+      },
+    });
     expect(getByTestId('is-restricted').props.children).toBe('false');
+  });
+
+  it('navigates to the support webview with the plain URL when consent is rejected', () => {
+    const { getByTestId } = render(
+      <AccessRestrictedProvider>
+        <TestConsumer />
+      </AccessRestrictedProvider>,
+    );
+
+    act(() => {
+      fireEvent.press(getByTestId('show-btn'));
+    });
+    act(() => {
+      fireEvent.press(
+        getByTestId(AccessRestrictedModalSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+      );
+    });
+
+    const { onReject } = mockNavigate.mock.calls[0][1].params;
+    act(() => {
+      onReject();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: METAMASK_SUPPORT_URL,
+        title: 'Contact support',
+      },
+    });
   });
 });
