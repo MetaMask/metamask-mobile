@@ -168,9 +168,12 @@ import type {
   SDKLoadingParams,
   SDKFeedbackParams,
   SDKDisconnectParams,
+  SDKSessionsManagerParams,
+  SDKManageConnectionsParams,
   ReturnToDappNotificationParams,
 } from '../../components/Views/SDK/SDK.types';
 import type { SDKConnectV2OtpModalParams } from '../../components/Views/SDK/SDKConnectV2OtpModal';
+import type { TradeWalletActionsParams } from '../../components/Views/TradeWalletActions/TradeWalletActions';
 
 // Notification params
 import type { NotificationDetailsParams } from '../../components/Views/Notifications/Notifications.types';
@@ -353,7 +356,7 @@ type TraderPositionViewParams =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootModalFlowParamList = {
   WalletActions: undefined;
-  TradeWalletActions: undefined;
+  TradeWalletActions: TradeWalletActionsParams | undefined;
   FundActionMenu: undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
@@ -374,7 +377,7 @@ export type RootModalFlowParamList = {
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
-  SDKManageConnections: undefined;
+  SDKManageConnections: SDKManageConnectionsParams | undefined;
   ExperienceEnhancer: undefined;
   DataCollection: undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
@@ -613,7 +616,7 @@ export type RootStackParamList = {
   UpdateNeededModal: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
   WalletActions: undefined;
-  TradeWalletActions: undefined;
+  TradeWalletActions: TradeWalletActionsParams | undefined;
   FundActionMenu: undefined;
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
@@ -697,7 +700,7 @@ export type RootStackParamList = {
   NotificationsSettings: undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
-  SDKSessionsManager: undefined;
+  SDKSessionsManager: SDKSessionsManagerParams | undefined;
   NetworksManagement: undefined;
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
@@ -716,7 +719,7 @@ export type RootStackParamList = {
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
-  SDKManageConnections: undefined;
+  SDKManageConnections: SDKManageConnectionsParams | undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
   AccountPermissions: AccountPermissionsParams | undefined;

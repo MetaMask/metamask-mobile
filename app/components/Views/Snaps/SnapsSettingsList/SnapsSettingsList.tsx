@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 
@@ -25,7 +26,7 @@ export const createSnapsSettingsListNavDetails = createNavigationDetails(
 );
 
 const SnapsSettingsList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(stylesheet, {});
   const snaps = useSelector(selectSnaps);
 

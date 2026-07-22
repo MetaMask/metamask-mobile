@@ -95,9 +95,10 @@ const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
 
-interface TradeWalletActionsParams {
+export interface TradeWalletActionsParams {
   onDismiss?: () => void;
-  buttonLayout: {
+  /** Measured tab-bar button layout; may be unset until first layout. */
+  buttonLayout?: {
     x: number;
     y: number;
     width: number;
@@ -318,7 +319,10 @@ function TradeWalletActions() {
   );
 
   const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
-  const bottomShapeMaskWidth = buttonLayout.width * 2;
+  const layout = buttonLayout as NonNullable<
+    TradeWalletActionsParams['buttonLayout']
+  >;
+  const bottomShapeMaskWidth = layout.width * 2;
 
   const actionList = (
     <>
@@ -459,9 +463,9 @@ function TradeWalletActions() {
           <OverlayWithHole
             width={windowWidth}
             height={windowHeight + insetsTop}
-            circleSize={buttonLayout.width - 1}
-            circleX={buttonLayout.x + buttonLayout.width / 2}
-            circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
+            circleSize={layout.width - 1}
+            circleX={layout.x + layout.width / 2}
+            circleY={layout.y + layout.height / 2 + insetsTop}
             fill={colors.overlay.default}
           />
         </Pressable>
@@ -474,7 +478,7 @@ function TradeWalletActions() {
       )}
       <View
         style={tw.style('pointer-events-none', {
-          height: screenHeight - buttonLayout.y - insetsTop,
+          height: screenHeight - layout.y - insetsTop,
         })}
       />
     </View>
