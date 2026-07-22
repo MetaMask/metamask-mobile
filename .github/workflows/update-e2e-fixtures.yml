@@ -351,13 +351,8 @@ jobs:
           SKIP_APP_REINSTALL: 'true'
           USE_PREBUILT_WDA: 'true'
 
-      - name: Cache updated fixture
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: tests/framework/fixtures/json/default-fixture.json
-          key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
-
+      # Validate before caching so a transient Appium failure cannot poison the
+      # immutable fixture-${COMMIT_SHA} cache with an unchanged file.
       - name: Fail if validation errored without fixture updates
         if: steps.run-fixture-validation.outcome == 'failure'
         run: |
@@ -366,6 +361,12 @@ jobs:
             exit 1
           fi
           echo "Fixture validation failed as expected after writing structural updates; continuing to commit."
+
+      - name: Cache updated fixture
+        uses: actions/cache/save@v4
+        with:
+          path: tests/framework/fixtures/json/default-fixture.json
+          key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
 
   commit-updated-fixtures:
     name: Commit the updated fixtures
