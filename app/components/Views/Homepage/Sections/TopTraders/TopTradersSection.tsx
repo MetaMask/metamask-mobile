@@ -13,7 +13,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FlatList, View, type ViewToken } from 'react-native';
+import {
+  FlatList,
+  View,
+  type LayoutChangeEvent,
+  type ViewToken,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -30,6 +35,7 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
@@ -116,6 +122,7 @@ const TopTradersSection = forwardRef<
   const hasError = Boolean(error);
   const showError = hasError && !isFetching && !hasTraders;
   const willRender = isEnabled && (isInFlight || hasError || hasTraders);
+  const isEmpty = !isInFlight && !hasError && !hasTraders;
 
   const { onLayout: homeViewedOnLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
@@ -135,10 +142,26 @@ const TopTradersSection = forwardRef<
     isSectionVisible,
   });
 
-  const handleSectionLayout = useCallback(() => {
-    homeViewedOnLayout();
-    sectionVisibleOnLayout();
-  }, [homeViewedOnLayout, sectionVisibleOnLayout]);
+  const { onContentLayout } = useSectionPerformanceV2({
+    sectionId: HomeSectionNames.TOP_TRADERS,
+    contentReady: !isInFlight && (hasTraders || hasError || isEmpty),
+    dataReady: !isInFlight,
+    isEmpty,
+    contentStateForTrace: hasError ? 'error' : undefined,
+    enabled: isEnabled,
+    requiresLayout: !isEmpty,
+    itemCount: traders.length,
+    sectionVariant: isPerpsEnabled ? 'all_chains' : 'spot_chains',
+  });
+
+  const handleSectionLayout = useCallback(
+    (event?: LayoutChangeEvent) => {
+      homeViewedOnLayout();
+      sectionVisibleOnLayout();
+      onContentLayout(event);
+    },
+    [homeViewedOnLayout, onContentLayout, sectionVisibleOnLayout],
+  );
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
@@ -157,7 +180,6 @@ const TopTradersSection = forwardRef<
 
   const showSkeletons = isInFlight && !hasTraders;
   const showViewMore = hasTraders;
-  const isEmpty = !isInFlight && !hasError && !hasTraders;
 
   const carouselData = useMemo((): TopTradersCarouselItem[] => {
     const items: TopTradersCarouselItem[] = traders.map((trader) => ({

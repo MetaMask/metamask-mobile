@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import {
   Box,
   SectionDivider,
@@ -48,6 +48,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
@@ -331,6 +332,35 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       isLoading: isLoadingSection,
     });
 
+    const hasVisibleContent =
+      hasItems ||
+      showTrending ||
+      shouldShowPillsEmptyState ||
+      !!connectionError;
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: analyticsName,
+      sectionMode: mode,
+      sectionVariant: shouldShowPillsEmptyState
+        ? 'pills_empty_state'
+        : hasItems
+          ? 'positions'
+          : 'trending',
+      contentReady: !isLoadingSection || !!connectionError,
+      isEmpty: !hasVisibleContent,
+      contentStateForTrace: connectionError ? 'error' : undefined,
+      isLoading: isLoadingSection,
+      requiresLayout: !positionsOnlyHidden && !pillsEmptyFeedHidden,
+      itemCount,
+    });
+
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
+
     // positions-only: hide when empty before connection error UI (WS failure must not show error for empty section)
     if (isPositionsOnly && !hasItems && !showSkeleton) {
       return null;
@@ -340,7 +370,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
+        <View ref={sectionViewRef} onLayout={handleLayout}>
           <Box paddingBottom={3}>
             <SectionDivider />
             <SectionHeader
@@ -430,7 +460,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         {showsVerticalPositions ? (
           sectionContent
         ) : (

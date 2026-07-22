@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -26,6 +26,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { Nft } from '@metamask/assets-controllers';
@@ -97,12 +98,29 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       enabled: hasNfts,
     });
 
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: HomeSectionNames.NFTS,
+      contentReady: hasNfts,
+      dataReady: hasNfts,
+      isEmpty: !hasNfts,
+      enabled: hasNfts,
+      itemCount: ownedNfts.length,
+    });
+
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
+
     if (!hasNfts) {
       return null;
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         <Box paddingBottom={3}>
           <SectionDivider />
           <SectionHeader

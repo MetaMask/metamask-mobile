@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -42,6 +42,7 @@ import useHomeViewedEvent, {
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -102,6 +103,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const { tokenListItemCta } = useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME);
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
+    const [popularTokensReady, setPopularTokensReady] = useState(false);
 
     const {
       removeTokenState,
@@ -141,6 +143,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       if (prevAccountIdRef.current !== selectedAccountId) {
         prevAccountIdRef.current = selectedAccountId;
         setHasTokensError(false);
+        setPopularTokensReady(false);
       }
     }, [selectedAccountId]);
 
@@ -228,14 +231,51 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         !showTokensError,
     });
 
+    const contentReadyV2 =
+      showTokensError ||
+      (isPositionsOnly && isZeroBalanceAccount) ||
+      (!isZeroBalanceAccount && displayTokenKeys.length > 0) ||
+      (isZeroBalanceAccount && popularTokensReady);
+    const isLoadingV2 = isZeroBalanceAccount
+      ? !isPositionsOnly && !popularTokensReady && !showTokensError
+      : displayTokenKeys.length === 0 &&
+        sortedTokenKeys.length === 0 &&
+        !showTokensError;
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: analyticsName,
+      sectionMode: mode,
+      sectionVariant: isZeroBalanceAccount ? 'popular_tokens' : 'holdings',
+      contentReady: contentReadyV2,
+      isEmpty: isZeroBalanceAccount || showTokensError,
+      contentStateForTrace: showTokensError ? 'error' : undefined,
+      isLoading: isLoadingV2,
+      itemCount,
+      requiresLayout: !(
+        isPositionsTokenRowsLoading ||
+        (isPositionsOnly && isZeroBalanceAccount)
+      ),
+    });
+
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
+
     const handleViewAllTokens = useCallback(() => {
       navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
     }, [navigation]);
 
     const handleTokensRetry = useCallback(async () => {
       setHasTokensError(false);
+      setPopularTokensReady(false);
       await refresh();
     }, [refresh]);
+    const handlePopularTokensReady = useCallback(() => {
+      setPopularTokensReady(true);
+    }, []);
 
     // positions-only: hide when account has no tokens
     if (isPositionsOnly && isZeroBalanceAccount) {
@@ -243,7 +283,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         <SectionDivider />
         <SectionHeader
           title={title}
@@ -264,6 +304,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
               <PopularTokensList
                 ref={popularTokensListRef}
                 onError={setHasTokensError}
+                onReady={handlePopularTokensReady}
               />
             </SectionRow>
           ) : (
@@ -355,6 +396,25 @@ const TokensSectionTrendingOnly = forwardRef<
       itemCount,
     });
 
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: analyticsName,
+      sectionMode: 'trending-only',
+      sectionVariant: 'trending_tokens',
+      contentReady: willRender,
+      isEmpty: !isTrendingLoading && itemCount === 0,
+      isLoading: isTrendingLoading,
+      itemCount,
+      requiresLayout: itemCount > 0,
+    });
+
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
+
     const handleViewAllTokens = useCallback(() => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     }, [navigation]);
@@ -364,7 +424,7 @@ const TokensSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         <Box paddingBottom={3}>
           <SectionDivider />
           <SectionHeader

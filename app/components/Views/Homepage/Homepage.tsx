@@ -43,6 +43,7 @@ import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { HomepageTrendingAbTestContext } from './context/HomepageTrendingAbTestContext';
+import { useHomepageSectionPerformanceContext } from './performance/HomepageSectionPerformanceContext';
 
 interface HomepageProps {
   /**
@@ -208,6 +209,20 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const totalSectionsLoaded = enabledSections.length;
 
     useHomeSessionSummary({ totalSectionsLoaded });
+    const { claimPendingSession, releaseSession } =
+      useHomepageSectionPerformanceContext();
+
+    useFocusEffect(
+      useCallback(() => {
+        const claimedSession = claimPendingSession();
+
+        return () => {
+          if (claimedSession) {
+            releaseSession(claimedSession.id);
+          }
+        };
+      }, [claimPendingSession, releaseSession]),
+    );
 
     const getSectionIndex = useCallback(
       (name: HomeSectionName) =>

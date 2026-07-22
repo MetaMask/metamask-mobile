@@ -17,6 +17,7 @@ interface PopularTokensListProps {
    * at section level (outside SectionRow to avoid double-padding).
    */
   onError?: (hasError: boolean) => void;
+  onReady?: () => void;
 }
 
 /**
@@ -32,7 +33,7 @@ interface PopularTokensListProps {
 const PopularTokensList = forwardRef<
   SectionRefreshHandle,
   PopularTokensListProps
->(({ onError }, ref) => {
+>(({ onError, onReady }, ref) => {
   const { tokens, isInitialLoading, error, refetch } = usePopularTokens();
 
   // Error state: initial load failed and we have no price data to show.
@@ -44,6 +45,12 @@ const PopularTokensList = forwardRef<
   useEffect(() => {
     onError?.(hasError);
   }, [hasError, onError]);
+
+  useEffect(() => {
+    if (!isInitialLoading && !hasError) {
+      onReady?.();
+    }
+  }, [hasError, isInitialLoading, onReady]);
 
   const refresh = useCallback(async () => {
     await refetch();

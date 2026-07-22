@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -18,6 +18,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
@@ -75,6 +76,24 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
       enabled: isCashSectionEnabled,
     });
 
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: HomeSectionNames.CASH,
+      contentReady: isCashSectionEnabled,
+      dataReady: isCashSectionEnabled,
+      isEmpty: !hasMusdBalanceOnAnyChain,
+      enabled: isCashSectionEnabled,
+      itemCount: hasMusdBalanceOnAnyChain ? 1 : 0,
+      sectionVariant: hasMusdBalanceOnAnyChain ? 'balance' : 'empty_cta',
+    });
+
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
+
     const refresh = useCallback(async () => {
       // Force a remount so claim session lock and reward hooks are re-initialized.
       setRefreshVersion((version) => version + 1);
@@ -96,7 +115,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const title = strings('homepage.sections.money');
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         <Box paddingBottom={3}>
           <SectionDivider />
           <SectionHeader

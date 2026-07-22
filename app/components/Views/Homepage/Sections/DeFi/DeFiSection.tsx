@@ -4,7 +4,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -30,6 +30,7 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useThrottledFocusEffect } from '../../../../hooks/useThrottledFocusEffect';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -139,6 +140,25 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       enabled: isDeFiEnabled,
     });
 
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: HomeSectionNames.DEFI,
+      contentReady: !isLoading,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
+      isLoading,
+      enabled: isDeFiEnabled,
+      requiresLayout: !isEmpty || hasError,
+      itemCount: isEmpty ? 0 : positions.length,
+    });
+
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
+
     // Don't render if DeFi is disabled
     if (!isDeFiEnabled) {
       return null;
@@ -152,7 +172,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // Show retry UI on error
     if (!isLoading && hasError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
+        <View ref={sectionViewRef} onLayout={handleLayout}>
           <SectionDivider />
           <SectionHeader
             title={title}
@@ -171,7 +191,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         <SectionDivider />
         <SectionHeader
           title={title}

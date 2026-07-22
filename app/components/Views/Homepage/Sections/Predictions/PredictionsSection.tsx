@@ -7,17 +7,18 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { SectionRefreshHandle } from '../../types';
+import { SectionRefreshHandle, type HomeSectionMode } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import useHomeViewedEvent, {
   HomeSectionNames,
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 import HomepagePredictWorldCupDiscovery from './components/HomepagePredictWorldCupDiscovery';
 import HomepagePredictTrendingMarkets from './components/HomepagePredictTrendingMarkets';
 import HomepagePredictPositions from './components/HomepagePredictPositions';
@@ -170,6 +171,13 @@ interface PredictionsSectionShellProps {
   analyticsName: HomeSectionName;
   sectionIndex: number;
   totalSectionsLoaded: number;
+  perfSectionMode: HomeSectionMode;
+  perfContentReady: boolean;
+  perfIsLoading: boolean;
+  perfIsEmpty: boolean;
+  perfContentState?: 'filled' | 'empty' | 'error';
+  perfSectionVariant?: string;
+  perfRequiresLayout?: boolean;
   children: ReactNode;
 }
 
@@ -193,6 +201,13 @@ const PredictionsSectionShell = forwardRef<
       analyticsName,
       sectionIndex,
       totalSectionsLoaded,
+      perfSectionMode,
+      perfContentReady,
+      perfIsLoading,
+      perfIsEmpty,
+      perfContentState,
+      perfSectionVariant,
+      perfRequiresLayout,
       children,
     },
     ref,
@@ -207,12 +222,31 @@ const PredictionsSectionShell = forwardRef<
       isEmpty,
       itemCount,
     });
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: analyticsName,
+      sectionMode: perfSectionMode,
+      sectionVariant: perfSectionVariant,
+      contentReady: perfContentReady,
+      isEmpty: perfIsEmpty,
+      contentStateForTrace: perfContentState,
+      isLoading: perfIsLoading,
+      itemCount,
+      requiresLayout: perfRequiresLayout,
+      enabled,
+    });
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
     if (!enabled) {
       return null;
     }
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         {children}
       </View>
     );
@@ -453,6 +487,14 @@ const PredictionsSectionDefault = forwardRef<
         analyticsName={analyticsName}
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
+        perfSectionMode="default"
+        perfContentReady={predictTimeToContentReady}
+        perfIsLoading={isLoading}
+        perfIsEmpty={isEmpty && !hasError}
+        perfContentState={hasError ? 'error' : undefined}
+        perfSectionVariant={
+          isTreatmentDiscovery ? 'treatment_discovery' : 'default'
+        }
       >
         {positionsLayout ? (
           <>
@@ -587,6 +629,12 @@ const PredictionsSectionPositionsOnly = forwardRef<
         analyticsName={analyticsName}
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
+        perfSectionMode="positions-only"
+        perfContentReady={willRender}
+        perfIsLoading={isLoading}
+        perfIsEmpty={!isLoading && !hasAnyPositions}
+        perfSectionVariant="positions"
+        perfRequiresLayout={hasAnyPositions}
       >
         <HomepagePredictPositions
           title={title}
@@ -687,6 +735,20 @@ const PredictionsSectionTrendingOnly = forwardRef<
         analyticsName={analyticsName}
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
+        perfSectionMode="trending-only"
+        perfContentReady={willRender}
+        perfIsLoading={
+          isListLayout
+            ? worldCupHomepageMarkets.isFetching ||
+              liveWorldCupHomepageMarkets.isFetching ||
+              worldCupEventCount.isFetching
+            : isLoadingMarkets
+        }
+        perfIsEmpty={
+          isListLayout ? false : !isLoadingMarkets && itemCount === 0
+        }
+        perfSectionVariant={isListLayout ? 'list' : 'carousel'}
+        perfRequiresLayout={willRender}
       >
         <Box paddingBottom={3}>
           <HomepagePredictTrendingMarkets
@@ -770,6 +832,15 @@ const PredictionsSectionSportsOnly = forwardRef<
         analyticsName={analyticsName}
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
+        perfSectionMode="sports"
+        perfContentReady={isPredictEnabled}
+        perfIsLoading={
+          worldCupHomepageMarkets.isFetching ||
+          liveWorldCupHomepageMarkets.isFetching ||
+          worldCupEventCount.isFetching
+        }
+        perfIsEmpty={false}
+        perfSectionVariant="sports"
       >
         <Box paddingBottom={3}>
           <HomepagePredictWorldCupDiscovery

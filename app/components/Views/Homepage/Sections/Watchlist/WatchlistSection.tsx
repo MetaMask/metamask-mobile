@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SectionDivider,
@@ -24,6 +24,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 import type { SectionRefreshHandle } from '../../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -85,12 +86,29 @@ const WatchlistSection = forwardRef<
     enabled: isWatchlistEnabled,
   });
 
+  const { onContentLayout } = useSectionPerformanceV2({
+    sectionId: HomeSectionNames.WATCHLIST,
+    contentReady: !isLoading,
+    isEmpty,
+    isLoading,
+    enabled: isWatchlistEnabled,
+    itemCount,
+  });
+
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      onLayout();
+      onContentLayout(event);
+    },
+    [onContentLayout, onLayout],
+  );
+
   if (!isWatchlistEnabled) {
     return null;
   }
 
   return (
-    <View ref={sectionViewRef} onLayout={onLayout}>
+    <View ref={sectionViewRef} onLayout={handleLayout}>
       <SectionDivider />
       <SectionHeader
         title={title}

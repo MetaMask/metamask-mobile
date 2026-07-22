@@ -175,6 +175,7 @@ import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWallet
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import DesignerModeOverlay from '../../UI/DesignerMode';
+import { HomepageSectionPerformanceProvider } from '../../Views/Homepage/performance/HomepageSectionPerformanceContext';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1406,7 +1407,10 @@ const App: React.FC = () => {
       <WebSocketHealthToastProvider>
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
-        <AppFlow />
+        <HomepageSectionPerformanceProvider>
+          <AppFlow />
+        </HomepageSectionPerformanceProvider>
+        {/* eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy Toast root still backs ToastContext consumers; migration needs a separate API pass. */}
         <Toast ref={toastRef} />
         {/*
           FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native

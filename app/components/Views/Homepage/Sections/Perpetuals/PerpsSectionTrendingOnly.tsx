@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import {
   Box,
   SectionDivider,
@@ -15,6 +15,7 @@ import type { SectionRefreshHandle } from '../../types';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformanceV2 } from '../../hooks/useSectionPerformanceV2';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
@@ -72,12 +73,31 @@ const PerpsSectionTrendingOnly = forwardRef<
       itemCount,
     });
 
+    const { onContentLayout } = useSectionPerformanceV2({
+      sectionId: analyticsName,
+      sectionMode: 'trending-only',
+      sectionVariant: 'trending_perps',
+      contentReady: !marketsLoading && itemCount > 0,
+      isEmpty: !marketsLoading && itemCount === 0,
+      isLoading: marketsLoading,
+      itemCount,
+      requiresLayout: itemCount > 0,
+    });
+
+    const handleLayout = useMemo(
+      () => (event: LayoutChangeEvent) => {
+        onLayout();
+        onContentLayout(event);
+      },
+      [onContentLayout, onLayout],
+    );
+
     if (!marketsLoading && itemCount === 0) {
       return null;
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleLayout}>
         <Box paddingBottom={3}>
           <SectionDivider />
           <SectionHeader
