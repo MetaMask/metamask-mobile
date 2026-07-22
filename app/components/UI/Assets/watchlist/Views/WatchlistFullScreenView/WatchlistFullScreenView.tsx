@@ -30,7 +30,7 @@ import styleSheet from './WatchlistFullScreenView.styles';
 const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
 
-export interface WatchlistFullViewRouteParams {
+interface WatchlistFullViewRouteParams {
   source?: string;
 }
 
