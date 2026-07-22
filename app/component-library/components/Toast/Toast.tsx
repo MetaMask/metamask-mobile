@@ -345,9 +345,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const renderInlineLabelSegments = (segments: ToastLabelOptions) => (
     <Text variant={TextVariant.BodyMD} onTextLayout={handleTitleTextLayout}>
-      {segments.map(({ label, isBold }, index) => (
+      {segments.map(({ label, isBold }) => (
         <Text
-          key={`toast-label-${index}`}
+          key={
+            typeof label === 'string'
+              ? `${label}-${isBold === false ? 'normal' : 'bold'}`
+              : `toast-label-${isBold === false ? 'normal' : 'bold'}`
+          }
           variant={
             isBold === false ? TextVariant.BodySM : TextVariant.BodyMDMedium
           }
@@ -386,9 +390,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             style={styles.description}
             onTextLayout={handleDescriptionTextLayout}
           >
-            {descriptionLabelOptions.map(({ label }, index) => (
+            {/* Prefer label content over array index so keys stay stable (Sonar S6479). */}
+            {descriptionLabelOptions.map(({ label }) => (
               <Text
-                key={`toast-description-label-${index}`}
+                key={typeof label === 'string' ? label : 'toast-description'}
                 variant={TextVariant.BodySM}
                 color={TextColor.Alternative}
               >
