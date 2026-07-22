@@ -1,22 +1,21 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp';
-import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import SnapSignModal from '../../page-objects/MMConnect/SnapSignModal';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp.js';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
+import SnapSignModal from '../../page-objects/MMConnect/SnapSignModal.js';
 import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
   ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 import {
-  PlaywrightGestures,
   PlaywrightAssertions,
   sleep,
   asPlaywrightElement,
-} from '../../framework';
-import WalletView from '../../page-objects/wallet/WalletView';
+} from '../../framework/index.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
 
 const CHAINS = {
   ETHEREUM: 'eip155:1',
@@ -70,7 +69,7 @@ appiumTest.describe(SmokeMMConnect('Multichain RN Solana'), () => {
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
   appiumTest.skip(
     '@metamask/connect-multichain-rn-solana - Connect with Solana, invoke signMessage, and disconnect',
-    async ({ currentDeviceDetails, driver }) => {
+    async ({ currentDeviceDetails, driver: _driver }) => {
       // When running on BrowserStack we skip the test if the RN playground is not installed
       appiumTest.skip(
         currentDeviceDetails.isBrowserstack &&

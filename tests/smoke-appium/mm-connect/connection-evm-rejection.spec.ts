@@ -1,13 +1,13 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
-import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
-import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import SignModal from '../../page-objects/MMConnect/SignModal';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
-import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
+import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
+import SignModal from '../../page-objects/MMConnect/SignModal.js';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import { DappServer, DappVariants, TestDapps, sleep } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -20,7 +20,7 @@ import {
   launchMobileBrowser,
   navigateToDapp,
   switchToMobileBrowser,
-} from '../../flows/native-browser.flow';
+} from '../../flows/native-browser.flow.js';
 
 const DAPP_PORT = 8090;
 
@@ -83,7 +83,7 @@ appiumTest.describe(SmokeMMConnect('EVM rejection'), () => {
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
   appiumTest.skip(
     '@metamask/connect-evm - Rejection response value verification',
-    async ({ currentDeviceDetails, driver }) => {
+    async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
       const useBrowserStackLocal =
         process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';

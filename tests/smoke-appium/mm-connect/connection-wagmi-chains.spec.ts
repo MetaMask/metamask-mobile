@@ -1,23 +1,23 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import WalletView from '../../page-objects/wallet/WalletView';
-import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
-import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
-import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import SignModal from '../../page-objects/MMConnect/SignModal';
-import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal';
-import AddChainModal from '../../page-objects/MMConnect/AddChainModal';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
+import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
+import SignModal from '../../page-objects/MMConnect/SignModal.js';
+import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal.js';
+import AddChainModal from '../../page-objects/MMConnect/AddChainModal.js';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   DappServer,
   DappVariants,
   PlaywrightGestures,
   TestDapps,
   sleep,
-} from '../../framework';
+} from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -30,9 +30,8 @@ import {
   launchMobileBrowser,
   navigateToDapp,
   switchToMobileBrowser,
-} from '../../flows/native-browser.flow';
+} from '../../flows/native-browser.flow.js';
 
-const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
 
 // NOTE: This test requires the testing SRP to be used
@@ -97,7 +96,7 @@ appiumTest.describe(SmokeMMConnect('Wagmi chain switching'), () => {
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
   appiumTest.skip(
     '@metamask/connect-evm (wagmi) - Chain switching via Wagmi',
-    async ({ currentDeviceDetails, driver }) => {
+    async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
       const useBrowserStackLocal =
         process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';

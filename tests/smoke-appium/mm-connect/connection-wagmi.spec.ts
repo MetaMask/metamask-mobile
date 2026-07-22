@@ -1,19 +1,19 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
-import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
-import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import SignModal from '../../page-objects/MMConnect/SignModal';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
+import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
+import SignModal from '../../page-objects/MMConnect/SignModal.js';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
 import {
   DappServer,
   DappVariants,
   PlaywrightGestures,
   TestDapps,
   sleep,
-} from '../../framework';
+} from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -27,9 +27,8 @@ import {
   navigateToDapp,
   refreshMobileBrowser,
   switchToMobileBrowser,
-} from '../../flows/native-browser.flow';
+} from '../../flows/native-browser.flow.js';
 
-const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
 
 // NOTE: This test requires the testing SRP to be used
@@ -97,7 +96,7 @@ appiumTest.describe(SmokeMMConnect('Wagmi session'), () => {
   // This test is currently failing. See 250.
   appiumTest.skip(
     '@metamask/connect-evm (wagmi) - Session stability via Wagmi',
-    async ({ currentDeviceDetails, driver }) => {
+    async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
       const useBrowserStackLocal =
         process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';

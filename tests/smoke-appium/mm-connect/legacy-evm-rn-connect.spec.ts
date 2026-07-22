@@ -1,15 +1,15 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp';
-import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import SignModal from '../../page-objects/MMConnect/SignModal';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp.js';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
+import SignModal from '../../page-objects/MMConnect/SignModal.js';
 import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
 } from './utils.js';
-import { sleep } from '../../framework';
+import { sleep } from '../../framework/index.js';
 
 /**
  * After a MetaMask action (approve / sign / cancel), wait for the callback
@@ -25,7 +25,7 @@ appiumTest.describe(SmokeMMConnect('Legacy EVM RN playground'), () => {
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
   appiumTest.skip(
     '@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains',
-    async ({ currentDeviceDetails, driver }) => {
+    async ({ currentDeviceDetails, driver: _driver }) => {
       // When running on BrowserStack we skip the test if the RN playground is not installed
       appiumTest.skip(
         currentDeviceDetails.isBrowserstack &&

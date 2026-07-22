@@ -1,18 +1,18 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
-import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
-import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
+import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
 import {
   DappServer,
   DappVariants,
   PlaywrightGestures,
   TestDapps,
   sleep,
-} from '../../framework';
+} from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -26,7 +26,7 @@ import {
   navigateToDapp,
   refreshMobileBrowser,
   switchToMobileBrowser,
-} from '../../flows/native-browser.flow';
+} from '../../flows/native-browser.flow.js';
 
 const DAPP_PORT = 8090;
 
@@ -85,7 +85,7 @@ appiumTest.describe(SmokeMMConnect('EVM session timeout'), () => {
   // This test is currently being skipped as the mobile app displays a double prompt.
   appiumTest.skip(
     '@metamask/connect-evm - Incomplete session timeout and read-only methods',
-    async ({ currentDeviceDetails, driver }) => {
+    async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
       const useBrowserStackLocal =
         process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
