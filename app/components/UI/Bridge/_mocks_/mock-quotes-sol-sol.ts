@@ -117,6 +117,6 @@ const mockQuotes = [
   },
 ];
 
-mockQuotes.map(validateQuoteResponseV1);
+mockQuotes.forEach((quote) => validateQuoteResponseV1(quote));
 
 export default mockQuotes;
