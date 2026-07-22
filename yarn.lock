@@ -10642,7 +10642,45 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^25.0.0":
+"@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A69.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-69.0.0-3c96a3f866.patch":
+  version: 69.0.0
+  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A69.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-69.0.0-3c96a3f866.patch::version=69.0.0&hash=f602a6"
+  dependencies:
+    "@ethereumjs/common": "npm:^4.4.0"
+    "@ethereumjs/tx": "npm:^5.4.0"
+    "@ethereumjs/util": "npm:^9.1.0"
+    "@ethersproject/abi": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@ethersproject/wallet": "npm:^5.7.0"
+    "@metamask/accounts-controller": "npm:^39.0.5"
+    "@metamask/approval-controller": "npm:^9.0.2"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/core-backend": "npm:^6.5.0"
+    "@metamask/gas-fee-controller": "npm:^26.2.4"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/network-controller": "npm:^34.0.0"
+    "@metamask/nonce-tracker": "npm:^6.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+    "@metamask/rpc-errors": "npm:^7.0.2"
+    "@metamask/utils": "npm:^11.11.0"
+    async-mutex: "npm:^0.5.0"
+    bignumber.js: "npm:^9.1.2"
+    bn.js: "npm:^5.2.1"
+    eth-method-registry: "npm:^4.0.0"
+    fast-json-patch: "npm:^3.1.1"
+    lodash: "npm:^4.17.21"
+    uuid: "npm:^8.3.2"
+  peerDependencies:
+    "@babel/runtime": ^7.0.0
+    "@metamask/eth-block-tracker": ">=9"
+  checksum: 10/93d116e0589240c13f30f207eb2f76c3f1feed01581977ebeb8a8a01398e72ce8c3157fb74d8d6783af50ccaf062d485b215b68ad0a2c8e70a6e661628fa0812
+  languageName: node
+  linkType: hard
+
+"@metamask/transaction-pay-controller@npm:25.0.0":
   version: 25.0.0
   resolution: "@metamask/transaction-pay-controller@npm:25.0.0"
   dependencies:
@@ -10667,6 +10705,34 @@ __metadata:
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
   checksum: 10/450fcfbe831d10104bc9bc5db539eb46ecece84551edd6a05c9a34c4d93c4535ef0ffc56be4f2d684f89da94fb0c7a9cc908d06f8d7263680c268600ac96fccc
+  languageName: node
+  linkType: hard
+
+"@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A25.0.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-25.0.0-2ac1d3e321.patch":
+  version: 25.0.0
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A25.0.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-25.0.0-2ac1d3e321.patch::version=25.0.0&hash=449c77"
+  dependencies:
+    "@ethersproject/abi": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/assets-controller": "npm:^11.0.0"
+    "@metamask/assets-controllers": "npm:^109.4.1"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/gas-fee-controller": "npm:^26.2.4"
+    "@metamask/keyring-controller": "npm:^27.1.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/network-controller": "npm:^34.0.0"
+    "@metamask/ramps-controller": "npm:^17.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+    "@metamask/transaction-controller": "npm:^69.0.0"
+    "@metamask/utils": "npm:^11.11.0"
+    bignumber.js: "npm:^9.1.2"
+    bn.js: "npm:^5.2.1"
+    immer: "npm:^9.0.6"
+    lodash: "npm:^4.17.21"
+  checksum: 10/57d50e6b0afad95ee63e1e696d76e6b5d3895c4908c9f7997fe863bb487bd5d6555ca41aa28373ee46d8c65bcfa5b204de7ea504b24efe2c813e6107118ac7ab
   languageName: node
   linkType: hard
 
@@ -35979,8 +36045,8 @@ __metadata:
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^69.0.0"
-    "@metamask/transaction-pay-controller": "npm:^25.0.0"
+    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A69.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-69.0.0-3c96a3f866.patch"
+    "@metamask/transaction-pay-controller": "patch:@metamask/transaction-pay-controller@npm%3A25.0.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-25.0.0-2ac1d3e321.patch"
     "@metamask/tron-wallet-snap": "npm:^1.31.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^7.0.1"

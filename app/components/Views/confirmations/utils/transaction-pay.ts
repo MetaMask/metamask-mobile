@@ -311,21 +311,46 @@ export function resolvePreferredPayToken({
 }
 
 /**
- * Sets the money account payment override on a transaction and clears any
- * previously selected fiat payment method. For deposit flows the money
- * account address is stored as the refund destination.
+ * Sets the Money Account payment override on a transaction and clears any
+ * previously selected fiat payment method.
+ *
+ * `paymentOverride` is set unconditionally; the additional non-atomic fields
+ * are set only for the flows that need them.
+ *
+ * Perps/Predict withdraw → MA sets `atomic: false` and `recipient: MA` so the
+ * post-Relay transfer to the Money Account runs in `submitPostCompletionBatch`.
+ * Money Account deposits set `refundTo: MA` so failed Relay bridges refund to
+ * the MA rather than the funding EOA, and flip `atomic: false` later via
+ * `setMoneyAccountDepositMaxAtomic` when the user toggles max amount.
+ *
+ * Money Account withdraw (`moneyAccountWithdraw`) keeps the default atomic
+ * path with no recipient override: `processTransactions` overwrites the quote
+ * recipient with the actual token-transfer target from the nested batch.
  */
 export function applyMoneyAccountOverride(
   transactionId: string,
   moneyAccountAddress: string | undefined,
-  isWithdraw: boolean,
+  transactionMeta: TransactionMeta | undefined,
 ): void {
+  const isPerpsOrPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
   Engine.context.TransactionPayController.setTransactionConfig(
     transactionId,
     (config) => {
-      (config as Record<string, unknown>).paymentOverride =
-        PaymentOverride.MoneyAccount;
-      if (moneyAccountAddress && !isWithdraw) {
+      config.paymentOverride = PaymentOverride.MoneyAccount;
+      if (isPerpsOrPredictWithdraw) {
+        config.atomic = false;
+        if (moneyAccountAddress) {
+          config.recipient = moneyAccountAddress as Hex;
+        }
+      }
+      if (isMoneyAccountDeposit && moneyAccountAddress) {
         config.refundTo = moneyAccountAddress as Hex;
       }
     },
@@ -337,4 +362,22 @@ export function applyMoneyAccountOverride(
       fp.selectedPaymentMethodId = undefined;
     },
   });
+}
+
+/**
+ * Toggle non-atomic mode on a Money Account deposit based on whether the user
+ * has selected the max-amount option. Only max-amount deposits need the
+ * post-Relay vault-deposit path; regular deposits stay atomic (EXPECTED_OUTPUT
+ * with the vault deposit embedded in the Relay bundle).
+ */
+export function setMoneyAccountDepositMaxAtomic(
+  transactionId: string,
+  isMax: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      config.atomic = isMax ? false : undefined;
+    },
+  );
 }

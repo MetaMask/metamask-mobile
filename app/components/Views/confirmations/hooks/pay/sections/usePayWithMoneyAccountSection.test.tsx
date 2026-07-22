@@ -285,7 +285,7 @@ describe('usePayWithMoneyAccountSection', () => {
   });
 
   describe('handlePress', () => {
-    it('sets paymentOverride and refundTo on press', () => {
+    it('sets paymentOverride via applyMoneyAccountOverride on press', () => {
       const setConfigMock = jest.mocked(
         Engine.context.TransactionPayController.setTransactionConfig,
       );
@@ -301,7 +301,65 @@ describe('usePayWithMoneyAccountSection', () => {
       setConfigMock.mock.calls[0][1](config as never);
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+    });
+
+    it('sets atomic:false and recipient for perpsWithdraw', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.perpsWithdraw,
+      } as never);
+      const setConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      const config = {} as Record<string, unknown>;
+      setConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.recipient).toBe(MONEY_ACCOUNT_ADDRESS);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets refundTo for moneyAccountDeposit', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.moneyAccountDeposit,
+      } as never);
+      useSelectorMock.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return moneyAccountMock;
+        }
+        if (selector === selectMetaMaskPayFlags) {
+          return {
+            enableMoneyAccountTransactions: {
+              moneyAccountDeposit: true,
+            },
+          };
+        }
+        return undefined;
+      });
+      const setConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      const config = {} as Record<string, unknown>;
+      setConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
+      expect(config.atomic).toBeUndefined();
+      expect(config.recipient).toBeUndefined();
     });
 
     it('navigates back on press', () => {

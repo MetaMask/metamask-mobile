@@ -35,6 +35,7 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
   messenger: T,
   recipient: Hex,
   amountHuman: string,
+  atomic: boolean,
 ): Promise<BatchTransactionParams[]> {
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
@@ -63,6 +64,26 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
     provider,
   });
 
+  const rawCalls: BatchTransactionParams[] = [
+    {
+      to: withdrawTx.params.to,
+      data: withdrawTx.params.data,
+      value: withdrawTx.params.value,
+    },
+    {
+      to: transferTx.params.to,
+      data: transferTx.params.data,
+      value: transferTx.params.value,
+    },
+  ];
+
+  // Non-atomic flows submit the raw calls directly as a sponsored batch after
+  // Relay completion; the Money Account is already 7702-delegated so no fresh
+  // delegation wrap is needed.
+  if (!atomic) {
+    return rawCalls;
+  }
+
   const { NetworkController } = Engine.context;
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
@@ -76,18 +97,7 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
     txParams: {
       from: moneyAccountAddress,
     },
-    nestedTransactions: [
-      {
-        to: withdrawTx.params.to,
-        data: withdrawTx.params.data,
-        value: withdrawTx.params.value,
-      },
-      {
-        to: transferTx.params.to,
-        data: transferTx.params.data,
-        value: transferTx.params.value,
-      },
-    ],
+    nestedTransactions: rawCalls,
   } as TransactionMeta;
 
   const delegation = await getDelegationTransaction(messenger, transactionMeta);
@@ -106,6 +116,7 @@ async function getMoneyAccountDepositPaymentOverrideData<
 >(
   messenger: T,
   amountHuman: string,
+  atomic: boolean,
 ): Promise<{
   calls: BatchTransactionParams[];
   recipient?: Hex;
@@ -138,6 +149,26 @@ async function getMoneyAccountDepositPaymentOverrideData<
     provider,
   });
 
+  const rawCalls: BatchTransactionParams[] = [
+    {
+      to: approveTx.params.to,
+      data: approveTx.params.data,
+      value: approveTx.params.value,
+    },
+    {
+      to: depositTx.params.to,
+      data: depositTx.params.data,
+      value: depositTx.params.value,
+    },
+  ];
+
+  // Non-atomic flows submit the raw calls directly as a sponsored batch after
+  // Relay completion; the Money Account is already 7702-delegated so no fresh
+  // delegation wrap is needed.
+  if (!atomic) {
+    return { calls: rawCalls, recipient: moneyAccountAddress };
+  }
+
   const { NetworkController } = Engine.context;
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
@@ -151,18 +182,7 @@ async function getMoneyAccountDepositPaymentOverrideData<
     txParams: {
       from: moneyAccountAddress,
     },
-    nestedTransactions: [
-      {
-        to: approveTx.params.to,
-        data: approveTx.params.data,
-        value: approveTx.params.value,
-      },
-      {
-        to: depositTx.params.to,
-        data: depositTx.params.data,
-        value: depositTx.params.value,
-      },
-    ],
+    nestedTransactions: rawCalls,
   } as TransactionMeta;
 
   const delegation = await getDelegationTransaction(messenger, transactionMeta);
@@ -187,8 +207,14 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
   const { amount, transaction, transactionData } = request;
 
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
+    const atomic = transactionData.atomic !== false;
+
     if (transactionData?.isPostQuote) {
-      return await getMoneyAccountDepositPaymentOverrideData(messenger, amount);
+      return await getMoneyAccountDepositPaymentOverrideData(
+        messenger,
+        amount,
+        atomic,
+      );
     }
 
     if (!transaction.txParams?.from) return { calls: [] };
@@ -197,6 +223,7 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
       messenger,
       transaction.txParams.from as Hex,
       amount,
+      atomic,
     );
     return { calls };
   }

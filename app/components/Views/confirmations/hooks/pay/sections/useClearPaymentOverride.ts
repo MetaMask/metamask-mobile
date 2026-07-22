@@ -22,8 +22,10 @@ export function useClearPaymentOverride() {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {
-          (config as Record<string, unknown>).paymentOverride = undefined;
+          config.paymentOverride = undefined;
           config.refundTo = undefined;
+          config.recipient = undefined;
+          config.atomic = undefined;
         },
       );
     }

@@ -9,7 +9,10 @@ import {
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getTokenAddress,
+  setMoneyAccountDepositMaxAtomic,
+} from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import {
@@ -94,6 +97,9 @@ export function useTransactionCustomAmount({
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
+  ]);
+  const isPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.predictWithdraw,
   ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -210,8 +216,12 @@ export function useTransactionCustomAmount({
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isMaxAmount = value;
       });
+
+      if (isMoneyAccountDeposit) {
+        setMoneyAccountDepositMaxAtomic(transactionId, value);
+      }
     },
-    [transactionId],
+    [isMoneyAccountDeposit, transactionId],
   );
 
   const updatePendingAmount = useCallback(
@@ -292,8 +302,8 @@ export function useTransactionCustomAmount({
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&
-        !isMoneyAccountWithdraw &&
-        !isMoneyAccountDeposit;
+        !isPredictWithdraw &&
+        !isMoneyAccountWithdraw;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -319,6 +329,7 @@ export function useTransactionCustomAmount({
       balanceUsd,
       isMaxAmount,
       isPerpsWithdraw,
+      isPredictWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
       payToken?.balanceRaw,
