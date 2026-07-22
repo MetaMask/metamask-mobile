@@ -323,7 +323,9 @@ export const BridgeTokenSelector: React.FC = () => {
   const shouldResetListPositionRef = useRef(false);
   const prevWatchlistListModeRef = useRef(isWatchlistListMode);
   const watchlistSessionChainIdRef = useRef(selectedChainId);
-  const networkFilterBeforeWatchlistRef = useRef<CaipChainId | undefined>();
+  const networkFilterBeforeWatchlistRef = useRef<CaipChainId | undefined>(
+    undefined,
+  );
 
   const handleWatchlistFilterPress = useCallback(() => {
     setShowWatchlistOnly((previous) => {
