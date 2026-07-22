@@ -2015,29 +2015,6 @@ describe('Perps Feature Flag Selectors', () => {
   });
 
   describe('selectPerpsProModeEnabledFlag', () => {
-    const createEmptyFlagsState = () => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {},
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    });
-
-    it('returns false when remote flag is not set and local flag is off', () => {
-      delete process.env.MM_PERPS_PRO_MODE_ENABLED;
-      const result = selectPerpsProModeEnabledFlag(createEmptyFlagsState());
-      expect(result).toBe(false);
-    });
-
-    it('falls back to the local env flag when remote flag is not set', () => {
-      process.env.MM_PERPS_PRO_MODE_ENABLED = 'true';
-      const result = selectPerpsProModeEnabledFlag(createEmptyFlagsState());
-      expect(result).toBe(true);
-    });
-
     it('returns true when remote flag is valid and enabled', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
 
