@@ -24,7 +24,7 @@ const mockShowSearch = jest.fn();
 const mockClearSearchAndClose = jest.fn();
 
 const mockUsePredictFeedConfig = jest.fn();
-const mockUsePredictMarketList = jest.fn();
+const mockUsePredictFeedMarketList = jest.fn();
 const mockUsePredictSearch = jest.fn();
 const mockPredictMarketProps = jest.fn();
 const mockSearchOverlayProps = jest.fn();
@@ -70,9 +70,9 @@ jest.mock('../../hooks/usePredictFeedConfig', () => ({
     mockUsePredictFeedConfig(...args),
 }));
 
-jest.mock('../../hooks/usePredictMarketList', () => ({
-  usePredictMarketList: (...args: unknown[]) =>
-    mockUsePredictMarketList(...args),
+jest.mock('../../hooks/usePredictFeedMarketList', () => ({
+  usePredictFeedMarketList: (...args: unknown[]) =>
+    mockUsePredictFeedMarketList(...args),
 }));
 
 jest.mock('../../hooks/usePredictSearch', () => ({
@@ -178,12 +178,14 @@ const feedConfigResult = (
       id: 'games',
       titleKey: 'predict.feed.filters.games',
       params: {},
+      showLiveFirst: true,
       isDynamic: false,
     },
     {
       id: 'props',
       titleKey: 'predict.feed.filters.props',
       params: {},
+      showLiveFirst: false,
       isDynamic: false,
     },
   ],
@@ -194,6 +196,7 @@ const feedConfigResult = (
     id: 'games',
     titleKey: 'predict.feed.filters.games',
     params: {},
+    showLiveFirst: true,
     isDynamic: false,
   },
   ...overrides,
@@ -231,7 +234,7 @@ describe('PredictFeedView', () => {
     mockCanGoBack.mockReturnValue(true);
     mockRouteParams = { feedId: 'sports' };
     mockUsePredictFeedConfig.mockReturnValue(feedConfigResult());
-    mockUsePredictMarketList.mockReturnValue(marketListResult());
+    mockUsePredictFeedMarketList.mockReturnValue(marketListResult());
     mockUsePredictSearch.mockReturnValue(searchResult());
   });
 
@@ -257,9 +260,55 @@ describe('PredictFeedView', () => {
       initialTabId: 'soccer',
       initialFilterId: 'props',
     });
-    expect(mockUsePredictMarketList).toHaveBeenCalledWith(
+    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
       {},
-      { enabled: true },
+      { enabled: true, showLiveFirst: true },
+    );
+  });
+
+  it('disables live-first for sports props filters', () => {
+    mockUsePredictFeedConfig.mockReturnValue(
+      feedConfigResult({
+        activeFilterId: 'props',
+        activeFilter: {
+          id: 'props',
+          titleKey: 'predict.feed.filters.props',
+          params: { excludedTags: ['100639'] },
+          showLiveFirst: false,
+          isDynamic: false,
+        },
+      }),
+    );
+
+    render(<PredictFeedView />);
+
+    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+      { excludedTags: ['100639'] },
+      { enabled: true, showLiveFirst: false },
+    );
+  });
+
+  it('disables live-first for non-sports feeds', () => {
+    mockRouteParams = { feedId: 'politics' };
+    mockUsePredictFeedConfig.mockReturnValue(
+      feedConfigResult({
+        feedId: 'politics',
+        titleKey: 'predict.category.politics',
+        activeFilter: {
+          id: 'all',
+          titleKey: 'predict.feed.filters.all',
+          params: { tagSlugs: ['politics'] },
+          showLiveFirst: true,
+          isDynamic: false,
+        },
+      }),
+    );
+
+    render(<PredictFeedView />);
+
+    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+      { tagSlugs: ['politics'] },
+      { enabled: true, showLiveFirst: false },
     );
   });
 
@@ -268,7 +317,7 @@ describe('PredictFeedView', () => {
       { name: 'predict_test', variant: 'treatment' },
     ];
     mockRouteParams = { feedId: 'sports', transactionActiveAbTests };
-    mockUsePredictMarketList.mockReturnValue(
+    mockUsePredictFeedMarketList.mockReturnValue(
       marketListResult({ markets: [createMarket('1', 'Lakers win')] }),
     );
     mockUsePredictSearch.mockReturnValue(
@@ -423,7 +472,7 @@ describe('PredictFeedView', () => {
 
   describe('market list states', () => {
     it('renders skeleton loaders while initially loading', () => {
-      mockUsePredictMarketList.mockReturnValue(
+      mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({ isLoading: true }),
       );
 
@@ -435,7 +484,7 @@ describe('PredictFeedView', () => {
     });
 
     it('renders market cards when data is present', () => {
-      mockUsePredictMarketList.mockReturnValue(
+      mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({
           markets: [
             createMarket('1', 'Lakers win'),
@@ -463,7 +512,7 @@ describe('PredictFeedView', () => {
     });
 
     it('renders the offline state and retries on press', () => {
-      mockUsePredictMarketList.mockReturnValue(
+      mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({ error: new Error('Network error') }),
       );
 
@@ -478,7 +527,7 @@ describe('PredictFeedView', () => {
     });
 
     it('keeps the list (not the full-screen error) when a next-page fetch fails with markets already loaded', () => {
-      mockUsePredictMarketList.mockReturnValue(
+      mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({
           markets: [createMarket('1', 'Lakers win')],
           error: new Error('Next page failed'),
@@ -497,7 +546,7 @@ describe('PredictFeedView', () => {
     });
 
     it('renders the pagination footer skeleton while fetching the next page', () => {
-      mockUsePredictMarketList.mockReturnValue(
+      mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({
           markets: [createMarket('1', 'Lakers win')],
           hasNextPage: true,

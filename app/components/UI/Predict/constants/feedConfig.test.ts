@@ -127,6 +127,7 @@ describe('feedConfig', () => {
       'games',
       'props',
     ]);
+    expect(allTab.filters.static[0].showLiveFirst).toBe(true);
     expect(allTab.filters.static[0].params).toEqual({
       tagSlugs: ['sports'],
       tags: ['100639'],
@@ -134,6 +135,7 @@ describe('feedConfig', () => {
       order: 'start_time',
       startTimeMinMinutesAgo: 180,
     });
+    expect(allTab.filters.static[1].showLiveFirst).toBe(false);
     expect(allTab.filters.static[1].params).toEqual({
       tagSlugs: ['sports'],
       excludedTags: ['100639'],
@@ -164,6 +166,10 @@ describe('feedConfig', () => {
       soccerTab.filters.static.find((filter) => filter.id === 'mls')?.params
         .tagSlugs,
     ).toEqual(['mls']);
+    expect(
+      soccerTab.filters.static.find((filter) => filter.id === 'mls')
+        ?.showLiveFirst,
+    ).toBe(true);
     expect(
       soccerTab.filters.static.find((filter) => filter.id === 'mls')?.params
         .order,

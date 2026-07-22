@@ -32,6 +32,7 @@ export interface PredictFeedFilterConfig {
   titleKey?: string;
   label?: string;
   params: PredictMarketListParams;
+  showLiveFirst?: boolean;
 }
 
 export interface PredictFeedFiltersConfig {
@@ -121,6 +122,7 @@ const createGamesFilter = (
     },
     chip,
   ),
+  showLiveFirst: true,
 });
 
 const createPropsFilter = (
@@ -143,6 +145,7 @@ const createPropsFilter = (
       },
       chip,
     ),
+    showLiveFirst: false,
   };
 };
 
@@ -169,6 +172,7 @@ const createTagFilter = (
         : params,
       chip,
     ),
+    showLiveFirst: true,
   };
 };
 

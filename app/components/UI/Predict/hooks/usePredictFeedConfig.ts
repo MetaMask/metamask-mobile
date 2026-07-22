@@ -36,6 +36,8 @@ export interface PredictFeedRenderFilter {
   label?: string;
   /** Ready-to-use list params; feed straight into `usePredictMarketList`. */
   params: PredictMarketListParams;
+  /** Sports filters can opt into fetching live markets before regular markets. */
+  showLiveFirst?: boolean;
   isDynamic: boolean;
 }
 
@@ -193,6 +195,7 @@ export const usePredictFeedConfig = (
         titleKey: filter.titleKey,
         label: filter.label,
         params: filter.params,
+        showLiveFirst: filter.showLiveFirst,
         isDynamic: false,
       })),
     [activeTab],

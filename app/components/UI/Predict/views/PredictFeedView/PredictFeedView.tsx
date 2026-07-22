@@ -30,7 +30,7 @@ import PredictOffline from '../../components/PredictOffline';
 import PredictChipList from '../../components/PredictChipList';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
-import { usePredictMarketList } from '../../hooks/usePredictMarketList';
+import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictFeedViewSelectorsIDs,
@@ -79,6 +79,8 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+  const showSportsLiveFirst =
+    feedId === 'sports' && activeFilter?.showLiveFirst === true;
 
   // True once the active filter state is stable enough to log.
   // - No initialFilterId → settled immediately.
@@ -111,7 +113,10 @@ const PredictFeedView: React.FC = () => {
     hasNextPage,
     refetch,
     fetchNextPage,
-  } = usePredictMarketList(activeFilter?.params ?? {}, { enabled: isReady });
+  } = usePredictFeedMarketList(activeFilter?.params ?? {}, {
+    enabled: isReady,
+    showLiveFirst: showSportsLiveFirst,
+  });
 
   // Keep the latest tab/filter selection in a ref so the focus effect can read
   // it without re-firing "feed viewed" every time the tab/filter changes (those

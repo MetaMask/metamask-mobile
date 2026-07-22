@@ -59,3 +59,8 @@ export {
   type UsePredictWorldCupFeedSessionOptions,
   type UsePredictWorldCupFeedSessionResult,
 } from './usePredictWorldCupFeedSession';
+
+export {
+  usePredictFeedMarketList,
+  type UsePredictFeedMarketListOptions,
+} from './usePredictFeedMarketList';
