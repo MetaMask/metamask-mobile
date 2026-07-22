@@ -26,8 +26,10 @@ export interface MultichainTransactionDetailsParams {
 export interface MultichainAccountActionsParams extends AccountParams {}
 
 /** Edit account name parameters */
-export interface EditAccountNameParams extends AccountParams {}
-
+export interface EditAccountNameParams extends AccountParams {
+  /** Legacy EditAccountName screen reads `selectedAccount` from route params. */
+  selectedAccount?: InternalAccount;
+}
 /** Edit wallet name parameters */
 export interface EditWalletNameParams extends AccountParams {}
 

@@ -4,6 +4,7 @@ import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { numberToHex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   FlashList,
   type FlashListRef,
@@ -113,7 +114,7 @@ const UnifiedTransactionsView = ({
   chainId,
   location,
 }: UnifiedTransactionsViewProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = useTheme();
   const tw = useTailwind();

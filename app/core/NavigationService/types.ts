@@ -358,7 +358,7 @@ export type RootModalFlowParamList = {
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
-  DeleteWalletModal: undefined;
+  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   OnboardingSheet: OnboardingSheetParams | undefined;
@@ -386,7 +386,7 @@ export type RootModalFlowParamList = {
   NetworkSelector: NetworkSelectorParams | undefined;
   TokenSort: undefined;
   NetworkManager: undefined;
-  BasicFunctionality: undefined;
+  BasicFunctionality: { caller?: string } | undefined;
   ConfirmTurnOnBackupAndSync: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   TurnOffRememberMeModal: undefined;
@@ -605,7 +605,7 @@ export type RootStackParamList = {
   RewardsSelectSheet: RewardsNavigationParamList['RewardsSelectSheet'];
 
   // Modal routes
-  DeleteWalletModal: undefined;
+  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
   RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
@@ -686,6 +686,14 @@ export type RootStackParamList = {
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
   ExperimentalSettings: undefined;
+  AesCryptoTestForm: undefined;
+  WalletRecovery: undefined;
+  EnterPasswordSimple:
+    | {
+        onPasswordSet: (password: string) => void | Promise<void>;
+        onCancel?: () => void;
+      }
+    | undefined;
   NotificationsSettings: undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
@@ -701,7 +709,7 @@ export type RootStackParamList = {
   AddAccount: AddAccountParams | undefined;
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
-  BasicFunctionality: undefined;
+  BasicFunctionality: { caller?: string } | undefined;
   ConfirmTurnOnBackupAndSync: undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
@@ -858,7 +866,7 @@ export type RootStackParamList = {
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
   PerpsMarketDetails: PerpsNavigationParamList['PerpsMarketDetails'];
   PerpsTrendingView: PerpsNavigationParamList['PerpsMarketListView'];
-  PerpsTutorial: PerpsNavigationParamList['PerpsTutorial'];
+  PerpsTutorial: PerpsNavigationParamList['PerpsTutorial'] | undefined;
   PerpsClosePosition: PerpsNavigationParamList['PerpsClosePosition'];
   PerpsHIP3Debug: undefined;
   PerpsTPSL: PerpsNavigationParamList['PerpsTPSL'];
@@ -934,7 +942,11 @@ export type RootStackParamList = {
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
   AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
   ConfirmationRequestModal: undefined;
-  ConfirmationSwitchAccountType: undefined;
+  ConfirmationSwitchAccountType:
+    | NavigatorScreenParams<{
+        ConfirmationSwitchAccountType: { address?: string } | undefined;
+      }>
+    | undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet:
     | { preferredPaymentToken?: SetPayTokenRequest }

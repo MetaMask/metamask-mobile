@@ -31,6 +31,7 @@ import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import createStyles from './SecuritySettings.styles';
 import { SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
 import {
@@ -71,7 +72,7 @@ const Settings: React.FC = () => {
     styles,
     theme: { colors, brandColors },
   } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =

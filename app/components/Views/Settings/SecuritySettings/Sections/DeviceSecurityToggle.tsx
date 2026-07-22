@@ -10,10 +10,12 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
 import { useStyles } from '../../../../hooks/useStyles';
 import useAuthCapabilities from '../../../../../core/Authentication/hooks/useAuthCapabilities';
 import { createTurnOffRememberMeModalNavDetails } from '../../../../UI/TurnOffRememberMeModal/TurnOffRememberMeModal';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useAuthentication } from '../../../../../core/Authentication';
 import { Linking } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -46,7 +48,7 @@ interface DeviceSecurityToggleProps {
 const DeviceSecurityToggle = ({
   requiresReauthentication = true,
 }: DeviceSecurityToggleProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(createStyles, {});
   const { updateAuthPreference, getAuthCapabilities, updateOsAuthEnabled } =
     useAuthentication();
@@ -71,7 +73,10 @@ const DeviceSecurityToggle = ({
         !enabled &&
         capabilities?.authType === AUTHENTICATION_TYPE.REMEMBER_ME
       ) {
-        navigation.navigate(...createTurnOffRememberMeModalNavDetails());
+        navigateWithDetails(
+          navigation,
+          createTurnOffRememberMeModalNavDetails(),
+        );
         return;
       }
 

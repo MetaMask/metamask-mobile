@@ -3,6 +3,7 @@ import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
   Icon,
@@ -23,6 +24,7 @@ import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import AppConstants from '../../../core/AppConstants';
@@ -44,7 +46,7 @@ import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
@@ -249,7 +251,7 @@ const AccountsMenu = () => {
   }, []);
 
   const onScanSuccess = useCallback(
-    (data: { private_key?: string; seed?: string }, content: string) => {
+    (data: { private_key?: string; seed?: string }, content?: string) => {
       if (data.private_key) {
         const privateKey = data.private_key;
         Alert.alert(
@@ -287,7 +289,7 @@ const AccountsMenu = () => {
         );
       } else {
         setTimeout(() => {
-          DeeplinkManager.parse(content, {
+          DeeplinkManager.parse(content ?? '', {
             origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           });
         }, 500);
@@ -297,9 +299,11 @@ const AccountsMenu = () => {
   );
 
   const openQRScanner = useCallback(() => {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      onScanSuccess,
-    });
+    // Broader ScanSuccess param; avoid cross-route type import (ADR-0020).
+    navigateWithDetails(navigation, [
+      Routes.QR_TAB_SWITCHER,
+      { onScanSuccess },
+    ]);
     trackEvent(createEventBuilder(EVENT_NAME.QR_SCANNER_OPENED).build());
   }, [navigation, onScanSuccess, trackEvent, createEventBuilder]);
 

@@ -79,6 +79,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -115,7 +116,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     undefined | 'Start' | 'Loader'
   >(undefined);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);

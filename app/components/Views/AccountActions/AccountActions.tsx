@@ -7,6 +7,7 @@ import {
   ParamListBase,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
@@ -65,7 +66,7 @@ const AccountActions = () => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { networkSupporting7702Present } = useEIP7702Networks(
@@ -177,7 +178,7 @@ const AccountActions = () => {
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        keyringId,
+        keyringId: keyringId as string,
         popToTopOnDone: true,
       });
     });

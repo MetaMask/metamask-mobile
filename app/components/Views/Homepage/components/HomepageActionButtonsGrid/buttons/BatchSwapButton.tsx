@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { IconName } from '@metamask/design-system-react-native';
@@ -27,7 +28,7 @@ const BatchSwapButton = ({
   actionPosition,
   allowTwoLineLabel,
 }: HomepageActionButtonSlotProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
   const isSwapsEnabled = useSelector((state: RootState) =>
