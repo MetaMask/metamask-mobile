@@ -12,10 +12,16 @@ import { strings } from '../../../../locales/i18n';
 import { analytics } from '../../../util/analytics/analytics';
 import { reloadAppAsync } from 'expo';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
-import { navigateToSupportConsent } from '../../../util/support';
+import {
+  confirmSupportConsent,
+  navigateToSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
 
 jest.mock('../../../util/support', () => ({
   navigateToSupportConsent: jest.fn(),
+  confirmSupportConsent: jest.fn(),
+  rejectSupportConsent: jest.fn(),
 }));
 
 jest.mock('expo', () => ({
@@ -249,10 +255,11 @@ describe('ErrorBoundary', () => {
     );
   });
 
-  it('delegates to openTicket when Contact support is pressed', async () => {
-    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
-      state: initialState,
-    });
+  it('delegates to openTicket when Contact support is pressed and navigation is available', async () => {
+    const { getByText } = renderWithProvider(
+      <Fallback {...mockProps} navigation={mockNavigation} />,
+      { state: initialState },
+    );
 
     const contactSupportButton = getByText(
       strings('error_screen.contact_support'),
@@ -262,6 +269,65 @@ describe('ErrorBoundary', () => {
     });
 
     expect(mockProps.openTicket).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the standalone consent modal instead of calling openTicket when no navigation is available', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    const contactSupportButton = getByText(
+      strings('error_screen.contact_support'),
+    );
+    await act(async () => {
+      fireEvent.press(contactSupportButton);
+    });
+
+    expect(mockProps.openTicket).not.toHaveBeenCalled();
+    expect(
+      getByTestId('standalone-support-consent-confirm-button'),
+    ).toBeOnTheScreen();
+  });
+
+  it('confirms via the standalone consent modal, opening the enriched URL', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('error_screen.contact_support')));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId('standalone-support-consent-confirm-button'));
+    });
+
+    expect(confirmSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+    expect(rejectSupportConsent).not.toHaveBeenCalled();
+  });
+
+  it('rejects via the standalone consent modal, opening the plain URL', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('error_screen.contact_support')));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId('standalone-support-consent-reject-button'));
+    });
+
+    expect(rejectSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+    expect(confirmSupportConsent).not.toHaveBeenCalled();
   });
 
   describe('openTicket (class component)', () => {

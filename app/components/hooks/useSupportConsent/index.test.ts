@@ -37,6 +37,7 @@ describe('useSupportConsent', () => {
       mockNavigation,
       mockOpen,
       'https://support.metamask.io/',
+      undefined,
     );
   });
 
@@ -49,6 +50,25 @@ describe('useSupportConsent', () => {
       mockNavigation,
       mockOpen,
       undefined,
+      undefined,
+    );
+  });
+
+  it('forwards the onOpenSupport callback as the fourth argument to navigateToSupportConsent', () => {
+    const mockOnOpenSupport = jest.fn();
+    const { result } = renderHook(() => useSupportConsent());
+
+    result.current.openSupportWithConsent(
+      mockOpen,
+      'https://support.metamask.io/',
+      mockOnOpenSupport,
+    );
+
+    expect(navigateToSupportConsent).toHaveBeenCalledWith(
+      mockNavigation,
+      mockOpen,
+      'https://support.metamask.io/',
+      mockOnOpenSupport,
     );
   });
 });
