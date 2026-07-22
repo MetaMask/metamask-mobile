@@ -211,4 +211,140 @@ describe('Perps order lifecycle — FLOW integration', () => {
       );
     });
   });
+
+  describe('closing a position via the hook chain', () => {
+    const openLongBTC: Position = {
+      symbol: 'BTC',
+      size: '0.1', // positive = long
+      entryPrice: '50000',
+      positionValue: '5000',
+      unrealizedPnl: '250',
+      marginUsed: '500',
+      leverage: { type: 'cross', value: 10 },
+      liquidationPrice: '45000',
+      maxLeverage: 50,
+      returnOnEquity: '0.5',
+      cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    it('emits Perp Position Close Transaction with status executed on a successful full close', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.subscription.getCachedPositions.mockReturnValue([
+        openLongBTC,
+      ]);
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let closeResult: OrderResult | null = null;
+      await act(async () => {
+        closeResult = await result.current.closePosition({
+          symbol: 'BTC',
+          orderType: 'market',
+          currentPrice: 50_000,
+          trackingData: {
+            totalFee: 5,
+            marketPrice: 50_000,
+            source: 'position_screen',
+          },
+        });
+      });
+
+      expect(closeResult).toMatchObject({ success: true });
+
+      const closeEvent = perps.analytics.lastByName(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+      );
+      expect(closeEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+        asset: 'BTC',
+        order_type: 'market',
+        close_type: PERPS_EVENT_VALUE.CLOSE_TYPE.FULL,
+        open_position_size: 0.1,
+        percentage_closed: 100,
+        dollar_pnl: 250,
+        percent_pnl: 50,
+        leverage: 10,
+        fee: 5,
+        source: 'position_screen',
+      });
+    });
+
+    it('emits Perp Position Close Transaction with status failed when the provider rejects the close', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.subscription.getCachedPositions.mockReturnValue([
+        openLongBTC,
+      ]);
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'err',
+        response: 'Insufficient margin',
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let closeResult: OrderResult | null = null;
+      await act(async () => {
+        closeResult = await result.current.closePosition({
+          symbol: 'BTC',
+          orderType: 'market',
+          currentPrice: 50_000,
+        });
+      });
+
+      expect(closeResult).toMatchObject({ success: false });
+
+      const closeEvent = perps.analytics.lastByName(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+      );
+      expect(closeEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.FAILED,
+        asset: 'BTC',
+      });
+    });
+
+    it('emits a partially_filled Perp Position Close Transaction when the fill is partial', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.subscription.getCachedPositions.mockReturnValue([
+        openLongBTC,
+      ]);
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { filled: { oid: 123, totalSz: '0.05', avgPx: '50000' } },
+            ],
+          },
+        },
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let closeResult: OrderResult | null = null;
+      await act(async () => {
+        closeResult = await result.current.closePosition({
+          symbol: 'BTC',
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50_000,
+        });
+      });
+
+      expect(closeResult).toMatchObject({ success: true });
+
+      const events = perps.analytics.byName(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+      );
+      const partialEvent = events.find(
+        (e) => e.status === PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+      );
+      expect(partialEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+        asset: 'BTC',
+        amount_filled: 0.05,
+        remaining_amount: 0.05,
+      });
+    });
+  });
 });
