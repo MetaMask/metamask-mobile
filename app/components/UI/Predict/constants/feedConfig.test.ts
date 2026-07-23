@@ -316,6 +316,41 @@ describe('feedConfig', () => {
     });
   });
 
+  it('applies chip order overrides on generated params', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+              order: 'volume',
+            },
+            {
+              id: 'props',
+              kind: 'props',
+              order: 'newest',
+            },
+            {
+              id: 'mls',
+              kind: 'tag',
+              tagSlug: 'mls',
+              order: 'ending_soon',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params.order).toBe('volume');
+    expect(config.tabs[0].filters.static[1].params.order).toBe('newest');
+    expect(config.tabs[0].filters.static[2].params.order).toBe('ending_soon');
+  });
+
   it('applies chip start time minute overrides on custom query params', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
@@ -339,6 +374,32 @@ describe('feedConfig', () => {
     expect(config.tabs[0].filters.static[0].params).toEqual({
       queryParams: 'tag_slug=remote-slug&order=startTime',
       startTimeMinMinutesAgo: 15,
+    });
+  });
+
+  it('preserves chip order overrides on custom query params', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+              queryParams: 'tag_slug=remote-slug&order=startTime',
+              order: 'liquidity',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      queryParams: 'tag_slug=remote-slug&order=startTime',
+      order: 'liquidity',
     });
   });
 

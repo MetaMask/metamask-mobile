@@ -51,6 +51,14 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
 }
 
 export type PredictSportsFeedChipKind = 'games' | 'props' | 'tag';
+export type PredictSportsFeedChipOrder =
+  | 'volume24hr'
+  | 'volume'
+  | 'liquidity'
+  | 'ending_soon'
+  | 'newest'
+  | 'upcoming'
+  | 'start_time';
 
 export interface PredictSportsFeedChipConfig {
   id: string;
@@ -60,10 +68,14 @@ export interface PredictSportsFeedChipConfig {
   tagSlug?: string;
   /**
    * Optional raw `/events/keyset` query string without a leading `?`. When
-   * present, this replaces the generated chip params entirely, so the flag owns
-   * the request shape.
+   * present, this replaces the generated chip params, with explicit chip-level
+   * order and start-time overrides still applied on top.
    */
   queryParams?: string;
+  /**
+   * Optional ordering override. When absent, each chip keeps its generated default.
+   */
+  order?: PredictSportsFeedChipOrder;
   /**
    * Optional start-time lower bound in minutes relative to request time. Applies
    * on top of generated params or `queryParams` and overrides any default

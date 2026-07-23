@@ -306,6 +306,7 @@ describe('PredictSportsFeedSchema', () => {
               kind: 'tag',
               titleKey: 'predict.feed.filters.mls',
               tagSlug: 'mls',
+              order: 'volume',
               startTimeMinMinutesAgo: 45,
               queryParams:
                 'active=true&closed=false&tag_slug=custom-mls&order=startTime&ascending=true',
@@ -345,6 +346,28 @@ describe('PredictSportsFeedSchema', () => {
       create(
         {
           tabs: [{ titleKey: 'predict.feed.tabs.soccer', chips: [] }],
+        },
+        PredictSportsFeedSchema,
+      ),
+    ).toThrow(StructError);
+  });
+
+  it('throws for invalid chip order values', () => {
+    expect(() =>
+      create(
+        {
+          tabs: [
+            {
+              id: 'soccer',
+              chips: [
+                {
+                  id: 'games',
+                  kind: 'games',
+                  order: 'unsupported',
+                },
+              ],
+            },
+          ],
         },
         PredictSportsFeedSchema,
       ),

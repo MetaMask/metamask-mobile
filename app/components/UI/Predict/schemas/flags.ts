@@ -130,6 +130,17 @@ export const PredictSportsFeedChipSchema = type({
   label: optional(string()),
   tagSlug: optional(string()),
   queryParams: optional(string()),
+  order: optional(
+    enums([
+      'volume24hr',
+      'volume',
+      'liquidity',
+      'ending_soon',
+      'newest',
+      'upcoming',
+      'start_time',
+    ]),
+  ),
   startTimeMinMinutesAgo: optional(union([number(), literal(null)])),
 });
 

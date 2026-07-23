@@ -1477,6 +1477,18 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('applies explicit order overrides to raw queryParams', () => {
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'tag_slug=soccer&order=startTime&ascending=true&volume_min=1000',
+        order: 'volume',
+      });
+
+      expect(params.toString()).toBe(
+        'tag_slug=soccer&order=volume&ascending=false&volume_min=1000',
+      );
+    });
+
     it('applies live-first ordering to raw queryParams', () => {
       const params = buildMarketListQueryParams({
         queryParams:
