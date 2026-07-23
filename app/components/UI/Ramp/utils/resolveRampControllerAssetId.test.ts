@@ -80,6 +80,18 @@ describe('resolveRampControllerAssetId', () => {
 
       expect(result).toBe(inputAssetId);
     });
+
+    it('resolves Polygon native POL placeholder to controller canonical assetId', () => {
+      const inputAssetId = 'eip155:137/slip44:.';
+      const controllerAssetId = 'eip155:137/slip44:966';
+      const allTokens = createTokens([
+        { assetId: controllerAssetId, chainId: 'eip155:137' },
+      ]);
+
+      const result = resolveRampControllerAssetId(inputAssetId, allTokens);
+
+      expect(result).toBe(controllerAssetId);
+    });
   });
 
   describe('tokens without assetId', () => {

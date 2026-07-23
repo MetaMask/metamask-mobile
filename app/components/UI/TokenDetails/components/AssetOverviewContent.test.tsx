@@ -92,7 +92,7 @@ jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
     mockUsePerpsPositionForAsset(...args),
 }));
 
-jest.mock('../../Perps/components/PerpsPositionCard', () => ({
+jest.mock('../../Perps/components/PerpsCard', () => ({
   __esModule: true,
   default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
 }));

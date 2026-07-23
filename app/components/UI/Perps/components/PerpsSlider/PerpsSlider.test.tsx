@@ -36,14 +36,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 // Mock component library Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return (props: {
-    children: React.ReactNode;
-    style?: React.ComponentProps<typeof Text>['style'];
-  }) => <Text {...props}>{props.children}</Text>;
-});
-
 describe('PerpsSlider', () => {
   const defaultProps = {
     value: 50,
