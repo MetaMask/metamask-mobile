@@ -381,7 +381,7 @@
     "@nktkas/hyperliquid": "^0.33.1",
     "@noble/curves": "1.9.6",
     "@noble/hashes": "1.8.0",
-    "@notifee/react-native": "^9.0.0",
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-clipboard/clipboard": "^1.16.1",
     "@react-native-community/checkbox": "^0.5.20",
