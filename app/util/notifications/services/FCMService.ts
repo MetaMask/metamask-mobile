@@ -2,12 +2,15 @@ import { toPushAnalyticsPayload } from '@metamask/notification-services-controll
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import { NativeModules, Platform } from 'react-native';
-import Logger from '../../../util/Logger';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { toFcmDataStringRecord } from '../utils/fcm-data';
+import {
+  extractPushNotificationData,
+  extractPushNotificationDeeplink,
+} from '../pushNotificationDeeplink';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -28,7 +31,9 @@ async function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    const data = toFcmDataStringRecord(remoteMessage?.data);
+    const data = toFcmDataStringRecord(
+      extractPushNotificationData(remoteMessage?.data),
+    );
     const payload = toPushAnalyticsPayload(data);
 
     const properties = payload
@@ -50,6 +55,8 @@ async function analyticsTrackPushClickEvent(
 }
 
 type UnsubscribeFunc = () => void;
+
+const ANDROID_NOTIFICATION_OPENED_EVENT = 'metamask.notification_opened';
 
 /**
  * Utility to check if devices have enabled push notifications
@@ -194,7 +201,7 @@ class FCMService {
     try {
       const remoteMessage = await getInitialNotification();
       await analyticsTrackPushClickEvent(remoteMessage);
-      return toFcmDataStringRecord(remoteMessage?.data)?.deeplink ?? null;
+      return extractPushNotificationDeeplink(remoteMessage?.data) ?? null;
     } catch {
       return null;
     }
@@ -204,16 +211,27 @@ class FCMService {
     deeplinkCallback: (deeplink?: string) => void,
   ) => {
     try {
-      messaging().onNotificationOpenedApp(async (remoteMessage) => {
+      const handleOpenedNotification = async (
+        remoteMessage?: FirebaseMessagingTypes.RemoteMessage,
+      ) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
           deeplinkCallback(
-            toFcmDataStringRecord(remoteMessage?.data)?.deeplink,
+            extractPushNotificationDeeplink(remoteMessage?.data),
           );
         } catch {
           // Do nothing
         }
-      });
+      };
+
+      if (Platform.OS === 'android') {
+        DeviceEventEmitter.addListener(
+          ANDROID_NOTIFICATION_OPENED_EVENT,
+          handleOpenedNotification,
+        );
+      } else {
+        messaging().onNotificationOpenedApp(handleOpenedNotification);
+      }
     } catch {
       // Do nothing
     }

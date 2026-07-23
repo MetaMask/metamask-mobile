@@ -27,6 +27,8 @@ class AppDelegate: ExpoAppDelegate {
 
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   private var reactNativeFactory: RCTReactNativeFactory?
+  private weak var displacedNotificationCenterDelegate: UNUserNotificationCenterDelegate?
+  private var isForwardingNotificationResponse = false
 
   @objc static var braze: Braze?
 
@@ -120,7 +122,7 @@ class AppDelegate: ExpoAppDelegate {
     // Braze (push.automation=true) and Notifee both try to set themselves as delegate
     // during startup; we must win so our willPresent forwards to Firebase and triggers
     // messaging().onMessage() in JS. We reassert on every foreground entry (see below).
-    UNUserNotificationCenter.current().delegate = self
+    claimNotificationCenterDelegate()
 
     return superResult
   }
@@ -131,7 +133,16 @@ class AppDelegate: ExpoAppDelegate {
     // it asynchronously. Notifee tap forwarding is handled explicitly in didReceive
     // (via NotifeeCoreUNUserNotificationCenter.instance()) rather than through Notifee's
     // own delegate chain, so holding this slot does not break Notifee press events.
-    UNUserNotificationCenter.current().delegate = self
+    claimNotificationCenterDelegate()
+  }
+
+  private func claimNotificationCenterDelegate() {
+    let center = UNUserNotificationCenter.current()
+    if let currentDelegate = center.delegate,
+       (currentDelegate as AnyObject) !== self {
+      displacedNotificationCenterDelegate = currentDelegate
+    }
+    center.delegate = self
   }
 
   override func application(
@@ -208,6 +219,14 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
   ) {
     let userInfo = response.notification.request.content.userInfo
 
+    // RNFirebase/Notifee may have captured AppDelegate as their original
+    // delegate before we reclaimed the center. Stop that delegate chain when
+    // it returns here, otherwise forwarding would recurse indefinitely.
+    if isForwardingNotificationResponse {
+      completionHandler()
+      return
+    }
+
     // Notifee-created notification: forward to Notifee so onForegroundEvent(PRESS) fires.
     // We own the delegate (see applicationDidBecomeActive), so Notifee never receives this
     // through its own delegate chain — explicit forwarding is required.
@@ -220,6 +239,20 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     // Braze-originated notification: let Braze track the open and handle deep links.
     if AppDelegate.braze?.notifications.handleUserNotification(
       response: response, withCompletionHandler: completionHandler) == true {
+      return
+    }
+
+    let responseSelector = #selector(
+      UNUserNotificationCenterDelegate.userNotificationCenter(
+        _:didReceive:withCompletionHandler:))
+    if let delegate = displacedNotificationCenterDelegate,
+       delegate.responds(to: responseSelector) {
+      isForwardingNotificationResponse = true
+      delegate.userNotificationCenter?(
+        center,
+        didReceive: response,
+        withCompletionHandler: completionHandler)
+      isForwardingNotificationResponse = false
       return
     }
 
