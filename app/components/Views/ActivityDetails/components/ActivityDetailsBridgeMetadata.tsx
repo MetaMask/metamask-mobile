@@ -18,6 +18,7 @@ import {
 } from './ActivityDetailsLayout';
 import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
 import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
+import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 
 function BridgeNetworkValue({
   sourceChainId,
@@ -95,6 +96,15 @@ export function ActivityDetailsBridgeMetadata({
           />
         }
         testID={ActivityDetailsSelectorsIDs.NETWORK_ROW}
+      />
+      <ActivityDetailRow
+        label={strings('activity_details.transaction_id')}
+        value={
+          item.hash ? (
+            <ActivityDetailsTransactionId hash={item.hash} />
+          ) : undefined
+        }
+        testID={ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW}
       />
     </ActivityDetailSection>
   );
