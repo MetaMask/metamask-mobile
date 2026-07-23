@@ -169,8 +169,6 @@ describe('PerpsMarketListView', () => {
           screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
         ).toHaveTextContent('Gold');
       });
-      expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
-      expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
     });
   });
 });

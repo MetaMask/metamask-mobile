@@ -35,6 +35,8 @@ import Logger from '../../../../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
 import {
   QuickBuyEventProperties,
+  buildQuickBuySharedAnalyticsProperties,
+  type QuickBuyOriginalEntryPoint,
   type QuickBuySheetSource,
 } from '../analytics';
 import { useSocialLeaderboardAnalytics } from '../../../../analytics';
@@ -57,6 +59,8 @@ export interface QuickBuyQuotesAnalyticsContext {
   amountUsd?: number;
   /** Entry surface for FeatureId mapping on fetchQuotes. */
   source?: QuickBuySheetSource;
+  /** Trade-screen entry attribution when hosted on TraderPositionView. */
+  originalEntryPoint?: QuickBuyOriginalEntryPoint;
 }
 
 export type EnrichedQuickBuyQuote = ReturnType<
@@ -324,6 +328,10 @@ export function useQuickBuyQuotes({
     const quotesBaseProps =
       analyticsContext?.traderAddress && analyticsContext?.caip19
         ? {
+            ...buildQuickBuySharedAnalyticsProperties({
+              source: analyticsContext.source,
+              originalEntryPoint: analyticsContext.originalEntryPoint,
+            }),
             [QuickBuyEventProperties.TRADER_ADDRESS]:
               analyticsContext.traderAddress,
             [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,

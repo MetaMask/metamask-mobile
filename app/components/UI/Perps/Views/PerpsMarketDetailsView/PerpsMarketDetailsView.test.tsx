@@ -26,6 +26,10 @@ import {
   TimeDuration,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY as PERPS_CHART_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE as PERPS_CHART_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
@@ -124,6 +128,9 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
     },
+    focusedPrice: {
+      subscribeToSymbol: jest.fn(() => jest.fn()),
+    },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -217,6 +224,7 @@ const mockRouteParams: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
   };
+  source_section?: string;
   transactionActiveAbTests?: {
     key: string;
     value: string;
@@ -248,7 +256,7 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({
       params: mockRouteParams,
     }),
-    useFocusEffect: jest.fn(),
+    useFocusEffect: (cb: () => void | (() => void)) => cb(),
   };
 });
 
@@ -338,6 +346,10 @@ interface MockUsePerpsOpenOrdersResult {
   error: string | null;
 }
 
+const MOCK_NOW_MS = 1_700_000_000_000;
+const MOCK_TWO_MINUTES_AGO_MS = MOCK_NOW_MS - 2 * 60 * 1000;
+const MOCK_FIVE_MINUTES_AGO_MS = MOCK_NOW_MS - 5 * 60 * 1000;
+
 const mockRefreshOrders = jest.fn();
 const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
   () => ({
@@ -351,8 +363,8 @@ const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
         originalSize: '0.1',
         price: '45000',
         status: 'open',
-        timestamp: Date.now(),
-        lastUpdated: Date.now(),
+        timestamp: MOCK_NOW_MS,
+        lastUpdated: MOCK_NOW_MS,
         orderType: 'limit',
         filledSize: '0',
         remainingSize: '0.1',
@@ -389,6 +401,7 @@ jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
 const mockGetOrderFills = jest.fn();
 const mockToggleWatchlistMarket = jest.fn();
 const mockGetWatchlistMarkets = jest.fn(() => [] as string[]);
+const mockRecordMarketViewed = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -396,6 +409,8 @@ jest.mock('../../../../../core/Engine', () => ({
       toggleWatchlistMarket: (...args: unknown[]) =>
         mockToggleWatchlistMarket(...args),
       getWatchlistMarkets: () => mockGetWatchlistMarkets(),
+      recordMarketViewed: (...args: unknown[]) =>
+        mockRecordMarketViewed(...args),
     },
   },
 }));
@@ -819,6 +834,9 @@ const initialState = {
 describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
+
     mockUsePerpsAccount.mockReturnValue({
       account: {
         spendableBalance: '1000.00',
@@ -904,6 +922,7 @@ describe('PerpsMarketDetailsView', () => {
       maxLeverage: '40x',
     };
     mockRouteParams.transactionActiveAbTests = undefined;
+    mockRouteParams.source_section = undefined;
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
@@ -914,7 +933,7 @@ describe('PerpsMarketDetailsView', () => {
 
   // Clean up mocks after each test
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -1727,12 +1746,48 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
       expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(1);
 
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      const initialScreenViewCalls =
+        mockUsePerpsEventTrackingFn.mock.calls.filter(
+          ([options]: [
+            {
+              eventName?: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
+              resetKey?: string;
+            },
+          ]) =>
+            options?.eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
+            options?.resetKey ===
+              `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+        ).length;
+
       await act(async () => {
         await refreshControl.props.onRefresh();
       });
 
       expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(1);
       expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(2);
+      const screenViewCallsAfterRefresh =
+        mockUsePerpsEventTrackingFn.mock.calls.filter(
+          ([options]: [
+            {
+              eventName?: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
+              resetKey?: string;
+            },
+          ]) =>
+            options?.eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
+            options?.resetKey ===
+              `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+        ).length;
+      expect(screenViewCallsAfterRefresh).toBeGreaterThan(
+        initialScreenViewCalls,
+      );
+      expect(mockUsePerpsEventTrackingFn).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}:1`,
+        }),
+      );
     });
 
     it('does not remount the advanced chart when only the candle period changes', () => {
@@ -1896,7 +1951,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(getByTestId('perps-position-card').props.szDecimals).toBe(2);
     });
 
-    it('logs and tracks advanced chart errors from market details', () => {
+    it('logs and tracks advanced chart errors from market details', async () => {
       const mockTrack = jest.fn();
       const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
         jest.requireMock('../../hooks/usePerpsEventTracking');
@@ -1920,7 +1975,7 @@ describe('PerpsMarketDetailsView', () => {
         return undefined;
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getAllByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -1929,9 +1984,25 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      getByTestId('mock-perps-advanced-chart').props.onError(
-        'Advanced chart unavailable',
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
+        }),
       );
+
+      await act(async () => {
+        getByTestId('mock-perps-advanced-chart').props.onError(
+          'Advanced chart unavailable',
+        );
+      });
 
       expect(mockLoggerError).toHaveBeenCalledWith(
         new Error('Advanced chart unavailable'),
@@ -1952,11 +2023,235 @@ describe('PerpsMarketDetailsView', () => {
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        }),
+      );
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
+        }),
+      );
+
+      mockTrack.mockClear();
+      await act(async () => {
+        getByTestId('mock-perps-advanced-chart').props.onError(
+          'Advanced chart unavailable again',
+        );
+      });
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+            'Advanced chart unavailable again',
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        }),
+      );
+
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
+        }),
+      );
+
+      mockTrack.mockClear();
+      await act(async () => {
+        getByTestId('mock-perps-advanced-chart').props.onError(
+          'Advanced chart unavailable after refresh',
+        );
+      });
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        }),
+      );
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
+        }),
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        );
+      });
+      expect(mockNavigateToOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chartLibrary: PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        }),
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+          ),
+        );
+      });
+
+      const fullscreenChartProps = getAllByTestId(
+        'mock-perps-advanced-chart',
+      ).find((chart) => chart.props.surface === 'full_screen_chart')?.props;
+      expect(fullscreenChartProps).toBeDefined();
+
+      mockTrack.mockClear();
+      fullscreenChartProps?.onSkeletonHidden();
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
         }),
       );
     });
 
-    it('uses error object and fallback messages for advanced chart errors', () => {
+    it('defers fallback screen view to declarative tracking when advanced chart errors before screen view conditions are ready', async () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: true,
+        error: null,
+        existingPosition: null,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const renderView = () => (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+      const { getByTestId, rerender } = renderWithProvider(renderView(), {
+        state: initialState,
+      });
+
+      await act(async () => {
+        getByTestId('mock-perps-advanced-chart').props.onError(
+          'Advanced chart unavailable before screen view',
+        );
+      });
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        }),
+      );
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+      rerender(renderView());
+
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
+        }),
+      );
+    });
+
+    it('uses error object and fallback messages for advanced chart errors', async () => {
       const mockTrack = jest.fn();
       const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
         jest.requireMock('../../hooks/usePerpsEventTracking');
@@ -1990,8 +2285,10 @@ describe('PerpsMarketDetailsView', () => {
       );
       const onError = getByTestId('mock-perps-advanced-chart').props.onError;
 
-      onError(new Error('Advanced chart object error'));
-      onError();
+      await act(async () => {
+        onError(new Error('Advanced chart object error'));
+        onError();
+      });
 
       expect(mockLoggerError).toHaveBeenCalledWith(
         new Error('Advanced chart object error'),
@@ -2342,6 +2639,49 @@ describe('PerpsMarketDetailsView', () => {
         );
       } finally {
         mockRouteParams.transactionActiveAbTests = undefined;
+      }
+    });
+
+    it('forwards route source_section into navigateToOrder params', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+      mockRouteParams.source_section = 'watchlist';
+
+      try {
+        const { getByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        const longButton = getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        );
+        await act(async () => {
+          fireEvent.press(longButton);
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            direction: 'long',
+            asset: 'BTC',
+            source: 'perp_asset_screen',
+            source_section: 'watchlist',
+          }),
+        );
+      } finally {
+        mockRouteParams.source_section = undefined;
       }
     });
 
@@ -2718,7 +3058,7 @@ describe('PerpsMarketDetailsView', () => {
           liquidationPrice: '45000',
         },
         refreshPosition: jest.fn(),
-        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+        positionOpenedTimestamp: MOCK_TWO_MINUTES_AGO_MS,
       });
 
       // Mock useStopLossPrompt to return add_margin variant
@@ -2784,7 +3124,7 @@ describe('PerpsMarketDetailsView', () => {
           liquidationPrice: '45000',
         },
         refreshPosition: jest.fn(),
-        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+        positionOpenedTimestamp: MOCK_TWO_MINUTES_AGO_MS,
       });
 
       // Mock useStopLossPrompt to return stop_loss variant
@@ -3198,7 +3538,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Press fullscreen button
       const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -3222,7 +3562,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Open the modal first
       const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -3255,7 +3595,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Open the modal
       const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -3320,9 +3660,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       fireEvent.press(
-        getByTestId(
-          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
-        ),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON),
       );
 
       await waitFor(() => {
@@ -3345,8 +3683,8 @@ describe('PerpsMarketDetailsView', () => {
     });
   });
 
-  describe('Category search shortcut', () => {
-    it('navigates to market list without filters when search button is pressed', () => {
+  describe('Market list shortcut', () => {
+    it('navigates to market list without filters when the market list button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -3356,14 +3694,49 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      const searchButton = getByTestId(
-        'perps-market-header-category-search-button',
+      const marketListButton = getByTestId(
+        PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON,
       );
-      fireEvent.press(searchButton);
+      fireEvent.press(marketListButton);
 
       expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-        source: 'magnifying_glass',
+        source: 'perp_asset_screen',
       });
+    });
+
+    it('tracks the market list button click with the correct analytics values', () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.MARKET_LIST,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
     });
   });
 
@@ -3373,7 +3746,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('uses positionOpenedTimestamp from useHasExistingPosition hook', () => {
       // Arrange - Hook provides the timestamp
-      const timestamp = Date.now() - 5 * 60 * 1000;
+      const timestamp = MOCK_FIVE_MINUTES_AGO_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -3471,7 +3844,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('excludes child orders from default TP order selection', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-1',
@@ -3555,7 +3928,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('excludes child orders from default SL order selection', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-2',
@@ -3639,7 +4012,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('includes standalone trigger orders when no child orders exist', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'order-1',
@@ -3721,7 +4094,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles orders with only takeProfitOrderId', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-3',
@@ -3786,7 +4159,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles orders with only stopLossOrderId', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-4',
@@ -3851,7 +4224,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('hides reduce-only orders marked isPositionTpsl=true from Orders section', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -3937,7 +4310,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('hides flagged full-position TP/SL while position is loading', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
         isLoading: true,
@@ -4005,7 +4378,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('shows reduce-only orders marked isPositionTpsl=false in Orders section', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -4091,7 +4464,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -4164,7 +4537,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('uses size fallback when isPositionTpsl is undefined', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -4318,7 +4691,9 @@ describe('PerpsMarketDetailsView', () => {
 
       // Should show the route market's leverage badge
       expect(getByText('25x')).toBeOnTheScreen();
-      expect(getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
+      // Header shows the full asset name and the market pair subtitle
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getAllByText('ETH-USD perp').length).toBeGreaterThanOrEqual(1);
     });
 
     it('enriches market data when route maxLeverage is unformatted', async () => {
@@ -4525,7 +4900,8 @@ describe('PerpsMarketDetailsView', () => {
 
       // Verify the header renders with correct market symbol
       expect(getByTestId('perps-market-header')).toBeOnTheScreen();
-      expect(getAllByText('BTC-USD').length).toBeGreaterThanOrEqual(1);
+      expect(getByText('Bitcoin')).toBeOnTheScreen();
+      expect(getAllByText('BTC-USD perp').length).toBeGreaterThanOrEqual(1);
 
       // Should show the enriched market's leverage badge from usePerpsMarkets
       await waitFor(() => {
@@ -4549,7 +4925,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getAllByText, queryByText } = renderWithProvider(
+      const { getByText, getAllByText, queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -4559,7 +4935,8 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Should show the asset name but no leverage badge (since no maxLeverage available)
-      expect(getAllByText('UNKNOWN-USD').length).toBeGreaterThanOrEqual(1);
+      expect(getByText('Unknown Asset')).toBeOnTheScreen();
+      expect(getAllByText('UNKNOWN-USD perp').length).toBeGreaterThanOrEqual(1);
       // No leverage badge should be shown
       expect(queryByText('40x')).toBeNull();
       expect(queryByText('25x')).toBeNull();
@@ -4667,6 +5044,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
         expect.objectContaining({
           eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
           properties: expect.objectContaining({
             market_insights_displayed: true,
           }),
@@ -4752,6 +5130,59 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(queryByTestId('market-insights-entry-card')).toBeNull();
       expect(queryByTestId('market-insights-entry-card-skeleton')).toBeNull();
+    });
+  });
+
+  describe('Recently viewed tracking', () => {
+    it('records the market view when the screen mounts', () => {
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('BTC');
+    });
+
+    it('records the view again when navigating to a different market (e.g. via related markets)', () => {
+      const renderView = () => (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+      const { rerender } = renderWithProvider(renderView(), {
+        state: initialState,
+      });
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('BTC');
+
+      mockRecordMarketViewed.mockClear();
+      mockRouteParams.market = {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '$3,000.00',
+        change24h: '-$50.00',
+        change24hPercent: '-1.64%',
+        volume: '$1.2B',
+        maxLeverage: '25x',
+      };
+      rerender(renderView());
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('ETH');
+    });
+
+    it('does not record a view when there is no market', () => {
+      mockRouteParams.market = undefined;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockRecordMarketViewed).not.toHaveBeenCalled();
     });
   });
 });

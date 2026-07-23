@@ -14,25 +14,11 @@ const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
 
-const marketDataMock = {
-  engine: {
-    backgroundState: {
-      TokenRatesController: {
-        marketData: {
-          '0x1': {
-            '0x1234567890AbcdEF1234567890aBcdef12345678': { price: 1 },
-          },
-        },
-      },
-    },
-  },
-};
-
-function runHook(tokenAddress: Hex, chainId: Hex, extraState = {}) {
+function runHook(tokenAddress: Hex, chainId: Hex) {
   return renderHookWithProvider(
     () => useTokenWithBalance(tokenAddress, chainId),
     {
-      state: merge({}, otherControllersMock, marketDataMock, extraState),
+      state: merge({}, otherControllersMock),
     },
   );
 }

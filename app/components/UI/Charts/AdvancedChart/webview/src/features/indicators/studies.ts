@@ -37,10 +37,12 @@ export function getMAColor(
   return DEFAULT_MA_COLORS[name] ?? DEFAULT_MA_COLORS.MA200;
 }
 
-interface StudyPreset {
+export interface StudyPreset {
   studyName: string;
   inputs: Record<string, unknown>;
   overrides: Record<string, unknown>;
+  /** 'sub' places the study in a dedicated pane below the main series. */
+  paneTarget?: 'main' | 'sub';
 }
 
 function macdPreset(colors: IndicatorColors | undefined): StudyPreset {
@@ -54,6 +56,7 @@ function macdPreset(colors: IndicatorColors | undefined): StudyPreset {
       'Histogram.color.0': c.histogramPositive,
       'Histogram.color.1': c.histogramNegative,
     },
+    paneTarget: 'sub',
   };
 }
 
@@ -66,6 +69,7 @@ function rsiPreset(colors: IndicatorColors | undefined): StudyPreset {
       'Plot.color': c.plot,
       'hlines background.visible': false,
     },
+    paneTarget: 'sub',
   };
 }
 
@@ -145,14 +149,8 @@ export function resolveStudyPreset(
   }
 }
 
-/** Sub-pane indicators always render in a dedicated pane below the main series. */
-export const SUB_PANE_INDICATOR_NAMES: ReadonlySet<string> = new Set([
-  'MACD',
-  'RSI',
-]);
-
-export function isSubPaneIndicator(name: string): boolean {
-  return SUB_PANE_INDICATOR_NAMES.has(name);
+export function isSubPanePreset(preset: StudyPreset): boolean {
+  return preset.paneTarget === 'sub';
 }
 
 /**

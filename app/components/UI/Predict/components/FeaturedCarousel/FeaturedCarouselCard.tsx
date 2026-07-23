@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -147,7 +148,8 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                 <Image
                   source={{ uri: market.image }}
                   style={tw.style('w-full h-full')}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  recyclingKey={market.image}
                 />
               </Box>
             </Box>

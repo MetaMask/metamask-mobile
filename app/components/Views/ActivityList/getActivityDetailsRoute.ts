@@ -16,31 +16,49 @@ function hasDedicatedDetailScreen(item: ActivityListItem): boolean {
   );
 }
 
+function getLocalTransactionMetaId(item: ActivityListItem): string | undefined {
+  if (item.raw?.type !== 'localTransaction') {
+    return undefined;
+  }
+  return item.raw.data.primaryTransaction?.id;
+}
+
 /**
  * Route params for opening a row in the redesigned `ActivityDetails` screen, or
- * `null` when it can't be shown there (no hash, or a bridge tx with its own
- * screen) — callers then fall back to their legacy detail flow. Shared so the
- * Activity list and per-asset lists route identically.
+ * `null` when it can't be shown there (no stable identifier, or a bridge tx with
+ * its own screen) — callers then fall back to their legacy detail flow. Shared
+ * so the Activity list and per-asset lists route identically.
  *
- * Side effect: stashes provider-backed rows (Perps/Predict) into
- * `preloadedActivityItemStore`, so call it only when about to navigate.
+ * Local EVM rows navigate by `TransactionMeta.id` (stable across STX hash
+ * assignment) and are stashed in `preloadedActivityItemStore` so Details can
+ * recover if the live hash temporarily diverges. Provider-backed rows
+ * (Perps/Predict) are also stashed. Call only when about to navigate.
  */
 export function getActivityDetailsRoute(
   item: ActivityListItem,
 ): ActivityDetailsParams | null {
-  if (!item.hash || hasDedicatedDetailScreen(item)) {
+  if (hasDedicatedDetailScreen(item)) {
+    return null;
+  }
+
+  const localMetaId = getLocalTransactionMetaId(item);
+  const txIdentifier = localMetaId ?? item.hash;
+  if (!txIdentifier) {
     return null;
   }
 
   const { raw } = item;
-  const preloadKey =
-    raw?.type === 'perpsTransaction' || raw?.type === 'predictActivity'
-      ? stashPreloadedActivityItem(item)
-      : undefined;
+  const shouldPreload =
+    raw?.type === 'perpsTransaction' ||
+    raw?.type === 'predictActivity' ||
+    raw?.type === 'localTransaction';
+  const preloadKey = shouldPreload
+    ? stashPreloadedActivityItem(item)
+    : undefined;
 
   return {
     chainId: item.chainId,
-    txIdentifier: item.hash,
+    txIdentifier,
     ...(preloadKey ? { preloadKey } : {}),
   };
 }

@@ -171,6 +171,10 @@ describe('PerpsStreamManager', () => {
     jest.clearAllTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
+    // Restore original implementations for all jest.spyOn() spies so spy
+    // wrappers don't leak into subsequent tests (clearAllMocks only resets
+    // call state, it does not undo the spy).
+    jest.restoreAllMocks();
   });
 
   it('renders children correctly', () => {
@@ -3334,6 +3338,7 @@ describe('PerpsStreamManager', () => {
       'account',
       'oiCaps',
       'topOfBook',
+      'focusedPrice',
       'candles',
     ] as const;
 
@@ -3435,6 +3440,193 @@ describe('PerpsStreamManager', () => {
       testStreamManager.topOfBook.clearCache();
 
       expect(callback).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('FocusedPriceStreamChannel', () => {
+    it('subscribes with includeMarketData: true', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        includeMarketData: true,
+        callback: expect.any(Function),
+      });
+    });
+
+    it('delivers a PriceUpdate for the subscribed symbol', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([
+        { symbol: 'BTC', price: '50000', markPrice: '50050' },
+        { symbol: 'ETH', price: '3000', markPrice: '3010' },
+      ]);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        price: '50000',
+        markPrice: '50050',
+      });
+    });
+
+    it('does not notify for unrelated symbols', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('does not subscribe when symbol is empty', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: '',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('does not deliver an update for the newly-focused symbol to a subscriber still registered for the previous symbol', () => {
+      // Simulates React Navigation keeping a BTC detail screen mounted while
+      // the user navigates to an ETH order/orderbook screen: both
+      // subscribers remain registered on the same singleton channel.
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: ethCallback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      // Fire the tick on the now-active (ETH) WebSocket subscription.
+      const ethPriceCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      ethPriceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+
+      expect(ethCallback).toHaveBeenCalledTimes(1);
+      expect(ethCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH' }),
+      );
+      // The stale BTC subscriber must never receive or cache the ETH tick.
+      expect(btcCallback).not.toHaveBeenCalled();
+    });
+
+    it('reconnects when a different symbol is requested', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      // Simulate a new subscriber requesting a different symbol
+      const mockUnsubscribeBtc = mockSubscribeToPrices.mock.results[0].value;
+      if (typeof mockUnsubscribeBtc === 'function') {
+        // The channel should have stored this; force-invoke via subscribeToSymbol
+      }
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['ETH'] }),
+      );
+    });
+
+    it('clears cache and notifies subscribers with undefined on clearCache', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ symbol: 'BTC', price: '50000', markPrice: '50050' }]);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      testStreamManager.focusedPrice.clearCache();
+
+      expect(callback).toHaveBeenCalledWith(undefined);
+    });
+
+    it('re-focuses to a surviving subscriber symbol on a pop-back style unsubscribe sequence', () => {
+      // BTC detail screen mounts, then the user navigates to an ETH
+      // order/orderbook screen (BTC stays mounted below it), then pops back:
+      // the ETH subscriber unsubscribes while the BTC one is still active.
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+
+      const unsubscribeEth = testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: ethCallback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      // ETH tick reaches only the ETH subscriber while it's focused.
+      const ethPriceCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      ethPriceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+      expect(ethCallback).toHaveBeenCalledTimes(1);
+      expect(btcCallback).not.toHaveBeenCalled();
+
+      // Pop back: the ETH screen unmounts and unsubscribes. The BTC
+      // subscriber is still registered, so the channel should re-focus the
+      // WebSocket onto BTC instead of sitting disconnected.
+      unsubscribeEth();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['BTC'] }),
+      );
+
+      // A subsequent BTC tick reaches the surviving BTC subscriber but never
+      // the already-unsubscribed ETH callback.
+      const btcPriceCallback = mockSubscribeToPrices.mock.calls[2][0].callback;
+      btcPriceCallback([{ symbol: 'BTC', price: '51000', markPrice: '51050' }]);
+
+      expect(btcCallback).toHaveBeenCalledTimes(1);
+      expect(btcCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC' }),
+      );
+      expect(ethCallback).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -3983,6 +4175,10 @@ describe('PerpsStreamManager', () => {
         testStreamManager.topOfBook,
         'disconnect',
       );
+      const focusedPriceDisconnect = jest.spyOn(
+        testStreamManager.focusedPrice,
+        'disconnect',
+      );
       const candlesDisconnect = jest.spyOn(
         testStreamManager.candles,
         'disconnect',
@@ -4000,6 +4196,7 @@ describe('PerpsStreamManager', () => {
       expect(marketDataDisconnect).toHaveBeenCalledTimes(1);
       expect(oiCapsDisconnect).toHaveBeenCalledTimes(1);
       expect(topOfBookDisconnect).toHaveBeenCalledTimes(1);
+      expect(focusedPriceDisconnect).toHaveBeenCalledTimes(1);
       expect(candlesDisconnect).toHaveBeenCalledTimes(1);
 
       // Cleanup
@@ -4011,6 +4208,7 @@ describe('PerpsStreamManager', () => {
       marketDataDisconnect.mockRestore();
       oiCapsDisconnect.mockRestore();
       topOfBookDisconnect.mockRestore();
+      focusedPriceDisconnect.mockRestore();
       candlesDisconnect.mockRestore();
     });
 

@@ -97,7 +97,7 @@ describe('useTokenFiatRates', () => {
     ]);
   });
 
-  it('returns undefined if token price not found', () => {
+  it('returns conversion rate only if token price not found', () => {
     const result = runHook({
       requests: [
         {
@@ -107,7 +107,7 @@ describe('useTokenFiatRates', () => {
       ],
     });
 
-    expect(result).toEqual([undefined]);
+    expect(result).toEqual([CONVERSION_RATE_1_MOCK]);
   });
 
   it('returns fixed exchange rate for stablecoin when currency is USD', () => {

@@ -144,6 +144,10 @@ export const createMockPerpsControllerState = (
     testnet: [],
     mainnet: [],
   },
+  recentlyViewedMarkets: {
+    testnet: [],
+    mainnet: [],
+  },
   tradeConfigurations: {
     testnet: {},
     mainnet: {},
@@ -158,10 +162,6 @@ export const createMockPerpsControllerState = (
   selectedPaymentToken: null,
   cachedMarketDataByProvider: {},
   cachedUserDataByProvider: {},
-  recentlyViewedMarkets: {
-    testnet: [],
-    mainnet: [],
-  },
   ...overrides,
 });
 

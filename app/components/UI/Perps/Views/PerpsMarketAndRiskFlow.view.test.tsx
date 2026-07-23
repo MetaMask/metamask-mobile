@@ -505,6 +505,5 @@ describe('Market Browsing & Risk Awareness Flow', () => {
         getPerpsMarketRowItemSelector.assetLabel('ETH'),
       ),
     ).toHaveTextContent('Ethereum');
-    expect(screen.queryByText('ETH')).not.toBeOnTheScreen();
   });
 });

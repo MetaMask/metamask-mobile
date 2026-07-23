@@ -2,14 +2,7 @@
  * Predict navigation parameters
  */
 
-/**
- * Nested navigation into the Predict stack root.
- * Kept local to avoid a circular import with NavigationService/types.
- */
-interface PredictNestedNavigationParams {
-  screen?: string;
-  params?: object;
-}
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import {
   PredictActivityItem,
   PredictCategory,
@@ -176,13 +169,20 @@ export type PredictSellPreviewProps =
   | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
   | { mode?: never };
 
-// Declared as a `type` (not `interface`) so it gains an implicit index
-// signature and satisfies React Navigation's `ParamListBase` constraint while
-// `keyof` stays a strict union of route names. The repo's
-// `consistent-type-definitions` rule prefers `interface`, hence the suppression.
+// ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictNavigationParamList = {
-  Predict: PredictNestedNavigationParams | undefined;
+export type PredictModalsNavigationParamList = {
+  PredictUnavailable: undefined;
+  PredictGTMModal: undefined;
+  PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
+  PredictActivityDetail: PredictActivityDetailParams;
+  RedesignedConfirmations: undefined;
+  NoHeaderConfirmations: undefined;
+};
+
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictStackParamList = {
   PredictMarketList: PredictMarketListRouteParams | undefined;
   PredictFeed: PredictFeedRouteParams | undefined;
   PredictMarketDetails: PredictMarketDetailsParams | undefined;
@@ -190,13 +190,18 @@ export type PredictNavigationParamList = {
   PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
-  PredictActivityDetail: PredictActivityDetailParams;
-  PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
-  PredictUnavailable: undefined;
-  PredictGTMModal: undefined;
-  PredictModals: PredictNestedNavigationParams | undefined;
   RedesignedConfirmations: undefined;
   NoHeaderConfirmations: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
 };
+
+// Intersection (`&`) requires `type`; `interface` cannot express this.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictNavigationParamList = PredictStackParamList &
+  PredictModalsNavigationParamList & {
+    Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
+    PredictModals:
+      | NavigatorScreenParams<PredictModalsNavigationParamList>
+      | undefined;
+  };

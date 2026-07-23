@@ -79,7 +79,6 @@ import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -838,83 +837,72 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             testID={LoginViewSelectors.CONTAINER}
             alignItems={BoxAlignItems.Center}
             paddingHorizontal={6}
-            twClassName="flex-1 w-full"
+            twClassName="flex-1 w-full mt-2.5"
           >
-            <Box
-              alignItems={BoxAlignItems.Center}
-              twClassName="w-full flex-1 mt-2.5"
+            <Image
+              source={METAMASK_NAME}
+              style={[
+                tw.style('w-20 h-10 self-center mt-2.5'),
+                { tintColor: colors.icon.default },
+              ]}
+              resizeMode="contain"
+              resizeMethod={'auto'}
+            />
+
+            <TouchableOpacity
+              style={tw.style('self-center mt-12')}
+              delayLongPress={10 * 1000}
+              onLongPress={handleDownloadStateLogs}
+              activeOpacity={1}
             >
               <Image
-                source={METAMASK_NAME}
-                style={[
-                  tw.style('w-20 h-10 self-center mt-2.5'),
-                  { tintColor: colors.icon.default },
-                ]}
-                resizeMode="contain"
+                source={FOX_LOGO}
+                style={foxImageStyle}
                 resizeMethod={'auto'}
               />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={tw.style('self-center mt-12')}
-                delayLongPress={10 * 1000}
-                onLongPress={handleDownloadStateLogs}
-                activeOpacity={1}
-              >
-                <Image
-                  source={FOX_LOGO}
-                  style={foxImageStyle}
-                  resizeMethod={'auto'}
-                />
-              </TouchableOpacity>
+            <Text
+              variant={TextVariant.DisplayMd}
+              color={TextColor.TextDefault}
+              twClassName="my-6 text-center"
+              testID={LoginViewSelectors.TITLE_ID}
+            >
+              {strings('login.title')}
+            </Text>
 
-              <Text
-                variant={TextVariant.DisplayMd}
+            <Box gap={2} twClassName="w-full">
+              <Label
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
-                twClassName="my-6 text-center"
-                testID={LoginViewSelectors.TITLE_ID}
+                twClassName="-mb-1"
               >
-                {strings('login.title')}
-              </Text>
+                {strings('login.password')}
+              </Label>
+              {renderPasswordField()}
+              {renderHelperText()}
+            </Box>
 
-              <Box gap={2} twClassName="w-full">
-                <Label
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="-mb-1"
-                >
-                  {strings('login.password')}
-                </Label>
-                {renderPasswordField()}
-              </Box>
-
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="self-start gap-y-0.5"
+            <Box
+              alignItems={BoxAlignItems.Center}
+              twClassName={`w-full mt-4${Platform.OS === 'android' ? ' gap-4' : ''}`}
+              pointerEvents="box-none"
+            >
+              <Button
+                variant={ButtonVariant.Primary}
+                isFullWidth
+                size={ButtonSize.Lg}
+                onPress={handleLogin}
+                isDisabled={
+                  password.length === 0 || disabledInput || finalLoading
+                }
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                isLoading={finalLoading}
               >
-                {renderHelperText()}
-              </Box>
+                {strings('login.unlock_button')}
+              </Button>
 
-              <Box
-                alignItems={BoxAlignItems.Center}
-                twClassName={`w-full mt-4${Platform.OS === 'android' ? ' gap-4' : ''}`}
-                pointerEvents="box-none"
-              >
-                <Button
-                  variant={ButtonVariant.Primary}
-                  isFullWidth
-                  size={ButtonSize.Lg}
-                  onPress={handleLogin}
-                  isDisabled={
-                    password.length === 0 || disabledInput || finalLoading
-                  }
-                  testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  isLoading={finalLoading}
-                >
-                  {strings('login.unlock_button')}
-                </Button>
-
-                {renderFooterAction()}
-              </Box>
+              {renderFooterAction()}
             </Box>
           </Box>
         </KeyboardAwareScrollView>

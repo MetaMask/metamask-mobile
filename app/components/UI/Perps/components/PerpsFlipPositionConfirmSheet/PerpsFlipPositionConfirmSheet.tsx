@@ -24,7 +24,11 @@ import {
 } from '../../hooks';
 import { usePerpsFlipPosition } from '../../hooks/usePerpsFlipPosition';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -133,15 +137,27 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const handleReverse = useCallback(async () => {
     await handleFlipPosition(position, {
       totalFee: feeResults.totalFee,
+      metamaskFee: feeResults.metamaskFee,
+      metamaskFeeRate: feeResults.metamaskFeeRate,
       marketPrice: markPrice || price,
       vipTier: vipTier ?? undefined,
       vipDiscount: feeResults.feeDiscountPercentage,
+      ...toPerpsEntryAttribution({
+        source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+      }),
+      source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+      ...(feeResults.protocolFeeRate !== undefined
+        ? { hlFeeRate: feeResults.protocolFeeRate }
+        : {}),
     });
   }, [
     position,
     handleFlipPosition,
     feeResults.totalFee,
+    feeResults.metamaskFee,
+    feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
+    feeResults.protocolFeeRate,
     markPrice,
     price,
     vipTier,

@@ -16,6 +16,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     QrSyncController: {
       cancelSession: jest.fn(),
+      resetState: jest.fn(),
     },
   },
 }));
@@ -24,6 +25,7 @@ import Engine from '../../../core/Engine';
 
 const mockCancelSession = Engine.context.QrSyncController
   .cancelSession as jest.Mock;
+const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
 
 const mockGoBack = jest.fn();
 
@@ -91,10 +93,11 @@ describe('DeviceAdded', () => {
       fireEvent.press(getByTestId('device-added-back-button'));
 
       expect(mockCancelSession).toHaveBeenCalledTimes(1);
+      expect(mockResetState).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not cancel the session when sync is already completed', () => {
+    it('resets QR sync state when back is pressed after extension completed', () => {
       const { getByTestId } = renderComponent({
         phase: QrSyncPhases.COMPLETED,
       });
@@ -102,6 +105,7 @@ describe('DeviceAdded', () => {
       fireEvent.press(getByTestId('device-added-back-button'));
 
       expect(mockCancelSession).not.toHaveBeenCalled();
+      expect(mockResetState).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });

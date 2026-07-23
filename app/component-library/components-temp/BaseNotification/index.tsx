@@ -117,6 +117,14 @@ export const getDescription = (
   return strings(`notifications.${status}_message`);
 };
 
+/**
+ * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
+ *
+ * The API may have changed — compare props before migrating.
+ *
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react/src/components/Toast/Toast.tsx}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#toast-component Migration docs}
+ */
 const BaseNotification: React.FC<BaseNotificationProps> = ({
   status,
   data,

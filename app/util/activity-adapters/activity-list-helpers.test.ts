@@ -7,7 +7,10 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isGasTokenFeeWithAmount,
   isSpendingCapWithAmount,
+  preferLocalOrApiActivityItem,
+  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
 } from './activity-list-helpers';
 
@@ -93,6 +96,115 @@ describe('activity list helpers', () => {
         },
       });
       expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
+  });
+
+  describe('isGasTokenFeeWithAmount', () => {
+    it('is true when fees include a gasToken fee with an amount', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            {
+              type: 'gasToken',
+              amount: '100',
+              decimals: 6,
+              symbol: 'USDC',
+            },
+          ],
+        },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(true);
+    });
+
+    it('is false when fees only include a native base fee', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(false);
+    });
+
+    it('is false when there are no fees', () => {
+      const item = makeItem({
+        type: 'send',
+        data: { from: '0xfrom', to: '0xto' },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(false);
+    });
+
+    it('is false when gasToken amount is zero (decimal or hex)', () => {
+      for (const amount of ['0', '0x0']) {
+        const item = makeItem({
+          type: 'send',
+          data: {
+            from: '0xfrom',
+            to: '0xto',
+            fees: [{ type: 'gasToken', amount, decimals: 6, symbol: 'USDC' }],
+          },
+        });
+        expect(isGasTokenFeeWithAmount(item)).toBe(false);
+      }
+    });
+  });
+
+  describe('shouldPreferLocalActivityItem / preferLocalOrApiActivityItem', () => {
+    it('prefers matching-type local when only it has a gas-token fee', () => {
+      const local = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
+          ],
+        },
+      });
+      const api = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      expect(shouldPreferLocalActivityItem(local, api)).toBe(true);
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
+    });
+
+    it('does not let a gas-token local contractInteraction beat an API send', () => {
+      const local = makeItem({
+        type: 'contractInteraction',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
+          ],
+        },
+      });
+      const api = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      expect(shouldPreferLocalActivityItem(local, api)).toBe(false);
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
     });
   });
 

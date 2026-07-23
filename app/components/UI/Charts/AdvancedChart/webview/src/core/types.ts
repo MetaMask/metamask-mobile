@@ -63,6 +63,22 @@ export type IndicatorName =
   | 'MA20'
   | 'MA50';
 
+export interface LegendPlotCfg {
+  tvTitle: string;
+  label: string;
+  color: string | null;
+}
+
+export interface LegendIndicatorCfg {
+  plots: LegendPlotCfg[];
+  isMA?: boolean;
+  useIndex?: boolean;
+  combineInOnePill?: boolean;
+  title?: string;
+  /** When true, legend pills render in the study's own sub-pane overlay. */
+  subPaneLegend?: boolean;
+}
+
 /**
  * Optional consumer-supplied legend overlay config inlined as
  * window.CONFIG.legendOverlay. When `enabled` is true the WebView builds a
@@ -70,8 +86,8 @@ export type IndicatorName =
  */
 export interface LegendOverlayConfig {
   enabled?: boolean;
-  /** Optional per-indicator override map; falls back to built-in presets. */
-  config?: Record<string, unknown>;
+  /** Per-indicator legend configuration supplied by RN. */
+  config?: Record<string, LegendIndicatorCfg>;
 }
 
 /**
@@ -189,6 +205,7 @@ export interface TVShapeCreateOptions {
 
 export interface TVPriceScale {
   getVisiblePriceRange(): { from: number; to: number } | null;
+  width?(): number;
   isInverted?(): boolean;
   getMode?(): number;
   setAutoScale?(enabled: boolean): void;
@@ -196,6 +213,7 @@ export interface TVPriceScale {
 
 export interface TVPane {
   getMainSourcePriceScale(): TVPriceScale | null;
+  getRightPriceScales?(): TVPriceScale[];
   getHeight(): number;
 }
 
@@ -204,6 +222,7 @@ export type StudyId = string; // NOSONAR — intentional semantic alias for Trad
 export interface TVStudy {
   onDataLoaded(): TVSubscription;
   applyOverrides?(overrides: Record<string, unknown>): void;
+  paneIndex?(): number;
 }
 
 export interface TVExportSchemaField {

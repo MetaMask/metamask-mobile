@@ -8,7 +8,7 @@ import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors
 import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
 import { selectTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
-import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
+import { selectExcludedActivityTransactionHashes } from '../../../selectors/transactionController';
 
 export const useTransactionsQuery = () => {
   const groupEvmAccount = useSelector(
@@ -18,7 +18,7 @@ export const useTransactionsQuery = () => {
   /** Activity must load EVM history for the group's EVM account when e.g. Bitcoin is selected. */
   const evmAddress = (groupEvmAccount?.address ?? globalEvmAddress ?? '') || '';
   const networks = useSelector(selectEvmEnabledCaipNetworks);
-  const excludedTxHashes = useSelector(selectRequiredTransactionHashes);
+  const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
   const accountAddresses = evmAddress
     ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
     : [];

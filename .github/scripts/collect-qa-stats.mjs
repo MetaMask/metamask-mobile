@@ -29,6 +29,7 @@
  *   {
  *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
  *     "component_view":{ "total_tests_run": 94,    "total_tests_skipped": 0 },
+ *     "integration":   { "total_tests_run": 11,    "total_tests_skipped": 0 },
  *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
  *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
  *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
@@ -70,6 +71,7 @@ const PATH_ONBOARDING_EVENTS = 'tests/helpers/analytics/helpers.ts';
 const SCAN_PERFORMANCE_DIR = 'tests/performance';
 
 const PATTERN_CV_TEST_FILE   = /\.view(?:\..+)?\.test\.[jt]sx?$/;
+const PATTERN_INTEGRATION_TEST_FILE = /\.integration\.test\.[jt]sx?$/;
 const PATTERN_UNIT_TEST_FILE = /\.test\.[jt]sx?$/;
 const PATTERN_E2E_SPEC_FILE  = /\.spec\.[jt]sx?$/;
 const PATTERN_PERF_SPEC_FILE = /\.spec\.js$/;
@@ -834,6 +836,52 @@ async function collectComponentViewTestCount() {
   return result;
 }
 
+async function collectIntegrationTestCount() {
+  console.log(
+    '[integration] collecting per-suite counts from shard artifacts...',
+  );
+  const result = await collectShardCounts(
+    /^coverage-integration-\d+$/,
+    'integration',
+  );
+  if (Object.keys(result).length === 0) return result;
+
+  const isIntegrationTestFile = (name) =>
+    PATTERN_INTEGRATION_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isIntegrationTestFile);
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('integration-test-coverage-summary');
+    const summary = JSON.parse(
+      await readFile(join(destDir, 'coverage-summary.json'), 'utf8'),
+    );
+    const { lines, statements, branches, functions } = summary.total;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
+    console.log(
+      `[integration] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
+    );
+  } catch (err) {
+    console.warn(
+      `[integration] coverage summary not available, skipping: ${err.message}`,
+    );
+  }
+
+  return result;
+}
+
 async function collectUnitTestCount() {
   console.log('[unit] collecting per-suite counts from shard artifacts...');
   // minFolderCount=200: buckets individual component-level folders into `other`,
@@ -841,9 +889,11 @@ async function collectUnitTestCount() {
   const result = await collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
   if (Object.keys(result).length === 0) return result;
 
-  // Unit test files: *.test.{ts,tsx,js} excluding *.view[.*].test.*
+  // Unit test files: *.test.{ts,tsx,js} excluding view and integration suites.
   const isUnitTestFile = (name) =>
-    PATTERN_UNIT_TEST_FILE.test(name) && !PATTERN_CV_TEST_FILE.test(name);
+    PATTERN_UNIT_TEST_FILE.test(name) &&
+    !PATTERN_CV_TEST_FILE.test(name) &&
+    !PATTERN_INTEGRATION_TEST_FILE.test(name);
   const files = await walkFiles(SCAN_APP_DIR, isUnitTestFile);
   let defined = 0, skips = 0;
   for (const f of files) {
@@ -1220,6 +1270,7 @@ async function main() {
   const collectors = [
     { namespace: 'unit', collect: collectUnitTestCount },
     { namespace: 'component_view', collect: collectComponentViewTestCount },
+    { namespace: 'integration', collect: collectIntegrationTestCount },
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'e2e_test_times', collect: collectE2ETestTimes },
     { namespace: 'metametrics', collect: collectMetametricsQaStats },

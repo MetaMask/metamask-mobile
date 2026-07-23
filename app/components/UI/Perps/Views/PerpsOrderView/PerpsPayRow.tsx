@@ -7,8 +7,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -40,6 +40,10 @@ import {
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  consumePerpsPaymentTokenSelection,
+  resetPerpsPaymentTokenSelection,
+} from '../../utils/perpsPaymentTokenSelection';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
@@ -70,6 +74,15 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
 
   const canEdit = !isHardwareAccount(from ?? '');
 
+  // stable token identity (address + chainId, not symbol) captured
+  // when the selector opens. Comparing identity avoids misclassifying a
+  // selection of a different token that shares a symbol as a dismissal. `null`
+  // means no selector open is pending.
+  const payTokenIdentity = payToken
+    ? `${payToken.address}:${payToken.chainId}`
+    : '';
+  const selectorOpenIdentityRef = useRef<string | null>(null);
+
   const handleClick = useCallback(() => {
     if (!canEdit) return;
     setConfirmationMetric({
@@ -81,8 +94,34 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
     });
+    selectorOpenIdentityRef.current = payTokenIdentity;
+    // Clear any stale selection marker so only a press during THIS open counts.
+    resetPerpsPaymentTokenSelection();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [canEdit, navigation, setConfirmationMetric, track]);
+  }, [canEdit, navigation, payTokenIdentity, setConfirmationMetric, track]);
+
+  // emit payment_token_selector_dismissed when this screen regains
+  // focus after the selector closes WITHOUT an explicit row selection. A row
+  // press (even re-selecting the current token, which leaves identity unchanged)
+  // sets the selection marker; only a true dismiss with no press and unchanged
+  // identity is reported. A pending ref set on open guards the initial mount.
+  useFocusEffect(
+    useCallback(() => {
+      const identityAtOpen = selectorOpenIdentityRef.current;
+      if (identityAtOpen === null) {
+        return;
+      }
+      selectorOpenIdentityRef.current = null;
+      const selectionMade = consumePerpsPaymentTokenSelection();
+      if (!selectionMade && payTokenIdentity === identityAtOpen) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR_DISMISSED,
+          [PERPS_EVENT_PROPERTY.CURRENT_TOKEN]: payToken?.symbol,
+        });
+      }
+    }, [payTokenIdentity, payToken, track]),
+  );
 
   const displayToken = matchesPerpsBalance
     ? {

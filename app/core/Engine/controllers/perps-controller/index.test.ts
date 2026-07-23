@@ -124,6 +124,10 @@ describe('perps controller init', () => {
         testnet: [],
         mainnet: [],
       },
+      recentlyViewedMarkets: {
+        testnet: [],
+        mainnet: [],
+      },
       tradeConfigurations: {
         testnet: {},
         mainnet: {},
@@ -150,10 +154,6 @@ describe('perps controller init', () => {
       selectedPaymentToken: null,
       cachedMarketDataByProvider: {},
       cachedUserDataByProvider: {},
-      recentlyViewedMarkets: {
-        testnet: [],
-        mainnet: [],
-      },
     };
 
     initRequestMock.persistedState = {

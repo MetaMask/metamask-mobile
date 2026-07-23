@@ -1,3 +1,4 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
 
 export interface RewardsOndoCampaignDetailsParams {
@@ -81,8 +82,12 @@ export interface RewardsPredictThePitchCampaignStatsParams {
   campaignId: string;
 }
 
-/** Param list for screens registered in RewardsNavigator. */
-export interface RewardsNavigationParamList {
+/**
+ * Param list for screens registered in `RewardsNavigator`.
+ */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RewardsStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsVipSplashView: undefined;
@@ -116,5 +121,15 @@ export interface RewardsNavigationParamList {
   RewardsPredictThePitchCampaignPortfolioView: RewardsPredictThePitchCampaignPortfolioParams;
   RewardsPredictThePitchCampaignWinning: RewardsPredictThePitchCampaignWinningParams;
   RewardsPredictThePitchCampaignStats: RewardsPredictThePitchCampaignStatsParams;
+};
+
+/**
+ * Feature-level Rewards navigation params: stack screens, flat modal sheet,
+ * and the typed `RewardsFlow` entry for cross-stack navigation.
+ */
+// Intersection (`&`) requires `type`; `interface` cannot express this.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsSelectSheet: RewardsSelectSheetParams;
-}
+  RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
+};

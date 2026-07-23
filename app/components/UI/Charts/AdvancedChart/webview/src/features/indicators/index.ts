@@ -21,12 +21,16 @@ import type {
   RemoveIndicatorMessage,
   SetMAVisibilityMessage,
 } from '../../messages/contract';
-import { scheduleLegendRefresh, subscribeStudyDataLoaded } from './legend';
+import {
+  removeSubPaneOverlay,
+  scheduleLegendRefresh,
+  subscribeStudyDataLoaded,
+} from './legend';
 import { scheduleChartWidgetResize } from './resize';
 import { applySubPaneHeightRatio, hasActiveSubPaneIndicators } from './subPane';
 import {
   createIndicatorStudy,
-  isSubPaneIndicator,
+  isSubPanePreset,
   MA_LENGTHS,
   resolveStudyPreset,
 } from './studies';
@@ -70,7 +74,7 @@ export function handleAddIndicator(
   createIndicatorStudy(chart, preset)
     .then((studyId) => {
       registerStudy('active', name, studyId);
-      if (isSubPaneIndicator(name)) {
+      if (isSubPanePreset(preset)) {
         applySubPaneHeightRatio(chart);
       }
       subscribeStudyDataLoaded(chart, studyId);
@@ -101,10 +105,19 @@ export function handleRemoveIndicator(
 
   try {
     const chart = widget.activeChart();
+    const study = chart.getStudyById(studyId);
+    const paneIdx = study?.paneIndex?.();
+    const wasSubPane = paneIdx !== undefined && paneIdx > 0;
+
+    if (wasSubPane) {
+      removeSubPaneOverlay(name);
+    }
+
     chart.removeEntity(studyId);
+
     scheduleLegendRefresh();
     postToRN('INDICATOR_REMOVED', { name });
-    if (isSubPaneIndicator(name) && hasActiveSubPaneIndicators()) {
+    if (wasSubPane && hasActiveSubPaneIndicators()) {
       applySubPaneHeightRatio(chart);
     }
   } catch (error) {

@@ -96,6 +96,15 @@ jest.mock(
   }),
 );
 
+const mockNavigateToSocialLeaderboard = jest.fn();
+jest.mock(
+  '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialLeaderboard: (...args: unknown[]) =>
+      mockNavigateToSocialLeaderboard(...args),
+  }),
+);
+
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -272,14 +281,15 @@ describe('TopTradersSection', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to the Top Traders view when the section header is pressed', () => {
+  it('opens the Social Leaderboard (routing through the onboarding gate) when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByText('Weekly Top Traders'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW, {
-      source: 'home_carousel',
-    });
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      { source: 'home_carousel' },
+    );
   });
 
   it('navigates to the trader profile with correct params when a card is tapped', () => {

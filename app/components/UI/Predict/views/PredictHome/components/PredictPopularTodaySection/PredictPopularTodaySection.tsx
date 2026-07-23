@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import { resolvePredictFeedDynamicFilterConfig } from '../../../../constants/feedConfig';
@@ -152,11 +153,25 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   );
 
   const handleSeeAll = useCallback(() => {
+    Engine.context.PredictController.trackHomeSectionInteraction({
+      sectionId: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
     navigateToTrending();
   }, [navigateToTrending]);
 
   const handleChipPress = useCallback(
     (option: PredictFilterOption) => {
+      Engine.context.PredictController.trackHomeSectionInteraction({
+        sectionId: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+        actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+        // All Popular Today chips come from usePredictFilterOptions (related-tags
+        // API), which are dynamic by definition — there are no static variants.
+        filterId: option.id,
+        isDynamicFilter: true,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
       navigateToTrending(option.id);
     },
     [navigateToTrending],

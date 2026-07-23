@@ -101,4 +101,23 @@ describe('PredictFeedView (component view)', () => {
       ),
     ).toBeOnTheScreen();
   });
+
+  it('hides Live filter chips while requesting only live markets', async () => {
+    const { findByTestId, queryByTestId } = renderPredictFeedView({
+      initialParams: { feedId: 'live' },
+    });
+
+    await findByTestId(
+      PredictFeedViewSelectorsIDs.EMPTY_STATE,
+      {},
+      { timeout: 10000 },
+    );
+
+    expect(
+      queryByTestId(PredictFeedViewSelectorsIDs.FILTERS),
+    ).not.toBeOnTheScreen();
+    expect(Engine.context.PredictController.listMarkets).toHaveBeenCalledWith(
+      expect.objectContaining({ live: true }),
+    );
+  });
 });

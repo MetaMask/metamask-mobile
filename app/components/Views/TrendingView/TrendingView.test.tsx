@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,6 +8,62 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockIsEnabled = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
+
+// Replace every tab's content with a render-tracking stub so a tab-switch
+// re-render regression test doesn't have to mock each tab's underlying
+// feed hooks (usePerpsFeed, useTokensFeed, etc.) to render without crashing.
+// `mockTrackTabRender` is only invoked from inside each stub component
+// (i.e. lazily, at render time, long after this module's top-level code has
+// run) — never eagerly by the `jest.mock` factory itself — so it's safe
+// despite `jest.mock` factories being hoisted above other statements.
+const mockTabRenderCounts: Record<string, number> = {};
+
+const mockTrackTabRender = (name: string) => {
+  mockTabRenderCounts[name] = (mockTabRenderCounts[name] ?? 0) + 1;
+};
+
+jest.mock('./tabs/NowTab', () => ({
+  __esModule: true,
+  default: () => {
+    mockTrackTabRender('Now');
+    return null;
+  },
+}));
+jest.mock('./tabs/MacroTab', () => ({
+  __esModule: true,
+  default: () => {
+    mockTrackTabRender('Macro');
+    return null;
+  },
+}));
+jest.mock('./tabs/RwasTab', () => ({
+  __esModule: true,
+  default: () => {
+    mockTrackTabRender('RWAs');
+    return null;
+  },
+}));
+jest.mock('./tabs/CryptoTab', () => ({
+  __esModule: true,
+  default: () => {
+    mockTrackTabRender('Crypto');
+    return null;
+  },
+}));
+jest.mock('./tabs/SportsTab', () => ({
+  __esModule: true,
+  default: () => {
+    mockTrackTabRender('Sports');
+    return null;
+  },
+}));
+jest.mock('./tabs/DappsTab', () => ({
+  __esModule: true,
+  default: () => {
+    mockTrackTabRender('Sites');
+    return null;
+  },
+}));
 
 jest.mock('../../Nav/Main/MainNavigator', () => ({
   lastTrendingScreenRef: { current: 'TrendingFeed' },
@@ -197,6 +253,9 @@ describe('TrendingView', () => {
     jest.clearAllMocks();
     mockIsEnabled.mockReturnValue(true);
     mockAddListener.mockReturnValue(jest.fn());
+    for (const key of Object.keys(mockTabRenderCounts)) {
+      delete mockTabRenderCounts[key];
+    }
 
     mockUseSelector.mockImplementation(createMockSelectorImplementation());
   });
@@ -335,6 +394,29 @@ describe('TrendingView', () => {
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
+  });
+
+  describe('tab switching', () => {
+    it('does not re-render an inactive tab just because the active tab changed', async () => {
+      const { getByTestId } = renderTrendingView();
+
+      // The "Now" tab (index 0) mounts first.
+      await waitFor(() => {
+        expect(mockTabRenderCounts.Now).toBeGreaterThanOrEqual(1);
+      });
+      const nowRenderCountBeforeSwitch = mockTabRenderCounts.Now;
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+
+      // The "Macro" tab (index 1) mounts once it becomes active.
+      await waitFor(() => {
+        expect(mockTabRenderCounts.Macro).toBeGreaterThanOrEqual(1);
+      });
+
+      // "Now" isn't a consumer of the active-tab context, so switching away
+      // from it must not cause it to re-render.
+      expect(mockTabRenderCounts.Now).toBe(nowRenderCountBeforeSwitch);
+    });
   });
 
   describe('basic functionality toggle', () => {

@@ -9,7 +9,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { memo } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -127,7 +128,7 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
             <Image
               source={{ uri: getImageUrl() }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <Box twClassName="w-full h-full bg-muted" />

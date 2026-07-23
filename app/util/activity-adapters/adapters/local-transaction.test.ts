@@ -1336,6 +1336,55 @@ describe('mapLocalTransaction', () => {
     );
   });
 
+  it('uses the gasToken fee amount for a gasless EIP-7702 smart account upgrade', () => {
+    const gasTokenAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgradegasless',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      selectedGasFeeToken: gasTokenAddress,
+      gasFeeTokens: [
+        {
+          tokenAddress: gasTokenAddress,
+          amount: '0x64',
+          decimals: 18,
+          symbol: 'mUSD',
+          balance: '0x0',
+          gas: '0x0',
+          maxFeePerGas: '0x0',
+          maxPriorityFeePerGas: '0x0',
+          rateWei: '0x0',
+          recipient: '0x1',
+        },
+      ],
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('smartAccountUpgrade');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          direction: 'out',
+          amount: '100',
+        }),
+        fees: [
+          expect.objectContaining({
+            type: 'gasToken',
+            amount: '100',
+            symbol: 'mUSD',
+          }),
+        ],
+      }),
+    );
+  });
+
   it('keeps the action label for a batch that also performs a recognised action', () => {
     const transaction = {
       chainId: mainnet,

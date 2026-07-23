@@ -259,9 +259,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('navigates to provider selection when change provider is pressed while payment methods are loading', () => {
@@ -279,9 +284,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('does not navigate to provider selection when change provider is pressed and there is a payment method error', async () => {

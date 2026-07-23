@@ -286,6 +286,11 @@ export interface RenderBuildQuoteWithRoutesOptions
    * history navigation is observable.
    */
   includeBuySettingsAndTransactionsRoutes?: boolean;
+  /**
+   * Register a Quotes route placeholder so "Get quotes" navigation from
+   * BuildQuote can be asserted via route probe.
+   */
+  includeQuotesRoute?: boolean;
 }
 
 /**
@@ -331,6 +336,7 @@ export function renderBuildQuoteWithRoutes(
     includeAccountSelector = false,
     useFranceSellFixture = false,
     includeBuySettingsAndTransactionsRoutes = false,
+    includeQuotesRoute = false,
     state: stateOverride,
   } = options;
 
@@ -365,6 +371,10 @@ export function renderBuildQuoteWithRoutes(
   const MainStack = createNativeStackNavigator();
   const ModalsStack = createNativeStackNavigator();
 
+  const QuotesPlaceholder = () => (
+    <Text testID={`route-${Routes.RAMP.QUOTES}`}>Quotes placeholder</Text>
+  );
+
   const MainRoutes = () => (
     <MainStack.Navigator
       initialRouteName={Routes.RAMP.BUILD_QUOTE}
@@ -377,6 +387,12 @@ export function renderBuildQuoteWithRoutes(
         component={BuildQuote}
         initialParams={initialParams}
       />
+      {includeQuotesRoute ? (
+        <MainStack.Screen
+          name={Routes.RAMP.QUOTES}
+          component={QuotesPlaceholder}
+        />
+      ) : null}
     </MainStack.Navigator>
   );
 

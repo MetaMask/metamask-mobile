@@ -48,7 +48,7 @@ import {
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 
-interface AssetSelectionModalNavigationDetails {
+export interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
   selectionOnly?: boolean;
   onTokenSelect?: (token: CardFundingToken) => void;

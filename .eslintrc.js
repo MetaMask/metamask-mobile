@@ -93,15 +93,12 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Stake/hooks/useBalance.ts',
   'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts',
   'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.ts',
-  'app/components/UI/TransactionElement/utils-gas.js',
-  'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyQuotes.ts',
   'app/components/Views/SocialLeaderboard/utils/formatters.ts',
-  'app/components/Views/UnifiedTransactionsView/useUnifiedTxActions.test.ts',
   'app/components/Views/confirmations/components/gas/max-base-fee-input/max-base-fee-input.tsx',
   'app/components/Views/confirmations/components/gas/priority-fee-input/priority-fee-input.tsx',
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/native-value-display/native-value-display.tsx',
@@ -133,10 +130,9 @@ const utilNumberImportBurndownFiles = [
   // `../number/bigint` (or `./number/bigint` from `app/util/`).
   'app/util/confirm-tx.js',
   'app/util/conversions.js',
-  'app/util/confirmation/gas.ts',
+
   'app/util/confirmation/transactions.ts',
   'app/util/custom-gas/index.js',
-  'app/util/networks/index.js',
   'app/util/transactions/index.js',
   'app/util/transactions/index.test.ts',
 ];

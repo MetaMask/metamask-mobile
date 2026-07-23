@@ -359,7 +359,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
       {shouldShowSelectedStyle && <View style={styles.selectedIndicator} />}
 
       <TouchableOpacity
-        key={token.address}
         onPress={handlePress}
         style={[
           styles.itemWrapper,

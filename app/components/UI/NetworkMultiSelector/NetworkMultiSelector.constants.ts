@@ -33,6 +33,7 @@ export enum NetworkToCaipChainId {
   BASE = 'eip155:8453',
   OPTIMISM = 'eip155:10',
   POLYGON = 'eip155:137',
+  MONAD = 'eip155:143',
   PALM = 'eip155:11297108109',
   ARBITRUM = 'eip155:42161',
   LOCALHOST = 'eip155:1337',

@@ -18,7 +18,12 @@ const renderComponent = (props = {}) =>
       />
     </ThemeContext.Provider>,
   );
+
 describe('CustomNonceModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders correctly', () => {
     renderComponent();
     expect(screen.getByTestId('increment-nonce')).toBeOnTheScreen();

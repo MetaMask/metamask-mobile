@@ -45,6 +45,34 @@ config_files: &config_files
 ci_files: &ci_files
   - '.github/**'
 
+# E2E / PERFORMANCE TEST FILES — do not require a fresh native build, but still
+# run E2E + Smart E2E selection when these are the only non-ignorable changes.
+e2e_test_files: &e2e_test_files
+  - 'tests/smoke/**'
+  - 'tests/regression/**'
+  - 'tests/performance/**'
+  - 'tests/smoke-appium/**'
+  - 'tests/flows/**'
+  - 'tests/page-objects/**'
+  - 'tests/selectors/**'
+  - 'tests/locators/**'
+  - 'tests/framework/**'
+  - 'tests/api-mocking/**'
+  - 'tests/docs/**'
+  - 'tests/scripts/**'
+  - 'tests/reporters/**'
+  - 'tests/tools/e2e-ai-analyzer/**'
+  - 'tests/playwright*.config.ts'
+  - 'tests/playwright.*.config.ts'
+  - 'tests/init.detox.js'
+  - 'tests/environment.detox.js'
+  - 'tests/jest.e2e.detox.config.js'
+  - 'tests/helpers.js'
+  - 'tests/tags.js'
+  - 'tests/tags.performance.js'
+  - 'tests/teams-config.js'
+  - 'wdio/**'
+
 # ALL IGNORABLE FILES - safe to skip E2E
 e2e_ignorable:
   - *documentation_files
@@ -53,6 +81,16 @@ e2e_ignorable:
   - *locale_translation_files
   - *config_files
   - *ci_files
+
+# Union of ignorable + E2E test files for test-only change detection.
+e2e_test_or_ignorable:
+  - *documentation_files
+  - *asset_files
+  - *low_level_test_files
+  - *locale_translation_files
+  - *config_files
+  - *ci_files
+  - *e2e_test_files
 
 e2e_relevant_workflows:
   - '.github/workflows/ci.yml'

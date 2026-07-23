@@ -140,6 +140,10 @@ ignores:
   - 'react-native-worklets'
   # Activated via /** @jest-environment jsdom */ docblock pragma in test files, not imported directly
   - 'jest-environment-jsdom'
+  # Used as the Jest `transform` in jest.config.js, but referenced via the
+  # array form (['babel-jest', { configFile: ... }]) which depcheck's Jest
+  # special-parser doesn't recognize (it only detects the plain string form).
+  - 'babel-jest'
 
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'

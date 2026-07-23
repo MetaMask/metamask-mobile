@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   Box,
@@ -74,7 +75,7 @@ const PredictMarketDetailsHeader = memo(
             <Image
               source={{ uri: image || market?.image }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <Box twClassName="w-full h-full bg-muted" />

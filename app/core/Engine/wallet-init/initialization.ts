@@ -9,10 +9,20 @@ import {
   getNetworkControllerInstanceOptions,
   setupRpcEndpointMetrics,
 } from './instance-options/network-controller';
+import {
+  getTransactionControllerInstanceOptions,
+  setupTransactionControllerListeners,
+} from './instance-options/transaction-controller';
+import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
  * client-specific options live in its own builder under `./instance-options/`.
+ *
+ * @param request - The wallet initialization request.
+ * @param request.messenger - The root messenger.
+ * @param request.state - The persisted controller state.
+ * @returns The constructed `Wallet`.
  */
 export function initializeWallet({
   messenger,
@@ -21,7 +31,10 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
-  const wallet = new Wallet({
+  const transactionControllerInitMessenger =
+    getTransactionControllerInitMessenger(messenger);
+
+  const wallet: Wallet = new Wallet({
     messenger,
     state,
     instanceOptions: {
@@ -35,12 +48,18 @@ export function initializeWallet({
           state,
         }),
       storageService: getStorageServiceInstanceOptions(),
+      transactionController: getTransactionControllerInstanceOptions({
+        initMessenger: transactionControllerInitMessenger,
+      }),
     },
   });
 
   setupRpcEndpointMetrics(messenger);
+  setupTransactionControllerListeners({
+    messenger: transactionControllerInitMessenger,
+  });
 
-  wallet.init().catch((error) => console.error(error));
+  wallet.init().catch((error: unknown) => console.error(error));
 
   return wallet;
 }

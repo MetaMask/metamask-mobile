@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -40,7 +40,7 @@ const PredictSportTeamLogo: React.FC<PredictSportTeamLogoProps> = ({
         <Image
           source={{ uri }}
           style={tw.style({ width: size, height: size })}
-          resizeMode="contain"
+          contentFit="contain"
           onError={() => setHasError(true)}
           testID={testID ? `${testID}-image` : undefined}
         />

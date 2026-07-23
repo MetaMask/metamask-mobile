@@ -76,6 +76,10 @@ const DeviceAdded = () => {
   const handleBack = useCallback(() => {
     if (isSessionActive) {
       Engine.context.QrSyncController.cancelSession();
+    } else {
+      // Extension already completed; clear pending secrets so the spinner
+      // does not reappear after leaving this screen.
+      Engine.context.QrSyncController.resetState();
     }
 
     navigation.goBack();

@@ -151,9 +151,10 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  TopTradersView,
+  SocialTradersView,
   TraderProfileView,
   TraderPositionView,
+  SocialLeaderboardOnboarding,
   TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -1382,7 +1383,7 @@ const MainNavigator = () => {
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={TopTradersView}
+          component={SocialTradersView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
@@ -1397,6 +1398,13 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.ONBOARDING}
+          component={SocialLeaderboardOnboarding}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
