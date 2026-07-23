@@ -70,6 +70,12 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
           // SDK session payload and open it with package-scoped mobile: deepLink
           // so we land on the connect sheet (not wallet home via bare app focus).
           PlaywrightUtilities.collapseStatusBar();
+          // Playground ≥0.8 defaults to Localhost (eip155:1337) on http://localhost.
+          // Opt into Ethereum Mainnet so the post-connect scope card assertion matches.
+          await ChromeCdpHelpers.ensureScopeCheckboxes(DAPP_URL, [
+            { scope: 'eip155:1337', checked: false },
+            { scope: 'eip155:1', checked: true },
+          ]);
           await ChromeCdpHelpers.waitAndClickTestIdOpeningMetaMask(
             DAPP_URL,
             MMConnectDappTestIds.CONNECT_BUTTON,
@@ -91,10 +97,12 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
           await ChromeCdpHelpers.waitForTestId(
             DAPP_URL,
             MMConnectDappTestIds.SCOPES_SECTION,
+            30_000,
           );
           await ChromeCdpHelpers.waitForTestId(
             DAPP_URL,
             scopeCardTestId('eip155:1'),
+            30_000,
           );
           await ChromeCdpHelpers.waitAndClickTestId(
             DAPP_URL,

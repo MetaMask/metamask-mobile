@@ -200,25 +200,34 @@ export default class ChromeCdpHelpers {
     timeoutMs = 15_000,
   ): Promise<void> {
     await this.withCdpSession(dappUrl, async (session) => {
-      const deadline = Date.now() + timeoutMs;
-      while (Date.now() < deadline) {
-        const visible = await session.evaluate<boolean>(
-          `(() => {
-            const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
-            if (!el) return false;
-            const style = window.getComputedStyle(el);
-            return style.visibility !== 'hidden' && style.display !== 'none';
-          })()`,
-        );
-        if (visible) {
-          return;
-        }
-        await new Promise((r) => setTimeout(r, POLL_MS));
-      }
-      throw new Error(
-        `CDP: [data-testid="${testId}"] not visible within ${timeoutMs}ms on ${dappUrl}`,
-      );
+      await this.waitForTestIdOnSession(session, testId, timeoutMs, dappUrl);
     });
+  }
+
+  private static async waitForTestIdOnSession(
+    session: CdpSession,
+    testId: string,
+    timeoutMs = 15_000,
+    dappUrlForError = 'page',
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const visible = await session.evaluate<boolean>(
+        `(() => {
+          const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
+          if (!el) return false;
+          const style = window.getComputedStyle(el);
+          return style.visibility !== 'hidden' && style.display !== 'none';
+        })()`,
+      );
+      if (visible) {
+        return;
+      }
+      await new Promise((r) => setTimeout(r, POLL_MS));
+    }
+    throw new Error(
+      `CDP: [data-testid="${testId}"] not visible within ${timeoutMs}ms on ${dappUrlForError}`,
+    );
   }
 
   /**
@@ -242,6 +251,40 @@ export default class ChromeCdpHelpers {
   ): Promise<void> {
     await this.waitForTestId(dappUrl, testId, timeoutMs);
     await this.clickTestId(dappUrl, testId);
+  }
+
+  /**
+   * Ensure playground network scope checkboxes match `desired`.
+   *
+   * `@metamask/browser-playground` ≥0.8 defaults to `eip155:1337` when the page
+   * is served from `localhost` / `127.0.0.1`. Smoke tests navigate via
+   * `http://localhost:…`, so callers must opt into mainnet (or other scopes)
+   * before Multichain connect.
+   */
+  static async ensureScopeCheckboxes(
+    dappUrl: string,
+    desired: ReadonlyArray<{ scope: string; checked: boolean }>,
+  ): Promise<void> {
+    await this.withCdpSession(dappUrl, async (session) => {
+      for (const { scope, checked } of desired) {
+        const testId = `dynamic-inputs-checkbox-${scope
+          .toLowerCase()
+          .replace(/:/g, '-')}`;
+        await this.waitForTestIdOnSession(session, testId);
+        const needsToggle = await session.evaluate<boolean>(
+          `(() => {
+            const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
+            if (!(el instanceof HTMLInputElement)) {
+              throw new Error('CDP: scope checkbox is not an input: ${testId}');
+            }
+            return el.checked !== ${checked ? 'true' : 'false'};
+          })()`,
+        );
+        if (needsToggle) {
+          await this.dispatchTrustedClick(session, testId);
+        }
+      }
+    });
   }
 
   /**
