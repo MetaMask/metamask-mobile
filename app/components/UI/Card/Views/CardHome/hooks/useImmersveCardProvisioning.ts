@@ -44,6 +44,8 @@ export function useImmersveCardProvisioning(
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const handled = useRef(false);
+  // Read via ref so persisting the resolved id does not re-run reconcile and
+  // cancel the in-flight attempt (which previously left handled=true forever).
   const reduxFundingSourceIdRef = useRef(reduxFundingSourceId);
   reduxFundingSourceIdRef.current = reduxFundingSourceId;
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
