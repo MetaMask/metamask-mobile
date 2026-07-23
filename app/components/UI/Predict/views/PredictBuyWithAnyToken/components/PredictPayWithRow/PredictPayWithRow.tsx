@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -50,7 +51,7 @@ export function PredictPayWithRow({
   onPaymentSelectorOpen,
 }: PredictPayWithRowProps) {
   usePredictDefaultPaymentToken();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from;

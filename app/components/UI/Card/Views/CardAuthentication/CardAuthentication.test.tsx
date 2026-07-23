@@ -19,6 +19,7 @@ jest.mock('../../../../../core/Engine', () => ({
     context: {
       CardController: {
         setUserLocation: jest.fn(),
+        setSelectedCountry: jest.fn(),
       },
     },
   },
@@ -61,9 +62,34 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useCardAuth');
 
 let mockIsForgotPasswordEnabled = true;
+let mockIsImmersveEnabled = false;
 jest.mock('../../../../../selectors/featureFlagController/card', () => ({
   ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
   selectCardForgotPasswordFeatureEnabled: () => mockIsForgotPasswordEnabled,
+  selectImmersveOnboardingEnabled: () => mockIsImmersveEnabled,
+}));
+
+const mockResumeImmersveOnboarding = jest.fn();
+jest.mock('../../hooks/useImmersveResumeOnboarding', () => ({
+  useImmersveResumeOnboarding: () => mockResumeImmersveOnboarding,
+}));
+// All-numeric hex → safeToChecksumAddress is a no-op, so the resolved address
+// equals this constant exactly.
+const IMMERSVE_TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () => ({
+    address: IMMERSVE_TEST_ADDRESS,
+  }),
+}));
+jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
+  useAccountGroupName: () => 'Account 1',
+}));
+const mockAccountSelectorNavDetails = [
+  'AccountSelectorRoute',
+  { screen: 'AccountSelector' },
+];
+jest.mock('../../../../Views/AccountSelector', () => ({
+  createAccountSelectorNavDetails: jest.fn(() => mockAccountSelectorNavDetails),
 }));
 
 const mockUseCardAuth = useCardAuth as jest.MockedFunction<typeof useCardAuth>;
@@ -138,9 +164,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_otp_authentication.title': 'Enter your verification code',
       'card.card_authentication.location_button_text': 'International',
       'card.card_authentication.location_button_text_us': 'United States',
+      'card.card_authentication.location_button_text_uk': 'United Kingdom',
       'card.card_authentication.email_label': 'Email',
       'card.card_authentication.password_label': 'Password',
       'card.card_authentication.login_button': 'Log in',
+      'card.card_authentication.uk_login_button': 'Sign in with this account',
+      'card.card_onboarding.sign_up.account_label': 'Account',
+      'card.card_onboarding.sign_up.account_description':
+        'Card will be associated with this account',
       'card.card_authentication.signup_button': "I don't have an account",
       'card.card_authentication.forgot_password_button': 'Forgot password?',
       'card.card_authentication.errors.invalid_credentials':
@@ -201,6 +232,7 @@ describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsForgotPasswordEnabled = true;
+    mockIsImmersveEnabled = false;
     mockRouteParams = {};
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
@@ -411,6 +443,26 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
+      });
+    });
+
+    it('re-resolves the provider to Baanx before initiating a Baanx login', async () => {
+      render('us');
+      const EngineModule = jest.requireMock(
+        '../../../../../core/Engine',
+      ).default;
+
+      fireEvent.changeText(screen.getByTestId('email-field'), 'a@b.com');
+      fireEvent.changeText(screen.getByTestId('password-field'), 'password123');
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          EngineModule.context.CardController.setSelectedCountry,
+        ).toHaveBeenCalledWith('us');
         expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
       });
     });
@@ -1062,6 +1114,149 @@ describe('CardAuthentication Component', () => {
         screen: Routes.CARD.MODALS.FORGOT_PASSWORD,
         params: { location: 'international' },
       });
+    });
+  });
+
+  describe('UK / Immersve re-entry', () => {
+    it('does not render the UK location box when the flag is disabled', () => {
+      mockIsImmersveEnabled = false;
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.UK_LOCATION_BOX),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the UK location box when the flag is enabled', () => {
+      mockIsImmersveEnabled = true;
+
+      render();
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.UK_LOCATION_BOX),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the UK location box on the OTP step', () => {
+      mockIsImmersveEnabled = true;
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.UK_LOCATION_BOX),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides email/password and shows the account picker when UK is selected', () => {
+      mockIsImmersveEnabled = true;
+
+      render();
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.UK_LOCATION_BOX),
+      );
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.UK_ACCOUNT_SELECT),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the account selector from the account picker', () => {
+      mockIsImmersveEnabled = true;
+
+      render();
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.UK_LOCATION_BOX),
+      );
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.UK_ACCOUNT_SELECT),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...mockAccountSelectorNavDetails,
+      );
+    });
+
+    it('resumes onboarding via SIWE for the selected account when the button is pressed', async () => {
+      mockIsImmersveEnabled = true;
+      mockResumeImmersveOnboarding.mockResolvedValue(undefined);
+
+      render();
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.UK_LOCATION_BOX),
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+
+      expect(mockResumeImmersveOnboarding).toHaveBeenCalledWith({
+        country: 'GB',
+        address: IMMERSVE_TEST_ADDRESS,
+        showAccountExistsToast: false,
+        navigateFromRoot: true,
+      });
+      expect(mockInitiateMutateAsync).not.toHaveBeenCalled();
+      expect(mockSubmitMutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('surfaces an inline error when resume fails', async () => {
+      mockIsImmersveEnabled = true;
+      mockResumeImmersveOnboarding.mockRejectedValue(new Error('siwe boom'));
+
+      render();
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.UK_LOCATION_BOX),
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.UK_LOGIN_ERROR_TEXT),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses the Baanx email/password flow when UK is not selected', async () => {
+      mockIsImmersveEnabled = true;
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+
+      render();
+      fireEvent.changeText(
+        getLoginTextInput(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      fireEvent.changeText(
+        getLoginTextInput(CardAuthenticationSelectors.PASSWORD_FIELD),
+        'password123',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+
+      expect(mockSubmitMutateAsync).toHaveBeenCalled();
+      expect(mockResumeImmersveOnboarding).not.toHaveBeenCalled();
     });
   });
 });

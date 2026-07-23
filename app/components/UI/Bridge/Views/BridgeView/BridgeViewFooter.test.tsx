@@ -64,17 +64,6 @@ jest.mock('../../components/SwapsConfirmButton/index.tsx', () => ({
   },
 }));
 
-// Mock ApprovalTooltip to avoid the navigation dependency of useTooltipModal.
-jest.mock('../../components/ApprovalText', () => {
-  const MockReact = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      MockReact.createElement(View, { testID: 'approval-tooltip' }),
-  };
-});
-
 jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -545,135 +534,48 @@ describe('BridgeViewFooter', () => {
     });
   });
 
-  describe('Approval Disclaimer', () => {
-    it('displays approval needed text when quote requires approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: {
-          chainId: '0x1',
-          to: '0xToken',
-          data: '0xApprovalData',
+  it('does not display an approval row when quote requires approval', () => {
+    const mockQuote = {
+      ...mockQuoteWithMetadata,
+      approval: {
+        chainId: '0x1',
+        to: '0xToken',
+        data: '0xApprovalData',
+      },
+    };
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockQuote,
+      }));
+
+    const testState = buildActiveQuoteState({
+      bridgeControllerOverrides: {
+        quotes: [mockQuote as unknown as QuoteResponse],
+      },
+      bridgeReducerOverrides: {
+        sourceAmount: '1.5',
+        sourceToken: {
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          chainId: '0x1' as Hex,
+          decimals: 6,
+          image: '',
+          name: 'USD Coin',
+          symbol: 'USDC',
         },
-      };
+      },
+    });
 
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
+    const { queryByText } = renderFooter(testState);
 
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: Date.now(),
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.5',
-          sourceToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            chainId: '0x1' as Hex,
-            decimals: 6,
-            image: '',
-            name: 'USD Coin',
-            symbol: 'USDC',
-          },
-        },
-      });
-
-      const { getByText } = renderFooter(testState as DeepPartial<RootState>);
-
-      await waitFor(() => {
-        const approvalText = strings('bridge.approval_needed', {
+    expect(
+      queryByText(
+        strings('bridge.approval_needed', {
           amount: '1.5',
           symbol: 'USDC',
-        });
-        expect(getByText(approvalText, { exact: false })).toBeTruthy();
-      });
-    });
-
-    it('displays approval tooltip when quote requires approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: {
-          chainId: '0x1',
-          to: '0xToken',
-          data: '0xApprovalData',
-        },
-      };
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: Date.now(),
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.5',
-          sourceToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            chainId: '0x1' as Hex,
-            decimals: 6,
-            image: '',
-            name: 'USD Coin',
-            symbol: 'USDC',
-          },
-        },
-      });
-
-      const { getByTestId } = renderFooter(testState as DeepPartial<RootState>);
-
-      await waitFor(() => {
-        expect(getByTestId('approval-tooltip')).toBeTruthy();
-      });
-    });
-
-    it('does not display approval text when quote does not require approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: null,
-      };
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const { queryByText } = renderFooter(buildActiveQuoteState());
-
-      await waitFor(() => {
-        expect(queryByText(/approval needed/i, { exact: false })).toBeNull();
-      });
-    });
-
-    it('does not display approval tooltip when quote does not require approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: null,
-      };
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const { queryByTestId } = renderFooter(buildActiveQuoteState());
-
-      await waitFor(() => {
-        expect(queryByTestId('approval-tooltip')).toBeNull();
-      });
-    });
+        }),
+      ),
+    ).toBeNull();
   });
 });

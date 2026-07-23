@@ -46,6 +46,11 @@ ignores:
   - 'xml2js'
   # jest-junit is used as a Jest reporter in tests/jest.e2e.detox.config.js
   - 'jest-junit'
+  # Required directly only by scripts/babel/named-capturing-groups-regex.test.ts
+  # (a regression guard for the @react-native/babel-preset patch). It's provided
+  # transitively via @expo/metro-config + Metro, so we don't declare it as a
+  # direct dependency.
+  - 'babel-preset-expo'
 
   # tsconfig path alias pointing to app/controllers/perps (not an npm package)
   - '@metamask/perps-controller'
@@ -76,7 +81,6 @@ ignores:
   - 'chromedriver'
   - 'execa'
   - 'jetifier'
-  - 'metro-react-native-babel-preset'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'prettier-2'

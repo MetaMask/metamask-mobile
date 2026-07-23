@@ -19,11 +19,10 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const { Text } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     SectionHeader: ({ title, testID }: { title: string; testID?: string }) => (
       <Text testID={testID}>{title}</Text>
     ),
-    TextVariant: { BodySm: 'body-sm' },
-    TextColor: { TextAlternative: 'text-alternative' },
   };
 });
 
@@ -91,7 +90,7 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(
       screen.getByTestId(PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Recently searched')).toBeOnTheScreen();
+    expect(screen.getByText('Recently viewed')).toBeOnTheScreen();
     expect(
       screen.getByTestId('perps-recently-viewed-tile-BTC'),
     ).toBeOnTheScreen();

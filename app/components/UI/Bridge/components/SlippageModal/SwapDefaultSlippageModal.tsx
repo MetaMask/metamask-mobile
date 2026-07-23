@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -11,7 +12,7 @@ import { DefaultSlippageModalContent } from './DefaultSlippageModal';
 import { SwapSlippageModalParams } from './types';
 
 export const SwapDefaultSlippageModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const slippage = useSelector(selectSlippage);
   const { sourceChainId, destChainId } = useParams<SwapSlippageModalParams>();

@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
-import { NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
-import { PredictNavigationParamList } from '../types/navigation';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { usePredictEligibility } from './usePredictEligibility';
 
 interface UsePredictActionGuardOptions {
-  navigation: NavigationProp<PredictNavigationParamList>;
+  navigation: AppNavigationProp;
 }
 
 interface ExecuteGuardedActionOptions {

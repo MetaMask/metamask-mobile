@@ -8,6 +8,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon, {
   IconName,
@@ -27,7 +28,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
   PredictDetailsHeaderSkeletonProps
 > = ({ testID = PREDICT_DETAILS_HEADER_SKELETON }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
 
   return (

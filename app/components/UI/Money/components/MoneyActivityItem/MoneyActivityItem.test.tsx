@@ -9,17 +9,8 @@ import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
-import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import MoneyActivityItem from './MoneyActivityItem';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
-
-jest.mock('../../selectors/featureFlags', () => ({
-  selectMoneyEnableActivityDetailsFlag: jest.fn(),
-}));
-
-const mockedSelectActivityDetailsFlag = jest.mocked(
-  selectMoneyEnableActivityDetailsFlag,
-);
 
 const MOCK_CHAIN: Hex = '0x1';
 
@@ -88,7 +79,6 @@ const mockUseMoneyTransactionDisplayInfo = jest.mocked(
 describe('MoneyActivityItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedSelectActivityDetailsFlag.mockReturnValue(true);
     mockUseMoneyTransactionDisplayInfo.mockReturnValue({
       label: 'Label',
       description: 'Description',
@@ -152,14 +142,13 @@ describe('MoneyActivityItem', () => {
     expect(onPress).toHaveBeenCalledWith(baseTx);
   });
 
-  it('renders the row as non-pressable when moneyEnableActivityDetails flag is off', () => {
-    mockedSelectActivityDetailsFlag.mockReturnValue(false);
+  it('renders the row as non-pressable when no onPress prop is provided', () => {
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" onPress={jest.fn()} />,
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" />,
     );
 
-    // When the flag is off, ActivityRowView receives onPress={undefined}, so the
-    // underlying Pressable has no onPress handler.
+    // Without an onPress prop, ActivityRowView receives onPress={undefined},
+    // so the underlying Pressable has no onPress handler.
     expect(
       getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`).props.onPress,
     ).toBeUndefined();

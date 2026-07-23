@@ -5,6 +5,7 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -54,7 +55,7 @@ const INITIAL_SKELETON_COUNT = 4;
  */
 const PredictFeedView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictFeed'>>();
   const { feedId, initialTabId, initialFilterId, entryPoint } =

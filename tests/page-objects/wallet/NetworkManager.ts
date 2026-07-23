@@ -403,8 +403,34 @@ class NetworkManager {
         );
       },
       appium: async () => {
-        // iOS: `network-manager-bottom-sheet` may exist while `displayed === false`
-        // even though the Popular tab content is on screen (same as wallet-screen).
+        // Anvil/localhost fixtures often open the sheet on the Custom tab, so
+        // popular-networks-selector-container is not mounted until we switch.
+        await Utilities.waitUntil(
+          async () =>
+            (await Utilities.isElementVisible(
+              this.popularNetworksContainer,
+              500,
+            )) ||
+            (await Utilities.isElementVisible(
+              this.customNetworksContainer,
+              500,
+            )) ||
+            (await Utilities.isElementVisible(this.popularNetworksTab, 500)),
+          {
+            timeout: 15_000,
+            interval: 500,
+          },
+        );
+
+        if (
+          !(await Utilities.isElementVisible(
+            this.popularNetworksContainer,
+            1_000,
+          ))
+        ) {
+          await this.tapPopularNetworksTab();
+        }
+
         await Assertions.expectElementToBeVisible(
           this.popularNetworksContainer,
           {

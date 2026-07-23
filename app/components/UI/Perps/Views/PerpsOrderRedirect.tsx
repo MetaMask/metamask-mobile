@@ -5,6 +5,8 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import {
   Box,
   BoxAlignItems,
@@ -38,7 +40,7 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
  * is ready before calling depositWithOrder().
  */
 const PerpsOrderRedirect: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteParams>();
   const { direction, asset, fromTokenDetails, transactionActiveAbTests } =
     route.params;
@@ -116,7 +118,7 @@ const PerpsOrderRedirect: React.FC = () => {
     PerpsToastOptions,
   ]);
 
-  // Match PerpsLoadingSkeleton layout ("Connecting to Perps") so both loaders look the same: top-aligned, centered, pt-20
+  // Match PerpsLoader connecting layout so both loaders look the same: top-aligned, centered, pt-20
   return (
     <Box
       twClassName="flex-1 bg-default pt-20"

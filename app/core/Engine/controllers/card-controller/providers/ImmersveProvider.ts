@@ -44,7 +44,8 @@ const IMMERSVE_LOCATION = 'international';
 const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
 const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
-const IMMERSVE_SPENDABLE_AMOUNT = 999999999;
+// Same ceiling as BAANX_MAX_LIMIT — Immersve does not treat this as a hard cap.
+const IMMERSVE_SPENDABLE_AMOUNT = 2199023255551;
 
 const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
 
@@ -269,6 +270,10 @@ export class ImmersveProvider implements ICardProvider {
     );
   }
 
+  private get appUrl(): string {
+    return this.programConfig.appUrl || this.config.appUrl;
+  }
+
   private requireProgramValue(
     key: 'cardProgramId' | 'fundingChannelId',
   ): string {
@@ -303,7 +308,7 @@ export class ImmersveProvider implements ICardProvider {
           clientApplicationId: this.clientApplicationId,
           scopes: ['cardholder-partner'],
           address,
-          url: this.config.appUrl,
+          url: this.appUrl,
           autoSignup: true,
         },
       );
@@ -382,7 +387,7 @@ export class ImmersveProvider implements ICardProvider {
           clientApplicationId: this.clientApplicationId,
         },
         undefined,
-        { origin: this.config.appUrl },
+        { origin: this.appUrl },
       );
     } catch (error) {
       if (
@@ -495,6 +500,7 @@ export class ImmersveProvider implements ICardProvider {
         network: item.network,
         balance: item.balance,
         balanceCurrency: item.balanceCurrency,
+        fundingChannelId: item.fundingChannelId,
       }));
     } catch (error) {
       throw mapApiError(error, 'getFundingSources');
@@ -624,15 +630,6 @@ export class ImmersveProvider implements ICardProvider {
       const card = await this.resolveCurrentCard(tokens);
 
       if (!card) {
-        const fundingSources = await this.getFundingSources(tokens);
-        const fundingSourceId = fundingSources[0]?.id;
-        if (!fundingSourceId) {
-          throw new CardProviderError(
-            CardProviderErrorCode.Unknown,
-            'getCardHomeData: no funding source available to create a card',
-          );
-        }
-        await this.createCard(fundingSourceId, tokens);
         return this.provisioningHomeData();
       }
 

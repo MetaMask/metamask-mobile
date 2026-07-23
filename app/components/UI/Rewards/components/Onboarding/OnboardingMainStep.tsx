@@ -5,6 +5,7 @@ import {
   useNavigation,
   useFocusEffect,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -52,7 +53,7 @@ import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagCon
 
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
 
   // Selectors

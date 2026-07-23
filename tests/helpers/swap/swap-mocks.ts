@@ -153,7 +153,6 @@ export const testSpecificMock: TestSpecificMock = async (
     stxMigrationCancel: false,
     stxMigrationGetFees: false,
     stxMigrationSubmitTransactions: false,
-    swapsSWAPS4543AbtestPostTradeModal: 'control',
   });
   await setupSpotPricesMock(mockServer);
   await setupSwapSocialAndComplianceMocks(mockServer);

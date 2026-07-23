@@ -43,7 +43,7 @@ describe('useImmersveOnboardingRouter', () => {
     });
   });
 
-  it('routes contact to SET_PHONE_NUMBER with email + countryKey', () => {
+  it('routes contact to SIGN_UP', () => {
     const action: ImmersveNextAction = {
       type: 'contact',
       needsEmail: true,
@@ -52,8 +52,8 @@ describe('useImmersveOnboardingRouter', () => {
     getRoute()(action, { email: 'a@b.co', countryKey: 'GB' });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
-      { countryKey: 'GB', immersve: true, email: 'a@b.co' },
+      Routes.CARD.ONBOARDING.SIGN_UP,
+      {},
     );
   });
 
@@ -123,6 +123,83 @@ describe('useImmersveOnboardingRouter', () => {
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
       routes: [{ name: Routes.CARD.HOME }],
+    });
+  });
+
+  it('suppresses the toast when active but showAccountExistsToast is false', () => {
+    getRoute()({ type: 'active' }, { showAccountExistsToast: false });
+
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+  });
+
+  describe('navigateFromRoot (caller outside OnboardingNavigator)', () => {
+    it('routes contact to the first onboarding page (SignUp)', () => {
+      getRoute()(
+        { type: 'contact', needsEmail: true, needsPhone: true },
+        { email: 'a@b.co', countryKey: 'GB', navigateFromRoot: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+        screen: Routes.CARD.ONBOARDING.SIGN_UP,
+        params: {},
+      });
+    });
+
+    it('hops into ONBOARDING.ROOT for kyc', () => {
+      getRoute()(
+        { type: 'kyc', url: 'https://verify.immersve.com/abc' },
+        { countryKey: 'GB', navigateFromRoot: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+        screen: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+        params: { countryKey: 'GB', kycUrl: 'https://verify.immersve.com/abc' },
+      });
+    });
+
+    it('hops into ONBOARDING.ROOT for funding', () => {
+      getRoute()(
+        {
+          type: 'funding',
+          write: {
+            abi: [],
+            contractAddress: '0x',
+            method: 'approve',
+            params: {},
+          },
+        },
+        { countryKey: 'GB', navigateFromRoot: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+        screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
+        params: { countryKey: 'GB' },
+      });
+    });
+
+    it('navigates into ONBOARDING.ROOT KYC_FAILED for rejected (no parent reset)', () => {
+      getRoute()({ type: 'rejected' }, { navigateFromRoot: true });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+        screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('still resets to Card Home for active', () => {
+      getRoute()(
+        { type: 'active' },
+        { navigateFromRoot: true, showAccountExistsToast: false },
+      );
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
     });
   });
 });

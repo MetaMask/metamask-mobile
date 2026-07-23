@@ -1,9 +1,24 @@
+import type { PerpsMarketData } from '@metamask/perps-controller';
 import {
   CATEGORY_DISPLAY_ORDER,
   HIP3_FILTER_KEYS,
+  filterMarketsByCategory,
   isHip3Filter,
   normalizeFilterKey,
 } from './marketCategoryMapping';
+
+type TestMarket = Pick<
+  PerpsMarketData,
+  'isHip3' | 'isNewMarket' | 'marketType'
+> & { symbol: string };
+
+const buildMarket = (overrides: Partial<TestMarket>): TestMarket => ({
+  symbol: 'TEST',
+  isHip3: false,
+  isNewMarket: false,
+  marketType: undefined,
+  ...overrides,
+});
 
 describe('marketCategoryMapping', () => {
   describe('HIP3_FILTER_KEYS', () => {
@@ -54,6 +69,56 @@ describe('marketCategoryMapping', () => {
 
     it('returns empty string unchanged', () => {
       expect(normalizeFilterKey('')).toBe('');
+    });
+  });
+
+  describe('filterMarketsByCategory', () => {
+    const markets: TestMarket[] = [
+      buildMarket({ symbol: 'BTC', isHip3: false }),
+      buildMarket({ symbol: 'ETH', isHip3: false }),
+      buildMarket({ symbol: 'AAPL', isHip3: true, marketType: 'stock' }),
+      buildMarket({ symbol: 'GOLD', isHip3: true, marketType: 'commodity' }),
+      buildMarket({
+        symbol: 'NEW1',
+        isHip3: true,
+        isNewMarket: true,
+        marketType: 'stock',
+      }),
+    ];
+
+    it('returns all markets unchanged for "all"', () => {
+      expect(filterMarketsByCategory(markets, 'all')).toEqual(markets);
+    });
+
+    it('returns only non-HIP3 markets for "crypto"', () => {
+      expect(
+        filterMarketsByCategory(markets, 'crypto').map((m) => m.symbol),
+      ).toEqual(['BTC', 'ETH']);
+    });
+
+    it('returns only markets flagged as new for "new"', () => {
+      expect(
+        filterMarketsByCategory(markets, 'new').map((m) => m.symbol),
+      ).toEqual(['NEW1']);
+    });
+
+    it('returns markets matching marketType for a HIP-3 category', () => {
+      expect(
+        filterMarketsByCategory(markets, 'stock').map((m) => m.symbol),
+      ).toEqual(['AAPL', 'NEW1']);
+      expect(
+        filterMarketsByCategory(markets, 'commodity').map((m) => m.symbol),
+      ).toEqual(['GOLD']);
+    });
+
+    it('returns an empty array when no market matches the category', () => {
+      expect(filterMarketsByCategory(markets, 'forex')).toEqual([]);
+    });
+
+    it('preserves input order', () => {
+      expect(
+        filterMarketsByCategory(markets, 'crypto').map((m) => m.symbol),
+      ).toEqual(['BTC', 'ETH']);
     });
   });
 

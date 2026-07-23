@@ -57,6 +57,20 @@ jest.mock('@metamask/design-system-react-native', () => {
         { testID: 'rewards-nudge-start-accessory-box' },
         children,
       ),
+    // Required by Toast.tsx module init via Toast barrel import.
+    IconColor: {
+      IconDefault: 'IconDefault',
+      OverlayInverse: 'OverlayInverse',
+      IconAlternative: 'IconAlternative',
+      IconMuted: 'IconMuted',
+      PrimaryDefault: 'PrimaryDefault',
+      PrimaryAlternative: 'PrimaryAlternative',
+      SuccessDefault: 'SuccessDefault',
+      ErrorDefault: 'ErrorDefault',
+      ErrorAlternative: 'ErrorAlternative',
+      WarningDefault: 'WarningDefault',
+      InfoDefault: 'InfoDefault',
+    },
   };
 });
 
