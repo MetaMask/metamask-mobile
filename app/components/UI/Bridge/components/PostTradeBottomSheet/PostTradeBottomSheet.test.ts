@@ -34,25 +34,7 @@ let mockPostTradeTrendingTokens = {
   error: null,
   refetch: jest.fn(),
 };
-let mockParams: {
-  status: PostTradeStatus;
-  sourceAmount: string;
-  destAmount: string;
-  sourceToken: {
-    address: string;
-    symbol: string;
-    chainId: string;
-    decimals: number;
-  };
-  destToken: {
-    address: string;
-    symbol: string;
-    chainId: string;
-    decimals: number;
-  };
-  transactionMetaId?: string;
-  transactionHash?: string;
-} = {
+let mockParams = {
   status: PostTradeStatus.Failed,
   sourceAmount: '1.23456',
   destAmount: '2.34567',
@@ -68,6 +50,7 @@ let mockParams: {
     chainId: '0x1',
     decimals: 6,
   },
+  transactionMetaId: undefined as string | undefined,
 };
 const expectedSharedProperties = {
   swap_type: 'single_chain',
@@ -168,6 +151,7 @@ beforeEach(() => {
       chainId: '0x1',
       decimals: 6,
     },
+    transactionMetaId: undefined,
   };
 });
 
