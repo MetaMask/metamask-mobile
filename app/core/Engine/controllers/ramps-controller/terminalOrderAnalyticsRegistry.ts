@@ -56,7 +56,7 @@ export function markTerminalOrderAnalyticsEmitted(order: RampsOrder): void {
 
 /**
  * Returns whether the terminal analytics event for an order was already
- * emitted this session.
+ * emitted (in-memory this process, or persisted across app relaunches).
  *
  * @param order - The order to check.
  * @returns True when a terminal event was already emitted for the order.
