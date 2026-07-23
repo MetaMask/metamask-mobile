@@ -87,7 +87,7 @@ interface MultichainTransactionsViewProps {
 }
 
 export const getMultichainTransactionItemType = (
-  item: Transaction | GroupedActivityListItem,
+  item: Pick<Transaction, 'id' | 'type'> | GroupedActivityListItem,
   shouldUseActivityRedesign: boolean,
   bridgeHistoryItemsBySrcTxHash: Readonly<Record<string, unknown>>,
 ) => {
@@ -97,7 +97,7 @@ export const getMultichainTransactionItemType = (
     }
 
     const transaction =
-      item.type === 'item' && item.item.raw?.type === 'keyringTransaction'
+      'item' in item && item.item.raw?.type === 'keyringTransaction'
         ? item.item.raw.data
         : undefined;
 
@@ -106,9 +106,11 @@ export const getMultichainTransactionItemType = (
       : 'activity-item';
   }
 
-  const transaction = item as Transaction;
+  if (!('id' in item)) {
+    return item.type;
+  }
 
-  return bridgeHistoryItemsBySrcTxHash[transaction.id]
+  return bridgeHistoryItemsBySrcTxHash[item.id]
     ? 'bridge-transaction'
     : 'transaction';
 };
