@@ -17,6 +17,7 @@ import {
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
+  PREDICT_MARKET_LIST_ORDERS,
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
 } from '../constants/flags';
 
@@ -130,17 +131,7 @@ export const PredictSportsFeedChipSchema = type({
   label: optional(string()),
   tagSlug: optional(string()),
   queryParams: optional(string()),
-  order: optional(
-    enums([
-      'volume24hr',
-      'volume',
-      'liquidity',
-      'ending_soon',
-      'newest',
-      'upcoming',
-      'start_time',
-    ]),
-  ),
+  order: optional(enums(PREDICT_MARKET_LIST_ORDERS)),
   startTimeMinMinutesAgo: optional(union([number(), literal(null)])),
 });
 

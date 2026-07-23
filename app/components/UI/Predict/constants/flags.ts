@@ -1,4 +1,4 @@
-import {
+import type {
   PredictExtendedSportsMarketsFlag,
   PredictFeeCollection,
   PredictHotTabFlag,
@@ -10,6 +10,19 @@ import {
   PredictWimbledonTabFlag,
   PredictWorldCupConfig,
 } from '../types/flags';
+
+export const PREDICT_MARKET_LIST_ORDERS = [
+  'volume24hr',
+  'volume',
+  'liquidity',
+  'ending_soon',
+  'newest',
+  'upcoming',
+  'start_time',
+] as const;
+
+export type PredictMarketListOrder =
+  (typeof PREDICT_MARKET_LIST_ORDERS)[number];
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
   enabled: true,

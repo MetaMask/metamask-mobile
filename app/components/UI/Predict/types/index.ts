@@ -2,6 +2,7 @@
 
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PredictMarketListOrder } from '../constants/flags';
 
 export enum Side {
   BUY = 'BUY',
@@ -638,14 +639,7 @@ export interface PredictMarketListParams {
   tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
   excludedTags?: string[]; // tag IDs -> exclude_tag_id (multi).
   series?: string[]; // series IDs -> series_id (multi)
-  order?:
-    | 'volume24hr'
-    | 'volume'
-    | 'liquidity'
-    | 'ending_soon'
-    | 'newest'
-    | 'upcoming'
-    | 'start_time';
+  order?: PredictMarketListOrder;
   // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
   status?: 'open' | 'closed' | 'resolved';
   live?: boolean;

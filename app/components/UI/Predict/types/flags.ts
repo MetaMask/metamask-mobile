@@ -1,5 +1,6 @@
 import { Infer } from '@metamask/superstruct';
 import { PredictFeeCollectionSchema } from '../schemas';
+import type { PredictMarketListOrder } from '../constants/flags';
 import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
 export type PredictFeeCollection = Infer<typeof PredictFeeCollectionSchema>;
@@ -51,14 +52,7 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
 }
 
 export type PredictSportsFeedChipKind = 'games' | 'props' | 'tag';
-export type PredictSportsFeedChipOrder =
-  | 'volume24hr'
-  | 'volume'
-  | 'liquidity'
-  | 'ending_soon'
-  | 'newest'
-  | 'upcoming'
-  | 'start_time';
+export type PredictSportsFeedChipOrder = PredictMarketListOrder;
 
 export interface PredictSportsFeedChipConfig {
   id: string;
