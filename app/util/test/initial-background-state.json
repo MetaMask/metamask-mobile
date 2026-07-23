@@ -537,7 +537,14 @@
     },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
-    "cachedUserDataByProvider": {}
+    "cachedUserDataByProvider": {},
+    "mode": "lite",
+    "proLayoutPreferences": {
+      "chartExpanded": false,
+      "orderBookExpanded": false,
+      "orderBookPosition": "left",
+      "orderFormPosition": "right"
+    }
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -722,6 +729,7 @@
   },
   "CardController": {
     "selectedCountry": null,
+    "selectedCardProgramId": null,
     "activeProviderId": "baanx",
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
@@ -837,6 +845,7 @@
     "vipDashboard": {},
     "vipPerpsFees": {},
     "vipRefereeDashboard": {},
+    "vipTransactions": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -935,5 +944,7 @@
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
-  "MoneyAccountUpgradeController": {}
+  "MoneyAccountUpgradeController": {
+    "upgradedAccounts": {}
+  }
 }

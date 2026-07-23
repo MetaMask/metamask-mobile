@@ -292,7 +292,7 @@ const ActivityScreen = () => {
   );
 
   return (
-    <ErrorBoundary view="ActivityScreen">
+    <ErrorBoundary navigation={navigation} view="ActivityScreen">
       <SafeAreaView
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
