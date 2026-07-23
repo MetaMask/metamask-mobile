@@ -207,11 +207,13 @@ class FCMService {
   ) => {
     try {
       const handleOpenedNotification = async (
-        remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+        remoteMessage?: FirebaseMessagingTypes.RemoteMessage,
       ) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
-          deeplinkCallback(extractPushNotificationDeeplink(remoteMessage.data));
+          deeplinkCallback(
+            extractPushNotificationDeeplink(remoteMessage?.data),
+          );
         } catch {
           // Do nothing
         }
