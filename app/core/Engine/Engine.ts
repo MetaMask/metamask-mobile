@@ -64,6 +64,7 @@ import {
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
+import { WidgetSyncManager } from '../WidgetData/WidgetSyncManager';
 import { backupVault } from '../BackupVault';
 import { CaipAssetType, Hex, Json, parseCaipAssetType } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -246,6 +247,12 @@ export class Engine {
    * This is used to handle WebSocket lifecycle based on app state.
    */
   appStateWebSocketManager: AppStateWebSocketManager;
+
+  /**
+   * Syncs the held-token list into the iOS home-screen widget. No-ops on
+   * Android and on builds without the native widget bridge.
+   */
+  widgetSyncManager: WidgetSyncManager;
 
   accountsController: AccountsController;
   gasFeeController: GasFeeController;
@@ -525,6 +532,7 @@ export class Engine {
     this.appStateWebSocketManager = new AppStateWebSocketManager(
       backendWebSocketService,
     );
+    this.widgetSyncManager = new WidgetSyncManager();
     const accountActivityService =
       messengerClientsByName.AccountActivityService;
     const ohlcvService = messengerClientsByName.OHLCVService;
@@ -1327,6 +1335,9 @@ export class Engine {
 
     // Cleanup AppStateWebSocketManager
     this.appStateWebSocketManager.cleanup();
+
+    // Cleanup WidgetSyncManager
+    this.widgetSyncManager.cleanup();
   }
 
   async destroyEngineInstance() {
