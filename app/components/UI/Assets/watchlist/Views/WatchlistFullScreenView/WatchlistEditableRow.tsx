@@ -7,7 +7,13 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useTokenWatchlistRemoveItemMutation } from '../../hooks/useTokenWatchlistMutations';
+import {
+  getWatchlistAssetType,
+  WatchlistAnalytics,
+} from '../../constants/watchlistAnalytics';
 import TrendingTokenRowItem from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
@@ -26,11 +32,21 @@ const WatchlistEditableRow = ({
   isEditMode,
 }: WatchlistEditableRowProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const removeMutation = useTokenWatchlistRemoveItemMutation();
 
   const handleUnwatch = useCallback(() => {
-    removeMutation.mutate(token.assetId as CaipAssetType);
-  }, [removeMutation, token.assetId]);
+    const assetId = token.assetId as CaipAssetType;
+    removeMutation.mutate(assetId);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
+        .addProperties({
+          source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+          asset_type: getWatchlistAssetType(String(assetId)),
+        })
+        .build(),
+    );
+  }, [createEventBuilder, removeMutation, token.assetId, trackEvent]);
 
   return (
     <View
