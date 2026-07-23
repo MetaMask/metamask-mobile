@@ -4269,8 +4269,34 @@ PODS:
     - Sentry/HybridSDK (= 8.58.0)
     - SocketRocket
     - Yoga
-  - RNShare (7.3.7):
+  - RNShare (12.3.1):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RNSVG (15.15.5):
     - boost
     - DoubleConversion
@@ -5260,7 +5286,7 @@ SPEC CHECKSUMS:
   RNScreens: 9269ab4971b2bd24917be84295d2c2ae7d06e9be
   RNSensors: 4690be00931bc60be7c7bd457701edefaff965e3
   RNSentry: 2511157b1e29381d4b1aee195e3ede5e685e8862
-  RNShare: d03cdc71e750246a48b81dcd62bd792bf57a758e
+  RNShare: bf3fa119b277d4a1729553e870039427bcb80c93
   RNSVG: 6470d6f2636d71bd4bbc44a4f27fb7444e437b2f
   RNVectorIcons: c13cc1db346e960ecd0aafcdd5d0bb458133b9c1
   RNWorklets: a3184955a41f2be46898a937e2821469c8c8da42
