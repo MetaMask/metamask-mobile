@@ -48,6 +48,12 @@ export const selectTransactionPayQuotesByTransactionId = createSelector(
     transactionData.quotes.filter((quote) => !isNoOpQuote(quote)),
 );
 
+export const selectTransactionPayQuotesLastUpdatedByTransactionId =
+  createSelector(
+    selectTransactionDataByTransactionId,
+    (transactionData) => transactionData?.quotesLastUpdated,
+  );
+
 export const selectTransactionPayTokensByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.tokens ?? [],
