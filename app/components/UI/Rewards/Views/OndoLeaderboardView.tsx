@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -59,7 +60,7 @@ export const ONDO_LEADERBOARD_VIEW_TEST_IDS = {
 
 const OndoLeaderboardView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<OndoLeaderboardRouteParams, 'OndoLeaderboard'>>();
   const { campaignId } = route.params;

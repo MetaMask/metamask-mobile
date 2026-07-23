@@ -15,6 +15,7 @@ export enum CardProviderErrorCode {
   AccountDisabled = 'account_disabled',
   InvalidOtp = 'invalid_otp',
   Conflict = 'conflict',
+  Forbidden = 'forbidden',
   NotFound = 'not_found',
   NoCard = 'no_card',
   ServerError = 'server_error',
@@ -26,22 +27,25 @@ export enum CardProviderErrorCode {
 export class CardProviderError extends Error {
   readonly code: CardProviderErrorCode;
   readonly statusCode?: number;
+  readonly errorCode?: string;
 
   constructor(
     code: CardProviderErrorCode,
     message: string,
     statusCode?: number,
+    errorCode?: string,
   ) {
     super(message);
     this.name = 'CardProviderError';
     this.code = code;
     this.statusCode = statusCode;
+    this.errorCode = errorCode;
   }
 }
 
 export function isCardAuthTokenError(error: unknown): boolean {
   const statusCode = (error as { statusCode?: unknown }).statusCode;
-  return error instanceof Error && (statusCode === 401 || statusCode === 403);
+  return error instanceof Error && statusCode === 401;
 }
 
 export class CardLinkageInProgressError extends Error {
@@ -126,6 +130,8 @@ export interface CardProviderCapabilities {
   supportsPinView: boolean;
   supportsCashback: boolean;
   supportsCredit: boolean;
+  supportsSensitiveDetailsView: boolean;
+  supportsTravel: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -151,6 +157,7 @@ export interface CardFundingAsset {
   stagingTokenAddress?: string;
   externalId?: number;
   delegationContract?: string;
+  assumeUsdParity?: boolean;
 }
 
 // -- Card Details --
@@ -171,6 +178,13 @@ export interface CardSecureViewParams {
 export interface CardSecureView {
   url: string;
   token: string;
+}
+
+export interface CardSensitiveDetails {
+  pan: string;
+  cvv2: string;
+  expiry: string;
+  embossedName: string;
 }
 
 // -- Account --
@@ -361,10 +375,22 @@ export interface CardFundingSourceResult {
   network?: string;
   balance?: string;
   balanceCurrency?: string;
+  fundingChannelId?: string;
 }
 
 export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
-export type CardPrerequisiteStatus = 'action-required' | 'pending' | 'ok';
+export type CardPrerequisiteStatus =
+  | 'action-required'
+  | 'pending'
+  | 'ok'
+  | 'blocked'
+  | 'kyc_check_failed';
+
+export type CardKycCtaHint =
+  | 'KYC_NOT_STARTED'
+  | 'KYC_NOT_COMPLETED'
+  | 'KYC_INFORMATION_NEEDED'
+  | 'KYC_EXPIRING';
 
 export interface CardSmartContractWriteParams {
   abi: unknown[];
@@ -378,6 +404,7 @@ export interface CardSpendingPrerequisite {
   status: CardPrerequisiteStatus;
   actionType?: string;
   type?: string;
+  ctaHint?: CardKycCtaHint;
   params?: Record<string, unknown>;
 }
 
@@ -428,6 +455,9 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView>;
+  getCardSensitiveDetails?(
+    tokens: CardAuthTokens,
+  ): Promise<CardSensitiveDetails>;
 
   updateAssetPriority?(
     asset: CardFundingAsset,
@@ -485,6 +515,9 @@ export interface ICardProvider {
   createFundingSource?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult>;
+  getFundingSources?(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult[]>;
   patchContactDetails?(
     details: CardContactDetails,
     tokens: CardAuthTokens,

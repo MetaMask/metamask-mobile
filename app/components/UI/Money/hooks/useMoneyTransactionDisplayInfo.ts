@@ -21,7 +21,10 @@ import {
   isIncomingMoneyTransactionMeta,
 } from '../constants/activityStyles';
 import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
-import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
+import {
+  activityFiatLineNeedsMarketRates,
+  buildMoneyActivityFiatLine,
+} from '../utils/moneyActivityFiat';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import {
   isMusdToken,
@@ -179,15 +182,23 @@ export function useMoneyTransactionDisplayInfo(
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
   const paymentMethodName = useFiatPaymentMethodName(tx);
-  const currencyRates = useSelector(selectCurrencyRates);
-  const tokenMarketData = useSelector(selectTokenMarketData);
+  const needsMarketRates = useMemo(
+    () => activityFiatLineNeedsMarketRates(tx),
+    [tx],
+  );
+  const currencyRates = useSelector((state: RootState) =>
+    needsMarketRates ? selectCurrencyRates(state) : undefined,
+  );
+  const tokenMarketData = useSelector((state: RootState) =>
+    needsMarketRates ? selectTokenMarketData(state) : undefined,
+  );
 
   const payTokenAddress = tx.metamaskPay?.tokenAddress as Hex | undefined;
   const payTokenChainId = tx.metamaskPay?.chainId as Hex | undefined;
 
   // look up erc-20 tokens
   const payToken = useSelector((state: RootState) =>
-    payTokenAddress && payTokenChainId
+    payTokenAddress && payTokenChainId && !isMusdToken(payTokenAddress)
       ? selectSingleTokenByAddressAndChainId(
           state,
           payTokenAddress,

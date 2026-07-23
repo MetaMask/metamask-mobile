@@ -29,7 +29,6 @@ import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
-import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -68,9 +67,11 @@ import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
-import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import {
-  getSwapBridgeTxActivityTitle,
+  useBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemBySrcTxHash,
+} from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import {
   handleUnifiedSwapsTxHistoryItemClick,
   isBridgeTxHistoryItemBridge,
 } from '../../UI/Bridge/utils/transaction-history';
@@ -115,6 +116,11 @@ import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { getActivityDetailsRoute } from './getActivityDetailsRoute';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
+import {
+  navigateToRampOrderTarget,
+  resolveRampOrderTarget,
+} from './utils/resolveRampOrderTarget';
+import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -217,19 +223,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
     const getBridgeHistoryItemByHash = useCallback(
-      (hash?: string) => {
-        if (!hash) {
-          return undefined;
-        }
-
-        const normalizedHash = hash.toLowerCase();
-        return (
-          bridgeHistoryItemsBySrcTxHash[hash] ??
-          Object.entries(bridgeHistoryItemsBySrcTxHash).find(
-            ([key]) => key.toLowerCase() === normalizedHash,
-          )?.[1]
-        );
-      },
+      (hash?: string) =>
+        findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, hash),
       [bridgeHistoryItemsBySrcTxHash],
     );
 
@@ -250,6 +245,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     // Local EVM transactions mapped through the shared adapter
     const localActivityItems = useLocalActivityItems();
     const rampActivityItems = useRampActivityItems();
+    const { goToBuy } = useRampNavigation();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
@@ -824,6 +820,41 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
+        // Ramp rows own their redesign gate: flag ON → ActivityDetails /
+        // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
+        // shared redesign early-return so CREATED deposits always resume buy and
+        // flag-OFF never accidentally hits ActivityDetails.
+        // Sell/offramp always uses legacy OrderDetails — that screen owns the
+        // Continue → Send Transaction flow which ActivityDetails does not.
+        if (raw.type === 'rampOrder') {
+          if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
+            goToBuy();
+            return;
+          }
+
+          if (item.type === 'sell' || !isTransactionsRedesignEnabled) {
+            navigateToRampOrderTarget({
+              data: raw.data,
+              navigation,
+              goToBuy,
+            });
+            return;
+          }
+
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
+          // Mappers always set hash (txHash || id); keep the pre-native
+          // fallback keyed by order id if a row somehow lacks hash.
+          navigation.navigate(Routes.ACTIVITY_DETAILS, {
+            chainId: item.chainId,
+            txIdentifier: item.hash ?? raw.data.id,
+          });
+          return;
+        }
+
         // Non-EVM swaps/bridges submitted from this device carry a
         // bridge-history entry. Cross-chain bridges keep their dedicated
         // bridge-status screen, mirroring hasDedicatedDetailScreen for local
@@ -884,36 +915,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        if (raw.type === 'rampOrder') {
-          if (!isTransactionsRedesignEnabled) {
-            if (raw.data.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
-              navigation.navigate(Routes.DEPOSIT.ORDER_DETAILS, {
-                orderId: raw.data.id,
-              });
-            } else if (raw.data.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
-              navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-                orderId: raw.data.id,
-              });
-            } else {
-              navigation.navigate(Routes.RAMP.ORDER_DETAILS, {
-                orderId: raw.data.id,
-              });
-            }
-            return;
-          }
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash ?? raw.data.id,
-          });
-          return;
-        }
-
         const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
         const actionKey = resolveActivityListItemTitle(
           item,
-          itemBridgeHistoryItem
-            ? getSwapBridgeTxActivityTitle(itemBridgeHistoryItem)
-            : undefined,
+          itemBridgeHistoryItem,
         );
 
         const selectedEvmAddress =
@@ -1044,6 +1049,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [
         bridgeHistory,
         getBridgeHistoryItemByHash,
+        goToBuy,
         isTransactionsRedesignEnabled,
         navigation,
         selectedAccountGroupEvmAddress,
@@ -1251,16 +1257,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
       const { item } = groupedItem;
 
-      // All items (API EVM confirmed, completed local EVM, non-EVM) render from
-      // the shared ActivityListItem shape.
-      //
-      // Preserve the legacy Activity title for swap/bridge rows (e.g.
-      // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
-      // history. Falls back to the kind-based title.
       const bridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
-      const title = bridgeHistoryItem
-        ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
-        : undefined;
 
       return (
         <ActivityListItemRow
@@ -1268,7 +1265,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           item={item}
           index={index}
           onPress={handleActivityItemPress}
-          title={title}
           isQRHardwareAccount={isQRHardwareAccount}
           isLedgerAccount={isLedgerAccount}
           onSpeedUpAction={onSpeedUpAction}

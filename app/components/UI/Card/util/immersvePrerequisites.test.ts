@@ -74,6 +74,34 @@ describe('deriveNextImmersveAction', () => {
     expect(deriveNextImmersveAction([kycUrl, funding])).toStrictEqual({
       type: 'kyc',
       url: 'https://verify.immersve.com',
+      ctaHint: undefined,
+    });
+  });
+
+  it.each([
+    'KYC_NOT_COMPLETED',
+    'KYC_INFORMATION_NEEDED',
+    'KYC_EXPIRING',
+  ] as const)('carries the %s ctaHint on the kyc action', (ctaHint) => {
+    expect(deriveNextImmersveAction([{ ...kycUrl, ctaHint }])).toStrictEqual({
+      type: 'kyc',
+      url: 'https://verify.immersve.com',
+      ctaHint,
+    });
+  });
+
+  it('reads ctaHint from params when not on the entry', () => {
+    expect(
+      deriveNextImmersveAction([
+        {
+          ...kycUrl,
+          params: { ...kycUrl.params, ctaHint: 'KYC_INFORMATION_NEEDED' },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'kyc',
+      url: 'https://verify.immersve.com',
+      ctaHint: 'KYC_INFORMATION_NEEDED',
     });
   });
 
@@ -106,5 +134,35 @@ describe('deriveNextImmersveAction', () => {
 
   it('returns active for an empty prerequisites list', () => {
     expect(deriveNextImmersveAction([]).type).toBe('active');
+  });
+
+  it('returns rejected when a KYC stage is permanently blocked', () => {
+    expect(
+      deriveNextImmersveAction([{ stage: 'kyc', status: 'blocked' }]),
+    ).toStrictEqual({ type: 'rejected', retryUrl: undefined });
+  });
+
+  it('returns rejected with the retry url on a failed KYC check', () => {
+    expect(
+      deriveNextImmersveAction([
+        {
+          stage: 'kyc',
+          status: 'kyc_check_failed',
+          params: { kycUrl: 'https://verify.immersve.com/retry' },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'rejected',
+      retryUrl: 'https://verify.immersve.com/retry',
+    });
+  });
+
+  it('prioritises rejected over pending', () => {
+    expect(
+      deriveNextImmersveAction([
+        amlPending,
+        { stage: 'kyc', status: 'blocked' },
+      ]).type,
+    ).toBe('rejected');
   });
 });

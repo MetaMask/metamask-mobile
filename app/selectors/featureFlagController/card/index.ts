@@ -18,6 +18,13 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
           name: 'USD Coin',
           symbol: 'USDC',
         },
+        {
+          address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
+          enabled: true,
+          name: 'Money account',
+          symbol: 'VEDA',
+        },
       ],
     },
     'eip155:59144': {
@@ -150,7 +157,9 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
   immersve: {
     network: 'base-sepolia',
     cardProgramId: '',
-    fundingType: 'base-sepolia-usdc-universal-evm',
+    clientApplicationId: '',
+    partnerAccountId: '',
+    fundingChannelId: '',
   },
   immersveCountries: ['GB'],
 };
@@ -170,7 +179,11 @@ export interface CardFeatureFlag {
 export interface ImmersveProgramConfig {
   network?: string;
   cardProgramId?: string;
-  fundingType?: string;
+  clientApplicationId?: string;
+  partnerAccountId?: string;
+  fundingChannelId?: string;
+  apiBaseUrl?: string;
+  appUrl?: string;
 }
 
 export interface SupportedChain {

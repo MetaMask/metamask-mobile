@@ -109,16 +109,21 @@ const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
-const createBalanceMock = (
-  overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
-) =>
+type BalanceMockOverrides = Partial<
+  Omit<ReturnType<typeof useMoneyAccountBalance>, 'moneyBalanceQuery'>
+> & {
+  moneyBalanceQuery?: Partial<
+    ReturnType<typeof useMoneyAccountBalance>['moneyBalanceQuery']
+  >;
+};
+
+const createBalanceMock = (overrides: BalanceMockOverrides = {}) =>
   ({
     totalFiatFormatted: '$1,000.00',
     totalFiatRaw: '1000',
     tokenTotal: undefined,
     isBalanceLoading: false,
     isBalanceFetchError: false,
-    isBalanceFetching: false,
     refetchBalance: jest.fn(),
     apyDecimal: 0.04,
     apyPercent: 4,
@@ -127,6 +132,7 @@ const createBalanceMock = (
       data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
       isLoading: false,
     },
+    ...overrides,
     moneyBalanceQuery: {
       data: {
         musdBalance: '1000000000',
@@ -134,8 +140,9 @@ const createBalanceMock = (
         totalBalance: '1000000000',
       },
       isLoading: false,
+      isFetching: false,
+      ...overrides.moneyBalanceQuery,
     },
-    ...overrides,
   }) as ReturnType<typeof useMoneyAccountBalance>;
 
 const createInfoMock = (
@@ -431,12 +438,20 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('renders the mUSD currency suffix next to the APY value', () => {
+    it('renders the mUSD currency suffix next to the balance label', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        /• mUSD/,
-      );
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.CURRENCY_SUFFIX),
+      ).toHaveTextContent(/• mUSD/);
+    });
+
+    it('does not render the mUSD currency suffix inside the APY tag', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.APY_TAG),
+      ).not.toHaveTextContent(/• mUSD/);
     });
   });
 
@@ -748,7 +763,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: false,
+          moneyBalanceQuery: { isFetching: false },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
         }),
@@ -798,7 +813,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: false,
+          moneyBalanceQuery: { isFetching: false },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
           refetchBalance: mockRefetch,
@@ -818,7 +833,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: true,
+          moneyBalanceQuery: { isFetching: true },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
         }),

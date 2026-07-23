@@ -6,6 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
   Box,
   FontWeight,
@@ -31,6 +33,12 @@ import { setContactVerificationId } from '../../../../../core/redux/slices/card'
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { validatePassword } from '../../util/validatePassword';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
+import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
+import { safeToChecksumAddress } from '../../../../../util/address';
+import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboarding';
+import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
@@ -59,7 +67,7 @@ const buildWaitlistUrl = (countryName: string, email?: string): string => {
 };
 
 const SignUp = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
@@ -82,6 +90,18 @@ const SignUp = () => {
   } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const postAuthRedirect = useCardPostAuthRedirect();
+
+  // Immersve onboarding entry: SIWE binds to the currently-selected EVM account.
+  const accountName = useAccountGroupName();
+  const selectAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const immersveAddress = safeToChecksumAddress(
+    selectAccountByScope('eip155:0')?.address,
+  );
+  const resumeImmersveOnboarding = useImmersveResumeOnboarding();
+  const [isImmersveSubmitting, setIsImmersveSubmitting] = useState(false);
+  const [immersveError, setImmersveError] = useState<string | null>(null);
 
   const handleAlreadyHaveAccountPress = useCallback(() => {
     if (postAuthRedirect) {
@@ -168,6 +188,10 @@ const SignUp = () => {
     if (isWaitlistMode) {
       return false;
     }
+    if (isImmersveCountry) {
+      // Email is collected (not validated) and SIWE binds to the selected account.
+      return !email || !immersveAddress || isImmersveSubmitting;
+    }
     return (
       !email ||
       !password ||
@@ -179,6 +203,9 @@ const SignUp = () => {
     );
   }, [
     isWaitlistMode,
+    isImmersveCountry,
+    immersveAddress,
+    isImmersveSubmitting,
     email,
     password,
     selectedCountry,
@@ -187,6 +214,36 @@ const SignUp = () => {
     emailVerificationIsError,
     emailVerificationIsLoading,
   ]);
+
+  const openAccountSelector = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
+        isEvmOnly: true,
+        isSelectOnly: true,
+        disableAddAccountButton: true,
+      }),
+    );
+  }, [navigation]);
+
+  const handleImmersveContinue = useCallback(async () => {
+    if (!immersveAddress || !selectedCountry || !email) {
+      return;
+    }
+    setImmersveError(null);
+    setIsImmersveSubmitting(true);
+    try {
+      await resumeImmersveOnboarding({
+        country: selectedCountry.key,
+        address: immersveAddress,
+        email,
+      });
+    } catch (e) {
+      setImmersveError(getCardProviderErrorMessage(e));
+    } finally {
+      setIsImmersveSubmitting(false);
+    }
+  }, [immersveAddress, selectedCountry, email, resumeImmersveOnboarding]);
 
   const handleJoinWaitlist = useCallback(() => {
     if (!selectedCountry) return;
@@ -277,8 +334,9 @@ const SignUp = () => {
       Engine.context.CardController.setSelectedCountry(region.key);
     });
 
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: allRegions,
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
@@ -336,10 +394,13 @@ const SignUp = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.email_label',
           )}
-          isError={debouncedEmail.length > 0 && isEmailError}
+          isError={
+            !isImmersveCountry && debouncedEmail.length > 0 && isEmailError
+          }
           testID="signup-email-input"
         />
-        {email.length > 0 && emailVerificationIsError ? (
+        {isImmersveCountry ? null : email.length > 0 &&
+          emailVerificationIsError ? (
           <Text
             testID="signup-email-error-text"
             variant={TextVariant.BodySm}
@@ -358,7 +419,33 @@ const SignUp = () => {
         ) : null}
       </Box>
 
-      {!isWaitlistMode && (
+      {isImmersveCountry && (
+        <Box>
+          <Label>{strings('card.card_onboarding.sign_up.account_label')}</Label>
+          <SelectField
+            value={accountName ?? undefined}
+            onPress={openAccountSelector}
+            testID="signup-immersve-account-select"
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-text-alternative mt-1"
+          >
+            {strings('card.card_onboarding.sign_up.account_description')}
+          </Text>
+          {immersveError ? (
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default mt-1"
+              testID="signup-immersve-error-text"
+            >
+              {immersveError}
+            </Text>
+          ) : null}
+        </Box>
+      )}
+
+      {!isWaitlistMode && !isImmersveCountry && (
         <Box>
           <Label>
             {strings('card.card_onboarding.sign_up.password_label')}
@@ -414,10 +501,20 @@ const SignUp = () => {
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        onPress={isWaitlistMode ? handleJoinWaitlist : handleContinue}
+        onPress={
+          isImmersveCountry
+            ? handleImmersveContinue
+            : isWaitlistMode
+              ? handleJoinWaitlist
+              : handleContinue
+        }
         isFullWidth
         isDisabled={isDisabled}
-        isLoading={!isWaitlistMode && emailVerificationIsLoading}
+        isLoading={
+          isImmersveCountry
+            ? isImmersveSubmitting
+            : !isWaitlistMode && emailVerificationIsLoading
+        }
         testID="signup-continue-button"
       >
         {isWaitlistMode
