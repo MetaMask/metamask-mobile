@@ -66,22 +66,19 @@ export function useTransactionPayMetrics() {
     (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
 
   const quoteRequestedAtMs = useRef<number>(0);
-  if (isQuoteRequested && quoteRequestedAtMs.current === 0) {
-    quoteRequestedAtMs.current = Date.now();
-  }
+  useEffect(() => {
+    if (isQuoteRequested && quoteRequestedAtMs.current === 0) {
+      quoteRequestedAtMs.current = Date.now();
+    }
+  }, [isQuoteRequested]);
 
   const hasQuotes = (quotes?.length ?? 0) > 0;
 
-  const timeToLoadQuoteMs = useRef<number | undefined>(undefined);
-  if (hasQuotes && !hasLoadedQuoteRef.current) {
-    hasLoadedQuoteRef.current = true;
-
-    if (quoteRequestedAtMs.current > 0) {
-      timeToLoadQuoteMs.current = Math.round(
-        Date.now() - quoteRequestedAtMs.current,
-      );
+  useEffect(() => {
+    if (hasQuotes && !hasLoadedQuoteRef.current) {
+      hasLoadedQuoteRef.current = true;
     }
-  }
+  }, [hasQuotes]);
 
   const availableTokens = useMemo(
     () => tokens.filter((t) => !t.disabled),
@@ -126,17 +123,6 @@ export function useTransactionPayMetrics() {
     automaticPayToken.current = payToken;
   }
 
-  const confirmationTimeToOpenMs = useRef<number | undefined>(undefined);
-  if (
-    confirmationTimeToOpenMs.current === undefined &&
-    typeof transactionMeta?.time === 'number' &&
-    transactionMeta.time > 0
-  ) {
-    confirmationTimeToOpenMs.current = Math.round(
-      Date.now() - transactionMeta.time,
-    );
-  }
-
   const needsAccountSelect = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
@@ -144,43 +130,38 @@ export function useTransactionPayMetrics() {
   const isInfoLoaded =
     hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
 
-  const confirmationTimeToLoadInfoMs = useRef<number | undefined>(undefined);
-  if (
-    confirmationTimeToLoadInfoMs.current === undefined &&
-    isInfoLoaded &&
-    confirmationTimeToOpenMs.current !== undefined &&
-    typeof transactionMeta?.time === 'number'
-  ) {
-    confirmationTimeToLoadInfoMs.current =
-      Math.round(Date.now() - transactionMeta.time) -
-      confirmationTimeToOpenMs.current;
-  }
+  const confirmationOpenedAtMs = useRef<number | undefined>(undefined);
 
   const didDispatchTimeToOpen = useRef(false);
   useEffect(() => {
     if (
       didDispatchTimeToOpen.current ||
-      confirmationTimeToOpenMs.current === undefined
+      typeof transactionMeta?.time !== 'number' ||
+      transactionMeta.time <= 0
     )
       return;
+    confirmationOpenedAtMs.current = Date.now();
     didDispatchTimeToOpen.current = true;
     dispatch(
       updateConfirmationMetric({
         id: transactionId,
         params: {
           properties: {
-            confirmation_time_to_open_ms: confirmationTimeToOpenMs.current,
+            confirmation_time_to_open_ms: Math.round(
+              confirmationOpenedAtMs.current - transactionMeta.time,
+            ),
           },
         },
       }),
     );
-  });
+  }, [transactionMeta?.time, dispatch, transactionId]);
 
   const didDispatchTimeToLoadInfo = useRef(false);
   useEffect(() => {
     if (
       didDispatchTimeToLoadInfo.current ||
-      confirmationTimeToLoadInfoMs.current === undefined
+      !isInfoLoaded ||
+      confirmationOpenedAtMs.current === undefined
     )
       return;
     didDispatchTimeToLoadInfo.current = true;
@@ -189,19 +170,21 @@ export function useTransactionPayMetrics() {
         id: transactionId,
         params: {
           properties: {
-            confirmation_time_to_load_info_ms:
-              confirmationTimeToLoadInfoMs.current,
+            confirmation_time_to_load_info_ms: Math.round(
+              Date.now() - confirmationOpenedAtMs.current,
+            ),
           },
         },
       }),
     );
-  });
+  }, [isInfoLoaded, dispatch, transactionId]);
 
   const didDispatchTimeToLoadQuote = useRef(false);
   useEffect(() => {
     if (
       didDispatchTimeToLoadQuote.current ||
-      timeToLoadQuoteMs.current === undefined
+      !hasQuotes ||
+      quoteRequestedAtMs.current === 0
     )
       return;
     didDispatchTimeToLoadQuote.current = true;
@@ -210,12 +193,14 @@ export function useTransactionPayMetrics() {
         id: transactionId,
         params: {
           properties: {
-            mm_pay_time_to_load_quote_ms: timeToLoadQuoteMs.current,
+            mm_pay_time_to_load_quote_ms: Math.round(
+              Date.now() - quoteRequestedAtMs.current,
+            ),
           },
         },
       }),
     );
-  });
+  }, [hasQuotes, dispatch, transactionId]);
 
   const properties: Json = {};
   const sensitiveProperties: Json = {};
