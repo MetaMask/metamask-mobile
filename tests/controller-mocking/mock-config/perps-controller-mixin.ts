@@ -457,8 +457,13 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   const overrides = new E2EControllerOverrides(controller);
 
   // Override key methods with E2E mocks
+  if (typeof overrides.placeOrder !== 'function') {
+    throw new Error(
+      'E2E Mock: E2EControllerOverrides.placeOrder is missing or not a function; cannot mock provider.placeOrder',
+    );
+  }
+
   const methodsToOverride = [
-    'placeOrder',
     'depositWithOrder',
     'depositWithConfirmation',
     'cancelOrder',
@@ -512,10 +517,20 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     | undefined;
   controllerRecord._original_getActiveProvider = originalGetActiveProvider;
   controllerRecord.getActiveProvider = function getActiveProviderMocked() {
-    const provider = originalGetActiveProvider
-      ? originalGetActiveProvider.call(controller)
-      : {};
-    const providerRecord = provider as Record<string, unknown>;
+    let providerRecord: Record<string, unknown> = {};
+    try {
+      const provider = originalGetActiveProvider
+        ? originalGetActiveProvider.call(controller)
+        : null;
+      if (provider && typeof provider === 'object') {
+        providerRecord = provider as Record<string, unknown>;
+      }
+    } catch (e) {
+      console.log(
+        'E2E Mock: Real getActiveProvider unavailable, using stub provider:',
+        e instanceof Error ? e.message : e,
+      );
+    }
 
     // Keep connection manager healthy in E2E by forcing provider health/status to connected.
     providerRecord.ping = async () => undefined;
@@ -528,7 +543,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       return () => undefined;
     };
 
-    // Patch only the methods we need for Activity history
+    providerRecord.placeOrder = overrides.placeOrder.bind(overrides);
     providerRecord.getOrders = (
       overrides.getOrders as (...args: unknown[]) => unknown
     ).bind(overrides);
