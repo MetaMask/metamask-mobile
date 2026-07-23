@@ -52,7 +52,9 @@ export function useCliLoginPushNudge(): {
             return;
           }
           clearForegroundRetry();
-          void retry();
+          retry().catch(() => {
+            /* enable flow logs its own failures */
+          });
         },
       );
     },
@@ -151,10 +153,7 @@ export function useCliLoginPushNudge(): {
         inFlightRef.current = false;
       }
     }
-  }, [
-    openSettingsAndScheduleRetry,
-    runEnableNotifications,
-  ]);
+  }, [openSettingsAndScheduleRetry, runEnableNotifications]);
 
   const onYes = useCallback(() => {
     setIsVisible(false);
