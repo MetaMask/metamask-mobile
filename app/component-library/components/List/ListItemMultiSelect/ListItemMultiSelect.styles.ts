@@ -35,7 +35,7 @@ const styleSheet = (params: {
       padding: 0,
     },
     underlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       flexDirection: 'row',
       backgroundColor: colors.background.muted,
     },

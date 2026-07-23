@@ -45,7 +45,7 @@ const createStyles = (theme) => {
 
   return StyleSheet.create({
     absoluteFill: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     titleWrapper: {
       borderBottomWidth: StyleSheet.hairlineWidth,
