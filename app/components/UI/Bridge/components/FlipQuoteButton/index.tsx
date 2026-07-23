@@ -10,7 +10,14 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
+import { useABTest } from '../../../../../hooks';
+import {
+  SWAPS_HAPTICS_AB_KEY,
+  SWAPS_HAPTICS_EXPOSURE_METADATA,
+  SWAPS_HAPTICS_VARIANTS,
+} from '../../haptics/abTestConfig';
 
 const ARROW_ICON_SIZE = IconSize.Lg;
 const CUTOUT_WING_WIDTH = 77;
@@ -31,6 +38,15 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
     disabled,
     pressed,
   });
+  const { variant: swapsHapticsVariant, isActive: isSwapsHapticsAbActive } =
+    useABTest(
+      SWAPS_HAPTICS_AB_KEY,
+      SWAPS_HAPTICS_VARIANTS,
+      SWAPS_HAPTICS_EXPOSURE_METADATA,
+    );
+  const shouldPlaySwapsHaptics = Boolean(
+    isSwapsHapticsAbActive && swapsHapticsVariant.enableSwapHaptics,
+  );
 
   const triggerOnPressedIn = useCallback(() => {
     setPressed(true);
@@ -41,6 +57,9 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
   }, [setPressed]);
 
   const triggerOnPress = useCallback(() => {
+    if (shouldPlaySwapsHaptics) {
+      playSelection().catch(() => undefined);
+    }
     rotationValue.setValue(0);
     Animated.sequence([
       Animated.timing(rotationValue, {
@@ -57,7 +76,7 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
       }),
     ]).start();
     onPress();
-  }, [onPress, rotationValue]);
+  }, [onPress, rotationValue, shouldPlaySwapsHaptics]);
 
   const rotate = rotationValue.interpolate({
     inputRange: [0, 1],

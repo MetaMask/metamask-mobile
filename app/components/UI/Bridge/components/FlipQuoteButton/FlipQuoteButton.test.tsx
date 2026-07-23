@@ -5,6 +5,14 @@ import { FLipQuoteButton } from './index';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 
+jest.mock('../../../../../hooks', () => ({
+  useABTest: () => ({
+    variant: { enableSwapHaptics: false },
+    variantName: 'control',
+    isActive: false,
+  }),
+}));
+
 const mockOnPress = jest.fn();
 
 const renderFlipQuoteButton = (disabled: boolean = false) =>

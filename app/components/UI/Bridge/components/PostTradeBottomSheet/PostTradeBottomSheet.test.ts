@@ -79,6 +79,19 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('./usePostTradeTxStatus', () => ({
   usePostTradeTxStatus: () => mockPostTradeStatus,
 }));
+jest.mock('../../../../../hooks', () => ({
+  useABTest: () => ({
+    variant: { enableSwapHaptics: false },
+    variantName: 'control',
+    isActive: false,
+  }),
+}));
+jest.mock('../../../../../util/haptics', () => ({
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+  playImpact: jest.fn(() => Promise.resolve()),
+  playSuccessNotification: jest.fn(() => Promise.resolve()),
+  playErrorNotification: jest.fn(() => Promise.resolve()),
+}));
 jest.mock('./usePostTradeTrendingTokens', () => ({
   usePostTradeTrendingTokens: () => mockPostTradeTrendingTokens,
 }));
