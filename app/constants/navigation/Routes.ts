@@ -60,35 +60,13 @@ const Routes = {
       PHONE_COUNTRY_SELECTOR: 'RampPhoneCountrySelectorModal',
     },
   },
+  /**
+   * Legacy Deposit order details only.
+   * The standalone Deposit navigator stack was removed with UB2 (#31768 / TRAM-3559).
+   * Keep the screen-name string stable for Activity / order-history navigation.
+   */
   DEPOSIT: {
-    ID: 'Deposit',
-    ROOT: 'DepositRoot',
-    BUILD_QUOTE: 'BuildQuote',
-    ENTER_EMAIL: 'EnterEmail',
-    OTP_CODE: 'OtpCode',
-    VERIFY_IDENTITY: 'VerifyIdentity',
-    BASIC_INFO: 'BasicInfo',
-    ENTER_ADDRESS: 'EnterAddress',
-    KYC_PROCESSING: 'KycProcessing',
-    ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
-    BANK_DETAILS: 'BankDetails',
-    ADDITIONAL_VERIFICATION: 'AdditionalVerification',
-    MODALS: {
-      ID: 'DepositModals',
-      TOKEN_SELECTOR: 'DepositTokenSelectorModal',
-      REGION_SELECTOR: 'DepositRegionSelectorModal',
-      PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
-      UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
-      UNSUPPORTED_STATE: 'DepositUnsupportedStateModal',
-      STATE_SELECTOR: 'DepositStateSelectorModal',
-      WEBVIEW: 'DepositWebviewModal',
-      KYC_WEBVIEW: 'DepositKycWebviewModal',
-      INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
-      SSN_INFO: 'SsnInfoModal',
-      CONFIGURATION: 'DepositConfigurationModal',
-      ERROR_DETAILS: 'DepositErrorDetailsModal',
-    },
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
