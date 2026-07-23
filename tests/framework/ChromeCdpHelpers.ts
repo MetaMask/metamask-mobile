@@ -263,7 +263,7 @@ export default class ChromeCdpHelpers {
    */
   static async ensureScopeCheckboxes(
     dappUrl: string,
-    desired: ReadonlyArray<{ scope: string; checked: boolean }>,
+    desired: readonly { scope: string; checked: boolean }[],
   ): Promise<void> {
     await this.withCdpSession(dappUrl, async (session) => {
       for (const { scope, checked } of desired) {
