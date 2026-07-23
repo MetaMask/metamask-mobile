@@ -125,7 +125,6 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
-import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
@@ -318,7 +317,6 @@ export class Engine {
         AssetsContractController: assetsContractControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
-        GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionPayController: TransactionPayControllerInit,
@@ -422,7 +420,7 @@ export class Engine {
       messengerClientsByName.AssetsContractController;
     const accountTrackerController =
       messengerClientsByName.AccountTrackerController;
-    const gasFeeController = messengerClientsByName.GasFeeController;
+    const gasFeeController = this.#wallet.getInstance('GasFeeController');
     const signatureController = messengerClientsByName.SignatureController;
     const smartTransactionsController =
       messengerClientsByName.SmartTransactionsController;

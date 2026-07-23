@@ -1036,7 +1036,6 @@ export type MessengerClientsToInitialize =
   | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
-  | 'GasFeeController'
   | 'GeolocationController'
   | 'GeolocationApiService'
   | 'MultichainNetworkController'
