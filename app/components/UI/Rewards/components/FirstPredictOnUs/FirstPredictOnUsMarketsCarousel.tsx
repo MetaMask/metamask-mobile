@@ -9,6 +9,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type {
   PredictMarket,
   PredictMarketBuyButtonPress,
@@ -32,6 +34,7 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
   FirstPredictOnUsMarketsCarouselProps
 > = ({ confirmLabel, markets, usdAmount }) => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation =
     useNavigation<NavigationProp<ReactNavigation.RootParamList>>();
   const [containerWidth, setContainerWidth] = useState(0);
@@ -72,6 +75,19 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
 
   const handleBuyButtonPress = useCallback<PredictMarketBuyButtonPress>(
     (params) => {
+      const marketId = params.market.id;
+      const outcome = params.outcomeToken.title;
+
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.FIRST_PREDICTION_ON_US_OUTCOME_OPENED,
+        )
+          .addProperties({
+            market_id: marketId,
+            outcome,
+          })
+          .build(),
+      );
       navigation.navigate(Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET, {
         confirmLabel,
         selectedOrder: params,
@@ -79,7 +95,7 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
       });
       return true;
     },
-    [confirmLabel, navigation, usdAmount],
+    [confirmLabel, createEventBuilder, navigation, trackEvent, usdAmount],
   );
 
   const renderItem = useCallback(

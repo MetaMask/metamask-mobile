@@ -110,22 +110,22 @@ describe('FirstPredictOnUsSplashScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('tracks the splash shown event on mount', () => {
+  it('tracks the viewed event on mount', () => {
     render(<FirstPredictOnUsSplashScreen />);
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.FIRST_PREDICT_ON_US_SPLASH_SHOWN,
+      MetaMetricsEvents.FIRST_PREDICTION_ON_US_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'event' });
   });
 
-  it('tracks skip and resets forward to OnboardingSuccess when Skip is pressed', () => {
+  it('tracks skip and resets to OnboardingSuccess', () => {
     const { getByTestId } = render(<FirstPredictOnUsSplashScreen />);
 
     fireEvent.press(getByTestId('first-predict-on-us-splash-skip'));
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.FIRST_PREDICT_ON_US_SPLASH_SKIPPED,
+      MetaMetricsEvents.FIRST_PREDICTION_ON_US_SKIPPED,
     );
     expect(mockReset).toHaveBeenCalledWith(expectedSuccessReset);
   });
