@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.5.0]
 
+### Uncategorized
+
+- chore(perps): opt in useNavigation to AppNavigationProp (Phase 4) (#33385)
+- chore(predict): opt in useNavigation to AppNavigationProp (Phase 4) (#33458)
+- chore(rewards): opt in useNavigation to AppNavigationProp (Phase 4) (#33453)
+- chore(bridge): opt in useNavigation to AppNavigationProp (Phase 4) (#33547)
+- chore(card): opt in useNavigation to AppNavigationProp(Phase 4) (#33441)
+- chore(ramp): opt in useNavigation to AppNavigationProp (Phase 4) (#33439)
+- chore: bump axios to ^1.18.0 to resolve moderate security advisories (#33541)
+- chore: migrate Jest preset to @react-native/jest-preset (#33201)
+- chore(nav): type wallet, asset, and settings shell navigators (Phase 3) (#33306)
+- chore(nav): type Money and Ramp nested navigators with NavigatorScreenParams (phase 3) (#33227)
+- chore(earn): type Earn navigators with feature param lists (Phase 3) (#33291)
+- chore(send): type Send navigator with feature param list (Phase 3) (#33303)
+- chore(card): type Card navigators with feature param lists (Phase 3) (#33283)
+- chore(nav): type Rewards nested navigator with NavigatorScreenParams (#33231)
+- chore(nav): type Predict nested navigators with NavigatorScreenParams (#33219)
+
 ### Added
 
 - Added foreground notifications on Android when the app is open (#33468)
