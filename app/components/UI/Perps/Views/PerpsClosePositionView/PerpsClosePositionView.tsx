@@ -25,11 +25,10 @@ import {
   IconSize,
   KeyValueRow,
   KeyValueRowVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -716,7 +715,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
         </View>
@@ -773,7 +772,10 @@ const PerpsClosePositionView: React.FC = () => {
                   size={IconSize.Sm}
                   color={IconColor.ErrorDefault}
                 />
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {error}
                 </Text>
               </View>

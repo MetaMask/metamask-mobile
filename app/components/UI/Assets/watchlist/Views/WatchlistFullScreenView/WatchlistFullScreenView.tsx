@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import ReorderableList from 'react-native-reorderable-list';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   Button,
@@ -19,6 +19,8 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
 import { useTokenWatchlistUpdateListMutation } from '../../hooks/useTokenWatchlistMutations';
+import useTrackWatchlistPageViewed from '../../hooks/useTrackWatchlistPageViewed';
+import { WatchlistAnalytics } from '../../constants/watchlistAnalytics';
 import { mapWatchlistTokenToTrendingAsset } from '../../../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
 import TrendingTokensSkeleton from '../../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { strings } from '../../../../../../../locales/i18n';
@@ -35,9 +37,15 @@ const ANIMATION_DURATION = 250;
 const rowExitAnimation = FadeOut.duration(ANIMATION_DURATION);
 const rowLayoutAnimation = LinearTransition.duration(ANIMATION_DURATION);
 
+interface WatchlistFullViewRouteParams {
+  source?: string;
+}
+
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const route = useRoute();
+  const routeParams = route.params as WatchlistFullViewRouteParams | undefined;
   const { data, isLoading } = useTokenWatchlistQuery();
   const updateListMutation = useTokenWatchlistUpdateListMutation();
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -57,6 +65,15 @@ const WatchlistFullScreenView = () => {
   } = useWatchlistEditDraft({ queryTokens, updateListMutation });
 
   const hasItems = displayTokens.length > 0;
+  const tokenCount = data?.length ?? 0;
+  const isEmpty = !isLoading && !hasItems;
+
+  useTrackWatchlistPageViewed({
+    tokenCount,
+    isEmpty,
+    isLoading,
+    source: routeParams?.source ?? WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE,
+  });
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {

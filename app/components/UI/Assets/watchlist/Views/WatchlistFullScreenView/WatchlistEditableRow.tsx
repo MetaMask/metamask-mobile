@@ -34,8 +34,6 @@ const WatchlistEditableRow = ({
   const { styles } = useStyles(styleSheet, {});
   const drag = useReorderableDrag();
 
-  // TODO(PR #33675): trackEvent WATCHLIST_TOKEN_REMOVED on star tap
-  // (source=watchlist_fullscreen_edit, asset_type). Not on removeMutation — draft-only; persist on Done.
   const handleUnwatch = useCallback(() => {
     onRemoveFromDraft?.(String(token.assetId));
   }, [onRemoveFromDraft, token.assetId]);

@@ -2,6 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CaipAssetType } from '@metamask/utils';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { ReorderableListReorderEvent } from 'react-native-reorderable-list';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import {
+  getWatchlistAssetType,
+  WatchlistAnalytics,
+} from '../../constants/watchlistAnalytics';
 import {
   createDraftFromTokens,
   deriveDisplayTokens,
@@ -20,7 +26,11 @@ interface UseWatchlistEditDraftParams {
   updateListMutation: {
     mutate: (
       assetIds: CaipAssetType[],
-      options?: { onError?: () => void; onSettled?: () => void },
+      options?: {
+        onError?: () => void;
+        onSettled?: () => void;
+        onSuccess?: () => void;
+      },
     ) => void;
   };
 }
@@ -38,6 +48,7 @@ export const useWatchlistEditDraft = ({
   queryTokens,
   updateListMutation,
 }: UseWatchlistEditDraftParams): UseWatchlistEditDraftResult => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [draft, setDraft] = useState<WatchlistEditDraft | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const baselineOrderRef = useRef<string[]>([]);
@@ -63,6 +74,27 @@ export const useWatchlistEditDraft = ({
     }
   }, [draft, isEditMode, queryAssetIdSet, queryTokens]);
 
+  const trackRemovedTokens = useCallback(
+    (storageOrder: string[]) => {
+      const committedSet = new Set(storageOrder.map(normalizeAssetId));
+      const removedAssetIds = baselineOrderRef.current.filter(
+        (assetId) => !committedSet.has(normalizeAssetId(assetId)),
+      );
+
+      removedAssetIds.forEach((assetId) => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
+            .addProperties({
+              source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+              asset_type: getWatchlistAssetType(assetId),
+            })
+            .build(),
+        );
+      });
+    },
+    [createEventBuilder, trackEvent],
+  );
+
   const commitPendingChanges = useCallback(() => {
     if (draft === null) {
       return;
@@ -78,12 +110,15 @@ export const useWatchlistEditDraft = ({
 
     const storageOrder = getStorageOrderFromDraft(draft, queryAssetIdSet);
     updateListMutation.mutate(storageOrder as CaipAssetType[], {
+      onSuccess: () => {
+        trackRemovedTokens(storageOrder);
+      },
       onError: () => {
         setDraft(null);
       },
     });
     setIsEditMode(false);
-  }, [draft, queryAssetIdSet, updateListMutation]);
+  }, [draft, queryAssetIdSet, trackRemovedTokens, updateListMutation]);
 
   useEffect(() => {
     if (isEditMode && displayTokens.length === 0) {
