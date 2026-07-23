@@ -90,7 +90,7 @@ const MoneyConfirmationScreenStack = () => {
 // money" action), so this stack must also kick off the account upgrade —
 // opening any Money sheet is the user's signal of intent to use the feature.
 const MoneyModalStack = () => {
-  useUpgradeMoneyAccountOnMount();
+  useUpgradeMoneyAccountOnFocus();
 
   return (
     <ModalStack.Navigator

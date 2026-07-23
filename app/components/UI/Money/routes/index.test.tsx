@@ -202,12 +202,12 @@ describe('MoneyModalStack', () => {
     jest.clearAllMocks();
   });
 
-  it('calls useUpgradeMoneyAccountOnMount on mount', () => {
+  it('calls useUpgradeMoneyAccountOnFocus', () => {
     renderWithProvider(<MoneyModalStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 
   it('registers the Add money sheet as a modal screen', () => {
