@@ -109,6 +109,15 @@ export const useWatchlistEditDraft = ({
     }
 
     const storageOrder = getStorageOrderFromDraft(draft, queryAssetIdSet);
+
+    if (
+      storageOrder.length === 0 &&
+      baselineOrderRef.current.length > 0 &&
+      draft.order.length > 0
+    ) {
+      return;
+    }
+
     updateListMutation.mutate(storageOrder as CaipAssetType[], {
       onSuccess: () => {
         trackRemovedTokens(storageOrder);

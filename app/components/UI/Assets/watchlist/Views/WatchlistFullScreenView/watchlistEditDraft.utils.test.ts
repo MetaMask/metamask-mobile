@@ -98,6 +98,21 @@ describe('watchlistEditDraft.utils', () => {
         'eip155:1/erc20:0xbtc',
       ]);
     });
+
+    it('uses full draft order when query set is empty', () => {
+      const draft = {
+        order: ['eip155:1/erc20:0xbtc', 'eip155:1/erc20:0xsol'],
+      };
+
+      expect(getStorageOrderFromDraft(draft, new Set())).toEqual([
+        'eip155:1/erc20:0xsol',
+        'eip155:1/erc20:0xbtc',
+      ]);
+    });
+
+    it('returns empty array for intentional unwatch-all with empty query', () => {
+      expect(getStorageOrderFromDraft({ order: [] }, new Set())).toEqual([]);
+    });
   });
 
   describe('ordersMatch', () => {

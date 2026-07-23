@@ -63,11 +63,16 @@ export const removeFromDraftOrder = (
 export const getStorageOrderFromDraft = (
   draft: WatchlistEditDraft,
   queryAssetIdSet: ReadonlySet<string>,
-): string[] =>
-  draft.order
-    .filter((assetId) => queryAssetIdSet.has(normalizeAssetId(assetId)))
-    .slice()
-    .reverse();
+): string[] => {
+  const orderedIds =
+    queryAssetIdSet.size === 0
+      ? draft.order
+      : draft.order.filter((assetId) =>
+          queryAssetIdSet.has(normalizeAssetId(assetId)),
+        );
+
+  return orderedIds.slice().reverse();
+};
 
 export const ordersMatch = (orderA: string[], orderB: string[]): boolean => {
   if (orderA.length !== orderB.length) {

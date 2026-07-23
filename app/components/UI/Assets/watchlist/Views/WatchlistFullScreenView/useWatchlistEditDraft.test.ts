@@ -164,4 +164,173 @@ describe('useWatchlistEditDraft', () => {
     expect(mockMutate).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
+
+  it('exits edit mode without mutate when query becomes stale with no draft changes', () => {
+    const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
+    const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
+    const queryTokens = [btc, eth];
+
+    const mockMutate = jest.fn();
+
+    const { result, rerender } = renderHook(
+      ({ tokens }) =>
+        useWatchlistEditDraft({
+          queryTokens: tokens,
+          updateListMutation: { mutate: mockMutate },
+        }),
+      { initialProps: { tokens: queryTokens } },
+    );
+
+    act(() => {
+      result.current.handleEditPress();
+    });
+
+    rerender({ tokens: [] });
+
+    expect(mockMutate).not.toHaveBeenCalled();
+    expect(result.current.isEditMode).toBe(false);
+  });
+
+  it('persists remaining draft items when query becomes stale during edit', () => {
+    const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
+    const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
+    const queryTokens = [btc, eth];
+
+    const mockMutate = jest.fn((_assetIds, options) => {
+      options?.onSuccess?.();
+    });
+
+    const { result, rerender } = renderHook(
+      ({ tokens }) =>
+        useWatchlistEditDraft({
+          queryTokens: tokens,
+          updateListMutation: { mutate: mockMutate },
+        }),
+      { initialProps: { tokens: queryTokens } },
+    );
+
+    act(() => {
+      result.current.handleEditPress();
+    });
+    act(() => {
+      result.current.onRemoveFromDraft(String(btc.assetId));
+    });
+
+    rerender({ tokens: [] });
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    expect(mockMutate).toHaveBeenCalledWith(
+      ['eip155:8453/slip44:60'],
+      expect.any(Object),
+    );
+    expect(mockMutate).not.toHaveBeenCalledWith([], expect.any(Object));
+  });
+
+  it('commits draft order when Done is pressed with stale empty query', () => {
+    const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
+    const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
+    const queryTokens = [btc, eth];
+
+    const mockMutate = jest.fn((_assetIds, options) => {
+      options?.onSuccess?.();
+    });
+
+    const { result, rerender } = renderHook(
+      ({ tokens }) =>
+        useWatchlistEditDraft({
+          queryTokens: tokens,
+          updateListMutation: { mutate: mockMutate },
+        }),
+      { initialProps: { tokens: queryTokens } },
+    );
+
+    act(() => {
+      result.current.handleEditPress();
+    });
+    act(() => {
+      result.current.onRemoveFromDraft(String(btc.assetId));
+    });
+
+    rerender({ tokens: [] });
+
+    act(() => {
+      result.current.handleDonePress();
+    });
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    expect(mockMutate).toHaveBeenCalledWith(
+      ['eip155:8453/slip44:60'],
+      expect.any(Object),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('still mutates empty list on intentional unwatch-all with stale query', () => {
+    const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
+    const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
+    const queryTokens = [btc, eth];
+
+    const mockMutate = jest.fn((_assetIds, options) => {
+      options?.onSuccess?.();
+    });
+
+    const { result, rerender } = renderHook(
+      ({ tokens }) =>
+        useWatchlistEditDraft({
+          queryTokens: tokens,
+          updateListMutation: { mutate: mockMutate },
+        }),
+      { initialProps: { tokens: queryTokens } },
+    );
+
+    act(() => {
+      result.current.handleEditPress();
+    });
+    act(() => {
+      result.current.onRemoveFromDraft(String(btc.assetId));
+    });
+    act(() => {
+      result.current.onRemoveFromDraft(String(eth.assetId));
+    });
+
+    rerender({ tokens: [] });
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    expect(mockMutate).toHaveBeenCalledWith([], expect.any(Object));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not wipe watchlist when query no longer contains draft items', () => {
+    const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
+    const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
+    const queryTokens = [btc, eth];
+
+    const mockMutate = jest.fn();
+
+    const { result, rerender } = renderHook(
+      ({ tokens }) =>
+        useWatchlistEditDraft({
+          queryTokens: tokens,
+          updateListMutation: { mutate: mockMutate },
+        }),
+      { initialProps: { tokens: queryTokens } },
+    );
+
+    act(() => {
+      result.current.handleEditPress();
+    });
+    act(() => {
+      result.current.onRemoveFromDraft(String(btc.assetId));
+    });
+
+    const unrelated = createToken('eip155:1/erc20:0xother', 'Other');
+    rerender({ tokens: [unrelated] });
+
+    act(() => {
+      result.current.handleDonePress();
+    });
+
+    expect(mockMutate).not.toHaveBeenCalled();
+    expect(result.current.isEditMode).toBe(true);
+  });
 });
