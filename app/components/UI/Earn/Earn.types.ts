@@ -58,6 +58,7 @@ export interface LendingDepositConfirmationParams {
   amountFiat?: string;
   annualRewardsToken?: string;
   annualRewardsFiat?: string;
+  annualRewardRate?: string;
   action?: Extract<EARN_LENDING_ACTIONS, 'ALLOWANCE_INCREASE' | 'DEPOSIT'>;
   lendingContractAddress?: string;
   lendingProtocol?: string;

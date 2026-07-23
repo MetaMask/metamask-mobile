@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -39,7 +40,7 @@ interface MenuOption {
 
 const MoneyMoreSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({

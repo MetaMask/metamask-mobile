@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ethers } from 'ethers';
 import { capitalize } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -73,7 +74,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { params } = useRoute<EarnWithdrawalConfirmationViewProps['route']>();
 

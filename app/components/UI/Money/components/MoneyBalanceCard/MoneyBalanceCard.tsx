@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -51,7 +52,7 @@ import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const {

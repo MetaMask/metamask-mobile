@@ -50,7 +50,7 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddMoneySheet: undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
-  MoneyApyInfoSheet: { apy: number; variant?: 'default' | 'deposit' };
+  MoneyApyInfoSheet: { apy?: number; variant?: 'default' | 'deposit' };
   MoneyEarningsInfoSheet: undefined;
   MoneyBalanceInfoSheet: undefined;
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;

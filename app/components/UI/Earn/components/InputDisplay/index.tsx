@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -119,7 +120,7 @@ const InputDisplay = ({
   onPressAmount,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );

@@ -8,6 +8,8 @@ import React, {
 import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
@@ -102,7 +104,7 @@ const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -394,11 +396,15 @@ const MoneyHomeView = () => {
   const navigateToCardHome = useCallback(() => {
     const isUpsell = metamaskCardMode === 'upsell';
 
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-      ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
-    });
+    // Cross-navigator jump into the Card stack + top-level `animation` option.
+    navigateWithDetails(navigation, [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
+      },
+    ]);
   }, [navigation, metamaskCardMode]);
 
   const handleCardHeaderPress = useCallback(() => {

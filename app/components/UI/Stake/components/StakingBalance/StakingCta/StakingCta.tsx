@@ -7,6 +7,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -26,7 +27,7 @@ const StakingCta = ({
   chainId,
 }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigateToLearnMoreModal = () => {

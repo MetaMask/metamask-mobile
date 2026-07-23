@@ -1,5 +1,6 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -44,7 +45,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
     selectPooledStakingServiceInterruptionBannerEnabledFlag,
   );
 
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const {
     annualRewardRate,

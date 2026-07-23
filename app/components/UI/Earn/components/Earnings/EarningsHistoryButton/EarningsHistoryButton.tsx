@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -20,7 +21,7 @@ interface EarningsHistoryButtonProps {
 }
 
 const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { outputToken } = useSelector((state: RootState) =>
     earnSelectors.selectEarnTokenPair(state, asset),

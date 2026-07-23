@@ -13,6 +13,7 @@ import SelectButton, {
 } from '../../../../../component-library/components/Select/SelectButton';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import Badge, {
@@ -40,7 +41,7 @@ const EarnTokenSelector = ({
   action,
 }: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const networkName = useSelector(selectNetworkName);
   const { getEarnToken, getOutputToken } = useEarnTokens();
   const earnToken = getEarnToken(someEarnToken);
