@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import BottomSheet, {
@@ -46,7 +47,7 @@ import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 

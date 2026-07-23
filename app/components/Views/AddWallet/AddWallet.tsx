@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,6 +23,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -38,7 +40,7 @@ interface ActionConfig {
 
 const AddWallet = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
@@ -95,7 +97,7 @@ const AddWallet = () => {
 
   const handleActionPress = useCallback(
     (config: ActionConfig) => {
-      navigation.navigate(config.routeName as never);
+      navigateWithDetails(navigation, [config.routeName]);
       // Dismiss AddWallet so that hardware wallet completion (pop(2) in HW
       // screens) lands on AccountSelector rather than back here.
       if (config.routeName === Routes.HW.CONNECT) {

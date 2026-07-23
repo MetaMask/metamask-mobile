@@ -31,6 +31,7 @@ import {
 } from '../../../core/Ledger/Ledger';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
 import createStyles from './index.styles';
@@ -62,7 +63,7 @@ interface OptionType {
 }
 
 const LedgerSelectAccount = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Image, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import type { ShouldStartLoadRequest } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -82,7 +83,7 @@ const getLoadErrorDetails = ({
  */
 
 const AgenticCliApproval: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { projectId, approvalId, mimirSignature, operationType, subjectId } =
     useParams<AgenticCliApprovalParams>();

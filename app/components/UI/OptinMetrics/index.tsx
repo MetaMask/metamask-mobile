@@ -61,6 +61,7 @@ import {
   type RouteProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { RootState } from '../../../reducers';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
@@ -72,7 +73,7 @@ import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/us
  */
 const OptinMetrics = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<

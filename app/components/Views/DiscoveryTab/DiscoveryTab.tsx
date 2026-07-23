@@ -11,6 +11,7 @@ import Device from '../../../util/device';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -44,7 +45,7 @@ const DiscoveryTabPure: React.FC<DiscoveryTabProps> = ({
   newTab,
   updateTabInfo,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
   const urlBarRef = useRef<BrowserUrlBarRef>(null);

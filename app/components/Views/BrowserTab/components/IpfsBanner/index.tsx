@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { View } from 'react-native';
@@ -22,7 +23,7 @@ const IpfsBanner = ({
   setIpfsBannerVisible: (isVisible: boolean) => void;
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   return (
     <View style={styles.bannerContainer}>
       <Banner

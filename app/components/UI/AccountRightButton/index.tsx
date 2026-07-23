@@ -15,6 +15,7 @@ import {
   EmitterSubscription,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Device from '../../../util/device';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
@@ -66,7 +67,7 @@ const AccountRightButton = ({
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
