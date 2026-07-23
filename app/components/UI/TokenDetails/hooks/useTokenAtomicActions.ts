@@ -171,6 +171,52 @@ const toCurrentTokenAsBridgeToken = (token: TokenI): BridgeToken => ({
   rwaData: token.rwaData,
 });
 
+const RWA_SWAP_SOURCE_TOKEN_BY_CHAIN_ID: Partial<Record<Hex, BridgeToken>> = {
+  '0x1': {
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    chainId: '0x1',
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+  },
+  '0x38': {
+    address: '0x55d398326f99059ff775485246999027b3197955',
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 18,
+    chainId: '0x38',
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/56/0x55d398326f99059ff775485246999027b3197955.png',
+  },
+};
+
+const getRwaSwapSourceToken = (
+  chainId: TokenI['chainId'],
+): BridgeToken | undefined => {
+  if (!chainId) {
+    return undefined;
+  }
+
+  if (chainId.startsWith('0x')) {
+    return RWA_SWAP_SOURCE_TOKEN_BY_CHAIN_ID[chainId as Hex];
+  }
+
+  if (!chainId.startsWith('eip155:')) {
+    return undefined;
+  }
+
+  const decimalChainId = Number.parseInt(chainId.slice('eip155:'.length), 10);
+  if (Number.isNaN(decimalChainId)) {
+    return undefined;
+  }
+
+  return RWA_SWAP_SOURCE_TOKEN_BY_CHAIN_ID[
+    `0x${decimalChainId.toString(16)}` as Hex
+  ];
+};
+
 const hasPositiveBalance = (balance: string | number | undefined): boolean => {
   if (typeof balance === 'number') {
     return balance > 0;
@@ -309,6 +355,12 @@ export const useHandleOnSwap = ({
     if (!goToSwaps) return;
 
     const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(token);
+    if (token.rwaData) {
+      const rwaSwapSourceToken = getRwaSwapSourceToken(token.chainId);
+      goToSwaps(rwaSwapSourceToken, currentTokenAsBridgeToken, undefined, true);
+      return;
+    }
+
     const balanceForCheck = currentTokenBalance ?? token.balance;
 
     const destTokenOverride = token.chainId
