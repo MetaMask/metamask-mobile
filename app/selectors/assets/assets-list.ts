@@ -12,7 +12,7 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -31,7 +31,11 @@ import {
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
-import { fromWei, weiToFiatNumber } from '../../util/number/bigint';
+import {
+  fromWei,
+  hexToBigInt,
+  weiToFiatNumber,
+} from '../../util/number/bigint';
 import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectAccountsByChainId } from '../accountTrackerController';
