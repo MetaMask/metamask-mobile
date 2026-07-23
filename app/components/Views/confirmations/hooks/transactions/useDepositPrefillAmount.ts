@@ -104,7 +104,7 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   }, [enabled, tokenKey, prefillAmount, committedKey]);
 
   const hasPrefilled = committedKey === tokenKey;
-  const isLoading = enabled && !hasPrefilled;
+  const isLoading = enabled && (!payToken || (balanceUsd > 0 && !hasPrefilled));
 
   return { prefillAmount, isLoading, hasPrefilled, enabled };
 }

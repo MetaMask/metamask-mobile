@@ -2027,13 +2027,13 @@ describe('CustomAmountInfo', () => {
 
   it('opens keyboard when custom amount input is pressed', async () => {
     useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
+      amountFiat: '0',
       amountHuman: '0',
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
-      hasInput: true,
+      hasInput: false,
       isDepositPrefillEnabled: true,
-      isDepositPrefilled: false,
+      isDepositPrefilled: true,
       isInputChanged: false,
       isPrefillPending: false,
       isDepositPrefillLoading: false,
@@ -2228,6 +2228,53 @@ describe('CustomAmountInfo', () => {
       render();
 
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('shows keyboard when prefill enabled but nothing to prefill', async () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: jest.fn(),
+      });
+
+      const { getByTestId } = render();
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(getByTestId('deposit-keyboard')).toBeDefined();
+    });
+
+    it('does not show keyboard when isPrefillPending is true', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: true,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: jest.fn(),
+      });
+
+      const { queryByTestId } = render();
+
+      expect(queryByTestId('deposit-keyboard')).toBeNull();
     });
 
     it('does not duplicate handleDone when user taps Done with a pending prefill', async () => {

@@ -321,7 +321,7 @@ describe('useDepositPrefillAmount', () => {
       });
 
       expect(result.current.hasPrefilled).toBe(false);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
     });
 
     it('recommits with new amount when payToken address changes', async () => {
@@ -352,7 +352,7 @@ describe('useDepositPrefillAmount', () => {
   });
 
   describe('isLoading', () => {
-    it('true when enabled but not yet committed', () => {
+    it('true when enabled but payToken has not arrived', () => {
       setupMocks({ payToken: null });
 
       const { result } = runHook();
@@ -369,6 +369,18 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.isLoading).toBe(false);
+    });
+
+    it('false when enabled but payToken has zero balance', () => {
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '0' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasPrefilled).toBe(false);
+      expect(result.current.prefillAmount).toBeUndefined();
     });
 
     it('false after commit', () => {
