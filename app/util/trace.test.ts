@@ -85,9 +85,16 @@ describe('Trace', () => {
     startSpanMock.mockImplementation((_, fn) => fn({} as Span));
 
     startSpanManualMock.mockImplementation((_, fn) =>
-      fn({} as Span, () => {
-        // Intentionally empty
-      }),
+      fn(
+        {
+          end: jest.fn(),
+          setStatus: jest.fn(),
+          setAttribute: jest.fn(),
+        } as unknown as Span,
+        () => {
+          // Intentionally empty
+        },
+      ),
     );
 
     withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
@@ -168,7 +175,7 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
       });
 
-      endTrace({ name: NAME_MOCK });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(3);
 
@@ -222,7 +229,7 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
         startTime: 123,
       });
-      endTrace({ name: NAME_MOCK });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
@@ -360,6 +367,9 @@ describe('Trace', () => {
       endTrace({ name: NAME_MOCK, id: 'invalidId' });
 
       expect(spanEndMock).toHaveBeenCalledTimes(0);
+
+      // Clean up the pending trace/timeout to prevent Jest open-handle warnings
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
     });
 
     it('clears timeout when trace ends', () => {
