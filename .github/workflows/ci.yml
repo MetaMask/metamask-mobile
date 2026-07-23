@@ -66,11 +66,23 @@ jobs:
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
+    # Set at job level (not just on the Ruby setup step) so it also applies to the
+    # later `yarn setup:github-ci` step, which runs `bundle exec pod install` without
+    # an explicit --gemfile flag. Without this, Bundler falls back to a plain $PATH
+    # lookup for `pod`, which can silently use the runner's ambient CocoaPods instead
+    # of the version pinned in ios/Gemfile.lock.
+    env:
+      BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Configure Namespace CocoaPods cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: cocoapods
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -78,8 +90,7 @@ jobs:
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
           ruby-version: '3.2.9'
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
+          bundler-cache: true
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -87,6 +98,17 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
+      - name: Restore CocoaPods cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/.cocoapods/repos
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-check-diff-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-check-diff-pods-
       - name: Restore .metamask folder
         id: restore-metamask
         uses: actions/cache@v4
