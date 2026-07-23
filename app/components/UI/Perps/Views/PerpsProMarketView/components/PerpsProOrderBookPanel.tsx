@@ -541,7 +541,7 @@ const PerpsProOrderBookPanel = ({
       {/* Ladder */}
       {showSkeleton ? (
         <OrderBookLadderSkeleton testID={testID} />
-      ) : showEmptyPlaceholder ? (
+      ) : showEmptyPlaceholder || !grouped ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
