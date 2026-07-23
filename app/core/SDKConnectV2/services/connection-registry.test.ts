@@ -1855,4 +1855,126 @@ describe('ConnectionRegistry', () => {
       await reconnectPromise;
     });
   });
+
+  describe('defers background work while a new connect is in flight (H2)', () => {
+    const makeDeferred = <T = void>() => {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+
+    const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('defers foreground reconnect until the in-flight connect finishes', async () => {
+      mockStore.list.mockResolvedValue([
+        createPersistedConnection('existing-1'),
+      ]);
+      const mockExisting = createMockConnection('existing-1');
+      const connectDeferred = makeDeferred();
+      const mockNew = createMockConnection('new-1', {
+        connect: jest.fn(() => connectDeferred.promise),
+      });
+
+      (Connection.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValueOnce(mockExisting)
+        .mockResolvedValueOnce(mockNew);
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await tick();
+      mockExisting.client.reconnect.mockClear();
+
+      // Start a new connect that stays in flight (its connect() hasn't resolved).
+      const connectPromise = registry.handleConnectDeeplink(validDeeplink);
+      await tick();
+
+      // reconnectAll must not reconnect the existing connection while the new
+      // connect is still being established.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const reconnectPromise = (registry as any).reconnectAll();
+      await tick();
+      expect(mockExisting.client.reconnect).not.toHaveBeenCalled();
+
+      // Once the connect finishes, the deferred reconnect proceeds.
+      connectDeferred.resolve(undefined);
+      await connectPromise;
+      await tick();
+      expect(mockExisting.client.reconnect).toHaveBeenCalledTimes(1);
+      await reconnectPromise;
+    });
+
+    it('defers cold-start resume until the in-flight connect finishes', async () => {
+      const listDeferred = makeDeferred<ConnectionInfo[]>();
+      mockStore.list.mockReturnValue(listDeferred.promise);
+
+      const connectDeferred = makeDeferred();
+      const mockNew = createMockConnection('new-1', {
+        connect: jest.fn(() => connectDeferred.promise),
+      });
+      const mockExisting = createMockConnection('existing-1');
+
+      (Connection.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValueOnce(mockNew) // the new connect (happens first)
+        .mockResolvedValueOnce(mockExisting); // the deferred resume
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      // initialize() is now paused awaiting store.list().
+      await tick();
+
+      // Fire a new connect that stays in flight.
+      const connectPromise = registry.handleConnectDeeplink(validDeeplink);
+      await tick();
+      expect(Connection.create).toHaveBeenCalledTimes(1); // only the new connect
+
+      // Let initialize() proceed to its resume loop; it must wait for the
+      // in-flight connect rather than resuming immediately.
+      listDeferred.resolve([createPersistedConnection('existing-1')]);
+      await tick();
+      expect(Connection.create).toHaveBeenCalledTimes(1); // resume still deferred
+      expect(mockExisting.resume).not.toHaveBeenCalled();
+
+      // Finish the connect; the deferred resume now runs.
+      connectDeferred.resolve(undefined);
+      await connectPromise;
+      await tick();
+      expect(Connection.create).toHaveBeenCalledTimes(2);
+      expect(mockExisting.resume).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not defer when no connect is in flight', async () => {
+      mockStore.list.mockResolvedValue([
+        createPersistedConnection('existing-1'),
+      ]);
+      const mockExisting = createMockConnection('existing-1');
+      (Connection.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValue(mockExisting);
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await tick();
+      mockExisting.client.reconnect.mockClear();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (registry as any).reconnectAll();
+      expect(mockExisting.client.reconnect).toHaveBeenCalledTimes(1);
+    });
+  });
 });
