@@ -1,12 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { TransactionDetailStyles } from '../../utils/transactionDetailStyles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface PerpsTransactionDetailAssetHeroProps {
   transaction: PerpsTransaction;
@@ -26,7 +24,7 @@ const PerpsTransactionDetailAssetHero: React.FC<
     >
       <PerpsTokenLogo symbol={transaction.asset} size={44} />
     </View>
-    <Text variant={TextVariant.HeadingLG} style={styles.assetAmount}>
+    <Text variant={TextVariant.HeadingLg} style={styles.assetAmount}>
       {transaction.subtitle}
     </Text>
   </View>

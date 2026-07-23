@@ -12,7 +12,7 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -31,7 +31,11 @@ import {
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
-import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
+import {
+  fromWei,
+  hexToBigInt,
+  weiToFiatNumber,
+} from '../../util/number/bigint';
 import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectAccountsByChainId } from '../accountTrackerController';
@@ -279,7 +283,7 @@ const selectStakedAssets = createDeepEqualSelector(
               currencyRates[nativeCurrency]?.conversionRate;
 
             const fiatBalance = conversionRate
-              ? weiToFiatNumber(hexToBN(stakedBalance), conversionRate)
+              ? weiToFiatNumber(hexToBigInt(stakedBalance), conversionRate)
               : undefined;
 
             const account = Object.values(internalAccounts).find(
@@ -303,7 +307,7 @@ const selectStakedAssets = createDeepEqualSelector(
               accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
-              balance: fromWei(stakedBalance),
+              balance: fromWei(hexToBigInt(stakedBalance)),
               fiat: fiatBalance
                 ? {
                     balance: Number(fiatBalance),

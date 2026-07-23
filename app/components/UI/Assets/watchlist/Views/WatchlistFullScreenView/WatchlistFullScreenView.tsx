@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, TouchableOpacity } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   Button,
   ButtonIcon,
@@ -16,6 +16,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
+import useTrackWatchlistPageViewed from '../../hooks/useTrackWatchlistPageViewed';
+import { WatchlistAnalytics } from '../../constants/watchlistAnalytics';
 import { mapWatchlistTokenToTrendingAsset } from '../../../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
 import TrendingTokensSkeleton from '../../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { strings } from '../../../../../../../locales/i18n';
@@ -28,9 +30,15 @@ import styleSheet from './WatchlistFullScreenView.styles';
 const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
 
+interface WatchlistFullViewRouteParams {
+  source?: string;
+}
+
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const route = useRoute();
+  const routeParams = route.params as WatchlistFullViewRouteParams | undefined;
   const { data, isLoading } = useTokenWatchlistQuery();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -41,6 +49,15 @@ const WatchlistFullScreenView = () => {
   );
 
   const hasItems = displayTokens.length > 0;
+  const tokenCount = data?.length ?? 0;
+  const isEmpty = !isLoading && !hasItems;
+
+  useTrackWatchlistPageViewed({
+    tokenCount,
+    isEmpty,
+    isLoading,
+    source: routeParams?.source ?? WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE,
+  });
 
   useEffect(() => {
     if (isEditMode && !hasItems) {

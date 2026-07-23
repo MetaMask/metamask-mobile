@@ -1,15 +1,30 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import WatchlistEditableRow from './WatchlistEditableRow';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
+import { WatchlistAnalytics } from '../../constants/watchlistAnalytics';
 
 const mockMutate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({ event: 'mock' });
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockReturnValue({ addProperties: mockAddProperties });
 
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
   useTokenWatchlistRemoveItemMutation: () => ({
     mutate: mockMutate,
+  }),
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -87,6 +102,26 @@ describe('WatchlistEditableRow', () => {
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
     expect(mockMutate).toHaveBeenCalledWith(token.assetId);
+  });
+
+  it('fires WATCHLIST_TOKEN_REMOVED when unwatch star is pressed in edit mode', () => {
+    const token = createToken();
+    const { getByTestId } = render(
+      <WatchlistEditableRow token={token} position={1} isEditMode />,
+    );
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
+    );
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+      asset_type: 'native',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
   it('does not call remove mutation when unwatch star is pressed outside edit mode', () => {
