@@ -274,8 +274,11 @@ export const isTronSpecialAsset = (
   chainId: string | undefined,
   symbol: string | undefined,
 ): boolean => {
-  if (!chainId?.startsWith('tron:') || !symbol) {
+  if (!chainId?.startsWith('tron:')) {
     return false;
+  }
+  if (!symbol) {
+    return true;
   }
   return TRON_SPECIAL_ASSET_SYMBOLS_SET.has(
     symbol.toLowerCase() as TronSpecialAssetSymbol,

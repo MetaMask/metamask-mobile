@@ -25,6 +25,7 @@ import {
   getAddressUrl,
   getTransactionUrl,
   isTronAddress,
+  isTronSpecialAsset,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -523,6 +524,30 @@ describe('MultiChain utils', () => {
         expect(formatAddress).toHaveBeenCalledWith(MOCK_BTC_TX_ID, 'short');
         expect(result).toBe(shortenedBtcTxId);
       });
+    });
+  });
+
+  describe('isTronSpecialAsset', () => {
+    it('returns false for non-Tron chain ID', () => {
+      expect(isTronSpecialAsset('eip155:1', 'TRX')).toBe(false);
+      expect(isTronSpecialAsset(undefined, 'TRX')).toBe(false);
+    });
+
+    it('returns true if symbol is falsy', () => {
+      expect(isTronSpecialAsset('tron:mainnet', '')).toBe(true);
+      expect(isTronSpecialAsset('tron:mainnet', undefined)).toBe(true);
+    });
+
+    it('returns true for known special assets', () => {
+      expect(isTronSpecialAsset('tron:mainnet', 'energy')).toBe(true);
+      expect(isTronSpecialAsset('tron:mainnet', 'bandwidth')).toBe(true);
+      expect(isTronSpecialAsset('tron:mainnet', 'trx-in-lock-period')).toBe(true);
+    });
+
+    it('returns false for valid TRON tokens with normal symbols', () => {
+      expect(isTronSpecialAsset('tron:mainnet', 'TRX')).toBe(false);
+      expect(isTronSpecialAsset('tron:mainnet', 'USDT')).toBe(false);
+      expect(isTronSpecialAsset('tron:mainnet', 'BTT')).toBe(false);
     });
   });
 });

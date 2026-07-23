@@ -176,9 +176,9 @@ const selectEarnTokens = createDeepEqualSelector(
     };
 
     // flatten the tokens across all chains
-    const allTokens = Object.values(
-      accountTokensAcrossChains,
-    ).flat() as TokenI[];
+    const allTokens = (
+      Object.values(accountTokensAcrossChains).flat() as TokenI[]
+    ).filter((token) => Boolean(token.symbol) || Boolean(token.name));
 
     if (allTokens.length === 0) {
       return emptyEarnTokensData;
