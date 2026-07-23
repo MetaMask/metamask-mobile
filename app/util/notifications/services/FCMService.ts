@@ -7,6 +7,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { toFcmDataStringRecord } from '../utils/fcm-data';
+import { extractPushNotificationDeeplink } from '../pushNotificationDeeplink';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -195,7 +196,7 @@ class FCMService {
     try {
       const remoteMessage = await getInitialNotification();
       await analyticsTrackPushClickEvent(remoteMessage);
-      return toFcmDataStringRecord(remoteMessage?.data)?.deeplink ?? null;
+      return extractPushNotificationDeeplink(remoteMessage?.data) ?? null;
     } catch {
       return null;
     }
@@ -210,9 +211,7 @@ class FCMService {
       ) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
-          deeplinkCallback(
-            toFcmDataStringRecord(remoteMessage?.data)?.deeplink,
-          );
+          deeplinkCallback(extractPushNotificationDeeplink(remoteMessage.data));
         } catch {
           // Do nothing
         }

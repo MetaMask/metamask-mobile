@@ -5,7 +5,7 @@ import messaging, {
 import FCMService from './FCMService';
 import { EVENT_NAME } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
-import { NativeModules, Platform } from 'react-native';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 // Firebase Mock
@@ -393,6 +393,16 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         });
       });
 
+      it('returns deeplink from serialized Notifee data', async () => {
+        const deeplink = 'https://link.metamask.io/rewards';
+        const { result, mocks } = await arrangeAct({
+          dataStr: JSON.stringify({ deeplink }),
+        });
+
+        expect(result).toBe(deeplink);
+        assertMockInitialNotificationCalled(mocks);
+      });
+
       it('tracks click event but does not return deeplink when no deeplink present', async () => {
         const testData = createMockPushAnalyticsFcmData();
         const { result, mocks } = await arrangeAct(testData);
@@ -494,6 +504,41 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       notification_subtype: 'take_profit_executed',
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
     });
+  });
+
+  it('handles serialized Notifee data from the Android native event', async () => {
+    const originalPlatform = Platform.OS;
+    const deeplink = 'https://link.metamask.io/rewards';
+    const mocks = arrangeMocks();
+    let nativeNotificationHandler:
+      | ((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => Promise<void>)
+      | undefined;
+
+    Platform.OS = 'android';
+    jest
+      .spyOn(DeviceEventEmitter, 'addListener')
+      .mockImplementation((eventType, listener) => {
+        expect(eventType).toBe('metamask.notification_opened');
+        nativeNotificationHandler = listener as (
+          remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+        ) => Promise<void>;
+        return { remove: jest.fn() } as never;
+      });
+
+    try {
+      FCMService.onClickPushNotificationWhenAppSuspended(
+        mocks.deeplinkCallback,
+      );
+      await nativeNotificationHandler?.(
+        createMockRemoteMessage({
+          dataStr: JSON.stringify({ deeplink }),
+        }),
+      );
+
+      expect(mocks.deeplinkCallback).toHaveBeenCalledWith(deeplink);
+    } finally {
+      Platform.OS = originalPlatform;
+    }
   });
 
   it('calls deeplink callback with undefined when notification has no deeplink', async () => {
