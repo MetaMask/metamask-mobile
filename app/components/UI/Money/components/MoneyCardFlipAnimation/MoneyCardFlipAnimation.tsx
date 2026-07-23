@@ -2,13 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import Rive, {
-  AutoBind,
-  Fit,
-  RNRiveError,
-  useRive,
-  useRiveEnum,
-} from 'rive-react-native';
+import Rive, { Fit, RNRiveError } from 'rive-react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardFlipAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
@@ -20,25 +19,27 @@ import { MoneyCardFlipAnimationTestIds } from './MoneyCardFlipAnimation.testIds'
 
 const log = createProjectLogger('money-card-flip');
 
-// -- Rive data-binding names ----------------------------------------------
+// -- Rive names ------------------------------------------------------------
 // These MUST match the names authored in card_tilt_v1.2.riv. If the Rive
-// designer renames any of these, update the constants here to keep the
-// binding working.
+// designer renames any of these, update the constants here.
+//
+// The flip is played as a raw timeline on the per-variant artboards. The
+// MainTilt state machine + ViewModel (cardType / startAnimation) do not
+// respond to the data-bound trigger in this asset version, so the state
+// machine is deliberately bypassed here.
 
-/** Name of the Rive artboard that contains the card flip animation. */
-const RIVE_ARTBOARD_NAME = 'MainTilt';
+/** Artboard holding the virtual-card flip animation. */
+const RIVE_ARTBOARD_VIRTUAL = 'Card Tilt Y Animation - Digital';
 
-/** Enum data-binding path selecting which card variant is animated. */
-const RIVE_CARD_TYPE_PATH = 'cardType';
+/** Artboard holding the metal-card flip animation. */
+const RIVE_ARTBOARD_METAL = 'Card Tilt Y Animation - Metal';
 
-/** Enum value for the virtual card flip animation. */
-const RIVE_CARD_TYPE_VIRTUAL = 'digitalTiltYAnimation';
+/** One-shot flip timeline present on both variant artboards. */
+const RIVE_FLIP_ANIMATION = 'yAnimation';
 
-/** Enum value for the metal card flip animation. */
-const RIVE_CARD_TYPE_METAL = 'metalTiltYAnimation';
-
-/** Trigger that fires the entry flip once the card type is set. */
-const RIVE_START_TRIGGER = 'startAnimation';
+const ENTRANCE_DURATION_MS = 250;
+const ENTRANCE_TRANSLATE_Y = 10;
+const ENTRANCE_INITIAL_OPACITY = 0.5;
 
 interface MoneyCardFlipAnimationProps {
   isMetalCard: boolean;
@@ -52,17 +53,23 @@ const MoneyCardFlipAnimation = ({
   const flagEnabled = useSelector(selectMoneyCardFlipAnimationEnabledFlag);
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
-  const [riveRef, riveInstance] = useRive();
-  const [, setCardType] = useRiveEnum(riveInstance, RIVE_CARD_TYPE_PATH);
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
-  useEffect(() => {
-    if (!riveInstance) return;
+  const entranceOpacity = useSharedValue(ENTRANCE_INITIAL_OPACITY);
+  const entranceTranslateY = useSharedValue(ENTRANCE_TRANSLATE_Y);
+  const entranceStyle = useAnimatedStyle(() => ({
+    opacity: entranceOpacity.value,
+    transform: [{ translateY: entranceTranslateY.value }],
+  }));
 
-    setCardType(isMetalCard ? RIVE_CARD_TYPE_METAL : RIVE_CARD_TYPE_VIRTUAL);
-    riveInstance.trigger(RIVE_START_TRIGGER);
-  }, [riveInstance, setCardType, isMetalCard]);
+  useEffect(() => {
+    if (!animate) return;
+    entranceOpacity.value = withTiming(1, { duration: ENTRANCE_DURATION_MS });
+    entranceTranslateY.value = withTiming(0, {
+      duration: ENTRANCE_DURATION_MS,
+    });
+  }, [animate, entranceOpacity, entranceTranslateY]);
 
   const handleError = useCallback((riveError: RNRiveError) => {
     log(`Rive error: ${riveError.message}`);
@@ -72,16 +79,19 @@ const MoneyCardFlipAnimation = ({
   let content: React.ReactNode;
   if (animate) {
     content = (
-      <Rive
-        ref={riveRef}
-        source={CardTiltAnimation}
-        artboardName={RIVE_ARTBOARD_NAME}
-        dataBinding={AutoBind(true)}
-        fit={Fit.Contain}
-        style={styles.media}
-        onError={handleError}
-        testID={MoneyCardFlipAnimationTestIds.RIVE}
-      />
+      <Animated.View style={[styles.media, entranceStyle]}>
+        <Rive
+          source={CardTiltAnimation}
+          artboardName={
+            isMetalCard ? RIVE_ARTBOARD_METAL : RIVE_ARTBOARD_VIRTUAL
+          }
+          animationName={RIVE_FLIP_ANIMATION}
+          fit={Fit.Contain}
+          style={styles.media}
+          onError={handleError}
+          testID={MoneyCardFlipAnimationTestIds.RIVE}
+        />
+      </Animated.View>
     );
   } else {
     content = (

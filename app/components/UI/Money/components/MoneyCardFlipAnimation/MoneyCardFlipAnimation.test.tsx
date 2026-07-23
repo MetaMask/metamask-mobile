@@ -6,33 +6,28 @@ import { useReduceMotion } from '../../hooks/useReduceMotion';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
-const mockRefCallback = jest.fn();
-const mockTrigger = jest.fn();
-const mockSetCardType = jest.fn();
-const mockRiveInstance = { trigger: mockTrigger };
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
-const mockRiveProps: { current?: { artboardName?: string } } = {};
-const mockRiveEnumPath: { current?: string } = {};
+const mockRiveProps: {
+  current?: { artboardName?: string; animationName?: string };
+} = {};
 
 jest.mock('rive-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    AutoBind: jest.fn(() => ({})),
-    Fit: { Contain: 'contain', Cover: 'cover', Layout: 'layout' },
-    useRive: () => [mockRefCallback, mockRiveInstance],
-    useRiveEnum: (_instance: unknown, path: string) => {
-      mockRiveEnumPath.current = path;
-      return [undefined, mockSetCardType];
-    },
+    Fit: { Contain: 'contain' },
     default: (props: {
       testID?: string;
       artboardName?: string;
+      animationName?: string;
       onError?: (error: { message: string }) => void;
     }) => {
       mockOnErrorRef.current = props.onError;
-      mockRiveProps.current = { artboardName: props.artboardName };
+      mockRiveProps.current = {
+        artboardName: props.artboardName,
+        animationName: props.animationName,
+      };
       return ReactActual.createElement(RNView, { testID: props.testID });
     },
   };
@@ -54,7 +49,6 @@ describe('MoneyCardFlipAnimation', () => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
     mockRiveProps.current = undefined;
-    mockRiveEnumPath.current = undefined;
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
   });
@@ -70,34 +64,26 @@ describe('MoneyCardFlipAnimation', () => {
     ).toBeNull();
   });
 
-  it('renders the MainTilt artboard', () => {
-    render(<MoneyCardFlipAnimation isMetalCard={false} />);
-
-    expect(mockRiveProps.current?.artboardName).toBe('MainTilt');
-  });
-
-  it('binds the cardType enum property', () => {
-    render(<MoneyCardFlipAnimation isMetalCard={false} />);
-
-    expect(mockRiveEnumPath.current).toBe('cardType');
-  });
-
-  it('sets the metal tilt enum and fires startAnimation for a metal card', () => {
+  it('renders the metal artboard with the flip timeline for a metal card', () => {
     render(<MoneyCardFlipAnimation isMetalCard />);
 
-    expect(mockSetCardType).toHaveBeenCalledWith('metalTiltYAnimation');
-    expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+    expect(mockRiveProps.current?.artboardName).toBe(
+      'Card Tilt Y Animation - Metal',
+    );
+    expect(mockRiveProps.current?.animationName).toBe('yAnimation');
   });
 
-  it('sets the digital tilt enum and fires startAnimation for a virtual card', () => {
+  it('renders the digital artboard with the flip timeline for a virtual card', () => {
     render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-    expect(mockSetCardType).toHaveBeenCalledWith('digitalTiltYAnimation');
-    expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+    expect(mockRiveProps.current?.artboardName).toBe(
+      'Card Tilt Y Animation - Digital',
+    );
+    expect(mockRiveProps.current?.animationName).toBe('yAnimation');
   });
 
-  it('renders the static image when reduce motion is enabled', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+  it('renders the static image when the feature flag is disabled', () => {
+    mockUseSelector.mockReturnValue(false);
 
     const { getByTestId, queryByTestId } = render(
       <MoneyCardFlipAnimation isMetalCard={false} />,
@@ -109,8 +95,8 @@ describe('MoneyCardFlipAnimation', () => {
     expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
   });
 
-  it('renders the static image when the feature flag is disabled', () => {
-    mockUseSelector.mockReturnValue(false);
+  it('renders the static image when reduce motion is enabled', () => {
+    mockUseReduceMotion.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(
       <MoneyCardFlipAnimation isMetalCard={false} />,
@@ -145,6 +131,18 @@ describe('MoneyCardFlipAnimation', () => {
     ).toBe(mmCardMetal);
   });
 
+  it('uses the regular card image as static fallback for a virtual card', () => {
+    mockUseReduceMotion.mockReturnValue(true);
+
+    const { getByTestId } = render(
+      <MoneyCardFlipAnimation isMetalCard={false} />,
+    );
+
+    expect(
+      getByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE).props.source,
+    ).toBe(mmCardRegular);
+  });
+
   it('applies the provided testID to the container', () => {
     const { getByTestId } = render(
       <MoneyCardFlipAnimation isMetalCard={false} testID="custom-flip-id" />,
@@ -161,17 +159,5 @@ describe('MoneyCardFlipAnimation', () => {
     expect(
       getByTestId(MoneyCardFlipAnimationTestIds.CONTAINER),
     ).toBeOnTheScreen();
-  });
-
-  it('uses the regular card image as static fallback for a virtual card', () => {
-    mockUseReduceMotion.mockReturnValue(true);
-
-    const { getByTestId } = render(
-      <MoneyCardFlipAnimation isMetalCard={false} />,
-    );
-
-    expect(
-      getByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE).props.source,
-    ).toBe(mmCardRegular);
   });
 });
