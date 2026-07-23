@@ -22,7 +22,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
-import { InputAccessoryView, Keyboard, Platform } from 'react-native';
+import {
+  InputAccessoryView,
+  Keyboard,
+  Platform,
+  Pressable,
+} from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
@@ -37,8 +42,14 @@ import type {
   PerpsProOrderSummaryProps,
 } from './PerpsProOrderForm.types';
 const ids = PerpsProOrderFormSelectorsIDs;
-const buttonIcon = (iconName: IconName, onPress?: () => void) =>
-  onPress ? { iconName, onPress, size: ButtonIconSize.Xs } : undefined;
+const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
+  ({
+    iconName,
+    onPress,
+    isDisabled: !onPress,
+    size: ButtonIconSize.Xs,
+    testID,
+  }) as const;
 const summaryKeyTextProps = {
   variant: TextVariant.BodyXs,
   fontWeight: FontWeight.Regular,
@@ -47,19 +58,12 @@ const summaryValueTextProps = {
   variant: TextVariant.BodyXs,
   fontWeight: FontWeight.Medium,
 };
-interface SelectionRowProps {
-  label: string;
+interface SelectionIndicatorProps {
   isSelected: boolean;
-  onChange: (value: boolean) => void;
   testID: string;
 }
-const SelectionRow = ({
-  label,
-  isSelected,
-  onChange,
-  testID,
-}: SelectionRowProps) => {
-  const indicator = isSelected ? (
+const SelectionIndicator = ({ isSelected, testID }: SelectionIndicatorProps) =>
+  isSelected ? (
     <Box
       twClassName="size-5 items-center justify-center rounded-full bg-icon-default"
       testID={`${testID}-indicator`}
@@ -76,19 +80,60 @@ const SelectionRow = ({
       testID={`${testID}-indicator`}
     />
   );
+
+interface ReduceOnlyRowProps extends SelectionIndicatorProps {
+  label: string;
+  onChange: (value: boolean) => void;
+}
+const ReduceOnlyRow = ({
+  label,
+  isSelected,
+  onChange,
+  testID,
+}: ReduceOnlyRowProps) => (
+  <Pressable
+    accessibilityRole="checkbox"
+    accessibilityState={{ checked: isSelected }}
+    accessibilityLabel={label}
+    onPress={() => onChange(!isSelected)}
+    testID={testID}
+  >
+    <Box twClassName="h-12 flex-row items-center justify-between rounded-xl bg-muted px-3">
+      <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
+      <SelectionIndicator isSelected={isSelected} testID={testID} />
+    </Box>
+  </Pressable>
+);
+
+interface TPSLRowProps extends SelectionIndicatorProps {
+  label: string;
+  onPress?: () => void;
+}
+const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
+  const isDisabled = !onPress;
+
   return (
-    <ButtonBase
-      twClassName="h-12 rounded-xl bg-muted px-3"
-      contentWrapperProps={{ twClassName: 'w-full justify-between' }}
-      textProps={{ variant: TextVariant.BodySm, fontWeight: FontWeight.Medium }}
-      endAccessory={indicator}
-      isFullWidth
-      onPress={() => onChange(!isSelected)}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled }}
+      accessibilityLabel={label}
+      disabled={isDisabled}
+      onPress={onPress}
       testID={testID}
-      accessibilityState={{ selected: isSelected }}
     >
-      {label}
-    </ButtonBase>
+      <Box
+        twClassName={`h-12 flex-row items-center justify-between rounded-xl bg-muted px-3${
+          isDisabled ? ' opacity-50' : ''
+        }`}
+      >
+        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+          {label}
+        </Text>
+        <SelectionIndicator isSelected={isSelected} testID={testID} />
+      </Box>
+    </Pressable>
   );
 };
 const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
@@ -147,7 +192,11 @@ const OrderSummary = ({
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
         value={slippage}
-        valueEndButtonIconProps={buttonIcon(IconName.Edit, onSlippagePress)}
+        valueEndButtonIconProps={buttonIcon(
+          IconName.Edit,
+          ids.SUMMARY_SLIPPAGE_BUTTON,
+          onSlippagePress,
+        )}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
         twClassName="h-5"
@@ -165,7 +214,11 @@ const OrderSummary = ({
           variant={TextVariant.BodyXs}
         />
       }
-      keyEndButtonIconProps={buttonIcon(IconName.Info, onFeesInfoPress)}
+      keyEndButtonIconProps={buttonIcon(
+        IconName.Info,
+        ids.SUMMARY_FEES_BUTTON,
+        onFeesInfoPress,
+      )}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
       twClassName="h-5"
@@ -180,7 +233,6 @@ const PerpsProOrderForm = ({
   leverageLabel,
   onLeveragePress,
   orderType,
-  onOrderTypeChange,
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
@@ -315,6 +367,7 @@ const PerpsProOrderForm = ({
               <ButtonIcon
                 iconName={IconName.SwapHorizontal}
                 size={ButtonIconSize.Xs}
+                isDisabled={!onSizeUnitPress}
                 onPress={onSizeUnitPress}
                 testID={ids.SIZE_UNIT_BUTTON}
                 accessibilityLabel={strings(
@@ -331,6 +384,10 @@ const PerpsProOrderForm = ({
                 showPercentageLabels={false}
                 showPercentageMarkers
                 variant="compact"
+                testID={ids.SIZE_SLIDER}
+                accessibilityLabel={strings(
+                  'perps.pro_order_form.size_percentage',
+                )}
               />
             }
           />
@@ -346,22 +403,23 @@ const PerpsProOrderForm = ({
               iconName={IconName.AddCircle}
               size={ButtonIconSize.Xs}
               iconProps={{ color: IconColor.IconAlternative }}
+              isDisabled={!onAddFundsPress}
               onPress={onAddFundsPress}
               testID={ids.ADD_FUNDS_BUTTON}
               accessibilityLabel={strings('perps.add_funds')}
             />
           </Box>
         </Box>
-        <SelectionRow
+        <ReduceOnlyRow
           label={strings('perps.order.reduce_only')}
           isSelected={reduceOnly}
           onChange={onReduceOnlyChange}
           testID={ids.REDUCE_ONLY}
         />
-        <SelectionRow
+        <TPSLRow
           label={strings('perps.pro_order_form.tpsl')}
           isSelected={isTPSLConfigured}
-          onChange={() => onTPSLPress?.()}
+          onPress={onTPSLPress}
           testID={ids.TPSL}
         />
         <Notices notices={notices} />

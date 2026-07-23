@@ -23,7 +23,6 @@ export interface PerpsProOrderFormProps {
   leverageLabel: string;
   onLeveragePress?: () => void;
   orderType: OrderType;
-  onOrderTypeChange: (orderType: OrderType) => void;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;

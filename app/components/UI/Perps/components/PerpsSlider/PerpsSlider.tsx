@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import {
+  type AccessibilityActionEvent,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -45,6 +49,8 @@ interface PerpsSliderProps {
   progressColor?: 'default' | 'gradient';
   quickValues?: number[];
   variant?: 'default' | 'compact';
+  testID?: string;
+  accessibilityLabel?: string;
 }
 
 const PerpsSlider: React.FC<PerpsSliderProps> = ({
@@ -59,6 +65,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   progressColor = 'default',
   quickValues,
   variant = 'default',
+  testID,
+  accessibilityLabel,
 }) => {
   const { styles } = useStyles(styleSheet, {
     showPercentageLabels,
@@ -243,30 +251,88 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     ],
   );
 
+  const handleAccessibilityAction = useCallback(
+    (event: AccessibilityActionEvent) => {
+      if (disabled) {
+        return;
+      }
+
+      const { actionName } = event.nativeEvent;
+      if (actionName !== 'increment' && actionName !== 'decrement') {
+        return;
+      }
+
+      const currentValue = Math.min(
+        maximumValue,
+        Math.max(minimumValue, value),
+      );
+      const delta = actionName === 'increment' ? step : -step;
+      const nextValue = Math.min(
+        maximumValue,
+        Math.max(minimumValue, currentValue + delta),
+      );
+
+      if (nextValue !== currentValue) {
+        onValueChange(nextValue);
+        checkThresholdCrossing(nextValue);
+      }
+    },
+    [
+      checkThresholdCrossing,
+      disabled,
+      maximumValue,
+      minimumValue,
+      onValueChange,
+      step,
+      value,
+    ],
+  );
+
   const percentageSteps = [0, 25, 50, 75, 100];
+  const range = maximumValue - minimumValue;
+  const clampedValue = Math.min(maximumValue, Math.max(minimumValue, value));
+  const percentage =
+    range === 0 ? 0 : Math.round(((clampedValue - minimumValue) / range) * 100);
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.sliderContainer}>
         <View style={styles.trackContainer} onLayout={handleLayout}>
           <GestureDetector gesture={composed}>
-            <Animated.View style={styles.track}>
-              {progressColor === 'gradient' ? (
-                <Animated.View style={progressStyle}>
-                  <LinearGradient
-                    colors={['green', 'yellow', 'red']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.gradientProgress}
-                  />
-                </Animated.View>
-              ) : (
-                <Animated.View style={[styles.progress, progressStyle]} />
-              )}
-              <Animated.View
-                style={[styles.thumb, thumbStyle]}
-                hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
-              />
+            <Animated.View
+              style={styles.interactionArea}
+              testID={testID}
+              accessible
+              accessibilityRole="adjustable"
+              accessibilityLabel={accessibilityLabel}
+              accessibilityState={{ disabled }}
+              accessibilityValue={{
+                min: minimumValue,
+                max: maximumValue,
+                now: clampedValue,
+                text: `${percentage}%`,
+              }}
+              accessibilityActions={[
+                { name: 'increment' },
+                { name: 'decrement' },
+              ]}
+              onAccessibilityAction={handleAccessibilityAction}
+            >
+              <Animated.View style={styles.track}>
+                {progressColor === 'gradient' ? (
+                  <Animated.View style={progressStyle}>
+                    <LinearGradient
+                      colors={['green', 'yellow', 'red']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.gradientProgress}
+                    />
+                  </Animated.View>
+                ) : (
+                  <Animated.View style={[styles.progress, progressStyle]} />
+                )}
+                <Animated.View style={[styles.thumb, thumbStyle]} />
+              </Animated.View>
             </Animated.View>
           </GestureDetector>
 
@@ -335,6 +401,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
                   style={[styles.percentageWrapper, wrapperStyle]}
                   onPress={() => handlePressPercentage(percent)}
                   disabled={disabled}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${percent}%`}
+                  accessibilityState={{ disabled }}
                 >
                   <Text style={styles.percentageText}>{percent}%</Text>
                 </TouchableOpacity>

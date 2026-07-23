@@ -8,13 +8,11 @@ import type { PerpsProOrderDirection } from './PerpsProOrderForm/PerpsProOrderFo
 
 export interface PerpsProOrderFormPanelProps {
   orderType: OrderType;
-  onOrderTypeChange: (orderType: OrderType) => void;
   onOrderTypeButtonPress: () => void;
 }
 
 const PerpsProOrderFormPanel = ({
   orderType,
-  onOrderTypeChange,
   onOrderTypeButtonPress,
 }: PerpsProOrderFormPanelProps) => {
   const [direction, setDirection] = useState<PerpsProOrderDirection>('long');
@@ -33,33 +31,25 @@ const PerpsProOrderFormPanel = ({
         onDirectionChange={setDirection}
         marginModeLabel={strings('perps.pro_order_form.isolated')}
         leverageLabel="3x"
-        onLeveragePress={() => undefined}
         orderType={orderType}
-        onOrderTypeChange={onOrderTypeChange}
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={setLimitPrice}
-        onUseMidPricePress={() => undefined}
         size={size}
         onSizeChange={setSize}
-        onSizeUnitPress={() => undefined}
         balancePercentage={balancePercentage}
         onBalancePercentageChange={setBalancePercentage}
         availableBalance={strings(
           'perps.pro_order_form.available_balance_unavailable',
         )}
-        onAddFundsPress={() => undefined}
         reduceOnly={reduceOnly}
         onReduceOnlyChange={setReduceOnly}
         isTPSLConfigured={false}
-        onTPSLPress={() => undefined}
         notices={[]}
         summary={{
           margin: '--',
           liquidationPrice: '--',
           slippage: '--',
-          onSlippagePress: () => undefined,
-          onFeesInfoPress: () => undefined,
         }}
         placeOrderLabel={strings('perps.pro_order_form.place_order')}
         placeOrderIntent={direction}

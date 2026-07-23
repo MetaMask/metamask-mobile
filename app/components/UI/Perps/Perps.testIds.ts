@@ -474,6 +474,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
   MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
   SIZE_INPUT: 'perps-pro-order-form-size-input',
+  SIZE_SLIDER: 'perps-pro-order-form-size-slider',
   SIZE_UNIT_BUTTON: 'perps-pro-order-form-size-unit',
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
@@ -486,7 +487,9 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_MARGIN: 'perps-pro-order-form-summary-margin',
   SUMMARY_LIQUIDATION: 'perps-pro-order-form-summary-liquidation',
   SUMMARY_SLIPPAGE: 'perps-pro-order-form-summary-slippage',
+  SUMMARY_SLIPPAGE_BUTTON: 'perps-pro-order-form-summary-slippage-button',
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
+  SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
 };
 

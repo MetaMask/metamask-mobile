@@ -100,7 +100,6 @@ const PerpsProMarketView = () => {
           orderForm={
             <PerpsProOrderFormPanel
               orderType={orderType}
-              onOrderTypeChange={setOrderType}
               onOrderTypeButtonPress={handleOrderTypeButtonPress}
             />
           }

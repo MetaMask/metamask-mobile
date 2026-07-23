@@ -1503,6 +1503,7 @@
       "isolated": "Isolated",
       "choose_order_type": "Choose order type",
       "size_usd": "Size USD",
+      "size_percentage": "Order size percentage",
       "toggle_size_unit": "Switch size denomination",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Est Liquidation",

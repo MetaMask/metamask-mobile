@@ -15,8 +15,14 @@ const styleSheet = (params: { theme: Theme; vars: PerpsSliderStyleVars }) => {
 
   return StyleSheet.create({
     container: {
-      paddingTop: isCompact ? 16 : 8,
-      paddingBottom: isCompact ? 12 : 8,
+      minHeight: isCompact ? 44 : undefined,
+      marginVertical: isCompact ? -6 : 0,
+      paddingVertical: isCompact ? 0 : 8,
+      justifyContent: 'center',
+    },
+    interactionArea: {
+      minHeight: isCompact ? 44 : undefined,
+      justifyContent: 'center',
     },
     sliderContainer: {
       flexDirection: 'row',
@@ -95,7 +101,7 @@ const styleSheet = (params: { theme: Theme; vars: PerpsSliderStyleVars }) => {
       backgroundColor: colors.text.muted,
       borderRadius: 2.5,
       position: 'absolute',
-      top: isCompact ? 0 : 2,
+      top: isCompact ? 20 : 2,
       transform: [{ translateX: -2.5 }],
       zIndex: -2,
     },
