@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { TransakEnvironment } from '@metamask/ramps-controller';
 import {
   getTransakEnvironment,
   transakServiceInit,
@@ -6,14 +7,16 @@ import {
 
 const mockTransakService = jest.fn().mockImplementation((opts) => opts);
 
-jest.mock('@metamask/ramps-controller', () => ({
-  TransakService: (...args: unknown[]) => mockTransakService(...args),
-  TransakServiceMessenger: jest.fn(),
-  TransakEnvironment: {
-    Production: 'PRODUCTION',
-    Staging: 'STAGING',
-  },
-}));
+// Keep the real `RampsEnvironment`/`TransakEnvironment` enums (so environment
+// resolution mirrors production, since `getTransakEnvironment` now delegates to
+// the real `getRampsEnvironment`) and only stub the service class.
+jest.mock('@metamask/ramps-controller', () => {
+  const actual = jest.requireActual('@metamask/ramps-controller');
+  return {
+    ...actual,
+    TransakService: (...args: unknown[]) => mockTransakService(...args),
+  };
+});
 
 describe('transak-service-init', () => {
   beforeEach(() => {
@@ -23,12 +26,9 @@ describe('transak-service-init', () => {
   describe('getTransakEnvironment', () => {
     const originalEnv = process.env.METAMASK_ENVIRONMENT;
     const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
-    const originalBuildsFlag =
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
 
     beforeEach(() => {
       delete process.env.RAMPS_ENVIRONMENT;
-      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
     });
 
     afterEach(() => {
@@ -38,33 +38,23 @@ describe('transak-service-init', () => {
       } else {
         delete process.env.RAMPS_ENVIRONMENT;
       }
-      if (originalBuildsFlag !== undefined) {
-        process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
-          originalBuildsFlag;
-      } else {
-        delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
-      }
     });
 
-    describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is true (builds.yml path)', () => {
-      beforeEach(() => {
-        process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
-      });
-
+    describe('when RAMPS_ENVIRONMENT is set (builds.yml path)', () => {
       it('returns Production when RAMPS_ENVIRONMENT is production', () => {
         process.env.RAMPS_ENVIRONMENT = 'production';
-        expect(getTransakEnvironment()).toBe('PRODUCTION');
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
       });
 
       it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
         process.env.RAMPS_ENVIRONMENT = 'staging';
-        expect(getTransakEnvironment()).toBe('STAGING');
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
       });
 
       it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
         process.env.METAMASK_ENVIRONMENT = 'production';
         process.env.RAMPS_ENVIRONMENT = 'staging';
-        expect(getTransakEnvironment()).toBe('STAGING');
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
       });
     });
 
@@ -73,7 +63,7 @@ describe('transak-service-init', () => {
         'returns Production for %s environment',
         (env) => {
           process.env.METAMASK_ENVIRONMENT = env;
-          expect(getTransakEnvironment()).toBe('PRODUCTION');
+          expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
         },
       );
 
@@ -81,13 +71,13 @@ describe('transak-service-init', () => {
         'returns Staging for %s environment',
         (env) => {
           process.env.METAMASK_ENVIRONMENT = env;
-          expect(getTransakEnvironment()).toBe('STAGING');
+          expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
         },
       );
 
       it('returns Staging for undefined environment', () => {
         delete process.env.METAMASK_ENVIRONMENT;
-        expect(getTransakEnvironment()).toBe('STAGING');
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
       });
     });
   });
@@ -135,7 +125,10 @@ describe('transak-service-init', () => {
       } as never);
 
       const calledWith = mockTransakService.mock.calls[0][0];
-      expect(['PRODUCTION', 'STAGING']).toContain(calledWith.environment);
+      expect([
+        TransakEnvironment.Production,
+        TransakEnvironment.Staging,
+      ]).toContain(calledWith.environment);
     });
   });
 });

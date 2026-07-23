@@ -304,6 +304,10 @@ describe('useTransakRouting', () => {
     };
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('returns expected functions', () => {
     const { result } = renderHook(() => useTransakRouting());
 

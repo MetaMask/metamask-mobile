@@ -1,33 +1,23 @@
 import { Platform } from 'react-native';
 import { MessengerClientInitFunction } from '../../types';
 import {
+  RampsEnvironment,
   TransakService,
   TransakServiceMessenger,
   TransakEnvironment,
 } from '@metamask/ramps-controller';
+import { getRampsEnvironment } from './ramps-service-init';
 
+// Derive the Transak environment from the single ramps-environment source of
+// truth (`getRampsEnvironment`) so the TransakService, the ramps API, and the
+// native provider fallback can never target different environments. They
+// previously read different env vars (`BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY`
+// + `RAMPS_ENVIRONMENT` here vs. `RAMPS_ENVIRONMENT` -> `METAMASK_ENVIRONMENT`
+// there) and could disagree, e.g. staging Transak against a production ramps API.
 export function getTransakEnvironment(): TransakEnvironment {
-  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
-    const rampsEnv = process.env.RAMPS_ENVIRONMENT;
-    return rampsEnv === 'production'
-      ? TransakEnvironment.Production
-      : TransakEnvironment.Staging;
-  }
-
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  switch (metamaskEnvironment) {
-    case 'production':
-    case 'beta':
-    case 'rc':
-      return TransakEnvironment.Production;
-
-    case 'dev':
-    case 'exp':
-    case 'test':
-    case 'e2e':
-    default:
-      return TransakEnvironment.Staging;
-  }
+  return getRampsEnvironment() === RampsEnvironment.Production
+    ? TransakEnvironment.Production
+    : TransakEnvironment.Staging;
 }
 
 function getTransakContext(): string {
