@@ -315,7 +315,7 @@ describe('QRTabSwitcher', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
     expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
-    expect(mockResetState).toHaveBeenCalled();
+    expect(mockResetState).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
       expect.anything(),

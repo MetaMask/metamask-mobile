@@ -182,7 +182,8 @@ export class QrSyncProvisioningService {
     error: unknown,
     operation:
       | typeof QrSyncOperations.IMPORT_SECRETS_TO_VAULT
-      | typeof QrSyncOperations.IMPORT_SECRETS_UNKNOWN_TYPE,
+      | typeof QrSyncOperations.IMPORT_SECRETS_UNKNOWN_TYPE
+      | typeof QrSyncOperations.PROVISION_FROM_METADATA,
     extras?: Record<string, unknown>,
   ): void {
     const syncFlow = this.#getSessionSyncFlow();
@@ -244,10 +245,36 @@ export class QrSyncProvisioningService {
         (left, right) => left.index - right.index,
       );
       for (const entry of sortedEntries) {
-        if (entry.type === QrSyncSecretTypes.MNEMONIC) {
-          await this.#provisionMnemonicEntry(entry);
-        } else {
-          this.#provisionPrivateKeyEntry(entry);
+        try {
+          if (entry.type === QrSyncSecretTypes.MNEMONIC) {
+            if (!entry.entropySource) {
+              this.#reportImportSecretsFailure(
+                new Error(
+                  `Skipping Phase C mnemonic entry ${entry.index}: missing entropySource`,
+                ),
+                QrSyncOperations.PROVISION_FROM_METADATA,
+                { entryIndex: entry.index },
+              );
+              continue;
+            }
+            await this.#provisionMnemonicEntry(entry);
+          } else if (!entry.accountAddress) {
+            this.#reportImportSecretsFailure(
+              new Error(
+                `Skipping Phase C private-key entry ${entry.index}: missing accountAddress`,
+              ),
+              QrSyncOperations.PROVISION_FROM_METADATA,
+              { entryIndex: entry.index },
+            );
+          } else {
+            this.#provisionPrivateKeyEntry(entry);
+          }
+        } catch (entryError) {
+          this.#reportImportSecretsFailure(
+            entryError,
+            QrSyncOperations.PROVISION_FROM_METADATA,
+            { entryIndex: entry.index },
+          );
         }
       }
 

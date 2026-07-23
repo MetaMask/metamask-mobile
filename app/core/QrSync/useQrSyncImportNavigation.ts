@@ -30,12 +30,13 @@ interface UseQrSyncImportNavigationOptions {
 let inFlightImportNavigation: Promise<void> | null = null;
 
 /**
- * Existing-user QR sync after SYNC_READY: import all non-primary secrets via
+ * Existing-user QR sync after SYNC_READY: import all pending secrets via
  * Phase B (`importRemainingSecrets`), then start Phase C metadata layout.
  *
- * Extension never sends the primary mnemonic for existing users, so there is no
- * separate `importNewSecretRecoveryPhrase` path — that would duplicate-import
- * non-primary mnemonics and skip metadata enrichment.
+ * Unlike new-user sync, existing-user has no Authentication restore of a
+ * primary SRP — extension may still flag a wallet `isPrimary`, and that
+ * mnemonic must be vault-imported + enriched here so Phase C can create
+ * groups 1..N. There is no separate `importNewSecretRecoveryPhrase` path.
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
@@ -74,12 +75,13 @@ const finishExistingUserSyncWithoutMnemonic = async (
     return;
   }
 
-  // Fire Phase C (preconditions asserted inside provisionFromMetadata), then
-  // always clear QR session state before navigating Home.
+  // Phase C is non-blocking and needs provisioning metadata until
+  // `completeProvisioning` runs. Do NOT resetState here — early reset leaves
+  // only group 0 (Account 1) per wallet because groups 1..N are created in Phase C.
+  // Matches new-user `finalizeOnboardingCompletion` behavior.
   startExistingUserQrMetadataProvisioning(
     QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
   );
-  Engine.context.QrSyncController.resetState();
   navigation.navigate(Routes.WALLET_VIEW);
 };
 
