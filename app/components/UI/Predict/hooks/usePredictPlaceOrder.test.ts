@@ -758,6 +758,36 @@ describe('usePredictPlaceOrder', () => {
     });
   });
 
+  describe('loading state', () => {
+    it('sets loading state before the pre-submit balance refetch resolves', async () => {
+      let resolveBalance: (value: { data: number }) => void = () => undefined;
+      mockRefetchBalance.mockReturnValue(
+        new Promise((resolve) => {
+          resolveBalance = resolve;
+        }),
+      );
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let pendingOrder: Promise<PlaceOrderOutcome> | undefined;
+      act(() => {
+        pendingOrder = result.current.placeOrder(mockOrderParams);
+      });
+      const isLoadingDuringRefetch = result.current.isLoading;
+      const refetchCallsDuringRefetch = mockRefetchBalance.mock.calls.length;
+      const orderCallsDuringRefetch = mockPlaceOrder.mock.calls.length;
+      await act(async () => {
+        resolveBalance({ data: 1000 });
+        await pendingOrder;
+      });
+
+      expect(refetchCallsDuringRefetch).toBe(1);
+      expect(orderCallsDuringRefetch).toBe(0);
+      expect(isLoadingDuringRefetch).toBe(true);
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
   describe('order not filled detection', () => {
     it('sets isOrderNotFilled to true when BUY order throws BUY_ORDER_NOT_FULLY_FILLED', async () => {
       mockPlaceOrder.mockRejectedValue(
