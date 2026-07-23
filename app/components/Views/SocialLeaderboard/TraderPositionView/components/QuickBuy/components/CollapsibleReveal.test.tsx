@@ -51,4 +51,37 @@ describe('CollapsibleReveal', () => {
     expect(screen.queryByTestId('reveal')).toBeNull();
     expect(screen.queryByTestId('reveal-child')).toBeNull();
   });
+
+  it('collapses before natural onLayout when expanded flips to false', () => {
+    const { rerender } = render(
+      <CollapsibleReveal
+        expanded
+        snapExpandedOnMount
+        unmountWhenCollapsed={false}
+        testID="reveal"
+      >
+        <Text testID="reveal-child">content</Text>
+      </CollapsibleReveal>,
+    );
+
+    expect(screen.getByTestId('reveal').props.onLayout).toBeDefined();
+    expect(screen.getByTestId('reveal-content').props.onLayout).toBeUndefined();
+
+    rerender(
+      <CollapsibleReveal
+        expanded={false}
+        snapExpandedOnMount
+        unmountWhenCollapsed={false}
+        testID="reveal"
+      >
+        <Text testID="reveal-child">content</Text>
+      </CollapsibleReveal>,
+    );
+
+    expect(screen.getByTestId('reveal').props.onLayout).toBeUndefined();
+    expect(screen.getByTestId('reveal-content').props.onLayout).toBeDefined();
+    expect(screen.getByTestId('reveal-content').props.pointerEvents).toBe(
+      'none',
+    );
+  });
 });

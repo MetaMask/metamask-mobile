@@ -69,6 +69,13 @@ const CollapsibleReveal: React.FC<CollapsibleRevealProps> = ({
 
   useEffect(() => {
     if (isNatural) {
+      // Collapse requested before natural onLayout — switch to animated so the
+      // footer/keypad sync doesn't leave full-opacity content visible.
+      if (!expanded) {
+        setLayoutMode('animated');
+        opacitySV.value = withTiming(0, KEYPAD_REVEAL_TIMING);
+        animatedHeightSV.value = withTiming(0, KEYPAD_REVEAL_TIMING);
+      }
       return;
     }
 
