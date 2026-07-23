@@ -1,20 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
-import { TouchableOpacity, View, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  Box,
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextField,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import Keypad from '../../../../Base/Keypad';
 import {
   formatPerpsFiat,
@@ -28,7 +27,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
@@ -68,13 +66,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   direction = 'long',
   isClosingPosition = false,
 }) => {
-  const { colors } = useTheme();
-  const tw = useTailwind();
-  const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  // Cursor animation
-  const cursorOpacity = useRef(new Animated.Value(1)).current;
 
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
@@ -120,28 +112,8 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     if (isVisible) {
       setInputMethod(null); // Reset input method tracking for new session
       bottomSheetRef.current?.onOpenBottomSheet();
-
-      // Start cursor blinking animation
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(cursorOpacity, {
-            toValue: 0,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(cursorOpacity, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    } else {
-      // Stop animation when not visible
-      cursorOpacity.stopAnimation();
-      cursorOpacity.setValue(1);
     }
-  }, [isVisible, cursorOpacity]);
+  }, [isVisible]);
 
   const handleConfirm = () => {
     // Remove any formatting (commas, dollar signs) before passing the value
@@ -225,36 +197,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
     return formatPerpsFiat(price, formatConfig);
   }, []);
-
-  /**
-   * Get text color for limit price based on value
-   * @param price - Price string to check
-   * @returns Style object with color
-   */
-  const getLimitPriceTextStyle = useCallback(
-    (price: string) => {
-      const baseStyle = styles.limitPriceValue;
-      const isEmptyOrZero = !price || price === '0';
-
-      return [baseStyle, isEmptyOrZero && { color: colors.text.muted }];
-    },
-    [colors.text.muted, styles.limitPriceValue],
-  );
-
-  /**
-   * Get animated cursor style
-   * @returns Style array for animated cursor
-   */
-  const getCursorStyle = useCallback(
-    () => [
-      tw.style('w-0.5 h-5'),
-      {
-        backgroundColor: colors.primary.default,
-        opacity: cursorOpacity,
-      },
-    ],
-    [colors.primary.default, cursorOpacity, tw],
-  );
 
   /**
    * Compute contextual warning based on limit price vs current price
@@ -348,79 +290,71 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     [currentPrice, limitPrice],
   );
 
-  const footerButtonProps = [
-    {
-      label: strings('perps.order.limit_price_modal.set'),
-      testID: PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
-      onPress: handleConfirm,
-      isDisabled:
-        !limitPrice ||
-        limitPrice === '' ||
-        limitPrice === '0' ||
-        parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0 ||
-        exceedsMaxDeviation,
-    },
-  ];
+  const isConfirmDisabled =
+    !limitPrice ||
+    limitPrice === '' ||
+    limitPrice === '0' ||
+    parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0 ||
+    exceedsMaxDeviation;
+
+  const hasInputError = Boolean(exceedsMaxDeviation || limitPriceWarning);
+  const formattedLimitPrice = formatLimitPriceValue(limitPrice);
 
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-    >
+    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.limit_price_modal.title')}
-        </Text>
+        {strings('perps.order.limit_price_modal.title')}
       </BottomSheetHeader>
 
-      <View style={styles.container}>
-        {/* Limit price input section */}
-        <Text style={styles.inputLabel}>
+      <Box twClassName="gap-2 px-4">
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.order.limit_price')}
         </Text>
-        <View
+        <TextField
           testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRICE_DISPLAY}
-          style={styles.limitPriceDisplay}
-        >
-          <View style={tw.style('flex-row items-center flex-1')}>
-            <Text style={getLimitPriceTextStyle(limitPrice)}>
-              {formatLimitPriceValue(limitPrice)}
+          value={formattedLimitPrice}
+          isReadOnly
+          isError={hasInputError}
+          endAccessory={
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              USD
             </Text>
-            {/* Blinking cursor */}
-            <Animated.View style={getCursorStyle()} />
-          </View>
-          <Text style={styles.limitPriceCurrency}>USD</Text>
-        </View>
-        {exceedsMaxDeviation ? (
-          <Text style={styles.errorText}>
-            {strings('perps.order.limit_price_modal.limit_price_too_far')}
+          }
+          inputProps={{
+            showSoftInputOnFocus: false,
+          }}
+        />
+        {hasInputError ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            {exceedsMaxDeviation
+              ? strings('perps.order.limit_price_modal.limit_price_too_far')
+              : limitPriceWarning}
           </Text>
         ) : (
-          limitPriceWarning && (
-            <Text style={styles.errorText}>{limitPriceWarning}</Text>
-          )
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+          >
+            {getPerpsDisplaySymbol(asset)}-USD{' '}
+            {currentPrice !== undefined && currentPrice !== null
+              ? formatPerpsFiat(currentPrice, {
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })
+              : PERPS_CONSTANTS.FallbackPriceDisplay}
+          </Text>
         )}
-        {/* Current market price below input */}
-        <Text style={styles.marketPriceText}>
-          {getPerpsDisplaySymbol(asset)}-USD{' '}
-          {currentPrice !== undefined && currentPrice !== null
-            ? formatPerpsFiat(currentPrice, {
-                ranges: PRICE_RANGES_UNIVERSAL,
-              })
-            : PERPS_CONSTANTS.FallbackPriceDisplay}
-        </Text>
 
-        {/* Quick preset buttons - Mid/Bid/Ask + percentage presets */}
-        <View style={styles.percentageButtonsRow}>
-          {/* Mid price button - uses currentPrice which is the mid price from allMids stream */}
-          <TouchableOpacity
+        <Box twClassName="mb-4 flex-row gap-2">
+          <Button
             testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID}
-            style={styles.percentageButton}
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            twClassName="flex-1"
             onPress={() => {
               if (currentPrice) {
                 setLimitPrice(
@@ -433,18 +367,16 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               }
             }}
           >
-            <Text variant={TextVariant.BodyMD}>
-              {strings('perps.order.limit_price_modal.mid_price')}
-            </Text>
-          </TouchableOpacity>
+            {strings('perps.order.limit_price_modal.mid_price')}
+          </Button>
 
           {direction === 'long' ? (
-            // For long orders: Mid, Bid, -1%, -2%
             <>
-              {/* Bid price button */}
-              <TouchableOpacity
+              <Button
                 testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID}
-                style={styles.percentageButton}
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                twClassName="flex-1"
                 onPress={() => {
                   const price = bidPrice || currentPriceData?.price;
                   if (price) {
@@ -458,17 +390,16 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                   }
                 }}
               >
-                <Text variant={TextVariant.BodyMD}>
-                  {strings('perps.order.limit_price_modal.bid_price')}
-                </Text>
-              </TouchableOpacity>
+                {strings('perps.order.limit_price_modal.bid_price')}
+              </Button>
 
-              {/* Percentage presets */}
               {LIMIT_PRICE_CONFIG.LongPresets.map((percentage) => (
-                <TouchableOpacity
+                <Button
                   key={percentage}
                   testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
-                  style={styles.percentageButton}
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Md}
+                  twClassName="flex-1"
                   onPress={() => {
                     const calculatedPrice =
                       calculatePriceForPercentage(percentage);
@@ -485,20 +416,17 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     }
                   }}
                 >
-                  <Text variant={TextVariant.BodyMD}>
-                    {percentage > 0 ? '+' : ''}
-                    {percentage}%
-                  </Text>
-                </TouchableOpacity>
+                  {`${percentage > 0 ? '+' : ''}${percentage}%`}
+                </Button>
               ))}
             </>
           ) : (
-            // For short orders: Mid, Ask, +1%, +2%
             <>
-              {/* Ask price button */}
-              <TouchableOpacity
+              <Button
                 testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK}
-                style={styles.percentageButton}
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                twClassName="flex-1"
                 onPress={() => {
                   const price = askPrice || currentPriceData?.price;
                   if (price) {
@@ -512,17 +440,16 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                   }
                 }}
               >
-                <Text variant={TextVariant.BodyMD}>
-                  {strings('perps.order.limit_price_modal.ask_price')}
-                </Text>
-              </TouchableOpacity>
+                {strings('perps.order.limit_price_modal.ask_price')}
+              </Button>
 
-              {/* Percentage presets */}
               {LIMIT_PRICE_CONFIG.ShortPresets.map((percentage) => (
-                <TouchableOpacity
+                <Button
                   key={percentage}
                   testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
-                  style={styles.percentageButton}
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Md}
+                  twClassName="flex-1"
                   onPress={() => {
                     const calculatedPrice =
                       calculatePriceForPercentage(percentage);
@@ -539,32 +466,34 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     }
                   }}
                 >
-                  <Text variant={TextVariant.BodyMD}>
-                    {percentage > 0 ? '+' : ''}
-                    {percentage}%
-                  </Text>
-                </TouchableOpacity>
+                  {`${percentage > 0 ? '+' : ''}${percentage}%`}
+                </Button>
               ))}
             </>
           )}
-        </View>
+        </Box>
+      </Box>
 
-        {/* Keypad */}
-        <View style={styles.keypadContainer}>
-          <Keypad
-            value={limitPrice}
-            // This is intentionaly not a real currecy
-            // It is used to override the default decimals for USD with minimal changes
-            currency="USD_PERPS"
-            onChange={handleKeypadChange}
-            decimals={5}
-          />
-        </View>
-      </View>
+      <Box twClassName="mb-4 px-4">
+        <Keypad
+          value={limitPrice}
+          // This is intentionaly not a real currecy
+          // It is used to override the default decimals for USD with minimal changes
+          currency="USD_PERPS"
+          onChange={handleKeypadChange}
+          decimals={5}
+        />
+      </Box>
 
-      <View style={styles.footerContainer}>
-        <BottomSheetFooter buttonPropsArray={footerButtonProps} />
-      </View>
+      <BottomSheetFooter
+        primaryButtonProps={{
+          children: strings('perps.order.limit_price_modal.set'),
+          onPress: handleConfirm,
+          size: ButtonSize.Lg,
+          isDisabled: isConfirmDisabled,
+          testID: PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        }}
+      />
     </BottomSheet>
   );
 };
