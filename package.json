@@ -321,7 +321,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
-    "@metamask/money-account-api-data-service": "^0.2.0",
+    "@metamask/money-account-api-data-service": "^0.3.0",
     "@metamask/money-account-balance-service": "^2.3.0",
     "@metamask/money-account-controller": "^0.2.0",
     "@metamask/money-account-upgrade-controller": "^2.2.0",
