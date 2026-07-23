@@ -311,6 +311,8 @@ const RewardsVipTransactionsView: React.FC = () => {
           includesTopInset
         />
 
+        {renderListHeader()}
+
         <FlatList<TransactionListItem>
           testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.LIST}
           data={groupedItems}
@@ -318,7 +320,6 @@ const RewardsVipTransactionsView: React.FC = () => {
           keyExtractor={keyExtractor}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.3}
-          ListHeaderComponent={renderListHeader}
           ListFooterComponent={renderFooter}
           ListEmptyComponent={renderEmpty}
           refreshControl={
