@@ -98,6 +98,10 @@ describe('Trace', () => {
     updateCachedConsent(false);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('trace', () => {
     it('executes callback', () => {
       let callbackExecuted = false;
