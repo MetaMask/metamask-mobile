@@ -8,6 +8,7 @@ import React, {
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -133,7 +134,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<

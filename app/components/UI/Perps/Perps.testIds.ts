@@ -442,6 +442,29 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PRO MARKET VIEW SELECTORS
+// ========================================
+
+export const PerpsProMarketViewSelectorsIDs = {
+  CONTAINER: 'perps-pro-market-view',
+  ERROR: 'perps-pro-market-error',
+  SCROLL_VIEW: 'perps-pro-market-scroll-view',
+  HEADER: 'perps-pro-market-header',
+  HEADER_SYMBOL: 'perps-pro-market-header-symbol',
+  MARKET_SUMMARY: 'perps-pro-market-summary',
+  CHART_PANEL: 'perps-pro-market-chart-panel',
+  CHART_CONTENT: 'perps-pro-market-chart-content',
+  STATS_BAR: 'perps-pro-market-stats-bar',
+  LAYOUT: 'perps-pro-market-layout',
+  LEFT_COLUMN: 'perps-pro-market-left-column',
+  RIGHT_COLUMN: 'perps-pro-market-right-column',
+  VERTICAL_DIVIDER: 'perps-pro-market-vertical-divider',
+  ORDER_FORM_PANEL: 'perps-pro-market-order-form-panel',
+  ORDER_BOOK_PANEL: 'perps-pro-market-order-book-panel',
+  POSITIONS_PANEL: 'perps-pro-market-positions-panel',
+};
+
+// ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================
 
@@ -872,4 +895,23 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+} as const;
+
+// ========================================
+// PERPS MODE TOGGLE SELECTORS
+// ========================================
+
+export const PerpsModeToggleSelectorsIDs = {
+  CONTAINER: 'perps-mode-toggle',
+  LITE_SEGMENT: 'perps-mode-toggle-lite',
+  PRO_SEGMENT: 'perps-mode-toggle-pro',
+} as const;
+
+// ========================================
+// PERPS MODE FLASH SELECTORS
+// ========================================
+
+export const PerpsModeFlashSelectorsIDs = {
+  CONTAINER: 'perps-mode-flash',
+  TITLE: 'perps-mode-flash-title',
 } as const;

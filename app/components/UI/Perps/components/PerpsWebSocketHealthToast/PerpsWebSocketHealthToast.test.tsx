@@ -22,18 +22,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children, ...props }: { children: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextVariant: { BodyMD: 'BodyMD', BodySM: 'BodySM' },
-    TextColor: { Default: 'Default', Alternative: 'Alternative' },
-  };
-});
-
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: () => null,
