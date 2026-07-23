@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Document Start Injection Test Dapp</title>
+    <script>
+      window.__mmEthereumAtFirstInlineScript =
+        typeof window.ethereum !== 'undefined';
+
+      if (!window.__mmEthereumAtFirstInlineScript) {
+        throw new Error('window.ethereum should be available synchronously');
+      }
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Document Start Injection Test Dapp</h1>
+      <p id="document-start-status">Waiting for result</p>
+    </main>
+    <script>
+      const status = document.getElementById('document-start-status');
+
+      if (window.__mmEthereumAtFirstInlineScript) {
+        status.textContent =
+          'window.ethereum was available before the first inline script completed';
+      } else {
+        status.textContent =
+          'window.ethereum was missing before the first inline script completed';
+      }
+    </script>
+  </body>
+</html>
