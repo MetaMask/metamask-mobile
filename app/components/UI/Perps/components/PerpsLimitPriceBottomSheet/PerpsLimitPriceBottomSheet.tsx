@@ -290,6 +290,44 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     [currentPrice, limitPrice],
   );
 
+  const applyLimitPrice = useCallback((price: number, method: string) => {
+    setLimitPrice(
+      formatWithSignificantDigits(
+        price,
+        DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+      ).value.toString(),
+    );
+    setInputMethod(method);
+  }, []);
+
+  const handlePresetPrice = useCallback(
+    (price: string | number | undefined) => {
+      if (price === undefined || price === null || price === '') {
+        return;
+      }
+      const numericPrice =
+        typeof price === 'number' ? price : parseFloat(price);
+      if (!numericPrice) {
+        return;
+      }
+      applyLimitPrice(numericPrice, PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
+    },
+    [applyLimitPrice],
+  );
+
+  const handlePercentagePreset = useCallback(
+    (percentage: number) => {
+      const calculatedPrice = calculatePriceForPercentage(percentage);
+      if (calculatedPrice) {
+        applyLimitPrice(
+          parseFloat(calculatedPrice),
+          PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
+        );
+      }
+    },
+    [applyLimitPrice, calculatePriceForPercentage],
+  );
+
   const isConfirmDisabled =
     !limitPrice ||
     limitPrice === '' ||
@@ -299,6 +337,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   const hasInputError = Boolean(exceedsMaxDeviation || limitPriceWarning);
   const formattedLimitPrice = formatLimitPriceValue(limitPrice);
+  const isLong = direction === 'long';
+  const percentagePresets = isLong
+    ? LIMIT_PRICE_CONFIG.LongPresets
+    : LIMIT_PRICE_CONFIG.ShortPresets;
 
   if (!isVisible) return null;
 
@@ -352,122 +394,49 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Md}
             twClassName="flex-1"
-            onPress={() => {
-              if (currentPrice) {
-                setLimitPrice(
-                  formatWithSignificantDigits(
-                    currentPrice,
-                    DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-                  ).value.toString(),
-                );
-                setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
-              }
-            }}
+            onPress={() => handlePresetPrice(currentPrice)}
           >
             {strings('perps.order.limit_price_modal.mid_price')}
           </Button>
 
-          {direction === 'long' ? (
-            <>
-              <Button
-                testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID}
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                twClassName="flex-1"
-                onPress={() => {
-                  const price = bidPrice || currentPriceData?.price;
-                  if (price) {
-                    setLimitPrice(
-                      formatWithSignificantDigits(
-                        parseFloat(price),
-                        DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-                      ).value.toString(),
-                    );
-                    setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
-                  }
-                }}
-              >
-                {strings('perps.order.limit_price_modal.bid_price')}
-              </Button>
-
-              {LIMIT_PRICE_CONFIG.LongPresets.map((percentage) => (
-                <Button
-                  key={percentage}
-                  testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Md}
-                  twClassName="flex-1"
-                  onPress={() => {
-                    const calculatedPrice =
-                      calculatePriceForPercentage(percentage);
-                    if (calculatedPrice) {
-                      setLimitPrice(
-                        formatWithSignificantDigits(
-                          parseFloat(calculatedPrice),
-                          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-                        ).value.toString(),
-                      );
-                      setInputMethod(
-                        PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
-                      );
-                    }
-                  }}
-                >
-                  {`${percentage > 0 ? '+' : ''}${percentage}%`}
-                </Button>
-              ))}
-            </>
+          {isLong ? (
+            <Button
+              testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="flex-1"
+              onPress={() =>
+                handlePresetPrice(bidPrice || currentPriceData?.price)
+              }
+            >
+              {strings('perps.order.limit_price_modal.bid_price')}
+            </Button>
           ) : (
-            <>
-              <Button
-                testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK}
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                twClassName="flex-1"
-                onPress={() => {
-                  const price = askPrice || currentPriceData?.price;
-                  if (price) {
-                    setLimitPrice(
-                      formatWithSignificantDigits(
-                        parseFloat(price),
-                        DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-                      ).value.toString(),
-                    );
-                    setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
-                  }
-                }}
-              >
-                {strings('perps.order.limit_price_modal.ask_price')}
-              </Button>
-
-              {LIMIT_PRICE_CONFIG.ShortPresets.map((percentage) => (
-                <Button
-                  key={percentage}
-                  testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Md}
-                  twClassName="flex-1"
-                  onPress={() => {
-                    const calculatedPrice =
-                      calculatePriceForPercentage(percentage);
-                    if (calculatedPrice) {
-                      setLimitPrice(
-                        formatWithSignificantDigits(
-                          parseFloat(calculatedPrice),
-                          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-                        ).value.toString(),
-                      );
-                      setInputMethod(
-                        PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
-                      );
-                    }
-                  }}
-                >
-                  {`${percentage > 0 ? '+' : ''}${percentage}%`}
-                </Button>
-              ))}
-            </>
+            <Button
+              testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="flex-1"
+              onPress={() =>
+                handlePresetPrice(askPrice || currentPriceData?.price)
+              }
+            >
+              {strings('perps.order.limit_price_modal.ask_price')}
+            </Button>
           )}
+
+          {percentagePresets.map((percentage) => (
+            <Button
+              key={percentage}
+              testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="flex-1"
+              onPress={() => handlePercentagePreset(percentage)}
+            >
+              {`${percentage > 0 ? '+' : ''}${percentage}%`}
+            </Button>
+          ))}
         </Box>
       </Box>
 
