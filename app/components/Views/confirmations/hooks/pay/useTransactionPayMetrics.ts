@@ -74,11 +74,9 @@ export function useTransactionPayMetrics() {
 
   const hasQuotes = (quotes?.length ?? 0) > 0;
 
-  useEffect(() => {
-    if (hasQuotes && !hasLoadedQuoteRef.current) {
-      hasLoadedQuoteRef.current = true;
-    }
-  }, [hasQuotes]);
+  if (hasQuotes && !hasLoadedQuoteRef.current) {
+    hasLoadedQuoteRef.current = true;
+  }
 
   const availableTokens = useMemo(
     () => tokens.filter((t) => !t.disabled),
