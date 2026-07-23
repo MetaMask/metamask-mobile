@@ -336,6 +336,25 @@ describe('externalBrowserReturn', () => {
       expect(order).toBe(ORDER);
     });
 
+    it('normalizes a full-path fallback orderId to the bare order code for getOrder', async () => {
+      mockRampsController.getOrderFromCallback.mockResolvedValue(null);
+      recordExternalReturnCorrelation(buildCorrelation('session-2b'));
+
+      await completeHeadlessExternalReturn({
+        sessionId: 'session-2b',
+        providerCode: 'coinbase-m',
+        walletAddress: '0xwallet',
+        returnUrl: 'metamask://on-ramp/providers/coinbase-m',
+        orderIdFallback: '/providers/coinbase-m/orders/order-guid-7',
+      });
+
+      expect(mockRampsController.getOrder).toHaveBeenCalledWith(
+        'coinbase-m',
+        'order-guid-7',
+        '0xwallet',
+      );
+    });
+
     it('throws when the order cannot be resolved and keeps the correlation for the caller to route', async () => {
       mockRampsController.getOrderFromCallback.mockRejectedValue(
         new Error('lookup failed'),

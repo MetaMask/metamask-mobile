@@ -8,6 +8,7 @@ import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
+import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { selectHasAgreedTransakNativePolicy } from '../../../../reducers/fiatOrders';
 import Device from '../../../../util/device';
 
@@ -375,6 +376,17 @@ export function useContinueWithQuote(
               ) as Error & { rampsErrorReported?: boolean };
               noWalletError.rampsErrorReported = true;
               throw noWalletError;
+            }
+            // Carry the headless analytics context on the ORDER as of launch
+            // (not only at completion): a paid-but-never-returned external
+            // order that later polls to a terminal failure must still be
+            // tagged HEADLESS + surface. Keys are normalized, so the
+            // completion-time write converges on the same entry.
+            if (effectiveOrderId) {
+              setHeadlessOrderContext(effectiveOrderId, {
+                rampSurface: headlessSession.params.rampSurface,
+                region: userRegion?.regionCode ?? '',
+              });
             }
             // P2.M2/E2: correlate the deeplink return with this session. The
             // record retains `onOrderCreated` so a success return can

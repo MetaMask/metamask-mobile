@@ -89,6 +89,13 @@ jest.mock('../headless/headlessEntryNavigation', () => ({
   dismissHeadlessFlow: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+  () => ({
+    setHeadlessOrderContext: jest.fn(),
+  }),
+);
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -834,6 +841,16 @@ describe('useContinueWithQuote', () => {
           onOrderCreated: callbacks.onOrderCreated,
         }),
       );
+      // The headless order context is written at LAUNCH so a
+      // paid-but-never-returned order that later fails via polling is still
+      // tagged HEADLESS + surface.
+      const mockSetHeadlessOrderContext = jest.requireMock(
+        '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+      ).setHeadlessOrderContext as jest.Mock;
+      expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith('order-1', {
+        rampSurface: 'perps',
+        region: 'us-ca',
+      });
     });
 
     it('iOS openAuth success resolves into the shared completion and dismisses the flow (E1)', async () => {

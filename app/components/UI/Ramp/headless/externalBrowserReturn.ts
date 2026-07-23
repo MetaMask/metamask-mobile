@@ -259,9 +259,12 @@ export async function completeHeadlessExternalReturn(
       correlation?.orderId;
     if (!order && orderIdFallback) {
       try {
+        // Normalize to the bare order code: `buyWidget.orderId` can be a full
+        // `/providers/.../orders/...` path, and `getOrder` splices the value
+        // into a URL segment (same normalization OrderDetails applies).
         order = await RampsController.getOrder(
           providerCode,
-          orderIdFallback,
+          extractOrderCode(orderIdFallback),
           walletAddress,
         );
       } catch (error) {
