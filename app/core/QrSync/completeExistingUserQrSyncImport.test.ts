@@ -5,6 +5,8 @@ import {
   DUPLICATE_MNEMONIC_ERROR_MESSAGES,
   isDuplicateMnemonicError,
 } from './completeExistingUserQrSyncImport';
+import { QrSyncProvisioningStatuses } from './constants';
+import { reportQrSyncFailure } from './qrSyncTelemetry';
 
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockResetState = jest.fn();
@@ -15,6 +17,11 @@ const mockNavigate = jest.fn();
 const mockShowAlreadySyncedSheet = jest.fn();
 const mockShowImportFailedSheet = jest.fn();
 
+const mockQrSyncControllerState = {
+  provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED as string,
+  provisioningMetadata: { version: '1.0.0', entries: [] } as object | null,
+};
+
 jest.mock('../../actions/multiSrp', () => ({
   importNewSecretRecoveryPhrase: (...args: unknown[]) =>
     mockImportNewSecretRecoveryPhrase(...args),
@@ -23,6 +30,9 @@ jest.mock('../../actions/multiSrp', () => ({
 jest.mock('../Engine', () => ({
   context: {
     QrSyncController: {
+      get state() {
+        return mockQrSyncControllerState;
+      },
       resetState: () => mockResetState(),
       enrichPrimaryProvisioningEntry: (...args: unknown[]) =>
         mockEnrichPrimaryProvisioningEntry(...args),
@@ -52,6 +62,14 @@ jest.mock(
   }),
 );
 
+jest.mock('./qrSyncTelemetry', () => {
+  const actual = jest.requireActual('./qrSyncTelemetry');
+  return {
+    ...actual,
+    reportQrSyncFailure: jest.fn(),
+  };
+});
+
 const mockNavigation = {
   navigate: mockNavigate,
 } as unknown as AppNavigationProp;
@@ -63,6 +81,12 @@ const TEST_ENTROPY_SOURCE = 'entropy-source-id';
 describe('completeExistingUserQrSyncImport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockQrSyncControllerState.provisioningStatus =
+      QrSyncProvisioningStatuses.SECRETS_IMPORTED;
+    mockQrSyncControllerState.provisioningMetadata = {
+      version: '1.0.0',
+      entries: [],
+    };
     mockImportNewSecretRecoveryPhrase.mockResolvedValue({
       address: '0xabc',
       discoveredAccountsCount: 0,
@@ -99,6 +123,34 @@ describe('completeExistingUserQrSyncImport', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockResetState).not.toHaveBeenCalled();
+  });
+
+  it('navigates home without import-failed UI when remaining secrets fail after primary import', async () => {
+    mockImportRemainingSecrets.mockImplementationOnce(async () => {
+      mockQrSyncControllerState.provisioningStatus =
+        QrSyncProvisioningStatuses.AWAITING_PASSWORD;
+      throw new Error('remaining import failed');
+    });
+
+    await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
+
+    expect(reportQrSyncFailure).toHaveBeenCalled();
+    expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
+    expect(mockResetState).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips Phase C and resets QR state when Phase B did not reach secrets_imported', async () => {
+    mockQrSyncControllerState.provisioningStatus =
+      QrSyncProvisioningStatuses.AWAITING_PASSWORD;
+
+    await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
+
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
+    expect(mockResetState).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
   });
 
   it.each([...DUPLICATE_MNEMONIC_ERROR_MESSAGES])(

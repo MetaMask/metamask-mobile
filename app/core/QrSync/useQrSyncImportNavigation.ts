@@ -92,10 +92,15 @@ const finishExistingUserSyncWithoutMnemonic = async (
     return;
   }
 
-  // Phase C — non-blocking; completeProvisioning clears QR sync state.
-  startExistingUserQrMetadataProvisioning(
-    QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
-  );
+  // Phase C only when Phase B finalized to secrets_imported; otherwise clear
+  // QR state so we do not leave a stuck provisioning session.
+  if (
+    !startExistingUserQrMetadataProvisioning(
+      QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
+    )
+  ) {
+    Engine.context.QrSyncController.resetState();
+  }
   navigation.navigate(Routes.WALLET_VIEW);
 };
 

@@ -34,20 +34,39 @@ const runExistingUserQrSyncImport = async (
   try {
     // Do not race import against a timer — Multichain/keyring import cannot be
     // cancelled, and a timeout would leave late vault mutations after failure UI.
+    // skipDiscovery: Phase C applies extension layout, then reconciles user storage.
     const { entropySource } = await importNewSecretRecoveryPhrase(mnemonic, {
       shouldSelectAccount: true,
       skipDiscovery: true,
     });
 
+    // Primary SRP is now in the vault. Remaining-secret / Phase B failures must
+    // not show a total import-failed UI (Bugbot: failure UI after primary import).
     Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
       entropySource,
     );
-    await Engine.context.QrSyncController.importRemainingSecrets();
 
-    // Phase C — non-blocking; completeProvisioning clears QR sync state.
-    startExistingUserQrMetadataProvisioning(
-      QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
-    );
+    try {
+      await Engine.context.QrSyncController.importRemainingSecrets();
+    } catch (remainingError) {
+      reportQrSyncFailure(remainingError, {
+        surface: QrSyncSurfaces.IMPORT,
+        operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
+        source: QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
+        syncFlow: QrSyncSyncFlows.EXISTING_USER,
+      });
+    }
+
+    // Phase C only when Phase B finalized to secrets_imported (Bugbot: Phase C
+    // after incomplete Phase B). Otherwise clear QR state and still go Home —
+    // the primary SRP import already succeeded.
+    if (
+      !startExistingUserQrMetadataProvisioning(
+        QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
+      )
+    ) {
+      Engine.context.QrSyncController.resetState();
+    }
 
     navigation.navigate(Routes.WALLET_VIEW);
   } catch (error) {
@@ -71,7 +90,8 @@ const runExistingUserQrSyncImport = async (
 
 /**
  * Completes existing-user QR sync by importing the primary mnemonic, remaining
- * secrets, and applying extension wallet/account metadata (Phase C).
+ * secrets, and applying extension wallet/account metadata (Phase C) when Phase B
+ * finalized successfully.
  * Duplicate SRP is surfaced with SuccessErrorSheet and treated as
  * already-synced.
  */

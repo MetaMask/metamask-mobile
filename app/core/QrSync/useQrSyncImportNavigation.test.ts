@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
 import Routes from '../../constants/navigation/Routes';
-import { QrSyncSecretTypes } from './constants';
+import { QrSyncProvisioningStatuses, QrSyncSecretTypes } from './constants';
 import { useQrSyncImportNavigation } from './useQrSyncImportNavigation';
 
 const mockNavigate = jest.fn();
@@ -17,6 +17,12 @@ const mockShowImportFailedSheet = jest.fn();
 let mockCompletedOnboarding = false;
 let mockShouldNavigateToImport = false;
 let mockQrSyncMnemonic: string | null = null;
+
+const mockQrSyncControllerState = {
+  pendingSecretImports: null as unknown,
+  provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED as string,
+  provisioningMetadata: { version: '1.0.0', entries: [] } as object | null,
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -43,8 +49,8 @@ jest.mock('../Engine', () => ({
       getAccounts: (...args: unknown[]) => mockGetAccounts(...args),
     },
     QrSyncController: {
-      state: {
-        pendingSecretImports: null as unknown,
+      get state() {
+        return mockQrSyncControllerState;
       },
       importRemainingSecrets: (...args: unknown[]) =>
         mockImportRemainingSecrets(...args),
@@ -114,7 +120,13 @@ describe('useQrSyncImportNavigation', () => {
     mockCompletedOnboarding = false;
     mockShouldNavigateToImport = false;
     mockQrSyncMnemonic = null;
-    Engine.context.QrSyncController.state.pendingSecretImports = null;
+    mockQrSyncControllerState.pendingSecretImports = null;
+    mockQrSyncControllerState.provisioningStatus =
+      QrSyncProvisioningStatuses.SECRETS_IMPORTED;
+    mockQrSyncControllerState.provisioningMetadata = {
+      version: '1.0.0',
+      entries: [],
+    };
     mockGetAccounts.mockResolvedValue([]);
     mockImportRemainingSecrets.mockResolvedValue(undefined);
     mockCompleteExistingUserQrSyncImport.mockResolvedValue(undefined);
