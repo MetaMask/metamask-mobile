@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import MoreSection from './MoreSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
@@ -101,7 +101,7 @@ describe('MoreSection', () => {
     );
   });
 
-  it('opens the support consent sheet and tracks location', () => {
+  it('opens the support consent sheet when contact support is tapped', () => {
     renderSection();
 
     fireEvent.press(
@@ -117,6 +117,31 @@ describe('MoreSection', () => {
         onReject: expect.any(Function),
       },
     });
+    // Tracking is deferred until support actually opens (see below), not the
+    // mere tap that only shows the consent sheet.
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('opens the webview with the plain support URL and tracks location when consent is rejected', async () => {
+    renderSection();
+
+    fireEvent.press(
+      screen.getByTestId(
+        HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON,
+      ),
+    );
+    const { onReject } = mockNavigate.mock.calls[0][1].params;
+    await act(async () => {
+      await onReject();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: expect.stringContaining(METAMASK_SUPPORT_URL),
+        title: 'Contact support',
+      },
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Navigation Drawer',
@@ -127,25 +152,5 @@ describe('MoreSection', () => {
         }),
       }),
     );
-  });
-
-  it('opens the webview with the plain support URL when consent is rejected', () => {
-    renderSection();
-
-    fireEvent.press(
-      screen.getByTestId(
-        HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON,
-      ),
-    );
-    const { onReject } = mockNavigate.mock.calls[0][1].params;
-    onReject();
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: expect.stringContaining(METAMASK_SUPPORT_URL),
-        title: 'Contact support',
-      },
-    });
   });
 });
