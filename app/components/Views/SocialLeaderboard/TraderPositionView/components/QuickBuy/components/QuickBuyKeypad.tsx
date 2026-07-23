@@ -40,7 +40,8 @@ const QuickBuyKeypad: React.FC = () => {
     : UNPRICED_KEYPAD_CURRENCY;
   const { decimalSeparator } = useCurrency(keypadCurrency);
 
-  const internalAmount = hasSourcePrice ? fiatAmount : sourceAmountTokens;
+  const internalAmount =
+    (hasSourcePrice ? fiatAmount : sourceAmountTokens) ?? '';
   const keypadValue = useMemo(() => {
     if (!decimalSeparator || !internalAmount.includes('.')) {
       return internalAmount;
@@ -56,7 +57,7 @@ const QuickBuyKeypad: React.FC = () => {
   );
 
   const handleDonePress = useCallback(() => {
-    const amount = hasSourcePrice ? fiatAmount : sourceAmountTokens;
+    const amount = (hasSourcePrice ? fiatAmount : sourceAmountTokens) ?? '';
     // `fiatAmount` is normalized to "." in the controller; unpriced token
     // amounts use the native keypad rule (also ".").
     if (amount.endsWith('.')) {
