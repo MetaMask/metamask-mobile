@@ -1,4 +1,3 @@
-import type { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import type { Hex } from '@metamask/utils';
 import type { NetworkSelectorSource } from '../../../constants/networkSelector';
 
@@ -9,7 +8,7 @@ import type { NetworkSelectorSource } from '../../../constants/networkSelector';
 /** Network selector parameters */
 export interface NetworkSelectorParams {
   onNetworkSelected?: (chainId: string) => void;
-  chainId?: Hex | SupportedCaipChainId;
+  chainId?: Hex;
   hostInfo?: {
     metadata?: {
       origin?: string;

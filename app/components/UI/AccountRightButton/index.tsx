@@ -28,6 +28,7 @@ import {
   getNetworkImageSource,
 } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -67,7 +68,7 @@ const AccountRightButton = ({
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
-  const { navigate } = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
@@ -127,21 +128,24 @@ const AccountRightButton = ({
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
     if (!selectedAddress) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.NETWORK_SELECTOR,
-        params: {
-          chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
-          ...(dappOrigin
-            ? {
-                hostInfo: {
-                  metadata: {
-                    origin: dappOrigin,
+      navigateWithDetails(navigation, [
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+          params: {
+            chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
+            ...(dappOrigin
+              ? {
+                  hostInfo: {
+                    metadata: {
+                      origin: dappOrigin,
+                    },
                   },
-                },
-              }
-            : {}),
+                }
+              : {}),
+          },
         },
-      });
+      ]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
           .addProperties({
@@ -155,7 +159,7 @@ const AccountRightButton = ({
   }, [
     dismissKeyboard,
     selectedAddress,
-    navigate,
+    navigation,
     trackEvent,
     createEventBuilder,
     chainId,

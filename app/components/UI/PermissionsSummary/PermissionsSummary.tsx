@@ -30,6 +30,7 @@ import {
 } from './MaliciousDappIndicators';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -240,19 +241,22 @@ const PermissionsSummary = ({
               iconName={IconName.Info}
               iconColor={IconColor.Default}
               onPress={() => {
-                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                  screen: Routes.SHEET.CONNECTION_DETAILS,
-                  params: {
-                    hostInfo: {
-                      metadata: {
-                        origin:
-                          currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).origin,
+                navigateWithDetails(navigation, [
+                  Routes.MODAL.ROOT_MODAL_FLOW,
+                  {
+                    screen: Routes.SHEET.CONNECTION_DETAILS,
+                    params: {
+                      hostInfo: {
+                        metadata: {
+                          origin:
+                            currentPageInformation?.url &&
+                            new URL(currentPageInformation?.url).origin,
+                        },
                       },
+                      connectionDateTime: new Date().getTime(),
                     },
-                    connectionDateTime: new Date().getTime(),
                   },
-                });
+                ]);
               }}
               testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
             />
