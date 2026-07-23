@@ -3,11 +3,11 @@
   "previewBuilds": {
     "@metamask/ramps-controller": {
       "type": "breaking",
-      "previewVersion": "17.0.0-preview-acc8294b8"
+      "previewVersion": "17.0.0-preview-68ba7f84e"
     },
     "@metamask/profile-sync-controller": {
       "type": "breaking",
-      "previewVersion": "28.3.0-preview-acc8294b8"
+      "previewVersion": "28.3.0-preview-68ba7f84e"
     }
   },
   "version": "8.4.0",
@@ -246,7 +246,9 @@
     "@metamask/assets-controllers@npm:^109.2.1": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.3.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.4.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
-    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
+    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
+    "metamask@workspace:./@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@17.0.0-preview-68ba7f84e",
+    "metamask@workspace:./@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@28.3.0-preview-68ba7f84e"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",

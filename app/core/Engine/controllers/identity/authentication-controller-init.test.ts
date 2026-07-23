@@ -81,4 +81,49 @@ describe('AuthenticationControllerInit', () => {
       );
     });
   });
+
+  it('clears persisted sessions minted for a different OIDC env', () => {
+    const prdJwt =
+      'aaa.' +
+      Buffer.from(
+        JSON.stringify({ iss: 'https://oidc.api.cx.metamask.io' }),
+      ).toString('base64url') +
+      '.bbb';
+
+    process.env.MM_DEV_API_ENV = 'dev';
+    const requestMock = getInitRequestMock();
+    requestMock.persistedState.AuthenticationController = {
+      isSignedIn: true,
+      srpSessionData: {
+        'entropy-1': {
+          token: {
+            accessToken: prdJwt,
+            expiresIn: 3600,
+            obtainedAt: Date.now(),
+          },
+          profile: {
+            identifierId: 'id',
+            profileId: 'profile',
+            metaMetricsId: 'mmid',
+          },
+        },
+      },
+    };
+
+    try {
+      authenticationControllerInit(requestMock);
+
+      expect(jest.mocked(AuthenticationController)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: expect.objectContaining({
+            isSignedIn: false,
+            srpSessionData: undefined,
+          }),
+          config: { env: 'dev' },
+        }),
+      );
+    } finally {
+      delete process.env.MM_DEV_API_ENV;
+    }
+  });
 });

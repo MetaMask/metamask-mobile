@@ -9895,9 +9895,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@28.3.0-preview-acc8294b8":
-  version: 28.3.0-preview-acc8294b8
-  resolution: "@metamask-previews/profile-sync-controller@npm:28.3.0-preview-acc8294b8"
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@28.3.0-preview-68ba7f84e":
+  version: 28.3.0-preview-68ba7f84e
+  resolution: "@metamask-previews/profile-sync-controller@npm:28.3.0-preview-68ba7f84e"
   dependencies:
     "@metamask/address-book-controller": "npm:^7.1.2"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9915,7 +9915,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/5915ea0fa48b81f0a658d594e2b1e946014ff19b77870c66e172194f4550fdddddf2748ba6e720024a3f57108cc082b18ae91b43434888e2f99c5f01e8b9090d
+  checksum: 10/c1f527dbd81d9cece54c38d31e2cc55af2e3d5daf8783cdbc37b42498805573eb77ad37adfc2dbff8ce862d59fd3837f1d31bcac948690c9059c56188f6fb819
   languageName: node
   linkType: hard
 
@@ -9985,16 +9985,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@17.0.0-preview-acc8294b8":
-  version: 17.0.0-preview-acc8294b8
-  resolution: "@metamask-previews/ramps-controller@npm:17.0.0-preview-acc8294b8"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@17.0.0-preview-68ba7f84e":
+  version: 17.0.0-preview-68ba7f84e
+  resolution: "@metamask-previews/ramps-controller@npm:17.0.0-preview-68ba7f84e"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/d876826b4753abe4fc8b8b1a280a42c3b110442c440f250dad09858685abf3bc6a5ceddfa80a0dd4931b74d55642e44d636e42c6a891f6d449dbbfa7a73260f4
+  checksum: 10/7abe367116e0b1e2d4192a66f88fa4aab7a0807d647011dd535eab4b97df3b7c2e6928b7e9a864183f442f04b5047906149a6445783b790a46e67acc1b7aae03
   languageName: node
   linkType: hard
 
