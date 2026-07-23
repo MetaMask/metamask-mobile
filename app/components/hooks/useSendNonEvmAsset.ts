@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 
 import { selectSelectedInternalAccount } from '../../selectors/accountsController';
 import { TokenI } from '../UI/Tokens/types';
@@ -21,7 +22,7 @@ interface UseSendNonEvmAssetParams {
  * This consolidates the non-EVM send logic that was duplicated across components
  */
 export function useSendNonEvmAsset({ asset }: UseSendNonEvmAssetParams) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const sendNonEvmAsset = useCallback(

@@ -29,4 +29,6 @@ export interface EditNetworkParams {
   network?: string;
   shouldNetworkSwitchPopToWallet?: boolean;
   shouldShowPopularNetworks?: boolean;
+  /** Track RPC update from the network connection banner. */
+  trackRpcUpdateFromBanner?: boolean;
 }
