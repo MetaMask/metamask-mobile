@@ -86,6 +86,9 @@ export class EmulatorConfigBuilder {
               'appium:adbExecTimeout': androidAdbExecTimeoutMs,
               // Fail Chromedriver attach faster than the default when WebView is stuck.
               'appium:androidWebviewConnectTimeout': 60_000,
+              // ChromeDriver 111+ rejects clients without this; hang looks like a stuck context switch.
+              'appium:chromedriverArgs': ['--remote-allow-origins=*'],
+              'appium:recreateChromeDriverSessions': true,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,

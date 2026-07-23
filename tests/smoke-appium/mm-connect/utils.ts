@@ -2,7 +2,6 @@
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import LoginView from '../../page-objects/wallet/LoginView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import {
@@ -12,42 +11,21 @@ import {
   createLogger,
 } from '../../framework';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+
+export { unlockIfLockScreenVisible } from '../../page-objects/MMConnect/unlockHelpers';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
 });
 
-// Default port for the browser playground dapp server
 const DEFAULT_DAPP_PORT = 8090;
-
-const UNLOCK_WAIT_MS = 5000;
-
-/**
- * If the app auto-locked and the unlock/login screen is displayed, enter password and unlock.
- * Waits no more than 3 seconds for the unlock screen; if not visible, returns without action.
- * Call from native context before interacting with connection/sign modals.
- */
-export async function unlockIfLockScreenVisible(): Promise<void> {
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(LoginView.container),
-      { timeout: UNLOCK_WAIT_MS },
-    );
-    await loginToAppPlaywright();
-  } catch {
-    // Unlock screen not shown within timeout; continue
-  }
-}
-
 const DAPP_READY_POLL_MS = 500;
 
 /**
- * Wait for the dapp server to be listening on the given port (e.g. after start()).
- * Polls from the runner so we only proceed when the server is ready; helps avoid
- * navigating to the dapp before it is reachable (e.g. on CI with BrowserStack Local).
+ * Wait for the dapp server to be listening on the given port.
  */
 export async function waitForDappServerReady(
   port: number,
@@ -76,19 +54,19 @@ export async function waitForDappServerReady(
 
 /**
  * Get the dapp URL for mobile browser access.
- * Android emulator browser needs 10.0.2.2 to reach the host machine.
+ * Uses localhost on both platforms. On Android, pair with {@link setupAdbReverse}
+ * so the emulator reaches the host dapp server (preferred over 10.0.2.2 for
+ * stable URL / CDP matching).
  */
 export function getDappUrlForBrowser(
-  platform: string,
+  _platform: string,
   port = DEFAULT_DAPP_PORT,
 ): string {
-  const host = platform === 'android' ? '10.0.2.2' : 'localhost';
-  return `http://${host}:${port}`;
+  return `http://localhost:${port}`;
 }
 
 /**
  * Set up ADB reverse port forwarding for Android emulator.
- * This allows the emulator to access localhost:{port} via 10.0.2.2:{port}
  */
 export function setupAdbReverse(port: number): void {
   try {
@@ -148,7 +126,7 @@ function resolvePlaygroundApkPath(): string {
       '     cd playground/react-native-playground && npx expo prebuild --platform android\n' +
       '     cd android && ./gradlew assembleRelease\n' +
       '  3. Set RN_PLAYGROUND_APK_PATH to the APK location\n\n' +
-      'See tests/performance/mm-connect/README.md for full setup instructions.',
+      'See tests/smoke-appium/mm-connect/README.md for full setup instructions.',
   );
 }
 

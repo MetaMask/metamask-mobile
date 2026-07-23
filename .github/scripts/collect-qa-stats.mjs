@@ -36,7 +36,7 @@
  *     "metametrics":   { "metametrics_events_checked_unique_count": 42,
  *                        "metametrics_events_checked_names_json": "[\"Action Button Clicked\", ...]" },
  *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
- *                        "login_tests_defined": 11, "onboarding_tests_defined": 4, "mm_connect_tests_defined": 6 }
+ *                        "login_tests_defined": 11, "onboarding_tests_defined": 4 }
  *   }
  */
 
@@ -1188,7 +1188,7 @@ async function collectE2ETestTimes() {
  * Counts executed performance scenarios by scanning *.spec.js files
  * under tests/performance/ and counting non-skipped test() calls.
  *
- * The top-level subdirectory (login, onboarding, mm-connect) determines the
+ * The top-level subdirectory (login, onboarding) determines the
  * category for per-category metrics.
  */
 async function collectPerformanceTestCounts() {

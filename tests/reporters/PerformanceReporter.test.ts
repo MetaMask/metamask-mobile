@@ -332,14 +332,14 @@ describe('PerformanceReporter', () => {
       const result = makeResult({
         attachments: [
           makeSessionAttachment({
-            projectName: 'mm-connect-android-browserstack',
+            projectName: 'browserstack-android',
           }),
           makeMetricsAttachment(),
         ],
       });
       reporter.onTestEnd(
         makeTest({
-          parent: { project: { name: 'mm-connect-android-browserstack' } },
+          parent: { project: { name: 'browserstack-android' } },
         }) as never,
         result as never,
       );
