@@ -2,6 +2,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
+require File.join(File.dirname(`node --print "require.resolve('react-native-permissions/package.json')"`), "scripts/setup")
 
 require 'json'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
@@ -10,6 +11,9 @@ ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWO
 
 platform :ios, '15.1'
 prepare_react_native_project!
+
+# react-native-permissions v4+: select permission handlers compiled into RNPermissions
+setup_permissions(['Bluetooth'])
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
 
@@ -91,7 +95,6 @@ def common_target_logic
 
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
-	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
   pod 'GzipSwift'
 
   # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
