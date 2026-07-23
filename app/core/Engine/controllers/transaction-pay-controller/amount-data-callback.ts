@@ -74,10 +74,16 @@ export async function getAmountData(
       throw prefixError(error, MONEY_ACCOUNT_DEPOSIT_ERROR_PREFIX);
     }
 
+    const approveData = buildResult.approveTx.params.data;
+    const depositData = buildResult.depositTx.params.data;
+    if (!approveData || !depositData) {
+      throw new Error('Missing calldata in deposit batch result');
+    }
+
     return {
       updates: [
-        { nestedTransactionIndex: 0, data: buildResult.approveTx.params.data },
-        { nestedTransactionIndex: 1, data: buildResult.depositTx.params.data },
+        { nestedTransactionIndex: 0, data: approveData },
+        { nestedTransactionIndex: 1, data: depositData },
       ],
     };
   } catch (error) {

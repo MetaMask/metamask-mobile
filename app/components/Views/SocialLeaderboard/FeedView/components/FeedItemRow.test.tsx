@@ -12,7 +12,22 @@ import {
 } from '../FeedView.testIds';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: Record<string, string>) => {
+    if (
+      key === 'social_leaderboard.feed.sub_header.size_at_market_cap' &&
+      params
+    ) {
+      return `${params.size} at ${params.marketCap} ${params.abbreviation}`;
+    }
+    if (key === 'social_leaderboard.feed.sub_header.size_at_price' && params) {
+      return `${params.size} at ${params.price}`;
+    }
+    const literals: Record<string, string> = {
+      'social_leaderboard.feed.sub_header.at_connector': 'at',
+      'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
+    };
+    return literals[key] ?? key;
+  },
 }));
 
 const spotItem: FeedSpotItem = {
@@ -28,7 +43,11 @@ const spotItem: FeedSpotItem = {
   tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chain: 'eip155:1',
   chainIdHex: '0x1',
-  subHeader: '$120K at $900K MC',
+  subHeader: {
+    sizeLabel: '$120K',
+    contextValueLabel: '$900K',
+    contextKind: 'marketCap',
+  },
   valueLabel: '$123,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -56,7 +75,11 @@ const perpItem: FeedPerpItem = {
   tradeSymbol: 'ETH',
   direction: 'long',
   leverage: 8,
-  subHeader: '$50.6K at $1,701.24',
+  subHeader: {
+    sizeLabel: '$50.6K',
+    contextValueLabel: '$1,701.24',
+    contextKind: 'price',
+  },
   valueLabel: '$88,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -90,6 +113,9 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('PEPE')).toBeOnTheScreen();
     expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
     expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('$120K')).toBeOnTheScreen();
+    expect(screen.getByText('$900K')).toBeOnTheScreen();
+    expect(screen.getByText(/ MC/)).toBeOnTheScreen();
   });
 
   it('omits value and PnL labels when both fields are missing from the API', () => {
