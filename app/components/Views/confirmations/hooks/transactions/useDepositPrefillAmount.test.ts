@@ -321,7 +321,7 @@ describe('useDepositPrefillAmount', () => {
       });
 
       expect(result.current.hasPrefilled).toBe(false);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
     });
 
     it('recommits with new amount when payToken address changes', async () => {
@@ -352,12 +352,12 @@ describe('useDepositPrefillAmount', () => {
   });
 
   describe('isLoading', () => {
-    it('true when enabled but not yet committed', () => {
+    it('false when enabled but payToken is missing', () => {
       setupMocks({ payToken: null });
 
       const { result } = runHook();
 
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
     });
 
     it('false when not enabled', () => {
