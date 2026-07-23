@@ -8,8 +8,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Keyboard, Platform } from 'react-native';
-export const PERPS_PRO_INPUT_ACCESSORY_ID =
-  'perps-pro-order-form-input-accessory';
+
+export const getPerpsProInputAccessoryID = (testID: string) =>
+  `${testID}-input-accessory`;
+
 interface PerpsProCompactInputProps {
   label: string;
   value: string;
@@ -34,7 +36,7 @@ const PerpsProCompactInput = ({
 }: PerpsProCompactInputProps) => {
   const tw = useTailwind();
   const inputAccessoryViewID =
-    Platform.OS === 'ios' ? PERPS_PRO_INPUT_ACCESSORY_ID : undefined;
+    Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
   const input = (
     <Input
       value={value}

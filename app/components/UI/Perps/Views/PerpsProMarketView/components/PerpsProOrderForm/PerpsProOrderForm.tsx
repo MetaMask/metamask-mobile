@@ -33,7 +33,7 @@ import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import PerpsProCompactInput, {
-  PERPS_PRO_INPUT_ACCESSORY_ID,
+  getPerpsProInputAccessoryID,
 } from './PerpsProCompactInput';
 import type {
   PerpsProOrderDirection,
@@ -136,6 +136,24 @@ const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
     </Pressable>
   );
 };
+
+const KeyboardAccessory = ({ inputTestID }: { inputTestID: string }) => (
+  <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
+    <Box
+      twClassName="border-t border-muted bg-default px-3 py-2"
+      alignItems={BoxAlignItems.End}
+    >
+      <ButtonIcon
+        iconName={IconName.ArrowDown}
+        size={ButtonIconSize.Sm}
+        onPress={Keyboard.dismiss}
+        testID={`${ids.KEYBOARD_CLOSE}-${inputTestID}`}
+        accessibilityLabel={strings('perps.pro_order_form.close_keyboard')}
+      />
+    </Box>
+  </InputAccessoryView>
+);
+
 const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   notices.length > 0 ? (
     <Box twClassName="gap-2">
@@ -441,22 +459,12 @@ const PerpsProOrderForm = ({
         <OrderSummary {...summary} />
       </Box>
       {Platform.OS === 'ios' ? (
-        <InputAccessoryView nativeID={PERPS_PRO_INPUT_ACCESSORY_ID}>
-          <Box
-            twClassName="border-t border-muted bg-default px-3 py-2"
-            alignItems={BoxAlignItems.End}
-          >
-            <ButtonIcon
-              iconName={IconName.ArrowDown}
-              size={ButtonIconSize.Sm}
-              onPress={Keyboard.dismiss}
-              testID={ids.KEYBOARD_CLOSE}
-              accessibilityLabel={strings(
-                'perps.pro_order_form.close_keyboard',
-              )}
-            />
-          </Box>
-        </InputAccessoryView>
+        <>
+          <KeyboardAccessory inputTestID={ids.SIZE_INPUT} />
+          {orderType === 'limit' ? (
+            <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
+          ) : null}
+        </>
       ) : null}
     </>
   );

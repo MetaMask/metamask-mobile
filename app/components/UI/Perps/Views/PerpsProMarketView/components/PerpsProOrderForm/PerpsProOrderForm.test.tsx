@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
 
@@ -69,6 +70,30 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it('connects each iOS numeric input to its own keyboard accessory', () => {
+      renderForm({ orderType: 'limit' });
+
+      const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
+      const limitPriceAccessoryID = getPerpsProInputAccessoryID(
+        ids.LIMIT_PRICE_INPUT,
+      );
+
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'inputAccessoryViewID',
+        sizeAccessoryID,
+      );
+      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toHaveProp(
+        'inputAccessoryViewID',
+        limitPriceAccessoryID,
+      );
+      expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
+      expect(
+        screen
+          .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
+          .map((accessory) => accessory.props.nativeID),
+      ).toEqual([sizeAccessoryID, limitPriceAccessoryID]);
     });
   });
 
