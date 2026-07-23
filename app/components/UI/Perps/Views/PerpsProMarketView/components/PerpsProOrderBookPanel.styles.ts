@@ -11,9 +11,7 @@ const styleSheet = StyleSheet.create({
     height: 32,
   },
   viewToggleButton: {
-    width: 32,
     height: 32,
-    alignItems: 'center',
     justifyContent: 'center',
   },
   viewToggleBar: {

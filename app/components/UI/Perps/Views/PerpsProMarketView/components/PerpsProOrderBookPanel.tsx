@@ -471,12 +471,12 @@ const PerpsProOrderBookPanel = ({
       flexDirection={BoxFlexDirection.Column}
       twClassName="flex-1 py-2"
     >
-      {/* Header: view toggle + settings */}
+      {/* Header: left inset matches rows; settings sit flush on the right */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-1 pb-1"
+        twClassName="pb-1 pl-1"
       >
         <Pressable
           onPress={handleCycleViewMode}
@@ -495,7 +495,7 @@ const PerpsProOrderBookPanel = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          twClassName="-mr-1 gap-1"
         >
           {onCollapse ? (
             <ButtonIcon
