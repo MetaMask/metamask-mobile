@@ -15,9 +15,7 @@ import {
  * Preconditions are asserted inside `provisionFromMetadata`.
  */
 export const startExistingUserQrMetadataProvisioning = (
-  source:
-    | typeof QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT
-    | typeof QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
+  source: typeof QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
 ): void => {
   Engine.context.QrSyncProvisioningService.provisionFromMetadata().catch(
     (error: unknown) => {

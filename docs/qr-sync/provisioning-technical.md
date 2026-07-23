@@ -65,10 +65,10 @@
 
 ### Phase B deliverables
 
-- [x] `skipDiscovery` on `importNewSecretRecoveryPhrase` — used by existing-user QR so Phase C owns layout/sync
-- [x] `QrSyncController.importRemainingSecrets` — orchestration (guards via `isQrSyncReadyForSecretImport`)
+- [x] `skipDiscovery` on `importNewSecretRecoveryPhrase` — available for Add SRP / callers that need Phase C ownership of layout
+- [x] `QrSyncController.importRemainingSecrets` — orchestration (guards via `isQrSyncReadyForSecretImport`); existing-user QR uses this for all non-primary secrets
 - [x] `QrSyncProvisioningService.importSecretsToVault` — vault imports via messenger
-- [x] Metadata enrichment via `enrichPrimaryProvisioningEntry` / `finalizeSecretImport` / `enrichProvisioningEntry`
+- [x] Metadata enrichment via `enrichPrimaryProvisioningEntry` (new-user) / `finalizeSecretImport` / `enrichProvisioningEntry`
 - [x] Onboarding wired via `Authentication.newWalletAndRestore(..., isQrSync: true)`
 - [x] `ImportFromSecretRecoveryPhrase` does **not** call `resetState()` after successful QR import
 - [x] Engine init + messengers for controller ↔ provisioning service
@@ -380,13 +380,13 @@ See [Discovery / sync conflicts](#discovery--sync-conflicts) and [Known gaps](#k
 
 ## Discovery / sync conflicts
 
-| System               | Location                                     | Normal behaviour                                                 | QR behaviour                                                                          | Conflict                                      |
-| -------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Onboarding discovery | `OnboardingSuccess`                          | `discoverAccounts`                                               | `provisionFromMetadata`                                                               | Intentional replacement                       |
-| Unlock discovery     | `Authentication.postLoginAsyncOperations`    | `discoverAccounts` per entropy source                            | **Same** — still runs                                                                 | **Gap** if Phase C pending                    |
-| Add SRP              | `importNewSecretRecoveryPhrase`              | Discovery + optional sync                                        | Existing-user QR uses it with `skipDiscovery`; new-user QR uses `newWalletAndRestore` | Keep new-user path separate                   |
-| Cloud sync           | `syncWithUserStorage` / `useIdentityEffects` | `discoverAccounts` uses `syncWithUserStorageAtLeastOnce` on Done | Phase C calls `syncWithUserStorage` after layout (background); Phase B still no sync  | Intentional — sync only after layout complete |
-| Tree init            | `newWalletAndRestore`                        | Group 0                                                          | Same                                                                                  | Phase C adds 1..N                             |
+| System               | Location                                     | Normal behaviour                                                 | QR behaviour                                                                                                      | Conflict                                      |
+| -------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Onboarding discovery | `OnboardingSuccess`                          | `discoverAccounts`                                               | `provisionFromMetadata`                                                                                           | Intentional replacement                       |
+| Unlock discovery     | `Authentication.postLoginAsyncOperations`    | `discoverAccounts` per entropy source                            | **Same** — still runs                                                                                             | **Gap** if Phase C pending                    |
+| Add SRP              | `importNewSecretRecoveryPhrase`              | Discovery + optional sync                                        | Existing-user QR uses `importRemainingSecrets` only (no primary mnemonic); new-user QR uses `newWalletAndRestore` | Keep new-user path separate                   |
+| Cloud sync           | `syncWithUserStorage` / `useIdentityEffects` | `discoverAccounts` uses `syncWithUserStorageAtLeastOnce` on Done | Phase C calls `syncWithUserStorage` after layout (background); Phase B still no sync                              | Intentional — sync only after layout complete |
+| Tree init            | `newWalletAndRestore`                        | Group 0                                                          | Same                                                                                                              | Phase C adds 1..N                             |
 
 **First onboard (no kill):** `newWalletAndRestore` does not call `postLoginAsyncOperations`; user goes Import → OnboardingSuccess → Phase C on Done.
 

@@ -13,7 +13,6 @@ import {
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import type { RootState } from '../../../reducers';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
-import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
 
 const { ButtonIcon } = jest.requireActual(
   '@metamask/design-system-react-native',
@@ -51,9 +50,16 @@ jest.mock('../../../core/Engine', () => {
 
   return {
     context: {
+      KeyringController: {
+        getAccounts: jest.fn(() => Promise.resolve([])),
+      },
       QrSyncController: {
         state: { ...mockDefaultQrSyncControllerState },
         resetState: jest.fn(),
+        importRemainingSecrets: jest.fn(() => Promise.resolve()),
+      },
+      QrSyncProvisioningService: {
+        provisionFromMetadata: jest.fn(() => Promise.resolve()),
       },
     },
   };
@@ -62,6 +68,12 @@ jest.mock('../../../core/Engine', () => {
 import Engine from '../../../core/Engine';
 
 const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
+const mockImportRemainingSecrets = Engine.context.QrSyncController
+  .importRemainingSecrets as jest.Mock;
+const mockGetAccounts = Engine.context.KeyringController
+  .getAccounts as jest.Mock;
+const mockProvisionFromMetadata = Engine.context.QrSyncProvisioningService
+  .provisionFromMetadata as jest.Mock;
 
 jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
   const actual = jest.requireActual(
@@ -75,14 +87,6 @@ jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
 
 const mockShowExtensionCancelledErrorSheet = jest.mocked(
   showExtensionCancelledErrorSheet,
-);
-
-jest.mock('../../../core/QrSync/completeExistingUserQrSyncImport', () => ({
-  completeExistingUserQrSyncImport: jest.fn(() => Promise.resolve()),
-}));
-
-const mockCompleteExistingUserQrSyncImport = jest.mocked(
-  completeExistingUserQrSyncImport,
 );
 
 jest.mock('react-redux', () => {
@@ -280,12 +284,16 @@ describe('QRTabSwitcher', () => {
         },
       );
     });
-    expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
+    expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
   });
 
-  it('auto-imports and navigates home when awaiting password for existing users', async () => {
+  it('imports remaining secrets and navigates home for existing users', async () => {
     const mnemonic =
       'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
+
+    mockGetAccounts
+      .mockResolvedValueOnce(['0xold'])
+      .mockResolvedValueOnce(['0xold', '0xnew']);
 
     renderAddDeviceFlow(
       {
@@ -303,11 +311,11 @@ describe('QRTabSwitcher', () => {
     );
 
     await waitFor(() => {
-      expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
-        expect.objectContaining({ navigate: mockNavigate }),
-        mnemonic,
-      );
+      expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockResetState).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
       expect.anything(),

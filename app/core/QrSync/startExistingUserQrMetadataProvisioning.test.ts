@@ -34,7 +34,7 @@ describe('startExistingUserQrMetadataProvisioning', () => {
 
   it('starts Phase C via provisionFromMetadata', () => {
     startExistingUserQrMetadataProvisioning(
-      QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
+      QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
     );
 
     expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
