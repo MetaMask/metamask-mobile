@@ -1,5 +1,6 @@
 import { getCapabilities } from '@metamask/eip-5792-middleware';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import {
   buildGetCapabilitiesHooks,
   clearSessionCapabilitiesCache,
@@ -221,6 +222,17 @@ describe('getSessionCapabilities', () => {
       expect(address).toBe(SELECTED_ADDRESS);
       expect(chainIds).toStrictEqual(['0x1', '0xa']);
     });
+
+    it('resolves to no capabilities for an empty chain set without calling the eip-5792 getCapabilities', async () => {
+      // An empty (but present) array means "no eip155 chains permitted".
+      // The eip-5792 middleware would treat it like `undefined` (all
+      // configured chains), so it must never be forwarded.
+      await expect(
+        getSessionCapabilities(SELECTED_ADDRESS, []),
+      ).resolves.toStrictEqual({});
+
+      expect(mockGetCapabilities).not.toHaveBeenCalled();
+    });
   });
 
   describe('getSessionCapabilities caching', () => {
@@ -235,6 +247,7 @@ describe('getSessionCapabilities', () => {
       await getSessionCapabilities(SELECTED_ADDRESS, ['0x1', '0xa']);
       await getSessionCapabilities(SELECTED_ADDRESS, ['0xa', '0x1']);
       await getSessionCapabilities(upper, ['0x1', '0xa']);
+      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1', '0xA']);
       expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
       await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
       await getSessionCapabilities(other, ['0x1']);
@@ -323,16 +336,31 @@ describe('getSessionCapabilities', () => {
       expect(result).toStrictEqual(['0x1', '0x2105']);
     });
 
-    it('returns undefined when the caveat lookup throws', () => {
+    it('returns undefined when the origin holds no CAIP-25 permission', () => {
       jest
         .mocked(Engine.context.PermissionController.getCaveat)
         .mockImplementation(() => {
-          throw new Error('permission does not exist');
+          throw new PermissionDoesNotExistError(
+            'https://dapp.example',
+            'endowment:caip25',
+          );
         });
 
       expect(
         getPermittedEip155ChainIds('https://dapp.example'),
       ).toBeUndefined();
+    });
+
+    it('rethrows unexpected caveat lookup errors instead of widening disclosure to all chains', () => {
+      jest
+        .mocked(Engine.context.PermissionController.getCaveat)
+        .mockImplementation(() => {
+          throw new Error('unexpected controller failure');
+        });
+
+      expect(() => getPermittedEip155ChainIds('https://dapp.example')).toThrow(
+        'unexpected controller failure',
+      );
     });
   });
 });

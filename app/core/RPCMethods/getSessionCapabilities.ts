@@ -9,6 +9,7 @@ import {
   type Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import type { Hex } from '@metamask/utils';
 
 import Engine from '../Engine';
@@ -24,6 +25,15 @@ type SessionCapabilities = Awaited<ReturnType<typeof getCapabilities>>;
 // session-restore timeout on dapp page load. Only the very first computation
 // for a key (account + chains; entries are origin-independent) ever blocks:
 // stale entries are served immediately and refreshed in the background.
+//
+// Known tradeoff: capability results also depend on mutable wallet state
+// (smart-account/simulation preferences, smart-transactions enablement,
+// network config, account delegation status after a 7702 upgrade), and none
+// of those invalidate this cache. Session-carried capabilities may therefore
+// lag reality by up to CACHE_FRESH_MS (plus one stale read). We accept this
+// because sessionProperties.eip155Capabilities is an optimization for
+// dapp-side caches, while a direct wallet_getCapabilities request (the
+// EIP-5792 middleware path) bypasses this cache and stays authoritative.
 const CACHE_FRESH_MS = 300_000; // background-refresh cadence: 5 minutes
 
 const sessionCapabilitiesCache = new Map<
@@ -40,10 +50,15 @@ export function clearSessionCapabilitiesCache(): void {
   sessionCapabilitiesCache.clear();
 }
 
-// Order/case-insensitive; `undefined`/empty chainIds = all configured chains.
+// Order/case-insensitive; `undefined` chainIds (= all configured chains,
+// which is how the eip-5792 middleware interprets it) keys as '*'. Empty
+// arrays never reach here: getSessionCapabilities short-circuits them.
 function buildCacheKey(address: string, chainIds?: Hex[]): string {
   const chainsKey = chainIds?.length
-    ? [...chainIds].sort((a, b) => a.localeCompare(b)).join(',')
+    ? [...chainIds]
+        .map((chainId) => chainId.toLowerCase())
+        .sort((a, b) => a.localeCompare(b))
+        .join(',')
     : '*';
   return `${address.toLowerCase()}:${chainsKey}`;
 }
@@ -130,18 +145,30 @@ export function buildGetCapabilitiesHooks(targetAddress?: Hex) {
  * `wallet_getSession`, and `wallet_sessionChanged`.
  *
  * @param address - The EVM address to compute capabilities for.
- * @param chainIds - Chains to compute capabilities for; `undefined` (or empty)
- * means all configured chains. Session hydration passes the session's
- * permitted eip155 chains so we neither fan out RPC calls to, nor disclose,
- * networks the dapp was not granted. Intentional divergence: a direct
- * `wallet_getCapabilities` answered by the wallet still covers all configured
- * chains. Stale cached results are served while refreshed in the background.
+ * @param chainIds - Chains to compute capabilities for; `undefined` means all
+ * configured chains, while an empty array resolves to no capabilities at all.
+ * Session hydration passes the session's permitted eip155 chains so we
+ * neither fan out RPC calls to, nor disclose, networks the dapp was not
+ * granted. Intentional divergence: a direct `wallet_getCapabilities` answered
+ * by the wallet still covers all configured chains. Stale cached results are
+ * served while refreshed in the background.
  * @returns Per-chain capabilities keyed by chain ID.
  */
 export function getSessionCapabilities(
   address: string,
   chainIds?: Hex[],
 ): Promise<SessionCapabilities> {
+  // An empty (but present) chain set means the caller resolved the session's
+  // permitted eip155 chains and found none (e.g. accounts granted only under
+  // the `wallet:eip155` scope — not a supported standalone case, but
+  // representable). Don't fall through to the eip-5792 middleware: it treats
+  // an empty array the same as `undefined` (all configured chains), which
+  // would fan out RPC calls to, and disclose capabilities for, networks the
+  // dapp was never granted.
+  if (chainIds && chainIds.length === 0) {
+    return Promise.resolve({});
+  }
+
   const key = buildCacheKey(address, chainIds);
   const entry = sessionCapabilitiesCache.get(key);
 
@@ -171,7 +198,8 @@ export function getSessionCapabilities(
  *
  * @param origin - The origin (or channelId / snapId) holding the permission.
  * @returns The permitted chain IDs, or `undefined` (= all configured chains,
- * the pre-scoping behavior) when the caveat is missing or the lookup fails.
+ * the pre-scoping behavior) when the origin holds no CAIP-25 permission or
+ * the caveat is missing.
  */
 export function getPermittedEip155ChainIds(origin: string): Hex[] | undefined {
   try {
@@ -184,7 +212,15 @@ export function getPermittedEip155ChainIds(origin: string): Hex[] | undefined {
       return undefined;
     }
     return getPermittedEthChainIds(caveat.value as Caip25CaveatValue);
-  } catch {
-    return undefined;
+  } catch (error) {
+    // The only expected failure: the origin holds no CAIP-25 permission (e.g.
+    // revoked in a race with this lookup). Anything else is a bug — rethrow
+    // rather than silently widening capability disclosure to all chains.
+    // (Callers invoke this inside getSessionProperties' per-address
+    // try/catch, so a rethrow degrades to that address being omitted.)
+    if (error instanceof PermissionDoesNotExistError) {
+      return undefined;
+    }
+    throw error;
   }
 }

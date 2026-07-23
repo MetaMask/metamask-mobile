@@ -72,8 +72,31 @@ describe(SmokeMultiChainAPI('wallet_sessionChanged'), () => {
         const eip155Capabilities =
           parsedEvent.params?.sessionProperties?.eip155Capabilities;
         await Assertions.checkIfValueIsDefined(eip155Capabilities);
+
+        // Capabilities must be keyed by the session's permitted EVM
+        // address(es): assert every eip155 account in the session scopes has
+        // a corresponding capabilities entry (case-insensitive).
+        const capabilityAddresses = Object.keys(eip155Capabilities || {}).map(
+          (address) => address.toLowerCase(),
+        );
+        const permittedAddresses = [
+          ...new Set(
+            eventScopes
+              .filter((scope) => scope.startsWith('eip155:'))
+              .flatMap(
+                (scope) =>
+                  parsedEvent.params?.sessionScopes?.[scope]?.accounts ?? [],
+              )
+              .map((account: string) =>
+                account.split(':').slice(-1)[0].toLowerCase(),
+              ),
+          ),
+        ];
         await Assertions.checkIfTextMatches(
-          typeof eip155Capabilities === 'object' && eip155Capabilities !== null
+          permittedAddresses.length > 0 &&
+            permittedAddresses.every((address) =>
+              capabilityAddresses.includes(address),
+            )
             ? 'true'
             : 'false',
           'true',
