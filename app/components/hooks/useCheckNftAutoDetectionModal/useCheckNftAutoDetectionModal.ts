@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
 import { isMainNet } from '../../../util/networks';
@@ -11,7 +12,7 @@ import { selectChainId } from '../../../selectors/networkController';
 
 const useCheckNftAutoDetectionModal = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const useNftDetection = useSelector(selectUseNftDetection);
   const chainId = useSelector(selectChainId);
   const isNFTAutoDetectionModalViewed = useSelector(

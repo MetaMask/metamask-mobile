@@ -73,9 +73,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
-  type GateVersionedFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   deriveCountryProviderMap,
   getProviderForCountry,
@@ -86,6 +84,13 @@ const CARDHOLDER_MAX_BATCHES = 3;
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
+  // Temporary: internal-testing override for Immersve cardProgramId.
+  selectedCardProgramId: {
     persist: true,
     includeInDebugSnapshot: true,
     includeInStateLogs: true,
@@ -143,6 +148,7 @@ const metadata: StateMetadata<CardControllerState> = {
 
 export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
+  selectedCardProgramId: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
   lastUnauthenticatedReason: null,
@@ -367,24 +373,30 @@ export class CardController extends BaseController<
     }
   }
 
+  /**
+   * Temporary: persist the Immersve cardProgramId chosen on SignUp for
+   * internal multi-program testing. Overlayed onto the feature flag in
+   * card-controller/index.ts. Easy to remove.
+   */
+  setSelectedCardProgramId(id: string | null): void {
+    this.update((s) => {
+      s.selectedCardProgramId = id;
+    });
+  }
+
   #resolveProviderForCountry(country: string): string {
     const featureState = this.messenger.call(
       'RemoteFeatureFlagController:getState',
     );
 
-    const immersveEnabled =
-      validatedVersionGatedFeatureFlag(
-        featureState.remoteFeatureFlags
-          ?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag,
-      ) ?? false;
+    const cardFeature = resolveCardFeatureFlag(
+      featureState.remoteFeatureFlags?.cardFeature as
+        | CardFeatureFlag
+        | undefined,
+    );
 
-    if (immersveEnabled) {
-      const cardFeature = resolveCardFeatureFlag(
-        featureState.remoteFeatureFlags?.cardFeature as
-          | CardFeatureFlag
-          | undefined,
-      );
-      const immersveCountries = cardFeature?.immersveCountries ?? [];
+    if (cardFeature.immersve?.enabled) {
+      const immersveCountries = cardFeature.immersveCountries ?? [];
       const map = deriveCountryProviderMap(
         Object.fromEntries(
           immersveCountries.map((c) => [c, true] as [string, boolean]),
@@ -804,17 +816,6 @@ export class CardController extends BaseController<
       return null;
     }
 
-    if (tokens.accountAddress) {
-      const selected = this.#getSelectedEvmAddress();
-      if (
-        !selected ||
-        selected.toLowerCase() !== tokens.accountAddress.toLowerCase()
-      ) {
-        this.markUnauthenticated(this.state.lastUnauthenticatedReason);
-        return null;
-      }
-    }
-
     const provider = this.getActiveProvider();
     const validity = provider.validateTokens(tokens);
 
@@ -970,7 +971,15 @@ export class CardController extends BaseController<
         provider.getCardHomeData(address, validTokens),
       );
     }
-    return provider.getOnChainAssets?.(address) ?? emptyCardHomeData();
+
+    const onChainProvider =
+      provider.getOnChainAssets != null
+        ? provider
+        : this.providers[DEFAULT_CARD_PROVIDER_ID];
+    return (
+      (await onChainProvider?.getOnChainAssets?.(address)) ??
+      emptyCardHomeData()
+    );
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(

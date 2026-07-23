@@ -18,12 +18,14 @@ import { ActionLocation } from '../../../../../util/analytics/actionButtonTracki
 import { getDecimalChainId } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { HomepageMoreSelectorsIDs } from '../../Homepage.testIds';
 
 const MoreSection = () => {
   const navigation = useNavigation();
   const currentChainId = useSelector(selectEvmChainId);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const handleImportToken = useCallback(() => {
     navigation.navigate('AddAsset', { assetType: 'token' });
@@ -52,23 +54,31 @@ const MoreSection = () => {
   }, [createEventBuilder, navigation, trackEvent]);
 
   const handleContactSupport = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: METAMASK_SUPPORT_URL,
-        title: strings('app_settings.contact_support'),
+    openSupportWithConsent(
+      (url) => {
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings('app_settings.contact_support'),
+          },
+        });
       },
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
-        .addProperties({
-          action: 'Navigation Drawer',
-          name: 'Get Help',
-          location: ActionLocation.HOME,
-        })
-        .build(),
+      METAMASK_SUPPORT_URL,
+      // Defer tracking to when support actually opens (consent confirm/reject),
+      // not the mere tap that only shows the consent sheet.
+      () =>
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
+            .addProperties({
+              action: 'Navigation Drawer',
+              name: 'Get Help',
+              location: ActionLocation.HOME,
+            })
+            .build(),
+        ),
     );
-  }, [createEventBuilder, navigation, trackEvent]);
+  }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
   return (
     <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>

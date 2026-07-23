@@ -17,6 +17,11 @@ import {
 } from '../../components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  isWatchlistTokenListItemSource,
+  trackTokenListItemClicked,
+} from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
 
 export const useTrendingTokenPress = ({
   token,
@@ -34,12 +39,24 @@ export const useTrendingTokenPress = ({
   selectedTimeOption?: TimeOption;
 }): { onPress: () => Promise<void> } => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
   const { addPopularNetwork } = useAddPopularNetwork();
 
   const onPress = useCallback(async () => {
+    if (
+      isWatchlistTokenListItemSource(tokenDetailsSource) &&
+      index !== undefined
+    ) {
+      trackTokenListItemClicked(trackEvent, createEventBuilder, {
+        asset: String(token.assetId),
+        source: tokenDetailsSource,
+        position: index,
+      });
+    }
+
     const assetParams = getAssetNavigationParams(
       token,
       tokenDetailsSource,
@@ -98,6 +115,8 @@ export const useTrendingTokenPress = ({
     navigation,
     networkConfigurations,
     addPopularNetwork,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   return { onPress };

@@ -7,11 +7,13 @@ import {
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING,
-  HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING,
   HUB_PAGE_DISCOVERY_TABS_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/Views/Homepage/abTestConfig';
 import { AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/TokenDetails/components/abTestConfig';
-import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
+import {
+  SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_TEST_ANALYTICS_MAPPING,
+} from '../../components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
 import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
@@ -31,7 +33,6 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING,
-  HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING,
   HUB_PAGE_DISCOVERY_TABS_AB_TEST_ANALYTICS_MAPPING,
 
   // Onboarding interest questionnaire
@@ -46,6 +47,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Quick Buy
   SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_TEST_ANALYTICS_MAPPING,
 
   // Top Traders (Social Leaderboard)
   TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING,
