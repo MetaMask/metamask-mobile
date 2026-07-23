@@ -3,6 +3,7 @@
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
+import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
@@ -13,6 +14,21 @@ import {
   subscribeToBrazePushDeeplinks,
 } from '../Braze/BrazeDeeplinks';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
+import NotificationsService from '../../util/notifications/services/NotificationService';
+import { extractPushNotificationDeeplink } from '../../util/notifications/pushNotificationDeeplink';
+
+const dispatchPushNotificationDeeplink = (
+  deeplink: string | undefined | null,
+) => {
+  if (!deeplink) {
+    return;
+  }
+
+  handleDeeplink({
+    uri: deeplink,
+    source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+  });
+};
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -147,21 +163,25 @@ export class DeeplinkManager {
     };
 
     FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
-      if (deeplink) {
-        handleDeeplink({
-          uri: deeplink,
-          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
-        });
-      }
+      dispatchPushNotificationDeeplink(deeplink);
     });
 
     FCMService.onClickPushNotificationWhenAppSuspended((deeplink) => {
-      if (deeplink) {
-        handleDeeplink({
-          uri: deeplink,
-          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
-        });
-      }
+      dispatchPushNotificationDeeplink(deeplink);
+    });
+
+    const handleNotifeeNotification = (
+      notification: NotifeeNotification | undefined,
+    ) => {
+      const deeplink = extractPushNotificationDeeplink(notification?.data);
+      dispatchPushNotificationDeeplink(deeplink);
+    };
+
+    NotificationsService.onForegroundEvent(async (event) => {
+      await NotificationsService.handleNotificationEvent({
+        ...event,
+        callback: handleNotifeeNotification,
+      });
     });
 
     getBrazeInitialDeeplink().then((deeplink) => {

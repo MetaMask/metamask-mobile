@@ -2,8 +2,7 @@ import { toPushAnalyticsPayload } from '@metamask/notification-services-controll
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import { NativeModules, Platform } from 'react-native';
-import Logger from '../../../util/Logger';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
@@ -50,6 +49,8 @@ async function analyticsTrackPushClickEvent(
 }
 
 type UnsubscribeFunc = () => void;
+
+const ANDROID_NOTIFICATION_OPENED_EVENT = 'metamask.notification_opened';
 
 /**
  * Utility to check if devices have enabled push notifications
@@ -204,7 +205,9 @@ class FCMService {
     deeplinkCallback: (deeplink?: string) => void,
   ) => {
     try {
-      messaging().onNotificationOpenedApp(async (remoteMessage) => {
+      const handleOpenedNotification = (
+        remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+      ) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
           deeplinkCallback(
@@ -213,7 +216,16 @@ class FCMService {
         } catch {
           // Do nothing
         }
-      });
+      };
+
+      messaging().onNotificationOpenedApp(handleOpenedNotification);
+
+      if (Platform.OS === 'android') {
+        DeviceEventEmitter.addListener(
+          ANDROID_NOTIFICATION_OPENED_EVENT,
+          handleOpenedNotification,
+        );
+      }
     } catch {
       // Do nothing
     }
