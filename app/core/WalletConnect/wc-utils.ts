@@ -1,3 +1,4 @@
+import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { rpcErrors } from '@metamask/rpc-errors';
 import {
   CaipAccountId,
@@ -16,6 +17,7 @@ import qs from 'qs';
 import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
 import {
+  selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectNetworkConfigurations,
   selectNetworkConfigurationsByCaipChainId,
@@ -26,7 +28,8 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
 import { EVM_APPROVED_METHODS, EVM_METHODS_TO_REDIRECT } from './wc-config';
-import type { NamespaceConfig } from './multichain/types';
+import type { NamespaceConfig, ProposalParamsLight } from './multichain/types';
+import { enrichCaveatValueForNamespace } from './multichain/utils';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -253,6 +256,51 @@ export const getScopedPermissions = async ({
   };
 
   return namespaces;
+};
+
+/**
+ * Seed the EVM (eip155) chains a WalletConnect proposal requested into the
+ * CAIP-25 caveat value before the permission request is raised, mirroring
+ * what non-EVM adapters do via `enrichCaveatValue`.
+ *
+ * Without this, a proposal combining eip155 with a namespace that has an
+ * adapter (e.g. Tron) produces a permission request whose only chain scopes
+ * are the adapter's, so the approval UI pre-selects only that namespace and
+ * leaves EVM networks unchecked.
+ *
+ * Only chains the wallet has a network configuration for are carried
+ * through; if the proposal requested eip155 chains but none are configured,
+ * we fall back to the wallet's currently selected EVM chain. Proposals that
+ * do not reference any eip155 chain are returned unchanged.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const enrichCaveatValueForEip155 = ({
+  proposal,
+  caveatValue,
+}: {
+  proposal: ProposalParamsLight;
+  caveatValue: Caip25CaveatValue;
+}): Caip25CaveatValue => {
+  const state = store.getState();
+  const configuredCaipChainIds = Object.keys(
+    selectNetworkConfigurationsByCaipChainId(state),
+  ) as CaipChainId[];
+  const supportedEvmScopes = new Set<CaipChainId>(
+    configuredCaipChainIds.filter((caipChainId) =>
+      caipChainId.startsWith(`${KnownCaipNamespace.Eip155}:`),
+    ),
+  );
+  const walletChainIdDecimal = parseInt(selectEvmChainId(state), 16);
+
+  return enrichCaveatValueForNamespace({
+    proposal,
+    caveatValue,
+    namespace: KnownCaipNamespace.Eip155,
+    supportedScopes: supportedEvmScopes,
+    fallbackScope:
+      `${KnownCaipNamespace.Eip155}:${walletChainIdDecimal}` as CaipChainId,
+  });
 };
 
 export const isSwitchingChainRequest = (

@@ -4,6 +4,7 @@ import {
   showWCLoadingState,
   isValidWCURI,
   waitForNetworkModalOnboarding,
+  enrichCaveatValueForEip155,
   getScopedPermissions,
   networkModalOnboardingConfig,
   getHostname,
@@ -12,6 +13,11 @@ import {
   getUnverifiedRequestOrigin,
   isEIP155RedirectMethodForChain,
 } from './wc-utils';
+import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
+import {
+  selectEvmChainId,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../selectors/networkController';
 import type { WalletKitTypes } from '@reown/walletkit';
 import type {
   NavigationContainerRef,
@@ -49,6 +55,8 @@ jest.mock('../../selectors/networkController', () => ({
   selectProviderConfig: jest
     .fn()
     .mockReturnValue({ chainId: '0x1' }) as jest.Mock,
+  selectEvmChainId: jest.fn().mockReturnValue('0x1'),
+  selectNetworkConfigurationsByCaipChainId: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('../../selectors/smartTransactionsController', () => ({
@@ -258,6 +266,143 @@ describe('WalletConnect Utils', () => {
           method: 'eth_sendTransaction',
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('enrichCaveatValueForEip155', () => {
+    const buildCaveatValue = (
+      optionalScopes: Caip25CaveatValue['optionalScopes'] = {
+        'wallet:eip155': { accounts: [] },
+      },
+    ): Caip25CaveatValue => ({
+      requiredScopes: {},
+      optionalScopes,
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    });
+
+    beforeEach(() => {
+      (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+      (
+        selectNetworkConfigurationsByCaipChainId as unknown as jest.Mock
+      ).mockReturnValue({
+        'eip155:1': { name: 'Ethereum Mainnet' },
+        'eip155:137': { name: 'Polygon' },
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': { name: 'Solana' },
+      });
+    });
+
+    it('seeds requested eip155 chains the wallet has configured', () => {
+      const result = enrichCaveatValueForEip155({
+        proposal: {
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            eip155: {
+              chains: ['eip155:1', 'eip155:137'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+            tron: {
+              chains: ['tron:0x2b6653dc'],
+              methods: ['tron_signMessage'],
+              events: [],
+            },
+          },
+        },
+        caveatValue: buildCaveatValue({
+          'wallet:eip155': { accounts: [] },
+          'tron:728126428': { accounts: [] },
+        }),
+      });
+
+      expect(Object.keys(result.optionalScopes).sort()).toEqual([
+        'eip155:1',
+        'eip155:137',
+        'tron:728126428',
+        'wallet:eip155',
+      ]);
+      expect(result.optionalScopes['eip155:1']).toEqual({ accounts: [] });
+      expect(result.optionalScopes['eip155:137']).toEqual({ accounts: [] });
+    });
+
+    it('supports chain-scoped namespace keys (eip155:<reference>)', () => {
+      const result = enrichCaveatValueForEip155({
+        proposal: {
+          requiredNamespaces: {
+            'eip155:137': {
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+        caveatValue: buildCaveatValue(),
+      });
+
+      expect(result.optionalScopes['eip155:137']).toEqual({ accounts: [] });
+    });
+
+    it('filters out requested eip155 chains the wallet has not configured', () => {
+      const result = enrichCaveatValueForEip155({
+        proposal: {
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            eip155: {
+              chains: ['eip155:1', 'eip155:999999'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+        },
+        caveatValue: buildCaveatValue(),
+      });
+
+      expect(result.optionalScopes['eip155:1']).toEqual({ accounts: [] });
+      expect(result.optionalScopes['eip155:999999']).toBeUndefined();
+    });
+
+    it('falls back to the wallet selected EVM chain when no requested eip155 chain is configured', () => {
+      (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x89');
+
+      const result = enrichCaveatValueForEip155({
+        proposal: {
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            eip155: {
+              chains: ['eip155:999999'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+        },
+        caveatValue: buildCaveatValue(),
+      });
+
+      expect(result.optionalScopes['eip155:137']).toEqual({ accounts: [] });
+      expect(result.optionalScopes['eip155:999999']).toBeUndefined();
+    });
+
+    it('returns the caveat value unchanged when the proposal requests no eip155 chains', () => {
+      const caveatValue = buildCaveatValue({
+        'wallet:eip155': { accounts: [] },
+        'tron:728126428': { accounts: [] },
+      });
+
+      const result = enrichCaveatValueForEip155({
+        proposal: {
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            tron: {
+              chains: ['tron:0x2b6653dc'],
+              methods: ['tron_signMessage'],
+              events: [],
+            },
+          },
+        },
+        caveatValue,
+      });
+
+      expect(result).toBe(caveatValue);
     });
   });
 
