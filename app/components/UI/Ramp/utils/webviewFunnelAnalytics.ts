@@ -1,14 +1,15 @@
 import type { RampSurface } from '../types/depositAnalytics';
 import { redactUrlForAnalytics } from './redactUrlForAnalytics';
 
+// Closed enum in segment-schema (ramps-checkout-closed.yaml); do not add
+// values here without a schema change. The external-browser cancel maps onto
+// 'user_close_button' for this reason.
 export type CloseSource =
   | 'user_close_button'
   | 'callback_success'
   | 'callback_error'
   | 'http_error'
-  | 'background'
-  /** External-browser checkout: user closed the iOS auth sheet (P2.M7). */
-  | 'external_browser_cancel';
+  | 'background';
 
 export interface FunnelBaseProps {
   checkout_session_id: string;

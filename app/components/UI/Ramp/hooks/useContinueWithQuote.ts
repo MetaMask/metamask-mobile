@@ -469,11 +469,7 @@ export function useContinueWithQuote(
                 // Once the auth session is closed no deeplink can follow, so
                 // the correlation is dead weight — drop it.
                 if (ownCorrelation) {
-                  emitExternalCheckoutClosed(
-                    ownCorrelation,
-                    'external_browser_cancel',
-                    false,
-                  );
+                  emitExternalCheckoutClosed(ownCorrelation, false);
                 }
                 clearExternalReturnCorrelation(headlessId);
                 const hadLiveSession = Boolean(getSession(headlessId));

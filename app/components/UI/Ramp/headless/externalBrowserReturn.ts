@@ -376,10 +376,13 @@ function findOrderInControllerState(orderId: string): RampsOrder | undefined {
  * Emitted for the observable user exit (iOS `openAuth` cancel). Android /
  * system-browser abandonment is unobservable by design (no load or close
  * events reach the app), so no synthetic close is emitted there.
+ *
+ * `close_source` is a closed enum in segment-schema, so the external-browser
+ * cancel maps onto `user_close_button` (the user closed the browser sheet)
+ * rather than introducing a new value.
  */
 export function emitExternalCheckoutClosed(
   correlation: ExternalReturnCorrelation,
-  closeSource: 'external_browser_cancel',
   callbackReached: boolean,
 ): void {
   analytics.trackEvent(
@@ -394,7 +397,7 @@ export function emitExternalCheckoutClosed(
           rampSurface: correlation.rampSurface,
           region: correlation.region,
         }),
-        close_source: closeSource,
+        close_source: 'user_close_button',
         order_id: correlation.orderId ?? undefined,
         callback_reached: callbackReached,
         time_on_screen_ms: Date.now() - correlation.launchedAt,

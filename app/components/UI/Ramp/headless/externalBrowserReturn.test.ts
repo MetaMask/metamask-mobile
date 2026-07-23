@@ -449,11 +449,7 @@ describe('externalBrowserReturn', () => {
 
   describe('analytics emitters (P2.M7)', () => {
     it('emitExternalCheckoutClosed emits RAMPS_CHECKOUT_CLOSED with headless base props', () => {
-      emitExternalCheckoutClosed(
-        buildCorrelation('session-5'),
-        'external_browser_cancel',
-        false,
-      );
+      emitExternalCheckoutClosed(buildCorrelation('session-5'), false);
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const built = mockTrackEvent.mock.calls[0][0];
       expect(built.properties).toMatchObject({
@@ -462,7 +458,7 @@ describe('externalBrowserReturn', () => {
         region: 'de',
         provider_name: 'Coinbase',
         checkout_session_id: 'checkout-1',
-        close_source: 'external_browser_cancel',
+        close_source: 'user_close_button',
         callback_reached: false,
       });
     });
