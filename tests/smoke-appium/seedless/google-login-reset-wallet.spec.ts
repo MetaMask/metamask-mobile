@@ -14,7 +14,7 @@ import {
 appiumTest.describe(
   SmokeSeedlessOnboarding('Google Login - Reset Wallet'),
   () => {
-    // TODO: Failing on Android Appium smoke (root cause TBD). Skipped to unblock CI infra PR #33659; investigate and re-enable.
+    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
     appiumTest.skip(
       'onboards with Google login, locks, and resets the wallet',
       async ({ driver: _driver, currentDeviceDetails }) => {

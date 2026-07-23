@@ -1293,6 +1293,54 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeOnTheScreen();
     });
 
+    it('navigates to AddDeviceToWallet when import-from-extension link is pressed', () => {
+      const mockNavigate = jest.fn();
+      const Stack = createNativeStackNavigator();
+      const stateWithAddDeviceSync = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                addDeviceSyncEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="TestScreen">
+              {({ navigation }) => {
+                jest
+                  .spyOn(navigation, 'navigate')
+                  .mockImplementation(mockNavigate);
+                return (
+                  <ImportFromSecretRecoveryPhrase
+                    navigation={navigation}
+                    route={{ params: {} }}
+                  />
+                );
+              }}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>,
+        { state: stateWithAddDeviceSync },
+        false,
+      );
+
+      fireEvent.press(
+        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      );
+    });
+
     it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
       const { getByText, queryByPlaceholderText } = renderScreen(
         ImportFromSecretRecoveryPhrase,

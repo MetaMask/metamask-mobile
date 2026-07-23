@@ -15,7 +15,7 @@ import {
 appiumTest.describe(
   SmokeSeedlessOnboarding('Google Login - Lock and Unlock'),
   () => {
-    // TODO: Failing on Android Appium smoke (root cause TBD). Skipped to unblock CI infra PR #33659; investigate and re-enable.
+    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
     appiumTest.skip(
       'onboards with Google login, locks, and unlocks the app',
       async ({ driver: _driver, currentDeviceDetails }) => {

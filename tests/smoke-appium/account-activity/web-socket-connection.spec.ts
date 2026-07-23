@@ -82,7 +82,7 @@ appiumTest.describe(
       },
     );
 
-    // TODO: Failing on Android Appium smoke (root cause TBD). Skipped to unblock CI infra PR #33659; investigate and re-enable.
+    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
     appiumTest.skip(
       'resubscribes after lock and unlock',
       async ({ driver: _driver, currentDeviceDetails }) => {

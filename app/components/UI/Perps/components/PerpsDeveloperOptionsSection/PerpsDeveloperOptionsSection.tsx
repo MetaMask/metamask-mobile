@@ -1,8 +1,4 @@
 import React from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { View, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -10,6 +6,11 @@ import { PerpsTestnetToggle } from './PerpsTestnetToggle';
 import { PerpsProviderToggle } from './PerpsProviderToggle';
 import { PerpsConnectionErrorButton } from './PerpsConnectionErrorButton';
 import { PerpsHIP3DebugButton } from './PerpsHIP3DebugButton';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 const PerpsDeveloperOptionsSectionStyles = () =>
   StyleSheet.create({
@@ -28,8 +29,8 @@ export const PerpsDeveloperOptionsSection = () => {
   return (
     <View style={styles.container}>
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={styles.heading}
       >
         {strings('perps.perps_trading')}
