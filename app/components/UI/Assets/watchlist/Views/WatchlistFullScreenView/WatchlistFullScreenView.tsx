@@ -1,11 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import ReorderableList, {
-  reorderItems,
-  type ReorderableListReorderEvent,
-} from 'react-native-reorderable-list';
+import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
+import ReorderableList from 'react-native-reorderable-list';
 import { useNavigation } from '@react-navigation/native';
-import type { CaipAssetType } from '@metamask/utils';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   Button,
@@ -29,60 +26,37 @@ import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.t
 import WatchlistEditableRow from './WatchlistEditableRow';
 import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
 import WatchlistSearchContent from './WatchlistSearchContent';
+import { useWatchlistEditDraft } from './useWatchlistEditDraft';
 import styleSheet from './WatchlistFullScreenView.styles';
 
 const SKELETON_COUNT = 5;
+const ANIMATION_DURATION = 250;
 
-const normalizeAssetId = (assetId: string): string => assetId.toLowerCase();
+const rowExitAnimation = FadeOut.duration(ANIMATION_DURATION);
+const rowLayoutAnimation = LinearTransition.duration(ANIMATION_DURATION);
 
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { data, isLoading } = useTokenWatchlistQuery();
   const updateListMutation = useTokenWatchlistUpdateListMutation();
-  const [isEditMode, setIsEditMode] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
-  const [localTokens, setLocalTokens] = useState<TrendingAsset[]>([]);
 
   const queryTokens = useMemo(
     () => (data ?? []).slice().reverse().map(mapWatchlistTokenToTrendingAsset),
     [data],
   );
 
-  const queryAssetIdSet = useMemo(
-    () =>
-      new Set(
-        queryTokens.map((token) => normalizeAssetId(String(token.assetId))),
-      ),
-    [queryTokens],
-  );
+  const {
+    isEditMode,
+    displayTokens,
+    handleEditPress,
+    handleDonePress,
+    onRemoveFromDraft,
+    handleReorder,
+  } = useWatchlistEditDraft({ queryTokens, updateListMutation });
 
-  const displayTokens = localTokens.length > 0 ? localTokens : queryTokens;
   const hasItems = displayTokens.length > 0;
-
-  useEffect(() => {
-    if (!isEditMode) {
-      return;
-    }
-
-    setLocalTokens((prev) => {
-      if (prev.length === 0) {
-        return prev;
-      }
-
-      const next = prev.filter((token) =>
-        queryAssetIdSet.has(normalizeAssetId(String(token.assetId))),
-      );
-
-      return next.length === prev.length ? prev : next;
-    });
-  }, [isEditMode, queryAssetIdSet]);
-
-  useEffect(() => {
-    if (isEditMode && !hasItems) {
-      setIsEditMode(false);
-    }
-  }, [isEditMode, hasItems]);
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -98,55 +72,21 @@ const WatchlistFullScreenView = () => {
     setIsSearchMode(true);
   }, []);
 
-  const handleEditPress = useCallback(() => {
-    setLocalTokens(displayTokens);
-    setIsEditMode(true);
-  }, [displayTokens]);
-
-  const handleRemoveFromDraft = useCallback((assetId: string) => {
-    const normalizedAssetId = normalizeAssetId(assetId);
-    setLocalTokens((prev) =>
-      prev.filter(
-        (token) =>
-          normalizeAssetId(String(token.assetId)) !== normalizedAssetId,
-      ),
-    );
-  }, []);
-
-  const handleDonePress = useCallback(() => {
-    const tokensToPersist = localTokens.filter((token) =>
-      queryAssetIdSet.has(normalizeAssetId(String(token.assetId))),
-    );
-
-    if (tokensToPersist.length > 0) {
-      updateListMutation.mutate(
-        tokensToPersist
-          .map((token) => token.assetId)
-          .reverse() as CaipAssetType[],
-      );
-    }
-
-    setLocalTokens([]);
-    setIsEditMode(false);
-  }, [localTokens, queryAssetIdSet, updateListMutation]);
-
-  const handleReorder = useCallback(
-    ({ from, to }: ReorderableListReorderEvent) => {
-      setLocalTokens((prev) => reorderItems(prev, from, to));
-    },
-    [],
-  );
-
   const renderItem = useCallback(
     ({ item, index }: { item: TrendingAsset; index: number }) => (
-      <WatchlistEditableRow
-        token={item}
-        position={index}
-        isEditMode={isEditMode}
-        onRemoveFromDraft={handleRemoveFromDraft}
-      />
+      <Animated.View
+        exiting={isEditMode ? rowExitAnimation : undefined}
+        layout={isEditMode ? rowLayoutAnimation : undefined}
+      >
+        <WatchlistEditableRow
+          token={item}
+          position={index}
+          isEditMode={isEditMode}
+          onRemoveFromDraft={onRemoveFromDraft}
+        />
+      </Animated.View>
     ),
-    [handleRemoveFromDraft, isEditMode],
+    [isEditMode, onRemoveFromDraft],
   );
 
   const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
@@ -195,12 +135,12 @@ const WatchlistFullScreenView = () => {
       </View>
     );
   }, [
-    isSearchMode,
-    isEditMode,
-    hasItems,
     handleDonePress,
     handleEditPress,
     handleSearchPress,
+    hasItems,
+    isEditMode,
+    isSearchMode,
     styles.headerEndActions,
   ]);
 
@@ -236,6 +176,7 @@ const WatchlistFullScreenView = () => {
         keyExtractor={keyExtractor}
         onReorder={handleReorder}
         dragEnabled={isEditMode}
+        itemLayoutAnimation={isEditMode ? rowLayoutAnimation : undefined}
         style={styles.listContainer}
         showsVerticalScrollIndicator={false}
         testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}

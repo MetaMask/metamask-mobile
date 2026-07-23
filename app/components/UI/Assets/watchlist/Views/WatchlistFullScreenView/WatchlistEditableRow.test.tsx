@@ -5,14 +5,7 @@ import WatchlistEditableRow from './WatchlistEditableRow';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 
-const mockMutate = jest.fn();
 const mockDrag = jest.fn();
-
-jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
-  useTokenWatchlistRemoveItemMutation: () => ({
-    mutate: mockMutate,
-  }),
-}));
 
 jest.mock('react-native-reorderable-list', () => ({
   useReorderableDrag: () => mockDrag,
@@ -103,7 +96,7 @@ describe('WatchlistEditableRow', () => {
     expect(mockDrag).toHaveBeenCalledTimes(1);
   });
 
-  it('calls remove mutation when unwatch star is pressed in edit mode', () => {
+  it('calls onRemoveFromDraft when unwatch star is pressed in edit mode', () => {
     const token = createToken();
     const onRemoveFromDraft = jest.fn();
     const { getByTestId } = render(
@@ -120,16 +113,16 @@ describe('WatchlistEditableRow', () => {
     );
 
     expect(onRemoveFromDraft).toHaveBeenCalledWith(token.assetId);
-    expect(mockMutate).toHaveBeenCalledTimes(1);
-    expect(mockMutate).toHaveBeenCalledWith(token.assetId);
   });
 
-  it('does not call remove mutation when unwatch star is pressed outside edit mode', () => {
+  it('does not call onRemoveFromDraft when unwatch star is pressed outside edit mode', () => {
+    const onRemoveFromDraft = jest.fn();
     const { getByTestId } = render(
       <WatchlistEditableRow
         token={createToken()}
         position={0}
         isEditMode={false}
+        onRemoveFromDraft={onRemoveFromDraft}
       />,
     );
 
@@ -137,6 +130,6 @@ describe('WatchlistEditableRow', () => {
       getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
     );
 
-    expect(mockMutate).not.toHaveBeenCalled();
+    expect(onRemoveFromDraft).not.toHaveBeenCalled();
   });
 });

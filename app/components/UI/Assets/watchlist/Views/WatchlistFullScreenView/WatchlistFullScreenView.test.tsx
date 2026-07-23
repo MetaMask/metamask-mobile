@@ -7,7 +7,6 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockUseTokenWatchlistQuery = jest.fn();
 const mockUpdateListMutate = jest.fn();
-const mockRemoveMutate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -23,9 +22,6 @@ jest.mock('../../hooks/useTokenWatchlistQuery', () => ({
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
   useTokenWatchlistUpdateListMutation: () => ({
     mutate: mockUpdateListMutate,
-  }),
-  useTokenWatchlistRemoveItemMutation: () => ({
-    mutate: mockRemoveMutate,
   }),
 }));
 
@@ -135,7 +131,6 @@ jest.mock('./WatchlistEditableRow', () => {
             testID: `watchlist-mock-unwatch-${token.assetId}`,
             onPress: () => {
               onRemoveFromDraft?.(token.assetId);
-              mockRemoveMutate(token.assetId);
             },
           })
         : null,
@@ -155,6 +150,13 @@ jest.mock(
     return Mock;
   },
 );
+
+const expectUpdateListMutateCalledWith = (assetIds: string[]) => {
+  expect(mockUpdateListMutate).toHaveBeenCalledWith(
+    assetIds,
+    expect.objectContaining({ onError: expect.any(Function) }),
+  );
+};
 
 const makeWatchlistToken = (name: string) => ({
   assetId: `eip155:1/erc20:0x${name}`,
@@ -325,6 +327,42 @@ describe('WatchlistFullScreenView', () => {
     ).toBeDefined();
   });
 
+  it('does not flash empty CTA when toggling edit and done without changes', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [
+        makeWatchlistToken('eth'),
+        makeWatchlistToken('btc'),
+        makeWatchlistToken('sol'),
+      ],
+      isLoading: false,
+    });
+
+    const { getByTestId, queryByTestId } = render(<WatchlistFullScreenView />);
+
+    const toggleEditDone = () => {
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+      expect(queryByTestId('watchlist-empty-cta')).toBeNull();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),
+      ).toBeDefined();
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      );
+      expect(queryByTestId('watchlist-empty-cta')).toBeNull();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),
+      ).toBeDefined();
+    };
+
+    toggleEditDone();
+    toggleEditDone();
+
+    expect(mockUpdateListMutate).not.toHaveBeenCalled();
+  });
+
   it('exits edit mode when the watchlist becomes empty', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [makeWatchlistToken('eth')],
@@ -431,10 +469,103 @@ describe('WatchlistFullScreenView', () => {
     );
 
     expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
-    expect(mockUpdateListMutate).toHaveBeenCalledWith([
+    expectUpdateListMutateCalledWith([
       'eip155:1/erc20:0xeth',
       'eip155:1/erc20:0xsol',
       'eip155:1/erc20:0xbtc',
+    ]);
+  });
+
+  it('keeps reordered display after Done when mutation does not update query', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [
+        makeWatchlistToken('eth'),
+        makeWatchlistToken('btc'),
+        makeWatchlistToken('sol'),
+      ],
+      isLoading: false,
+    });
+
+    const { getByTestId, getAllByTestId, queryByTestId } = render(
+      <WatchlistFullScreenView />,
+    );
+
+    const getRenderedAssetOrder = () =>
+      getAllByTestId(/^reorderable-item-/).map((node) =>
+        String(node.props.testID).replace('reorderable-item-', ''),
+      );
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    );
+    fireEvent.press(getByTestId('mock-reorder-trigger'));
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    );
+
+    expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    ).toBeNull();
+    expect(getRenderedAssetOrder()).toEqual([
+      'eip155:1/erc20:0xbtc',
+      'eip155:1/erc20:0xsol',
+      'eip155:1/erc20:0xeth',
+    ]);
+  });
+
+  it('keeps reordered display after Done when query updates optimistically', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [
+        makeWatchlistToken('eth'),
+        makeWatchlistToken('btc'),
+        makeWatchlistToken('sol'),
+      ],
+      isLoading: false,
+    });
+
+    mockUpdateListMutate.mockImplementation((assetIds: string[]) => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: assetIds.map((assetId) => {
+          const name = assetId.split(':').pop()?.replace('0x', '') ?? '';
+          return makeWatchlistToken(name);
+        }),
+        isLoading: false,
+      });
+    });
+
+    const { getByTestId, getAllByTestId, queryByTestId, rerender } = render(
+      <WatchlistFullScreenView />,
+    );
+
+    const getRenderedAssetOrder = () =>
+      getAllByTestId(/^reorderable-item-/).map((node) =>
+        String(node.props.testID).replace('reorderable-item-', ''),
+      );
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    );
+    fireEvent.press(getByTestId('mock-reorder-trigger'));
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    );
+
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    ).toBeNull();
+    expect(getRenderedAssetOrder()).toEqual([
+      'eip155:1/erc20:0xbtc',
+      'eip155:1/erc20:0xsol',
+      'eip155:1/erc20:0xeth',
+    ]);
+
+    rerender(<WatchlistFullScreenView />);
+
+    expect(getRenderedAssetOrder()).toEqual([
+      'eip155:1/erc20:0xbtc',
+      'eip155:1/erc20:0xsol',
+      'eip155:1/erc20:0xeth',
     ]);
   });
 
@@ -448,7 +579,30 @@ describe('WatchlistFullScreenView', () => {
       isLoading: false,
     });
 
-    it('does not persist removed tokens when Done is pressed before hydrated query updates', () => {
+    it('persists final list with one updateListMutate after unwatch and reorder', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue(threeTokenFixture());
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+      fireEvent.press(getByTestId('mock-reorder-trigger'));
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xbtc'),
+      );
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      );
+
+      expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
+      expectUpdateListMutateCalledWith([
+        'eip155:1/erc20:0xeth',
+        'eip155:1/erc20:0xsol',
+      ]);
+    });
+
+    it('persists removed tokens when Done is pressed before hydrated query updates', () => {
       mockUseTokenWatchlistQuery.mockReturnValue(threeTokenFixture());
 
       const { getByTestId } = render(<WatchlistFullScreenView />);
@@ -463,15 +617,14 @@ describe('WatchlistFullScreenView', () => {
         getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
       );
 
-      expect(mockRemoveMutate).toHaveBeenCalledWith('eip155:1/erc20:0xbtc');
       expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
-      expect(mockUpdateListMutate).toHaveBeenCalledWith([
+      expectUpdateListMutateCalledWith([
         'eip155:1/erc20:0xeth',
         'eip155:1/erc20:0xsol',
       ]);
     });
 
-    it('persists reordered list after unwatch updates hydrated query in the same edit session', () => {
+    it('persists when hydrated query already matches draft after unwatch', () => {
       mockUseTokenWatchlistQuery.mockReturnValue(threeTokenFixture());
 
       const { getByTestId, rerender } = render(<WatchlistFullScreenView />);
@@ -494,15 +647,14 @@ describe('WatchlistFullScreenView', () => {
         getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
       );
 
-      expect(mockRemoveMutate).toHaveBeenCalledWith('eip155:1/erc20:0xbtc');
       expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
-      expect(mockUpdateListMutate).toHaveBeenCalledWith([
+      expectUpdateListMutateCalledWith([
         'eip155:1/erc20:0xeth',
         'eip155:1/erc20:0xsol',
       ]);
     });
 
-    it('does not clear the edit draft when hydrated query changes during edit mode', () => {
+    it('persists when hydrated query already matches reordered draft', () => {
       mockUseTokenWatchlistQuery.mockReturnValue(threeTokenFixture());
 
       const { getByTestId, rerender } = render(<WatchlistFullScreenView />);
@@ -513,7 +665,11 @@ describe('WatchlistFullScreenView', () => {
       fireEvent.press(getByTestId('mock-reorder-trigger'));
 
       mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [makeWatchlistToken('eth'), makeWatchlistToken('sol')],
+        data: [
+          makeWatchlistToken('eth'),
+          makeWatchlistToken('btc'),
+          makeWatchlistToken('sol'),
+        ],
         isLoading: false,
       });
       rerender(<WatchlistFullScreenView />);
@@ -523,10 +679,64 @@ describe('WatchlistFullScreenView', () => {
       );
 
       expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
-      expect(mockUpdateListMutate).toHaveBeenCalledWith([
+      expectUpdateListMutateCalledWith([
         'eip155:1/erc20:0xeth',
         'eip155:1/erc20:0xsol',
+        'eip155:1/erc20:0xbtc',
       ]);
+    });
+
+    it('does not repopulate from cached query when all draft items are unwatched', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId, rerender } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xeth'),
+      );
+
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      ).toBeNull();
+
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [],
+        isLoading: false,
+      });
+      rerender(<WatchlistFullScreenView />);
+
+      expect(queryByTestId('editable-row-eip155:1/erc20:0xeth')).toBeNull();
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),
+      ).toBeNull();
+      expect(getByTestId('watchlist-empty-cta')).toBeDefined();
+    });
+
+    it('keeps draft removals visible while cached query is stale during edit mode', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue(threeTokenFixture());
+
+      const { getByTestId, queryByTestId } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xbtc'),
+      );
+
+      expect(queryByTestId('editable-row-eip155:1/erc20:0xbtc')).toBeNull();
+      expect(getByTestId('editable-row-eip155:1/erc20:0xsol')).toBeDefined();
+      expect(getByTestId('editable-row-eip155:1/erc20:0xeth')).toBeDefined();
     });
   });
 });

@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
-import { LayoutAnimation, Pressable, View } from 'react-native';
-import type { CaipAssetType } from '@metamask/utils';
+import { Pressable, View } from 'react-native';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -13,7 +12,6 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { useTokenWatchlistRemoveItemMutation } from '../../hooks/useTokenWatchlistMutations';
 import TrendingTokenRowItem from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
@@ -34,21 +32,13 @@ const WatchlistEditableRow = ({
   onRemoveFromDraft,
 }: WatchlistEditableRowProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const removeMutation = useTokenWatchlistRemoveItemMutation();
   const drag = useReorderableDrag();
 
+  // TODO(PR #33675): trackEvent WATCHLIST_TOKEN_REMOVED on star tap
+  // (source=watchlist_fullscreen_edit, asset_type). Not on removeMutation — draft-only; persist on Done.
   const handleUnwatch = useCallback(() => {
-    LayoutAnimation.configureNext(
-      LayoutAnimation.create(
-        200,
-        LayoutAnimation.Types.easeInEaseOut,
-        LayoutAnimation.Properties.opacity,
-      ),
-    );
-
     onRemoveFromDraft?.(String(token.assetId));
-    removeMutation.mutate(token.assetId as CaipAssetType);
-  }, [onRemoveFromDraft, removeMutation, token.assetId]);
+  }, [onRemoveFromDraft, token.assetId]);
 
   return (
     <View
