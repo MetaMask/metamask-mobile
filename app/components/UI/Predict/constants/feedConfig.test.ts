@@ -174,6 +174,10 @@ describe('feedConfig', () => {
       soccerTab.filters.static.find((filter) => filter.id === 'mls')?.params
         .order,
     ).toBe('start_time');
+    expect(
+      soccerTab.filters.static.find((filter) => filter.id === 'mls')?.params
+        .startTimeMinMinutesAgo,
+    ).toBeUndefined();
   });
 
   it('preserves remote sports tab labels', () => {
@@ -257,7 +261,6 @@ describe('feedConfig', () => {
       tagSlugs: ['remote-slug'],
       status: 'open',
       order: 'start_time',
-      startTimeMinMinutesAgo: 180,
     });
   });
 
@@ -301,8 +304,8 @@ describe('feedConfig', () => {
           tagSlug: 'custom-tab',
           chips: [
             {
-              id: 'custom-chip',
-              kind: 'tag',
+              id: 'games',
+              kind: 'games',
               queryParams: 'tag_slug=remote-slug&order=startTime',
               startTimeMinMinutesAgo: 15,
             },
@@ -317,24 +320,50 @@ describe('feedConfig', () => {
     });
   });
 
-  it('applies the sports start time lower bound to non-props filters', () => {
-    PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
-      tab.filters.static
-        .filter((filter) => filter.id !== 'props')
-        .forEach((filter) => {
-          expect(filter.params.startTimeMinMinutesAgo).toBe(180);
-        });
+  it('does not apply chip start time minute overrides on league query params', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      gamesTagId: '100639',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'mls',
+              kind: 'tag',
+              queryParams: 'tag_slug=mls&order=startTime',
+              startTimeMinMinutesAgo: 15,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      queryParams: 'tag_slug=mls&order=startTime',
     });
   });
 
-  it('does not apply the sports start time lower bound to props filters', () => {
+  it('applies the sports start time lower bound to games filters', () => {
     PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
-      const propsFilter = tab.filters.static.find(
-        (filter) => filter.id === 'props',
+      const gamesFilter = tab.filters.static.find(
+        (filter) => filter.id === 'games',
       );
 
-      expect(propsFilter?.params.startTimeMin).toBeUndefined();
-      expect(propsFilter?.params.startTimeMinMinutesAgo).toBeUndefined();
+      expect(gamesFilter?.params.startTimeMinMinutesAgo).toBe(180);
+    });
+  });
+
+  it('does not apply the sports start time lower bound to props or league filters', () => {
+    PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
+      tab.filters.static
+        .filter((filter) => filter.id !== 'games')
+        .forEach((filter) => {
+          expect(filter.params.startTimeMin).toBeUndefined();
+          expect(filter.params.startTimeMinMinutesAgo).toBeUndefined();
+        });
     });
   });
 

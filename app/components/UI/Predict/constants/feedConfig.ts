@@ -97,6 +97,7 @@ const normalizeSportsChipQueryParams = (
 const withSportsChipOverrides = (
   params: PredictMarketListParams,
   chip: PredictSportsFeedChipConfig,
+  { applyStartTimeOverride = true }: { applyStartTimeOverride?: boolean } = {},
 ): PredictMarketListParams => {
   const queryParams = normalizeSportsChipQueryParams(chip.queryParams);
   const resolvedParams: PredictMarketListParams = queryParams
@@ -104,6 +105,7 @@ const withSportsChipOverrides = (
     : { ...params };
 
   if (
+    applyStartTimeOverride &&
     chip.startTimeMinMinutesAgo !== undefined &&
     Number.isFinite(chip.startTimeMinMinutesAgo)
   ) {
@@ -165,6 +167,9 @@ const createTagFilter = (
   if (!tagSlug && !normalizeSportsChipQueryParams(chip.queryParams)) {
     return undefined;
   }
+  const tagParams: PredictMarketListParams = { ...params };
+  delete tagParams.startTimeMin;
+  delete tagParams.startTimeMinMinutesAgo;
 
   return {
     id: chip.id,
@@ -173,12 +178,13 @@ const createTagFilter = (
     params: withSportsChipOverrides(
       tagSlug
         ? {
-            ...params,
+            ...tagParams,
             tagSlugs: [tagSlug],
             order: 'start_time',
           }
-        : params,
+        : tagParams,
       chip,
+      { applyStartTimeOverride: false },
     ),
     showLiveFirst: true,
   };
