@@ -125,7 +125,6 @@ const createSportsFeedTab = ({
 export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
   enabled: true,
   minimumVersion: '',
-  gamesTagId: PREDICT_POLYMARKET_GAMES_TAG_ID,
   tabs: [
     createSportsFeedTab({
       id: 'all',

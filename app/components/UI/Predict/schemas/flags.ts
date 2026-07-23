@@ -150,10 +150,6 @@ export const PredictSportsFeedSchema = defaulted(
       string(),
       () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.minimumVersion,
     ),
-    gamesTagId: defaulted(
-      string(),
-      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.gamesTagId,
-    ),
     tabs: defaulted(
       array(PredictSportsFeedTabSchema),
       () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.tabs,

@@ -1644,7 +1644,6 @@ describe('Predict Feature Flag Selectors', () => {
       const remoteSportsFeed = {
         enabled: true,
         minimumVersion: '1.0.0',
-        gamesTagId: 'games-tag',
         tabs: [
           {
             id: 'soccer',
@@ -1692,7 +1691,6 @@ describe('Predict Feature Flag Selectors', () => {
                 predictSportsFeed: {
                   enabled: true,
                   minimumVersion: '99.0.0',
-                  gamesTagId: 'games-tag',
                   tabs: [],
                 },
               },

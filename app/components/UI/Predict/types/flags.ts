@@ -82,7 +82,6 @@ export interface PredictSportsFeedTabConfig {
 }
 
 export interface PredictSportsFeedConfig extends VersionGatedFeatureFlag {
-  gamesTagId: string;
   tabs: PredictSportsFeedTabConfig[];
 }
 

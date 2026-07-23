@@ -317,10 +317,7 @@ describe('PredictSportsFeedSchema', () => {
 
     const result = create(input, PredictSportsFeedSchema);
 
-    expect(result).toStrictEqual({
-      ...input,
-      gamesTagId: DEFAULT_PREDICT_SPORTS_FEED_FLAG.gamesTagId,
-    });
+    expect(result).toStrictEqual(input);
   });
 
   it('tolerates unknown keys in the remote payload', () => {
@@ -328,7 +325,6 @@ describe('PredictSportsFeedSchema', () => {
       {
         enabled: true,
         minimumVersion: '1.0.0',
-        gamesTagId: '100639',
         tabs: [],
         someFutureField: 'ignored',
       },
@@ -336,7 +332,6 @@ describe('PredictSportsFeedSchema', () => {
     );
 
     expect(result.enabled).toBe(true);
-    expect(result.gamesTagId).toBe('100639');
     expect(result.tabs).toEqual([]);
   });
 
