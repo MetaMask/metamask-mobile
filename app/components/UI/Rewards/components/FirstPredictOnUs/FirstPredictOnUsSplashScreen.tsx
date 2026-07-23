@@ -64,7 +64,7 @@ const FirstPredictOnUsSplashScreen: React.FC = () => {
   const onSkip = useCallback(() => {
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.FIRST_PREDICT_ON_US_SPLASH_SKIPPED,
+        MetaMetricsEvents.FIRST_PREDICTION_ON_US_SKIPPED,
       ).build(),
     );
     onClose();
@@ -73,7 +73,7 @@ const FirstPredictOnUsSplashScreen: React.FC = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.FIRST_PREDICT_ON_US_SPLASH_SHOWN,
+        MetaMetricsEvents.FIRST_PREDICTION_ON_US_VIEWED,
       ).build(),
     );
   }, [createEventBuilder, trackEvent]);
