@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { ToastContext } from '../../../component-library/components/Toast';
 import {
   ToastVariants,
@@ -12,7 +12,11 @@ import { useEnableNotifications } from '../../../util/notifications/hooks/useNot
 import NotificationService, {
   isPushPermissionGranted,
   isPushPermissionPromptable,
+  requestPushPermissions,
 } from '../../../util/notifications/services/NotificationService';
+
+/** Below this threshold, Android likely skipped the OS dialog (permanent deny). */
+const ANDROID_OS_DIALOG_MIN_ELAPSED_MS = 800;
 
 const NUDGE_LABELS = () => [
   { label: strings('sdk_connect_v2.push_nudge.title'), isBold: true },
@@ -33,6 +37,10 @@ const ERROR_LABELS = () => [
  * Denying that dialog closes the toast without opening Settings. When the OS can
  * no longer show its dialog (e.g. iOS after a prior denial), it deep-links to
  * device notification settings and retries once the app returns to foreground.
+ *
+ * Android: Notifee reports DENIED for both "never asked" and "permanently
+ * denied", so we request OS permission first and treat a fast denial (no dialog)
+ * as a signal to open device notification settings.
  */
 export function useCliLoginPushNudge(): {
   showNudge: () => boolean;
@@ -112,6 +120,36 @@ export function useCliLoginPushNudge(): {
     [clearForegroundRetry],
   );
 
+  const openSettingsAndScheduleRetry = useCallback(
+    (isCurrent: () => boolean) => {
+      toastRef?.current?.closeToast();
+      NotificationService.openSystemSettings();
+      scheduleForegroundRetry(async () => {
+        if (!isCurrent()) {
+          return;
+        }
+        inFlightRef.current = true;
+        try {
+          if (!(await isPushPermissionGranted())) {
+            if (isCurrent()) {
+              toastRef?.current?.closeToast();
+            }
+            return;
+          }
+          if (!isCurrent()) {
+            return;
+          }
+          showLoadingToast();
+          await runEnableFlow(isCurrent);
+        } finally {
+          inFlightRef.current = false;
+        }
+      });
+      inFlightRef.current = false;
+    },
+    [runEnableFlow, scheduleForegroundRetry, showLoadingToast, toastRef],
+  );
+
   const onTapTurnOn = useCallback(async () => {
     if (inFlightRef.current) {
       return;
@@ -137,45 +175,43 @@ export function useCliLoginPushNudge(): {
         return;
       }
 
+      if (Platform.OS === 'android') {
+        showLoadingToast();
+        const requestStartedAt = Date.now();
+        const osGranted = await requestPushPermissions();
+        const requestElapsedMs = Date.now() - requestStartedAt;
+
+        if (!isCurrent()) {
+          return;
+        }
+
+        if (osGranted) {
+          await runEnableFlow(isCurrent);
+          return;
+        }
+
+        if (requestElapsedMs < ANDROID_OS_DIALOG_MIN_ELAPSED_MS) {
+          openSettingsAndScheduleRetry(isCurrent);
+          return;
+        }
+
+        if (isCurrent()) {
+          toastRef?.current?.closeToast();
+        }
+        return;
+      }
+
       const promptable = await isPushPermissionPromptable();
       if (!isCurrent()) {
         return;
       }
 
       if (!promptable) {
-        // OS dialog cannot be shown again (e.g. iOS after a prior denial).
-        // Deep-link to device settings and retry on return to foreground.
-        toastRef?.current?.closeToast();
-        NotificationService.openSystemSettings();
-        scheduleForegroundRetry(async () => {
-          if (!isCurrent()) {
-            return;
-          }
-          inFlightRef.current = true;
-          try {
-            if (!(await isPushPermissionGranted())) {
-              if (isCurrent()) {
-                toastRef?.current?.closeToast();
-              }
-              return;
-            }
-            if (!isCurrent()) {
-              return;
-            }
-            showLoadingToast();
-            await runEnableFlow(isCurrent);
-          } finally {
-            inFlightRef.current = false;
-          }
-        });
-        // The enable work is deferred to the foreground retry, which manages
-        // its own in-flight guard. Release the guard now so a later tap is not
-        // permanently blocked if the user never returns from device settings.
-        inFlightRef.current = false;
+        openSettingsAndScheduleRetry(isCurrent);
         return;
       }
 
-      // OS can still show its dialog — request permission via enableNotifications().
+      // iOS: OS can still show its dialog — request permission via enableNotifications().
       // If the user denies, dismiss the toast without opening Settings (matches
       // PushNotificationOnboarding).
       showLoadingToast();
@@ -195,8 +231,8 @@ export function useCliLoginPushNudge(): {
     }
   }, [
     enableNotifications,
+    openSettingsAndScheduleRetry,
     runEnableFlow,
-    scheduleForegroundRetry,
     showErrorToast,
     showLoadingToast,
     toastRef,

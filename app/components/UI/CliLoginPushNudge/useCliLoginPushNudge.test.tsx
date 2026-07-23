@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { renderHook, act } from '@testing-library/react-native';
 import { ToastContext } from '../../../component-library/components/Toast';
 import type {
@@ -11,6 +11,7 @@ import { useCliLoginPushNudge } from './useCliLoginPushNudge';
 const mockEnableNotifications = jest.fn();
 const mockIsPushPermissionPromptable = jest.fn();
 const mockIsPushPermissionGranted = jest.fn();
+const mockRequestPushPermissions = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockIsNotificationsFeatureEnabled = jest.fn();
 
@@ -31,6 +32,7 @@ jest.mock('../../../util/notifications/services/NotificationService', () => ({
   },
   isPushPermissionPromptable: () => mockIsPushPermissionPromptable(),
   isPushPermissionGranted: () => mockIsPushPermissionGranted(),
+  requestPushPermissions: () => mockRequestPushPermissions(),
 }));
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -74,6 +76,8 @@ describe('useCliLoginPushNudge', () => {
     mockEnableNotifications.mockResolvedValue(undefined);
     mockIsPushPermissionPromptable.mockResolvedValue(true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
+    mockRequestPushPermissions.mockResolvedValue(false);
+    Platform.OS = 'ios';
     jest.spyOn(AppState, 'addEventListener').mockImplementation(((
       _event: string,
       handler: (state: string) => void,
@@ -266,5 +270,61 @@ describe('useCliLoginPushNudge', () => {
 
     expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
     expect(mockEnableNotifications).not.toHaveBeenCalled();
+  });
+
+  describe('android', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
+    it('opens settings when the OS dialog is skipped after permanent denial', async () => {
+      const dateNow = jest.spyOn(Date, 'now');
+      dateNow.mockReturnValueOnce(0).mockReturnValueOnce(100);
+      mockRequestPushPermissions.mockResolvedValue(false);
+      const { result } = renderNudge();
+
+      act(() => {
+        result.current.showNudge();
+      });
+      await tapTurnOn();
+
+      expect(mockRequestPushPermissions).toHaveBeenCalledTimes(1);
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+      dateNow.mockRestore();
+    });
+
+    it('closes without settings when the user denies the OS dialog', async () => {
+      const dateNow = jest.spyOn(Date, 'now');
+      dateNow.mockReturnValueOnce(0).mockReturnValueOnce(1500);
+      mockRequestPushPermissions.mockResolvedValue(false);
+      const { result } = renderNudge();
+
+      act(() => {
+        result.current.showNudge();
+      });
+      await tapTurnOn();
+
+      expect(mockRequestPushPermissions).toHaveBeenCalledTimes(1);
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+      expect(closeToast).toHaveBeenCalled();
+      dateNow.mockRestore();
+    });
+
+    it('enables notifications when the OS grants push permission', async () => {
+      mockRequestPushPermissions.mockResolvedValue(true);
+      const { result } = renderNudge();
+
+      act(() => {
+        result.current.showNudge();
+      });
+      await tapTurnOn();
+
+      expect(mockRequestPushPermissions).toHaveBeenCalledTimes(1);
+      expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+      expect(closeToast).toHaveBeenCalled();
+    });
   });
 });
