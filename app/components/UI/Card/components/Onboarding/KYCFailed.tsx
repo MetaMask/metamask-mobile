@@ -8,6 +8,7 @@ import {
   ImageStyle,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -50,7 +51,7 @@ const staticStyles = StyleSheet.create({
  * Informs the user they are not eligible for the MetaMask Card.
  */
 const KYCFailed = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();

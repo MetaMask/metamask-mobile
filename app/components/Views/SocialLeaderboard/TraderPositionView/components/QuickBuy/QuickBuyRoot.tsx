@@ -1,18 +1,48 @@
 import {
-  BottomSheet,
-  type BottomSheetRef,
+  BottomSheetDialog,
+  Box,
+  type BottomSheetDialogRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import type { LayoutChangeEvent } from 'react-native';
+import Animated, { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
-import QuickBuyAmountScreen from './QuickBuyAmountScreen';
-import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
-import { QuickBuyProvider } from './QuickBuyContext';
+import { useABTest } from '../../../../../../hooks/useABTest';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
+import {
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
+} from './abTestConfig';
+import {
+  buildQuickBuySharedAnalyticsProperties,
+  QuickBuyEventProperties,
+  QuickBuyEventValues,
+} from './analytics';
+import { useSocialLeaderboardAnalytics } from '../../../analytics';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
+import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
+import { QuickBuyProvider } from './QuickBuyContext';
+import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
+import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
+import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
+import QuickBuyTokenSelectScreen from './QuickBuyTokenSelectScreen';
+import {
+  makeScreenTransitions,
+  SCREEN_DEPTH,
+  type ScreenDirection,
+} from './transitions';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
@@ -22,10 +52,6 @@ import type {
 } from './types';
 
 export type { QuickBuyRootProps } from './types';
-
-const AnimatedScrollView = Animated.createAnimatedComponent(
-  GestureHandlerScrollView,
-);
 
 function renderActiveScreen(
   activeScreen: QuickBuyScreen,
@@ -37,7 +63,13 @@ function renderActiveScreen(
 
   switch (activeScreen) {
     case 'payWith':
-      return <QuickBuyPayWithScreen />;
+      return <QuickBuyTokenSelectScreen />;
+    case 'quoteDetails':
+      return <QuickBuyQuoteDetailsScreen />;
+    case 'selectQuote':
+      return <QuickBuySelectQuoteScreen />;
+    case 'priceImpactConfirm':
+      return <QuickBuyPriceImpactConfirmScreen />;
     case 'amount':
     default:
       return <QuickBuyAmountScreen />;
@@ -60,44 +92,163 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   children,
 }) => {
   const tw = useTailwind();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const { track } = useSocialLeaderboardAnalytics();
+  const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
+  // Measured once from the first screen and reused as a fixed height for every
+  // screen so the sheet keeps a constant size during navigation (no layout
+  // shift between screens).
+  const [lockedHeight, setLockedHeight] = useState<number | null>(null);
+  // True once a dismissal is requested via the CTA/Cancel so the content drops
+  // with the sheet instead of running its horizontal screen-exit transition.
+  const [isClosing, setIsClosing] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const surfaceClass = useElevatedSurface();
+
+  // Keyboard vs slider A/B test. Resolved here so `Experiment Viewed` fires
+  // once the sheet is actually shown (this component only mounts when visible).
+  const { variant, variantName } = useABTest(
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
+  );
+  const useKeyboard = variant.useKeyboard;
+
+  const directionSV = useSharedValue<ScreenDirection>(1);
+  // Suppresses the enter animation on the initial screen when the sheet opens;
+  // transitions only kick in once the user navigates between screens.
+  const [hasNavigated, setHasNavigated] = useState(false);
+  const { entering, exiting } = useMemo(
+    () => makeScreenTransitions(directionSV),
+    [directionSV],
+  );
+
+  const navigateToScreen = useCallback(
+    (next: QuickBuyScreen) => {
+      setHasNavigated(true);
+      setActiveScreen((current) => {
+        directionSV.value =
+          SCREEN_DEPTH[next] >= SCREEN_DEPTH[current] ? 1 : -1;
+        return next;
+      });
+    },
+    [directionSV],
+  );
+
+  const trackSheetViewed = useCallback(() => {
+    const source = analyticsContext?.source;
+    if (!source || !target.tokenSymbol) {
+      return;
+    }
+    track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
+      [QuickBuyEventProperties.ASSET_NAME]: target.tokenSymbol,
+      ...buildQuickBuySharedAnalyticsProperties(analyticsContext),
+      [QuickBuyEventProperties.TRADE_TYPE]:
+        analyticsContext.traderTradeType ?? QuickBuyEventValues.TRADE_TYPE.BUY,
+    });
+  }, [analyticsContext, target.tokenSymbol, track]);
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet(() => {
+    bottomSheetRef.current?.onOpenDialog(() => {
       setIsContentReady(true);
+      trackSheetViewed();
     });
-  }, []);
+  }, [trackSheetViewed]);
+
+  // Animate the sheet down (then run the parent's onClose) and flag the content
+  // as closing so it doesn't slide horizontally on the way out. Falls back to a
+  // direct onClose when the imperative handle isn't available.
+  const requestClose = useCallback(() => {
+    setIsClosing(true);
+    const sheet = bottomSheetRef.current;
+    if (sheet?.onCloseDialog) {
+      sheet.onCloseDialog(onClose);
+    } else {
+      onClose();
+    }
+  }, [onClose]);
+
+  const handleContentLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      // Capture the first (amount) screen height once so every sub-screen shares
+      // it and doesn't collapse to its own (often short) content height. In the
+      // keyboard treatment the amount screen stays dynamic below, but its
+      // initial (keypad-open) height is still the baseline for the others.
+      if (lockedHeight !== null) {
+        return;
+      }
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) {
+        setLockedHeight(height);
+      }
+    },
+    [lockedHeight],
+  );
+
+  // Keep the bottom safe-area inset only on screens that pin a CTA at the
+  // bottom; the scroll-only screens (quote details / select quote / pay with /
+  // receive) sit flush to the edge instead of leaving dead space below.
+  const hasBottomCta =
+    activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
+
+  // The amount screen in the keyboard treatment stays dynamic so it can grow and
+  // shrink with the keypad; every other screen (and the whole control variant)
+  // uses the locked height so sub-screens like "Pay with" don't collapse to
+  // their own short content height.
+  const isDynamicAmountScreen = useKeyboard && activeScreen === 'amount';
+  const shouldLockHeight = lockedHeight !== null && !isDynamicAmountScreen;
 
   return (
-    <BottomSheet
+    <BottomSheetDialog
       ref={bottomSheetRef}
-      isInteractable={!isSubmittingTx}
       onClose={onClose}
+      twClassName={surfaceClass}
     >
       {isContentReady ? (
         <QuickBuyProvider
+          key={variantName}
           target={target}
-          onClose={onClose}
+          onClose={requestClose}
           features={features}
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
-          setActiveScreen={setActiveScreen}
+          setActiveScreen={navigateToScreen}
+          useKeyboard={useKeyboard}
         >
-          {renderActiveScreen(activeScreen, children)}
+          <Box
+            testID="quick-buy-content-container"
+            onLayout={handleContentLayout}
+            style={
+              shouldLockHeight && lockedHeight !== null
+                ? {
+                    // Scroll-only screens reclaim the bottom safe-area inset
+                    // that BottomSheetDialog adds, so they sit flush to the
+                    // edge while keeping the same overall sheet height as the
+                    // CTA screens (no layout shift between screens).
+                    height: hasBottomCta
+                      ? lockedHeight
+                      : lockedHeight + bottomInset,
+                    ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
+                  }
+                : undefined
+            }
+          >
+            <Animated.View
+              key={activeScreen}
+              entering={hasNavigated ? entering : undefined}
+              exiting={isClosing ? undefined : exiting}
+              style={shouldLockHeight ? tw.style('flex-1') : undefined}
+            >
+              {renderActiveScreen(activeScreen, children)}
+            </Animated.View>
+          </Box>
         </QuickBuyProvider>
       ) : (
-        <AnimatedScrollView
-          style={tw.style('shrink')}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <QuickBuyBottomSheetSkeleton />
-        </AnimatedScrollView>
+        <QuickBuyBottomSheetSkeleton useKeyboard={useKeyboard} />
       )}
-    </BottomSheet>
+    </BottomSheetDialog>
   );
 };
 

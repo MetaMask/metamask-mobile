@@ -4,19 +4,20 @@ import {
   showWCLoadingState,
   isValidWCURI,
   waitForNetworkModalOnboarding,
-  getApprovedSessionMethods,
   getScopedPermissions,
   networkModalOnboardingConfig,
   getHostname,
   normalizeDappUrl,
   isValidUrl,
   getUnverifiedRequestOrigin,
+  isEIP155RedirectMethodForChain,
 } from './wc-utils';
 import type { WalletKitTypes } from '@reown/walletkit';
 import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import type { CaipChainId } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-namespace
 import * as StoreModule from '../../../app/store';
@@ -39,7 +40,7 @@ jest.mock('../../../app/store', () => {
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn().mockReturnValue(['0x123']),
-  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
+  getPermittedCaipChainIds: jest.fn().mockResolvedValue(['eip155:1']),
   updatePermittedChains: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -213,18 +214,50 @@ describe('WalletConnect Utils', () => {
     });
   });
 
-  describe('getApprovedSessionMethods', () => {
-    it('returns all approved EIP-155 methods', () => {
-      const methods = getApprovedSessionMethods();
-      expect(methods).toContain('eth_sendTransaction');
-      expect(methods).toContain('wallet_switchEthereumChain');
+  describe('isEIP155RedirectMethodForChain', () => {
+    it('returns true for approved EIP-155 redirect methods', () => {
+      expect(
+        isEIP155RedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'eth_sendTransaction',
+        }),
+      ).toBe(true);
+      expect(
+        isEIP155RedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_switchEthereumChain',
+        }),
+      ).toBe(true);
     });
 
-    it('includes EIP-5792 methods', () => {
-      const methods = getApprovedSessionMethods();
-      expect(methods).toContain('wallet_sendCalls');
-      expect(methods).toContain('wallet_getCallsStatus');
-      expect(methods).toContain('wallet_getCapabilities');
+    it('includes EIP-5792 redirect methods', () => {
+      expect(
+        isEIP155RedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_sendCalls',
+        }),
+      ).toBe(true);
+      expect(
+        isEIP155RedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_getCallsStatus',
+        }),
+      ).toBe(false);
+      expect(
+        isEIP155RedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_getCapabilities',
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false for scopes that only share the EIP-155 namespace prefix', () => {
+      expect(
+        isEIP155RedirectMethodForChain({
+          scope: 'eip155x:1' as CaipChainId,
+          method: 'eth_sendTransaction',
+        }),
+      ).toBe(false);
     });
   });
 

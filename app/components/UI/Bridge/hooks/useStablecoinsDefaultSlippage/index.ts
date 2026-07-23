@@ -6,8 +6,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import usePrevious from '../../../../hooks/usePrevious';
 
-// USDC and USDT for now
-const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
+export const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [CHAIN_IDS.MAINNET]: new Set([
     '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
     '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
@@ -60,6 +59,9 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   ]),
   [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: new Set([
     '0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb', // USDT0
+  ]),
+  [NETWORKS_CHAIN_ID.ARC]: new Set([
+    '0x3600000000000000000000000000000000000000', // USDC
   ]),
 };
 

@@ -4,16 +4,17 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
   HeaderStandard,
   Text,
-  TextVariant,
   TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -30,6 +31,8 @@ import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testIds';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
+import { useFormatters } from '../../../../../hooks/useFormatters';
+import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
@@ -56,7 +59,7 @@ function PaymentSelectionModal() {
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { amount: routeAmount, onPaymentMethodSelect } =
     useParams<PaymentSelectionModalParams>();
 
@@ -121,7 +124,15 @@ function PaymentSelectionModal() {
         })
         .build(),
     );
-    navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+    // Close the payment sheet before opening provider selection. Stacking two
+    // modal screens leaves the amount input on BuildQuote invisible behind the
+    // nested overlays (TRAM-3750).
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.MODALS.ID, {
+        screen: Routes.RAMP.MODALS.PROVIDER_SELECTION,
+        params: { amount },
+      });
+    });
   }, [
     navigation,
     amount,
@@ -158,6 +169,7 @@ function PaymentSelectionModal() {
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const tokenSymbol = selectedToken?.symbol ?? '';
+  const { formatCurrency } = useFormatters();
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: PaymentMethod }) => {
@@ -178,7 +190,15 @@ function PaymentSelectionModal() {
           )?.error
         : undefined;
       const quoteErrorMessage = hasQuoteError
-        ? (providerErrorMessage ?? strings('fiat_on_ramp.quote_unavailable'))
+        ? (getProviderLimitMessage({
+            provider: selectedProvider,
+            fiatCurrency: currency,
+            paymentMethodId: paymentMethod.id,
+            amount,
+            currency,
+            formatCurrency,
+            backendError: providerErrorMessage,
+          }) ?? strings('fiat_on_ramp.quote_unavailable'))
         : undefined;
 
       return (
@@ -205,6 +225,7 @@ function PaymentSelectionModal() {
       quotesLoading,
       currency,
       tokenSymbol,
+      formatCurrency,
     ],
   );
 

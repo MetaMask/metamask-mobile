@@ -1,0 +1,125 @@
+import React, { useMemo } from 'react';
+import { startCase } from 'lodash';
+import { BigNumber } from 'bignumber.js';
+import {
+  Box,
+  BoxAlignItems,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
+import formatFiat from '../../../../../../util/formatFiat';
+import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
+import { QuoteRow } from '../../../../../UI/Bridge/components/QuoteSelectorView/QuoteRow';
+import { strings } from '../../../../../../../locales/i18n';
+import { useQuickBuyContext } from './useQuickBuyContext';
+import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
+
+const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+});
+
+const QuickBuySelectQuoteScreen: React.FC = () => {
+  const {
+    sortedQuotes,
+    selectedQuoteRequestId,
+    handleSelectQuote,
+    isQuoteLoading,
+    destToken,
+    currentCurrency,
+    onClose,
+    setActiveScreen,
+  } = useQuickBuyContext();
+  const bestQuote = sortedQuotes[0];
+
+  const rows = useMemo(
+    () =>
+      sortedQuotes.map((quote) => ({
+        formattedTotalCost: formatFiat(
+          new BigNumber(quote.sentAmount?.valueInCurrency ?? '0').plus(
+            isGaslessQuote(quote.quote)
+              ? (quote.includedTxFees?.valueInCurrency ?? '0')
+              : (quote.totalNetworkFee?.valueInCurrency ??
+                  quote.gasFee?.effective?.valueInCurrency ??
+                  '0'),
+          ),
+          currentCurrency,
+        ),
+        receiveAmount: destToken
+          ? fromTokenMinimalUnit(
+              quote.quote.destTokenAmount,
+              destToken.decimals,
+            )
+          : undefined,
+        provider: {
+          name: startCase(quote.quote.bridges[0]),
+        },
+        quoteRequestId: quote.quote.requestId,
+        onPress: (requestId: string) => {
+          handleSelectQuote(requestId);
+          setActiveScreen('quoteDetails');
+        },
+        loading: isQuoteLoading,
+        isLowestCost: quote.quote.requestId === bestQuote?.quote.requestId,
+        selected:
+          !isQuoteLoading &&
+          (!selectedQuoteRequestId
+            ? quote.quote.requestId === bestQuote?.quote.requestId
+            : quote.quote.requestId === selectedQuoteRequestId),
+      })),
+    [
+      sortedQuotes,
+      bestQuote,
+      currentCurrency,
+      destToken,
+      isQuoteLoading,
+      selectedQuoteRequestId,
+      handleSelectQuote,
+      setActiveScreen,
+    ],
+  );
+
+  const isEmpty = !isQuoteLoading && sortedQuotes.length === 0;
+
+  return (
+    <>
+      <QuickBuySubScreenHeader
+        title={strings('social_leaderboard.quick_buy.select_quote_title')}
+        onBack={() => setActiveScreen('quoteDetails')}
+        onClose={onClose}
+      />
+      {isEmpty ? (
+        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.no_quotes')}
+          </Text>
+        </Box>
+      ) : (
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          style={styles.scrollView}
+        >
+          <Box twClassName="px-4 pb-2 mb-2">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('bridge.select_quote_info')}
+            </Text>
+          </Box>
+          <Box>
+            {rows.map((rowProps) => (
+              <QuoteRow key={rowProps.quoteRequestId} {...rowProps} />
+            ))}
+          </Box>
+        </ScrollView>
+      )}
+    </>
+  );
+};
+
+export default QuickBuySelectQuoteScreen;

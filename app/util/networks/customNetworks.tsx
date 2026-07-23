@@ -10,6 +10,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  XlmScope,
 } from '@metamask/keyring-api';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
@@ -28,6 +29,8 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
   'monad-mainnet': () => process.env.QUICKNODE_MONAD_URL,
   'hyperevm-mainnet': () => process.env.QUICKNODE_HYPEREVM_URL,
+  'arc-mainnet': () => process.env.QUICKNODE_ARC_URL,
+  'robinhood-mainnet': () => process.env.QUICKNODE_ROBINHOOD_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -131,7 +134,8 @@ export const PopularList = [
   {
     chainId: toHex('324'),
     nickname: 'zkSync Era',
-    rpcUrl: `https://mainnet.era.zksync.io`,
+    rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -192,6 +196,32 @@ export const PopularList = [
       imageSource: require('../../images/tempo.png'),
     },
   },
+  {
+    chainId: toHex('5042'),
+    nickname: 'Arc',
+    rpcUrl: `https://arc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
+    ticker: 'USDC',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.arc.io',
+      imageUrl: 'ARC',
+      imageSource: require('../../images/arc-network-logo.png'),
+    },
+  },
+  {
+    chainId: toHex('4663'),
+    nickname: 'Robinhood Chain',
+    rpcUrl: `https://robinhood-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('robinhood-mainnet'),
+    ticker: 'ETH',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://robinhoodchain.blockscout.com',
+      imageUrl: 'ROBINHOOD',
+      imageSource: require('../../images/robinhood.png'),
+    },
+  },
 ];
 
 /**
@@ -235,6 +265,8 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
     case TrxScope.Shasta:
       return require('../../images/tron.png');
     ///: END:ONLY_INCLUDE_IF(tron)
+    case XlmScope.Pubnet:
+      return require('../../images/xlm.png');
     default:
       return undefined;
   }
@@ -408,6 +440,9 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
   readonly STABLE_MAINNET: '0x3dc';
+  readonly ARC: '0x13b2';
+  readonly KONET_MAINNET: '0x4341';
+  readonly ROBINHOOD_CHAIN: '0x1237';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -457,6 +492,9 @@ export const NETWORK_CHAIN_ID: {
   FLUENT: '0x6313',
   FLUENT_TESTNET: '0x5202',
   FLUENT_DEVNET: '0x5201',
+  ARC: '0x13b2',
+  KONET_MAINNET: '0x4341',
+  ROBINHOOD_CHAIN: '0x1237',
   ...CHAIN_IDS,
 };
 
@@ -512,4 +550,8 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLUENT]: require('../../images/fluent.png'),
   [NETWORK_CHAIN_ID.FLUENT_TESTNET]: require('../../images/fluent.png'),
   [NETWORK_CHAIN_ID.FLUENT_DEVNET]: require('../../images/fluent.png'),
+  [NETWORK_CHAIN_ID.SCROLL]: require('../../images/scroll-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.ARC]: require('../../images/arc-network-logo.png'),
+  [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
+  [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: require('../../images/robinhood.png'),
 };

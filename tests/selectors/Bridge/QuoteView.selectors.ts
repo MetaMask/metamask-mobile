@@ -25,12 +25,15 @@ export const QuoteViewSelectorText = {
   MAX: enContent.bridge.max,
   INCLUDED: enContent.bridge.included,
   RATE: enContent.bridge.rate,
+  RWA_GEO_RESTRICTED_MESSAGE:
+    enContent.bridge.quote_stream_complete_rwa_geo_restricted,
 };
 
 // Performance tests only: Maps network name to chain ID for token selection.
 export const NETWORK_TO_CHAIN_ID: Record<string, string> = {
   Ethereum: '0x1',
   Polygon: '0x89',
+  BNB: '0x38',
   Solana: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 };
 
@@ -49,7 +52,9 @@ export const QuoteViewSelectorIDs = {
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
   CONFIRM_BUTTON: 'bridge-confirm-button',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  NO_QUOTES_BANNER: 'bridge-no-quotes',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
   BACK_BUTTON: 'button-icon',
+  PRICE_IMPACT_INFO_BUTTON: 'price-impact-info-button',
 };

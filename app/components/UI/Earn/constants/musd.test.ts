@@ -1,5 +1,12 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isMusdToken, MUSD_TOKEN_ADDRESS_BY_CHAIN } from './musd';
+import {
+  getTokenDisplaySymbol,
+  isMusdOnMoneyAccountChain,
+  isMusdToken,
+  isMusdTokenOnChain,
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from './musd';
 
 describe('isMusdToken', () => {
   const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
@@ -42,5 +49,107 @@ describe('isMusdToken', () => {
     const result = isMusdToken('');
 
     expect(result).toBe(false);
+  });
+});
+
+describe('getTokenDisplaySymbol', () => {
+  const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+
+  it('returns the branded mUSD symbol for the mUSD address with registry symbol MUSD', () => {
+    const result = getTokenDisplaySymbol(MUSD_ADDRESS, 'MUSD');
+
+    expect(result).toBe(MUSD_TOKEN.symbol);
+  });
+
+  it('returns the branded mUSD symbol for the mUSD address with mixed case', () => {
+    const mixedCaseAddress = '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA';
+
+    const result = getTokenDisplaySymbol(mixedCaseAddress, 'MUSD');
+
+    expect(result).toBe('mUSD');
+  });
+
+  it('passes the symbol through for a non-mUSD address', () => {
+    const otherAddress = '0x1234567890123456789012345678901234567890';
+
+    const result = getTokenDisplaySymbol(otherAddress, 'USDC');
+
+    expect(result).toBe('USDC');
+  });
+
+  it('passes the symbol through for an undefined address', () => {
+    const result = getTokenDisplaySymbol(undefined, 'USDC');
+
+    expect(result).toBe('USDC');
+  });
+
+  it('returns undefined for a non-mUSD address without a symbol', () => {
+    const otherAddress = '0x1234567890123456789012345678901234567890';
+
+    const result = getTokenDisplaySymbol(otherAddress, undefined);
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('isMusdTokenOnChain', () => {
+  const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+
+  it('returns true for the mUSD address on a supported chain', () => {
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.MAINNET)).toBe(true);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.LINEA_MAINNET)).toBe(
+      true,
+    );
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.BSC)).toBe(true);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.MONAD)).toBe(true);
+  });
+
+  it('returns false for the mUSD address on an unsupported chain', () => {
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.POLYGON)).toBe(false);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.ARBITRUM)).toBe(false);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.OPTIMISM)).toBe(false);
+  });
+
+  it('is case-insensitive', () => {
+    expect(
+      isMusdTokenOnChain(MUSD_ADDRESS.toUpperCase(), CHAIN_IDS.MAINNET),
+    ).toBe(true);
+  });
+
+  it('returns false for missing address or chainId', () => {
+    expect(isMusdTokenOnChain(undefined, CHAIN_IDS.MAINNET)).toBe(false);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, undefined)).toBe(false);
+  });
+});
+
+describe('isMusdOnMoneyAccountChain', () => {
+  const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+
+  it('returns true only for mUSD on Monad', () => {
+    expect(isMusdOnMoneyAccountChain(MUSD_ADDRESS, CHAIN_IDS.MONAD)).toBe(true);
+  });
+
+  it('returns false for mUSD on chains where mUSD is deployed but the Money Account is not active', () => {
+    expect(isMusdOnMoneyAccountChain(MUSD_ADDRESS, CHAIN_IDS.MAINNET)).toBe(
+      false,
+    );
+    expect(
+      isMusdOnMoneyAccountChain(MUSD_ADDRESS, CHAIN_IDS.LINEA_MAINNET),
+    ).toBe(false);
+    expect(isMusdOnMoneyAccountChain(MUSD_ADDRESS, CHAIN_IDS.BSC)).toBe(false);
+  });
+
+  it('returns false for missing arguments', () => {
+    expect(isMusdOnMoneyAccountChain(undefined, CHAIN_IDS.MONAD)).toBe(false);
+    expect(isMusdOnMoneyAccountChain(MUSD_ADDRESS, undefined)).toBe(false);
+  });
+
+  it('returns false for a non-mUSD address on Monad', () => {
+    expect(
+      isMusdOnMoneyAccountChain(
+        '0x1234567890123456789012345678901234567890',
+        CHAIN_IDS.MONAD,
+      ),
+    ).toBe(false);
   });
 });

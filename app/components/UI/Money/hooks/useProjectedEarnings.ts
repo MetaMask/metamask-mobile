@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { tokenFiatValue } from '../../Earn/hooks/useMusdConversionTokens';
+import { moneySafeTokenFiatCurrency } from '../utils/moneyFormatFiat';
 import {
   calculateProjectedEarnings,
   PROJECTION_YEARS,
@@ -10,21 +11,14 @@ interface ProjectedEarnings {
   eligibleTokens: AssetType[];
   totalAssetsFiat: number;
   projectedAmount: number;
+  currency: string;
 }
 
-/**
- * Derive the headline figures shared by every Money "potential earnings"
- * surface from a list of conversion-eligible tokens and the live APY.
- *
- * Eligible tokens are those with a positive fiat value — feature-flag
- * thresholds may admit zero-balance entries, so we strip them defensively
- * here so callers don't all have to.
- */
 export function useProjectedEarnings(
   tokens: AssetType[] | undefined,
-  apyPercent: number | undefined,
+  apyDecimal: number | undefined,
 ): ProjectedEarnings {
-  const safeApyPercent = apyPercent ?? 0;
+  const safeApyDecimal = apyDecimal ?? 0;
 
   const eligibleTokens = useMemo(
     () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
@@ -43,15 +37,21 @@ export function useProjectedEarnings(
           sum +
           calculateProjectedEarnings(
             tokenFiatValue(token),
-            safeApyPercent,
+            safeApyDecimal,
             PROJECTION_YEARS,
           ),
         0,
       ),
-    [eligibleTokens, safeApyPercent],
+    [eligibleTokens, safeApyDecimal],
   );
 
-  return { eligibleTokens, totalAssetsFiat, projectedAmount };
+  // Derived from the same `eligibleTokens` the sums are computed over to prevent drift.
+  const currency = useMemo(
+    () => moneySafeTokenFiatCurrency(eligibleTokens[0]),
+    [eligibleTokens],
+  );
+
+  return { eligibleTokens, totalAssetsFiat, projectedAmount, currency };
 }
 
 export default useProjectedEarnings;

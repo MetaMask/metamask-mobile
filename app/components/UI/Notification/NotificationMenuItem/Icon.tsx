@@ -1,11 +1,6 @@
 import { View } from 'react-native';
 import { Image } from 'expo-image';
-import {
-  BadgeIcon,
-  IconSize,
-  BadgeStatus,
-  BadgeStatusStatus,
-} from '@metamask/design-system-react-native';
+import { BadgeIcon, IconSize } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import React, {
@@ -24,10 +19,7 @@ export const TEST_IDS = {
   ICON: 'notification-menu-item-icon:icon',
 };
 
-type NotificationIconProps = Pick<
-  NotificationMenuItem,
-  'image' | 'badgeIcon'
-> & { isRead: boolean };
+type NotificationIconProps = Pick<NotificationMenuItem, 'image' | 'badgeIcon'>;
 
 function MenuIcon(props: NotificationIconProps) {
   const tw = useTailwind();
@@ -56,7 +48,6 @@ function MenuIcon(props: NotificationIconProps) {
 }
 
 function NotificationIcon(props: NotificationIconProps) {
-  const tw = useTailwind();
   const { styles } = useStyles();
 
   const MaybeBadgeContainer: FC<PropsWithChildren> = useCallback(
@@ -79,21 +70,11 @@ function NotificationIcon(props: NotificationIconProps) {
     [props.badgeIcon],
   );
 
-  const statusStyle = useMemo(
-    () => (props.isRead ? tw`self-center opacity-0` : tw`self-center`),
-    [props.isRead, tw],
-  );
-
   return (
-    <View>
-      <View style={tw`flex-row gap-1`}>
-        <BadgeStatus status={BadgeStatusStatus.New} style={statusStyle} />
-        <View style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
-          <MaybeBadgeContainer>
-            <MenuIcon {...props} />
-          </MaybeBadgeContainer>
-        </View>
-      </View>
+    <View style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
+      <MaybeBadgeContainer>
+        <MenuIcon {...props} />
+      </MaybeBadgeContainer>
     </View>
   );
 }

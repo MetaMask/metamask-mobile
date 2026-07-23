@@ -7,7 +7,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useIsFocused } from '@react-navigation/native';
 import React, { useMemo } from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -153,7 +153,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           <Box twClassName="w-10 h-10 self-start mt-1">
             <Image
               source={{ uri: icon }}
-              resizeMode="cover"
+              contentFit="cover"
               style={tw.style('w-full h-full rounded-lg')}
             />
           </Box>

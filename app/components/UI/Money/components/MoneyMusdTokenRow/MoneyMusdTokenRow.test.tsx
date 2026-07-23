@@ -53,4 +53,32 @@ describe('MoneyMusdTokenRow', () => {
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
     }).not.toThrow();
   });
+
+  it('renders the real balance subtitle when privacyMode is false', () => {
+    const { getByTestId } = render(
+      <MoneyMusdTokenRow balance="$1.00" privacyMode={false} />,
+    );
+
+    expect(getByTestId(MoneyMusdTokenRowTestIds.SUBTITLE)).toHaveTextContent(
+      '$1.00 • mUSD',
+    );
+  });
+
+  it('masks the balance subtitle when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <MoneyMusdTokenRow balance="$1.00" privacyMode />,
+    );
+
+    expect(getByTestId(MoneyMusdTokenRowTestIds.SUBTITLE)).toHaveTextContent(
+      '•'.repeat(6),
+    );
+  });
+
+  it('does not mask the symbol-only subtitle when there is no balance, even with privacyMode on', () => {
+    const { getByTestId } = render(<MoneyMusdTokenRow privacyMode />);
+
+    expect(getByTestId(MoneyMusdTokenRowTestIds.SUBTITLE)).toHaveTextContent(
+      MUSD_TOKEN.symbol,
+    );
+  });
 });

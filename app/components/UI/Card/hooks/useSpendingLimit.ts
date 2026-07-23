@@ -11,6 +11,8 @@ import {
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
@@ -74,6 +76,7 @@ export interface UseSpendingLimitReturn {
   limitType: LimitType;
   customLimit: string;
   isLoading: boolean;
+  isUiInteractionLocked: boolean;
 
   // Handlers
   setSelectedToken: (token: CardFundingToken | null) => void;
@@ -100,7 +103,6 @@ export interface UseSpendingLimitReturn {
   canShowMoneyAccountCta: boolean;
   selectMoneyAccountAsSource: () => void;
   moneyAccountTotalFiatFormatted: string | undefined;
-  isMoneyAccountBalanceLoading: boolean;
   canLinkMoneyAccount: boolean;
   moneyAccountApyPercent: number | undefined;
   hasMetalCard: boolean;
@@ -141,7 +143,7 @@ const useSpendingLimit = ({
   delegationSettings,
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -180,12 +182,9 @@ const useSpendingLimit = ({
     canLink: canLinkMoneyAccount,
   } = useMoneyAccountCardLinkage();
   const {
-    tokenTotal: moneyAccountTokenTotal,
     totalFiatFormatted: moneyAccountTotalFiatFormatted,
-    isAggregatedBalanceLoading: isMoneyAccountBalanceLoading,
     apyPercent: moneyAccountApyPercent,
   } = useMoneyAccountBalance();
-  const isMoneyAccountFunded = Boolean(moneyAccountTokenTotal?.gt(0));
 
   const { data: cardHomeData } = useCardHomeData();
   const hasMetalCard = cardHomeData?.card?.type === CardType.METAL;
@@ -221,6 +220,8 @@ const useSpendingLimit = ({
   } = useCardDelegation(selectedToken);
 
   const isLoading = isDelegationLoading || isProcessing;
+  const isUiInteractionLocked =
+    isLoading && (!isMoneyAccountSource || isOnboardingFlow);
 
   // Wallet-only token balances for the currently selected MetaMask account.
   // Using this (instead of useAssetBalances) ensures sorting reflects the active
@@ -362,17 +363,13 @@ const useSpendingLimit = ({
     if (
       isMoneyAccountPreselectAllowed &&
       canLinkMoneyAccount &&
-      !hasUserExitedMoneyAccountSourceRef.current
+      !hasUserExitedMoneyAccountSourceRef.current &&
+      moneyAccountCardToken
     ) {
-      if (isMoneyAccountBalanceLoading) {
-        return;
-      }
-      if (isMoneyAccountFunded && moneyAccountCardToken) {
-        setIsMoneyAccountSource(true);
-        applySelectedToken(moneyAccountCardToken);
-        setHasInitialized(true);
-        return;
-      }
+      setIsMoneyAccountSource(true);
+      applySelectedToken(moneyAccountCardToken);
+      setHasInitialized(true);
+      return;
     }
 
     if (!selectedToken && priorityToken) {
@@ -416,15 +413,7 @@ const useSpendingLimit = ({
           return { token, fiat: walletToken?.tokenFiatAmount ?? 0 };
         })
         .sort((a, b) => b.fiat - a.fiat);
-      const topEntry = sorted[0];
-      const defaultToken =
-        topEntry.fiat > 0
-          ? topEntry.token
-          : (tokensToSearch.find(
-              (t) =>
-                t.symbol?.toUpperCase() === 'MUSD' &&
-                t.caipChainId === LINEA_CAIP_CHAIN_ID,
-            ) ?? topEntry.token);
+      const defaultToken = sorted[0]?.token;
       if (defaultToken) {
         applySelectedToken(defaultToken);
         setHasInitialized(true);
@@ -443,8 +432,6 @@ const useSpendingLimit = ({
     isManageFlow,
     isMoneyAccountPreselectAllowed,
     canLinkMoneyAccount,
-    isMoneyAccountBalanceLoading,
-    isMoneyAccountFunded,
     moneyAccountCardToken,
   ]);
 
@@ -499,8 +486,9 @@ const useSpendingLimit = ({
 
   // Handlers
   const handleAccountSelect = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         disableAddAccountButton: true,
         onSelectAccount: () => {
           if (!isMoneyAccountSource) return;
@@ -527,8 +515,9 @@ const useSpendingLimit = ({
 
     const excludedTokens = selectedToken ? [selectedToken] : [];
 
-    navigation.navigate(
-      ...createAssetSelectionModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createAssetSelectionModalNavigationDetails({
         selectionOnly: true,
         excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -554,7 +543,6 @@ const useSpendingLimit = ({
   const canShowMoneyAccountCta =
     (isOnboardingLikeFlow || isEnablingNotEnabledToken) &&
     !isMoneyAccountSource &&
-    isMoneyAccountFunded &&
     canLinkMoneyAccount;
 
   const isMoneyAccountLocked = Boolean(
@@ -562,8 +550,9 @@ const useSpendingLimit = ({
   );
 
   const handleLimitSelect = useCallback(() => {
-    navigation.navigate(
-      ...createSpendingLimitOptionsNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createSpendingLimitOptionsNavigationDetails({
         currentLimitType: limitType,
         currentCustomLimit: customLimit,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -639,7 +628,7 @@ const useSpendingLimit = ({
           setTimeout(() => {
             if (isOnboardingFlow) {
               navigateToCardHome();
-            } else {
+            } else if (navigation.isFocused()) {
               navigation.goBack();
             }
           }, 0);
@@ -761,6 +750,7 @@ const useSpendingLimit = ({
     limitType,
     customLimit,
     isLoading,
+    isUiInteractionLocked,
 
     // Handlers
     setSelectedToken,
@@ -787,7 +777,6 @@ const useSpendingLimit = ({
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
     canLinkMoneyAccount,
     moneyAccountApyPercent,
     hasMetalCard,

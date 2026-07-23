@@ -124,12 +124,18 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
     await enableNotificationsHelper({
       hasMarketingConsent,
       productAnnouncementEnabled,
+      registerPushNotifications: Boolean(props.nudgeEnablePush),
     }).catch((e) => setError(e));
     await togglePushNotification(true).catch(() => {
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();
-  }, [hasMarketingConsent, productAnnouncementEnabled, togglePushNotification]);
+  }, [
+    props.nudgeEnablePush,
+    hasMarketingConsent,
+    productAnnouncementEnabled,
+    togglePushNotification,
+  ]);
 
   const contiguousLoading = useContiguousLoading(loading, pushLoading);
 

@@ -7,11 +7,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  useNavigation,
-  useFocusEffect,
-} from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   forwardRef,
   useCallback,
@@ -47,7 +44,6 @@ import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition, PredictPositionStatus } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import {
   formatPercentage,
   formatPredictUnrealizedPnLStringParts,
@@ -77,8 +73,7 @@ const PredictPositionsHeader = forwardRef<
   const { onError } = props;
   const privacyMode = useSelector(selectPrivacyMode);
   const { claim, isClaimPending } = usePredictClaim();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
@@ -92,7 +87,7 @@ const PredictPositionsHeader = forwardRef<
   // Subscribe to account group changes so the component re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedAddress = evmAccount?.address ?? '0x0';
+  const selectedAddress = evmAccount?.address ?? '';
   const { isDepositPending } = usePredictDeposit();
   const { data: activePositions } = usePredictPositions({
     claimable: false,
@@ -187,7 +182,9 @@ const PredictPositionsHeader = forwardRef<
   const handleClaim = async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        await claim({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );

@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { CaipChainId } from '@metamask/utils';
 
 import ReduxService from '../../../../core/redux';
@@ -68,7 +69,7 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
  * ```
  */
 export function useHeadlessBuy(): HeadlessBuyResult {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     tokens,
     tokensLoading,
@@ -169,7 +170,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
       const session = createSession(params, callbacks);
 
       navigation.navigate(Routes.RAMP.HEADLESS_ENTRY, {
-        screen: Routes.RAMP.TOKEN_SELECTION,
+        screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         params: {
           screen: Routes.RAMP.HEADLESS_HOST,
           params: {

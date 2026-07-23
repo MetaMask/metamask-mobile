@@ -9,6 +9,7 @@ import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { filterLowQualityTokens } from '../../utils/filterTrendingTokens';
 
 /**
  * Baseline thresholds for multi-chain requests
@@ -66,6 +67,10 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minLiquidity: 100000,
     minVolume24h: 300000,
   },
+  [NetworkToCaipChainId.MONAD]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
 
   // Tier 3: Growing networks
   [NetworkToCaipChainId.SEI]: {
@@ -79,6 +84,10 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minVolume24h: 25000, // Minimum filter
   },
   [NetworkToCaipChainId.ZKSYNC_ERA]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
+  [NetworkToCaipChainId.ROBINHOOD]: {
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter
   },
@@ -145,6 +154,12 @@ interface FetchOptions {
 export const useTrendingRequest = (
   options: {
     chainIds?: CaipChainId[];
+    /**
+     * When true, removes tokens that lack a meaningful symbol/name or are
+     * flagged as risky (Warning/Spam/Malicious) by the Token API security scan.
+     * Defaults to false. Set to true on surfaces that should hide low-quality tokens.
+     */
+    filterLowQuality?: boolean;
   } & TrendingTokensQueryParams,
 ) => {
   const {
@@ -155,6 +170,7 @@ export const useTrendingRequest = (
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,
+    filterLowQuality = false,
   } = options;
 
   // Get user's selected currency from Redux store (default to 'usd' if not set)
@@ -296,8 +312,13 @@ export const useTrendingRequest = (
     };
   }, [isLoading, results.length, error, fetchTrendingTokens]);
 
+  const filteredResults = useMemo(
+    () => (filterLowQuality ? filterLowQualityTokens(results) : results),
+    [filterLowQuality, results],
+  );
+
   return {
-    results,
+    results: filteredResults,
     isLoading,
     error,
     fetch: fetchTrendingTokens,

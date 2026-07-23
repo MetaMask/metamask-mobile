@@ -7,7 +7,6 @@ import { renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ExploreFeed } from '../../../app/components/Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import AssetDetails from '../../../app/components/Views/AssetDetails';
 import TrendingTokensFullView from '../../../app/components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../../app/components/UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { initialStateTrending } from '../presets/trending';
@@ -15,6 +14,7 @@ import { initialStateTrending } from '../presets/trending';
 interface RenderTrendingViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+  initialParams?: Record<string, unknown>;
 }
 
 function withQueryClient(
@@ -40,7 +40,7 @@ function withQueryClient(
 export function renderTrendingViewWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat } = options;
+  const { overrides, deterministicFiat, initialParams } = options;
 
   const builder = initialStateTrending({ deterministicFiat });
   if (overrides) {
@@ -59,10 +59,6 @@ export function renderTrendingViewWithRoutes(
         ),
       },
       {
-        name: 'Asset',
-        Component: AssetDetails as unknown as React.ComponentType<unknown>,
-      },
-      {
         name: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
         Component: withQueryClient(
           TrendingTokensFullView as unknown as React.ComponentType<unknown>,
@@ -74,6 +70,7 @@ export function renderTrendingViewWithRoutes(
       },
     ],
     { state },
+    initialParams,
   );
 }
 
@@ -84,7 +81,7 @@ export function renderTrendingViewWithRoutes(
 export function renderExploreSearchScreenWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat } = options;
+  const { overrides, deterministicFiat, initialParams } = options;
 
   const builder = initialStateTrending({ deterministicFiat });
   if (overrides) {
@@ -97,5 +94,6 @@ export function renderExploreSearchScreenWithRoutes(
     { name: Routes.EXPLORE_SEARCH },
     [],
     { state },
+    initialParams,
   );
 }

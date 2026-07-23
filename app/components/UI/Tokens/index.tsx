@@ -26,6 +26,7 @@ import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { refreshTokens, goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
@@ -35,7 +36,6 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
@@ -44,6 +44,7 @@ import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 import { strings } from '../../../../locales/i18n';
+import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
 
 interface TokensProps {
   /**
@@ -97,6 +98,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     ref,
   ) => {
     const navigation = useNavigation();
+    const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
@@ -117,16 +119,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
-    const isHomepageSectionsV1Enabled = useSelector(
-      selectHomepageSectionsV1Enabled,
-    );
-    // Only exclude mUSD from the main list when the Cash section is both enabled
-    // AND actually rendered (homepage sections redesign). Without this guard,
-    // the legacy wallet tab view would filter mUSD out with no Cash section to show it.
     const shouldExcludeMusdFromMainList =
-      isCashSectionEnabled && isHomepageSectionsV1Enabled;
+      isMusdConversionFlowEnabled && isMoneyHubEnabled && isGeoEligible;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -136,7 +132,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectSortedAssetsBySelectedAccountGroup,
     );
 
-    // When showOnlyMusd: only mUSD. When Cash section enabled + homepage sections on: exclude mUSD (shown in Cash section). Otherwise include all.
+    // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
+    // in the Money hub.
     const tokenKeysForList = useMemo(
       () =>
         showOnlyMusd
@@ -312,6 +309,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         return (
           <ScrollView
             style={tw`flex-1`}
+            contentContainerStyle={
+              isFullView ? { paddingBottom: bottomInset } : undefined
+            }
             showsVerticalScrollIndicator={false}
             refreshControl={refreshControl}
           >
@@ -342,6 +342,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       listFooterComponent,
       refreshControl,
       hideSecondaryPriceRow,
+      bottomInset,
     ]);
 
     return (
@@ -354,7 +355,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             goToAddToken={goToAddToken}
             showAddToken={!showOnlyMusd}
             hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-4` : undefined}
+            style={isFullView ? tw`px-4 pb-3` : undefined}
           />
         )}
         {tokenContent}

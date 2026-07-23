@@ -15,11 +15,6 @@ export interface PerpsProviderSelectorBadgeProps {
  */
 export interface PerpsProviderSelectorSheetProps {
   /**
-   * Whether the bottom sheet is visible
-   */
-  isVisible: boolean;
-
-  /**
    * Callback when the sheet is closed
    */
   onClose: () => void;

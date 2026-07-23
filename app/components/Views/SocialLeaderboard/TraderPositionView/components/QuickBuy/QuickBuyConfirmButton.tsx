@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import {
+  Box,
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../util/theme';
 import Icon, {
   IconName,
   IconSize,
@@ -20,20 +20,13 @@ import Icon, {
 export type ConfirmButtonState = 'idle' | 'loading' | 'success';
 
 const styles = StyleSheet.create({
-  container: {
+  successContainer: {
     height: 48,
     width: '100%',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-  },
-  inactive: {
-    opacity: 0.5,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
   },
 });
 
@@ -49,13 +42,11 @@ interface QuickBuyConfirmButtonProps {
 const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   state,
   label,
-  hasValidAmount,
   isDisabled,
   onPress,
   testID,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const checkScale = useSharedValue(0);
 
   useEffect(() => {
@@ -67,46 +58,35 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
     transform: [{ scale: checkScale.value }],
   }));
 
-  // Use design-system ButtonPrimary token equivalents:
-  const activeContainerStyle = tw.style('bg-icon-default');
-  const activeLabelStyle = tw.style('text-primary-inverse');
-
-  const labelColor = hasValidAmount
-    ? (activeLabelStyle.color as string)
-    : colors.text.alternative;
-
-  const showInactiveStyle = isDisabled && state === 'idle';
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.container,
-        hasValidAmount
-          ? activeContainerStyle
-          : { backgroundColor: colors.background.muted },
-        showInactiveStyle && styles.inactive,
-      ]}
-      onPress={onPress}
-      disabled={state !== 'idle' || isDisabled}
-      testID={testID}
-      activeOpacity={0.8}
-    >
-      {state === 'loading' && (
-        <ActivityIndicator size="small" color={labelColor} />
-      )}
-      {state === 'success' && (
+  if (state === 'success') {
+    return (
+      <Box
+        style={[styles.successContainer, tw.style('bg-icon-default')]}
+        testID={testID}
+      >
         <Animated.View style={checkmarkStyle}>
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Lg}
-            color={labelColor}
+            color={tw.style('text-primary-inverse').color as string}
           />
         </Animated.View>
-      )}
-      {state === 'idle' && (
-        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
-      )}
-    </TouchableOpacity>
+      </Box>
+    );
+  }
+
+  return (
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonBaseSize.Lg}
+      isLoading={state === 'loading'}
+      onPress={onPress}
+      isFullWidth
+      testID={testID}
+      isDisabled={state !== 'idle' || isDisabled}
+    >
+      {label}
+    </Button>
   );
 };
 

@@ -1,39 +1,28 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  Image,
-  ImageSourcePropType,
-  Pressable,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { ImageSourcePropType, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
-  FontWeight,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { selectPredictWorldCupConfig } from '../../selectors/featureFlags';
 import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictWorldCupConfig } from '../../types/flags';
+import PredictWorldCupBannerCard, {
+  type PredictWorldCupBannerCardVariant,
+} from '../PredictWorldCupBannerCard';
 import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMainFeedBanner.testIds';
 
 import worldCupMainFeedBannerImage from '../../assets/world-cup-main-feed-banner.png';
+import worldCupMainFeedBannerCompactImage from '../../assets/world-cup-main-feed-banner-compact.png';
 
 const WORLD_CUP_BANNER_DEFAULT_IMAGE_ASPECT_RATIO = 360 / 177;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN = 16;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN_TOTAL =
   WORLD_CUP_BANNER_HORIZONTAL_MARGIN * 2;
+
+type PredictWorldCupMainFeedBannerVariant = PredictWorldCupBannerCardVariant;
 
 export const getPredictWorldCupBannerSource = (
   bannerImage?: PredictWorldCupConfig['bannerImage'],
@@ -60,6 +49,7 @@ export const getPredictWorldCupBannerImageAspectRatio = (
 
 interface PredictWorldCupMainFeedBannerProps {
   fallbackImageSource?: ImageSourcePropType | null;
+  variant?: PredictWorldCupMainFeedBannerVariant;
 }
 
 const shouldRenderBanner = ({
@@ -73,10 +63,9 @@ const shouldRenderBanner = ({
 
 const PredictWorldCupMainFeedBanner: React.FC<
   PredictWorldCupMainFeedBannerProps
-> = ({ fallbackImageSource }) => {
-  const tw = useTailwind();
+> = ({ fallbackImageSource, variant = 'default' }) => {
   const { width: windowWidth } = useWindowDimensions();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasTrackedBannerViewed = useRef(false);
   const predictWorldCupConfig = useSelector(selectPredictWorldCupConfig);
   const bannerWidth = Math.max(
@@ -88,9 +77,13 @@ const PredictWorldCupMainFeedBanner: React.FC<
   );
   const bannerImageHeight = bannerWidth / bannerImageAspectRatio;
 
+  const defaultFallbackImageSource =
+    variant === 'compact'
+      ? worldCupMainFeedBannerCompactImage
+      : worldCupMainFeedBannerImage;
   const resolvedFallbackImageSource =
     fallbackImageSource === undefined
-      ? worldCupMainFeedBannerImage
+      ? defaultFallbackImageSource
       : (fallbackImageSource ?? undefined);
 
   const imageSource = useMemo(
@@ -133,47 +126,24 @@ const PredictWorldCupMainFeedBanner: React.FC<
     return null;
   }
 
+  const title = strings('predict.world_cup.banner_title');
+  const description = strings('predict.world_cup.banner_description');
+
   return (
-    <Pressable
-      accessibilityRole="button"
+    <PredictWorldCupBannerCard
+      variant={variant}
+      imageSource={imageSource}
+      imageHeight={bannerImageHeight}
+      title={title}
+      description={description}
       onPress={handlePress}
-      style={tw.style('mx-4 pb-3')}
-      testID={PredictWorldCupMainFeedBannerSelectorsIDs.CONTAINER}
-    >
-      <View style={tw.style('bg-muted rounded-xl overflow-hidden')}>
-        <Image
-          source={imageSource}
-          resizeMode="cover"
-          testID={PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE}
-          style={tw.style('w-full rounded-t-xl', { height: bannerImageHeight })}
-        />
-        <View style={tw.style('flex-row items-center justify-between p-3')}>
-          <View style={tw.style('flex-shrink')}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('predict.world_cup.banner_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('predict.world_cup.banner_description')}
-            </Text>
-          </View>
-          <ButtonIcon
-            accessibilityLabel={strings('predict.world_cup.banner_title')}
-            onPress={handlePress}
-            iconName={IconName.ArrowRight}
-            iconProps={{ size: IconSize.Md }}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-          />
-        </View>
-      </View>
-    </Pressable>
+      accessibilityLabel={`${title}. ${description}`}
+      containerClassName="mx-4 pb-3"
+      testIDs={{
+        container: PredictWorldCupMainFeedBannerSelectorsIDs.CONTAINER,
+        image: PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE,
+      }}
+    />
   );
 };
 

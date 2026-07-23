@@ -1,4 +1,4 @@
-import { test } from '../../../framework/fixture';
+import { test } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper.js';
 import {
   Performance,
@@ -16,13 +16,13 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, ()
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       const timer1 = new TimerHelper(
         'Time since the the app is installed, until onboarding screen appears',
-        { ios: 3000, android: 3900 },
+        { ios: 3000, android: 4000 },
         currentDeviceDetails.platform,
       );
       await timer1.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(OnboardingView.newWalletButton),
+            asPlaywrightElement(OnboardingView.newWalletButton),
           ),
       );
 

@@ -60,6 +60,11 @@ const DEFAULT_INITIAL_INDEX = 0;
 interface WhatsHappeningDetailParams {
   initialIndex?: number;
   source: WhatsHappeningSourceValue;
+  /**
+   * A market overview front-page item id from the deep link. When present, that
+   * (older) item is fetched and shown first, flagged "Outdated".
+   */
+  outdatedItemId?: string;
 }
 
 const WhatsHappeningDetailView = () => {
@@ -71,9 +76,12 @@ const WhatsHappeningDetailView = () => {
   const initialIndex = route.params?.initialIndex ?? DEFAULT_INITIAL_INDEX;
   const source: WhatsHappeningSourceValue =
     route.params?.source ?? WhatsHappeningSource.Unknown;
+  const outdatedItemId = route.params?.outdatedItemId;
 
-  const { items, isLoading, error, refresh } =
-    useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const { items, isLoading, error, refresh } = useWhatsHappening(
+    MAX_ITEMS_DISPLAYED,
+    { outdatedItemId },
+  );
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [cardHeight, setCardHeight] = useState(0);

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Platform, TextInputProps } from 'react-native';
 import {
   Box,
@@ -35,7 +36,7 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 });
 
 const ConfirmPhoneNumber = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { setUser } = useCardSDK();
   const [resendCooldown, setResendCooldown] = useState(60);

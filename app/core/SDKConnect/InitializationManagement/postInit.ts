@@ -5,15 +5,15 @@ import Engine from '../../../core/Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 async function postInit(instance: SDKConnect) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
 
-  if (isE2E) {
-    DevLogger.log(`SDKConnect::postInit() - SKIP -- E2E`);
+  if (hasTestOverrides) {
+    DevLogger.log(`SDKConnect::postInit() - SKIP -- hasTestOverrides`);
     instance.state._postInitialized = true;
     return;
   }
@@ -52,7 +52,10 @@ async function postInit(instance: SDKConnect) {
     `SDKConnect::postInit() - currentRouteName=${currentRouteName}`,
   );
 
-  const waitRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
+  const waitRoutes: readonly string[] = [
+    Routes.LOCK_SCREEN,
+    Routes.ONBOARDING.LOGIN,
+  ];
   await waitForCondition({
     fn: () => {
       currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;

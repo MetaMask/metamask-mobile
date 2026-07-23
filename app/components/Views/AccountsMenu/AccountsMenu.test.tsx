@@ -12,8 +12,6 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
 } from '../../../selectors/notifications';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
-import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -50,14 +48,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn(() => ({ event: 'CARD_HOME_CLICKED' })),
-    })),
-  },
-}));
-
 jest.mock('../../../core/', () => ({
   Authentication: {
     lockApp: jest.fn(),
@@ -73,13 +63,6 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: jest.fn(() => false),
-}));
-
-jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
-
 const mockGoToBuy = jest.fn();
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
@@ -89,7 +72,6 @@ jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
 
 jest.mock('../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => ({
-    ramp_routing: 'test_routing',
     is_authenticated: true,
     preferred_provider: 'test_provider',
     order_count: 5,
@@ -108,10 +90,6 @@ jest.mock('../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: jest.fn(),
   getMetamaskNotificationsUnreadCount: jest.fn(),
   getMetamaskNotificationsReadCount: jest.fn(),
-}));
-
-jest.mock('../../../selectors/identity', () => ({
-  selectIsBackupAndSyncEnabled: jest.fn(),
 }));
 
 describe('AccountsMenu', () => {
@@ -182,9 +160,7 @@ describe('AccountsMenu', () => {
   });
 
   describe('Buy Button', () => {
-    it('render Buy button when rampUnifiedV1Enabled is true', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
-
+    it('renders the Buy button unconditionally', () => {
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
       expect(getByText('accounts_menu.buy')).toBeOnTheScreen();
@@ -193,20 +169,7 @@ describe('AccountsMenu', () => {
       ).toBeOnTheScreen();
     });
 
-    it('does NOT render Buy button when rampUnifiedV1Enabled is false', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(false);
-
-      const { queryByText, queryByTestId } = render(<AccountsMenu />);
-
-      expect(queryByText('accounts_menu.buy')).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-
     it('navigate to buy flow and track analytics when Buy is pressed', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
-
       // Clear previous calls
       mockGoToBuy.mockClear();
       mockTrackEvent.mockClear();
@@ -226,8 +189,6 @@ describe('AccountsMenu', () => {
     });
 
     it('track RAMPS_BUTTON_CLICKED event with correct properties when Buy is pressed', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
-
       mockCreateEventBuilder.mockClear();
       mockTrackEvent.mockClear();
 
@@ -253,10 +214,9 @@ describe('AccountsMenu', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         button_text: 'Buy',
         location: 'AccountsMenu',
-        ramp_type: 'UNIFIED_BUY',
+        ramp_type: 'UNIFIED_BUY_2',
         chain_id_destination: null,
         region: 'US',
-        ramp_routing: 'test_routing',
         is_authenticated: true,
         preferred_provider: 'test_provider',
         order_count: 5,
@@ -360,7 +320,6 @@ describe('AccountsMenu', () => {
       notificationEnabled = false,
       unreadCount = 0,
       readCount = 0,
-      backupSyncEnabled = false,
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
@@ -384,7 +343,6 @@ describe('AccountsMenu', () => {
         if (selector === getMetamaskNotificationsUnreadCount)
           return unreadCount;
         if (selector === getMetamaskNotificationsReadCount) return readCount;
-        if (selector === selectIsBackupAndSyncEnabled) return backupSyncEnabled;
 
         // Default: return false
         return false;
@@ -496,46 +454,11 @@ describe('AccountsMenu', () => {
       fireEvent.press(notificationsButton);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Menu Opened',
+        'InApp Notifications Menu Opened',
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         unread_count: 5,
         read_count: 3,
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-
-    it('track NOTIFICATIONS_ACTIVATED event when not enabled and pressed', () => {
-      jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
-      setupNotificationMocks({
-        notificationEnabled: false,
-        backupSyncEnabled: true,
-      });
-
-      mockCreateEventBuilder.mockClear();
-      mockTrackEvent.mockClear();
-
-      const mockAddProperties = jest.fn().mockReturnThis();
-      const mockBuild = jest.fn(() => ({
-        name: 'NOTIFICATIONS_ACTIVATED',
-      }));
-
-      mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-
-      const { getByText } = render(<AccountsMenu />);
-      const notificationsButton = getByText('accounts_menu.notifications');
-
-      fireEvent.press(notificationsButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Activated',
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_type: 'started',
-        is_profile_syncing_enabled: true,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });

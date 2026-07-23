@@ -52,7 +52,14 @@ interface BaseToastVariants {
   linkButtonOptions?: ToastLinkButtonOptions;
   closeButtonOptions?: ToastCloseButtonOptions;
   startAccessory?: ReactElement;
+  /** Extra offset from the top of the screen (below the safe area). */
+  customTopOffset?: number;
+  /**
+   * @deprecated Use `customTopOffset`. Previously applied offset from the bottom;
+   * retained for backward compatibility during top-placement migration.
+   */
   customBottomOffset?: number;
+  onPress?: () => void;
 }
 
 export type ToastCloseButtonOptions =

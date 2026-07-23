@@ -70,6 +70,7 @@ function buildSlackMessage(options) {
   const {
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
     pipelineUrl,
@@ -119,15 +120,18 @@ function buildSlackMessage(options) {
           type: 'mrkdwn',
           text: isValidUrl(iosUrl)
             ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
-            : '*iOS Build:*\n_Check TestFlight_',
+            : '*iOS Build:*\n<https://testflight.apple.com/join/hBrjtFuA|Check TestFlight>',
         },
       ],
     },
   ];
 
   // Add link to cherry-picks section in PR comment
+  // Note: GitHub prefixes user-provided anchor IDs with 'user-content-'
+  // We use build number in anchor to link to the correct comment (not older builds)
   if (prNumber) {
-    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View cherry-picks>`;
+    const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
     blocks.push(
       {
         type: 'divider',
@@ -141,12 +145,11 @@ function buildSlackMessage(options) {
       },
     );
   } else {
-    const releaseNotesMrkdwn = `<${REPO_URL}/tree/release/${version}|View release notes>`;
     blocks.push({
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `_Cherry-picks available in the release PR. ${releaseNotesMrkdwn}_`,
+        text: `_Cherry-picks available in the release PR._`,
       },
     });
   }
@@ -170,22 +173,32 @@ function buildSlackMessage(options) {
     );
   }
 
-  // Add pipeline link
-  if (pipelineUrl) {
-    blocks.push(
-      {
-        type: 'divider',
-      },
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: `<${pipelineUrl}|View Build Pipeline> | <${REPO_URL}/tree/release/${version}|View full release notes>`,
-          },
-        ],
-      },
-    );
+  // Add pipeline and RC notes links
+  if (pipelineUrl || prNumber) {
+    const links = [];
+    if (pipelineUrl) {
+      links.push(`<${pipelineUrl}|View Build Pipeline>`);
+    }
+    if (prNumber) {
+      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+      links.push(`<${REPO_URL}/pull/${prNumber}#user-content-whats-in-this-rc${anchorSuffix}|View full RC notes>`);
+    }
+    if (links.length > 0) {
+      blocks.push(
+        {
+          type: 'divider',
+        },
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: links.join(' | '),
+            },
+          ],
+        },
+      );
+    }
   }
 
   return {
@@ -213,6 +226,8 @@ async function postToSlack(botToken, channelName, payload) {
         channel: channelName,
         blocks: payload.blocks,
         text: payload.text,
+        unfurl_links: false,
+        unfurl_media: false,
       }),
     });
 
@@ -292,6 +307,7 @@ async function main() {
   const payload = buildSlackMessage({
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
     pipelineUrl,

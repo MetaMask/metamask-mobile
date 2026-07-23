@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,12 +22,19 @@ import TradingViewChart, {
   type OhlcData,
 } from '../TradingViewChart';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import PerpsAdvancedChart from '../PerpsAdvancedChart/PerpsAdvancedChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
 import PerpsOHLCVBar from '../PerpsOHLCVBar';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
@@ -31,7 +44,25 @@ export interface PerpsChartFullscreenModalProps {
   visibleCandleCount?: number;
   onClose: () => void;
   onIntervalChange: (interval: CandlePeriod) => void;
+  /** When true, renders PerpsAdvancedChart instead of TradingViewChart. */
+  isAdvancedChartEnabled?: boolean;
+  /** Market symbol — required when isAdvancedChartEnabled is true. */
+  symbol?: string;
+  /** Signed position size string for long/short side derivation. */
+  positionSize?: string;
+  /** Hyperliquid size decimals; forwarded so fullscreen advanced chart matches market precision. */
+  szDecimals?: number | null;
 }
+
+const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
+  isAdvancedChartEnabled
+    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
+
+const getChartAnalyticsPropertiesForLibrary = (chartLibrary: string) => ({
+  [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+  [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+});
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   isVisible,
@@ -41,12 +72,17 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   visibleCandleCount,
   onClose,
   onIntervalChange,
+  isAdvancedChartEnabled,
+  symbol,
+  positionSize,
+  szDecimals,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const chartRef = React.useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
+  const trackedScreenViewLibrariesRef = useRef<Set<string>>(new Set());
   // Initialize with screen height to avoid flash of incorrect size
   const [chartHeight, setChartHeight] = useState<number>(
     Dimensions.get('window').height *
@@ -55,6 +91,21 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const lastHeightRef = useRef<number>(chartHeight);
   // Track OHLCV bar height to subtract from chart height
   const [ohlcvHeight, setOhlcvHeight] = useState<number>(0);
+  const { track } = usePerpsEventTracking();
+  const configuredChartLibrary = useMemo(
+    () => getChartLibrary(Boolean(isAdvancedChartEnabled)),
+    [isAdvancedChartEnabled],
+  );
+  const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
+    configuredChartLibrary,
+  );
+  useEffect(() => {
+    setEffectiveChartLibrary(configuredChartLibrary);
+  }, [configuredChartLibrary, isVisible, symbol]);
+  const chartAnalyticsProperties = useMemo(
+    () => getChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
+    [effectiveChartLibrary],
+  );
 
   // Allow landscape orientation when modal is visible
   // Automatically locks back to portrait when modal closes or unmounts
@@ -66,6 +117,58 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       setOhlcvHeight(0);
     }
   }, [ohlcData]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    trackedScreenViewLibrariesRef.current = new Set();
+  }, [configuredChartLibrary, isVisible, symbol]);
+
+  const trackFullscreenChartScreenViewed = useCallback(
+    (chartLibrary?: string) => {
+      if (!isVisible || !symbol) return;
+
+      const trackedChartLibrary = chartLibrary ?? effectiveChartLibrary;
+      if (
+        trackedScreenViewLibrariesRef.current.has(
+          `${symbol}:${trackedChartLibrary}`,
+        )
+      ) {
+        return;
+      }
+
+      trackedScreenViewLibrariesRef.current.add(
+        `${symbol}:${trackedChartLibrary}`,
+      );
+      const screenViewChartAnalyticsProperties = chartLibrary
+        ? getChartAnalyticsPropertiesForLibrary(chartLibrary)
+        : chartAnalyticsProperties;
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+        ...screenViewChartAnalyticsProperties,
+      });
+    },
+    [chartAnalyticsProperties, effectiveChartLibrary, isVisible, symbol, track],
+  );
+
+  useEffect(() => {
+    if (
+      isVisible &&
+      !isAdvancedChartEnabled &&
+      candleData?.candles?.length &&
+      candleData.interval === selectedInterval
+    ) {
+      trackFullscreenChartScreenViewed();
+    }
+  }, [
+    candleData,
+    isAdvancedChartEnabled,
+    isVisible,
+    selectedInterval,
+    trackFullscreenChartScreenViewed,
+  ]);
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -93,11 +196,36 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     onClose();
   }, [onClose]);
 
-  // Handle chart errors by closing modal
-  // Orientation is automatically restored by the hook
+  const trackChartError = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_ERROR, {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+        'Chart rendering error in fullscreen chart modal',
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+      ...(symbol ? { [PERPS_EVENT_PROPERTY.ASSET]: symbol } : {}),
+      ...chartAnalyticsProperties,
+    });
+  }, [chartAnalyticsProperties, symbol, track]);
+
+  // Handle boundary-level chart errors by closing the modal.
+  // Orientation is automatically restored by the hook.
   const handleChartError = useCallback(() => {
+    trackChartError();
     onClose();
-  }, [onClose]);
+  }, [onClose, trackChartError]);
+
+  const handleAdvancedChartError = useCallback(() => {
+    trackChartError();
+    setEffectiveChartLibrary(PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT);
+    trackFullscreenChartScreenViewed(
+      PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+    );
+  }, [trackChartError, trackFullscreenChartScreenViewed]);
+
+  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    trackFullscreenChartScreenViewed();
+  }, [trackFullscreenChartScreenViewed]);
 
   return (
     <Modal
@@ -188,20 +316,42 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             componentLabel="PerpsChartFullscreenModal"
             onError={handleChartError}
           >
-            <TradingViewChart
-              ref={chartRef}
-              candleData={candleData}
-              height={Math.max(chartHeight - ohlcvHeight, 100)}
-              tpslLines={tpslLines}
-              visibleCandleCount={
-                visibleCandleCount ?? PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN
-              }
-              showVolume // Always show volume in fullscreen
-              showOverlay={false}
-              coloredVolume
-              onOhlcDataChange={setOhlcData}
-              testID="fullscreen-chart"
-            />
+            {isAdvancedChartEnabled && symbol ? (
+              <PerpsAdvancedChart
+                symbol={symbol}
+                interval={selectedInterval}
+                visibleCandleCount={
+                  visibleCandleCount ??
+                  PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN
+                }
+                height={Math.max(chartHeight - ohlcvHeight, 100)}
+                tpslLines={tpslLines}
+                positionSize={positionSize}
+                szDecimals={szDecimals}
+                surface="full_screen_chart"
+                onCrosshairDataChange={setOhlcData}
+                onError={handleAdvancedChartError}
+                onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+                fallbackCandleData={candleData ?? null}
+              />
+            ) : (
+              <TradingViewChart
+                ref={chartRef}
+                candleData={candleData}
+                height={Math.max(chartHeight - ohlcvHeight, 100)}
+                tpslLines={tpslLines}
+                symbol={symbol}
+                visibleCandleCount={
+                  visibleCandleCount ??
+                  PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN
+                }
+                showVolume
+                showOverlay={false}
+                coloredVolume
+                onOhlcDataChange={setOhlcData}
+                testID="fullscreen-chart"
+              />
+            )}
           </ComponentErrorBoundary>
         </View>
       </View>

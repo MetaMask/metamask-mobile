@@ -3,20 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsModifyActionSheet from './PerpsModifyActionSheet';
 import { type Position } from '@metamask/perps-controller';
 import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
-// Mock dependencies
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      contentContainer: {},
-      actionItem: {},
-      actionItemBorder: {},
-      actionIconContainer: {},
-      actionTextContainer: {},
-      iconColor: { color: mockTheme.colors.text.default },
-    },
-  }),
+jest.mock('../../../../../util/theme/themeUtils', () => ({
+  useElevatedSurface: () => 'bg-default',
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -33,88 +22,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-}));
-
-// Mock BottomSheet
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (
-          { children, testID }: { children: React.ReactNode; testID?: string },
-          _ref: unknown,
-        ) => ReactModule.createElement(View, { testID }, children),
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return function MockBottomSheetHeader({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) {
-      return ReactModule.createElement(
-        View,
-        { testID: 'bottom-sheet-header' },
-        children,
-      );
-    };
-  },
-);
-
-// Mock Icon component
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: function MockIcon() {
-    return null;
-  },
-  IconName: {
-    Add: 'Add',
-    Minus: 'Minus',
-    SwapHorizontal: 'SwapHorizontal',
-  },
-  IconSize: {
-    Md: 'Md',
-  },
-}));
-
-// Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactModule = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockText({ children }: { children: React.ReactNode }) {
-      return ReactModule.createElement(Text, null, children);
-    },
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMDBold: 'BodyMDBold',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Alternative: 'Alternative',
-    },
-  };
-});
-
-// Mock Box component
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: function MockBox({ children }: { children: React.ReactNode }) {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactModule.createElement(View, null, children);
-  },
 }));
 
 describe('PerpsModifyActionSheet', () => {
@@ -207,7 +114,6 @@ describe('PerpsModifyActionSheet', () => {
     fireEvent.press(screen.getByText('Add to Position'));
 
     expect(mockOnActionSelect).toHaveBeenCalledWith('add_to_position');
-    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('calls onActionSelect with reduce_position when reduce option is pressed', () => {
@@ -223,7 +129,6 @@ describe('PerpsModifyActionSheet', () => {
     fireEvent.press(screen.getByText('Reduce Position'));
 
     expect(mockOnActionSelect).toHaveBeenCalledWith('reduce_position');
-    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('calls onActionSelect with flip_position when flip option is pressed', () => {
@@ -239,10 +144,9 @@ describe('PerpsModifyActionSheet', () => {
     fireEvent.press(screen.getByText('Flip Position'));
 
     expect(mockOnActionSelect).toHaveBeenCalledWith('flip_position');
-    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('calls onClose when action is selected', () => {
+  it('does not call onClose directly when action is selected', () => {
     render(
       <PerpsModifyActionSheet
         onClose={mockOnClose}
@@ -253,7 +157,7 @@ describe('PerpsModifyActionSheet', () => {
 
     fireEvent.press(screen.getByText('Add to Position'));
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
   });
 
   it('renders with testID when provided', () => {

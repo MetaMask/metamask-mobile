@@ -77,7 +77,7 @@ describe('worldCup queries', () => {
     });
   });
 
-  it('fetches Live markets with series, games tag, and live filters', async () => {
+  it('fetches Live markets with tag slug, games tag, and live filters', async () => {
     mockGetMarkets.mockResolvedValue({
       markets: [createMarket()],
       nextCursor: null,
@@ -94,7 +94,7 @@ describe('worldCup queries', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({
       category: 'hot',
       customQueryParams:
-        'active=true&archived=false&closed=false&series_id=11433&tag_id=100639&live=true&order=startDate',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&tag_id=100639&live=true&order=startDate',
       limit: 5,
     });
   });
@@ -127,6 +127,21 @@ describe('worldCup queries', () => {
       id: 'later',
       title: 'Later',
       game: baseGame,
+      outcomes: [
+        {
+          id: 'later-advance',
+          providerId: 'polymarket',
+          marketId: 'later',
+          title: 'Advance',
+          description: 'Advance',
+          image: '',
+          status: 'open',
+          tokens: [{ id: 'later-token', title: 'Yes', price: 0.5 }],
+          volume: 0,
+          groupItemTitle: 'Advance',
+          sportsMarketType: 'soccer_team_to_advance',
+        },
+      ],
     });
     const earlierMarket = createMarket({
       id: 'earlier',
@@ -136,6 +151,21 @@ describe('worldCup queries', () => {
         id: 'game-earlier',
         startTime: '2026-06-12T20:00:00.000Z',
       },
+      outcomes: [
+        {
+          id: 'earlier-advance',
+          providerId: 'polymarket',
+          marketId: 'earlier',
+          title: 'Advance',
+          description: 'Advance',
+          image: '',
+          status: 'open',
+          tokens: [{ id: 'earlier-token', title: 'Yes', price: 0.5 }],
+          volume: 0,
+          groupItemTitle: 'Advance',
+          sportsMarketType: 'soccer_team_to_advance',
+        },
+      ],
     });
     mockGetMarkets.mockResolvedValue({
       markets: [laterMarket, earlierMarket],

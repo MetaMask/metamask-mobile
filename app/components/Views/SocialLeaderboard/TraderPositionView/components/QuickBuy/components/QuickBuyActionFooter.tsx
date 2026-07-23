@@ -1,80 +1,77 @@
-import React from 'react';
 import {
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Text,
-  TextVariant,
-  TextColor,
-  AvatarToken,
-  AvatarTokenSize,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-  BadgeNetwork,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
+import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
+import CollapsibleReveal from './CollapsibleReveal';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
-import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
+import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
     sliderPercent,
-    maxSpendUsd,
+    isSliderDisabled,
     handleSliderChange,
+    handleSliderDragEnd,
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
     isConfirmDisabled,
-    handleConfirm,
+    handleBuy,
     metamaskFeePercent,
     isHardwareSolanaBlocked,
-    isPriceImpactError,
-    priceImpactViewData,
-    formattedPriceImpact,
+    tradeMode,
     sourceToken,
-    sourceChainId,
     sourceBalanceFiat,
+    destBalanceFiat,
+    selectedDestStable,
     features,
     setActiveScreen,
+    useKeyboard,
+    isKeypadOpen,
   } = useQuickBuyContext();
 
-  const isPriceImpactWarning =
-    !isPriceImpactError && !!priceImpactViewData.icon;
+  const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
+  const pickerBalanceFiat =
+    tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
+  // Collapse footer while the keypad expands (same CollapsibleReveal timing) so
+  // sheet height lerps closed→open instead of dipping then growing.
+  const isFooterExpanded = !(useKeyboard && isKeypadOpen);
 
-  const networkImage = sourceChainId
-    ? getNetworkImageSource({ chainId: sourceChainId })
-    : undefined;
+  const footerBody = (
+    <>
+      {features.quickAmountPills ? (
+        <Box twClassName="pb-3">
+          <QuickBuyQuickAmounts />
+        </Box>
+      ) : null}
 
-  return (
-    <Box twClassName="px-4 pb-4">
-      {/* Slider — reduced top padding to tighten gap with the amount section */}
-      <Box twClassName="pt-2 pb-3">
-        <QuickBuyPercentageSlider
-          value={sliderPercent}
-          onValueChange={handleSliderChange}
-          disabled={maxSpendUsd <= 0}
-        />
-      </Box>
-
-      {/* Pay with row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-3"
+        twClassName="pb-5"
       >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.pay_with')}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {tradeMode === 'sell'
+            ? strings('social_leaderboard.quick_buy.receive')
+            : strings('social_leaderboard.quick_buy.pay_with')}
         </Text>
 
         <TouchableOpacity
@@ -88,33 +85,18 @@ const QuickBuyActionFooter: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-full bg-muted px-3 py-1"
           >
-            {sourceToken ? (
-              networkImage ? (
-                <BadgeWrapper
-                  position={BadgeWrapperPosition.BottomRight}
-                  badge={<BadgeNetwork src={networkImage} />}
-                >
-                  <AvatarToken
-                    size={AvatarTokenSize.Sm}
-                    name={sourceToken.symbol}
-                    src={getBridgeTokenImageSource(sourceToken)}
-                  />
-                </BadgeWrapper>
-              ) : (
-                <AvatarToken
-                  size={AvatarTokenSize.Sm}
-                  name={sourceToken.symbol}
-                  src={getBridgeTokenImageSource(sourceToken)}
-                />
-              )
+            {pickerToken ? (
+              <QuickBuyTokenIcon
+                token={pickerToken}
+                size={AvatarTokenSize.Sm}
+              />
             ) : null}
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              {sourceToken
-                ? sourceBalanceFiat
-                  ? `${sourceToken.symbol} (${sourceBalanceFiat})`
-                  : sourceToken.symbol
+              {pickerToken
+                ? pickerBalanceFiat
+                  ? `${pickerToken.symbol} (${pickerBalanceFiat})`
+                  : pickerToken.symbol
                 : '—'}
             </Text>
             {features.payWithSheet ? (
@@ -128,19 +110,12 @@ const QuickBuyActionFooter: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <QuickBuyBanners
-        isHardwareSolanaBlocked={isHardwareSolanaBlocked}
-        isPriceImpactError={isPriceImpactError}
-        isPriceImpactWarning={isPriceImpactWarning}
-        formattedPriceImpact={formattedPriceImpact}
-      />
-
       <QuickBuyConfirmButton
         state={confirmButtonState}
         label={getButtonLabel()}
         hasValidAmount={hasValidAmount}
         isDisabled={isConfirmDisabled}
-        onPress={handleConfirm}
+        onPress={handleBuy}
         testID="quick-buy-confirm-button"
       />
 
@@ -153,6 +128,38 @@ const QuickBuyActionFooter: React.FC = () => {
           </Text>
         </Box>
       ) : null}
+    </>
+  );
+
+  return (
+    <Box twClassName="px-4">
+      {/* Slider — control variant only. The keyboard treatment replaces it with
+          the numeric keypad rendered below the CTA. */}
+      {useKeyboard ? null : (
+        <Box twClassName="pt-2 pb-3">
+          <QuickBuyPercentageSlider
+            value={sliderPercent}
+            onValueChange={handleSliderChange}
+            disabled={isSliderDisabled}
+            onDragEnd={handleSliderDragEnd}
+          />
+        </Box>
+      )}
+
+      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
+
+      {useKeyboard ? (
+        <CollapsibleReveal
+          expanded={isFooterExpanded}
+          snapExpandedOnMount
+          unmountWhenCollapsed={false}
+          testID="quick-buy-footer-reveal"
+        >
+          {footerBody}
+        </CollapsibleReveal>
+      ) : (
+        footerBody
+      )}
     </Box>
   );
 };

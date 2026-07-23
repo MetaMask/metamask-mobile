@@ -6,6 +6,11 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../../util/navigation/navUtils';
 import {
   Box,
   Label,
@@ -52,13 +57,8 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
-import {
-  COINME_TERMS_URL,
-  CRB_ACCOUNT_OPENING_URL,
-  CRB_PRIVACY_NOTICE_URL,
-  CRB_PRIVACY_POLICY_URL,
-  CRB_TERMS_URL,
-} from '../../constants';
+import { COINME_TERMS_URL, CRB_PRIVACY_POLICY_URL } from '../../constants';
+import { getCardUsDisclosureUrls } from '../../util/registrationSettings';
 
 const VERIFICATION_POLLING_INTERVAL_MS = 3000;
 
@@ -87,7 +87,7 @@ export const AddressFields = ({
   handleZipCodeChange: (text: string) => void;
   selectedCountry: Region | null;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { data: registrationSettings } = useRegistrationSettings();
 
   const regions: Region[] = useMemo(() => {
@@ -109,8 +109,9 @@ export const AddressFields = ({
     setOnValueChange((region) => {
       handleStateChange(region.key);
     });
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions,
       }),
     );
@@ -223,7 +224,7 @@ export const AddressFields = ({
 };
 
 const PhysicalAddress = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const dispatch = useDispatch();
   const { user, setUser, sdk } = useCardSDK();
@@ -270,9 +271,14 @@ const PhysicalAddress = () => {
     }
   }, [user]);
 
-  const eSignConsentDisclosureUSUrl = useMemo(
-    () => registrationSettings?.links?.us?.eSignConsentDisclosure || '',
-    [registrationSettings?.links?.us?.eSignConsentDisclosure],
+  const {
+    eSignConsentDisclosureUSUrl,
+    crbTermsUrl,
+    crbAccountOpeningUrl,
+    crbNoticeOfPrivacyUrl,
+  } = useMemo(
+    () => getCardUsDisclosureUrls(registrationSettings),
+    [registrationSettings],
   );
 
   const {
@@ -306,22 +312,22 @@ const PhysicalAddress = () => {
   }, []);
 
   const openCrbTerms = useCallback(() => {
-    if (CRB_TERMS_URL) {
-      Linking.openURL(CRB_TERMS_URL);
+    if (crbTermsUrl) {
+      Linking.openURL(crbTermsUrl);
     }
-  }, []);
+  }, [crbTermsUrl]);
 
   const openCrbAccountOpening = useCallback(() => {
-    if (CRB_ACCOUNT_OPENING_URL) {
-      Linking.openURL(CRB_ACCOUNT_OPENING_URL);
+    if (crbAccountOpeningUrl) {
+      Linking.openURL(crbAccountOpeningUrl);
     }
-  }, []);
+  }, [crbAccountOpeningUrl]);
 
   const openCrbPrivacyNotice = useCallback(() => {
-    if (CRB_PRIVACY_NOTICE_URL) {
-      Linking.openURL(CRB_PRIVACY_NOTICE_URL);
+    if (crbNoticeOfPrivacyUrl) {
+      Linking.openURL(crbNoticeOfPrivacyUrl);
     }
-  }, []);
+  }, [crbNoticeOfPrivacyUrl]);
 
   const openCrbPrivacyPolicy = useCallback(() => {
     if (CRB_PRIVACY_POLICY_URL) {
@@ -538,7 +544,7 @@ const PhysicalAddress = () => {
           }
           setIsPollingVerification(false);
           dispatch(resetOnboardingState());
-          navigation.reset({
+          resetWithRoutes(navigation, {
             index: 0,
             routes: [route],
           });

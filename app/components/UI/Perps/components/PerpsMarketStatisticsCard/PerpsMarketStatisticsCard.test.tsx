@@ -3,7 +3,10 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderBookViewSelectorsIDs,
+} from '../../Perps.testIds';
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -35,22 +38,14 @@ jest.mock('../../../../hooks/useStyles', () => ({
       statisticsGrid: { gap: 12 },
       statisticsRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         gap: 12,
       },
       statisticsItem: {
         flex: 1,
-        backgroundColor: mockTheme.colors.background.alternative,
-        padding: 16,
-        borderRadius: 8,
       },
-      statisticsLabelContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        marginBottom: 4,
+      orderBookButton: {
+        marginTop: 12,
       },
-      statisticsValue: { fontSize: 16, fontWeight: '600' },
       fundingRateContainer: {
         flexDirection: 'row',
         alignItems: 'baseline',
@@ -172,7 +167,7 @@ describe('PerpsMarketStatisticsCard', () => {
     );
 
     const openInterestInfoIcon = getByTestId(
-      'perps-market-details-open-interest-info-icon',
+      PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
     );
     fireEvent.press(openInterestInfoIcon);
 
@@ -185,11 +180,49 @@ describe('PerpsMarketStatisticsCard', () => {
     );
 
     const fundingRateInfoIcon = getByTestId(
-      'perps-market-details-funding-rate-info-icon',
+      PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
     );
     fireEvent.press(fundingRateInfoIcon);
 
     expect(mockOnTooltipPress).toHaveBeenCalledWith('funding_rate');
+  });
+
+  it('calls onTooltipPress with oracle_price when info icon is pressed', () => {
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    fireEvent.press(getByTestId('perps-market-details-oracle-price-info-icon'));
+
+    expect(mockOnTooltipPress).toHaveBeenCalledWith('oracle_price');
+  });
+
+  it('renders order book button and calls onOrderBookPress when provided', () => {
+    const mockOnOrderBookPress = jest.fn();
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        onOrderBookPress={mockOnOrderBookPress}
+      />,
+    );
+
+    const orderBookButton = getByTestId(
+      PerpsOrderBookViewSelectorsIDs.CONTAINER,
+    );
+    expect(orderBookButton).toBeOnTheScreen();
+
+    fireEvent.press(orderBookButton);
+    expect(mockOnOrderBookPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render order book button when onOrderBookPress is undefined', () => {
+    const { queryByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    expect(
+      queryByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('handles edge case with very small funding rate values', () => {
@@ -245,14 +278,14 @@ describe('PerpsMarketStatisticsCard', () => {
 
     // Press open interest info icon
     const openInterestInfoIcon = getByTestId(
-      'perps-market-details-open-interest-info-icon',
+      PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
     );
     fireEvent.press(openInterestInfoIcon);
     expect(mockOnTooltipPress).toHaveBeenCalledWith('open_interest');
 
     // Press funding rate info icon
     const fundingRateInfoIcon = getByTestId(
-      'perps-market-details-funding-rate-info-icon',
+      PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
     );
     fireEvent.press(fundingRateInfoIcon);
     expect(mockOnTooltipPress).toHaveBeenCalledWith('funding_rate');

@@ -1,6 +1,6 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import {
   sortNetworkAddressItems,
@@ -100,13 +100,9 @@ describe('MultichainAddressRowsList Utils', () => {
       expect(sorted[3].chainId).toBe(TrxScope.Mainnet);
     });
 
-    it('sorts networks with Linea fifth after Ethereum, Bitcoin, Solana, and Tron', () => {
+    it('sorts networks with Stellar fifth after Ethereum, Bitcoin, Solana, and Tron', () => {
       const items: NetworkAddressItem[] = [
-        {
-          chainId: `eip155:${CHAIN_IDS.LINEA_MAINNET}`,
-          networkName: 'Linea',
-          address: '0x123',
-        },
+        { chainId: XlmScope.Pubnet, networkName: 'Stellar', address: '0x123' },
         { chainId: TrxScope.Mainnet, networkName: 'Tron', address: '0x123' },
         { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
         { chainId: SolScope.Mainnet, networkName: 'Solana', address: '0x123' },
@@ -123,7 +119,35 @@ describe('MultichainAddressRowsList Utils', () => {
       expect(sorted[1].chainId).toBe(BtcScope.Mainnet);
       expect(sorted[2].chainId).toBe(SolScope.Mainnet);
       expect(sorted[3].chainId).toBe(TrxScope.Mainnet);
-      expect(sorted[4].chainId).toBe(`eip155:${CHAIN_IDS.LINEA_MAINNET}`);
+      expect(sorted[4].chainId).toBe(XlmScope.Pubnet);
+    });
+
+    it('sorts networks with Linea sixth after Ethereum, Bitcoin, Solana, Tron, and Stellar', () => {
+      const items: NetworkAddressItem[] = [
+        {
+          chainId: `eip155:${CHAIN_IDS.LINEA_MAINNET}`,
+          networkName: 'Linea',
+          address: '0x123',
+        },
+        { chainId: XlmScope.Pubnet, networkName: 'Stellar', address: '0x123' },
+        { chainId: TrxScope.Mainnet, networkName: 'Tron', address: '0x123' },
+        { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
+        { chainId: SolScope.Mainnet, networkName: 'Solana', address: '0x123' },
+        {
+          chainId: `eip155:${CHAIN_IDS.MAINNET}`,
+          networkName: 'Ethereum',
+          address: '0x123',
+        },
+        { chainId: BtcScope.Mainnet, networkName: 'Bitcoin', address: '0x123' },
+      ];
+
+      const sorted = sortNetworkAddressItems(items);
+      expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
+      expect(sorted[1].chainId).toBe(BtcScope.Mainnet);
+      expect(sorted[2].chainId).toBe(SolScope.Mainnet);
+      expect(sorted[3].chainId).toBe(TrxScope.Mainnet);
+      expect(sorted[4].chainId).toBe(XlmScope.Pubnet);
+      expect(sorted[5].chainId).toBe(`eip155:${CHAIN_IDS.LINEA_MAINNET}`);
     });
 
     it('sorts test networks last', () => {

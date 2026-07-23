@@ -51,6 +51,32 @@ export const isMusdToken = (address?: string): boolean => {
 };
 
 /**
+ * Resolves the display symbol for a token, special-casing tokens whose
+ * registry symbol differs from the branded casing. mUSD may be registered
+ * with the uppercase symbol "MUSD" (e.g. via token detection); canonicalise
+ * it to the branded "mUSD" so UI never leaks the registry casing.
+ */
+export const getTokenDisplaySymbol = (
+  address?: string,
+  symbol?: string,
+): string | undefined => (isMusdToken(address) ? MUSD_TOKEN.symbol : symbol);
+
+/**
+ * Like {@link isMusdToken} but also requires `chainId` to be a chain where
+ * mUSD is actually deployed. Prevents a same-address token on an unsupported
+ * chain from being misclassified as mUSD.
+ */
+export const isMusdTokenOnChain = (
+  address?: string,
+  chainId?: Hex,
+): boolean => {
+  if (!address || !chainId) return false;
+  const expected = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+  if (!expected) return false;
+  return address.toLowerCase() === expected.toLowerCase();
+};
+
+/**
  * Chains where mUSD CTA should show (buy routes available).
  * BSC is excluded as buy routes are not yet available.
  */
@@ -59,6 +85,26 @@ export const MUSD_BUYABLE_CHAIN_IDS: Hex[] = [
   CHAIN_IDS.LINEA_MAINNET,
   // CHAIN_IDS.BSC, // TODO: Uncomment once buy routes are available
 ];
+
+/**
+ * Chains where the Money Account surfaces mUSD activity. mUSD exists on
+ * several chains for buy/convert flows, but Money Account currently only
+ * tracks Monad — inbound mUSD on Mainnet/Linea/BSC is unrelated to it and
+ * must not appear in Money activity.
+ */
+export const MUSD_MONEY_ACCOUNT_CHAIN_IDS: Hex[] = [CHAIN_IDS.MONAD];
+
+/**
+ * Like {@link isMusdTokenOnChain} but restricted to chains where the Money
+ * Account is active (currently Monad only).
+ */
+export const isMusdOnMoneyAccountChain = (
+  address?: string,
+  chainId?: Hex,
+): boolean => {
+  if (!chainId || !MUSD_MONEY_ACCOUNT_CHAIN_IDS.includes(chainId)) return false;
+  return isMusdTokenOnChain(address, chainId);
+};
 
 export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
   [CHAIN_IDS.MAINNET]:

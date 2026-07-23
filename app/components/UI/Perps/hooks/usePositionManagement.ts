@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import type { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import { type Position } from '@metamask/perps-controller';
 
 /**

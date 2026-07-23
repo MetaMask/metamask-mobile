@@ -11,7 +11,7 @@ export function usePredictBalance(): UseQueryResult<number, Error> {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const address = evmAccount?.address ?? '0x0';
+  const address = evmAccount?.address;
 
   useEffect(() => {
     ensurePolygonNetworkExists().catch(() => {
@@ -19,5 +19,8 @@ export function usePredictBalance(): UseQueryResult<number, Error> {
     });
   }, [ensurePolygonNetworkExists]);
 
-  return useQuery(predictQueries.balance.options({ address }));
+  return useQuery({
+    ...predictQueries.balance.options({ address: address ?? '' }),
+    enabled: Boolean(address),
+  });
 }

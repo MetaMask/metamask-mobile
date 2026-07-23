@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View, Image } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -28,6 +29,8 @@ interface PredictMarketRowItemProps {
   leadingAccessory?: React.ReactNode;
   /** Optional title for market-details navigation (row can still show `market.title`). */
   detailsTitle?: string;
+  /** Optional content rendered between the row text and chevron. */
+  endAccessory?: React.ReactNode;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onPress?: () => void;
 }
@@ -39,6 +42,7 @@ const PredictMarketRowItem = ({
   showChevron = false,
   leadingAccessory,
   detailsTitle,
+  endAccessory,
   transactionActiveAbTests,
   onPress,
 }: PredictMarketRowItemProps) => {
@@ -106,7 +110,8 @@ const PredictMarketRowItem = ({
             <Image
               source={{ uri: market.image }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
+              recyclingKey={market.image}
             />
           ) : null)}
       </Box>
@@ -130,8 +135,11 @@ const PredictMarketRowItem = ({
           {topOutcome.probability} chance on {topOutcome.outcomeTitle}
         </Text>
       </View>
+      {endAccessory}
       {showChevron && (
-        <Box twClassName="pl-2 justify-center">
+        <Box
+          twClassName={endAccessory ? 'justify-center' : 'pl-2 justify-center'}
+        >
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}

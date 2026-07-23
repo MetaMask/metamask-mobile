@@ -4,10 +4,6 @@ import { FlatList } from 'react-native-gesture-handler';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPListItem.styles';
 import { SRPListItemProps } from './SRPListItem.type';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconColor,
@@ -29,6 +25,12 @@ import { selectAccountGroupsByKeyringId } from '../../../selectors/multisrp';
 import { RootState } from '../../../reducers';
 import { selectIconSeedAddressByAccountGroupId } from '../../../selectors/multichainAccounts/accounts';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 /**
  * Renders an individual account group item with avatar and name.
@@ -56,7 +58,7 @@ const AccountGroupItem = ({
         accountAddress={seedAddress}
         size={AvatarSize.Sm}
       />
-      <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
         {accountGroup.metadata.name}
       </Text>
     </View>
@@ -105,16 +107,18 @@ const SRPListItem = ({
           <View>
             <View style={styles.srpItemIconContainer}>
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Medium}
               >
                 {name}
               </Text>
               <View style={styles.srpIconContainer}>
                 {Boolean(showArrowName) && (
                   <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    fontWeight={FontWeight.Medium}
                   >
                     {showArrowName}
                   </Text>
@@ -144,8 +148,9 @@ const SRPListItem = ({
               }}
               label={
                 <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Primary}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.PrimaryDefault}
+                  fontWeight={FontWeight.Medium}
                 >
                   {`${strings(
                     !showAccounts

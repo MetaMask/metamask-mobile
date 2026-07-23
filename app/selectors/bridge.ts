@@ -10,31 +10,44 @@ import { RootState } from '../reducers';
 import {
   selectSourceToken,
   selectDestToken,
+  selectBatchSellSourceTokens,
   selectIsSwap,
   selectIsGasIncludedSTXSendBundleSupported,
   selectIsGasIncluded7702Supported,
 } from '../core/redux/slices/bridge';
-import { selectInternalAccountsByScope } from '../selectors/accountsController';
+import { selectInternalAccountsById } from '../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
-import { createDeepEqualSelector } from './util';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { getGaslessBridgeWith7702EnabledForChain } from './smartTransactionsController';
+import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
 
 /**
  * Gets the wallet address for a given source token by finding the selected account
  * that matches the token's chain scope
  */
 export const selectSourceWalletAddress = createSelector(
-  [(state: RootState) => state, selectSourceToken],
-  (state, sourceToken) => {
+  [selectSourceToken, selectSelectedInternalAccountByScope],
+  (sourceToken, getAccountByScope) => {
     if (!sourceToken) return undefined;
 
     const chainId = formatChainIdToCaip(sourceToken.chainId);
-    const internalAccount =
-      selectSelectedInternalAccountByScope(state)(chainId);
+    return getAccountByScope(chainId)?.address;
+  },
+);
 
-    return internalAccount ? internalAccount.address : undefined;
+/**
+ * Gets the wallet address for the first Batch Sell source token by finding the
+ * selected account that matches the token's chain scope.
+ */
+export const selectBatchSellSourceWalletAddress = createSelector(
+  [selectBatchSellSourceTokens, selectSelectedInternalAccountByScope],
+  (sourceTokens, getAccountByScope) => {
+    const [sourceToken] = sourceTokens;
+    if (!sourceToken) return undefined;
+
+    const chainId = formatChainIdToCaip(sourceToken.chainId);
+    return getAccountByScope(chainId)?.address;
   },
 );
 
@@ -43,21 +56,22 @@ export const selectSourceWalletAddress = createSelector(
  * for the currently selected destination token. For EVM destinations, includes
  * both the specific EVM chain and the EVM wildcard scope (eip155:0).
  */
-export const selectValidDestInternalAccountIds = createDeepEqualSelector(
-  [(state: RootState) => state, selectDestToken],
-  (state, destToken): Set<AccountId> => {
+export const selectValidDestInternalAccountIds = createSelector(
+  [selectDestToken, selectInternalAccountsById],
+  (destToken, internalAccountsById): Set<AccountId> => {
     if (!destToken) return new Set<AccountId>();
 
     const destScope = formatChainIdToCaip(destToken.chainId);
     const isEvm = destScope.startsWith(KnownCaipNamespace.Eip155);
 
-    const byDestScope = selectInternalAccountsByScope(state, destScope);
-    const evmWildcard = isEvm
-      ? selectInternalAccountsByScope(state, EthScope.Eoa)
-      : [];
-
     return new Set<AccountId>(
-      [...byDestScope, ...evmWildcard].map((a) => a.id),
+      Object.values(internalAccountsById)
+        .filter(
+          (account) =>
+            anyScopesMatch(account.scopes, destScope) ||
+            (isEvm && anyScopesMatch(account.scopes, EthScope.Eoa)),
+        )
+        .map((account) => account.id),
     );
   },
 );

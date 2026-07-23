@@ -1,19 +1,15 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
-  FontWeight,
   Icon,
-  IconColor,
   IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
+  ListItem,
+  ListItemVariant,
+  SectionDivider,
+  SectionHeader,
 } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -22,58 +18,14 @@ import { ActionLocation } from '../../../../../util/analytics/actionButtonTracki
 import { getDecimalChainId } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { HomepageMoreSelectorsIDs } from '../../Homepage.testIds';
-import styles from './MoreSection.styles';
-
-interface MoreActionRowProps {
-  label: string;
-  startIconName: IconName;
-  endIconName?: IconName;
-  onPress: () => void;
-  testID: string;
-}
-
-const MoreActionRow = ({
-  label,
-  startIconName,
-  endIconName,
-  onPress,
-  testID,
-}: MoreActionRowProps) => (
-  <TouchableOpacity
-    accessibilityRole="button"
-    onPress={onPress}
-    style={styles.row}
-    testID={testID}
-  >
-    <Icon
-      name={startIconName}
-      size={IconSize.Md}
-      color={IconColor.IconDefault}
-      style={styles.startIcon}
-    />
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-      style={styles.label}
-    >
-      {label}
-    </Text>
-    {endIconName ? (
-      <Icon
-        name={endIconName}
-        size={IconSize.Md}
-        color={IconColor.IconAlternative}
-      />
-    ) : null}
-  </TouchableOpacity>
-);
 
 const MoreSection = () => {
   const navigation = useNavigation();
   const currentChainId = useSelector(selectEvmChainId);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const handleImportToken = useCallback(() => {
     navigation.navigate('AddAsset', { assetType: 'token' });
@@ -102,51 +54,63 @@ const MoreSection = () => {
   }, [createEventBuilder, navigation, trackEvent]);
 
   const handleContactSupport = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: METAMASK_SUPPORT_URL,
-        title: strings('app_settings.contact_support'),
+    openSupportWithConsent(
+      (url) => {
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings('app_settings.contact_support'),
+          },
+        });
       },
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
-        .addProperties({
-          action: 'Navigation Drawer',
-          name: 'Get Help',
-          location: ActionLocation.HOME,
-        })
-        .build(),
+      METAMASK_SUPPORT_URL,
+      // Defer tracking to when support actually opens (consent confirm/reject),
+      // not the mere tap that only shows the consent sheet.
+      () =>
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
+            .addProperties({
+              action: 'Navigation Drawer',
+              name: 'Get Help',
+              location: ActionLocation.HOME,
+            })
+            .build(),
+        ),
     );
-  }, [createEventBuilder, navigation, trackEvent]);
+  }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
   return (
-    <View
-      style={styles.sectionGap}
-      testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}
-    >
+    <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>
+      <SectionDivider />
       <SectionHeader title={strings('homepage.sections.more.title')} />
-      <SectionRow>
-        <MoreActionRow
-          label={strings('homepage.sections.more.import_token')}
-          startIconName={IconName.Add}
-          onPress={handleImportToken}
-          testID={HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON}
-        />
-        <MoreActionRow
-          label={strings('homepage.sections.more.import_nft')}
-          startIconName={IconName.Add}
-          onPress={handleImportNft}
-          testID={HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON}
-        />
-        <MoreActionRow
-          label={strings('homepage.sections.more.contact_support')}
-          startIconName={IconName.MessageQuestion}
-          endIconName={IconName.Export}
-          onPress={handleContactSupport}
-          testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON}
-        />
-      </SectionRow>
+      <ListItem
+        isInteractive
+        variant={ListItemVariant.OneLine}
+        title={strings('homepage.sections.more.import_token')}
+        startAccessory={<Icon name={IconName.Add} />}
+        accessoryGap={4}
+        onPress={handleImportToken}
+        testID={HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON}
+      />
+      <ListItem
+        isInteractive
+        variant={ListItemVariant.OneLine}
+        title={strings('homepage.sections.more.import_nft')}
+        startAccessory={<Icon name={IconName.Add} />}
+        accessoryGap={4}
+        onPress={handleImportNft}
+        testID={HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON}
+      />
+      <ListItem
+        isInteractive
+        variant={ListItemVariant.OneLine}
+        title={strings('homepage.sections.more.contact_support')}
+        startAccessory={<Icon name={IconName.Sms} />}
+        accessoryGap={4}
+        onPress={handleContactSupport}
+        testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON}
+      />
     </View>
   );
 };

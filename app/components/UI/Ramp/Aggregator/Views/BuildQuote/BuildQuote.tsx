@@ -13,10 +13,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import BN4 from 'bnjs4';
 import {
   AvatarToken,
   AvatarTokenSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
 import { useRampSDK } from '../../sdk';
@@ -51,11 +53,12 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { NavbarSelectorsIDs } from '../../../../Navbar/Navbar.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -96,6 +99,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
@@ -118,9 +122,10 @@ export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
 
 const BuildQuote = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<BuildQuoteParams>();
   const { showBack } = params;
+  const shouldShowBack = showBack !== false;
 
   // Memoize the intent object to prevent unnecessary re-renders
   const intent = useMemo(() => {
@@ -234,10 +239,50 @@ const BuildQuote = () => {
     currentFiatCurrency,
   );
 
-  useEffect(() => {
+  const resetAmountInput = useCallback(() => {
     setAmount('0');
     setAmountNumber(0);
-  }, [selectedRegion]);
+    setAmountBNMinimalUnit(undefined);
+    setAmountFocused(false);
+    setIsKeyboardFreshlyOpened(false);
+  }, []);
+
+  useEffect(() => {
+    resetAmountInput();
+  }, [resetAmountInput, selectedRegion]);
+
+  const selectedAssetKey = useMemo(() => {
+    const id = selectedAsset?.id;
+    const chainId = selectedAsset?.network?.chainId;
+    const address = selectedAsset?.address;
+
+    if (!id && !chainId && !address) {
+      return undefined;
+    }
+
+    return `${id ?? ''}:${chainId ?? ''}:${address ?? ''}`;
+  }, [
+    selectedAsset?.id,
+    selectedAsset?.network?.chainId,
+    selectedAsset?.address,
+  ]);
+
+  const previousSelectedAssetKey = useRef<string | undefined>(selectedAssetKey);
+
+  useEffect(() => {
+    if (
+      isSell &&
+      selectedAssetKey &&
+      previousSelectedAssetKey.current &&
+      previousSelectedAssetKey.current !== selectedAssetKey
+    ) {
+      resetAmountInput();
+    }
+
+    if (selectedAssetKey) {
+      previousSelectedAssetKey.current = selectedAssetKey;
+    }
+  }, [isSell, resetAmountInput, selectedAssetKey]);
 
   const shouldShowUnsupportedModal = useMemo(
     () =>
@@ -254,8 +299,9 @@ const BuildQuote = () => {
       if (shouldShowUnsupportedModal && selectedRegion) {
         // Use requestAnimationFrame to ensure navigation happens after render
         requestAnimationFrame(() => {
-          navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
+          navigateWithDetails(
+            navigation,
+            createUnsupportedRegionModalNavigationDetails({
               regions: regions ?? [],
               region: selectedRegion,
             }),
@@ -440,33 +486,14 @@ const BuildQuote = () => {
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   const handleConfigurationPress = useCallback(() => {
-    navigation.navigate(...createBuySettingsModalNavigationDetails());
+    navigateWithDetails(navigation, createBuySettingsModalNavigationDetails());
   }, [navigation]);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: isBuy
-            ? strings('fiat_on_ramp_aggregator.amount_to_buy')
-            : strings('fiat_on_ramp_aggregator.amount_to_sell'),
-          showBack: showBack ?? false,
-          showConfiguration: isBuy,
-          onConfigurationPress: handleConfigurationPress,
-        },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [
-    navigation,
-    theme,
-    handleCancelPress,
-    showBack,
-    isBuy,
-    handleConfigurationPress,
-  ]);
+  const handleBackPress = useCallback(() => {
+    handleCancelPress();
+    // @ts-expect-error navigation prop mismatch
+    navigation.pop();
+  }, [handleCancelPress, navigation]);
 
   /**
    * * Keypad style, handlers and effects
@@ -596,8 +623,9 @@ const BuildQuote = () => {
   const handleChangeRegion = useCallback(() => {
     setAmountFocused(false);
     if (regions && regions.length > 0) {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createRegionSelectorModalNavigationDetails({
           regions,
         }),
       );
@@ -610,8 +638,9 @@ const BuildQuote = () => {
 
   const handleAssetSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createTokenSelectModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createTokenSelectModalNavigationDetails({
         tokens: cryptoCurrencies ?? [],
       }),
     );
@@ -623,8 +652,9 @@ const BuildQuote = () => {
 
   const handleFiatSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createFiatSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createFiatSelectorModalNavigationDetails({
         currencies: fiatCurrencies ?? [],
       }),
     );
@@ -636,8 +666,9 @@ const BuildQuote = () => {
 
   const handleShowPaymentMethodsModal = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
         location: screenLocation,
       }),
@@ -649,15 +680,17 @@ const BuildQuote = () => {
    */
   const handleGetQuotePress = useCallback(() => {
     if (!selectedAddress) {
-      navigation.navigate(
-        ...createIncompatibleAccountTokenModalNavigationDetails(),
+      navigateWithDetails(
+        navigation,
+        createIncompatibleAccountTokenModalNavigationDetails(),
       );
       return;
     }
 
     if (selectedAsset && currentFiatCurrency) {
-      navigation.navigate(
-        ...createQuotesNavDetails({
+      navigateWithDetails(
+        navigation,
+        createQuotesNavDetails({
           amount: isBuy ? amountNumber : amount,
           asset: selectedAsset,
           fiatCurrency: currentFiatCurrency,
@@ -884,6 +917,31 @@ const BuildQuote = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={
+            isBuy
+              ? strings('fiat_on_ramp_aggregator.amount_to_buy')
+              : strings('fiat_on_ramp_aggregator.amount_to_sell')
+          }
+          onBack={shouldShowBack ? handleBackPress : undefined}
+          backButtonProps={
+            shouldShowBack
+              ? { testID: 'deposit-back-navbar-button' }
+              : undefined
+          }
+          endButtonIconProps={
+            isBuy
+              ? [
+                  {
+                    iconName: IconName.Setting,
+                    onPress: handleConfigurationPress,
+                    testID: NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON,
+                  },
+                ]
+              : undefined
+          }
+          includesTopInset
+        />
         <Pressable
           onPress={handleKeypadDone}
           style={styles.viewContainer}

@@ -15,12 +15,9 @@ import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
-jest.mock(
-  '../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
@@ -767,9 +764,11 @@ export const initialState = {
     destToken: undefined,
     selectedSourceChainIds: undefined,
     selectedDestChainId: undefined,
-    slippage: '0.5',
+    slippage: undefined,
+    isSlippageUserOverride: false,
     batchSellSlippages: {},
     batchSellSourceTokens: [],
+    batchSellSourceTokenAmounts: {},
     batchSellDestToken: undefined,
     isSubmittingTx: false,
     bridgeViewMode: undefined,

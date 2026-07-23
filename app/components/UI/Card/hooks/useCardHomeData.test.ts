@@ -22,6 +22,14 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 jest.mock('./useAssetBalances', () => ({ useAssetBalances: jest.fn() }));
 jest.mock('../util/getAssetBalanceKey');
+jest.mock('../util/ensureCardFundingTokensImported', () => ({
+  ensureCardFundingTokensImported: jest.fn(() => Promise.resolve()),
+}));
+jest.mock('./useEnsureCardNetworkExists', () => ({
+  useEnsureCardNetworkExists: () => ({
+    ensureNetworkExists: jest.fn(() => Promise.resolve('client-id')),
+  }),
+}));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseAssetBalances = useAssetBalances as jest.MockedFunction<

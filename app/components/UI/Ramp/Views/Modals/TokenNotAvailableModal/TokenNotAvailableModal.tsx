@@ -1,21 +1,23 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  type BottomSheetRef,
-  Text,
-  TextVariant,
-  TextColor,
   Button,
-  ButtonVariant,
   ButtonBaseSize,
+  ButtonVariant,
   HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './TokenNotAvailableModal.styles';
@@ -26,7 +28,6 @@ import { createProviderSelectionModalNavigationDetails } from '../ProviderSelect
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
-
 import type { BuyFlowOrigin } from '../../BuildQuote/BuildQuote';
 
 export interface TokenNotAvailableModalParams {
@@ -44,7 +45,7 @@ export const createTokenNotAvailableModalNavigationDetails =
 function TokenNotAvailableModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { assetId, buyFlowOrigin } = useParams<TokenNotAvailableModalParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
@@ -84,7 +85,7 @@ function TokenNotAvailableModal() {
         navigation.navigate(Routes.WALLET.HOME as never);
       } else {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         });
       }
     });
@@ -107,8 +108,9 @@ function TokenNotAvailableModal() {
         .build(),
     );
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        ...createProviderSelectionModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createProviderSelectionModalNavigationDetails({
           assetId,
           skipQuotes: true,
         }),
@@ -147,7 +149,7 @@ function TokenNotAvailableModal() {
           navigation.navigate(Routes.WALLET.HOME as never);
         } else {
           navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-            screen: Routes.RAMP.TOKEN_SELECTION,
+            screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
           });
         }
       }

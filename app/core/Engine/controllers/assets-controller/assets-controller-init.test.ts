@@ -17,6 +17,7 @@ import {
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { store } from '../../../../store';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
@@ -146,6 +147,11 @@ describe('assetsControllerInit', () => {
     jest.mocked(store.getState).mockReturnValue({
       settings: { basicFunctionalityEnabled: true },
       onboarding: { completedOnboarding: false },
+      engine: {
+        backgroundState: {
+          KeyringController: { isUnlocked: true },
+        },
+      },
     } as ReturnType<typeof store.getState>);
   });
 
@@ -176,7 +182,7 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
-        trace: expect.any(Function),
+        tempMigrateAssetsInfoMetadataAssets3346: expect.any(Function),
       }),
     );
   });
@@ -279,6 +285,48 @@ describe('assetsControllerInit', () => {
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
       expect(isEnabled()).toBe(false);
+    });
+
+    it('returns false when the keyring is locked, regardless of feature flag', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: false },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(false);
+    });
+
+    it('returns true when keyring is unlocked and feature flag is enabled', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: true },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(true);
     });
 
     it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
@@ -396,6 +444,71 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isOnboarded).toBeDefined();
       expect(isOnboarded?.()).toBe(false);
+    });
+  });
+
+  describe('tempMigrateAssetsInfoMetadataAssets3346', () => {
+    it('returns the persisted TokensController and AccountsController state', () => {
+      const requestMock = getInitRequestMock();
+      const mockTokensControllerState = {
+        allTokens: {
+          '0x64': {
+            '0x0000000000000000000000000000000000000001': [
+              {
+                address: '0x0000000000000000000000000000000000000002',
+                symbol: 'TST',
+                decimals: 18,
+              },
+            ],
+          },
+        },
+        allIgnoredTokens: {},
+      };
+      const mockAccountsControllerState = {
+        internalAccounts: {
+          accounts: {
+            'account-id-1': createMockInternalAccount(
+              '0x0000000000000000000000000000000000000001',
+              'Account 1',
+            ),
+          },
+          selectedAccount: 'account-id-1',
+        },
+      };
+      requestMock.persistedState = {
+        TokensController: mockTokensControllerState,
+        AccountsController: mockAccountsControllerState,
+      } as typeof requestMock.persistedState;
+
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getMigrationState =
+        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
+
+      expect(getMigrationState).toBeDefined();
+      expect(getMigrationState?.()).toStrictEqual({
+        TokensController: mockTokensControllerState,
+        AccountsController: mockAccountsControllerState,
+      });
+    });
+
+    it('returns undefined slices when no legacy state is persisted', () => {
+      const requestMock = getInitRequestMock();
+      requestMock.persistedState = {};
+
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getMigrationState =
+        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
+
+      expect(getMigrationState?.()).toStrictEqual({
+        TokensController: undefined,
+        AccountsController: undefined,
+      });
     });
   });
 

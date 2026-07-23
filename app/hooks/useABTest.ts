@@ -31,6 +31,7 @@ import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 import { MetaMetricsEvents } from '../core/Analytics';
 import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
 import { resolveABTestAssignment } from '../util/abTest';
+import { getDetectedGeolocation } from '../reducers/fiatOrders';
 
 /**
  * Type constraint for variants object - must include a 'control' key
@@ -79,6 +80,55 @@ const rememberExposureAssignment = (assignmentKey: string) => {
   trackedExposureAssignments.add(assignmentKey);
 };
 
+interface EmitExposureArgs<T extends ABTestVariants> {
+  flagKey: string;
+  variationId: string;
+  assignmentKey: string;
+  experimentName?: string;
+  variationName?: string;
+  countryCode?: string;
+  trackEvent: ReturnType<typeof useAnalytics>['trackEvent'];
+  createEventBuilder: ReturnType<typeof useAnalytics>['createEventBuilder'];
+}
+
+// Extracted out of the hook body. The properties object below uses conditional
+// spreads (value blocks), which the React Compiler cannot yet handle inside a
+// try/catch. Keeping the emit in a plain function lets the hook compile while
+// preserving the exact tracking behavior.
+const emitExposureEvent = <T extends ABTestVariants>({
+  flagKey,
+  variationId,
+  assignmentKey,
+  experimentName,
+  variationName,
+  countryCode,
+  trackEvent,
+  createEventBuilder,
+}: EmitExposureArgs<T>) => {
+  try {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
+        .addProperties({
+          experiment_id: flagKey,
+          variation_id: variationId,
+          ...(experimentName && {
+            experiment_name: experimentName,
+          }),
+          ...(variationName && {
+            variation_name: variationName,
+          }),
+          ...(countryCode && {
+            country_code: countryCode,
+          }),
+        })
+        .build(),
+    );
+    rememberExposureAssignment(assignmentKey);
+  } catch {
+    // Do not cache failed emits so the hook can retry next evaluation.
+  }
+};
+
 /**
  * Generic hook for A/B testing in React components
  *
@@ -118,6 +168,11 @@ export function useABTest<T extends ABTestVariants>(
 ): UseABTestResult<T> {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const flags = useSelector(selectRemoteFeatureFlags);
+  const geolocation = useSelector(getDetectedGeolocation);
+  const countryCode =
+    typeof geolocation === 'string'
+      ? geolocation.toUpperCase().split('-')[0]
+      : undefined;
   const { variantName, isActive } = resolveABTestAssignment(
     flags,
     flagKey,
@@ -134,32 +189,22 @@ export function useABTest<T extends ABTestVariants>(
     const variationId = String(variantName);
     const assignmentKey = getExposureCacheKey(flagKey, variationId);
 
-    // Emit one exposure per experiment+variation assignment per app session.
     if (trackedExposureAssignments.has(assignmentKey)) {
       return;
     }
 
-    try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
-          .addProperties({
-            experiment_id: flagKey,
-            variation_id: variationId,
-            ...(exposureMetadata?.experimentName && {
-              experiment_name: exposureMetadata.experimentName,
-            }),
-            ...(activeVariationName && {
-              variation_name: activeVariationName,
-            }),
-          })
-          .build(),
-      );
-      rememberExposureAssignment(assignmentKey);
-    } catch {
-      // Do not cache failed emits so the hook can retry next evaluation.
-      return;
-    }
+    emitExposureEvent<T>({
+      flagKey,
+      variationId,
+      assignmentKey,
+      experimentName: exposureMetadata?.experimentName,
+      variationName: activeVariationName,
+      countryCode,
+      trackEvent,
+      createEventBuilder,
+    });
   }, [
+    countryCode,
     createEventBuilder,
     activeVariationName,
     exposureMetadata?.experimentName,

@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
+import { Pressable, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -7,6 +8,12 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenLogo from '../TrendingTokenLogo';
 import Badge, {
@@ -15,7 +22,7 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { isCaipChainId } from '@metamask/utils';
+import { isCaipAssetType, isCaipChainId } from '@metamask/utils';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import {
   caipChainIdToHex,
@@ -35,7 +42,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useTrendingTokenPress } from '../../hooks/useTrendingTokenPress/useTrendingTokenPress';
 import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-
 /**
  * Gets the text color for price percentage change
  */
@@ -84,6 +90,8 @@ interface TrendingTokenRowItemProps {
    * `testID` (and E2E selectors) unique per instance.
    */
   testIdInstanceKey?: string;
+  /** When provided, shows a circular Quick Trade button on the right of the row. */
+  onQuickTrade?: (token: TrendingAsset) => void;
 }
 
 /**
@@ -95,7 +103,7 @@ export const getAssetNavigationParams = (
   transactionActiveAbTests?: TransactionActiveAbTestEntry[],
 ) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
-  if (!isCaipChainId(caipChainId)) return null;
+  if (!isCaipChainId(caipChainId)) return undefined;
 
   const isEvmChain = caipChainId.startsWith('eip155:');
   const isNativeToken = assetIdentifier?.startsWith('slip44:');
@@ -121,6 +129,7 @@ export const getAssetNavigationParams = (
     source,
     rwaData: token.rwaData,
     securityData: token.securityData,
+    ...(isCaipAssetType(token.assetId) && { caipAssetId: token.assetId }),
     ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
   };
 };
@@ -135,6 +144,7 @@ const TrendingTokenRowItem = ({
   onPress,
   onCardPress,
   testIdInstanceKey,
+  onQuickTrade,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -183,8 +193,8 @@ const TrendingTokenRowItem = ({
   }, [onPress, onCardPress, token, defaultOnPress]);
 
   const rowTestId = testIdInstanceKey
-    ? `trending-token-row-item-${testIdInstanceKey}-${token.assetId}`
-    : `trending-token-row-item-${token.assetId}`;
+    ? getTrendingTokenRowItemTestId(`${testIdInstanceKey}-${token.assetId}`)
+    : getTrendingTokenRowItemTestId(token.assetId);
 
   return (
     <TouchableOpacity
@@ -195,6 +205,7 @@ const TrendingTokenRowItem = ({
       <BadgeWrapper
         style={styles.badge}
         badgePosition={BadgePosition.BottomRight}
+        anchorSize={{ width: 40, height: 40 }}
         badgeElement={
           <Badge
             size={AvatarSize.Xs}
@@ -231,7 +242,13 @@ const TrendingTokenRowItem = ({
             />
           )}
         </View>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={styles.marketStats}
+        >
           {formatMarketStats(
             token.marketCap ?? 0,
             token.aggregatedUsdVolume ?? 0,
@@ -259,8 +276,31 @@ const TrendingTokenRowItem = ({
           )
         )}
       </View>
+      {onQuickTrade && (
+        <Pressable
+          onPress={(e) => {
+            e?.stopPropagation?.();
+            onQuickTrade(token);
+          }}
+          hitSlop={8}
+          testID="quick-trade-button"
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            styles.quickTradeButton,
+            pressed && { opacity: 0.5 },
+          ]}
+        >
+          <Icon
+            name={IconName.Flash}
+            size={IconSize.Md}
+            twClassName="text-icon-default"
+          />
+        </Pressable>
+      )}
     </TouchableOpacity>
   );
 };
 
-export default TrendingTokenRowItem;
+TrendingTokenRowItem.displayName = 'TrendingTokenRowItem';
+
+export default React.memo(TrendingTokenRowItem);

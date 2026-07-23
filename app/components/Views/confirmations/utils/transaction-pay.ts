@@ -4,27 +4,26 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import {
+  PaymentOverride,
+  TransactionFiatPayment,
+  TransactionPayRequiredToken,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { hasTransactionType } from './transaction';
 import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
-import {
-  TransactionFiatPayment,
-  TransactionPayRequiredToken,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
-import { store } from '../../../../store';
 import {
-  selectGasFeeTokenFlags,
   BlockedTokensListConfig,
   BlockedTokensConfig,
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import Logger from '../../../../util/Logger';
+import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 
@@ -172,7 +171,6 @@ export function getAvailableTokens({
   fiatPayment?: TransactionFiatPayment;
 }): AssetType[] {
   const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
-  const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
   return tokens
     .filter((token) => {
@@ -206,31 +204,13 @@ export function getAvailableTokens({
       return new BigNumber(token.balance).gt(0);
     })
     .map((token) => {
-      const chainId = (token.chainId as Hex) ?? '0x0';
-
-      const nativeToken = tokens.find(
-        (t) =>
-          t.chainId === chainId && t.address === getNativeTokenAddress(chainId),
-      );
-
-      const noNativeBalance =
-        !nativeToken || new BigNumber(nativeToken.balance).isZero();
-
-      const isGasStationSupported = supportedGasFeeTokens[chainId]?.includes(
-        token.address?.toLowerCase() as Hex,
-      );
-
-      const noGasDisabled = noNativeBalance && !isGasStationSupported;
-
       const blocked = isTokenBlocked(token, blockedTokens);
 
-      const disabled = noGasDisabled || blocked;
+      const disabled = blocked;
 
       const disabledMessage = blocked
         ? strings('pay_with_modal.not_supported')
-        : noGasDisabled
-          ? strings('pay_with_modal.no_gas')
-          : undefined;
+        : undefined;
 
       const isSelected = hasFiatPayment
         ? false
@@ -286,21 +266,6 @@ export function isTokenBlocked(
   );
 }
 
-function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
-  const state = store.getState();
-  const { gasFeeTokens } = selectGasFeeTokenFlags(state);
-
-  return Object.keys(gasFeeTokens).reduce(
-    (acc, chainId) => ({
-      ...acc,
-      [chainId]: gasFeeTokens[chainId as Hex].tokens.map(
-        (token) => token.address.toLowerCase() as Hex,
-      ),
-    }),
-    {},
-  );
-}
-
 export function isMatchingPayToken(
   token: { address?: string; chainId?: string } | undefined,
   target: { address: string; chainId: string } | undefined,
@@ -318,8 +283,8 @@ export function isMatchingPayToken(
  * Resolves the preferred pay token for a transaction.
  *
  * Returns the explicit override when provided. Otherwise, falls back to
- * mUSD on mainnet for moneyAccountWithdraw transactions so the preferred-token
- * row in the pay-with bottom sheet reflects the deposit-default asset.
+ * mUSD on Monad for moneyAccountWithdraw transactions so the preferred-token
+ * row in the pay-with bottom sheet reflects the withdraw-default asset.
  *
  */
 export function resolvePreferredPayToken({
@@ -338,9 +303,38 @@ export function resolvePreferredPayToken({
   ) {
     return {
       address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET,
+      chainId: CHAIN_IDS.MONAD,
     };
   }
 
   return undefined;
+}
+
+/**
+ * Sets the money account payment override on a transaction and clears any
+ * previously selected fiat payment method. For deposit flows the money
+ * account address is stored as the refund destination.
+ */
+export function applyMoneyAccountOverride(
+  transactionId: string,
+  moneyAccountAddress: string | undefined,
+  isWithdraw: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      (config as Record<string, unknown>).paymentOverride =
+        PaymentOverride.MoneyAccount;
+      if (moneyAccountAddress && !isWithdraw) {
+        config.refundTo = moneyAccountAddress as Hex;
+      }
+    },
+  );
+
+  Engine.context.TransactionPayController.updateFiatPayment({
+    transactionId,
+    callback: (fp) => {
+      fp.selectedPaymentMethodId = undefined;
+    },
+  });
 }

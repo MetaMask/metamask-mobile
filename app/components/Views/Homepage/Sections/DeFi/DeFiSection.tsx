@@ -4,13 +4,17 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import {
+  SectionDivider,
+  Box,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
@@ -24,15 +28,12 @@ import Engine from '../../../../../core/Engine';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useThrottledFocusEffect } from '../../../../hooks/useThrottledFocusEffect';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_POSITIONS_DISPLAYED = 5;
-
-const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
-});
 
 interface DeFiSectionProps {
   sectionIndex: number;
@@ -85,15 +86,15 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const navigation = useNavigation();
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
 
-    useFocusEffect(
+    // TODO(ASSETS-3658): Replace with a proper polling mechanism in DeFiPositionsController.
+    useThrottledFocusEffect(
       useCallback(() => {
-        if (!isDeFiEnabled) {
-          return;
-        }
+        if (!isDeFiEnabled) return;
         Engine.context.DeFiPositionsController?._executePoll()?.catch(
           () => undefined,
         );
       }, [isDeFiEnabled]),
+      300_000, // 5 minutes
     );
     const privacyMode = useSelector(selectPrivacyMode);
     const title = strings('homepage.sections.defi');
@@ -151,13 +152,11 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // Show retry UI on error
     if (!isLoading && hasError) {
       return (
-        <View
-          ref={sectionViewRef}
-          onLayout={onLayout}
-          style={styles.sectionGap}
-        >
+        <View ref={sectionViewRef} onLayout={onLayout}>
+          <SectionDivider />
           <SectionHeader
             title={title}
+            isInteractive
             onPress={handleViewAllDeFi}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
           />
@@ -172,9 +171,11 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
         <SectionHeader
           title={title}
+          isInteractive
           onPress={handleViewAllDeFi}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
         />

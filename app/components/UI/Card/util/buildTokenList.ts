@@ -7,6 +7,10 @@ import {
   CardNetwork,
 } from '../types';
 import { SUPPORTED_ASSET_NETWORKS } from '../constants';
+import {
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+  MONEY_ACCOUNT_DISPLAY_SYMBOL,
+} from './vedaToken';
 
 /** CAIP chain ID for Linea mainnet */
 export const LINEA_CAIP_CHAIN_ID = 'eip155:59144' as CaipChainId;
@@ -20,6 +24,7 @@ interface SupportedToken {
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
   getSupportedTokensByChainId: (chainId: CaipChainId) => SupportedToken[];
+  enforceSupportList?: boolean;
 }
 
 function getCaipChainId(
@@ -57,6 +62,7 @@ function shouldProcessNetwork(
 export function buildDelegationTokenList({
   delegationSettings,
   getSupportedTokensByChainId,
+  enforceSupportList = false,
 }: BuildTokenListParams): CardFundingToken[] {
   if (!delegationSettings?.networks) {
     return [];
@@ -72,7 +78,9 @@ export function buildDelegationTokenList({
     const caipChainId = getCaipChainId(network);
     const isNonProduction = network.environment !== 'production';
 
-    for (const [, tokenConfig] of Object.entries(network.tokens || {})) {
+    for (const [tokenKey, tokenConfig] of Object.entries(
+      network.tokens || {},
+    )) {
       if (!tokenConfig.address) continue;
 
       // Check for duplicates
@@ -83,11 +91,39 @@ export function buildDelegationTokenList({
       );
       if (isDuplicate) continue;
 
-      // Get metadata from SDK if available
       const sdkTokens = getSupportedTokensByChainId?.(caipChainId) ?? [];
       const sdkToken = sdkTokens.find(
-        (t) => t.symbol?.toLowerCase() === tokenConfig.symbol.toLowerCase(),
+        (t) =>
+          (!!t.address &&
+            t.address.toLowerCase() === tokenConfig.address.toLowerCase()) ||
+          (!!t.symbol &&
+            !!tokenConfig.symbol &&
+            t.symbol.toLowerCase() === tokenConfig.symbol.toLowerCase()),
       );
+
+      if (enforceSupportList && !sdkToken) {
+        continue;
+      }
+
+      const isVedaEntry = tokenKey === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY;
+
+      if (isVedaEntry) {
+        tokens.push({
+          address: tokenConfig.address,
+          symbol: tokenConfig.symbol,
+          name: tokenConfig.symbol,
+          decimals: tokenConfig.decimals,
+          caipChainId,
+          walletAddress: undefined,
+          fundingStatus: FundingStatus.NotEnabled,
+          spendableBalance: '0',
+          delegationContract: network.delegationContract,
+          priority: undefined,
+          stagingTokenAddress: undefined,
+          displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+        });
+        continue;
+      }
 
       const symbol = sdkToken?.symbol ?? tokenConfig.symbol;
 

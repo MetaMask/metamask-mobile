@@ -1,27 +1,38 @@
-import Matchers from '../../framework/Matchers';
-import TestHelpers from '../../helpers';
 import { waitFor } from 'detox';
 
 class DownloadFile {
   async verifyTapjackingAndClickDownloadButton(): Promise<void> {
-    await TestHelpers.delay(1000); // TODO replace with a check that button is disabled and after 500ms is enabled
-    const downloadButtonInDialog =
-      device.getPlatform() === 'android'
-        ? Matchers.getElementByText('Download')
-        : Matchers.getElementByLabel('Download');
-    await (await downloadButtonInDialog).tap();
+    if (device.getPlatform() !== 'android') {
+      // iOS blob/data downloads skip confirmation and open Save to Files directly.
+      return;
+    }
+
+    const downloadButton = element(by.text('Download'));
+    await waitFor(downloadButton).toBeVisible().withTimeout(15000);
+    await downloadButton.tap();
   }
 
   async verifySuccessStateVisible(): Promise<void> {
     if (device.getPlatform() === 'ios') {
-      // Verify for iOS that system file saving dialog is visible
-      waitFor(await Matchers.getElementByLabel('Save')).toExist();
-    } else {
-      // Verify for Android that toast after successful downloading is visible
-      waitFor(
-        await Matchers.getElementByText('Downloaded successfully'),
-      ).toExist();
+      // saveToFiles presents UIDocumentPickerViewController (export), not a
+      // UIActivityViewController with a top-level "Save" action. Cancel appears
+      // in the hierarchy but is not hittable (DOCRemoteBarButtonTrackingView is
+      // clipped), so we only assert presentation — same as the pre-bridge test.
+      await device.disableSynchronization();
+      try {
+        await waitFor(element(by.label('Cancel')))
+          .toExist()
+          .withTimeout(20000);
+      } finally {
+        await device.enableSynchronization();
+      }
+      return;
     }
+
+    // Android: handleWebDownload shows a success alert after MediaStore save.
+    await waitFor(element(by.text('Download complete')))
+      .toBeVisible()
+      .withTimeout(15000);
   }
 }
 

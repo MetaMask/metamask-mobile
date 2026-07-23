@@ -7,38 +7,37 @@ import { SwapsKeypadRef } from './types';
 // Captures props passed to BottomSheetDialog so tests can assert configuration.
 const mockBottomSheetDialogProps = jest.fn();
 
-// Mock BottomSheetDialog to render children directly without animations.
+// Mock MMDS BottomSheetDialog to render children directly without animations.
 // Exposes onCloseDialog via ref so close() can be tested.
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
-  () => {
-    const MockReact = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: MockReact.forwardRef(
-        (
-          {
-            children,
-            onClose,
-            ...rest
-          }: {
-            children: React.ReactNode;
-            onClose?: () => void;
-            isInteractable?: boolean;
-            [key: string]: unknown;
-          },
-          dialogRef: React.Ref<{ onCloseDialog: () => void }>,
-        ) => {
-          mockBottomSheetDialogProps({ onClose, ...rest });
-          MockReact.useImperativeHandle(dialogRef, () => ({
-            onCloseDialog: () => onClose?.(),
-          }));
-          return children;
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const MockReact = jest.requireActual('react');
+
+  return {
+    ...actual,
+    BottomSheetDialog: MockReact.forwardRef(
+      (
+        {
+          children,
+          onClose,
+          ...rest
+        }: {
+          children: React.ReactNode;
+          onClose?: () => void;
+          isInteractable?: boolean;
+          [key: string]: unknown;
         },
-      ),
-    };
-  },
-);
+        dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+      ) => {
+        mockBottomSheetDialogProps({ onClose, ...rest });
+        MockReact.useImperativeHandle(dialogRef, () => ({
+          onCloseDialog: () => onClose?.(),
+        }));
+        return children;
+      },
+    ),
+  };
+});
 
 /**
  * Helper to render SwapsKeypad and open it via the ref.

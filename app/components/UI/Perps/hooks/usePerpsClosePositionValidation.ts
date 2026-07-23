@@ -6,6 +6,8 @@ import {
   type ClosePositionParams,
   type OrderType,
 } from '@metamask/perps-controller';
+import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
+import { isPriceOutsideDeviationBand } from '../utils/orderUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {
@@ -15,6 +17,7 @@ interface UsePerpsClosePositionValidationParams {
   orderType: OrderType;
   limitPrice?: string;
   currentPrice: number;
+  referencePrice?: number; // Reference (oracle/mark) price used for the deviation band; falls back to currentPrice
   positionSize: number; // Absolute size of the position
   positionValue: number; // Total position value in USD
   minimumOrderAmount: number; // Minimum order size in USD
@@ -106,6 +109,7 @@ export function usePerpsClosePositionValidation(
     orderType,
     limitPrice,
     currentPrice,
+    referencePrice,
     minimumOrderAmount,
     closingValue,
     receiveAmount,
@@ -127,13 +131,26 @@ export function usePerpsClosePositionValidation(
     setValidation((prev) => ({ ...prev, isValidating: true }));
 
     try {
+      // Price the order will actually rest/execute at. A limit close rests at
+      // the user's limit price, so the protocol's minimum-notional check must
+      // value it at that price (matching the "$" amount shown in the UI) rather
+      // than the live mark price. Otherwise a limit price far above the mark
+      // makes the displayed value (size × limit) and the validated value
+      // (size × mark) diverge, silently disabling the button. Market orders
+      // keep using the mark price.
+      const limitPriceNum = limitPrice ? Number.parseFloat(limitPrice) : NaN;
+      const executionPrice =
+        orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0
+          ? limitPriceNum
+          : currentPrice;
+
       // Prepare params for protocol validation
       const closeParams: ClosePositionParams = {
         symbol,
         size: closePercentage === 100 ? undefined : closeAmount.toString(),
         orderType,
         price: orderType === 'limit' ? limitPrice : undefined,
-        currentPrice,
+        currentPrice: executionPrice,
       };
 
       // Get protocol-specific validation
@@ -181,14 +198,39 @@ export function usePerpsClosePositionValidation(
         );
       }
 
-      // Limit order specific validation (price warning only - required check is done by protocol)
-      if (
-        orderType === 'limit' &&
-        limitPrice &&
-        Number.parseFloat(limitPrice) > 0
-      ) {
-        const limitPriceNum = Number.parseFloat(limitPrice);
-        // Add warning if limit price is far from current price
+      // Limit order specific validation
+      if (orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0) {
+        // Reference (oracle/mark) price the protocol's price band is evaluated
+        // against. Prefer the mark price; fall back to the mid/mark currentPrice
+        // when the reference is unavailable or not a finite positive number
+        // (?? would keep a NaN reference and silently skip the band check).
+        const bandReferencePrice =
+          referencePrice !== undefined &&
+          Number.isFinite(referencePrice) &&
+          referencePrice > 0
+            ? referencePrice
+            : currentPrice;
+
+        // Block the close when the limit price is outside HyperLiquid's allowed
+        // band from the reference price. HyperLiquid rejects such orders
+        // ("oracleRejected"). This lives in the Close button validation (rather
+        // than only in the limit-price sheet) so it re-evaluates as the market
+        // moves after the price was set — not just while it is being entered.
+        if (
+          isPriceOutsideDeviationBand(
+            limitPriceNum,
+            bandReferencePrice,
+            LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+          )
+        ) {
+          errors.push(
+            strings('perps.order.limit_price_modal.limit_price_too_far'),
+          );
+        }
+
+        // Add warning if the limit price is far from the live mark price
+        // (currentPrice), so this deliberately compares against the mark, not
+        // the limit-based executionPrice used for the notional check above.
         const priceDifference = Math.abs(
           (limitPriceNum - currentPrice) / currentPrice,
         );
@@ -231,6 +273,7 @@ export function usePerpsClosePositionValidation(
     orderType,
     limitPrice,
     currentPrice,
+    referencePrice,
     minimumOrderAmount,
     closingValue,
     receiveAmount,

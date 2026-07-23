@@ -26,6 +26,8 @@ const LOGO_SIZE = 24;
 interface CryptoMoversPillItemProps {
   token: TrendingAsset;
   index: number;
+  timeOption?: TimeOption;
+  tokenDetailsSource?: TokenDetailsSource;
   /** Called synchronously before the card's press handler fires. */
   onCardPress?: () => void;
 }
@@ -33,13 +35,15 @@ interface CryptoMoversPillItemProps {
 const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   token,
   index,
+  timeOption = TimeOption.TwentyFourHours,
+  tokenDetailsSource = TokenDetailsSource.ExploreNowMovers,
   onCardPress,
 }) => {
   const { onPress: defaultOnPress } = useTrendingTokenPress({
     token,
     index,
     filterContext: CRYPTO_MOVERS_HOME_FILTER_CONTEXT,
-    tokenDetailsSource: TokenDetailsSource.ExploreNowMovers,
+    tokenDetailsSource,
   });
 
   const onPress = React.useCallback(async () => {
@@ -54,9 +58,9 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   }, [token.assetId]);
 
   const { changeLabel, changeTextColor } = useMemo(() => {
-    const key = getPriceChangeFieldKey(TimeOption.TwentyFourHours);
+    const key = getPriceChangeFieldKey(timeOption);
     return formatPercentChange(token.priceChangePct?.[key]);
-  }, [token.priceChangePct]);
+  }, [timeOption, token.priceChangePct]);
 
   const leading = useMemo(
     () => (

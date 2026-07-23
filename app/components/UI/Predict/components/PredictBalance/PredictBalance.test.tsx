@@ -4,8 +4,16 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
 
 // Mock React Query
 jest.mock('@tanstack/react-query', () => ({
@@ -14,11 +22,13 @@ jest.mock('@tanstack/react-query', () => ({
   }),
 }));
 
+const mockNavigate = jest.fn();
+
 // Mock React Navigation
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
     setOptions: jest.fn(),
   }),
@@ -87,6 +97,26 @@ function stateWithDepositWalletWithdrawEnabled(enabled: boolean) {
             ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
             confirmations_pay_extended: {
               enableDepositWalletWithdraw: enabled,
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+function stateWithPredictPortfolioEnabled(enabled: boolean) {
+  return {
+    engine: {
+      backgroundState: {
+        ...initialState.engine.backgroundState,
+        RemoteFeatureFlagController: {
+          ...backgroundState.RemoteFeatureFlagController,
+          remoteFeatureFlags: {
+            ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+            predictPortfolio: {
+              enabled,
+              minimumVersion: '1.0.0',
             },
           },
         },
@@ -331,6 +361,101 @@ describe('PredictBalance', () => {
       expect(queryByText(/Withdraw/i)).not.toBeOnTheScreen();
     });
 
+    it('displays Positions button when portfolio feature flag is enabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const { getByTestId, getByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: stateWithPredictPortfolioEnabled(true),
+        },
+      );
+
+      // Assert
+      expect(
+        getByTestId(PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(getByText(strings('predict.tabs.positions'))).toBeOnTheScreen();
+    });
+
+    it('does not display Positions button when portfolio feature flag is disabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: stateWithPredictPortfolioEnabled(false),
+        },
+      );
+
+      // Assert
+      expect(
+        queryByTestId(PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON),
+      ).toBeNull();
+      expect(queryByText(strings('predict.tabs.positions'))).toBeNull();
+    });
+
+    it('navigates to Positions when Positions button is pressed', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(<PredictBalance />, {
+        state: stateWithPredictPortfolioEnabled(true),
+      });
+      fireEvent.press(getByTestId(PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON));
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.POSITIONS);
+    });
+
+    it('uses compact action button sizing only when portfolio feature flag is enabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const enabledRender = renderWithProvider(<PredictBalance />, {
+        state: stateWithPredictPortfolioEnabled(true),
+      });
+
+      // Assert
+      expect(
+        enabledRender.UNSAFE_getAllByProps({
+          size: ButtonSize.Lg,
+          variant: ButtonVariants.Secondary,
+        }),
+      ).toHaveLength(3);
+
+      enabledRender.unmount();
+
+      const disabledRender = renderWithProvider(<PredictBalance />, {
+        state: stateWithPredictPortfolioEnabled(false),
+      });
+
+      expect(
+        disabledRender.UNSAFE_queryAllByProps({
+          size: ButtonSize.Lg,
+          variant: ButtonVariants.Secondary,
+        }),
+      ).toHaveLength(0);
+    });
+
     it('calls deposit function with analytics properties when Add Funds button is pressed', () => {
       // Arrange
       const mockDeposit = jest.fn();
@@ -521,6 +646,117 @@ describe('PredictBalance', () => {
     });
   });
 
+  describe('when balance fails to load', () => {
+    it('displays a retryable error state instead of $0 when the fetch fails with no cached data', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PredictBalance />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByTestId(PREDICT_BALANCE_TEST_IDS.ERROR)).toBeOnTheScreen();
+      expect(
+        getByText(strings('predict.balance_error.title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('predict.balance_error.description')),
+      ).toBeOnTheScreen();
+      expect(queryByText(/\$0/)).not.toBeOnTheScreen();
+    });
+
+    it('calls refetch when the retry button is pressed', () => {
+      // Arrange
+      const mockRefetch = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: mockRefetch,
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+      fireEvent.press(getByTestId(PREDICT_BALANCE_TEST_IDS.RETRY_BUTTON));
+
+      // Assert
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays the loading skeleton while a retry is in flight', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: true,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PredictBalance />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByTestId(PREDICT_BALANCE_TEST_IDS.SKELETON)).toBeOnTheScreen();
+      expect(queryByTestId(PREDICT_BALANCE_TEST_IDS.ERROR)).toBeNull();
+    });
+
+    it('displays the last known balance when a background refetch fails', () => {
+      // Arrange — stale data beats an error state
+      mockUsePredictBalance.mockReturnValue({
+        data: 42.5,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { getByText, queryByTestId } = renderWithProvider(
+        <PredictBalance />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByText(/\$42\.50/)).toBeOnTheScreen();
+      expect(queryByTestId(PREDICT_BALANCE_TEST_IDS.ERROR)).toBeNull();
+    });
+
+    it('hides the title in the error state when hideTitle is true', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { queryByText } = renderWithProvider(<PredictBalance hideTitle />, {
+        state: initialState,
+      });
+
+      // Assert
+      expect(queryByText(strings('wallet.predict'))).toBeNull();
+    });
+  });
+
   describe('balance refresh', () => {
     it('component renders with adding funds state when deposit is pending', () => {
       // Arrange - set up pending deposit to test the adding funds UI
@@ -679,7 +915,6 @@ describe('PredictBalance', () => {
         state: initialState,
       });
 
-      // When balance is 0, Add funds uses Primary variant
       const primaryButtons = UNSAFE_getAllByProps({
         variant: ButtonVariants.Primary,
       });
@@ -697,12 +932,27 @@ describe('PredictBalance', () => {
         { state: initialState },
       );
 
-      // When balance > 0, Add funds uses Secondary variant and Withdraw also appears
       const secondaryButtons = UNSAFE_getAllByProps({
         variant: ButtonVariants.Secondary,
       });
       expect(secondaryButtons.length).toBeGreaterThanOrEqual(2);
       expect(getByText(/Withdraw/i)).toBeOnTheScreen();
+    });
+
+    it('displays Predictions title in TitleHub', () => {
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+
+      expect(getByText(strings('wallet.predict'))).toBeOnTheScreen();
+    });
+
+    it('hides Predictions title when hideTitle is true', () => {
+      const { queryByText } = renderWithProvider(<PredictBalance hideTitle />, {
+        state: initialState,
+      });
+
+      expect(queryByText(strings('wallet.predict'))).toBeNull();
     });
 
     it('handles undefined balance gracefully', () => {

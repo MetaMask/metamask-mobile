@@ -86,6 +86,7 @@ describe('MoneyActivityItem', () => {
       fiatAmount: '$0.00',
       isIncoming: true,
       icon: IconName.Arrow2Down,
+      status: 'confirmed',
     });
   });
 
@@ -119,6 +120,7 @@ describe('MoneyActivityItem', () => {
       fiatAmount: '$0.00',
       isIncoming: false,
       icon: IconName.Arrow2Down,
+      status: 'confirmed',
     });
 
     const { queryByText } = renderWithProvider(
@@ -137,10 +139,32 @@ describe('MoneyActivityItem', () => {
     fireEvent.press(getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`));
 
     expect(onPress).toHaveBeenCalledTimes(1);
-    expect(onPress).toHaveBeenCalledWith('tx-row-1');
+    expect(onPress).toHaveBeenCalledWith(baseTx);
   });
 
-  it('shows "Failed" in the description slot for a failed transaction', () => {
+  it('renders the row as non-pressable when no onPress prop is provided', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" />,
+    );
+
+    // Without an onPress prop, ActivityRowView receives onPress={undefined},
+    // so the underlying Pressable has no onPress handler.
+    expect(
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`).props.onPress,
+    ).toBeUndefined();
+  });
+
+  it('keeps the real subtitle on a failed row (failure is shown via the label, not the subtitle)', () => {
+    mockUseMoneyTransactionDisplayInfo.mockReturnValue({
+      label: 'Conversion failed',
+      description: 'USDC → mUSD',
+      primaryAmount: '+0.00 mUSD',
+      fiatAmount: '+$0.00',
+      isIncoming: true,
+      icon: IconName.Refresh,
+      status: 'failed',
+    });
+
     const failedTx = {
       ...baseTx,
       status: TransactionStatus.failed,
@@ -150,9 +174,10 @@ describe('MoneyActivityItem', () => {
       <MoneyActivityItem tx={failedTx} moneyAddress="0x1" />,
     );
 
-    expect(getByText('Failed')).toBeOnTheScreen();
-    // Normal description should not appear for failed rows
-    expect(queryByText('Description')).toBeNull();
+    expect(getByText('Conversion failed')).toBeOnTheScreen();
+    // Subtitle is preserved (no generic "Failed" replacement).
+    expect(getByText('USDC → mUSD')).toBeOnTheScreen();
+    expect(queryByText('Failed')).toBeNull();
   });
 
   it('renders network badge subtree when showNetworkBadge is true', () => {
@@ -182,6 +207,7 @@ describe('MoneyActivityItem', () => {
       fiatAmount: '$0.00',
       isIncoming: true,
       icon: IconName.SwapHorizontal,
+      status: 'confirmed',
     });
 
     const { getByTestId } = renderWithProvider(
@@ -191,6 +217,55 @@ describe('MoneyActivityItem', () => {
     expect(getByTestId(MoneyActivityItemTestIds.ICON)).toHaveProp(
       'accessibilityLabel',
       IconName.SwapHorizontal,
+    );
+  });
+
+  it('shows a spinner and no spinner when status is pending vs confirmed', () => {
+    mockUseMoneyTransactionDisplayInfo.mockReturnValue({
+      label: 'Depositing',
+      description: 'Transak',
+      primaryAmount: '+1,000.00 mUSD',
+      fiatAmount: '+$1000.00',
+      isIncoming: true,
+      icon: IconName.Add,
+      status: 'pending',
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByText('Depositing')).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PENDING_SPINNER, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the real primary and fiat amounts when privacyMode is false', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" privacyMode={false} />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('+$0.00');
+    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
+      '$0.00',
+    );
+  });
+
+  it('masks the primary and fiat amounts when privacyMode is true', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" privacyMode />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('•'.repeat(9));
+    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
+      '•'.repeat(6),
     );
   });
 });

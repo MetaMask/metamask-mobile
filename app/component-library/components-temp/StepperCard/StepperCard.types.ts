@@ -1,8 +1,10 @@
+import { ReactNode } from 'react';
 import { ImageSourcePropType } from 'react-native';
 
 export interface StepperCardCta {
   text: string;
   onPress: () => void;
+  disabled?: boolean;
 }
 
 export interface StepperCardStep {
@@ -19,6 +21,11 @@ export interface StepperCardStep {
    */
   descriptionTooltipAccessibilityLabel?: string;
   image: ImageSourcePropType;
+  /**
+   * Optional custom media rendered in the image slot in place of `image`
+   * (e.g. an animated graphic). Falls back to `image` when not provided.
+   */
+  media?: ReactNode;
   primaryCta: StepperCardCta;
   secondaryCta?: StepperCardCta;
 }
@@ -36,7 +43,7 @@ export interface StepperCardProps {
   onComplete?: () => void;
   /**
    * Optional prefix used to derive child testIDs:
-   * `${testID}-container`, `${testID}-progress-bar`, `${testID}-step-image`,
+   * `${testID}-container`, `${testID}-step-image`,
    * `${testID}-title`, `${testID}-description`, `${testID}-cta-button`
    */
   testID?: string;

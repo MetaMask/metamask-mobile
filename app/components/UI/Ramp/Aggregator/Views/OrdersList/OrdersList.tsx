@@ -2,12 +2,14 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, TouchableHighlight } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
-import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import { createDepositOrderDetailsNavDetails } from '../../../Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import createStyles from './OrdersList.styles';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
@@ -177,11 +179,11 @@ function DisplayOrderListItem({
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const allLegacyOrders = useSelector(getOrders);
   const { orders: v2Orders } = useRampsOrders();
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const tw = useTailwind();
 
   const displayOrders = useMemo(
@@ -209,8 +211,9 @@ function OrdersList() {
 
   const handleNavigateToAggregatorTxDetails = useCallback(
     (orderId: string) => {
-      navigation.navigate(
-        ...createOrderDetailsNavDetails({
+      navigateWithDetails(
+        navigation,
+        createOrderDetailsNavDetails({
           orderId,
         }),
       );
@@ -220,8 +223,9 @@ function OrdersList() {
 
   const handleNavigateToRampsTxDetails = useCallback(
     (orderId: string) => {
-      navigation.navigate(
-        ...createRampsOrderDetailsNavDetails({
+      navigateWithDetails(
+        navigation,
+        createRampsOrderDetailsNavDetails({
           orderId,
         }),
       );
@@ -237,10 +241,11 @@ function OrdersList() {
         order?.state === FIAT_ORDER_STATES.CREATED &&
         order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
       ) {
-        goToDeposit();
+        goToBuy();
       } else if (order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
-        navigation.navigate(
-          ...createDepositOrderDetailsNavDetails({
+        navigateWithDetails(
+          navigation,
+          createDepositOrderDetailsNavDetails({
             orderId,
           }),
         );
@@ -248,12 +253,7 @@ function OrdersList() {
         handleNavigateToAggregatorTxDetails(orderId);
       }
     },
-    [
-      allLegacyOrders,
-      goToDeposit,
-      handleNavigateToAggregatorTxDetails,
-      navigation,
-    ],
+    [allLegacyOrders, goToBuy, handleNavigateToAggregatorTxDetails, navigation],
   );
 
   const handleItemPress = useCallback(

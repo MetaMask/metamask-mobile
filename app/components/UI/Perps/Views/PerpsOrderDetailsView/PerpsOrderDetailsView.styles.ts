@@ -67,17 +67,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       alignItems: 'flex-end',
     },
-    statusContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    statusFilled: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 4,
-      backgroundColor: colors.success.muted,
-    },
     footer: {
       position: 'absolute',
       bottom: 0,

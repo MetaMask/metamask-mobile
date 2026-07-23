@@ -50,9 +50,10 @@ jest.mock('../../../../../../component-library/hooks', () => ({
 describe('PredictClaimInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useClearConfirmationOnBackSwipe as jest.Mock).mockReturnValue(jest.fn());
   });
 
-  it('clears the confirmation when dismissed with a back gesture', () => {
+  it('sets up back swipe rejection', () => {
     render(<PredictClaimInfo />);
 
     expect(useClearConfirmationOnBackSwipe).toHaveBeenCalledTimes(1);

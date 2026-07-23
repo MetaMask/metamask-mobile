@@ -2,16 +2,14 @@
 import React, {
   useCallback,
   useMemo,
-  useRef,
   memo,
   startTransition,
   useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { TextVariant as LegacyTextVariant } from '../../../component-library/components/Texts/Text';
 import {
   parseCaipChainId,
   CaipChainId,
@@ -19,6 +17,7 @@ import {
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { debounce } from 'lodash';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
@@ -27,9 +26,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon/index
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell/index.ts';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -47,8 +43,6 @@ import styleSheet from './NetworkMultiSelectorList.styles';
 import {
   MAIN_CHAIN_IDS,
   ADDITIONAL_NETWORK_SECTION_ID,
-  ITEM_TYPE_ADDITIONAL_SECTION,
-  ITEM_TYPE_NETWORK,
   SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
 import {
@@ -65,6 +59,7 @@ import { strings } from '../../../../locales/i18n';
 import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -82,18 +77,12 @@ const NetworkMultiSelectList = ({
   selectedChainIds,
   renderRightAccessory,
   isSelectionDisabled,
-  isAutoScrollEnabled = true,
   additionalNetworksComponent,
   selectAllNetworksComponent,
   openModal,
   areAllNetworksSelected,
   openRpcModal,
-  ...props
 }: NetworkMultiSelectorListProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const networkListRef = useRef<any>(null);
-  const networksLengthRef = useRef<number>(0);
-  const safeAreaInsets = useSafeAreaInsets();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const evmChainId = useSelector(selectEvmChainId);
   const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
@@ -116,6 +105,8 @@ const NetworkMultiSelectList = ({
   );
 
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
 
   const processedNetworks = useMemo(
     (): ProcessedNetwork[] =>
@@ -195,7 +186,7 @@ const NetworkMultiSelectList = ({
     [debouncedSelectNetwork],
   );
 
-  const getKeyExtractor = useCallback((item: NetworkListItem) => {
+  const getItemKey = (item: NetworkListItem): string => {
     if (
       'type' in item &&
       item.type === NetworkListItemType.AdditionalNetworkSection
@@ -203,17 +194,7 @@ const NetworkMultiSelectList = ({
       return ADDITIONAL_NETWORK_SECTION_ID;
     }
     return (item as ProcessedNetwork).id;
-  }, []);
-
-  const getItemType = useCallback((item: NetworkListItem) => {
-    if (
-      'type' in item &&
-      item.type === NetworkListItemType.AdditionalNetworkSection
-    ) {
-      return ITEM_TYPE_ADDITIONAL_SECTION;
-    }
-    return ITEM_TYPE_NETWORK;
-  }, []);
+  };
 
   const isAdditionalNetworkSection = useCallback(
     (item: NetworkListItem): item is AdditionalNetworkSection =>
@@ -254,8 +235,8 @@ const NetworkMultiSelectList = ({
     [openModal, selectedChainIdCaip],
   );
 
-  const renderNetworkItem: ListRenderItem<NetworkListItem> = useCallback(
-    ({ item }) => {
+  const renderNetworkItem = useCallback(
+    ({ item }: { item: NetworkListItem }) => {
       if (isAdditionalNetworkSection(item)) {
         return <View>{item.component}</View>;
       }
@@ -287,13 +268,19 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-row gap-2">
-                  <Text variant={TextVariant.BodyMD}>{name}</Text>
+                <Box twClassName="flex-row gap-2 items-center">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    numberOfLines={1}
+                    style={styles.networkNameText}
+                  >
+                    {name}
+                  </Text>
                   <TagColored
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
                     labelProps={{
-                      variant: TextVariant.BodySM,
+                      variant: LegacyTextVariant.BodySM,
                       style: {
                         textTransform: 'none',
                         textAlign: 'center',
@@ -323,7 +310,7 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
-            style={styles.centeredNetworkCell}
+            style={tw.style(`${surfaceClass} items-center`)}
             testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
               caipChainId,
               isSelected,
@@ -352,50 +339,21 @@ const NetworkMultiSelectList = ({
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
       isHardwareWallet,
-      styles.centeredNetworkCell,
       styles.noNetworkFeeContainer,
+      surfaceClass,
+      tw,
+      styles.networkNameText,
     ],
   );
 
-  const onContentSizeChanged = useCallback(() => {
-    if (!networks.length || !isAutoScrollEnabled) return;
-    if (networksLengthRef.current !== networks.length) {
-      const selectedNetwork = networks.find(({ isSelected }) => isSelected);
-      const offset = selectedNetwork?.yOffset ?? 0;
-      networksLengthRef.current = networks.length;
-      // Defer scroll so FlashList has time to lay out items and avoid "index out of bounds"
-      requestAnimationFrame(() => {
-        if (networkListRef?.current?.scrollToOffset) {
-          networkListRef.current.scrollToOffset({
-            offset,
-            animated: false,
-          });
-        }
-      });
-    }
-  }, [networks, isAutoScrollEnabled]);
-
   return (
-    <FlashList
-      style={styles.networkList}
-      ref={networkListRef}
-      onContentSizeChange={onContentSizeChanged}
-      data={combinedData}
-      keyExtractor={getKeyExtractor}
-      renderItem={renderNetworkItem}
-      getItemType={getItemType}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{
-        paddingBottom: safeAreaInsets.bottom,
-      }}
-      removeClippedSubviews
-      viewabilityConfig={{
-        waitForInteraction: true,
-        itemVisiblePercentThreshold: 50,
-        minimumViewTime: 100,
-      }}
-      {...props}
-    />
+    <View style={styles.networkList}>
+      {combinedData.map((item) => (
+        <React.Fragment key={getItemKey(item)}>
+          {renderNetworkItem({ item })}
+        </React.Fragment>
+      ))}
+    </View>
   );
 };
 

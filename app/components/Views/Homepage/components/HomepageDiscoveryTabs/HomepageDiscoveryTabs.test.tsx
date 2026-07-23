@@ -1,11 +1,20 @@
 import React from 'react';
 import { InteractionManager, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import type { SectionRefreshHandle } from '../../types';
+import type {
+  HomepageDiscoveryTabsHandle,
+  SectionRefreshHandle,
+} from '../../types';
 import HomepageDiscoveryTabs from './HomepageDiscoveryTabs';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { HomeTabNames } from '../../hooks/useTabViewedEvent';
+import {
+  TabIconAnimationContext,
+  type TabIconAnimationContextValue,
+} from '../../../../../component-library/components-temp/Tabs/TabsIconTab/TabsIconAnimationContext';
 
 const mockTrackTabViewed = jest.fn();
+const mockIconCollapseProgress = { value: 0 };
 jest.mock('../../hooks/useTabViewedEvent', () => ({
   __esModule: true,
   HomeTabNames: {
@@ -19,6 +28,7 @@ jest.mock('../../hooks/useTabViewedEvent', () => ({
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
   Reanimated.default.ScrollView = jest.requireActual('react-native').ScrollView;
+  Reanimated.useSharedValue = jest.fn(() => mockIconCollapseProgress);
   return Reanimated;
 });
 
@@ -56,14 +66,19 @@ jest.mock('../../Homepage', () => {
   };
 });
 
+const mockPerpsHomeViewProps: { current: Record<string, unknown> | null } = {
+  current: null,
+};
 jest.mock('../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView', () => {
   const { View } = jest.requireActual('react-native');
   const ReactLib = jest.requireActual('react');
   return function MockPerpsHomeView({
     tabEnterCallbackRef,
+    ...props
   }: {
-    tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
+    tabEnterCallbackRef?: React.RefObject<(() => void) | null>;
   }) {
+    mockPerpsHomeViewProps.current = props;
     if (tabEnterCallbackRef) tabEnterCallbackRef.current = jest.fn();
     return ReactLib.createElement(View, { testID: 'perps-home-view' });
   };
@@ -130,6 +145,16 @@ const pressTab = async (label: string) => {
 const renderComponent = (props = {}) =>
   render(<HomepageDiscoveryTabs {...props} />);
 
+const ContextValueObserver = ({
+  onValue,
+}: {
+  onValue: (value: TabIconAnimationContextValue) => void;
+}) => {
+  const value = React.useContext(TabIconAnimationContext);
+  onValue(value);
+  return null;
+};
+
 describe('HomepageDiscoveryTabs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -154,6 +179,34 @@ describe('HomepageDiscoveryTabs', () => {
     it('shows Portfolio content on initial mount', () => {
       renderComponent();
       expect(screen.getByTestId('homepage')).toBeOnTheScreen();
+    });
+
+    it('keeps TabIconAnimationContext value stable across unrelated rerenders', () => {
+      const observedValues: TabIconAnimationContextValue[] = [];
+      const portfolioHeader = (
+        <ContextValueObserver
+          onValue={(value) => {
+            observedValues.push(value);
+          }}
+        />
+      );
+      const { rerender } = render(
+        <HomepageDiscoveryTabs
+          portfolioHeader={portfolioHeader}
+          walletHeaderOffset={0}
+        />,
+      );
+      const initialValue = observedValues[observedValues.length - 1];
+
+      rerender(
+        <HomepageDiscoveryTabs
+          portfolioHeader={portfolioHeader}
+          walletHeaderOffset={100}
+        />,
+      );
+      const rerenderedValue = observedValues[observedValues.length - 1];
+
+      expect(rerenderedValue).toBe(initialValue);
     });
   });
 
@@ -199,16 +252,40 @@ describe('HomepageDiscoveryTabs', () => {
 
   describe('ref / imperative handle', () => {
     it('exposes a refresh method via ref', () => {
-      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const ref = React.createRef<HomepageDiscoveryTabsHandle>();
       render(<HomepageDiscoveryTabs ref={ref} />);
       expect(typeof ref.current?.refresh).toBe('function');
     });
 
+    it('exposes goToPerpsTab via ref', async () => {
+      const ref = React.createRef<HomepageDiscoveryTabsHandle>();
+      render(<HomepageDiscoveryTabs ref={ref} />);
+      expect(typeof ref.current?.goToPerpsTab).toBe('function');
+
+      await act(async () => {
+        ref.current?.goToPerpsTab();
+      });
+
+      expect(screen.getByTestId('perps-home-view')).toBeOnTheScreen();
+    });
+
     it('calling refresh does not throw', async () => {
-      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const ref = React.createRef<HomepageDiscoveryTabsHandle>();
       render(<HomepageDiscoveryTabs ref={ref} />);
       await act(async () => {
         await ref.current?.refresh();
+      });
+    });
+  });
+
+  describe('Predictions tab', () => {
+    it('passes Predict feed entry point explicitly to embedded PredictFeed', async () => {
+      renderComponent();
+
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current).toMatchObject({
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       });
     });
   });
@@ -257,6 +334,27 @@ describe('HomepageDiscoveryTabs', () => {
       await pressTab('Predictions');
 
       expect(mockPredictFeedProps.current?.hideHeader).toBe(true);
+    });
+
+    it('passes topInset=32 to PredictFeed for discovery tab title spacing', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current?.topInset).toBe(32);
+    });
+  });
+
+  describe('PerpsHomeView discovery tab props', () => {
+    beforeEach(() => {
+      mockPerpsHomeViewProps.current = null;
+    });
+
+    it('passes hideHeader=true and topInset=32 to PerpsHomeView', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+
+      expect(mockPerpsHomeViewProps.current?.hideHeader).toBe(true);
+      expect(mockPerpsHomeViewProps.current?.topInset).toBe(32);
     });
   });
 

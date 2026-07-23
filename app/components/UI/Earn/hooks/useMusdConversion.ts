@@ -3,9 +3,9 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { isEqual } from 'lodash';
+import { createSelector } from 'reselect';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
@@ -131,6 +131,25 @@ export interface MusdConversionConfig {
 }
 
 /**
+ * Memoized projection of the pending approvals map to just its IDs.
+ *
+ * This hook only needs the set of pending approval IDs, not the full
+ * approvals map, so we derive them with a `createSelector` projection
+ * rather than subscribing to `selectPendingApprovals` with a deep-equality
+ * comparator. Reselect returns the same array reference as long as the
+ * underlying approvals map is unchanged, so `useSelector` can rely on its
+ * default reference equality check.
+ *
+ * Scoped to this hook (rather than added to `approvalController.ts`) to
+ * keep the change local, since the mUSD conversion feature is flagged off
+ * and the approval controller selectors are owned by another team.
+ */
+export const selectPendingApprovalIds = createSelector(
+  selectPendingApprovals,
+  (pendingApprovals) => Object.keys(pendingApprovals ?? {}),
+);
+
+/**
  * Hook for initiating mUSD conversion flows using MetaMask Pay.
  *
  * **EVM-Only**: This hook only supports EVM-compatible chains. It uses ERC-20
@@ -165,12 +184,7 @@ export const useMusdConversion = () => {
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
 
-  const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
-
-  const pendingApprovalIds = useMemo(
-    () => Object.keys(pendingApprovals ?? {}),
-    [pendingApprovals],
-  );
+  const pendingApprovalIds = useSelector(selectPendingApprovalIds);
 
   const pendingTransactionMetas = useSelector((state: RootState) =>
     selectTransactionsByIds(state, pendingApprovalIds),

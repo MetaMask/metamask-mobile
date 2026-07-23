@@ -1,5 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
+import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -17,7 +18,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class ImportWalletView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID);
   }
 
@@ -35,13 +36,13 @@ class ImportWalletView {
     });
   }
 
-  get newPasswordInput(): DetoxElement {
+  get newPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
-  get confirmPasswordInput(): DetoxElement {
+  get confirmPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
@@ -75,7 +76,7 @@ class ImportWalletView {
         android: () =>
           PlaywrightMatchers.getElementById(
             index === 0
-              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_FIELD
+              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
               : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
             {
               exact: true,
@@ -254,6 +255,27 @@ class ImportWalletView {
   ): Promise<void> {
     await UnifiedGestures.waitAndTap(this.title, {
       description: 'Import Wallet Title',
+    });
+  }
+
+  get importFromExtensionLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          enContent.import_from_seed.import_wallet_from_extension,
+          true,
+        ),
+    });
+  }
+
+  async tapImportFromExtensionLink(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
+      description: 'Import from MetaMask extension link',
+      timeout: 15_000,
     });
   }
 }

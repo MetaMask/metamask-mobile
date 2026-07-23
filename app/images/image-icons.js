@@ -28,7 +28,7 @@ import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import HL from './HL_symbol_mint_green.png';
 import XRPLEVM_TOKEN from './xrp-logo.png';
-import SEI from './sei.png';
+import SEI from './sei-native.png';
 import MONAD_TESTNET from './monad-testnet-logo.png';
 import MONAD_MAINNET from './monad-mainnet-logo.png';
 import MATCHAIN from './matchain.png';
@@ -64,9 +64,12 @@ import STABLE_NATIVE from './stable-native.png';
 import MANTLE from './mantle.png';
 import MANTLE_NATIVE from './mantle-native.png';
 import TEMPO_NATIVE from './tempo-native.png';
+import ARC_NATIVE from './arc-native-token-logo.png';
+import ROBINHOOD from './robinhood.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
+import STELLAR from './xlm.png';
 
 export default {
   PALM,
@@ -97,6 +100,8 @@ export default {
   TRX: TRON,
   sTRX: TRON,
   ///: END:ONLY_INCLUDE_IF
+  STELLAR,
+  XLM: STELLAR,
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
@@ -145,4 +150,6 @@ export default {
   MNT: MANTLE_NATIVE,
   USD: TEMPO_NATIVE,
   PATHUSD: TEMPO_NATIVE,
+  USDC: ARC_NATIVE,
+  ROBINHOOD,
 };

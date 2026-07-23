@@ -212,7 +212,7 @@ jest.mock('../../UI/FadeOutOverlay', () => () => null);
 
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  isE2E: false,
+  hasTestOverrides: false,
 }));
 
 jest.mock('rive-react-native', () => ({
@@ -1328,6 +1328,37 @@ describe('Login', () => {
         expect(
           queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
         ).not.toBeOnTheScreen();
+        expect(mockLogger.error).not.toHaveBeenCalled();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
+    it('shows user-friendly error for Android biometric lockout', async () => {
+      jest.useRealTimers();
+      try {
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error('code: 7, msg: Too many attempts. Try again later.'),
+        );
+
+        const { getByTestId, getByText } = renderWithProvider(<Login />);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+        mockLogger.error.mockClear();
+
+        const biometryButton = getByTestId(
+          LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+        );
+        await act(async () => {
+          fireEvent.press(biometryButton);
+        });
+
+        await waitFor(() => {
+          expect(
+            getByText(strings('login.biometric_too_many_attempts')),
+          ).toBeOnTheScreen();
+        });
         expect(mockLogger.error).not.toHaveBeenCalled();
       } finally {
         jest.useFakeTimers();

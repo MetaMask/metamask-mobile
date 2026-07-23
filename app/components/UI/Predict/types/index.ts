@@ -36,6 +36,12 @@ export interface GetPositionsParams {
   offset?: number;
 }
 
+export interface GetActivityParams {
+  address?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export enum PredictMarketStatus {
   OPEN = 'open',
   CLOSED = 'closed',
@@ -147,7 +153,8 @@ export type PredictCategory =
   | 'crypto'
   | 'politics'
   | 'hot'
-  | 'world-cup';
+  | 'world-cup'
+  | 'wimbledon';
 
 // Sports league types
 export type PredictSportsLeague =
@@ -292,6 +299,7 @@ export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
   subgroups?: PredictOutcomeGroup[];
+  title?: string;
 };
 
 export type PredictOutcome = {
@@ -321,8 +329,33 @@ export type PredictOutcomeToken = {
   id: string;
   title: string;
   shortTitle?: string;
+  image?: string;
+  /**
+   * Mid price = implied probability / quoted odds. Use this for "% chance" and
+   * odds display so it matches the chart and Polymarket.
+   */
   price: number;
+  /**
+   * Best ask = the price to actually buy this token. Optional; populated by
+   * hooks that fetch live/REST prices (e.g. useOpenOutcomes). Falls back to
+   * `price` when absent. Use this for BUY CTAs, never for the odds %.
+   */
+  buyPrice?: number;
 };
+
+export type PredictMarketBuyButtonPressParams = {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
+};
+
+/**
+ * Called when the user taps a buy button (before the betslip opens).
+ * Return `true` to handle the buy flow externally and skip the default sheet.
+ */
+export type PredictMarketBuyButtonPress = (
+  params: PredictMarketBuyButtonPressParams,
+) => boolean | void;
 
 export interface PredictActivity {
   id: string;
@@ -331,6 +364,10 @@ export interface PredictActivity {
   title?: string;
   outcome?: string;
   icon?: string;
+  slug?: string;
+  eventSlug?: string;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
 }
 
 export type PredictActivityEntry =
@@ -338,24 +375,22 @@ export type PredictActivityEntry =
   | PredictActivitySell
   | PredictActivityClaimWinnings;
 
-export interface PredictActivityBuy {
-  type: 'buy';
+export interface PredictActivityTrade {
   timestamp: number;
   marketId: string;
   outcomeId: string;
   outcomeTokenId: number;
   amount: number;
   price: number;
+  size?: number;
 }
 
-export interface PredictActivitySell {
+export interface PredictActivityBuy extends PredictActivityTrade {
+  type: 'buy';
+}
+
+export interface PredictActivitySell extends PredictActivityTrade {
   type: 'sell';
-  timestamp: number;
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: number;
-  amount: number;
-  price: number;
 }
 
 export interface PredictActivityClaimWinnings {
@@ -501,8 +536,38 @@ export type PredictBalance = {
   validUntil: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ClaimParams {}
+export interface PredictTradeAnalyticsProperties {
+  marketId?: string;
+  marketTitle?: string;
+  marketCategory?: string;
+  marketTags?: string[];
+  actionType?: string;
+  entryPoint?: string;
+  predictFeedTab?: string;
+  predictScreen?: string;
+  predictComponent?: string;
+  transactionType?: string;
+  sharePrice?: number;
+  liquidity?: number;
+  volume?: number;
+  openPositionsCount?: number;
+  claimablePositionsCount?: number;
+  hasClaimableWinnings?: boolean;
+  portfolioModuleEnabled?: boolean;
+  marketType?: string;
+  outcome?: string;
+  marketSlug?: string;
+  gameId?: string;
+  gameStartTime?: string;
+  gameLeague?: string;
+  gameStatus?: string;
+  gamePeriod?: string | null;
+  gameClock?: string | null;
+}
+
+export interface ClaimParams {
+  analyticsProperties?: PredictTradeAnalyticsProperties;
+}
 
 export interface GetMarketPriceResponse {
   price: number;
@@ -566,6 +631,59 @@ export interface GetMarketsParams {
 export interface GetMarketsResult {
   markets: PredictMarket[];
   nextCursor: string | null;
+}
+
+export interface PredictMarketListParams {
+  tags?: string[]; // tag IDs -> tag_id (multi).
+  tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
+  series?: string[]; // series IDs -> series_id (multi)
+  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
+  status?: 'open' | 'closed' | 'resolved';
+  live?: boolean;
+  // Free-text title filter. The provider maps this to Polymarket's
+  // `title_search` query param, which composes with cursor pagination, so
+  // search stays on the same feed endpoint (handled in the provider layer, not
+  // the UI). Blank/whitespace is ignored (browse mode).
+  search?: string;
+  limit?: number;
+  afterCursor?: string | null;
+}
+
+export interface PredictMarketListResponse {
+  markets: PredictMarket[];
+  nextCursor?: string | null;
+}
+
+/**
+ * Where a dynamic feed filter list is derived from. Keeps the UI decoupled from
+ * the concrete derivation strategy (V1: Polymarket related-tags endpoint).
+ */
+export type PredictFilterOptionSource =
+  | 'related-tags'
+  | 'hot-tags'
+  | 'trending-series'
+  | 'sports-leagues';
+
+export interface PredictFilterOptionsParams {
+  /** Base list params every derived option should also carry (e.g. a feed's base topic). */
+  baseParams?: PredictMarketListParams;
+  source: PredictFilterOptionSource;
+  /** Polymarket tag slug used as the related-tags root. Defaults to 'all' (general Popular/Trending). */
+  baseTagSlug?: string;
+  /** Max number of options to return. */
+  limit?: number;
+  /** Reserved for a future market-volume-derived fallback strategy (unused in V1). */
+  sampleSize?: number;
+}
+
+export interface PredictFilterOption {
+  /** Stable, slug-based id used for dedupe (not the display label). */
+  id: string;
+  label: string;
+  /** Ready-to-use list params for this filter; feed straight into `listMarkets`. */
+  params: PredictMarketListParams;
+  source: string;
 }
 
 export interface SearchMarketsParams {
@@ -637,26 +755,7 @@ export interface PlaceOrderParams {
   address?: string;
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
-  analyticsProperties?: {
-    marketId?: string;
-    marketTitle?: string;
-    marketCategory?: string;
-    marketTags?: string[];
-    entryPoint?: string;
-    transactionType?: string;
-    sharePrice?: number;
-    liquidity?: number;
-    volume?: number;
-    marketType?: string;
-    outcome?: string;
-    marketSlug?: string;
-    gameId?: string;
-    gameStartTime?: string;
-    gameLeague?: string;
-    gameStatus?: string;
-    gamePeriod?: string | null;
-    gameClock?: string | null;
-  };
+  analyticsProperties?: PredictTradeAnalyticsProperties;
 }
 
 export interface PreviewOrderParams {
@@ -688,6 +787,8 @@ export interface ConnectionStatus {
   marketConnected: boolean;
   rtdsConnected: boolean;
 }
+
+export type ConnectionStatusCallback = (status: ConnectionStatus) => void;
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;

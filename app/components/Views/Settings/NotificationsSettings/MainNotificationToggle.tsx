@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useTheme } from '../../../../util/theme';
 
 import { Switch, View } from 'react-native';
@@ -13,14 +13,29 @@ import { useStyles } from '../../../../component-library/hooks';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import styleSheet from './NotificationsSettings.styles';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { NotificationChannel } from '../../../../core/Analytics/events/channels';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 export const MAIN_NOTIFICATION_TOGGLE_TEST_ID = 'main-notification-toggle';
 
 export const MainNotificationToggle = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { onToggle, value, isUpdating } = useMainNotificationToggle();
 
-  const { onToggle, value } = useMainNotificationToggle();
+  const trackNotificationToggleEvent = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: 'master',
+          notification_channel: NotificationChannel.ALL,
+          enabled: !value,
+        })
+        .build(),
+    );
+  }, [value, trackEvent, createEventBuilder]);
 
   return (
     <>
@@ -40,7 +55,11 @@ export const MainNotificationToggle = () => {
         </Text>
         <Switch
           value={value}
-          onChange={onToggle}
+          disabled={isUpdating}
+          onValueChange={(newValue) => {
+            trackNotificationToggleEvent();
+            onToggle(newValue);
+          }}
           trackColor={{
             true: theme.colors.primary.default,
             false: theme.colors.border.muted,

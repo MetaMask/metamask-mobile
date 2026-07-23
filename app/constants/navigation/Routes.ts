@@ -12,6 +12,7 @@ const Routes = {
     BUY: 'RampBuy',
     SELL: 'RampSell',
     TOKEN_SELECTION: 'RampTokenSelection',
+    TOKEN_SELECTION_ROOT: 'RampTokenSelectionRoot',
     GET_STARTED: 'GetStarted',
     BUILD_QUOTE: 'BuildQuote',
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
@@ -56,6 +57,7 @@ const Routes = {
       SSN_INFO: 'RampSsnInfoModal',
       STATE_SELECTOR: 'RampStateSelectorModal',
       UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
+      PHONE_COUNTRY_SELECTOR: 'RampPhoneCountrySelectorModal',
     },
   },
   DEPOSIT: {
@@ -103,12 +105,19 @@ const Routes = {
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   TRANSACTION_DETAILS: 'TransactionDetails',
+  // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
+  // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
+  ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
+  REWARDS_FLOW: 'RewardsFlow',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
+  REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
+  REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
   REWARDS_MUSD_CALCULATOR_VIEW: 'RewardsMusdCalculatorView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
@@ -124,6 +133,16 @@ const Routes = {
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
   REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW:
     'RewardsPerpsTradingCampaignDetails',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW:
+    'RewardsPredictThePitchCampaignDetails',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW:
+    'RewardsPredictThePitchCampaignWinning',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD:
+    'RewardsPredictThePitchCampaignLeaderboard',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW:
+    'RewardsPredictThePitchCampaignPortfolioView',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS:
+    'RewardsPredictThePitchCampaignStats',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
@@ -132,7 +151,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
@@ -142,7 +160,6 @@ const Routes = {
     ROOT_MODAL_FLOW: 'RootModalFlow',
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
-    WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
@@ -165,6 +182,7 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -191,7 +209,9 @@ const Routes = {
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
+    ADD_DEVICE_TO_WALLET: 'AddDeviceToWallet',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
+    CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -223,13 +243,13 @@ const Routes = {
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
-    ADD_ACCOUNT: 'AddAccount',
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    SDK_CONNECT_V2_OTP: 'SDKConnectV2Otp',
     DATA_COLLECTION: 'DataCollection',
     EXPERIENCE_ENHANCER: 'ExperienceEnhancer',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
@@ -248,15 +268,18 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
+    MA_PICKER: 'MAPicker',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
+    ADD_DEVICE_VERIFICATION_CODE: 'AddDeviceVerificationCode',
     ONBOARDING_SHEET: 'OnboardingSheet',
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
+    RAMPS_SERVICE_DISRUPTION_MODAL: 'RampsServiceDisruptionModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
     TRANSACTION_DETAILS: 'TransactionDetailsSheet',
     IMPORT_WALLET_TIP: 'ImportWalletTipSheet',
@@ -294,6 +317,7 @@ const Routes = {
     RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
     CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
+    WATCHLIST_FULL_VIEW: 'WatchlistFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -309,6 +333,8 @@ const Routes = {
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
+    HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
+    HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
       ROOT: 'BridgeModals',
       SWAP_DEFAULT_SLIPPAGE_MODAL: 'SwapDefaultSlippageModal',
@@ -324,6 +350,7 @@ const Routes = {
       MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
+      POST_TRADE_MODAL: 'PostTradeModal',
       BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
         'BatchSellDestinationTokenSelectorModal',
       BATCH_SELL_QUOTE_DETAILS_MODAL: 'BatchSellQuoteDetailsModal',
@@ -331,6 +358,7 @@ const Routes = {
       BATCH_SELL_NETWORK_FEE_INFO_MODAL: 'BatchSellNetworkFeeInfoModal',
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
+      BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -379,13 +407,17 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
+    ONBOARDING: 'SocialLeaderboardOnboarding',
+    TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
+    POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     WORLD_CUP: 'PredictWorldCup',
+    FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',
@@ -441,6 +473,9 @@ const Routes = {
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     ONBOARDING: 'MoneyOnboarding',
+    FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
+    TRANSACTION_DETAILS: 'MoneyTransactionDetails',
+    CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -451,7 +486,8 @@ const Routes = {
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
-      TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
+      GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
+      DEEPLINK_MODAL: 'MoneyDeeplinkModal',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
@@ -502,6 +538,7 @@ const Routes = {
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
+    CREDIT_REDEEM: 'CardCreditRedeem',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -515,6 +552,8 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
+      KYC_PROCESSING: 'CardOnboardingKYCProcessing',
+      FUNDING_APPROVAL: 'CardOnboardingFundingApproval',
     },
     MODALS: {
       ID: 'CardModals',
@@ -528,6 +567,11 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
+      IMMERSVE_KYC: 'CardImmersveKYCModal',
+      FORGOT_PASSWORD: 'CardForgotPasswordModal',
+      CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
+      CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
+      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },
   SEND: {
@@ -539,8 +583,18 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  AGENTIC_CLI_DASHBOARD_WEBVIEW: {
+    ID: 'AgenticCliDashboardWebview',
+    CONFIRM: 'AgenticCliDashboardConfirmation',
+  },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  CREATE_PRICE_ALERT: 'CreatePriceAlert',
+  MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
-};
+  AGENTIC_CLI_APPROVAL: {
+    ID: 'AgenticCliApproval',
+    CONFIRM: 'AgenticCliApprovalConfirm',
+  },
+} as const;
 
 export default Routes;

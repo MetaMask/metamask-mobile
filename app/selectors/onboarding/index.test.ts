@@ -5,27 +5,10 @@ import {
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
   selectShouldShowWalletHomeOnboardingSteps,
-  selectWalletHomeOnboardingFlowVisible,
 } from '.';
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
 import { WALLET_HOME_ONBOARDING_STEPS_INITIAL } from '../../constants/walletHomeOnboardingSteps';
-import {
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-} from '../featureFlagController/homepage';
-
-jest.mock('../featureFlagController/homepage', () => ({
-  selectHomepageSectionsV1Enabled: jest.fn(),
-  selectWalletHomeOnboardingStepsEnabled: jest.fn(),
-}));
-
-const mockSelectHomepageSectionsV1Enabled = jest.mocked(
-  selectHomepageSectionsV1Enabled,
-);
-const mockSelectWalletHomeOnboardingStepsEnabled = jest.mocked(
-  selectWalletHomeOnboardingStepsEnabled,
-);
 
 describe('Onboarding selectors', () => {
   const mockState = {
@@ -35,7 +18,7 @@ describe('Onboarding selectors', () => {
     },
   } as RootState;
 
-  it('returns the correct value for selectCompletedOnboarding ', () => {
+  it('returns the correct value for selectCompletedOnboarding', () => {
     expect(selectCompletedOnboarding(mockState)).toEqual(
       mockState.onboarding.completedOnboarding,
     );
@@ -105,54 +88,14 @@ describe('Onboarding selectors', () => {
         }),
       ).toBe(false);
     });
-  });
 
-  describe('selectWalletHomeOnboardingFlowVisible', () => {
-    // shouldShow comes from selectShouldShowWalletHomeOnboardingSteps:
-    // eligible && steps.suppressedReason === null.
-    const stateWithShouldShow = (shouldShow: boolean) =>
-      ({
-        onboarding: {
-          walletHomeOnboardingStepsEligible: shouldShow,
-          walletHomeOnboardingSteps: WALLET_HOME_ONBOARDING_STEPS_INITIAL,
-        },
-      }) as RootState;
-
-    beforeEach(() => {
-      mockSelectHomepageSectionsV1Enabled.mockReset();
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReset();
-    });
-
-    it('is true when all three inputs are true', () => {
-      mockSelectHomepageSectionsV1Enabled.mockReturnValue(true);
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(true);
+    it('selectShouldShowWalletHomeOnboardingSteps is true when eligible and not suppressed', () => {
       expect(
-        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(true)),
+        selectShouldShowWalletHomeOnboardingSteps.resultFunc(
+          true,
+          WALLET_HOME_ONBOARDING_STEPS_INITIAL,
+        ),
       ).toBe(true);
-    });
-
-    it('is false when sectionsV1 is false', () => {
-      mockSelectHomepageSectionsV1Enabled.mockReturnValue(false);
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(true);
-      expect(
-        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(true)),
-      ).toBe(false);
-    });
-
-    it('is false when stepsEnabled is false', () => {
-      mockSelectHomepageSectionsV1Enabled.mockReturnValue(true);
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(false);
-      expect(
-        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(true)),
-      ).toBe(false);
-    });
-
-    it('is false when shouldShow is false', () => {
-      mockSelectHomepageSectionsV1Enabled.mockReturnValue(true);
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(true);
-      expect(
-        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(false)),
-      ).toBe(false);
     });
   });
 });

@@ -18,6 +18,7 @@ import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
 import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
+import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -28,6 +29,8 @@ import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
+import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
+import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -43,6 +46,7 @@ jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useInsufficientPredictBalanceAlert');
 jest.mock('./useInsufficientPerpsBalanceAlert');
 jest.mock('./useInsufficientMoneyAccountBalanceAlert');
+jest.mock('./useFiatBuyLimitAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
@@ -51,6 +55,8 @@ jest.mock('./useFirstTimeInteractionAlert');
 jest.mock('./useHeadlessBuyErrorAlert');
 jest.mock('./useTokenContractAlert');
 jest.mock('./useAddressPoisoningAlert');
+jest.mock('./useAccountNoFundsAlert');
+jest.mock('./useMMPayHardwareAccountAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -213,6 +219,7 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPerpsBalanceAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientMoneyAccountBalanceAlert as jest.Mock).mockReturnValue([]);
+    (useFiatBuyLimitAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -221,6 +228,8 @@ describe('useConfirmationAlerts', () => {
     (useHeadlessBuyErrorAlert as jest.Mock).mockReturnValue([]);
     (useTokenContractAlert as jest.Mock).mockReturnValue([]);
     (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
+    (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
+    (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {

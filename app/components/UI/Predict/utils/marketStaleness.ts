@@ -5,9 +5,10 @@ import {
   type PredictOutcome,
   type PredictOutcomeGroup,
 } from '../types';
+import { isGameEnded } from './scoreboard';
 
-export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.95;
-export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.05;
+export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.99;
+export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.01;
 export const PREDICT_MIN_STALENESS_PENALTY = 0.1;
 export const PREDICT_LAST_HOUR_TIME_PENALTY = 0.5;
 
@@ -103,6 +104,21 @@ const isDailyMarket = (market: PredictMarket): boolean =>
 
 const isGameMarket = (market: PredictMarket): boolean => Boolean(market.game);
 
+/**
+ * Whether the underlying game has finished. For game markets this is the
+ * authoritative completion signal, sharing the canonical `isGameEnded`
+ * definition with the scoreboard and sport-card UI so visibility and UI never
+ * disagree on whether a game is over. We intentionally avoid the market-level
+ * `endDate` here because live matches routinely run past their scheduled end
+ * (stoppage time, halftime, extra time, penalties).
+ */
+const isGameOver = (market: PredictMarket): boolean =>
+  isGameEnded({
+    status: market.game?.status,
+    period: market.game?.period,
+    endTime: market.game?.endTime,
+  });
+
 const getHoursUntilEndDate = (
   market: PredictMarket,
   options?: PredictMarketStalenessOptions,
@@ -123,8 +139,11 @@ export const isPredictMarketExpiredByTime = (
   market: PredictMarket,
   options?: PredictMarketStalenessOptions,
 ): boolean => {
-  if (market.game?.status === 'ended') {
-    return true;
+  // Game markets expire based on the game's own lifecycle, never the scheduled
+  // `endDate`. This keeps ongoing matches that run long (stoppage/extra time,
+  // penalties) visible instead of being filtered out as stale.
+  if (isGameMarket(market)) {
+    return isGameOver(market);
   }
 
   if (!isDailyMarket(market)) {
@@ -177,9 +196,13 @@ export const getPredictMarketProbabilityPenalty = (
     return 1;
   }
 
+  // Scale the penalty so a probability at the high threshold keeps a full score
+  // of 1 and a probability of 1 lands at 0.5, regardless of the threshold width.
+  const penaltySlope = 0.5 / (1 - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD);
+
   return Math.max(
     PREDICT_MIN_STALENESS_PENALTY,
-    1 - (maxProbability - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD) * 10,
+    1 - (maxProbability - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD) * penaltySlope,
   );
 };
 

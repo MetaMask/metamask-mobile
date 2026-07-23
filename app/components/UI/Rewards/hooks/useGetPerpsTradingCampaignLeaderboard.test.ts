@@ -3,15 +3,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useGetPerpsTradingCampaignLeaderboard } from './useGetPerpsTradingCampaignLeaderboard';
 import Engine from '../../../../core/Engine';
 import {
-  selectPerpsTradingCampaignLeaderboard,
-  selectPerpsTradingCampaignLeaderboardLoading,
-  selectPerpsTradingCampaignLeaderboardError,
-} from '../../../../reducers/rewards/selectors';
-import {
   setPerpsTradingCampaignLeaderboard,
   setPerpsTradingCampaignLeaderboardLoading,
   setPerpsTradingCampaignLeaderboardError,
+  initialState,
+  type RewardsState,
 } from '../../../../reducers/rewards';
+import type { RootState } from '../../../../reducers';
 import type { PerpsTradingCampaignLeaderboardDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('react-redux', () => ({
@@ -23,26 +21,24 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
 }));
 
-jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectPerpsTradingCampaignLeaderboard: jest.fn(),
-  selectPerpsTradingCampaignLeaderboardLoading: jest.fn(),
-  selectPerpsTradingCampaignLeaderboardError: jest.fn(),
-}));
-
-jest.mock('../../../../reducers/rewards', () => ({
-  setPerpsTradingCampaignLeaderboard: jest.fn((payload) => ({
-    type: 'rewards/setPerpsTradingCampaignLeaderboard',
-    payload,
-  })),
-  setPerpsTradingCampaignLeaderboardLoading: jest.fn((payload) => ({
-    type: 'rewards/setPerpsTradingCampaignLeaderboardLoading',
-    payload,
-  })),
-  setPerpsTradingCampaignLeaderboardError: jest.fn((payload) => ({
-    type: 'rewards/setPerpsTradingCampaignLeaderboardError',
-    payload,
-  })),
-}));
+jest.mock('../../../../reducers/rewards', () => {
+  const actual = jest.requireActual('../../../../reducers/rewards');
+  return {
+    ...actual,
+    setPerpsTradingCampaignLeaderboard: jest.fn((payload) => ({
+      type: 'rewards/setPerpsTradingCampaignLeaderboard',
+      payload,
+    })),
+    setPerpsTradingCampaignLeaderboardLoading: jest.fn((payload) => ({
+      type: 'rewards/setPerpsTradingCampaignLeaderboardLoading',
+      payload,
+    })),
+    setPerpsTradingCampaignLeaderboardError: jest.fn((payload) => ({
+      type: 'rewards/setPerpsTradingCampaignLeaderboardError',
+      payload,
+    })),
+  };
+});
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
@@ -55,28 +51,37 @@ const MOCK_LEADERBOARD: PerpsTradingCampaignLeaderboardDto = {
   campaignId: CAMPAIGN_ID,
   computedAt: '2024-03-20T12:00:00.000Z',
   entries: [
-    { rank: 1, referralCode: 'ABC123', pnl: 1500, qualified: true },
-    { rank: 2, referralCode: 'DEF456', pnl: 800, qualified: true },
+    { rank: 1, referralCode: 'ABC123', pnl: 1500, volume: 30_000 },
+    { rank: 2, referralCode: 'DEF456', pnl: 800, volume: 28_000 },
   ],
   totalParticipants: 50,
+  minVolumeForEligibility: 25_000,
 };
 
-interface SelectorState {
-  leaderboard: PerpsTradingCampaignLeaderboardDto | null;
-  isLoading: boolean;
-  hasError: boolean;
+function setupSelectors(rewardsOverrides: Partial<RewardsState>) {
+  const mockRootState = {
+    rewards: { ...initialState, ...rewardsOverrides },
+  } as RootState;
+  mockUseSelector.mockImplementation((selector) => selector(mockRootState));
 }
 
-function setupSelectors(state: SelectorState) {
-  mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectPerpsTradingCampaignLeaderboard)
-      return state.leaderboard;
-    if (selector === selectPerpsTradingCampaignLeaderboardLoading)
-      return state.isLoading;
-    if (selector === selectPerpsTradingCampaignLeaderboardError)
-      return state.hasError;
-    return undefined;
-  });
+function createLeaderboardCache(
+  campaignId: string,
+  overrides: {
+    data?: PerpsTradingCampaignLeaderboardDto | null;
+    loading?: boolean;
+    error?: boolean;
+  } = {},
+): Partial<RewardsState> {
+  return {
+    perpsTradingCampaignLeaderboards: {
+      [campaignId]: {
+        data: overrides.data ?? null,
+        loading: overrides.loading ?? false,
+        error: overrides.error ?? false,
+      },
+    },
+  };
 }
 
 describe('useGetPerpsTradingCampaignLeaderboard', () => {
@@ -85,19 +90,13 @@ describe('useGetPerpsTradingCampaignLeaderboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-    setupSelectors({ leaderboard: null, isLoading: false, hasError: false });
+    setupSelectors(createLeaderboardCache(CAMPAIGN_ID));
   });
 
-  it('does not fetch when campaignId is undefined but resets loading and error', async () => {
+  it('does not fetch when campaignId is undefined', async () => {
     renderHook(() => useGetPerpsTradingCampaignLeaderboard(undefined));
 
     expect(mockCall).not.toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardLoading(false),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardError(false),
-    );
   });
 
   it('fetches leaderboard and dispatches actions on success', async () => {
@@ -110,20 +109,32 @@ describe('useGetPerpsTradingCampaignLeaderboard', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardLoading(true),
+      setPerpsTradingCampaignLeaderboardLoading({
+        campaignId: CAMPAIGN_ID,
+        loading: true,
+      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardError(false),
+      setPerpsTradingCampaignLeaderboardError({
+        campaignId: CAMPAIGN_ID,
+        error: false,
+      }),
     );
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:getPerpsTradingCampaignLeaderboard',
       CAMPAIGN_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboard(MOCK_LEADERBOARD),
+      setPerpsTradingCampaignLeaderboard({
+        campaignId: CAMPAIGN_ID,
+        leaderboard: MOCK_LEADERBOARD,
+      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardLoading(false),
+      setPerpsTradingCampaignLeaderboardLoading({
+        campaignId: CAMPAIGN_ID,
+        loading: false,
+      }),
     );
   });
 
@@ -137,10 +148,16 @@ describe('useGetPerpsTradingCampaignLeaderboard', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardError(true),
+      setPerpsTradingCampaignLeaderboardError({
+        campaignId: CAMPAIGN_ID,
+        error: true,
+      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardLoading(false),
+      setPerpsTradingCampaignLeaderboardLoading({
+        campaignId: CAMPAIGN_ID,
+        loading: false,
+      }),
     );
   });
 
@@ -159,16 +176,17 @@ describe('useGetPerpsTradingCampaignLeaderboard', () => {
 
     expect(result.current.isLeaderboardNotYetComputed).toBe(true);
     expect(mockDispatch).not.toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardError(true),
+      setPerpsTradingCampaignLeaderboardError({
+        campaignId: CAMPAIGN_ID,
+        error: true,
+      }),
     );
   });
 
   it('returns leaderboard data from selector', () => {
-    setupSelectors({
-      leaderboard: MOCK_LEADERBOARD,
-      isLoading: false,
-      hasError: false,
-    });
+    setupSelectors(
+      createLeaderboardCache(CAMPAIGN_ID, { data: MOCK_LEADERBOARD }),
+    );
 
     const { result } = renderHook(() =>
       useGetPerpsTradingCampaignLeaderboard(CAMPAIGN_ID),
@@ -178,7 +196,7 @@ describe('useGetPerpsTradingCampaignLeaderboard', () => {
   });
 
   it('returns loading state from selector', () => {
-    setupSelectors({ leaderboard: null, isLoading: true, hasError: false });
+    setupSelectors(createLeaderboardCache(CAMPAIGN_ID, { loading: true }));
 
     const { result } = renderHook(() =>
       useGetPerpsTradingCampaignLeaderboard(CAMPAIGN_ID),
@@ -188,7 +206,7 @@ describe('useGetPerpsTradingCampaignLeaderboard', () => {
   });
 
   it('returns error state from selector', () => {
-    setupSelectors({ leaderboard: null, isLoading: false, hasError: true });
+    setupSelectors(createLeaderboardCache(CAMPAIGN_ID, { error: true }));
 
     const { result } = renderHook(() =>
       useGetPerpsTradingCampaignLeaderboard(CAMPAIGN_ID),
@@ -216,7 +234,10 @@ describe('useGetPerpsTradingCampaignLeaderboard', () => {
 
     expect(mockCall).toHaveBeenCalledTimes(2);
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignLeaderboardLoading(true),
+      setPerpsTradingCampaignLeaderboardLoading({
+        campaignId: CAMPAIGN_ID,
+        loading: true,
+      }),
     );
   });
 

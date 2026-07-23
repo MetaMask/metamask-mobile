@@ -15,6 +15,7 @@ import { act } from '@testing-library/react-native';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
+  PaymentOverride,
   TransactionPayQuote,
   TransactionPayRequiredToken,
   TransactionPayStrategy,
@@ -23,10 +24,18 @@ import { Json } from '@metamask/utils';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
+  useTransactionPayFiatPayment,
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
+import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { AssetType } from '../../types/token';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { useIsPerpsBalanceSelected } from '../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
+import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/selectors/predictController';
+import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
+import { PaymentMethod } from '@metamask/ramps-controller';
+import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../useTokenAmount');
@@ -34,6 +43,11 @@ jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('../send/useAccountTokens');
+jest.mock('../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
+jest.mock('../../../../UI/Predict/selectors/predictController');
+jest.mock('./useIsMoneyAccountFlagDefault');
+jest.mock('./useTransactionPaySelectedFiatPaymentMethod');
+jest.mock('./useFiatPaymentHighlightedActions');
 
 const mockSelectConfirmationMetricsById = jest.fn();
 
@@ -58,7 +72,7 @@ const QUOTE_MOCK = {
     fiat: '0.6',
     usd: '0.5',
   },
-  strategy: TransactionPayStrategy.Bridge,
+  strategy: TransactionPayStrategy.Relay,
 } as TransactionPayQuote<Json>;
 
 function runHook({ type }: { type?: TransactionType } = {}) {
@@ -91,6 +105,25 @@ describe('useTransactionPayMetrics', () => {
   );
 
   const useAccountTokensMock = jest.mocked(useAccountTokens);
+  const selectPaymentOverrideMock = jest.mocked(
+    selectPaymentOverrideByTransactionId,
+  );
+  const useIsPerpsBalanceSelectedMock = jest.mocked(useIsPerpsBalanceSelected);
+  const selectPredictSelectedPaymentTokenMock = jest.mocked(
+    selectPredictSelectedPaymentToken,
+  );
+  const useIsMoneyAccountFlagDefaultMock = jest.mocked(
+    useIsMoneyAccountFlagDefault,
+  );
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
+  const useTransactionPaySelectedFiatPaymentMethodMock = jest.mocked(
+    useTransactionPaySelectedFiatPaymentMethod,
+  );
+  const useFiatPaymentHighlightedActionsMock = jest.mocked(
+    useFiatPaymentHighlightedActions,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -118,9 +151,20 @@ describe('useTransactionPayMetrics', () => {
       availableTokens: [{}, {}, {}, {}, {}] as AssetType[],
       hasTokens: true,
     });
+
+    selectPaymentOverrideMock.mockReturnValue(undefined);
+    useIsPerpsBalanceSelectedMock.mockReturnValue(false);
+    selectPredictSelectedPaymentTokenMock.mockReturnValue({
+      address: '0x123',
+      chainId: '0x1',
+    });
+    useIsMoneyAccountFlagDefaultMock.mockReturnValue(false);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
+    useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
   });
 
-  it('dispatches empty properties if no pay token selected', async () => {
+  it('includes available crypto method even before a pay token is selected', async () => {
     runHook();
 
     await act(async () => noop());
@@ -128,7 +172,9 @@ describe('useTransactionPayMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: {},
+        properties: {
+          mm_pay_payment_method_available: ['crypto'],
+        },
         sensitiveProperties: {},
       },
     });
@@ -220,6 +266,27 @@ describe('useTransactionPayMetrics', () => {
     } as ReturnType<typeof useTransactionPayToken>);
 
     runHook({ type: TransactionType.predictDeposit });
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          simulation_sending_assets_total_value: 1.23,
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
+  it('includes simulation_sending_assets_total_value for predict deposit and order', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    runHook({ type: TransactionType.predictDepositAndOrder });
 
     await act(async () => noop());
 
@@ -369,6 +436,249 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
+  describe('mm_pay_payment_method_available', () => {
+    it('includes crypto and normalized fiat payment method types', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useFiatPaymentHighlightedActionsMock.mockReturnValue([
+        { paymentType: 'debit-credit-card' },
+        { paymentType: 'bank-transfer' },
+        { paymentType: 'google-pay' },
+      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: [
+              'crypto',
+              'debit_credit_card',
+              'bank_transfer',
+              'google_pay',
+            ],
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it.each([
+      ['sepa-bank-transfer', 'bank_transfer'],
+      ['instant-bank-transfer', 'bank_transfer'],
+      ['revolut-pay', 'rev_pay'],
+      ['rev-pay', 'rev_pay'],
+      ['apple-pay', 'apple_pay'],
+    ])('normalizes %s to %s', async (paymentType, expected) => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useFiatPaymentHighlightedActionsMock.mockReturnValue([
+        { paymentType },
+      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: ['crypto', expected],
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('excludes crypto when all tokens are disabled even if hasTokens is true (post-quote)', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          { disabled: true },
+          { disabled: true },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      useFiatPaymentHighlightedActionsMock.mockReturnValue([
+        { paymentType: 'debit-credit-card' },
+      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: ['debit_credit_card'],
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('excludes crypto when crypto tokens are unavailable', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [] as AssetType[],
+        hasTokens: false,
+      });
+
+      useFiatPaymentHighlightedActionsMock.mockReturnValue([
+        { paymentType: 'debit-credit-card' },
+      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: ['debit_credit_card'],
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is an empty array when no payment methods are available', async () => {
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [] as AssetType[],
+        hasTokens: false,
+      });
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: [],
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+  });
+
+  describe('mm_pay_payment_method_presented', () => {
+    it('is crypto when no fiat method is selected on load', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_presented: 'crypto',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is the fiat paymentType when a fiat method is auto-selected on load', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue({
+        paymentType: 'debit-credit-card',
+      } as PaymentMethod);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_presented: 'debit_credit_card',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is the fiat paymentType when fiat is selected before crypto pay token loads', async () => {
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [] as AssetType[],
+        hasTokens: false,
+      });
+
+      useFiatPaymentHighlightedActionsMock.mockReturnValue([
+        { paymentType: 'revolut-pay' },
+      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
+
+      useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue({
+        paymentType: 'revolut-pay',
+      } as PaymentMethod);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: ['rev_pay'],
+            mm_pay_payment_method_presented: 'rev_pay',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is omitted when no method has been selected yet', async () => {
+      runHook();
+
+      await act(async () => noop());
+
+      const calledProps = (
+        updateConfirmationMetricMock.mock.calls[0]?.[0] as {
+          params: { properties: Record<string, unknown> };
+        }
+      )?.params?.properties;
+
+      expect(calledProps).not.toHaveProperty('mm_pay_payment_method_presented');
+    });
+  });
+
   describe('mm_pay_chain_highest_balance_caip', () => {
     it('is null when no tokens', async () => {
       useTransactionPayTokenMock.mockReturnValue({
@@ -446,6 +756,596 @@ describe('useTransactionPayMetrics', () => {
           sensitiveProperties: {},
         },
       });
+    });
+  });
+
+  describe('mm_pay_section_source', () => {
+    beforeEach(() => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+    });
+
+    it('defaults to crypto when no override is active', async () => {
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_source_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is money-account when payment override is MoneyAccount', async () => {
+      selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is money-account when isDefaultMoneyAccount flag is true', async () => {
+      useIsMoneyAccountFlagDefaultMock.mockReturnValue(true);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is perps when perps balance selected for perpsDepositAndOrder', async () => {
+      useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+
+      runHook({ type: TransactionType.perpsDepositAndOrder });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'perps',
+            mm_pay_account_type_source_selected: 'perps',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is crypto when perps balance selected but not perpsDepositAndOrder', async () => {
+      useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+
+      runHook({ type: TransactionType.perpsDeposit });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_selected: 'crypto',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is predict when predict balance selected for predictDepositAndOrder', async () => {
+      selectPredictSelectedPaymentTokenMock.mockReturnValue(null);
+
+      runHook({ type: TransactionType.predictDepositAndOrder });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'predict',
+            mm_pay_account_type_source_selected: 'predict',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is bank-card when fiat payment is selected', async () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm_123',
+      } as never);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'bank-card',
+            mm_pay_account_type_source_selected: 'bank-card',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is not included when no pay token', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+
+      runHook();
+
+      await act(async () => noop());
+
+      const calledProps = (
+        updateConfirmationMetricMock.mock.calls[0]?.[0] as {
+          params: { properties: Record<string, unknown> };
+        }
+      )?.params?.properties;
+
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_account_type_source_presented',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_account_type_source_selected',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_source_mm_account_switch_count',
+      );
+    });
+
+    it('increments switch count on section change', async () => {
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_source_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+
+      selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'money-account',
+            mm_pay_source_mm_account_switch_count: 1,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('money-account override takes priority over perps and predict', async () => {
+      selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
+      useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+      selectPredictSelectedPaymentTokenMock.mockReturnValue(null);
+
+      runHook({ type: TransactionType.perpsDepositAndOrder });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_selected: 'money-account',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+  });
+
+  describe('mm_pay_section_recipient', () => {
+    beforeEach(() => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+    });
+
+    it('is perps for perpsDeposit', async () => {
+      runHook({ type: TransactionType.perpsDeposit });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'perps',
+            mm_pay_account_type_recipient_selected: 'perps',
+            mm_pay_recipient_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is perps for perpsDepositAndOrder', async () => {
+      runHook({ type: TransactionType.perpsDepositAndOrder });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'perps',
+            mm_pay_account_type_recipient_selected: 'perps',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is predict for predictDeposit', async () => {
+      runHook({ type: TransactionType.predictDeposit });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'predict',
+            mm_pay_account_type_recipient_selected: 'predict',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is money-account for moneyAccountDeposit', async () => {
+      runHook({ type: TransactionType.moneyAccountDeposit });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'money-account',
+            mm_pay_account_type_recipient_selected: 'money-account',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('uses PayWithBottomSheet state for perpsWithdraw', async () => {
+      runHook({ type: TransactionType.perpsWithdraw });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('uses PayWithBottomSheet state for predictWithdraw', async () => {
+      runHook({ type: TransactionType.predictWithdraw });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_selected: 'crypto',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('uses PayWithBottomSheet state for moneyAccountWithdraw', async () => {
+      selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
+
+      runHook({ type: TransactionType.moneyAccountWithdraw });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_selected: 'money-account',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('tracks recipient switch count for withdrawals', async () => {
+      const { rerender } = runHook({ type: TransactionType.perpsWithdraw });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+
+      selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'money-account',
+            mm_pay_recipient_mm_account_switch_count: 1,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is not included when no pay token', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+
+      runHook();
+
+      await act(async () => noop());
+
+      const calledProps = (
+        updateConfirmationMetricMock.mock.calls[0]?.[0] as {
+          params: { properties: Record<string, unknown> };
+        }
+      )?.params?.properties;
+
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_account_type_recipient_presented',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_account_type_recipient_selected',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_recipient_mm_account_switch_count',
+      );
+    });
+  });
+
+  describe('mm_pay_entry_point', () => {
+    beforeEach(() => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+    });
+
+    it('is perps for perpsDeposit', async () => {
+      runHook({ type: TransactionType.perpsDeposit });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'perps',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is perps for perpsDepositAndOrder', async () => {
+      runHook({ type: TransactionType.perpsDepositAndOrder });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'perps',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is perps for perpsWithdraw', async () => {
+      runHook({ type: TransactionType.perpsWithdraw });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'perps',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is predict for predictDeposit', async () => {
+      runHook({ type: TransactionType.predictDeposit });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'predict',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is predict for predictDepositAndOrder', async () => {
+      runHook({ type: TransactionType.predictDepositAndOrder });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'predict',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is money_account for moneyAccountDeposit', async () => {
+      runHook({ type: TransactionType.moneyAccountDeposit });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'money_account',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is money_account for moneyAccountWithdraw', async () => {
+      runHook({ type: TransactionType.moneyAccountWithdraw });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'money_account',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is money_hub for musdConversion', async () => {
+      runHook({ type: TransactionType.musdConversion });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: 'money_hub',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is null for unrecognized transaction types', async () => {
+      runHook({ type: TransactionType.simpleSend });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_entry_point: null,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is not included when no pay token', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+
+      runHook();
+
+      await act(async () => noop());
+
+      const calledProps = (
+        updateConfirmationMetricMock.mock.calls[0]?.[0] as {
+          params: { properties: Record<string, unknown> };
+        }
+      )?.params?.properties;
+
+      expect(calledProps).not.toHaveProperty('mm_pay_entry_point');
     });
   });
 });

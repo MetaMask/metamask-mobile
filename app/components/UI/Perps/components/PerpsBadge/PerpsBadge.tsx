@@ -1,21 +1,19 @@
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './PerpsBadge.styles';
 import type { PerpsBadgeProps } from './PerpsBadge.types';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 /**
  * PerpsBadge - Reusable badge component for Perps markets
  *
  * Displays different badge types:
  * - experimental: HIP-3 markets (blue)
- * - equity: Stock markets (orange)
+ * - stock: Stock markets (info blue)
  * - commodity: Commodity markets (green)
- * - crypto: Cryptocurrency markets (info blue)
+ * - crypto: Cryptocurrency markets (primary blue)
  * - forex: Foreign exchange markets (red)
  */
 const PerpsBadge: React.FC<PerpsBadgeProps> = ({
@@ -30,7 +28,7 @@ const PerpsBadge: React.FC<PerpsBadgeProps> = ({
 
   return (
     <View style={styles.badge} testID={testID}>
-      <Text variant={TextVariant.BodyXS} style={styles.badgeText}>
+      <Text variant={TextVariant.BodyXs} style={styles.badgeText}>
         {label}
       </Text>
     </View>

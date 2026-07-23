@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetHeader,
-  BottomSheetHeaderVariant,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -11,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { forwardRef, useImperativeHandle } from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
@@ -19,6 +18,7 @@ import {
 
 interface PredictPreviewSheetProps {
   renderHeader?: () => React.ReactNode;
+  renderRightComponent?: () => React.ReactNode;
   title?: string;
   image?: string;
   subtitle?: string;
@@ -37,6 +37,7 @@ const PredictPreviewSheet = forwardRef<
   (
     {
       renderHeader,
+      renderRightComponent,
       title,
       image,
       subtitle,
@@ -72,8 +73,10 @@ const PredictPreviewSheet = forwardRef<
       >
         <BottomSheetHeader
           onClose={closeSheet}
-          variant={BottomSheetHeaderVariant.Display}
-          twClassName="px-6 py-4"
+          // Override internal styles that set width of start accessory to same size as close button,
+          // to allow for left aligned predict header content
+          startAccessoryWrapperProps={{ style: tw.style('w-0') }}
+          style={tw.style('gap-0')}
         >
           {renderHeader ? (
             renderHeader()
@@ -90,15 +93,22 @@ const PredictPreviewSheet = forwardRef<
                 />
               )}
               <Box twClassName="flex-1 min-w-0 shrink">
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  twClassName="text-default"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  testID="preview-sheet-title"
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1 min-w-0"
                 >
-                  {title}
-                </Text>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    twClassName="text-default shrink"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    testID="preview-sheet-title"
+                  >
+                    {title}
+                  </Text>
+                  {renderRightComponent ? renderRightComponent() : null}
+                </Box>
                 {subtitle && (
                   <Text
                     variant={TextVariant.BodySm}

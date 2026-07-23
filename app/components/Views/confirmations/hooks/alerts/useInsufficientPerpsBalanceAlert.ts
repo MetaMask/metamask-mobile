@@ -16,6 +16,8 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
@@ -38,6 +40,12 @@ export function useInsufficientPerpsBalanceAlert({
         ?.withdrawableBalance,
   );
 
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
+  );
+  const isMoneyAccountWithdraw =
+    paymentOverride === PaymentOverride.MoneyAccount;
+
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
@@ -55,9 +63,7 @@ export function useInsufficientPerpsBalanceAlert({
       return true;
     }
 
-    // On the confirmation screen (not while typing), check if fees
-    // exceed the withdraw amount — user would receive nothing.
-    // Skipped during input because totals may be stale.
+    // Skip during input — totals may be stale.
     if (
       !isPendingInput &&
       hasQuotes &&
@@ -72,12 +78,26 @@ export function useInsufficientPerpsBalanceAlert({
       if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
+
+      // Standard withdrawals deduct fees from the receive amount, so only
+      // money-account withdrawals need balance to cover amount + fees.
+      if (
+        isMoneyAccountWithdraw &&
+        withdrawableBalance !== undefined &&
+        withdrawableBalance !== null &&
+        new BigNumber(amountHuman)
+          .plus(totalFees)
+          .isGreaterThan(withdrawableBalance)
+      ) {
+        return true;
+      }
     }
 
     return false;
   }, [
     amountHuman,
     hasQuotes,
+    isMoneyAccountWithdraw,
     isPendingInput,
     isPerpsWithdraw,
     withdrawableBalance,
@@ -93,7 +113,10 @@ export function useInsufficientPerpsBalanceAlert({
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },

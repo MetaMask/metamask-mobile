@@ -1,5 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { CaipChainId, Hex, isCaipAssetType } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  isCaipAssetType,
+} from '@metamask/utils';
 import {
   AccountGroupAssets,
   Asset,
@@ -12,6 +17,8 @@ import {
   useHandleOnSend,
   useHandleOnSwap,
 } from './useTokenAtomicActions';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
+import { getCaipAssetIdForToken } from '../../Tokens/util/getCaipAssetIdForToken';
 import { TokenI } from '../../Tokens/types';
 import { SecurityDataType } from '../../Bridge/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -30,10 +37,9 @@ import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import { TokenDetailsSource } from '../constants/constants';
 import {
   createMockInternalAccount,
@@ -91,14 +97,13 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
   getOrders: jest.fn(),
-  getRampRoutingDecision: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rampsController', () => ({
   selectRampsOrdersForSelectedAccountGroup: jest.fn(),
 }));
 
-jest.mock('../../Ramp/Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../Ramp/utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
 }));
 
@@ -150,18 +155,14 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
-const mockRampsUnifiedV1Enabled = jest.fn(() => false);
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => mockRampsUnifiedV1Enabled(),
-}));
-
 const mockSendNonEvmAsset = jest.fn().mockResolvedValue(false);
 jest.mock('../../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: () => ({
     sendNonEvmAsset: mockSendNonEvmAsset,
   }),
 }));
+
+const mockGetSwapDestToken = jest.mocked(getSwapDestToken);
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn(() => ({
@@ -182,13 +183,22 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 }));
 
 jest.mock('../../Bridge/utils/tokenUtils', () => ({
+  ...jest.requireActual('../../Bridge/utils/tokenUtils'),
   getDefaultDestToken: jest.fn(),
   getNativeSourceToken: jest.fn(),
+}));
+
+jest.mock('../../Bridge/utils/getSwapDestToken', () => ({
+  getSwapDestToken: jest.fn(() => undefined),
 }));
 
 jest.mock('@metamask/utils', () => ({
   ...jest.requireActual('@metamask/utils'),
   isCaipAssetType: jest.fn(),
+}));
+
+jest.mock('../../Tokens/util/getCaipAssetIdForToken', () => ({
+  getCaipAssetIdForToken: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger');
@@ -208,6 +218,10 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockIsCaipAssetType = jest.mocked(isCaipAssetType);
+const mockGetCaipAssetIdForToken = jest.mocked(getCaipAssetIdForToken);
+const actualGetCaipAssetIdForToken = jest.requireActual(
+  '../../Tokens/util/getCaipAssetIdForToken',
+).getCaipAssetIdForToken as typeof getCaipAssetIdForToken;
 const mockSelectEvmChainId = jest.mocked(selectEvmChainId);
 const mockSelectSelectedInternalAccount = jest.mocked(
   selectSelectedInternalAccount,
@@ -221,7 +235,6 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 const mockGetOrders = jest.mocked(getOrders);
-const mockGetRampRoutingDecision = jest.mocked(getRampRoutingDecision);
 const mockSelectRampsOrdersForSelectedAccountGroup = jest.mocked(
   selectRampsOrdersForSelectedAccountGroup,
 );
@@ -259,7 +272,6 @@ const setupSelectorDefaults = () => {
   mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
   mockGetDetectedGeolocation.mockReturnValue('US');
   mockGetOrders.mockReturnValue([]);
-  mockGetRampRoutingDecision.mockReturnValue(null);
   mockSelectRampsOrdersForSelectedAccountGroup.mockReturnValue([]);
   mockGetProviderToken.mockResolvedValue({
     success: true,
@@ -284,7 +296,6 @@ beforeEach(() => {
     goToSwaps: mockGoToSwaps,
     networkModal: null,
   });
-  mockRampsUnifiedV1Enabled.mockReturnValue(false);
 });
 
 /**
@@ -499,6 +510,7 @@ describe('useTokenAtomicActions - computeBuySourceToken', () => {
 describe('useTokenAtomicActions - useHandleOnBuy', () => {
   beforeEach(() => {
     mockIsCaipAssetType.mockReturnValue(false);
+    mockGetCaipAssetIdForToken.mockImplementation(actualGetCaipAssetIdForToken);
   });
 
   /**
@@ -516,7 +528,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
   it('calls goToBuy with parsed assetId and tracks ACTION_BUTTON_CLICKED', async () => {
     const { result } = await renderOnBuy();
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
     expect(mockGoToBuy).toHaveBeenCalledWith(
@@ -542,7 +556,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy({ token: caipToken });
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledWith(
       { assetId: caipAddress },
@@ -550,10 +566,59 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
     );
   });
 
+  it('uses getCaipAssetIdForToken so Polygon native POL gets slip44 CAIP for goToBuy', async () => {
+    const polToken = {
+      ...defaultToken,
+      address: '0x0000000000000000000000000000000000001010',
+      symbol: 'POL',
+      chainId: '0x89',
+      isNative: true,
+    } as TokenI;
+
+    const { result } = await renderOnBuy({ token: polToken });
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      { assetId: 'eip155:137/slip44:966' },
+      { buyFlowOrigin: 'tokenInfo' },
+    );
+  });
+
+  it('prefers explicit caipAssetId on the token when present', async () => {
+    const caipAssetId = 'eip155:137/slip44:966' as CaipAssetType;
+    mockIsCaipAssetType.mockImplementation(
+      (value: unknown) => value === caipAssetId,
+    );
+    const polToken = {
+      ...defaultToken,
+      address: '0x0000000000000000000000000000000000001010',
+      symbol: 'POL',
+      chainId: '0x89',
+      isNative: true,
+      caipAssetId,
+    };
+
+    const { result } = await renderOnBuy({ token: polToken });
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      { assetId: caipAssetId },
+      { buyFlowOrigin: 'tokenInfo' },
+    );
+  });
+
   it('includes asset_symbol and ramp analytics in RAMPS_BUTTON_CLICKED event', async () => {
     const { result } = await renderOnBuy();
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
       location: 'TokenDetails',
@@ -561,18 +626,7 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
       is_authenticated: true,
       region: 'US',
       order_count: 0,
-      ramp_type: 'BUY',
-    });
-  });
-
-  it('switches ramp_type to UNIFIED_BUY when the unified-v1 flag is enabled', async () => {
-    mockRampsUnifiedV1Enabled.mockReturnValue(true);
-
-    const { result } = await renderOnBuy();
-    result.current();
-
-    assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
-      ramp_type: 'UNIFIED_BUY',
+      ramp_type: 'UNIFIED_BUY_2',
     });
   });
 
@@ -581,8 +635,8 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy();
 
-    await waitFor(() => {
-      result.current();
+    await waitFor(async () => {
+      await result.current();
       assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
         is_authenticated: false,
       });
@@ -666,6 +720,8 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
           networkName: 'Ethereum Mainnet',
           chainId: '0x1',
           groupId: 'group-1',
+          location: 'asset-details',
+          account: mockAccount,
         },
       },
     );
@@ -873,6 +929,71 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
     const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
     assertSwapCall(sourceToken, destToken);
   });
+
+  // Regression tests: verify that the per-source destToken override is forwarded
+  // correctly to goToSwaps, and that a chain-wide default is NOT used as an
+  // override when the source token has no explicit entry (the original bug).
+  describe('destTokenOverride regression', () => {
+    const MOCK_OVERRIDE_TOKEN = {
+      address: '0x3600000000000000000000000000000000000000',
+      chainId: '0x13b2',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+    };
+
+    it('passes the per-source override as destToken when goToSwaps fires (has balance → swap-out path)', () => {
+      mockGetSwapDestToken.mockReturnValueOnce(MOCK_OVERRIDE_TOKEN as never);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('1') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toStrictEqual(
+        expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
+      );
+    });
+
+    it('passes the per-source override as destToken on the swap-into path (zero balance, buy source available)', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0x1': [
+          userAsset({
+            assetId: WETH_ADDRESS,
+            symbol: 'WETH',
+            fiatBalance: 500,
+          }),
+        ],
+      } as AccountGroupAssets);
+      mockGetSwapDestToken.mockReturnValueOnce(MOCK_OVERRIDE_TOKEN as never);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('0') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toStrictEqual(
+        expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
+      );
+    });
+
+    it('passes undefined as destToken when getSwapDestToken returns undefined (no override configured)', () => {
+      mockGetSwapDestToken.mockReturnValueOnce(undefined);
+
+      const { result } = renderHook(() =>
+        useHandleOnSwap({ token: arrangeToken('1') }),
+      );
+
+      result.current();
+
+      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(destToken).toBeUndefined();
+    });
+  });
 });
 
 describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => {
@@ -883,6 +1004,25 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
           ...defaultToken,
           balance: '1',
           source: TokenDetailsSource.ExploreCryptoTrending,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('uses TrendingExplore location when token.source is ExploreSearch', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreSearch,
         },
       }),
     );

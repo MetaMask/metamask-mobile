@@ -3,6 +3,8 @@ import React, { useCallback } from 'react';
 import { ActivityIndicator, Switch } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
 // External dependencies
 import Text, {
   TextVariant,
@@ -37,7 +39,7 @@ import ListItemColumn, {
 } from '../../../../../../component-library/components/List/ListItemColumn';
 
 function ActivationKeys() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { colors } = theme;
   const { isInternalBuild } = useRampSDK();
@@ -65,8 +67,9 @@ function ActivationKeys() {
   );
 
   const handleAddNewKeyPress = useCallback(() => {
-    navigation.navigate(
-      ...createActivationKeyFormNavDetails({
+    navigateWithDetails(
+      navigation,
+      createActivationKeyFormNavDetails({
         onSubmit: handleAddNewKey,
         key: '',
         label: '',
@@ -77,8 +80,9 @@ function ActivationKeys() {
 
   const handleEditPress = useCallback(
     (key: string, label: string, active: boolean) => {
-      navigation.navigate(
-        ...createActivationKeyFormNavDetails({
+      navigateWithDetails(
+        navigation,
+        createActivationKeyFormNavDetails({
           onSubmit: handleUpdateKey,
           key,
           label,

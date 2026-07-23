@@ -348,6 +348,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
       expect.objectContaining({ id: 'market-live' }),
       69000,
       {
+        enabled: true,
         liveUpdatesEnabled: false,
         historicalWindow: {
           startDate: expect.any(String),
@@ -457,6 +458,16 @@ describe('PredictCryptoUpDownMarketCard', () => {
         image: 'https://example.com/btc.png',
       },
     });
+  });
+
+  it('does not navigate when cardPressDisabled is true', () => {
+    renderCard(createMarket(), { cardPressDisabled: true });
+
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.CARD),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('includes transactionActiveAbTests when navigating to the live market details', () => {
@@ -711,5 +722,74 @@ describe('PredictCryptoUpDownMarketCard', () => {
     const secondResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
     expect(secondResolved).not.toBe(firstResolved);
     expect(secondResolved?.id).toBe('market-next');
+  });
+
+  describe('compact (isCarousel) variant', () => {
+    it('hides the sparkline and target labels but keeps title, buttons, live badge, and reset copy', () => {
+      renderCard(createMarket(), { isCarousel: true });
+
+      expect(screen.getByText('BTC Up or Down - 5 Minutes')).toBeOnTheScreen();
+      expect(screen.getByText('Up · 40¢')).toBeOnTheScreen();
+      expect(screen.getByText('Down · 60¢')).toBeOnTheScreen();
+      expect(screen.getByText(/Resets every 5 min/)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE,
+        ),
+      ).toBeNull();
+      expect(screen.queryByText('Target')).toBeNull();
+    });
+
+    it('gates chart-data and target-price queries so they do not run in the carousel', () => {
+      renderCard(createMarket(), { isCarousel: true });
+
+      const chartCall = mockUseCryptoUpDownChartData.mock.calls.at(-1);
+      expect(chartCall?.[2]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+
+      const targetCall = mockUseCryptoTargetPrice.mock.calls.at(-1);
+      expect(targetCall?.[0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('renders the compact skeleton (no chart placeholder) while the series window is loading', () => {
+      mockUsePredictSeries.mockReturnValue({
+        data: undefined,
+        isLoading: true,
+      });
+
+      renderCard(createMarket(), { isCarousel: true });
+
+      expect(
+        screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.SKELETON),
+      ).toBeOnTheScreen();
+    });
+
+    it('still opens the buy sheet for the Up and Down outcomes in the carousel', () => {
+      const liveMarket = createMarket();
+      mockUsePredictSeries.mockReturnValue({
+        data: [liveMarket],
+        isLoading: false,
+      });
+
+      renderCard(liveMarket, { isCarousel: true });
+
+      fireEvent.press(
+        screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON),
+      );
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
+        market: liveMarket,
+        outcome: liveMarket.outcomes[0],
+        outcomeToken: liveMarket.outcomes[0].tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      });
+    });
   });
 });

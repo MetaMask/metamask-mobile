@@ -29,12 +29,14 @@ interface SecurityTrustEntryCardProps {
   securityData: TokenSecurityData | null;
   isLoading: boolean;
   token: TokenDetailsRouteParams;
+  useAmbientColor?: boolean;
 }
 
 const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   securityData,
   isLoading,
   token,
+  useAmbientColor,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -93,6 +95,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
     navigation.navigate(Routes.SECURITY_TRUST, {
       ...token,
       securityData,
+      useAmbientColor,
     });
   };
 

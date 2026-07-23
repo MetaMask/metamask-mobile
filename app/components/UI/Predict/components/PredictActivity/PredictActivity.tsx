@@ -13,6 +13,7 @@ import { formatPercentage, formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictActivityItem, PredictActivityType } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
@@ -24,6 +25,7 @@ import { POLYGON_MAINNET_CHAIN_ID } from '../../providers/polymarket/constants';
 
 interface PredictActivityProps {
   item: PredictActivityItem;
+  containerStyle?: string;
 }
 
 const activityTitleByType: Record<PredictActivityType, string> = {
@@ -32,9 +34,12 @@ const activityTitleByType: Record<PredictActivityType, string> = {
   [PredictActivityType.CLAIM]: strings('predict.transactions.claim_title'),
 };
 
-const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
+const PredictActivity: React.FC<PredictActivityProps> = ({
+  item,
+  containerStyle,
+}) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isDebit = item.type === PredictActivityType.BUY;
   const signedAmount = `${isDebit ? '-' : '+'}${formatPrice(
@@ -75,7 +80,10 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   return (
     <TouchableOpacity
       onPress={handlePress}
-      style={tw.style('flex-row items-start justify-between w-full p-2')}
+      style={tw.style(
+        'flex-row items-start justify-between w-full p-2',
+        containerStyle,
+      )}
     >
       <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
         {item.icon ? (

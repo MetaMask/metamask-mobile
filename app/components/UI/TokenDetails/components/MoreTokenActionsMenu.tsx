@@ -14,6 +14,7 @@ import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
 import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
@@ -24,6 +25,7 @@ import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { isMusdToken } from '../../../UI/Earn/constants/musd';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import useAssetVisibility from './useAssetVisibility';
+import { TokenDetailsAction } from '../constants/constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -36,6 +38,7 @@ export interface MoreTokenActionsMenuParams {
   asset: TokenI;
   onBuy: () => void;
   onReceive?: () => void;
+  onActionTapped?: (action: TokenDetailsAction) => void;
 }
 
 type MoreTokenActionsMenuRouteProp = RouteProp<
@@ -67,6 +70,7 @@ const MoreTokenActionsMenu = () => {
     asset,
     onBuy,
     onReceive,
+    onActionTapped,
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -125,17 +129,27 @@ const MoreTokenActionsMenu = () => {
     }
 
     if (url) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'token_details_menu',
+        text: strings('asset_details.options.view_on_block'),
+        url,
+      });
+      onActionTapped?.(TokenDetailsAction.ViewOnExplorer);
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));
     }
   }, [
+    createEventBuilder,
     isNativeCurrency,
     explorer,
     asset.chainId,
     asset.address,
     goToBrowserUrl,
+    onActionTapped,
+    trackEvent,
   ]);
 
   const handleRemoveToken = useCallback(() => {
+    onActionTapped?.(TokenDetailsAction.RemoveToken);
     closeBottomSheetAndNavigate(() => {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: 'AssetHideConfirmation',
@@ -202,6 +216,7 @@ const MoreTokenActionsMenu = () => {
     selectInternalAccountByScope,
     trackEvent,
     createEventBuilder,
+    onActionTapped,
   ]);
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>

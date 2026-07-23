@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -90,9 +90,6 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
     removeSensitiveProperties: jest.fn(function () {
       return this;
     }),
-    setSaveDataRecording: jest.fn(function () {
-      return this;
-    }),
     build: jest.fn(() => ({ builtEvent: true })),
   };
   const createEventBuilder = jest.fn(() => chainableBuilder);
@@ -116,7 +113,6 @@ jest.mock('../../../core/Analytics', () => ({
     SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
     WALLET_QR_SCANNER: 'WALLET_QR_SCANNER',
     NOTIFICATIONS_MENU_OPENED: 'NOTIFICATIONS_MENU_OPENED',
-    NOTIFICATIONS_ACTIVATED: 'NOTIFICATIONS_ACTIVATED',
     NAVIGATION_TAPS_SETTINGS: 'NAVIGATION_TAPS_SETTINGS',
     CARD_HOME_CLICKED: 'CARD_HOME_CLICKED',
     QUOTES_REQUEST_CANCELLED: 'QUOTES_REQUEST_CANCELLED',
@@ -140,7 +136,7 @@ jest.mock('../AddressCopy', () => {
 });
 
 describe('getNetworkNavbarOptions', () => {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   const mockNavigation = {
     pop: jest.fn(),
@@ -407,7 +403,7 @@ describe('getStakingNavbar', () => {
 });
 
 describe('getNavigationOptionsTitle', () => {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   const mockNavigation = {
     goBack: jest.fn(),
@@ -665,37 +661,6 @@ describe('getEditAccountNameNavBarOptions', () => {
     HeaderRight.props.onPress();
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('getDeFiProtocolPositionDetailsNavbarOptions', () => {
-  const { getDeFiProtocolPositionDetailsNavbarOptions } = require('.');
-
-  const mockNavigation = {
-    pop: jest.fn(),
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns navbar options with back button', () => {
-    const options = getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
-
-    expect(options.headerTitle).toBeDefined();
-    expect(options.headerLeft).toBeDefined();
-
-    const HeaderTitle = options.headerTitle();
-    expect(HeaderTitle).toBeNull();
-  });
-
-  it('calls navigation.pop when back button is pressed', () => {
-    const options = getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
-
-    const HeaderLeft = options.headerLeft();
-    HeaderLeft.props.onPress();
-
-    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
 

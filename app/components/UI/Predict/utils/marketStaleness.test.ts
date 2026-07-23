@@ -112,19 +112,19 @@ describe('marketStaleness', () => {
   describe('isPredictOutcomeDead', () => {
     it('treats probabilities at or beyond the dead thresholds as dead', () => {
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'high', price: 0.95 })),
+        isPredictOutcomeDead(createOutcome({ id: 'high', price: 0.99 })),
       ).toBe(true);
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'low', price: 0.05 })),
+        isPredictOutcomeDead(createOutcome({ id: 'low', price: 0.01 })),
       ).toBe(true);
     });
 
     it('keeps probabilities inside the dead thresholds live', () => {
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'high-live', price: 0.949 })),
+        isPredictOutcomeDead(createOutcome({ id: 'high-live', price: 0.989 })),
       ).toBe(false);
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'low-live', price: 0.051 })),
+        isPredictOutcomeDead(createOutcome({ id: 'low-live', price: 0.011 })),
       ).toBe(false);
     });
 
@@ -138,8 +138,8 @@ describe('marketStaleness', () => {
       const market = createMarket({
         id: 'all-dead',
         outcomes: [
-          createOutcome({ id: 'dead-high', price: 0.97 }),
-          createOutcome({ id: 'dead-low', price: 0.03 }),
+          createOutcome({ id: 'dead-high', price: 0.995 }),
+          createOutcome({ id: 'dead-low', price: 0.005 }),
         ],
       });
 
@@ -152,9 +152,9 @@ describe('marketStaleness', () => {
       const market = createMarket({
         id: 'partial',
         outcomes: [
-          createOutcome({ id: 'dead-high', price: 0.97 }),
+          createOutcome({ id: 'dead-high', price: 0.995 }),
           liveOne,
-          createOutcome({ id: 'dead-low', price: 0.03 }),
+          createOutcome({ id: 'dead-low', price: 0.005 }),
           liveTwo,
         ],
       });
@@ -277,6 +277,61 @@ describe('marketStaleness', () => {
 
       expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
     });
+
+    it('keeps an ongoing game market whose scheduled end date has passed', () => {
+      const market = createMarket({
+        id: 'ongoing-game-past-end-date',
+        recurrence: Recurrence.DAILY,
+        endDate: '2026-03-18T11:30:00.000Z',
+        game: createGame('ongoing'),
+      });
+
+      expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
+    });
+  });
+
+  describe('isPredictMarketExpiredByTime game markets', () => {
+    it('does not expire an ongoing game even when the scheduled end date has passed', () => {
+      const market = createMarket({
+        id: 'ongoing-game',
+        recurrence: Recurrence.DAILY,
+        endDate: '2026-03-18T11:30:00.000Z',
+        game: createGame('ongoing'),
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(false);
+    });
+
+    it('expires a game once it has ended regardless of the end date', () => {
+      const market = createMarket({
+        id: 'ended-game',
+        recurrence: Recurrence.DAILY,
+        endDate: '2027-01-01T00:00:00.000Z',
+        game: createGame('ended'),
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
+    });
+
+    it('expires a game that has an end time stamped even if status is not ended', () => {
+      const market = createMarket({
+        id: 'game-with-end-time',
+        recurrence: Recurrence.DAILY,
+        game: { ...createGame('ongoing'), endTime: '2026-03-18T11:45:00.000Z' },
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
+    });
+
+    it('expires a game at a full-time period even if status is not ended', () => {
+      const market = createMarket({
+        id: 'game-at-full-time',
+        recurrence: Recurrence.DAILY,
+        game: { ...createGame('ongoing'), period: 'FT' },
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
+    });
   });
 
   describe('penalties and ranking', () => {
@@ -284,12 +339,12 @@ describe('marketStaleness', () => {
       const market = createMarket({
         id: 'stale-top-outcome',
         outcomes: [
-          createOutcome({ id: 'dead-high', price: 0.97 }),
+          createOutcome({ id: 'dead-high', price: 0.995 }),
           createOutcome({ id: 'live', price: 0.5 }),
         ],
       });
 
-      expect(getPredictMarketProbabilityPenalty(market)).toBeCloseTo(0.8);
+      expect(getPredictMarketProbabilityPenalty(market)).toBeCloseTo(0.75);
     });
 
     it('applies last-hour time penalty to daily markets', () => {
@@ -333,7 +388,7 @@ describe('marketStaleness', () => {
         recurrence: Recurrence.DAILY,
         endDate: '2026-03-18T12:30:00.000Z',
         outcomes: [
-          createOutcome({ id: 'stale-dead', price: 0.99 }),
+          createOutcome({ id: 'stale-dead', price: 0.999 }),
           createOutcome({ id: 'stale-live', price: 0.5 }),
         ],
       });

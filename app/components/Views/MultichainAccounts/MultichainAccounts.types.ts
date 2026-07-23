@@ -3,6 +3,8 @@
  */
 
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import type { Transaction } from '@metamask/keyring-api';
+import type { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
 
 export interface AccountParams {
   account?: InternalAccount;
@@ -16,7 +18,8 @@ export interface MultichainAccountDetailActionsParams {
 
 /** Multichain transaction details parameters */
 export interface MultichainTransactionDetailsParams {
-  transactionId?: string;
+  displayData: MultichainTransactionDisplayData;
+  transaction: Transaction;
 }
 
 /** Multichain account actions parameters */

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import QuickBuyAmountSection from './components/QuickBuyAmountSection';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
@@ -8,31 +8,56 @@ import { useQuickBuyContext } from './useQuickBuyContext';
 const QuickBuyAmount: React.FC = () => {
   const {
     amountDisplayMode,
-    features,
-    usdAmount,
+    fiatAmountLabel,
     target,
+    tradeMode,
+    hasSourcePrice,
+    sourceAmountTokens,
+    sourceTokenAmount,
+    sourceToken,
     estimatedReceiveAmount,
-    sourceBalanceFiat,
-    isQuoteLoading,
+    destToken,
+    isBlockingQuoteLoad,
     hiddenInputRef,
     handleAmountAreaPress,
     handleAmountChange,
-    handleToggleAmountDisplay,
+    useKeyboard,
+    setIsKeypadOpen,
   } = useQuickBuyContext();
+
+  // On the keyboard treatment, tapping the headline (re)opens the keypad and
+  // aligns the display mode. Control leaves the headline non-interactive.
+  const handleHeadlinePress = useCallback(() => {
+    setIsKeypadOpen(true);
+    handleAmountAreaPress();
+  }, [setIsKeypadOpen, handleAmountAreaPress]);
+
+  const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
+
+  // In sell mode (priced), the secondary label should show how much of the
+  // source token the user is selling, not how much destination they'll receive.
+  // In buy mode (or unpriced sell) keep the existing dest-token display.
+  const isSellPriced = tradeMode === 'sell' && hasSourcePrice;
+  const cryptoSymbol = isSellPriced
+    ? (sourceToken?.symbol ?? target.tokenSymbol)
+    : (destToken?.symbol ?? target.tokenSymbol);
+  const displayedCryptoAmount = isSellPriced
+    ? sourceTokenAmount
+    : estimatedReceiveAmount;
 
   return (
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
-      fiatCryptoToggleEnabled={features.fiatCryptoToggle}
-      usdAmount={usdAmount}
-      destSymbol={target.tokenSymbol}
-      estimatedReceiveAmount={estimatedReceiveAmount}
-      availableBalanceFiat={sourceBalanceFiat}
-      isQuoteLoading={isQuoteLoading}
+      fiatAmountLabel={fiatAmountLabel}
+      destSymbol={cryptoSymbol}
+      estimatedReceiveAmount={displayedCryptoAmount}
+      isQuoteLoading={isBlockingQuoteLoad}
+      isUnpricedSource={isUnpricedSource}
+      sourceCryptoAmount={sourceAmountTokens}
+      sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       hiddenInputRef={hiddenInputRef}
-      onAmountAreaPress={handleAmountAreaPress}
+      onAmountAreaPress={useKeyboard ? handleHeadlinePress : undefined}
       onAmountChange={handleAmountChange}
-      onToggleAmountDisplay={handleToggleAmountDisplay}
     />
   );
 };

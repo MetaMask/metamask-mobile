@@ -27,9 +27,10 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   badgeElement,
   style,
+  anchorSize,
 }) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
-    useComponentSize();
+    useComponentSize(anchorSize);
 
   const { styles } = useStyles(styleSheet, {
     style,
@@ -50,4 +51,4 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   );
 };
 
-export default BadgeWrapper;
+export default React.memo(BadgeWrapper);

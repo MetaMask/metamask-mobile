@@ -22,12 +22,12 @@ import NotificationsView from './';
 /**
  * Component-view coverage for smoke `enable-notifications-after-onboarding`.
  *
- * Smoke spec: tests/smoke/notifications/enable-notifications-after-onboarding.spec.ts
+ * Smoke spec: tests/smoke-appium/notifications/enable-notifications-after-onboarding.spec.ts
  *
  * Notifications are seeded into Redux via `buildNotificationsState` (controllers
  * + remote feature flag), mirroring what the smoke E2E gets via
  * `mockNotificationServices` mockttp responses — no nock needed at the view
- * layer. `IS_TEST=true` (set at config-load time in `jest.config.view.js`)
+ * layer. `HAS_TEST_OVERRIDES=true` (set at config-load time in `jest.config.view.js`)
  * flips `isNotificationsFeatureEnabled` on without mocking the config module.
  */
 

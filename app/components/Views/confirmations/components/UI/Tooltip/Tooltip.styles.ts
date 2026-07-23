@@ -1,17 +1,25 @@
 import { StyleSheet } from 'react-native';
 
-import { Theme } from '../../../../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
+import {
+  getElevatedSurfaceColor,
+  isPureBlackEnabled,
+} from '../../../../../../util/theme/themeUtils';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
+  const { colors } = theme;
+  const isPureBlackDark =
+    isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
 
   return StyleSheet.create({
-    modal: {
-      margin: 0,
-    },
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
+    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
     modalView: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: getElevatedSurfaceColor(theme),
+      borderWidth: isPureBlackDark ? 1 : 0,
+      borderColor: isPureBlackDark ? colors.border.muted : undefined,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 8,
@@ -19,37 +27,25 @@ const styleSheet = (params: { theme: Theme }) => {
       elevation: 11,
       paddingVertical: 24,
     },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      width: '100%',
-    },
     closeModalBtn: {
       alignSelf: 'center',
       position: 'absolute',
       left: 0,
     },
-    modalTitle: {
-      color: theme.colors.text.default,
-      ...fontStyles.bold,
-      fontSize: 16,
-      marginTop: 8,
-    },
     modalContent: {
       alignSelf: 'stretch',
-      backgroundColor: theme.colors.background.muted,
-      marginTop: 16,
+      marginTop: 8,
+      marginBottom: 30,
       marginHorizontal: 16,
-      paddingVertical: 20,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
     },
     modalContentValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
+    },
+    iconButton: {
+      marginLeft: 4,
     },
   });
 };

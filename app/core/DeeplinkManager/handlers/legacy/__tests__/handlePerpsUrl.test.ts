@@ -2,7 +2,6 @@ import { handlePerpsUrl } from '../handlePerpsUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import ReduxService from '../../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../components/UI/Perps/selectors/perpsController';
 
@@ -18,6 +17,19 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 jest.mock('../../../../../components/UI/Perps/selectors/perpsController');
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PerpsController: {
+        setAttributionContext: jest.fn(),
+        getAttributionContext: jest.fn(() => ({})),
+        clearAttributionContext: jest.fn(),
+        mergeAttributionContext: jest.fn((props = {}) => props),
+      },
+    },
+  },
+}));
 
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;
@@ -68,15 +80,13 @@ describe('handlePerpsUrl', () => {
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-
-      // Fast-forward timer to trigger setParams
-      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
-
-      expect(mockSetParams).toHaveBeenCalledWith({
+      // Tab selection is now passed as route params (read by the Wallet view
+      // via useHomeDeepLinkEffects) instead of a delayed setParams call.
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
         initialTab: 'perps',
         shouldSelectPerpsTab: true,
       });
+      expect(mockSetParams).not.toHaveBeenCalled();
     });
 
     it('navigates to tutorial for first-time user on testnet', async () => {
@@ -259,16 +269,12 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps' });
 
       // Returning users with regular perps URL go to wallet tab
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
-
-      // Fast-forward timer to trigger setParams
-      jest.runAllTimers();
-
-      expect(mockSetParams).toHaveBeenCalledWith({
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
         initialTab: 'perps',
         shouldSelectPerpsTab: true,
       });
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+      expect(mockSetParams).not.toHaveBeenCalled();
     });
 
     it('navigates to markets for screen=markets parameter with additional query params', async () => {
@@ -293,15 +299,12 @@ describe('handlePerpsUrl', () => {
 
       await handlePerpsUrl({ perpsPath: 'perps?screen=tabs' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
-
-      // Fast-forward timer to trigger setParams
-      jest.runAllTimers();
-      expect(mockSetParams).toHaveBeenCalledWith({
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
         initialTab: 'perps',
         shouldSelectPerpsTab: true,
       });
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+      expect(mockSetParams).not.toHaveBeenCalled();
     });
 
     it('passes tab parameter for future extensibility', async () => {
@@ -310,16 +313,13 @@ describe('handlePerpsUrl', () => {
 
       await handlePerpsUrl({ perpsPath: 'perps?screen=tabs&tab=portfolio' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
-
-      // Fast-forward timer to trigger setParams
-      jest.runAllTimers();
-      expect(mockSetParams).toHaveBeenCalledWith({
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
         initialTab: 'perps',
         shouldSelectPerpsTab: true,
         specificTab: 'portfolio',
       });
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+      expect(mockSetParams).not.toHaveBeenCalled();
     });
   });
 
@@ -385,7 +385,7 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           source: 'deeplink',
-          defaultMarketTypeFilter: 'stocks',
+          defaultMarketTypeFilter: 'stock',
         },
       });
     });

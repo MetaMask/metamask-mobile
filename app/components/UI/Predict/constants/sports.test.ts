@@ -1,13 +1,40 @@
 import {
   MONEYLINE_MARKET_TYPES,
   filterSupportedLeagues,
-  getPrimaryMoneylineOutcomes,
   isMoneylineLikeMarketType,
+  isTeamToAdvanceMarketType,
+  shouldShowRegTimeTag,
 } from './sports';
+import type { PredictMarketGame } from '../types';
+
+const game: PredictMarketGame = {
+  id: 'game-1',
+  startTime: '2026-06-11T23:00:00Z',
+  status: 'scheduled',
+  league: 'fifwc',
+  elapsed: null,
+  period: null,
+  score: null,
+  homeTeam: {
+    id: 'team-home',
+    name: 'Korea Republic',
+    logo: 'https://example.com/korea.png',
+    abbreviation: 'KOR',
+    color: 'red',
+    alias: 'South Korea',
+  },
+  awayTeam: {
+    id: 'team-away',
+    name: 'Czechia',
+    logo: 'https://example.com/czechia.png',
+    abbreviation: 'CZE',
+    color: 'blue',
+  },
+};
 
 describe('MONEYLINE_MARKET_TYPES', () => {
-  it('contains exactly 4 entries', () => {
-    expect(MONEYLINE_MARKET_TYPES.size).toBe(4);
+  it('contains exactly 7 entries', () => {
+    expect(MONEYLINE_MARKET_TYPES.size).toBe(7);
   });
 
   it('contains moneyline', () => {
@@ -20,6 +47,18 @@ describe('MONEYLINE_MARKET_TYPES', () => {
 
   it('contains soccer_halftime_result', () => {
     expect(MONEYLINE_MARKET_TYPES.has('soccer_halftime_result')).toBe(true);
+  });
+
+  it('contains soccer_second_half_result', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_second_half_result')).toBe(true);
+  });
+
+  it('contains soccer_first_to_score', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_first_to_score')).toBe(true);
+  });
+
+  it('contains soccer_team_to_advance', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_team_to_advance')).toBe(true);
   });
 
   it('contains tennis_first_set_winner', () => {
@@ -46,6 +85,24 @@ describe('isMoneylineLikeMarketType', () => {
     expect(result).toBe(true);
   });
 
+  it('returns true for soccer_second_half_result', () => {
+    const result = isMoneylineLikeMarketType('soccer_second_half_result');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for soccer_first_to_score', () => {
+    const result = isMoneylineLikeMarketType('soccer_first_to_score');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for soccer_team_to_advance', () => {
+    const result = isMoneylineLikeMarketType('soccer_team_to_advance');
+
+    expect(result).toBe(true);
+  });
+
   it('returns true for tennis_first_set_winner', () => {
     const result = isMoneylineLikeMarketType('tennis_first_set_winner');
 
@@ -56,6 +113,9 @@ describe('isMoneylineLikeMarketType', () => {
     expect(isMoneylineLikeMarketType('Moneyline')).toBe(true);
     expect(isMoneylineLikeMarketType('FIRST_HALF_MONEYLINE')).toBe(true);
     expect(isMoneylineLikeMarketType('Soccer_Halftime_Result')).toBe(true);
+    expect(isMoneylineLikeMarketType('Soccer_Second_Half_Result')).toBe(true);
+    expect(isMoneylineLikeMarketType('Soccer_First_To_Score')).toBe(true);
+    expect(isMoneylineLikeMarketType('Soccer_Team_To_Advance')).toBe(true);
     expect(isMoneylineLikeMarketType('Tennis_First_Set_Winner')).toBe(true);
   });
 
@@ -113,31 +173,37 @@ describe('filterSupportedLeagues', () => {
   });
 });
 
-describe('getPrimaryMoneylineOutcomes', () => {
-  it('keeps only main moneyline outcomes when extended sports markets are present', () => {
-    const moneylineOutcome = { id: 'moneyline', sportsMarketType: 'moneyline' };
-    const spreadOutcome = { id: 'spread', sportsMarketType: 'spreads' };
-    const halftimeOutcome = {
-      id: 'halftime',
-      sportsMarketType: 'soccer_halftime_result',
-    };
-
-    const result = getPrimaryMoneylineOutcomes([
-      spreadOutcome,
-      moneylineOutcome,
-      halftimeOutcome,
-    ]);
-
-    expect(result).toEqual([moneylineOutcome]);
+describe('isTeamToAdvanceMarketType', () => {
+  it('detects team-to-advance market types case-insensitively', () => {
+    expect(isTeamToAdvanceMarketType('soccer_team_to_advance')).toBe(true);
+    expect(isTeamToAdvanceMarketType('SOCCER_TEAM_TO_ADVANCE')).toBe(true);
+    expect(isTeamToAdvanceMarketType('moneyline')).toBe(false);
+    expect(isTeamToAdvanceMarketType()).toBe(false);
   });
+});
 
-  it('falls back to all outcomes when no main moneyline type is present', () => {
-    const outcomes = [
-      { id: 'legacy-away', sportsMarketType: undefined },
-      { id: 'legacy-draw', sportsMarketType: undefined },
-      { id: 'legacy-home', sportsMarketType: undefined },
-    ];
-
-    expect(getPrimaryMoneylineOutcomes(outcomes)).toBe(outcomes);
+describe('shouldShowRegTimeTag', () => {
+  it('shows Reg time only for World Cup regular-time markets', () => {
+    expect(
+      shouldShowRegTimeTag({
+        game,
+        sportsMarketType: 'moneyline',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowRegTimeTag({
+        game,
+        sportsMarketType: 'soccer_team_to_advance',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowRegTimeTag({
+        game: { ...game, league: 'ucl' },
+        sportsMarketType: 'moneyline',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      }),
+    ).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from 'react-redux';
-import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
+import { Hex, CaipAssetType, CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { selectEvmChainId } from '../../../../selectors/networkController';
@@ -30,21 +30,20 @@ import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../../Views/confirmations/hooks/useSendNavigation';
-import parseRampIntent from '../../Ramp/utils/parseRampIntent';
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../../Ramp/utils/determinePreferredProvider';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
+import resolveBuyAssetId from '../../Ramp/utils/resolveBuyAssetId';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import {
   isExploreTokenDetailsSource,
@@ -54,6 +53,8 @@ import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export type TokenActionInput = TokenI & {
+  /** Preferred CAIP-19 when already resolved (e.g. Asset route params). */
+  caipAssetId?: CaipAssetType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   source?: TokenDetailsSource;
 };
@@ -221,10 +222,9 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isAuthenticated = useIsRampAuthenticated();
 
-  return useCallback(() => {
+  return useCallback(async () => {
     const tokenChainIdHex = token.chainId as Hex;
 
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -234,25 +234,12 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    let assetId: string | undefined;
-    try {
-      if (isCaipAssetType(token.address)) {
-        assetId = token.address;
-      } else {
-        assetId = parseRampIntent({
-          chainId: getDecimalChainId(tokenChainIdHex),
-          address: token.address,
-        })?.assetId;
-      }
-    } catch {
-      assetId = undefined;
-    }
+    const assetId = await resolveBuyAssetId(token);
 
     const state = store.getState();
     const rampGeodetectedRegion = getDetectedGeolocation(state);
     const orders = getOrders(state);
     const controllerOrders = selectRampsOrdersForSelectedAccountGroup(state);
-    const rampRoutingDecision = getRampRoutingDecision(state);
 
     const completedOrders = [
       ...completedOrdersFromFiatOrders(orders),
@@ -272,9 +259,8 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
           button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(tokenChainIdHex),
-          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
-          ramp_routing: rampRoutingDecision ?? undefined,
           is_authenticated: isAuthenticated,
           preferred_provider: preferredProvider,
           order_count: orders.length + controllerOrders.length,
@@ -284,15 +270,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [
-    store,
-    token,
-    trackEvent,
-    createEventBuilder,
-    rampUnifiedV1Enabled,
-    isAuthenticated,
-    goToBuy,
-  ]);
+  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
 };
 
 /**
@@ -333,8 +311,12 @@ export const useHandleOnSwap = ({
     const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(token);
     const balanceForCheck = currentTokenBalance ?? token.balance;
 
+    const destTokenOverride = token.chainId
+      ? getSwapDestToken(token.chainId, token.address)
+      : undefined;
+
     if (hasPositiveBalance(balanceForCheck)) {
-      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+      goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
       return;
     }
 
@@ -347,11 +329,15 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
+      goToSwaps(
+        buySourceToken,
+        destTokenOverride ?? currentTokenAsBridgeToken,
+        undefined,
+        true,
+      );
       return;
     }
-
-    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+    goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
   }, [goToSwaps, store, token, currentTokenBalance]);
 };
 
@@ -477,6 +463,8 @@ export const useHandleOnReceive = ({
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
+          location: 'asset-details',
+          account: accountForChain,
         },
       });
     } else {

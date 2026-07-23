@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import { DeviceEventEmitter, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -23,7 +24,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
-import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
+import { useMoneyTokenListCta } from '../../Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../Money/constants/moneyEvents';
 
 export interface FlashListAssetKey {
   address: string;
@@ -76,13 +78,17 @@ const TokenListComponent = ({
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const privacyMode = useSelector(selectPrivacyMode);
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  // Declaring this here and passing it down to avoid O(n) API calls to on-ramp
-  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+  const { tokenListItemCta } = useMoneyTokenListCta(
+    isFullView
+      ? SCREEN_NAMES.TOKENS_SECTION_FULL_VIEW
+      : SCREEN_NAMES.WALLET_HOME,
+  );
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
@@ -159,7 +165,7 @@ const TokenListComponent = ({
   );
 
   const renderTokenListItem = useCallback(
-    ({ item }: { item: FlashListAssetKey }) => (
+    ({ item, index }: { item: FlashListAssetKey; index: number }) => (
       <TokenListItem
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
@@ -167,7 +173,9 @@ const TokenListComponent = ({
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
-        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+        tokenListItemCta={tokenListItemCta}
+        tokenPositionInList={index + 1}
+        tokensInList={displayTokenKeys.length}
         hideSecondaryPriceRow={hideSecondaryPriceRow}
       />
     ),
@@ -177,7 +185,8 @@ const TokenListComponent = ({
       privacyMode,
       showPercentageChange,
       isFullView,
-      shouldShowTokenListItemCta,
+      tokenListItemCta,
+      displayTokenKeys.length,
       hideSecondaryPriceRow,
     ],
   );
@@ -198,7 +207,9 @@ const TokenListComponent = ({
           privacyMode={privacyMode}
           showPercentageChange={showPercentageChange}
           isFullView={isFullView}
-          shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+          tokenListItemCta={tokenListItemCta}
+          tokenPositionInList={index + 1}
+          tokensInList={displayTokenKeys.length}
           hideSecondaryPriceRow={hideSecondaryPriceRow}
         />
       ))}
@@ -219,6 +230,7 @@ const TokenListComponent = ({
   ) : (
     <Box twClassName={'flex-1 bg-default'}>
       <FlashList
+        showsVerticalScrollIndicator={false}
         ref={listRef}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
         data={displayTokenKeys}
@@ -236,7 +248,11 @@ const TokenListComponent = ({
           )
         }
         extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
-        contentContainerStyle={!isFullView ? undefined : tw`px-4`}
+        contentContainerStyle={
+          isFullView
+            ? tw.style('px-4', { paddingBottom: bottomInset })
+            : undefined
+        }
         ListHeaderComponent={wrapEdgeNode(listHeaderComponent, isFullView)}
         ListFooterComponent={wrapEdgeNode(listFooterComponent, isFullView)}
       />

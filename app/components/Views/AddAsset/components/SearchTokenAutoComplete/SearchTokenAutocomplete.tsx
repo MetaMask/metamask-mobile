@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  InteractionManager,
-  TextInput,
-  TouchableOpacity,
-  LayoutAnimation,
-  Platform,
-} from 'react-native';
+import { InteractionManager, LayoutAnimation, Platform } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -27,13 +21,8 @@ import {
   ButtonVariant,
   ButtonSize,
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
   Text,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
+  TextFieldSearch,
 } from '@metamask/design-system-react-native';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -52,6 +41,10 @@ import {
 } from '../../../../../selectors/multichain/multichain';
 import { RootState } from '../../../../../reducers';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../../../../constants/network';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import {
@@ -104,11 +97,18 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     includeStocks: true,
   });
 
-  // Convert API search results to ImportAsset format
+  // Convert API search results to ImportAsset format, hiding the Arc USDC
+  // ERC-20 token which is a display duplicate of Arc's native USDC gas token.
   const allTokens = useMemo(() => {
     if (!selectedChainId) return [];
 
-    return convertTrendingAssetsToImporAssets(apiResults);
+    const tokens = convertTrendingAssetsToImporAssets(apiResults);
+
+    if (selectedChainId === NETWORKS_CHAIN_ID.ARC) {
+      return tokens.filter((t) => t.address !== ARC_USDC_TOKEN_ADDRESS);
+    }
+
+    return tokens;
   }, [apiResults, selectedChainId]);
 
   const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);
@@ -284,8 +284,19 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       if (isAssetsUnifyStateEnabled) {
         try {
           await Promise.all(
-            (addresses as CaipAssetType[]).map((assetId) =>
-              handleAddCustomAsset(assetId, selectedNonEvmAccount.id),
+            // Non-EVM asset addresses are themselves CAIP-19 asset IDs.
+            selectedAssets.map((asset) =>
+              handleAddCustomAsset(
+                asset.address as CaipAssetType,
+                {
+                  address: asset.address,
+                  symbol: asset.symbol,
+                  name: asset.name ?? '',
+                  decimals: asset.decimals ?? 0,
+                  chainId: asset.chainId,
+                },
+                selectedNonEvmAccount.id,
+              ),
             ),
           );
         } catch (error) {
@@ -320,9 +331,15 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       await TokensController.addTokens(selectedAssets, networkClient);
 
       if (isAssetsUnifyStateEnabled) {
-        const caipAssetTypes = addresses
-          .map((address) => toAssetId(address, caipChainId))
-          .filter((assetId): assetId is CaipAssetType => Boolean(assetId));
+        const assetsWithIds = selectedAssets
+          .map((asset) => ({
+            asset,
+            assetId: toAssetId(asset.address, caipChainId),
+          }))
+          .filter(
+            (entry): entry is { asset: ImportAsset; assetId: CaipAssetType } =>
+              Boolean(entry.assetId),
+          );
 
         // Resolve the account scoped to this EVM chain. The hook was
         // initialised without an asset so its internal accountId falls back to
@@ -334,8 +351,18 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         if (evmAccount?.id) {
           try {
             await Promise.all(
-              caipAssetTypes.map((assetId) =>
-                handleAddCustomAsset(assetId, evmAccount.id),
+              assetsWithIds.map(({ asset, assetId }) =>
+                handleAddCustomAsset(
+                  assetId,
+                  {
+                    address: asset.address,
+                    symbol: asset.symbol,
+                    name: asset.name ?? '',
+                    decimals: asset.decimals ?? 0,
+                    chainId: caipChainId,
+                  },
+                  evmAccount.id,
+                ),
               ),
             );
           } catch (error) {
@@ -484,42 +511,24 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
       <Box twClassName="flex-1">
         <Box twClassName="m-4">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="bg-muted rounded-lg px-3"
-            style={tw.style('min-h-[44px]')}
-            testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
-          >
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Md}
-              color={IconColor.IconMuted}
-              style={tw.style('mr-2')}
-            />
-            <TextInput
-              style={tw.style('flex-1 text-base text-default')}
+          <Box testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}>
+            <TextFieldSearch
               value={searchQuery}
+              onChangeText={setSearchQuery}
+              onPressClearButton={() => setSearchQuery('')}
+              clearButtonProps={{
+                testID: ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
+              }}
+              inputProps={{
+                autoCapitalize: 'none',
+                keyboardAppearance: themeAppearance,
+                testID: ImportTokenViewSelectorsIDs.SEARCH_BAR,
+              }}
               onFocus={() => setFocusState(true)}
               onBlur={() => setFocusState(false)}
+              autoFocus={false}
               placeholder={strings('token.search_tokens_placeholder')}
-              placeholderTextColor={colors.text.muted}
-              onChangeText={setSearchQuery}
-              testID={ImportTokenViewSelectorsIDs.SEARCH_BAR}
-              keyboardAppearance={themeAppearance}
             />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery('')}
-                testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
-              >
-                <Icon
-                  name={IconName.CircleX}
-                  size={IconSize.Md}
-                  color={IconColor.IconAlternative}
-                />
-              </TouchableOpacity>
-            )}
           </Box>
         </Box>
 
@@ -528,7 +537,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
           selectedAsset={selectedAssets}
-          chainId={selectedChainId ?? ''}
           networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
           isLoading={isLoading}

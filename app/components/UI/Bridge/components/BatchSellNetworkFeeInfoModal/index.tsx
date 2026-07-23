@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import {
   BottomSheet,
@@ -17,13 +17,11 @@ import { BatchSellNetworkFeeInfoModalSelectorsIDs } from './BatchSellNetworkFeeI
 import { BatchSellNetworkFeeInfoModalParams } from './BatchSellNetworkFeeInfoModal.types';
 
 export function BatchSellNetworkFeeInfoModal() {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellNetworkFeeInfoModalParams>();
   const handleBack = sourceModal
     ? () => navigation.replace(sourceModal.screen, sourceModal.params)
     : undefined;
-
   return (
     <BottomSheet
       testID={BatchSellNetworkFeeInfoModalSelectorsIDs.SHEET}
@@ -44,11 +42,11 @@ export function BatchSellNetworkFeeInfoModal() {
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={BatchSellNetworkFeeInfoModalSelectorsIDs.DESCRIPTION}
         >
-          {strings('bridge.network_fee_info_content')}
+          {strings('bridge.batch_sell_network_fee_info_content')}
         </Text>
       </Box>
     </BottomSheet>

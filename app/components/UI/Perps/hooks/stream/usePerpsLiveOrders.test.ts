@@ -434,4 +434,42 @@ describe('usePerpsLiveOrders', () => {
       expect(result.current.orders[0].orderId).toBe('regular-order');
     });
   });
+
+  it('hides reduce-only trigger TP/SL orders but keeps non-trigger limit closes when hideTpSl is enabled', async () => {
+    let capturedCallback: (orders: Order[]) => void = jest.fn();
+    mockSubscribe.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() => usePerpsLiveOrders({ hideTpSl: true }));
+
+    const orders: Order[] = [
+      {
+        ...mockOrder,
+        orderId: 'limit-close',
+        reduceOnly: true,
+        isTrigger: false,
+        detailedOrderType: 'Limit',
+      } as Order,
+      {
+        ...mockOrder,
+        orderId: 'trigger-tpsl',
+        reduceOnly: true,
+        isTrigger: true,
+        detailedOrderType: 'Limit',
+      } as Order,
+    ];
+
+    act(() => {
+      capturedCallback(orders);
+    });
+
+    // The reduce-only limit close stays visible; the reduce-only trigger TP/SL
+    // order is hidden even though its detailedOrderType is not a TP/SL type.
+    await waitFor(() => {
+      expect(result.current.orders).toHaveLength(1);
+      expect(result.current.orders[0].orderId).toBe('limit-close');
+    });
+  });
 });

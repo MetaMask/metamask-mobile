@@ -7,10 +7,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import {
+  SectionDivider,
+  Box,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
@@ -24,7 +28,7 @@ import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningMod
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
-import { SectionRefreshHandle, HomeSectionMode } from '../../types';
+import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
@@ -35,54 +39,31 @@ import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import { useRefreshTokens } from '../../../../UI/Tokens/hooks/useRefreshTokens';
 import useHomeViewedEvent, {
   HomeSectionNames,
-  type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
-import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
-import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
-import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 
 interface TokensSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
-  /** @default 'default' */
-  mode?: HomeSectionMode;
-  /** Override the section name used in analytics events. */
-  sectionName?: HomeSectionName;
-  /** Override the section header title. */
-  titleOverride?: string;
 }
 
 const MAX_TOKENS_DISPLAYED = 5;
-
-const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
-});
 
 /**
  * TokensSection - Displays user's token balances on the homepage
  * For zero balance accounts, shows popular tokens with buy buttons
  * For accounts with balance, shows the user's token holdings
  */
-const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
-  (
-    {
-      sectionIndex,
-      totalSectionsLoaded,
-      mode = 'default',
-      sectionName: sectionNameOverride,
-      titleOverride,
-    },
-    ref,
-  ) => {
+const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
+  ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
     const isZeroBalanceAccount = useIsZeroBalanceAccount();
@@ -97,7 +78,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       selectAccountGroupBalanceForEmptyState,
     );
     const privacyMode = useSelector(selectPrivacyMode);
-    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+    const { tokenListItemCta } = useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME);
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -145,37 +126,35 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
+    const shouldExcludeMusd =
+      isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
 
-    const title = titleOverride ?? strings('homepage.sections.tokens');
-    const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
+    const title = strings('homepage.sections.tokens');
+    // Exclude mUSD while it is surfaced in the Money hub; otherwise include all tokens.
     const displayTokenKeys = useMemo(
       () =>
         sortedTokenKeys
           .filter((key) =>
-            isCashSectionEnabled ? !isMusdToken(key.address) : true,
+            shouldExcludeMusd ? !isMusdToken(key.address) : true,
           )
           .slice(0, MAX_TOKENS_DISPLAYED),
-      [sortedTokenKeys, isCashSectionEnabled],
+      [sortedTokenKeys, shouldExcludeMusd],
     );
 
     // Show error when an explicit refresh failed, or when balance data has loaded
     // and the account has balance but the selector returned no tokens (controllers
     // failed to load data). The accountGroupBalance null-check prevents a false
     // positive on cold start or for legitimately empty token lists.
-    // When Cash section is enabled, displayTokenKeys can be empty because we filter
-    // out mUSD (shown in Cash section); do not treat "balance but no non-mUSD tokens"
-    // as an error.
+    // When mUSD is surfaced in the Money hub, displayTokenKeys can be empty because
+    // it is filtered out; do not treat "balance but no non-mUSD tokens" as an error.
     const hasBalanceButNoTokens =
       accountGroupBalance != null &&
       accountGroupBalance.totalBalanceInUserCurrency > 0 &&
       displayTokenKeys.length === 0 &&
-      (!isCashSectionEnabled || sortedTokenKeys.length === 0);
+      (!shouldExcludeMusd || sortedTokenKeys.length === 0);
     const showTokensError = hasTokensError || hasBalanceButNoTokens;
-
-    const isPositionsOnly = mode === 'positions-only';
 
     const refresh = useCallback(async () => {
       if (isZeroBalanceAccount) {
@@ -192,20 +171,12 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
-    const isPositionsTokenRowsLoading =
-      isPositionsOnly &&
-      !isZeroBalanceAccount &&
-      displayTokenKeys.length === 0 &&
-      sortedTokenKeys.length === 0;
-    const sectionIsEmpty = isPositionsOnly
-      ? !isPositionsTokenRowsLoading && displayTokenKeys.length === 0
-      : isZeroBalanceAccount || showTokensError;
+    const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef:
-        isPositionsOnly && isZeroBalanceAccount ? null : sectionViewRef,
-      isLoading: isPositionsTokenRowsLoading,
-      sectionName: analyticsName,
+      sectionRef: sectionViewRef,
+      isLoading: false,
+      sectionName: HomeSectionNames.TOKENS,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: sectionIsEmpty,
@@ -213,7 +184,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     });
 
     useSectionPerformance({
-      sectionId: analyticsName,
+      sectionId: HomeSectionNames.TOKENS,
       contentReady:
         showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0,
       isEmpty: isZeroBalanceAccount || showTokensError,
@@ -233,51 +204,52 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       await refresh();
     }, [refresh]);
 
-    // positions-only: hide when account has no tokens
-    if (isPositionsOnly && isZeroBalanceAccount) {
-      return null;
-    }
-
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
         <SectionHeader
           title={title}
+          isInteractive
           onPress={handleViewAllTokens}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
         />
-        {showTokensError ? (
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={handleTokensRetry}
-          />
-        ) : isZeroBalanceAccount ? (
-          <SectionRow>
-            <PopularTokensList
-              ref={popularTokensListRef}
-              onError={setHasTokensError}
+        <Box gap={3}>
+          {showTokensError ? (
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: title.toLowerCase(),
+              })}
+              onRetry={handleTokensRetry}
             />
-          </SectionRow>
-        ) : (
-          <SectionRow>
-            {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
-              <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
-            ) : (
-              displayTokenKeys.map((tokenKey, index) => (
-                <TokenListItem
-                  key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
-                  assetKey={tokenKey}
-                  showRemoveMenu={showRemoveMenu}
-                  setShowScamWarningModal={setShowScamWarningModal}
-                  privacyMode={privacyMode}
-                  showPercentageChange
-                  shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                />
-              ))
-            )}
-          </SectionRow>
-        )}
+          ) : isZeroBalanceAccount ? (
+            <SectionRow>
+              <PopularTokensList
+                ref={popularTokensListRef}
+                onError={setHasTokensError}
+              />
+            </SectionRow>
+          ) : (
+            <SectionRow>
+              {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
+                <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
+              ) : (
+                displayTokenKeys.map((tokenKey, index) => (
+                  <TokenListItem
+                    key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
+                    assetKey={tokenKey}
+                    showRemoveMenu={showRemoveMenu}
+                    setShowScamWarningModal={setShowScamWarningModal}
+                    privacyMode={privacyMode}
+                    showPercentageChange
+                    tokenListItemCta={tokenListItemCta}
+                    tokenPositionInList={index + 1}
+                    tokensInList={displayTokenKeys.length}
+                  />
+                ))
+              )}
+            </SectionRow>
+          )}
+        </Box>
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
@@ -289,103 +261,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         />
       </View>
     );
-  },
-);
-
-const TokensSectionTrendingOnly = forwardRef<
-  SectionRefreshHandle,
-  TokensSectionProps
->(
-  (
-    {
-      sectionIndex,
-      totalSectionsLoaded,
-      sectionName: sectionNameOverride,
-      titleOverride,
-    },
-    ref,
-  ) => {
-    const sectionViewRef = useRef<View>(null);
-    const navigation = useNavigation();
-    const title = titleOverride ?? strings('homepage.sections.tokens');
-    const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    const trendingTransactionActiveAbTests =
-      useHomepageTrendingTransactionActiveAbTests();
-    const {
-      results: trendingTokens,
-      isLoading: isTrendingLoading,
-      fetch: fetchTrendingTokens,
-    } = useTrendingRequest({});
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        refresh: async () => {
-          await fetchTrendingTokens();
-        },
-      }),
-      [fetchTrendingTokens],
-    );
-
-    const trendingTokensToDisplay = useMemo(
-      () => trendingTokens.slice(0, MAX_TOKENS_DISPLAYED),
-      [trendingTokens],
-    );
-
-    const itemCount = trendingTokensToDisplay.length;
-    const willRender = !isTrendingLoading && itemCount > 0;
-
-    const { onLayout } = useHomeViewedEvent({
-      sectionRef: willRender ? sectionViewRef : null,
-      isLoading: isTrendingLoading,
-      sectionName: analyticsName,
-      sectionIndex,
-      totalSectionsLoaded,
-      isEmpty: !isTrendingLoading && itemCount === 0,
-      itemCount,
-    });
-
-    const handleViewAllTokens = useCallback(() => {
-      navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
-    }, [navigation]);
-
-    if (!isTrendingLoading && itemCount === 0) {
-      return null;
-    }
-
-    return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAllTokens}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
-        />
-        <SectionRow>
-          {isTrendingLoading
-            ? Array.from({ length: 3 }, (_, i) => (
-                <TrendingTokensSkeleton key={`skeleton-${i}`} />
-              ))
-            : trendingTokensToDisplay.map((token, index) => (
-                <TrendingTokenRowItem
-                  key={token.assetId}
-                  token={token}
-                  position={index}
-                  tokenDetailsSource={TokenDetailsSource.HomepageTrending}
-                  transactionActiveAbTests={trendingTransactionActiveAbTests}
-                />
-              ))}
-        </SectionRow>
-      </View>
-    );
-  },
-);
-
-const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
-  ({ mode = 'default', ...props }, ref) => {
-    if (mode === 'trending-only') {
-      return <TokensSectionTrendingOnly {...props} ref={ref} />;
-    }
-    return <TokensSectionMain {...props} mode={mode} ref={ref} />;
   },
 );
 

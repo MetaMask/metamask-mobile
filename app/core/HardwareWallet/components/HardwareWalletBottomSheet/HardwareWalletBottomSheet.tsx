@@ -1,11 +1,5 @@
-import React, { useMemo, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-
-import { useTheme } from '../../../../util/theme';
+import React, { useMemo, useCallback, useEffect } from 'react';
+import { BottomSheet } from '@metamask/design-system-react-native';
 
 import {
   HardwareWalletType,
@@ -29,17 +23,13 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
   'hardware-wallet-bottom-sheet';
 
-const createStyles = (colors: { background: { default: string } }) =>
-  StyleSheet.create({
-    bottomSheet: {
-      backgroundColor: colors.background.default,
-    },
-  });
-
 export interface HardwareWalletBottomSheetProps {
   connectionState: HardwareWalletConnectionState;
   deviceSelection: DeviceSelectionState;
   walletType: HardwareWalletType | null;
+
+  /** When true, the bottom sheet returns null regardless of connection state. */
+  forceHideBottomSheet?: boolean;
 
   retryEnsureDeviceReady: () => Promise<void>;
   selectDevice: (device: DiscoveredDevice) => void;
@@ -77,6 +67,7 @@ export const HardwareWalletBottomSheet: React.FC<
   connectionState,
   deviceSelection,
   walletType,
+  forceHideBottomSheet,
   retryEnsureDeviceReady,
   selectDevice,
   rescan,
@@ -88,15 +79,12 @@ export const HardwareWalletBottomSheet: React.FC<
   onCTAClicked,
   onRetryQrScan,
 }) => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [openQrScannerOnMount, setOpenQrScannerOnMount] = React.useState(false);
 
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
   const shouldShow = useMemo(() => {
+    if (forceHideBottomSheet) return false;
     if (!walletType) return false;
     switch (connectionState.status) {
       case ConnectionStatus.Scanning:
@@ -110,7 +98,7 @@ export const HardwareWalletBottomSheet: React.FC<
       default:
         return false;
     }
-  }, [connectionState.status, walletType]);
+  }, [connectionState.status, walletType, forceHideBottomSheet]);
 
   useEffect(() => {
     DevLogger.log(
@@ -265,12 +253,8 @@ export const HardwareWalletBottomSheet: React.FC<
 
   return (
     <BottomSheet
-      ref={bottomSheetRef}
       testID={HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID}
-      isFullscreen={false}
       onClose={handleClose}
-      shouldNavigateBack={false}
-      style={styles.bottomSheet}
     >
       {renderContent()}
     </BottomSheet>

@@ -27,24 +27,13 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-// Mock SkeletonPlaceholder
-jest.mock('react-native-skeleton-placeholder', () => {
+// Mock MMDS Skeleton so loading states are queryable by a stable testID
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
-  const MockSkeletonPlaceholder = ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => <View testID="skeleton-placeholder">{children}</View>;
-
-  MockSkeletonPlaceholder.Item = (props: {
-    width: number | string;
-    height: number;
-    borderRadius: number;
-  }) => <View testID="skeleton-item" {...props} />;
-
   return {
-    __esModule: true,
-    default: MockSkeletonPlaceholder,
+    Skeleton: (props: { width?: number | string; height?: number }) => (
+      <View testID="skeleton-placeholder" {...props} />
+    ),
   };
 });
 
@@ -80,6 +69,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'perps.order.leverage_modal.rises') {
       return 'rises';
+    }
+    if (key === 'perps.order.leverage_modal.price_unavailable') {
+      return 'Price information unavailable';
     }
     return key;
   }),
@@ -206,28 +198,6 @@ jest.mock(
 );
 
 // Mock component library Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: { children: React.ReactNode }) => (
-      <Text {...props}>{props.children}</Text>
-    ),
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMD: 'BodyMD',
-      BodyLGMedium: 'BodyLGMedium',
-      BodySM: 'BodySM',
-      DisplayMD: 'DisplayMD',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Primary: 'Primary',
-    },
-  };
-});
-
 // Mock Icon component
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');

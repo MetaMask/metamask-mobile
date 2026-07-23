@@ -6,6 +6,7 @@ import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
 import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
+import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -137,6 +138,20 @@ describe('ContactForm', () => {
     expect(getByText(strings('address_book.name'))).toBeOnTheScreen();
   });
 
+  it('does not configure the native header via setOptions', () => {
+    renderContactForm();
+
+    expect(mockSetOptions).not.toHaveBeenCalled();
+  });
+
+  it('calls navigation.pop when HeaderStandard back button is pressed', () => {
+    const { getByTestId } = renderContactForm();
+
+    fireEvent.press(getByTestId(CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON));
+
+    expect(mockPop).toHaveBeenCalled();
+  });
+
   it('renders in add mode by default', async () => {
     const { findByTestId, queryByTestId } = renderContactForm();
 
@@ -264,6 +279,41 @@ describe('ContactForm', () => {
       );
       expect(networkSelector).toBeTruthy();
     });
+  });
+
+  it('shows Custom when editing a contact whose network was deleted', async () => {
+    const stateWithDeletedContactNetwork = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AddressBookController: {
+            addressBook: {
+              '0x2a': {
+                [MOCK_ADDRESS]: {
+                  address: MOCK_ADDRESS,
+                  name: 'Deleted Network Contact',
+                  chainId: '0x2a',
+                  memo: 'Saved on a deleted network',
+                  isEns: false,
+                },
+              },
+            },
+          },
+        } as EngineState,
+      },
+      user: initialState.user,
+    };
+
+    const { findByText } = renderContactForm(
+      {
+        mode: 'edit',
+        address: MOCK_ADDRESS,
+      },
+      stateWithDeletedContactNetwork,
+    );
+
+    expect(await findByText(strings('address_book.custom'))).toBeOnTheScreen();
   });
 
   it('handles ENS names correctly', async () => {

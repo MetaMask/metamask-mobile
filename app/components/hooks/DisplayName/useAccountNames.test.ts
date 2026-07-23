@@ -1,10 +1,15 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import { useAccountNames } from './useAccountNames';
+import {
+  useAccountNames,
+  selectAccountGroupNamesByAddress,
+} from './useAccountNames';
 import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
-import { selectInternalAccountsById } from '../../../selectors/accountsController';
-import { selectAccountGroups } from '../../../selectors/multichainAccounts/accountTreeController';
+
+type ResultFuncArgs = Parameters<
+  typeof selectAccountGroupNamesByAddress.resultFunc
+>;
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -41,8 +46,47 @@ describe('useAccountNames', () => {
     account2: mockAccount2,
   };
 
+  // FIX(code-review): The map-building logic moved into the shared
+  // `selectAccountGroupNamesByAddress` selector, so its behaviour is now
+  // exercised directly (via `.resultFunc`) and the hook tests only cover
+  // request→name mapping against a prebuilt map.
+  const mockAccountGroupNames: Record<string, string> = {
+    '0x1234567890123456789012345678901234567890': 'Group 1',
+    '0x0987654321098765432109876543210987654321': 'Group 2',
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(mockAccountGroupNames);
+  });
+
+  describe('selectAccountGroupNamesByAddress', () => {
+    it('builds a lowercased address → group name map', () => {
+      expect(
+        selectAccountGroupNamesByAddress.resultFunc(
+          mockInternalAccountsById as unknown as ResultFuncArgs[0],
+          mockAccountGroups as unknown as ResultFuncArgs[1],
+        ),
+      ).toEqual(mockAccountGroupNames);
+    });
+
+    it('skips group accounts missing from internalAccountsById without throwing', () => {
+      const groupsWithDanglingAccount = [
+        {
+          metadata: { name: 'Group 1' },
+          accounts: ['ghost', 'account1'],
+        },
+      ];
+
+      expect(
+        selectAccountGroupNamesByAddress.resultFunc(
+          mockInternalAccountsById as unknown as ResultFuncArgs[0],
+          groupsWithDanglingAccount as unknown as ResultFuncArgs[1],
+        ),
+      ).toEqual({
+        '0x1234567890123456789012345678901234567890': 'Group 1',
+      });
+    });
   });
 
   it('returns group names for matching addresses', () => {
@@ -59,16 +103,6 @@ describe('useAccountNames', () => {
       },
     ];
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccountsById) {
-        return mockInternalAccountsById;
-      }
-      if (selector === selectAccountGroups) {
-        return mockAccountGroups;
-      }
-      return undefined;
-    });
-
     const { result } = renderHook(() => useAccountNames(requests));
 
     expect(result.current).toEqual(['Group 1', 'Group 2']);
@@ -83,16 +117,6 @@ describe('useAccountNames', () => {
       },
     ];
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccountsById) {
-        return mockInternalAccountsById;
-      }
-      if (selector === selectAccountGroups) {
-        return mockAccountGroups;
-      }
-      return undefined;
-    });
-
     const { result } = renderHook(() => useAccountNames(requests));
 
     expect(result.current).toEqual([undefined]);
@@ -100,16 +124,6 @@ describe('useAccountNames', () => {
 
   it('returns empty array for empty requests', () => {
     const requests: UseDisplayNameRequest[] = [];
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccountsById) {
-        return mockInternalAccountsById;
-      }
-      if (selector === selectAccountGroups) {
-        return mockAccountGroups;
-      }
-      return undefined;
-    });
 
     const { result } = renderHook(() => useAccountNames(requests));
 
@@ -135,16 +149,6 @@ describe('useAccountNames', () => {
       },
     ];
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccountsById) {
-        return mockInternalAccountsById;
-      }
-      if (selector === selectAccountGroups) {
-        return mockAccountGroups;
-      }
-      return undefined;
-    });
-
     const { result } = renderHook(() => useAccountNames(requests));
 
     expect(result.current).toEqual(['Group 1', undefined, 'Group 2']);
@@ -158,16 +162,6 @@ describe('useAccountNames', () => {
         variation: 'normal',
       },
     ];
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccountsById) {
-        return mockInternalAccountsById;
-      }
-      if (selector === selectAccountGroups) {
-        return mockAccountGroups;
-      }
-      return undefined;
-    });
 
     const { result } = renderHook(() => useAccountNames(requests));
 

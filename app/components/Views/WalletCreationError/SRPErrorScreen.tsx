@@ -30,7 +30,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import OldButton, {
   ButtonVariants,
   ButtonSize as OldButtonSize,
@@ -73,7 +73,7 @@ const SRPErrorScreen = ({
 
   useEffect(() => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED,
       )
         .addProperties({
@@ -90,7 +90,7 @@ const SRPErrorScreen = ({
 
   const handleTryAgain = useCallback(async () => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
@@ -109,7 +109,7 @@ const SRPErrorScreen = ({
 
   const handleSendErrorReport = useCallback(() => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
@@ -154,7 +154,7 @@ const SRPErrorScreen = ({
 
   const handleContactSupport = useCallback(() => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
@@ -173,7 +173,7 @@ const SRPErrorScreen = ({
         contentContainerStyle={tw.style('flex-grow p-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="flex-1 items-center pt-12">
+        <Box twClassName="items-center pt-12">
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
@@ -209,33 +209,33 @@ const SRPErrorScreen = ({
             </Text>
           </Box>
 
-          <Box twClassName="w-full mb-6">
-            <Box twClassName="flex-row justify-between items-center mb-2">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('wallet_creation_error.error_report')}
-              </Text>
-              <OldButton
-                variant={ButtonVariants.Link}
-                size={OldButtonSize.Sm}
-                label={
-                  copied
-                    ? strings('wallet_creation_error.copied')
-                    : strings('wallet_creation_error.copy')
-                }
-                onPress={handleCopyError}
-                startIconName={copied ? CLibIconName.Check : CLibIconName.Copy}
-              />
-            </Box>
-            <ScrollView
-              style={tw.style('bg-alternative rounded-lg p-3 max-h-[200px]')}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator
-            >
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {errorReport}
-              </Text>
-            </ScrollView>
+          <Box twClassName="flex-row justify-between items-center mb-2 w-full">
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('wallet_creation_error.error_report')}
+            </Text>
+            <OldButton
+              variant={ButtonVariants.Link}
+              size={OldButtonSize.Sm}
+              label={
+                copied
+                  ? strings('wallet_creation_error.copied')
+                  : strings('wallet_creation_error.copy')
+              }
+              onPress={handleCopyError}
+              startIconName={copied ? CLibIconName.Check : CLibIconName.Copy}
+            />
           </Box>
+          <ScrollView
+            style={tw.style(
+              'bg-alternative rounded-lg p-3 max-h-[200px] mb-6 w-full',
+            )}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+          >
+            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              {errorReport}
+            </Text>
+          </ScrollView>
         </Box>
 
         <Box twClassName="w-full pt-4 pb-6">

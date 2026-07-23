@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -11,7 +12,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -29,8 +32,9 @@ export interface OrderCompletedParams {
 
 const OrderCompleted: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers('back');
   const { fromUpgrade } = useParams<OrderCompletedParams>();
 
   useEffect(() => {
@@ -75,6 +79,11 @@ const OrderCompleted: React.FC = () => {
       edges={['bottom']}
       testID={OrderCompletedSelectors.CONTAINER}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <Box twClassName="flex-1 px-4">
         <Box twClassName="flex-1 items-center ">
           <Image

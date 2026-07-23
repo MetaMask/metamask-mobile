@@ -1,5 +1,9 @@
 import { RootState } from '..';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
+import {
+  DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
+  isTokenOverviewChartInterval,
+} from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
 
 /**
  * Selects the user state
@@ -64,13 +68,41 @@ export const selectMoneyOnboardingSeen = (state: RootState) =>
   state.user?.moneyOnboardingSeen ?? false;
 
 /**
+ * Selects the moneyEarnBannerDismissedTokens state
+ */
+export const selectMoneyEarnBannerDismissedTokens = (state: RootState) =>
+  state.user?.moneyEarnBannerDismissedTokens ?? {};
+
+/**
  * Selects the token overview chart type preference
  */
 export const selectTokenOverviewChartType = (state: RootState) =>
   state.user?.tokenOverviewChartType ?? ChartType.Line;
 
 /**
+ * Selects the persisted candle interval for token overview charts (technical indicators path).
+ */
+export const selectTokenOverviewChartInterval = (state: RootState): string => {
+  const interval = state.user?.tokenOverviewChartInterval;
+  return isTokenOverviewChartInterval(interval)
+    ? interval
+    : DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL;
+};
+
+/**
+ * Selects the active technical indicators for token charts
+ */
+export const selectTokenIndicators = (state: RootState): string[] =>
+  state.user?.tokenIndicators ?? [];
+
+/**
  * Selects the onboarding stepper progress record (keyed by stepper ID)
  */
 export const selectOnboardingStepperProgress = (state: RootState) =>
   state.user?.onboardingStepperProgress ?? {};
+
+/**
+ * Selects whether the App Installed analytics event has already been fired
+ */
+export const selectAppInstallEventFired = (state: RootState) =>
+  state.user?.appInstallEventFired ?? false;

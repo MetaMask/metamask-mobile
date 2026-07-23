@@ -17,7 +17,7 @@ export interface WalletHomeOnboardingStepHeroEntry {
 }
 
 /**
- * Per-step hero assets. In app builds the checklist uses Rive (`onboard_checklist_v05.riv`) on top of
+ * Per-step hero assets. In app builds the checklist uses Rive (`onboard_checklist_v07.riv`) on top of
  * this PNG background; in E2E the image is the only hero layer.
  */
 export const WALLET_HOME_ONBOARDING_STEP_HERO: Record<

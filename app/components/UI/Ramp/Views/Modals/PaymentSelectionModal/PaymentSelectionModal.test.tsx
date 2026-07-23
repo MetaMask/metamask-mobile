@@ -259,9 +259,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('navigates to provider selection when change provider is pressed while payment methods are loading', () => {
@@ -279,9 +284,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('does not navigate to provider selection when change provider is pressed and there is a payment method error', async () => {
@@ -397,7 +407,7 @@ describe('PaymentSelectionModal', () => {
         error: [
           {
             provider: '/providers/transak',
-            error: 'Amount below minimum 25 USD',
+            error: 'Minimum purchase is 25 USD',
           },
         ],
         sorted: [],
@@ -411,8 +421,33 @@ describe('PaymentSelectionModal', () => {
     );
 
     expect(queryAllByText('Debit or Credit').length).toBe(2);
-    expect(queryAllByText('Amount below minimum 25 USD').length).toBe(2);
+    expect(queryAllByText('Minimum purchase is 25 USD').length).toBe(2);
     expect(queryByText('fiat_on_ramp.no_payment_methods_available')).toBeNull();
+  });
+
+  it('shows a generic message instead of a non-limit provider error', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [
+          {
+            provider: '/providers/transak',
+            error: '[object Object]',
+          },
+        ],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { queryByText, queryAllByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryByText('[object Object]')).toBeNull();
+    expect(queryAllByText('fiat_on_ramp.quote_unavailable').length).toBe(2);
   });
 
   it('ignores errors from other providers when sourcing the disabled subtitle', () => {

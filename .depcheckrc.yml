@@ -46,6 +46,11 @@ ignores:
   - 'xml2js'
   # jest-junit is used as a Jest reporter in tests/jest.e2e.detox.config.js
   - 'jest-junit'
+  # Required directly only by scripts/babel/named-capturing-groups-regex.test.ts
+  # (a regression guard for the @react-native/babel-preset patch). It's provided
+  # transitively via @expo/metro-config + Metro, so we don't declare it as a
+  # direct dependency.
+  - 'babel-preset-expo'
 
   # tsconfig path alias pointing to app/controllers/perps (not an npm package)
   - '@metamask/perps-controller'
@@ -76,7 +81,6 @@ ignores:
   - 'chromedriver'
   - 'execa'
   - 'jetifier'
-  - 'metro-react-native-babel-preset'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'prettier-2'
@@ -138,6 +142,12 @@ ignores:
   - 'react-native-nitro-modules'
   # Jest `jest.mock('react-native-worklets', …, { virtual: true })` in testSetup only; not a root dependency
   - 'react-native-worklets'
+  # Activated via /** @jest-environment jsdom */ docblock pragma in test files, not imported directly
+  - 'jest-environment-jsdom'
+  # Used as the Jest `transform` in jest.config.js, but referenced via the
+  # array form (['babel-jest', { configFile: ... }]) which depcheck's Jest
+  # special-parser doesn't recognize (it only detects the plain string form).
+  - 'babel-jest'
 
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'

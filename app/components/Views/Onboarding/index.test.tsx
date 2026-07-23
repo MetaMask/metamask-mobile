@@ -84,12 +84,12 @@ import { endTrace, TraceName } from '../../../util/trace';
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
 
-// Create a mutable mock for isE2E that can be controlled per test
-let mockIsE2E = false;
+// Create a mutable mock for hasTestOverrides that can be controlled per test
+let mockHasTestOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
 }));
 
@@ -253,26 +253,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({}),
-  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-}));
-
-interface EventBuilder {
-  addProperties: () => EventBuilder;
-  build: () => Record<string, unknown>;
-}
-
-interface MetricsProps {
-  metrics: {
-    isEnabled: () => boolean;
-    trackEvent: (...args: unknown[]) => void;
-    enable: (enable?: boolean) => Promise<void>;
-    createEventBuilder: () => EventBuilder;
-  };
-}
-
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
 
@@ -289,41 +269,16 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
         await mockAnalytics.optIn();
       }
     },
-    addTraitsToUser: mockAnalytics.identify,
+    identify: mockAnalytics.identify,
     createDataDeletionTask: jest.fn(),
     checkDataDeleteStatus: jest.fn(),
     getDeleteRegulationCreationDate: jest.fn(),
     getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
     isEnabled: mockAnalytics.isEnabled,
     getAnalyticsId: mockAnalytics.getAnalyticsId,
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
-
-jest.mock(
-  '../../hooks/useMetrics/withMetricsAwareness',
-  () =>
-    <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
-    (props: P) => (
-      <Component
-        {...props}
-        metrics={{
-          isEnabled: () => mockAnalytics.isEnabled(),
-          trackEvent: (event: unknown) =>
-            mockAnalytics.trackEvent(event as never),
-          enable: async (enable?: boolean) => {
-            if (enable === false) {
-              await mockAnalytics.optOut();
-            } else {
-              await mockAnalytics.optIn();
-            }
-          },
-          createEventBuilder: mockCreateEventBuilder,
-        }}
-      />
-    ),
-);
 
 const mockSeedlessOnboardingEnabled = jest.fn();
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
@@ -344,8 +299,8 @@ const mockNav = {
     }
   }),
 };
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     Screen: ({
       component: ScreenComponent,
@@ -790,7 +745,6 @@ describe('Onboarding', () => {
               'error_sheet.no_internet_connection_description',
             ),
             descriptionAlign: 'left',
-            buttonLabel: strings('error_sheet.no_internet_connection_button'),
             primaryButtonLabel: strings(
               'error_sheet.no_internet_connection_button',
             ),
@@ -1504,7 +1458,7 @@ describe('Onboarding', () => {
             title: strings('error_sheet.user_cancelled_title'),
             description: strings('error_sheet.user_cancelled_description'),
             descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.user_cancelled_button'),
+            primaryButtonLabel: strings('error_sheet.user_cancelled_button'),
             type: 'error',
           }),
         }),
@@ -1551,7 +1505,7 @@ describe('Onboarding', () => {
             title: strings('error_sheet.oauth_error_title'),
             description: strings('error_sheet.oauth_error_description'),
             descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.oauth_error_button'),
+            primaryButtonLabel: strings('error_sheet.oauth_error_button'),
             type: 'error',
           }),
         }),
@@ -2783,7 +2737,7 @@ describe('Onboarding', () => {
         success: false,
         vault: null,
       });
-      mockIsE2E = false;
+      mockHasTestOverrides = false;
     });
 
     it('returns early when route.params.delete is true', async () => {
@@ -2809,7 +2763,7 @@ describe('Onboarding', () => {
 
     it('skips vault backup check when running in E2E test environment', async () => {
       // Arrange
-      mockIsE2E = true;
+      mockHasTestOverrides = true;
       mockGetVaultFromBackup.mockClear();
 
       // Act
@@ -2829,7 +2783,7 @@ describe('Onboarding', () => {
       expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
 
       // Cleanup
-      mockIsE2E = false;
+      mockHasTestOverrides = false;
     });
 
     it('checks migration error flag when not E2E and no delete param', async () => {
@@ -3105,6 +3059,27 @@ describe('Onboarding', () => {
       });
 
       backHandlerSpy.mockRestore();
+    });
+
+    it('displays wallet reset notification when delete param is present', async () => {
+      mockRoute.params = { delete: true };
+
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getByText(strings('onboarding.success'))).toBeOnTheScreen();
+      expect(getByText(strings('onboarding.your_wallet'))).toBeOnTheScreen();
+
+      mockRoute.params = {};
     });
   });
 
@@ -3386,7 +3361,7 @@ describe('Onboarding', () => {
               title: strings('error_sheet.oauth_error_title'),
               description: strings('error_sheet.oauth_error_description'),
               descriptionAlign: 'center',
-              buttonLabel: strings('error_sheet.oauth_error_button'),
+              primaryButtonLabel: strings('error_sheet.oauth_error_button'),
               type: 'error',
             }),
           }),
@@ -3512,6 +3487,32 @@ describe('Onboarding', () => {
           "We're investigating this problem. Try creating your wallet again.",
         ),
       ).toBeTruthy();
+    });
+
+    it('hides the notification after the dismiss animation completes', async () => {
+      const { getByText, queryByText, getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getByText('Error report sent')).toBeOnTheScreen();
+
+      fireEvent(getByTestId('base-notification-container'), 'layout', {
+        nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(queryByText('Error report sent')).not.toBeOnTheScreen();
     });
   });
 });

@@ -74,6 +74,10 @@ class MockWebSocket {
     this.onmessage?.({ data: JSON.stringify(data) } as MessageEvent);
   }
 
+  simulateRawMessage(data: string): void {
+    this.onmessage?.({ data } as MessageEvent);
+  }
+
   simulateError(): void {
     this.onerror?.({} as Event);
   }
@@ -232,6 +236,38 @@ describe('WebSocketManager', () => {
         status: 'ongoing',
         turn: undefined,
       });
+    });
+
+    it('ignores sports heartbeat PONG messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToGame('123', callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockGameCacheInstance.updateGame.mockClear();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('PONG');
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockGameCacheInstance.updateGame).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('ignores malformed sports messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToGame('123', callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockGameCacheInstance.updateGame.mockClear();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('Invalid upstream payload');
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockGameCacheInstance.updateGame).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
     it('does not call callback for unrelated gameId', () => {
@@ -513,6 +549,23 @@ describe('WebSocketManager', () => {
       );
     });
 
+    it('sends dynamic subscription message for tokens added to an open connection', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      const market = mockWebSocketInstances[0];
+      market.simulateOpen();
+      market.send.mockClear();
+
+      manager.subscribeToMarketPrices(['token2'], jest.fn());
+
+      expect(market.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'subscribe',
+          assets_ids: ['token2'],
+        }),
+      );
+    });
+
     it('calls callback with price updates for subscribed tokens', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
@@ -602,6 +655,37 @@ describe('WebSocketManager', () => {
       });
 
       expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('ignores market heartbeat PONG messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('PONG');
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('ignores malformed market messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('Invalid upstream payload');
+      mockWebSocketInstances[0].simulateRawMessage(
+        JSON.stringify({ event_type: 123 }),
+      );
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
     it('filters updates to only subscribed tokens', () => {
@@ -732,6 +816,23 @@ describe('WebSocketManager', () => {
         JSON.stringify({
           type: 'market',
           assets_ids: ['token1'],
+        }),
+      );
+    });
+
+    it('sends dynamic subscription message for an orderbook added to an open connection', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.send.mockClear();
+
+      manager.subscribeToOrderbook('token2', jest.fn());
+
+      expect(market.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'subscribe',
+          assets_ids: ['token2'],
         }),
       );
     });
@@ -2115,6 +2216,94 @@ describe('WebSocketManager', () => {
     });
   });
 
+  describe('subscribeToConnectionStatus', () => {
+    it('invokes the callback immediately with the current status', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToConnectionStatus(callback);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        sportsConnected: false,
+        marketConnected: false,
+        rtdsConnected: false,
+      });
+    });
+
+    it('emits again only when a channel actually transitions', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToConnectionStatus(callback);
+      // Initial push.
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenLastCalledWith({
+        sportsConnected: false,
+        marketConnected: true,
+        rtdsConnected: false,
+      });
+    });
+
+    it('does not emit on redundant open events (dedup at the source)', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToConnectionStatus(callback);
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+
+      const callsAfterOpen = callback.mock.calls.length;
+
+      // A second open with no derived-state change must not fan out again.
+      mockWebSocketInstances[0].simulateOpen();
+
+      expect(callback).toHaveBeenCalledTimes(callsAfterOpen);
+    });
+
+    it('fans out a single transition to all subscribers', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      manager.subscribeToConnectionStatus(callback1);
+      manager.subscribeToConnectionStatus(callback2);
+
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+
+      expect(callback1).toHaveBeenLastCalledWith({
+        sportsConnected: false,
+        marketConnected: true,
+        rtdsConnected: false,
+      });
+      expect(callback2).toHaveBeenLastCalledWith({
+        sportsConnected: false,
+        marketConnected: true,
+        rtdsConnected: false,
+      });
+    });
+
+    it('stops notifying after unsubscribe', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      const unsubscribe = manager.subscribeToConnectionStatus(callback);
+      const callsBefore = callback.mock.calls.length;
+      unsubscribe();
+
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+
+      expect(callback).toHaveBeenCalledTimes(callsBefore);
+    });
+  });
+
   describe('cleanup', () => {
     it('cleans up AppState listener on reset', () => {
       mockRemoveListener.mockClear();
@@ -2268,6 +2457,9 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:01Z',
       });
+      // Price emission is throttled: the first message flushes immediately
+      // (leading edge) and the second is coalesced into the trailing flush.
+      jest.advanceTimersByTime(250);
 
       expect(throwingCallback).toHaveBeenCalledTimes(2);
       expect(healthyCallback).toHaveBeenCalledTimes(2);
@@ -2311,51 +2503,34 @@ describe('WebSocketManager', () => {
         context: {
           name: 'WebSocketManager',
           data: {
-            method: 'handleMarketMessage',
+            method: 'flushMarketPriceUpdates',
             subscriptionKey: 'token1',
           },
         },
       });
     });
 
-    it('logs to Logger.error when market WebSocket onerror fires', () => {
+    it('does not report transient market WebSocket onerror events', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToMarketPrices(['token1'], jest.fn());
       mockedLoggerError.mockClear();
 
       mockWebSocketInstances[0].simulateError();
 
-      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
-      const [errorArg, optionsArg] = mockedLoggerError.mock.calls[0];
-      expect(errorArg).toBeInstanceOf(Error);
-      expect(optionsArg).toMatchObject({
-        tags: {
-          feature: PREDICT_CONSTANTS.FEATURE_NAME,
-          provider: POLYMARKET_PROVIDER_ID,
-          channel: 'market',
-        },
-        context: {
-          name: 'WebSocketManager',
-          data: { method: 'onerror' },
-        },
-      });
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
-    it('logs to Logger.error when sports WebSocket onerror fires', () => {
+    it('does not report transient sports WebSocket onerror events', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToGame('123', jest.fn());
       mockedLoggerError.mockClear();
 
       mockWebSocketInstances[0].simulateError();
 
-      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
-      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
-        tags: { channel: 'sports' },
-        context: { data: { method: 'onerror' } },
-      });
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
-    it('logs to Logger.error when RTDS WebSocket onerror fires', () => {
+    it('does not report transient RTDS WebSocket onerror events', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
@@ -2364,11 +2539,7 @@ describe('WebSocketManager', () => {
 
       rtdsInstance.simulateError();
 
-      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
-      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
-        tags: { channel: 'rtds' },
-        context: { data: { method: 'onerror' } },
-      });
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
   });
 
@@ -2744,7 +2915,7 @@ describe('WebSocketManager', () => {
       expect(rtdsInstance.close).not.toHaveBeenCalled();
     });
 
-    it('logs to Logger.error with structured context when RTDS heartbeat fires reconnect', () => {
+    it('does not call Logger.error on the first RTDS heartbeat timeout (transient blip)', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
@@ -2752,6 +2923,30 @@ describe('WebSocketManager', () => {
       rtdsInstance.simulateOpen();
       mockedLoggerError.mockClear();
 
+      // First timeout: should NOT reach Sentry (treated as a transient blip)
+      jest.advanceTimersByTime(20000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('logs to Logger.error with structured context on repeated RTDS heartbeat timeouts', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      mockedLoggerError.mockClear();
+
+      // First timeout: close fired, onclose schedules reconnect
+      jest.advanceTimersByTime(20000);
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+
+      // Simulate reconnect: new socket opens but stays stale again
+      const rtdsInstance2 =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance2.simulateOpen();
+
+      // Second timeout: now Logger.error should fire
       jest.advanceTimersByTime(20000);
 
       expect(mockedLoggerError).toHaveBeenCalled();

@@ -28,11 +28,13 @@ interface ManageCardOptionsProps {
   isFrozen: boolean;
   isFreezeLoading: boolean;
   isPinLoading: boolean;
-  cardDetailsImageUrl: string | null;
+  cardDetailsVisible: boolean;
   onViewCardDetails: () => void;
   onViewPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
+  showUnlinkMoneyAccount: boolean;
+  onUnlinkMoneyAccount: () => void;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
   onChangeAsset: () => void;
@@ -55,11 +57,13 @@ const ManageCardOptions = ({
   isFrozen,
   isFreezeLoading,
   isPinLoading,
-  cardDetailsImageUrl,
+  cardDetailsVisible,
   onViewCardDetails,
   onViewPin,
   onToggleFreeze,
   onManageSpendingLimit,
+  showUnlinkMoneyAccount,
+  onUnlinkMoneyAccount,
   onOrderMetalCard,
   isSpendingLimitActive,
   onChangeAsset,
@@ -87,7 +91,13 @@ const ManageCardOptions = ({
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
 
-  const hideManageOptions = isAuthenticated && !hasPriorityTokenBalance;
+  // Providers without funding limits (e.g. Immersve) expose manage options as
+  // soon as a card exists; balance-gating only applies to funding-limit
+  // providers (Baanx), which hide them until the user has a spendable balance.
+  const hideManageOptions =
+    isAuthenticated &&
+    !hasPriorityTokenBalance &&
+    (capabilities?.supportsFundingLimits ?? true);
 
   const showSpendingLimitDescription = isSpendingLimitActive
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
@@ -109,27 +119,28 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
           />
         )}
-        {((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.change_asset')}
-            description={strings(
-              'card.card_home.manage_card_options.change_asset_description',
-            )}
-            onPress={onChangeAsset}
-            testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-          />
-        )}
+        {capabilities?.supportsFundingLimits &&
+          ((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.change_asset')}
+              description={strings(
+                'card.card_home.manage_card_options.change_asset_description',
+              )}
+              onPress={onChangeAsset}
+              testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
+            />
+          )}
         {((isFullySetUp && !hideManageOptions) || showTeaserOptions) &&
           ((isAuthenticated &&
             capabilities?.supportsCashback &&
             account?.verificationStatus === 'VERIFIED') ||
             (showTeaserOptions && capabilities?.supportsCashback)) && (
             <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.cashback')}
+              title={strings('card.card_home.manage_card_options.cashback', {
+                cashbackPercentage: card?.type === CardType.METAL ? '3' : '1',
+              })}
               description={strings(
-                card?.type === CardType.METAL
-                  ? 'card.card_home.manage_card_options.cashback_description_metal'
-                  : 'card.card_home.manage_card_options.cashback_description',
+                'card.card_home.manage_card_options.cashback_description',
               )}
               rightIcon={IconName.ArrowRight}
               onPress={onCashback}
@@ -140,7 +151,7 @@ const ManageCardOptions = ({
           showTeaserOptions) && (
           <ManageCardListItem
             title={strings(
-              cardDetailsImageUrl && isAuthenticated
+              cardDetailsVisible
                 ? 'card.card_home.manage_card_options.hide_card_details'
                 : 'card.card_home.manage_card_options.view_card_details',
             )}
@@ -196,20 +207,35 @@ const ManageCardOptions = ({
             testID="freeze-card-list-item"
           />
         )}
-        {!isLoading && !hideManageOptions && (
+        {capabilities?.supportsFundingLimits &&
+          !isLoading &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.manage_spending_limit',
+              )}
+              description={strings(showSpendingLimitDescription)}
+              rightIcon={IconName.ArrowRight}
+              onPress={onManageSpendingLimit}
+              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+            />
+          )}
+        {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(
-              'card.card_home.manage_card_options.manage_spending_limit',
+              'card.card_home.manage_card_options.unlink_money_account',
             )}
-            description={strings(showSpendingLimitDescription)}
+            description={strings(
+              'card.card_home.manage_card_options.unlink_money_account_description',
+            )}
             rightIcon={IconName.ArrowRight}
-            onPress={onManageSpendingLimit}
-            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+            onPress={onUnlinkMoneyAccount}
+            testID={CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM}
           />
         )}
       </Box>
-      {((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
-        <>
+      {capabilities?.supportsTravel &&
+        ((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.travel_title')}
             description={strings(
@@ -219,8 +245,7 @@ const ManageCardOptions = ({
             onPress={onTravel}
             testID={CardHomeSelectors.TRAVEL_ITEM}
           />
-        </>
-      )}
+        )}
     </>
   );
 };

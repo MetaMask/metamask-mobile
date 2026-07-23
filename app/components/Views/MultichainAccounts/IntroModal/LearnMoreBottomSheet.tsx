@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import {
-  Text,
-  ButtonIcon,
-  Checkbox,
-  TextVariant,
-  IconName,
-  TextColor,
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
   BottomSheet,
+  Button,
+  ButtonBaseSize,
+  ButtonIcon,
+  ButtonVariant,
+  Checkbox,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';

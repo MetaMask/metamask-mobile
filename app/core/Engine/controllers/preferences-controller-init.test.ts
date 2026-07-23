@@ -8,6 +8,11 @@ import {
   PreferencesControllerMessenger,
 } from '@metamask/preferences-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { UserFeeLevel } from '@metamask/transaction-controller';
+import type {
+  MutablePreferencesControllerWithSavedGasFees,
+  PreferencesStateWithSavedGasFees,
+} from './preferences-controller-types';
 
 jest.mock('@metamask/preferences-controller');
 
@@ -44,6 +49,7 @@ describe('PreferencesControllerInit', () => {
         ipfsGateway: 'https://dweb.link/ipfs/',
         securityAlertsEnabled: true,
         smartTransactionsOptInStatus: true,
+        advancedGasFee: {},
         tokenSortConfig: {
           key: 'tokenFiatAmount',
           order: 'dsc',
@@ -52,6 +58,136 @@ describe('PreferencesControllerInit', () => {
         useNftDetection: true,
         useTokenDetection: true,
       },
+    });
+  });
+
+  describe('setAdvancedGasFee', () => {
+    const account = '0xABC0000000000000000000000000000000000A';
+    const chainId = '0x1';
+
+    function applyUpdate(
+      controller: ReturnType<typeof preferencesControllerInit>['controller'],
+      state: PreferencesStateWithSavedGasFees,
+    ) {
+      const mutableController =
+        controller as unknown as MutablePreferencesControllerWithSavedGasFees;
+      const updateMock = jest.mocked(mutableController.update);
+      const callback = updateMock.mock.calls[
+        updateMock.mock.calls.length - 1
+      ][0] as (draftState: PreferencesStateWithSavedGasFees) => void;
+      callback(state);
+      return state;
+    }
+
+    it('saves gas fee preferences for the normalized account on the chain', () => {
+      const { controller } = preferencesControllerInit(getInitRequestMock());
+      const state = {
+        advancedGasFee: {},
+      } as unknown as PreferencesStateWithSavedGasFees;
+
+      controller.setAdvancedGasFee({
+        account,
+        chainId,
+        gasFeePreferences: {
+          userFeeLevel: UserFeeLevel.CUSTOM,
+          maxBaseFee: '0x1',
+          priorityFee: '0x2',
+        },
+      });
+
+      applyUpdate(controller, state);
+
+      expect(state.advancedGasFee).toStrictEqual({
+        [chainId]: {
+          [account.toLowerCase()]: {
+            userFeeLevel: UserFeeLevel.CUSTOM,
+            maxBaseFee: '0x1',
+            priorityFee: '0x2',
+          },
+        },
+      });
+    });
+
+    it('merges new preferences with existing preferences for other accounts on the chain', () => {
+      const { controller } = preferencesControllerInit(getInitRequestMock());
+      const otherAccount = '0xdef0000000000000000000000000000000000d';
+      const state = {
+        advancedGasFee: {
+          [chainId]: {
+            [otherAccount]: {
+              userFeeLevel: UserFeeLevel.CUSTOM,
+              maxBaseFee: '0x5',
+              priorityFee: '0x6',
+            },
+          },
+        },
+      } as unknown as PreferencesStateWithSavedGasFees;
+
+      controller.setAdvancedGasFee({
+        account,
+        chainId,
+        gasFeePreferences: {
+          userFeeLevel: UserFeeLevel.CUSTOM,
+          maxBaseFee: '0x1',
+          priorityFee: '0x2',
+        },
+      });
+
+      applyUpdate(controller, state);
+
+      expect(state.advancedGasFee).toStrictEqual({
+        [chainId]: {
+          [otherAccount]: {
+            userFeeLevel: UserFeeLevel.CUSTOM,
+            maxBaseFee: '0x5',
+            priorityFee: '0x6',
+          },
+          [account.toLowerCase()]: {
+            userFeeLevel: UserFeeLevel.CUSTOM,
+            maxBaseFee: '0x1',
+            priorityFee: '0x2',
+          },
+        },
+      });
+    });
+
+    it('removes the preference for the account when gasFeePreferences is undefined', () => {
+      const { controller } = preferencesControllerInit(getInitRequestMock());
+      const otherAccount = '0xdef0000000000000000000000000000000000d';
+      const state = {
+        advancedGasFee: {
+          [chainId]: {
+            [account.toLowerCase()]: {
+              userFeeLevel: UserFeeLevel.CUSTOM,
+              maxBaseFee: '0x1',
+              priorityFee: '0x2',
+            },
+            [otherAccount]: {
+              userFeeLevel: UserFeeLevel.CUSTOM,
+              maxBaseFee: '0x5',
+              priorityFee: '0x6',
+            },
+          },
+        },
+      } as unknown as PreferencesStateWithSavedGasFees;
+
+      controller.setAdvancedGasFee({
+        account,
+        chainId,
+        gasFeePreferences: undefined,
+      });
+
+      applyUpdate(controller, state);
+
+      expect(state.advancedGasFee).toStrictEqual({
+        [chainId]: {
+          [otherAccount]: {
+            userFeeLevel: UserFeeLevel.CUSTOM,
+            maxBaseFee: '0x5',
+            priorityFee: '0x6',
+          },
+        },
+      });
     });
   });
 });

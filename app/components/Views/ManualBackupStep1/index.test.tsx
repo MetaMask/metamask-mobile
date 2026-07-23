@@ -9,7 +9,10 @@ import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform } from 'react-native';
-import { AccountType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 
 const mockStore = configureMockStore();
 const store = mockStore({ user: { appTheme: AppThemeKey.light } });
@@ -73,7 +76,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     isEnabled: mockIsMetricsEnabled,
     enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
+    identify: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn(() => ({ build: jest.fn() })),
       build: jest.fn(),
@@ -81,6 +84,13 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: jest.fn(),
     getAnalyticsId: jest.fn(),
   }),
+}));
+
+jest.mock('../../../util/mnemonic', () => ({
+  uint8ArrayToMnemonic: jest.fn(
+    () =>
+      'abstract accident acoustic announce apple april argue artistic atmosphere aunt around awesome',
+  ),
 }));
 
 jest.mock('../../../core/Engine', () => {
@@ -137,7 +147,6 @@ const createMockNavigation = () => ({
 
 interface SetupOptions {
   seedPhrase?: string[];
-  words?: string[];
   backupFlow?: boolean;
   settingsBackup?: boolean;
 }
@@ -183,7 +192,6 @@ const renderPasswordView = async () => {
 
   const result = renderComponent({
     seedPhrase: undefined,
-    words: undefined,
     backupFlow: false,
     settingsBackup: false,
   });
@@ -283,40 +291,53 @@ describe('ManualBackupStep1', () => {
   });
 
   describe('header visibility', () => {
-    it('hides header during onboarding flow', () => {
-      const { setOptions } = renderComponent({
+    it('hides header during onboarding flow', async () => {
+      const { wrapper } = renderComponent({
         backupFlow: false,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      expect(setOptions.mock.calls[0][0].headerShown).toBe(false);
+      await waitFor(() => {
+        expect(
+          wrapper.queryByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeNull();
+      });
     });
 
-    it('shows header with back button for backup flow', () => {
-      const { setOptions } = renderComponent({
+    it('shows header with back button for backup flow', async () => {
+      const { wrapper, goBack } = renderComponent({
         backupFlow: true,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBe('');
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+      );
+      expect(goBack).toHaveBeenCalled();
     });
 
-    it('shows header with back button for settings backup flow', () => {
-      const { setOptions } = renderComponent({
+    it('shows header with back button for settings backup flow', async () => {
+      const { wrapper, goBack } = renderComponent({
         backupFlow: false,
         settingsBackup: true,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBe('');
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+      );
+      expect(goBack).toHaveBeenCalled();
     });
   });
 
@@ -475,7 +496,7 @@ describe('ManualBackupStep1', () => {
       expect(navigate).toHaveBeenCalledWith(
         'OptinMetrics',
         expect.objectContaining({
-          onContinue: expect.any(Function),
+          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
           accountType: AccountType.Metamask,
         }),
       );
@@ -514,7 +535,6 @@ describe('ManualBackupStep1', () => {
 
       const { wrapper } = renderComponent({
         seedPhrase: undefined,
-        words: undefined,
         backupFlow: false,
         settingsBackup: false,
       });
@@ -534,16 +554,63 @@ describe('ManualBackupStep1', () => {
       mockGetPassword.mockResolvedValue({ password: 'test-password' });
       mockExportSeedPhrase.mockResolvedValue(new Uint8Array([0]));
 
-      renderComponent({
+      const { wrapper } = renderComponent({
         seedPhrase: undefined,
-        words: [],
         backupFlow: false,
         settingsBackup: false,
       });
 
       await waitFor(() => {
         expect(mockGetPassword).toHaveBeenCalled();
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({
+          password: 'test-password',
+        });
       });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows password view when getPassword returns false', async () => {
+      mockGetPassword.mockResolvedValue(false);
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows password view when seed phrase export fails after credentials resolve', async () => {
+      mockGetPassword.mockResolvedValue({ password: 'test-password' });
+      mockExportSeedPhrase.mockRejectedValue(new Error('export failed'));
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
     });
   });
 
@@ -568,7 +635,15 @@ describe('ManualBackupStep1', () => {
       });
 
       await waitFor(() => {
-        expect(mockExportSeedPhrase).toHaveBeenCalledWith('correct-password');
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({
+          password: 'correct-password',
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+        ).toBeOnTheScreen();
       });
     });
 

@@ -36,30 +36,30 @@ const mockTraders = [
     rank: 1,
     profileId: 'trader-1',
     addresses: ['0x0000000000000000000000000000000000000001'],
-    name: 'sniperliquid.hl',
+    name: 'alpha.eth',
     imageUrl: 'https://example.com/avatar1.png',
-    pnl30d: 963146.8,
-    roiPercent30d: 0.43,
+    pnl7d: 963146.8,
+    roiPercent7d: 43,
     pnlPerChain: { base: 963146.8 },
   },
   {
     rank: 2,
     profileId: 'trader-2',
     addresses: ['0x0000000000000000000000000000000000000002'],
-    name: 'nervousdegen',
+    name: 'beta.eth',
     imageUrl: 'https://example.com/avatar2.png',
-    pnl30d: 474751.45,
-    roiPercent30d: 3.59,
+    pnl7d: 474751.45,
+    roiPercent7d: 359,
     pnlPerChain: { ethereum: 474751.45 },
   },
   {
     rank: 3,
     profileId: 'trader-3',
     addresses: ['0x0000000000000000000000000000000000000003'],
-    name: 'baznocap',
+    name: 'gamma.eth',
     imageUrl: 'https://example.com/avatar3.png',
-    pnl30d: 374735.16,
-    roiPercent30d: 6.17,
+    pnl7d: 374735.16,
+    roiPercent7d: 617,
     pnlPerChain: { solana: 374735.16 },
   },
 ];
@@ -135,15 +135,15 @@ describe('useTopTraders', () => {
         overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
-        percentageChange: first.roiPercent30d * 100,
-        pnlValue: first.pnl30d,
+        percentageChange: first.roiPercent7d,
+        pnlValue: first.pnl7d,
         pnlPerChain: first.pnlPerChain ?? {},
         isFollowing: false,
       });
     });
 
-    it('defaults percentageChange to 0 when roiPercent30d is null', () => {
-      const entry = { ...mockTraders[0], roiPercent30d: null };
+    it('defaults percentageChange to 0 when roiPercent7d is null', () => {
+      const entry = { ...mockTraders[0], roiPercent7d: null };
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: { traders: [entry] } as never }),
       );
@@ -432,12 +432,51 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('passes null fetch options in the query key when no limit is given', () => {
+    it('passes null fetch options in the query key when neither limit nor chains are given', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['SocialService:fetchLeaderboard', null],
+        }),
+      );
+    });
+
+    it('includes chains in the query key when provided', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['base'] },
+          ],
+        }),
+      );
+    });
+
+    it('builds distinct query keys per chain so each tab caches independently', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['solana'] }));
+      renderHook(() => useTopTraders({ limit: 50, chains: ['ethereum'] }));
+
+      const keys = mockUseQuery.mock.calls.map((c) => c[0].queryKey);
+      expect(keys).toEqual(
+        expect.arrayContaining([
+          ['SocialService:fetchLeaderboard', { limit: 50, chains: ['solana'] }],
+          [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['ethereum'] },
+          ],
+        ]),
+      );
+    });
+
+    it('includes chains alone in the query key when no limit is given', () => {
+      renderHook(() => useTopTraders({ chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['SocialService:fetchLeaderboard', { chains: ['base'] }],
         }),
       );
     });

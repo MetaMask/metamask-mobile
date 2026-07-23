@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "Insufficient funds",
-      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
-      "buy_action": "Buy %{nativeCurrency}"
+      "message": "You do not have enough {{nativeCurrency}} in your account to pay for network fees.",
+      "buy_action": "Buy {{nativeCurrency}}"
     },
     "signed_or_submitted": {
       "title": "Transaction in progress",
@@ -102,8 +102,8 @@
       "message": "Add less than {{amount}} or use a different token.",
       "title": "Insufficient funds"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Add less or use a different token."
+    "insufficient_pay_method_balance": {
+      "message": "Add less or use a different payment method."
     },
     "insufficient_pay_token_native": {
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
@@ -114,11 +114,18 @@
       "title": "Insufficient funds for post quote"
     },
     "no_pay_token_quotes": {
-      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+      "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
       "title": "No quotes"
     },
     "account_no_funds": {
-      "message": "No funds available. Use a different account."
+      "message": "No funds available. Use a different account.",
+      "title": "Insufficient funds"
+    },
+    "fiat_buy_amount_limit": {
+      "title": "Amount out of range"
+    },
+    "deposit_limit": {
+      "title": "Max deposit: {{amount}}"
     },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
@@ -142,7 +149,7 @@
       "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "This specific network requires to maintain a reserve of %{minBalance} %{nativeTokenSymbol} in your account.",
+      "message": "This specific network requires to maintain a reserve of {{minBalance}} {{nativeTokenSymbol}} in your account.",
       "title": "Reserve balance is required"
     },
     "token_trust_signal": {
@@ -210,6 +217,49 @@
     "got_it": "Got it",
     "try_again": "Try again",
     "failed": "Something went wrong"
+  },
+  "scam_questionnaire": {
+    "header_title": "Security check",
+    "continue": "Continue",
+    "select_an_answer": "Select an answer",
+    "q1": {
+      "title": "Did someone you only know online tell you to send this?",
+      "subtitle": "This includes dating apps, social media, and group chats—even if you've spoken on video.",
+      "yes": "Yes, someone I met online told me to send this",
+      "no": "No, I know this person in real life"
+    },
+    "q2": {
+      "title": "What's this payment for?",
+      "subtitle": "Choose the option that best describes this payment.",
+      "investment_title": "Investment",
+      "investment_subtitle": "Buying crypto, tokens, or a financial opportunity",
+      "helping_title": "Helping someone I care about",
+      "helping_subtitle": "Sending money to a partner, family member, or friend in need",
+      "government_title": "Paying the police or a government agency",
+      "government_subtitle": "Fines, taxes, or official fees requested in crypto",
+      "job_title": "A job opportunity or work-related",
+      "job_subtitle": "Onboarding fees, equipment, or task payments",
+      "goods_title": "Buying goods or services",
+      "goods_subtitle": "Paying a merchant for something I'm receiving",
+      "self_transfer_title": "Moving funds between my own wallets",
+      "self_transfer_subtitle": "Self-transfer or moving to cold storage"
+    },
+    "q3": {
+      "title": "Is someone guiding you through this transaction?",
+      "subtitle": "This could be over a phone call, video chat, or sharing your screen.",
+      "yes": "Yes, someone is walking me through the steps right now",
+      "no": "No, I am doing this entirely on my own"
+    },
+    "warning": {
+      "title": "You might be getting scammed right now",
+      "reason_known_scam": "Based on your answers and this recipient's history, this transaction might be a scam.",
+      "reason_irreversible_emphasis": "Crypto transactions are irreversible.",
+      "reason_irreversible_detail": "Once you send, your funds can't be recovered.",
+      "stop_payment": "Stop this payment",
+      "contact_support": "Contact support",
+      "proceed_anyway": "Ignore risks and continue anyway",
+      "proceed_anyway_countdown": "Continue anyway in {{seconds}}s"
+    }
   },
   "date": {
     "months": {
@@ -430,7 +480,7 @@
     "sync_help_step_three": "3. Click on \"Sync with Mobile\"",
     "sync_help_step_four": "4. Scan the QR Code to start syncing",
     "sync_from_browser_extension_button": "Sync with MetaMask extension",
-    "or": "OR",
+    "or": "Or",
     "import_from_seed_button": "Import using Secret Recovery Phrase"
   },
   "login": {
@@ -442,7 +492,7 @@
     "forgot_password": "Forgot password?",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
     "invalid_password": "Password is incorrect, try again.",
-    "type_delete": "Type ‘%{erase}’ to confirm",
+    "type_delete": "Type ‘{{erase}}’ to confirm",
     "erase_my": "Yes, reset wallet",
     "cancel": "Cancel",
     "are_you_sure": "Are you sure?",
@@ -469,6 +519,7 @@
     "security_alert_title": "Security alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "biometric_too_many_attempts": "Too many attempts, please enter your password.",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use a different login method",
@@ -496,7 +547,8 @@
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
-    "select_hardware": "Select a hardware wallet you'd like to use"
+    "select_hardware": "Select a hardware wallet you'd like to use",
+    "other_qr_wallet": "Other QR wallet"
   },
   "enter_password": {
     "title": "Enter your password",
@@ -599,7 +651,7 @@
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
     "create_new_password": "Create password",
     "confirm_password": "Confirm password",
-    "import_button": "IMPORT",
+    "import_button": "Import",
     "cancel_button": "Cancel",
     "password_length_error": "The password needs to be at least 8 characters long",
     "password_dont_match": "Passwords don't match",
@@ -609,6 +661,8 @@
     "invalid_qr_code_title": "Invalid QR Code",
     "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
     "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "or": "or",
+    "import_wallet_from_extension": "import from the MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -668,8 +722,8 @@
     "help": "Support",
     "lock": "Lock",
     "lock_title": "Do you really want to lock your wallet?",
-    "lock_ok": "YES",
-    "lock_cancel": "NO",
+    "lock_ok": "Yes",
+    "lock_cancel": "No",
     "feedback": "Feedback",
     "metamask_support": "MetaMask Support",
     "public_address": "Public address"
@@ -693,6 +747,7 @@
     "paste": "Paste",
     "no_assets_available": "No assets available to send",
     "clear": "Clear",
+    "scan_qr_code": "Scan QR code",
     "to": "To",
     "enter_address_to_send_to": "Enter address to send to",
     "accounts": "Accounts",
@@ -783,6 +838,11 @@
       "select_a_region": "Select a region",
       "search_by_country": "Search by country",
       "no_regions_found": "No regions match \"{{searchString}}\""
+    },
+    "phone_country_modal": {
+      "select_phone_country": "Select phone country",
+      "search_by_country": "Search by country",
+      "no_countries_found": "No countries match \"{{searchString}}\""
     },
     "state_modal": {
       "select_a_state": "Select a state",
@@ -1008,7 +1068,7 @@
       "cancel_order_error": "We were unable to cancel your order. Please try again."
     },
     "webview_modal": {
-      "error": "Webview received error: %{code}"
+      "error": "Webview received error: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
@@ -1037,10 +1097,85 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Top Traders",
-      "chain_filter": {
-        "all": "All"
+      "title": "Weekly top traders",
+      "notifications_banner": {
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Open settings"
       }
+    },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
+    "feed": {
+      "title": "Top traders",
+      "tabs": {
+        "leaderboard": "Leaderboard",
+        "feed": "Feed"
+      },
+      "following": "Following",
+      "all": "All",
+      "trade": "Trade",
+      "action": {
+        "bought": "bought",
+        "sold": "sold",
+        "opened": "opened",
+        "closed": "closed"
+      },
+      "new_position": {
+        "bought": "Holding",
+        "opened": "Open"
+      },
+      "empty_following": {
+        "title": "No activity yet",
+        "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "No activity yet",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "empty_type": {
+        "tokens": {
+          "title": "No token activity"
+        },
+        "perps": {
+          "title": "No perps activity"
+        },
+        "description": "No matching trades in the activity so far."
+      },
+      "load_more": "Load more",
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Try again"
+      },
+      "sub_header": {
+        "at_connector": "at",
+        "market_cap_suffix": "MC",
+        "size_at_price": "{{size}} at {{price}}",
+        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
+      },
+      "no_data": "No data"
+    },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Trade like a pro",
+        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
+      },
+      "slide_follow": {
+        "title": "Follow the best",
+        "description": "Tap to follow the top ten traders who are up big this week."
+      },
+      "slide_notify": {
+        "title": "Never miss a move",
+        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
+        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
+      },
+      "next": "Next",
+      "follow_top_ten": "Follow the top ten",
+      "maybe_later": "Maybe later",
+      "got_it": "Got it",
+      "allow_notifications": "Allow notifications"
     },
     "notification_preferences": {
       "title": "Top traders",
@@ -1051,28 +1186,26 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
-    "trader_notifications": {
-      "title": "Notifications from {{traderName}}",
-      "allow_push_notifications": "Allow push notifications",
-      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow"
-    },
-    "trader_notifications_setup": {
-      "description": "Get real-time alerts on trades from the traders you follow",
-      "allow_push_notifications": "Allow push notifications",
-      "trades_over_label": "Get notified of trades over:",
-      "save": "Save",
-      "title": "Top Traders"
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
     "follow": "Follow",
     "following": "Following",
+    "mute": {
+      "on_accessibility_label": "Notifications on. Tap to mute this trader",
+      "muted_accessibility_label": "Muted. Tap to turn notifications back on",
+      "on_accessibility_label_named": "Notifications on for {{traderName}}. Tap to mute",
+      "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
+    },
     "all_networks": "All networks",
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
-      "win_rate": "win rate",
-      "pnl_30d": "30D P&L",
-      "hold_time": "hold time",
+      "win_rate": "Win rate",
+      "pnl_7d": "7D P&L",
+      "hold_time": "Avg. hold",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
       "hold_time_days": "{{count}} days",
@@ -1083,23 +1216,31 @@
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Recent"
       }
     },
     "trader_position": {
       "market_cap": "Market cap",
+      "price": "Price",
       "position": "Position",
-      "trades": "Trades",
       "buy": "Buy",
-      "bought": "{{name}} bought",
-      "sold": "{{name}} sold",
-      "no_trades": "No trades for this interval",
+      "trade": "Trade",
+      "unsupported_market": "Unsupported market",
+      "bought": "Bought",
+      "sold": "Sold",
+      "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
       "fallback_subtitle": "We couldn't load this position right now.",
       "fallback_back_to_profile": "Back to profile",
-      "fallback_back_to_leaderboard": "Back to leaderboard"
+      "fallback_back_to_leaderboard": "Back to leaderboard",
+      "sell": "Sell",
+      "long": "Long",
+      "short": "Short",
+      "opened": "Opened",
+      "closed_action": "Closed"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -1114,19 +1255,46 @@
       "price_impact": "Price impact",
       "est_points": "Est. points",
       "no_quotes": "No quotes available for this token",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "quote_details_title": "Quote details",
+      "select_quote_title": "Select quote",
+      "rate": "Rate",
+      "get_new_quote": "Get new quote",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
       "includes_mm_fee": "Includes {{fee}}% MM fee",
       "pay_with_no_tokens": "No tokens available to pay with",
-      "pay_with_filter_all": "All"
+      "receive_with_no_tokens": "No tokens available to receive",
+      "pay_with_filter_all": "All",
+      "buy_label": "Buy",
+      "sell_label": "Sell",
+      "receive": "Receive",
+      "max": "Max",
+      "add_funds": "Add funds",
+      "toast_pending_buy": "Buying {{amount}} of {{symbol}} with {{counter}}",
+      "toast_pending_sell": "Selling {{amount}} of {{symbol}} for {{counter}}",
+      "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
+      "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
+      "toast_failed_buy": "Couldn't buy {{symbol}}",
+      "toast_failed_sell": "Couldn't sell {{symbol}}"
     }
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "mode": {
+      "lite": "Lite",
+      "pro": "Pro",
+      "lite_transition_title": "Lite Mode",
+      "pro_transition_title": "Pro Mode",
+      "active_pill_accessibility_label": "Currently {{mode}} mode",
+      "active_pill_accessibility_hint": "Switches to {{mode}} mode"
+    },
+    "send_to_perps": "Send to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage balance",
@@ -1148,6 +1316,10 @@
       "description": "Some services may be unavailable while the team works on a fix.",
       "contact_support": "Contact support"
     },
+    "competition_banner": {
+      "title": "Competition leaderboard",
+      "description": "See where you rank in the Perps trading competition"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
@@ -1157,6 +1329,8 @@
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
     "available": "available",
+    "select_perps_account": "Select perps account",
+    "search_account": "Search an account",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",
@@ -1325,10 +1499,23 @@
       "metamask_fee_tooltip_deposit": "MetaMask does not charge any fees for deposits to Hyperliquid",
       "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
     },
+    "pro_order_form": {
+      "isolated": "Isolated",
+      "choose_order_type": "Choose order type",
+      "size_usd": "Size USD",
+      "size_percentage": "Order size percentage",
+      "toggle_size_unit": "Switch size denomination",
+      "available_balance_unavailable": "-- available",
+      "est_liquidation": "Est Liquidation",
+      "tpsl": "TP / SL",
+      "place_order": "Place order",
+      "close_keyboard": "Close keyboard"
+    },
     "order": {
       "title": "New order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
+      "set_price": "Set price",
       "market_price": "Market price",
       "enter_price": "Enter price",
       "trigger_price": "Trigger price",
@@ -1416,7 +1603,8 @@
         "bid_price": "Bid",
         "difference_from_market": "Difference from market:",
         "limit_price_above": "Limit price is above current price",
-        "limit_price_below": "Limit price is below current price"
+        "limit_price_below": "Limit price is below current price",
+        "limit_price_too_far": "Price can't be more than 95% away from the market price"
       },
       "leverage_modal": {
         "title": "Leverage",
@@ -1428,7 +1616,8 @@
         "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
         "drops": "drops",
         "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "set_leverage": "Set {{leverage}}x",
+        "price_unavailable": "Price information unavailable"
       },
       "type": {
         "title": "Order type",
@@ -1445,7 +1634,7 @@
       "select_payment_token": "Select payment token",
       "select_token": "Select token",
       "no_payment_tokens": "No payment tokens available",
-      "swap": "SWAP",
+      "swap": "Swap",
       "swap_submitted": "Swap Submitted",
       "transaction_id": "Transaction ID: {{txId}}",
       "swap_failed": "Swap Failed",
@@ -1558,6 +1747,8 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
+      "failed_to_place_close_order": "Failed to place close order",
+      "failed_to_place_partial_close_order": "Failed to place partial close order",
       "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
@@ -1825,6 +2016,7 @@
       "position": "Position",
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
+      "related_markets": "Related markets",
       "recent_trades": "Recent activity",
       "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
@@ -1836,7 +2028,11 @@
         "equity": "STOCK",
         "commodity": "COMMODITY",
         "crypto": "CRYPTO",
-        "forex": "FOREX"
+        "forex": "FOREX",
+        "stock": "STOCK",
+        "pre-ipo": "PRE-IPO",
+        "index": "INDEX",
+        "etf": "ETF"
       }
     },
     "buttons": {
@@ -1993,7 +2189,8 @@
         "high": "High",
         "low": "Low",
         "close": "Close",
-        "volume": "Volume"
+        "volume": "Volume",
+        "change": "Change"
       }
     },
     "cancel": "Cancel",
@@ -2014,18 +2211,27 @@
       "commodities": "Commodities",
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
+        "all": "All",
         "crypto": "Crypto",
-        "stocks": "Stocks",
-        "commodities": "Commodities",
+        "pre_ipo": "Pre-IPO",
         "forex": "Forex",
-        "new": "New"
+        "new": "New",
+        "stock": "Stocks",
+        "index": "Indices",
+        "etf": "ETFs",
+        "commodity": "Commodities"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
       "watchlist": "Watchlist",
       "markets": "Markets",
       "explore_markets": "Explore markets",
-      "see_all_perps": "See all perps"
+      "see_all_perps": "See all perps",
+      "products": "Products",
+      "top_movers": "Top movers",
+      "gainers": "Gainers",
+      "losers": "Losers",
+      "recently_added": "Recently added"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -2109,8 +2315,27 @@
     "search_by_token_symbol": "Search by token symbol",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
+    "watchlist": {
+      "empty_title": "Start with the most-traded markets",
+      "empty_subtitle": "Tap + to add a market to your watchlist.",
+      "show_more": "Show {{count}} more",
+      "show_less": "Show less",
+      "add_error": "Failed to add market to watchlist",
+      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
+      "filter_badge_label": "Watchlist",
+      "suggested": "Suggested"
+    },
+    "recently_viewed": "Recently viewed",
+    "recently_searched": "Recently searched",
+    "market_count": "{{count}} market",
+    "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_markets_found": "No markets found",
+    "no_markets_found_description": "No markets match your current filter. Try a different category.",
+    "no_markets_search_description": "No markets match \"{{searchQuery}}\" in this category. Try a different search or clear the filter.",
+    "clear_search": "Clear search",
+    "clear_filter": "Clear filter",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -2155,10 +2380,25 @@
       "funding": {
         "date": "Date",
         "fee": "Fee",
+        "funding_fee": "Funding fee",
         "rate": "Rate"
       },
       "view_on_explorer": "View on block explorer",
       "trade_again": "Trade again",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "approve_funds": "Approve funds",
+        "bridge_funds": "Bridge funds",
+        "receive_usdc": "Receive USDC on Arbitrum",
+        "add_funds": "Add funds",
+        "initiate_withdrawal": "Initiate withdrawal",
+        "process_withdrawal": "Process withdrawal",
+        "receive_funds": "Receive funds"
+      },
       "activity": {
         "deposit_title": "Deposit",
         "withdrawal_title": "Withdrawal",
@@ -2241,6 +2481,11 @@
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
+    },
+    "market_details": {
+      "fullscreen_chart": "Fullscreen chart",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {
@@ -2276,14 +2521,23 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "send_to_predictions": "Send to Predictions",
+    "select_predict_account": "Select predict account",
+    "search_account": "Search an account",
+    "home": {
+      "live_now_title": "Live now",
+      "categories_title": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_title": "Trending",
+      "trending_unable_to_load": "Unable to load markets, please try again"
+    },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
       "btc_price_to_beat": "Price to beat: {{price}}",
       "btc_live": "Live",
-      "nba_2026_champion_title": "NBA 2026 Champion",
       "fifa_world_cup_2026_title": "FIFA World Cup 2026",
       "events_in_total": "{{count}} events in total",
-      "events_in_total_overflow": "{{count}}+ events in total",
+      "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "Props",
       "championship_unavailable": "No championship market to show yet.",
       "mens_world_cup_title": "Men's World Cup",
@@ -2293,19 +2547,24 @@
     },
     "world_cup": {
       "title": "World Cup",
+      "predictions_title": "World Cup predictions",
       "banner_title": "World Cup 2026",
       "banner_description": "Trade every match, every moment.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "All",
         "props": "Props",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Group Stage",
         "round_of_32": "Round of 32",
         "round_of_16": "Round of 16",
-        "quarterfinals": "Quarterfinals",
-        "semifinals": "Semifinals",
+        "quarterfinals": "Quarter-finals",
+        "semifinals": "Semi-finals",
         "third_place": "Third Place",
         "final": "Final",
         "group_a": "Group A",
@@ -2319,8 +2578,15 @@
         "group_i": "Group I",
         "group_j": "Group J",
         "group_k": "Group K",
-        "group_l": "Group L",
-        "third_place_match": "Third Place Match"
+        "group_l": "Group L"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner"
+        },
+        "team_to_advance": {
+          "title": "Team to advance"
+        }
       }
     },
     "prediction_markets": "Prediction markets",
@@ -2372,13 +2638,20 @@
       "new_prediction": "New prediction",
       "resolved_markets": "Resolved markets"
     },
+    "positions_empty": {
+      "description": "Your predictions will appear here, showing your stake and market movements",
+      "browse_markets": "Browse markets"
+    },
     "tabs": {
       "about": "About",
+      "active_positions": "Active positions",
       "positions": "Positions",
+      "history": "History",
       "outcomes": "Outcomes"
     },
     "outcome_groups": {
       "game_lines": "Game Lines",
+      "halves": "Halves",
       "first_half": "1st Half",
       "first_set": "1st Set",
       "team_totals": "Team Totals",
@@ -2407,10 +2680,15 @@
       "first_half_moneyline": "1H Moneyline",
       "first_half_spreads": "1H Spreads",
       "first_half_totals": "1H Totals",
+      "second_half_totals": "2H Totals",
       "points": "Points",
       "assists": "Assists",
       "rebounds": "Rebounds",
+      "basketball_total_points": "Totals",
+      "basketball_odd_even": "Odd/Even Score",
+      "basketball_team_to_score_first": "Team to Score First",
       "goalscorers": "Goalscorers",
+      "soccer_player_goals": "Goals",
       "exact_score": "Exact Score",
       "halftime_result": "Halftime Result",
       "corners": "Corners",
@@ -2422,8 +2700,18 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
+      "soccer_first_half_team_totals": "1st Half Team Totals",
+      "both_teams_to_score_first_half": "1st Half Both Teams to Score",
+      "soccer_second_half_result": "2nd Half Result",
+      "soccer_second_half_team_totals": "2nd Half Team Totals",
+      "both_teams_to_score_second_half": "2nd Half Both Teams to Score",
+      "soccer_team_to_advance": "Team to Advance",
+      "soccer_first_to_score": "First Team to Score",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
+      "tennis_set_handicap": "Set Handicap",
       "tennis_match_totals": "Total Games",
       "tennis_first_set_totals": "1st Set Total Games",
       "tennis_first_set_winner": "1st Set Winner",
@@ -2466,7 +2754,23 @@
       "sports": "Sports",
       "crypto": "Crypto",
       "politics": "Politics",
-      "hot": "Hot"
+      "hot": "Hot",
+      "wimbledon": "Wimbledon"
+    },
+    "feed": {
+      "live": "Live",
+      "popular_today": "Popular today",
+      "tabs": {
+        "basketball": "Basketball",
+        "tennis": "Tennis",
+        "soccer": "Soccer",
+        "baseball": "Baseball",
+        "football": "Football"
+      },
+      "filters": {
+        "all": "All",
+        "live": "Live"
+      }
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
@@ -2476,6 +2780,11 @@
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
+    "balance_error": {
+      "title": "Couldn't load your balance",
+      "description": "Your funds are safe. Check your connection and try again.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "available_amount": "{{amount}} available",
       "value_accessibility": "Portfolio value, {{value}}",
@@ -2529,6 +2838,11 @@
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
+      "claim_pending": "Claim pending",
+      "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, opens market details",
+      "prediction_lost_title": "Prediction lost",
+      "prediction_resolved_title": "Prediction resolved",
+      "prediction_won_title": "Prediction won",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
@@ -2542,9 +2856,21 @@
       "price_per_share": "Price per share",
       "price_impact": "Price impact",
       "net_pnl": "Net P&L",
-      "total_net_pnl": "Total net P&L",
+      "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market net P&L",
       "activity_details": "Activity details",
+      "you_predicted": "You predicted",
+      "view_on_polymarket": "View on Polymarket",
+      "place_another_prediction": "Place another prediction",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "bridge_funds": "Bridge from ETH to USDC.e",
+        "add_funds": "Add funds"
+      },
       "today": "Today",
       "yesterday": "Yesterday"
     },
@@ -2557,6 +2883,10 @@
         "confirmed": {
           "title": "Claimed",
           "description": "{{amount}} added to your balance"
+        },
+        "redeemed": {
+          "title": "Position redeemed",
+          "description": "Your position has been redeemed"
         },
         "error": {
           "title": "Something went wrong",
@@ -2652,6 +2982,7 @@
     "error": {
       "title": "Unable to connect to predictions",
       "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
+      "chart_connection_error": "There is an issue connecting. Please try again later.",
       "retry": "Retry"
     },
     "error_messages": {
@@ -2676,6 +3007,12 @@
       "make_your_prediction": "Make your prediction",
       "volume_display": "${{volume}} Vol",
       "read_terms": "Read the full contract terms and conditions"
+    },
+    "reg_time_info": {
+      "tag": "Reg time",
+      "accessibility_label": "Regulation time market information",
+      "title": "Regulation time",
+      "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
     },
     "sports": {
       "halftime": "Halftime",
@@ -2761,7 +3098,7 @@
     "defi": "DeFi",
     "perps": "Perps",
     "predict": "Predictions",
-    "transactions": "TRANSACTIONS",
+    "transactions": "Transactions",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
@@ -2926,7 +3263,62 @@
     "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
   },
   "activity_view": {
-    "title": "Activity"
+    "title": "Activity",
+    "search_placeholder": "Search tokens, transaction types...",
+    "filter_all_networks": "All networks",
+    "type_filter": {
+      "title": "Types",
+      "all": "All types",
+      "transactions": "Transactions",
+      "buy_sell": "Buy/Sell",
+      "perps": "Perps",
+      "predictions": "Predictions",
+      "metamask_card": "Card"
+    },
+    "perps_filter": {
+      "title": "Perps",
+      "trades": "Trades",
+      "order": "Order",
+      "fundings": "Fundings",
+      "deposits": "Deposits"
+    },
+    "empty_state": {
+      "default_funded": {
+        "description": "Nothing to see yet. Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "default_unfunded": {
+        "description": "Nothing to see yet. Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "predictions": {
+        "description": "Your first prediction could be your best.",
+        "action": "Make a prediction"
+      },
+      "perps": {
+        "description": "Your first perps trade could be your best.",
+        "action": "Browse markets"
+      },
+      "perps_sub_filter": {
+        "description": "No activity for this filter. Try a different Perps filter."
+      },
+      "transactions_funded": {
+        "description": "Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "transactions_unfunded": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "buy_sell": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "metamask_card": {
+        "description": "Manage your MetaMask Card and spend crypto anywhere.",
+        "action": "Open MetaMask Card"
+      }
+    }
   },
   "transactions_view": {
     "title": "Transactions"
@@ -2937,8 +3329,8 @@
     "search_token": "Search",
     "custom_token": "Custom token",
     "tokens": {
-      "cancel_add_token": "CANCEL",
-      "add_token": "IMPORT"
+      "cancel_add_token": "Cancel",
+      "add_token": "Import"
     },
     "collectibles": {
       "cancel_add_collectible": "Cancel",
@@ -3022,17 +3414,31 @@
     "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
     "pna25_blog_post_link": "blog post",
     "pna25_confirm_button": "Accept and close",
-    "pna25_open_settings_button": "Open Settings"
+    "pna25_open_settings_button": "Open Settings",
+    "settings": "You can also",
+    "settings_link": "manage other default settings."
   },
   "onboarding_interest_questionnaire": {
-    "title": "What do you want to do with MetaMask?",
+    "title": "How will you use MetaMask?",
     "description": "Select all that apply.",
-    "option_buy_and_sell_crypto": "Buy and sell crypto",
-    "option_consolidate_wallets": "Consolidate your wallets",
-    "option_advanced_trades": "Make advanced trades",
-    "option_predict_sports_events": "Predict sports and events",
-    "option_crypto_as_money": "Use crypto as money",
-    "option_connect_apps_sites": "Connect to apps or sites",
+    "option_swap_tokens": "Swap tokens",
+    "option_trade_perpetuals": "Trade perpetuals",
+    "option_prediction_markets": "Prediction markets",
+    "option_send_receive_crypto": "Send and receive crypto",
+    "option_earn_and_spend": "Earn and spend",
+    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_other": "Other",
+    "other_placeholder": "How else will you use MetaMask?",
+    "done": "Done",
+    "skip": "Skip",
+    "next": "Next"
+  },
+  "onboarding_crypto_experience_questionnaire": {
+    "title": "What's your experience with crypto?",
+    "option_new": "New",
+    "option_beginner": "Beginner",
+    "option_intermediate": "Intermediate",
+    "option_advanced": "Advanced",
     "continue": "Continue"
   },
   "template_confirmation": {
@@ -3107,8 +3513,8 @@
   },
   "transfer": {
     "title": "Transfer",
-    "send": "SEND",
-    "receive": "RECEIVE"
+    "send": "Send",
+    "receive": "Receive"
   },
   "accounts": {
     "srp_index": "SRP #{{index}}",
@@ -3188,7 +3594,8 @@
       "solana_account_name": "Solana Account",
       "tron_account_name": "Tron Account",
       "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_shasta_account_name": "Tron Shasta Account",
+      "stellar_account_name": "Stellar Account"
     },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
@@ -3244,8 +3651,8 @@
     "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
   },
   "account_selector": {
-    "prev": "PREV",
-    "next": "NEXT",
+    "prev": "Prev",
+    "next": "Next",
     "unlock": "Unlock",
     "forget": "Forget this device"
   },
@@ -3290,10 +3697,10 @@
     "autolock_never": "Never",
     "autolock_after": "After {{time}} seconds",
     "autolock_after_minutes": "After {{time}} minutes",
-    "reveal_seed_words": "Reveal Seed Words",
+    "reveal_seed_words": "Reveal Secret Recovery Phrase",
     "reset_account": "Reset account",
     "state_logs_button": "Download state logs",
-    "reveal_seed_words_button": "REVEAL SEED WORDS",
+    "reveal_seed_words_button": "Reveal Secret Recovery Phrase",
     "reset_account_button": "Reset account",
     "reset_account_confirm_button": "Yes, reset",
     "reset_account_cancel_button": "Cancel",
@@ -3305,17 +3712,17 @@
     "clear_cookies_modal_title": "Clear browser cookies",
     "clear_cookies_modal_message": "We are about to remove your browser's cookies. Are you sure?",
     "reset_account_modal_message": "Resetting your account will clear your transaction activity.",
-    "save_rpc_url": "SAVE",
+    "save_rpc_url": "Save",
     "invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
     "invalid_rpc_url": "Invalid RPC URL",
     "invalid_block_explorer_url": "Invalid Block Explorer URL",
-    "sync": "SYNC",
-    "clear_approved_dapps": "CLEAR APPROVED DAPPS",
-    "clear_browser_history": "CLEAR BROWSER HISTORY",
+    "sync": "Sync",
+    "clear_approved_dapps": "Clear approved dapps",
+    "clear_browser_history": "Clear browser history",
     "clear_approve_dapps_desc": "Clear approved dapps",
     "clear_browser_history_desc": "Clear browser history",
     "clear_browser_cookies_desc": "Clear browser cookies",
-    "clear": "CLEAR",
+    "clear": "Clear",
     "protect_cta": "Protect",
     "protect_title": "Wallet recovery",
     "banner_social_login_enabled": "Log in with {{authConnection}}",
@@ -3371,6 +3778,8 @@
       "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
       "perps_title": "Trading Activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Trading Signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
       "marketing_title": "Updates and Rewards",
@@ -3389,7 +3798,9 @@
       "snaps_title": "Snaps",
       "snaps_desc": "New features and updates",
       "products_announcements_title": "Product announcements",
-      "products_announcements_desc": "New products and features"
+      "products_announcements_desc": "New products and features",
+      "price_alerts_title": "Price Alerts",
+      "price_alerts_desc": "Get notified based on the alerts you've set for a token's price"
     },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts.",
@@ -3484,13 +3895,13 @@
     "general_heading": "General",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
-    "endpoint_returned_different_chain_id": "The endpoint returned a different chain ID: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "The endpoint returned a different chain ID: {{chainIdReturned}}",
     "chain_id_required": "The chain ID is required. It must match the chain ID returned by the network. You can enter a decimal or '0x'-prefixed hexadecimal number.",
     "invalid_hex_number": "Invalid hexadecimal number.",
     "invalid_hex_number_leading_zeros": "Invalid hexadecimal number. Remove any leading zeros.",
     "invalid_number": "Invalid number. Enter a decimal or '0x'-prefixed hexadecimal number.",
     "invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
-    "invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
+    "invalid_number_range": "Invalid number. Enter a number between 1 and {{maxSafeChainId}}",
     "hide_zero_balance_tokens_title": "Hide tokens without balance",
     "hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
     "haptic_feedback_title": "Haptic feedback",
@@ -3767,6 +4178,12 @@
         "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
         "reset_prompt": "Reset push pre-prompt"
       },
+      "social_leaderboard": {
+        "title": "Social Leaderboard",
+        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
+        "onboarding_seen": "Onboarding seen: {{seen}}",
+        "reset_onboarding": "Reset onboarding"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
@@ -3804,6 +4221,58 @@
     "feature_flag_override": {
       "title": "Feature flag override",
       "description": "Override the feature flags for the app locally."
+    },
+    "add_device": {
+      "title": "Add device",
+      "enter_your_password": "Enter your password",
+      "enter_your_password_desc": "For account security, enter your password to view the QR code.",
+      "continue": "Continue",
+      "add_wallets": "Add wallets",
+      "add_wallets_desc": "Pick the wallets you’d like to use on this device. You can add or remove them later.",
+      "select_all": "Select all",
+      "scan_qr_code": "Scan QR code",
+      "scan_qr_code_desc": "Scan this with the MetaMask app on the device you want to add.",
+      "enter_verification_code": "Enter verification code",
+      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
+      "add_device_to_wallet": "Add this device to wallet",
+      "points": {
+        "one": "Open MetaMask on your other device",
+        "two": "Go to",
+        "two_bold_one": "Settings",
+        "two_bold_two": "Add device",
+        "two_icon": ">",
+        "three": "Scan the QR code with this device",
+        "four": "Enter the security code on your extension"
+      },
+      "scan_qr_code_button": "Scan QR code",
+      "scanner": {
+        "searching_label": "Scan the code on your other device",
+        "detected_label": "Code detected",
+        "invalid_qr_title": "Unrecognized QR code",
+        "invalid_qr_description": "Scan the QR code from MetaMask extension's Import to mobile flow.",
+        "expired_qr_title": "QR code expired",
+        "expired_qr_description": "Generate a new QR code on your extension and scan it again within 60 seconds.",
+        "connection_failed_title": "Connection failed",
+        "connection_failed_description": "We couldn't connect to your extension. Try scanning again.",
+        "try_again": "Try again",
+        "permission_title": "Turn on camera access",
+        "permission_description": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
+        "open_settings": "Open Settings"
+      },
+      "enter_code_on_extension": "Enter code on extension",
+      "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
+      "done": "Done",
+      "waiting_for_extension": "Waiting for extension...",
+      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
+      "extension_cancelled_title": "Import cancelled",
+      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
+      "extension_cancelled_button": "Try again",
+      "already_synced_title": "Account already synced",
+      "already_synced_description": "This account has already been synced to this device.",
+      "already_synced_button": "Close",
+      "import_failed_title": "Couldn't add account",
+      "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
+      "import_failed_button": "Close"
     }
   },
   "aes_crypto_test_form": {
@@ -3866,6 +4335,12 @@
     "support_center": "Visit our support center",
     "web_site": "Visit our website",
     "contact_us": "Contact us"
+  },
+  "support_consent": {
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "confirm": "Confirm",
+    "reject": "Don't share"
   },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",
@@ -3948,6 +4423,55 @@
     "buy_unified_description": "Buy crypto with cash",
     "sell": "Sell",
     "sell_description": "Sell crypto for cash"
+  },
+  "price_alerts": {
+    "create_title": "Create {{ticker}} price alert",
+    "edit_title": "Edit {{ticker}} price alert",
+    "price_target": "Price target",
+    "price_change": "Price change",
+    "enter_target_price": "Enter target price",
+    "approx_percent": "≈ {{percent}}%",
+    "approx_percent_above": "above current {{ticker}} price",
+    "approx_percent_below": "below current {{ticker}} price",
+    "recurring": "Recurring",
+    "quick_percentage": "{{percentage}}%",
+    "set_price_alert": "Set price alert",
+    "update_price_alert": "Update price alert",
+    "save_success": "Price alert for {{ticker}} saved successfully.",
+    "save_error": "Failed to save price alert. Please try again.",
+    "delete_success": "Price alert deleted.",
+    "delete_error": "Failed to delete price alert. Please try again.",
+    "toggle_error": "Failed to update price alert. Please try again.",
+    "fetch_error": "Failed to load price alerts. Please try again.",
+    "duplicate_threshold": "An alert at this price already exists.",
+    "manage_title": "Price alerts",
+    "add_alert": "Add alert",
+    "reaches_threshold": "Reaches {{threshold}}",
+    "once_label": "Once",
+    "moves_up": "When price moves up",
+    "moves_down": "When price moves down",
+    "period_1h": "1hr",
+    "period_24h": "24hr",
+    "period_1h_short": "1h",
+    "period_24h_short": "24h",
+    "moves_up_summary": "Moves up {{percent}}%",
+    "moves_down_summary": "Moves down {{percent}}%",
+    "period_recurrence": "{{period}} • {{recurrence}}",
+    "percent_duplicate": "An alert with this configuration already exists.",
+    "percent_max_down": "Price can't fall by more than 100%."
+  },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
   },
   "asset_overview": {
     "market_closed": "Market closed",
@@ -4038,6 +4562,8 @@
       "3y": "3Y",
       "all": "All"
     },
+    "ma_picker_title": "Moving average",
+    "done": "Done",
     "no_chart_data": {
       "title": "No chart data",
       "description": "We could not fetch any data for this token",
@@ -4060,13 +4586,18 @@
     "risky": "Risky",
     "malicious_token_title": "Malicious token",
     "malicious_token_description": "{{symbol}} is a malicious token. Avoid interacting with it or trading it.",
+    "malicious_token_description_no_symbol": "This is a malicious token. Avoid interacting with it or trading it.",
     "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "malicious_token_banner_description_no_symbol": "This token is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
     "suspicious_token_description": "{{symbol}} is a suspicious token.",
+    "suspicious_token_description_no_symbol": "This is a suspicious token.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
     "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "risky_token_description_no_symbol": "This token is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Serious risk signals detected on {{symbol}}. We recommend not trading this token.",
+    "malicious_token_sheet_description_no_symbol": "Serious risk signals detected on this token. We recommend not trading this token.",
     "got_it": "Got it",
     "proceed": "Proceed",
     "continue_anyway": "Continue anyway",
@@ -4239,7 +4770,7 @@
   },
   "transaction": {
     "transaction_id": "Transaction ID",
-    "alert": "ALERT",
+    "alert": "Alert",
     "amount": "Amount",
     "details": "Details",
     "next": "Next",
@@ -4254,9 +4785,9 @@
     "sign_with_ledger": "Sign with Ledger",
     "from": "From",
     "gas_fee": "Gas fee",
-    "gas_fee_fast": "FAST",
-    "gas_fee_average": "AVERAGE",
-    "gas_fee_slow": "SLOW",
+    "gas_fee_fast": "Fast",
+    "gas_fee_average": "Average",
+    "gas_fee_slow": "Slow",
     "hex_data": "Hex data",
     "custom_nonce": "Nonce",
     "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
@@ -4265,11 +4796,11 @@
     "edit_transaction_nonce": "Edit transaction nonce",
     "think_of_the_nonce": "Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.",
     "nonce_warning": "Warning: You may encounter issues with future transactions if you continue. Use with caution.",
-    "review_details": "DETAILS",
-    "review_data": "DATA",
+    "review_details": "Details",
+    "review_data": "Data",
     "data": "Data",
     "data_description": "Data associated with this transaction",
-    "review_function_type": "FUNCTION TYPE",
+    "review_function_type": "Function type",
     "review_function": "Function",
     "review_hex_data": "Hex data",
     "insufficient": "Insufficient funds",
@@ -4338,8 +4869,9 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "submitted": "Submitted",
+    "queued": "Queued",
     "failed": "Failed",
-    "cancelled": "Cancelled",
+    "canceled": "Canceled",
     "signed": "Pending",
     "unconfirmed": "Pending",
     "tokenContractAddressWarning_1": "This address is a ",
@@ -4359,8 +4891,8 @@
     "confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
     "similar_to": "is similar to",
     "contains_zero_width": "contains zero width character",
-    "dapp_suggested_gas": "This gas fee has been suggested by %{origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
-    "dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
+    "dapp_suggested_gas": "This gas fee has been suggested by {{origin}}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
+    "dapp_suggested_eip1559_gas": "This gas fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
     "address_invalid": "Recipient address is invalid.",
     "ens_not_found": "No address has been set for this name.",
     "unknown_qr_code": "Invalid QR code. Please retry.",
@@ -4454,10 +4986,10 @@
     "open_in_browser": "Open in browser",
     "change_url": "Change URL",
     "switch_network": "Switch network",
-    "dapp_browser": "DAPP BROWSER",
+    "dapp_browser": "Dapp browser",
     "dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
-    "featured_dapps": "FEATURED DAPPS",
-    "my_favorites": "MY FAVORITES",
+    "featured_dapps": "Featured dapps",
+    "my_favorites": "Favorites",
     "search": "Search or type a URL",
     "welcome": "Welcome!",
     "remove": "Remove",
@@ -4531,6 +5063,54 @@
     "tx_review_predict_withdraw": "Predictions withdraw",
     "tx_review_perps_withdraw": "Perps withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
+    "activity_buy": "Bought",
+    "activity_sell": "Sold",
+    "activity_claim_musd_bonus": "Claimed mUSD bonus",
+    "activity_wrap": "Wrapped",
+    "activity_unwrap": "Unwrapped",
+    "activity_revoke_spending_cap": "Revoked spending cap",
+    "activity_nft_mint": "NFT mint",
+    "activity_smart_account_upgrade": "Smart account upgrade",
+    "activity_prediction_cashed_out": "Prediction cashed out",
+    "activity_prediction_placed": "Prediction placed",
+    "activity_perps_balance": "Perps balance",
+    "activity_predictions_balance": "Predictions balance",
+    "activity_prediction_account_funded": "Account funded",
+    "activity_prediction_withdrawal": "Prediction withdrawal",
+    "activity_perps_account_funded": "Account funded",
+    "activity_perps_withdrawal": "Perps withdrawal",
+    "activity_perps_open_long": "Opened long",
+    "activity_perps_close_long": "Closed long",
+    "activity_perps_close_long_liquidated": "Closed long — liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long — stop loss",
+    "activity_perps_open_short": "Opened short",
+    "activity_perps_close_short": "Closed short",
+    "activity_perps_close_short_liquidated": "Closed short — liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short — stop loss",
+    "activity_perps_paid_funding_fees": "Paid funding fees",
+    "activity_perps_received_funding_fees": "Received funding fees",
+    "activity_perps_close_short_take_profit": "Closed short — take profit",
+    "activity_perps_close_long_take_profit": "Closed long — take profit",
+    "activity_market_short": "Market short",
+    "activity_stop_market_close_short": "Stop market — close short",
+    "activity_market_close_short": "Market — close short",
+    "activity_limit_short": "Limit short",
+    "activity_limit_close_short": "Limit — close short",
+    "activity_market_long": "Market long",
+    "activity_stop_market_close_long": "Stop market — close long",
+    "activity_market_close_long": "Market — close long",
+    "activity_limit_long": "Limit long",
+    "activity_limit_close_long": "Limit — close long",
+    "activity_order_status_filled": "Filled",
+    "activity_order_status_canceled": "Canceled",
+    "activity_order_status_rejected": "Rejected",
+    "activity_order_status_open": "Open",
+    "activity_trustline_activated": "Trustline activated",
+    "activity_trustline_activating": "Activating trustline",
+    "activity_trustline_activation_failed": "Activate trustline failed",
+    "activity_trustline_deactivating": "Deactivating trustline",
+    "activity_trustline_deactivated": "Trustline deactivated",
+    "activity_trustline_deactivation_failed": "Deactivate trustline failed",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -4555,6 +5135,14 @@
     "receive": "Receive",
     "swap": "Swap",
     "send": "Send",
+    "activity_swapped": "Swapped",
+    "activity_swapping": "Swapping",
+    "activity_swap_failed": "Swap failed",
+    "activity_bridged": "Bridged",
+    "activity_bridging": "Bridging",
+    "activity_bridge_failed": "Bridge failed",
+    "activity_sending": "Sending",
+    "activity_send_failed": "Send failed",
     "redeposit": "Redeposit",
     "interaction": "Interaction",
     "contract_deploy": "Contract deployment",
@@ -4694,7 +5282,8 @@
     "between_account": "Transfer between my accounts",
     "others": "Others",
     "memo": "Memo",
-    "network": "Network"
+    "network": "Network",
+    "custom": "Custom"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
@@ -4828,8 +5417,8 @@
   },
   "watch_asset_request": {
     "title": "Add suggested token",
-    "cancel": "CANCEL",
-    "add": "ADD TOKEN",
+    "cancel": "Cancel",
+    "add": "Add token",
     "message": "Would you like to add this token?",
     "token": "Token",
     "balance": "Balance"
@@ -4859,11 +5448,18 @@
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
   "authentication": {
-    "auth_prompt_desc": "Please authenticate in order to use MetaMask"
+    "auth_prompt_desc": "Please authenticate in order to use MetaMask",
+    "labels": {
+      "remember_me": "Remember Me",
+      "face_id": "Face ID",
+      "touch_id": "Touch ID",
+      "device_authentication": "Device Authentication",
+      "device_passcode": "Device Passcode"
+    }
   },
   "accountApproval": {
-    "title": "CONNECT REQUEST",
-    "walletconnect_title": "WALLETCONNECT REQUEST",
+    "title": "Connect request",
+    "walletconnect_title": "WalletConnect request",
     "action": "Connect to this site?",
     "action_reconnect": "To resume connection, choose the number you see on the site",
     "action_reconnect_deeplink": "Do you want to reconnect to this site?",
@@ -5025,10 +5621,10 @@
     "title": "Your Secret Recovery Phrase",
     "info_text_1": "Carefully write down these words on paper. Their order matters.",
     "info_text_2": "You'll be asked to re-enter it on the next screen",
-    "cta_text": "I'VE COPIED THE PHRASE",
+    "cta_text": "I've copied the phrase",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM"
+    "confirm": "Confirm"
   },
   "account_backup_step_5": {
     "error_title": "Oops!",
@@ -5036,10 +5632,10 @@
     "back": "Back",
     "title": "Confirm Secret Recovery Phrase",
     "info_text": "Insert each word in the order it was presented to you on the previous screen.",
-    "cta_text": "CONFIRM PHRASE",
+    "cta_text": "Confirm phrase",
     "modal_title": "Secret Recovery Phrase confirmed!",
     "modal_text": "This was to ensure you follow this security measure",
-    "modal_button": "NEXT"
+    "modal_button": "Next"
   },
   "account_backup_step_6": {
     "title": "Security tips",
@@ -5049,11 +5645,11 @@
     "tip_3": "Never share this phrase with anyone",
     "disclaimer": "* You can find your Secret Recovery Phrase if you go to ",
     "disclaimer_bold": "Settings > Security and privacy",
-    "cta_text": "GOT IT",
+    "cta_text": "Got it",
     "modal_title": "Congratulations!",
     "modal_text": "You are all backed up and ready to go.",
-    "modal_button": "DONE",
-    "copy_seed_phrase": "COPY Secret Recovery Phrase TO CLIPBOARD"
+    "modal_button": "Done",
+    "copy_seed_phrase": "Copy Secret Recovery Phrase to clipboard"
   },
   "manual_backup": {
     "progressOne": "Create password",
@@ -5209,17 +5805,10 @@
     "success_withdrawal_title": "Withdrawal complete!",
     "error_title": "Oops, something went wrong :/",
     "received_title": "You received {{amount}} {{assetType}}",
-    "metamask_swap_completed_title": "Swap completed",
     "erc20_sent_title": "Funds sent",
     "erc20_received_title": "Funds received",
     "eth_sent_title": "Funds sent",
     "eth_received_title": "Funds received",
-    "rocketpool_stake_completed_title": "Stake complete",
-    "rocketpool_unstake_completed_title": "Unstake complete",
-    "lido_stake_completed_title": "Stake complete",
-    "lido_withdrawal_requested_title": "Withdrawal requested",
-    "lido_withdrawal_completed_title": "Withdrawal completed",
-    "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal",
     "erc721_sent_title": "NFT sent",
     "erc721_received_title": "NFT received",
     "erc1155_sent_title": "NFT sent",
@@ -5252,44 +5841,6 @@
     "lido_withdrawal_requested_message": "Unstaking requested",
     "lido_withdrawal_completed_message": "Unstaking complete",
     "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
-    "push_notification_content": {
-      "funds_sent_title": "Funds sent",
-      "funds_sent_description": "You successfully sent {{amount}} {{symbol}}",
-      "funds_sent_default_description": "You successfully sent some tokens",
-      "funds_received_title": "Funds received",
-      "funds_received_description": "You received {{amount}} {{symbol}}",
-      "funds_received_default_description": "You received some tokens",
-      "metamask_swap_completed_title": "Swap completed",
-      "metamask_swap_completed_description": "Your MetaMask Swap was successful",
-      "nft_sent_title": "NFT sent",
-      "nft_sent_description": "You successfully sent an NFT",
-      "nft_received_title": "NFT received",
-      "nft_received_description": "You received new NFTs",
-      "rocketpool_stake_completed_title": "Stake complete",
-      "rocketpool_stake_completed_description": "Your RocketPool stake was successful",
-      "rocketpool_unstake_completed_title": "Unstake complete",
-      "rocketpool_unstake_completed_description": "Your RocketPool unstake was successful",
-      "lido_stake_completed_title": "Stake complete",
-      "lido_stake_completed_description": "Your Lido stake was successful",
-      "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal",
-      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is now ready to be withdrawn",
-      "lido_withdrawal_requested_title": "Withdrawal requested",
-      "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted",
-      "lido_withdrawal_completed_title": "Withdrawal completed",
-      "lido_withdrawal_completed_description": "Your Lido withdrawal was successful",
-      "perps_position_liquidated_title": "Position liquidated",
-      "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
-      "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
-      "perps_stop_loss_triggered_title": "Stop loss triggered",
-      "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
-      "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
-      "perps_take_profit_triggered_title": "Take profit triggered",
-      "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
-      "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
-      "perps_limit_order_filled_title": "Limit order filled",
-      "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
-      "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
-    },
     "prompt_title": "Receive push notifications",
     "notifications_enabled_error_title": "Something went wrong",
     "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
@@ -5339,30 +5890,50 @@
     "push_onboarding": {
       "new_user": {
         "title": "Never miss a move",
-        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
-        "button_yes": "Yes",
+        "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
+        "button_yes": "Enable notifications",
         "button_not_now": "Not now",
         "preview_card_1": {
-          "eyebrow": "METAMASK",
           "time": "now",
           "title": "ETH is up 4.2% today",
           "message": "Now at $2,668.51 — above your price alert"
         },
         "preview_card_2": {
-          "eyebrow": "METAMASK",
           "time": "1h ago",
           "title": "Received 0.25 ETH",
           "message": "From 0x9a21…4f8c · $640.29"
+        },
+        "toast": {
+          "notifications_on": {
+            "title": "Notifications are on",
+            "description": "We'll send you transactions, price alerts, and updates."
+          },
+          "notifications_off": {
+            "title": "Notifications are off",
+            "description": "Turn them on anytime in Settings → Notifications."
+          }
         }
       },
       "existing_user": {
         "title": "Introducing personalized alerts",
-        "body": "Get notifications that match how you trade. Update anytime.",
+        "body": "Get notifications that match how you trade, based on how you use MetaMask.",
         "card_title": "What you'll get",
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
-        "button_not_now": "Not now"
-      }
+        "button_not_now": "Not now",
+        "toast": {
+          "personalized_alerts_on": {
+            "title": "Personalized alerts is on",
+            "description": "Manage this anytime in Settings."
+          },
+          "personalized_alerts_off": {
+            "title": "Personalized alerts is off",
+            "description": "Turn it on anytime in Settings."
+          }
+        }
+      },
+      "toast_enabled": "Notifications enabled",
+      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -5373,6 +5944,7 @@
   },
   "transaction_update_toast": {
     "title": "Transaction update failed",
+    "amount_update_title": "Error",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
   "payment_request": {
@@ -5450,6 +6022,15 @@
     "title": "Something went wrong",
     "message": "We couldn't load that page",
     "return_home": "Return to home page"
+  },
+  "agentic_cli_approval": {
+    "title": "Review request",
+    "error": {
+      "title": "Something went wrong",
+      "load_description": "We couldn't load this approval request. Check your connection and try again.",
+      "submit_description": "We couldn't complete this approval. Close this screen and start the CLI request again.",
+      "try_again": "Try again"
+    }
   },
   "offline_mode": {
     "title": "You're offline",
@@ -5615,6 +6196,7 @@
     "empty_sell_orders_list": "You don't have any sell orders",
     "purchased_currency": "Purchased {{currency}}",
     "sold_currency": "Sold {{currency}}",
+    "date": "Date",
     "order_status_pending": "Pending",
     "order_status_processing": "Processing",
     "order_status_completed": "Completed",
@@ -5706,7 +6288,7 @@
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
     "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
-    "max": "MAX",
+    "max": "Max",
     "try_again": "Try again",
     "error": "Error",
     "something_went_wrong": "Oops, something went wrong",
@@ -5737,6 +6319,11 @@
     "unsupported_region_modal": {
       "title": "Unavailable in your region",
       "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
+      "got_it": "Got it"
+    },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
       "got_it": "Got it"
     },
     "region": {
@@ -5835,6 +6422,7 @@
     "failed": "Failed",
     "cancelled": "Cancelled",
     "view_on_provider": "View on {{provider}}",
+    "view_order": "View Order",
     "order_id": "Order ID",
     "date_and_time": "Date and time",
     "fees": "Fees",
@@ -6102,7 +6690,7 @@
     }
   },
   "invalid_network": {
-    "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
+    "title": "The chain ID for custom network \n {{network}} \n has to be re-entered.",
     "message": "To protect you from malicious or faulty network providers, chain IDs are now required for all custom networks.",
     "hint": "You can find the chain IDs of most popular networks on ",
     "edit_network_button": "Edit network",
@@ -6134,7 +6722,7 @@
     "cancel": "Cancel",
     "approve": "Approve",
     "unrecognized_chain": "This custom network is not recognized",
-    "invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
+    "invalid_chain": "The {{rpcUrl}} for this Chain ID does not match the chainid.network listing",
     "alert_recommend": "We recommend you",
     "alert_verify": "verify the chain ID",
     "warning_subtext_new": {
@@ -6283,7 +6871,12 @@
   },
   "download_files": {
     "error": "Failed to download attachment.",
-    "unknownError": "Unknown error occurred"
+    "unknownError": "Unknown error occurred",
+    "downloaded_title": "Download complete",
+    "downloaded_message": "{{filename}} was saved to your Downloads folder.",
+    "confirm_message": "Do you want to download \n{{filename}}?",
+    "confirm_action": "Download",
+    "cancel_action": "Cancel"
   },
   "remember_me": {
     "enable_remember_me": "Turn on Remember me",
@@ -6433,9 +7026,16 @@
     "eth_app_not_open_message": "Please open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "Ledger is locked",
     "unlock_ledger_message": "Please unlock your Ledger device",
+    "unlock_ledger_device": "Unlock your Ledger device",
     "cannot_get_account": "Cannot get account",
     "connect_ledger": "Connect Ledger",
-    "looking_for_device": "Looking for device",
+    "looking_for_device": "Looking for your device",
+    "device_found": "Ledger device found",
+    "wait_while_we_search_for_it": "Hold on while we search for it...",
+    "select_device": "Select device",
+    "save_device_selection": "Save",
+    "enable_bluetooth": "Enable Bluetooth",
+    "install_and_open_eth_app": "Install and open the Ethereum app",
     "ledger_reminder_message": "Please make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. Unlock your Ledger device",
     "ledger_reminder_message_step_two": "2. Install and open the Ethereum app",
@@ -6463,6 +7063,8 @@
     "toast_bluetooth_connection_error_title": "Oops, something went wrong :/",
     "toast_bluetooth_connection_error_subtitle": "Ledger has not been connected",
     "try_again": "Try again",
+    "device_not_found": "Device not found",
+    "turn_off_do_not_disturb": "Turn off Do Not Disturb",
     "forget_device": "Forget Ledger",
     "sign_with_ledger": "Sign with Ledger",
     "ledger_pending_confirmation": "Ledger is busy",
@@ -6488,7 +7090,22 @@
     "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one.",
     "hd_path_error": "HD Path is invalid: {{path}}",
     "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
-    "account_name_existed": "Account {{accountName}} already exists"
+    "account_name_existed": "Account {{accountName}} already exists",
+    "unresponsive": "Ledger is unresponsive",
+    "unresponsive_message": "Please disconnect and reconnect your device",
+    "ethereum_app_closed": "Ethereum app is closed",
+    "ethereum_app_closed_message": "Please open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Please unlock your Ledger device to continue",
+    "bluetooth_access_denied": "Bluetooth access denied",
+    "bluetooth_access_denied_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "location_access_denied": "Location access denied",
+    "location_access_denied_message": "Enable location permissions in your device settings to connect your Ledger device",
+    "nearby_devices_denied": "Permissions to nearby devices denied",
+    "nearby_devices_denied_message": "Enable access to nearby devices in Settings to connect your Ledger device",
+    "bluetooth_turned_off": "Bluetooth is turned off",
+    "bluetooth_turned_off_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "bluetooth_connection_failed_reconnect": "Make sure your device is nearby, then try reconnecting",
+    "not_now": "Not now"
   },
   "account_actions": {
     "add_wallet": "Add a wallet",
@@ -6754,32 +7371,38 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
-    "deposit_tooltip_title": "Earn up to {{percentage}}%",
-    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "balance_unavailable": "Balance unavailable",
+    "balance_unavailable_value": "$—",
+    "balance_unavailable_banner_description": "We’re temporarily unable to display your balance. Your funds are safe—please try again shortly.",
     "balance_retry": "Retry",
-    "balance_feature_disabled": "Money account disabled",
     "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
-        "title": "Fund your account",
-        "description": "Drop in some funds. Your Money account will handle the rest.",
+        "title": "Earn up to {{apy}}% APY",
+        "title_no_apy": "Fund your Money account",
+        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
+        "description_no_apy": "Fund your Money account and watch your balance grow.",
         "cta": "Add funds"
       },
       "step_2": {
         "no_card_account": {
           "title": "Get your MetaMask Card",
-          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "description": "Spend your balance and earn on purchases.",
           "cta_primary": "Get card",
           "cta_secondary": "Skip"
         },
         "unlinked_card_account": {
           "title": "Link your MetaMask Card",
-          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "description": "Spend your balance and earn on purchases.",
           "cta_primary": "Link card",
           "cta_secondary": "Skip"
         }
       }
+    },
+    "first_time_deposit": {
+      "title": "First deposit, done",
+      "content": "It’s in your Money account —\n and already earning.",
+      "button_text": "Done"
     },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
@@ -6789,17 +7412,21 @@
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
       "step2_footer_text": "Money account uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
-      "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
+      "step3_body_card_ineligible": "Coming soon! Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
       "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
       "step4_footer_text": "Powered by Monad.",
-      "continue": "Continue"
+      "button_text": "Continue"
     },
     "action": {
       "add": "Add",
-      "transfer": "Transfer",
+      "transfer": "Send",
       "card": "Card"
+    },
+    "token_list_cta": {
+      "get_apy": "Get {{apy}}% APY"
     },
     "earnings": {
       "title": "Estimated earnings",
@@ -6809,15 +7436,16 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Add mUSD to your Money account and earn up to",
+      "description_prefix": "Add mUSD and earn up to",
       "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime.",
-      "description_no_apy": "Add mUSD to your Money account. Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_no_apy": "Add mUSD. Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
     },
     "balance_card": {
       "label": "Money balance",
+      "currency_suffix": " • mUSD",
       "add": "Add",
       "info_sheet_title": "Money balance",
       "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
@@ -6825,7 +7453,8 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
+      "description_with_amounts_prefix": "Convert your",
+      "description_with_amounts_middle": "in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -6835,36 +7464,52 @@
     },
     "metamask_card": {
       "title": "MetaMask Card",
+      "upsell_title": "Get MetaMask Card",
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
-      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY (variable) on your balance.",
-      "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
+      "link_subtitle": "Spend your balance and earn on purchases.",
+      "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
-      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_bullet_apy": "Earn up to ~{{apy}}% APY",
       "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
+      "unlink_pending_title": "Unlinking your card",
+      "unlink_success_title": "Your card was unlinked",
+      "unlink_error": "Something went wrong unlinking your card",
+      "update_pending_title": "Updating your spending limit",
+      "update_success_title": "Your spending limit was updated",
+      "update_error": "Something went wrong updating your spending limit",
       "link_card_sheet_title": "Spend and earn",
-      "link_card_sheet_description": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to {{apy}}% APY.",
+      "link_card_sheet_description_prefix": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to",
+      "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
+      "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
+      "unlink_card_sheet_title_with_funding_source": "Are you sure?",
+      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_another_money_account": "another Money account",
+      "unlink_card_sheet_keep_linked": "Keep linked",
+      "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Manage",
-      "avail_balance": "Avail. balance"
+      "avail_balance": "Avail. balance",
+      "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
-      "title": "What you get",
+      "title": "Benefits",
       "benefit_auto_earn": "Auto-earn up to",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
       "benefit_spend_cashback": "1-3% mUSD back",
-      "benefit_transfer": "Transfer to any of your wallets across MetaMask",
+      "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
     },
@@ -6874,46 +7519,67 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "convert_crypto_description": "From any account",
-      "deposit_funds": "Deposit funds",
-      "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Add your {{amount}} mUSD",
-      "move_musd_description": "From your balance",
-      "receive_external": "Receive from external wallet",
+      "deposit_funds": "Debit card or Apple Pay",
+      "bank_account": "Bank account",
+      "add_musd": "Add mUSD",
+      "receive_external": "External address",
       "coming_soon": "Coming soon"
     },
     "more_sheet": {
       "title": "More",
       "how_it_works": "How it works",
-      "what_you_get": "What you get",
+      "what_you_get": "Benefits",
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds",
-      "between_accounts": "Between accounts",
+      "title": "Send funds to",
+      "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
-      "send_external": "Send to external address",
-      "withdraw_to_bank": "Withdraw to bank"
+      "send_external": "External address",
+      "withdraw_to_bank": "Bank account"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
       "in_progress_body": "This may take a few minutes.",
+      "deposit_in_progress_title_convert": "Converting crypto",
+      "deposit_in_progress_title_add_musd": "Adding funds",
+      "deposit_in_progress_title_card": "Depositing",
+      "deposit_in_progress_body_card": "Card orders may take a few minutes.",
       "success_title": "Transaction complete",
+      "deposit_success_title_convert": "Conversion complete",
+      "deposit_success_title_add_musd": "Funds added",
+      "deposit_success_title_card": "Deposit complete",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",
-      "withdraw_success_body": "{{amount}} moved to {{destination}}.",
-      "withdraw_success_body_no_amount": "Moved to {{destination}}.",
-      "deposit_failed_title": "Transaction failed",
-      "deposit_failed_body": "Unable to add funds. Try again.",
+      "withdraw_in_progress_title": "Transfer in progress",
+      "withdraw_success_title": "Transfer complete",
+      "withdraw_success_body": "{{amount}} added to {{destination}}.",
+      "withdraw_success_body_no_amount": "Added to {{destination}}.",
+      "withdraw_fallback_destination": "your account",
+      "deposit_failed_title_convert": "Conversion failed",
+      "deposit_failed_title_add_musd": "Failed to add funds",
+      "deposit_failed_title_card": "Deposit failed",
+      "deposit_failed_body_convert": "Unable to convert. Try again.",
+      "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
       "withdraw_failed_title": "Transfer failed",
-      "withdraw_failed_body": "Unable to transfer funds. Try again."
+      "withdraw_failed_body": "Unable to transfer funds. Try again.",
+      "send_in_progress_title": "Sending funds",
+      "send_success_title": "Funds sent",
+      "send_success_body": "{{amount}} is available in {{destination}}.",
+      "send_success_body_no_amount": "Available in {{destination}}.",
+      "send_failed_title": "Send failed",
+      "send_failed_body": "Unable to send funds. Try again.",
+      "send_destination_perps": "Perps",
+      "send_destination_predict": "Predict"
     },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
-      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and may change due to various factors. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols.",
-      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance."
+      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
+      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
+      "paragraph_4": "Money account is powered by Monad.",
+      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
       "title": "Estimated earnings",
@@ -6921,33 +7587,61 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
+      "deposit_title": "Projected 1-year balance",
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
     },
     "activity": {
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "load_error": "Couldn't load your activity",
+      "load_error_more": "Couldn't load more activity",
+      "retry": "Retry",
+      "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
-      "filter_transfers": "Transfers"
+      "filter_sends": "Sends",
+      "filter_purchases": "Purchases"
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
-      "how_it_works_subtitle": "See how your money can grow",
+      "how_it_works_subtitle": "See how your money works for you",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "Learn more about mUSD",
       "what_you_get_title": "What you get",
       "what_you_get_subtitle": "Explore your benefits"
     },
     "transaction": {
-      "added": "Added",
       "deposited": "Deposited",
       "received": "Received",
       "sent": "Sent",
-      "transferred": "Transferred",
       "card_transaction": "Card transaction",
+      "cashback": "mUSD back",
+      "card": "Card",
+      "purchase": "Purchase",
+      "refund": "Refund",
+      "musd_back": "mUSD back",
       "converted": "Converted",
+      "depositing": "Depositing",
+      "converting": "Converting",
+      "sending": "Sending",
+      "receiving": "Receiving",
+      "deposit_failed": "Deposit failed",
+      "conversion_failed": "Conversion failed",
+      "send_failed": "Send failed",
+      "received_from": "From: {{address}}",
       "failed": "Failed"
+    },
+    "api_activity_details": {
+      "card_title": "Card transaction",
+      "cashback_title": "mUSD back",
+      "you_spent": "You spent",
+      "you_earned": "You earned",
+      "you_were_refunded": "You were refunded",
+      "completed": "Completed",
+      "paid_to": "Paid to",
+      "received_from": "Received from",
+      "date": "Date"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -6963,24 +7657,58 @@
       "swap": "Swap",
       "buy": "Buy"
     },
+    "earn_banner": {
+      "title": "Earn up to {{apy}}% APY",
+      "title_no_apy": "Earn with your Money account",
+      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "cta": "Add {{symbol}}"
+    },
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
       "description_1": "Add mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault, administered by Veda with risk monitoring by Steakhouse Financial. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols. No staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
       "description_3": "Money account is powered by Monad.",
-      "faq_title": "Frequently asked questions",
-      "faq_placeholder_answer": "Coming soon.",
-      "faq_q1": "How does the {{percentage}}% APY work?",
-      "faq_q2": "What is mUSD?",
-      "faq_q3": "Where does the yield come from?",
-      "faq_q4": "Is my money locked? Can I withdraw anytime?",
-      "faq_q5": "How does spending with the MetaMask Card work?",
-      "faq_q6": "Are there any fees?",
-      "faq_q7": "Does the APY rate change?",
-      "faq_q8": "Is this a savings account or a spending account?",
-      "faq_q9": "Who controls my money?",
-      "faq_q10": "What mUSD back do I get with the MetaMask Card?"
+      "faq_title": "FAQs",
+      "faq_q1": "What is a MetaMask Money account?",
+      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_q2": "Is MetaMask Money account safe?",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_q3": "Who controls my MetaMask Money account?",
+      "faq_a3": "You! MetaMask is a self-custodial wallet, meaning only the account holder's Private Keys control it. MetaMask can't access, freeze, or move your funds. This is what distinguishes us from traditional bank accounts and custodial crypto platforms—there's no third party holding your funds.",
+      "faq_q4": "What are MetaMask Money account fees?",
+      "faq_a4": "There's no fee to open a Money account and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
+      "faq_a4_link": "See the full Card fee breakdown here.",
+      "faq_q5": "How much can I earn with a MetaMask Money account?",
+      "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
+      "faq_q6": "Where does the yield come from?",
+      "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
+      "faq_q7": "What tokens can I deposit into the Money account?",
+      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be deposited into the Money account, but standard fees may apply. You can also fund your Money account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_q8": "Can I withdraw from the MetaMask Money account anytime?",
+      "faq_a8": "Yes. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. If liquidity is tight, there may be temporary delays.",
+      "faq_q9": "Do I need to complete identity verification to use MetaMask Money account?",
+      "faq_a9": "No, opening a Money account doesn't require identity verification. However, certain features, including Card and Ramps, do require verification. Checks are carried out by third-party providers that operate regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
+      "faq_q10": "Which countries is MetaMask Money account available in?",
+      "faq_a10": "Most places! We currently aren't available in the UK and countries on the USA sanctions list.",
+      "disclosures_title": "Risk and Disclosures",
+      "disclosures_body": "Money account is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
+    },
+    "geo_block": {
+      "title": "Money account unavailable",
+      "description": "Money account isn't available in your location due to local restrictions or sanctions.",
+      "button": "Got it"
+    },
+    "deeplink_modal": {
+      "button": "Got it",
+      "money_account_disabled": {
+        "title": "Money account is temporarily unavailable",
+        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+      },
+      "excluded_from_gradual_rollout": {
+        "title": "Money Account is on its way",
+        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
     }
   },
   "stake": {
@@ -7240,19 +7968,19 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
-      "withdraw_title": "Withdraw as",
+      "receive_title": "Receive",
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "perps": "Perps",
-      "perps_account": "Perps account",
+      "perps_balance": "Perps balance",
       "predict": "Predict",
-      "predict_account": "Predict account",
+      "predict_balance": "Predict balance",
       "add": "Add",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
-      "other_assets_withdraw_description": "Select the token you want to withdraw",
+      "other_assets_receive_description": "Select the token you want to receive",
       "money_account": "Money account"
     },
     "staking_footer": {
@@ -7271,6 +7999,7 @@
       "network": "Network",
       "primary_type": "Primary type",
       "request_from": "Request from",
+      "external_app": "External app",
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
@@ -7279,6 +8008,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_token": "Select token",
       "from": "From",
       "to": "To",
       "total": "Total",
@@ -7307,7 +8037,7 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "money_account_add_money": "Add funds",
-      "money_account_transfer_money": "Transfer funds"
+      "money_account_send": "Send"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7338,11 +8068,14 @@
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
       },
+      "money_account_deposit": {
+        "transaction_fee": "Conversion fees include network costs and may include provider fees."
+      },
       "money_account_withdraw": {
-        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "Conversion fees include network costs and may include provider fees."
       },
       "title": {
-        "transaction_fee": "Fees"
+        "transaction_fee": "Transaction fees"
       },
       "network_fee": "Network fees depend on how busy the network is and how complex your transaction is."
     },
@@ -7427,7 +8160,8 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_balance": "Projected {{projectedYears}}-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:",
+      "earn_up_to_apy": "Earn {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -7443,6 +8177,7 @@
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
+    "deposit_edit_amount_money_account_send": "Send",
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
     "preparing_order": "Preparing order"
   },
@@ -7469,6 +8204,7 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "batch_sell_transaction_label": "Batch sell",
     "batch_sell_select_title": "Select up to 5 tokens",
     "batch_sell_select_subtitle": "All tokens need to be on the same network.",
     "batch_sell_empty_state_title": "No tokens. No problem.",
@@ -7482,9 +8218,13 @@
     "batch_sell_review_title": "Batch Sell Review",
     "batch_sell_select_stablecoin": "Select a stablecoin",
     "batch_sell_total_received": "Total received",
-    "batch_sell_minimum_received": "Minimum received",
+    "batch_sell_minimum_received": "Min. received:",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
+    "batch_sell_no_quote_available": "No quote available",
+    "batch_sell_high_price_impact": "High price impact",
+    "batch_sell_high_price_impact_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
     "batch_sell_review": "Review",
+    "batch_sell_searching_best_quotes": "Searching for best quotes",
     "batch_sell_you_sell": "You sell",
     "batch_sell_token_count": "{{tokenCount}} tokens",
     "batch_sell_toggle_you_sell": "Toggle token details",
@@ -7523,6 +8263,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
@@ -7540,6 +8281,7 @@
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Insufficient funds",
+    "insufficient_balance": "Insufficient balance",
     "insufficient_gas": "Insufficient gas",
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
@@ -7551,14 +8293,43 @@
     "fetching_quote": "Fetching quote",
     "fee_includes": "Includes",
     "fee_percentage": "{{feePercentage}}%",
-    "fee_percentage_meta_mask": "{{feePercentage}}% MM fee.",
-    "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
+    "fee_percentage_meta_mask": "{{feePercentage}}% MetaMask fee",
+    "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
+    "discount_badge_promo": "Promo",
+    "discount_badge_dao": "DAO",
     "no_mm_fee": "No MM fee",
     "token_suspicious": "Suspicious",
     "token_malicious": "Malicious",
     "no_mm_fee_disclaimer": "No MetaMask fee swapping into {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
+    "hardware_wallet_progress": {
+      "confirm_title": "Confirm on your hardware wallet ({{current}}/{{total}})",
+      "submitted_title": "Transaction submitted",
+      "rejected_title": "You rejected this transaction on your device",
+      "failed_title": "Transaction failed",
+      "disconnected_title": "Device disconnected",
+      "approve_token": "Approve {{amount}} {{symbol}}",
+      "approving_token": "Approving {{amount}} {{symbol}}",
+      "approved_token": "Approved {{amount}} {{symbol}}",
+      "send_token": "Send {{amount}} {{symbol}}",
+      "sending_token": "Sending {{amount}} {{symbol}}",
+      "sent_token": "Sent {{amount}} {{symbol}}",
+      "spender": "Spender",
+      "spender_address": "Spender {{address}}",
+      "recipient": "Recipient",
+      "recipient_address": "Recipient {{address}}",
+      "rejected": "Rejected",
+      "reconnect": "Reconnect",
+      "done": "Done",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
+      "scan_next_qr_code": "Scan next QR code",
+      "scan_final_qr_code": "Scan final QR code",
+      "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
+      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
+    },
     "price_impact_info_title": "Price impact",
     "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
@@ -7593,6 +8364,18 @@
       "learn_more": "Learn more",
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Done"
+    },
+    "post_trade_modal": {
+      "swap_in_progress": "Swap in progress",
+      "swap_success": "Swap complete",
+      "swap_failed": "Swap failed",
+      "bridge_in_progress": "Bridge in progress",
+      "bridge_success": "Bridge complete",
+      "bridge_failed": "Bridge failed",
+      "trade_subtitle": "{{sourceAmount}} {{sourceSymbol}} → {{destAmount}} {{destSymbol}}",
+      "what_to_swap_next": "What to swap next",
+      "view_activity": "View activity",
+      "try_again": "Try again"
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
@@ -7638,6 +8421,7 @@
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Date",
+    "network": "Network",
     "total_gas_fee": "Total gas fee",
     "estimated_completion": "Est. completion",
     "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
@@ -7647,8 +8431,13 @@
     "view_on_block_explorer": "View on block explorer",
     "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
     "transaction_details": "Transaction details",
+    "you_swapped": "You swapped",
+    "you_received": "You received",
     "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
+    "recipient": "Recipient",
+    "swapped": "Swapped",
+    "bridged": "Bridged",
+    "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
     "account_already_exists": "Wallet already exists",
@@ -7733,7 +8522,7 @@
     "social_recovery_title": "{{authConnection}} RECOVERY",
     "social_recovery_enable": "Enabled",
     "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and Secret Recovery Phrases.",
-    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_title": "Secret Recovery Phrases",
     "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
   },
   "backupAndSync": {
@@ -7803,6 +8592,8 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
+    "link_metamask_extension": "Import accounts from MetaMask extension",
+    "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
       "account_name": "Account name",
@@ -8038,7 +8829,10 @@
         "invalid_email": "Invalid email address",
         "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces.",
         "join_waitlist": "Join waitlist",
-        "country_not_available": "Card sign-up isn't available in your country yet."
+        "country_not_available": "Card sign-up isn't available in your country yet.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -8095,6 +8889,29 @@
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
         "helper_text": "This usually takes a few seconds. Please do not close the app."
+      },
+      "immersve_kyc_processing": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "incomplete_title": "Finish verifying your identity",
+        "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
+        "continue_button": "Continue verification",
+        "info_needed_title": "Additional information needed",
+        "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
+        "info_needed_button": "Continue verification",
+        "expiring_error": "Your verification session expired. Please contact support to continue."
+      },
+      "immersve_kyc_modal": {
+        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "try_again": "Try again"
+      },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -8213,6 +9030,7 @@
     "card_home": {
       "title": "Card",
       "authentication_error": "Your session has expired. Please log in again.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
@@ -8234,6 +9052,13 @@
       "view_card_details_error": "Unable to load card details. Please try again.",
       "biometric_verification_required": "Authentication required to view card details.",
       "unfreeze_auth_required": "Authentication required to resume spending on your card.",
+      "card_details": {
+        "card_number_label": "Card number",
+        "expiry_label": "Expiry",
+        "cvv_label": "CVV",
+        "name_label": "Name",
+        "copied": "Copied to clipboard"
+      },
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -8299,14 +9124,15 @@
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
+        "unlink_money_account": "Unlink Money account",
+        "unlink_money_account_description": "Change your Card funding source",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
         "order_metal_card_description": "Order your physical Metal Card now",
-        "cashback": "mUSD Back",
-        "cashback_description": "Earn 1% mUSD back on all spending",
-        "cashback_description_metal": "Earn 3% mUSD back on all spending",
+        "cashback": "{{cashbackPercentage}}% mUSD Back",
+        "cashback_description": "Earn on all spending",
         "freeze_card": "Freeze card",
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
@@ -8349,19 +9175,21 @@
       "money_account_label": "Money account",
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Use Money account",
-      "spend_and_earn_title": "Spend while you earn",
-      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_cta": "Link to Money account"
+      "spend_and_earn_title": "Spend and earn",
+      "spend_and_earn_description_prefix": "Link your balance to your card and get mUSD back on purchases. Plus, earn up to ",
+      "spend_and_earn_description_apy": "{{apy}}% APY",
+      "spend_and_earn_description_suffix": " (variable) on your balance.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and get mUSD back on purchases.",
+      "spend_and_earn_cta": "Link card"
     },
     "cashback_screen": {
       "title": "mUSD Back",
       "available_cashback": "Available mUSD",
       "network_fee": "Network fee",
       "expected_to_receive": "Expected to receive",
+      "to": "To",
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
-      "withdrawal_initiated": "Withdrawal has been initiated",
       "withdrawal_success": "Withdrawal completed successfully",
       "withdrawal_failed": "Withdrawal failed. Please try again.",
       "no_cashback": "No mUSD back available",
@@ -8370,7 +9198,54 @@
         "title": "Set up Linea funding",
         "description": "You need at least one approved funding source on Linea before redeeming mUSD back.",
         "confirm_button_label": "Set up funding"
+      },
+      "money_account_required": {
+        "title": "Set up Money Account",
+        "description": "You need a linked Money Account before redeeming mUSD back.",
+        "confirm_button_label": "Set up Money Account"
       }
+    },
+    "credit_screen": {
+      "title": "Card refunds",
+      "available_credit": "Refund balance",
+      "network_fee": "Network fee",
+      "expected_to_receive": "Expected to receive",
+      "to": "To",
+      "withdraw": "Move funds",
+      "withdraw_to_money_account": "Move to Money account",
+      "withdraw_unavailable": "Redemption unavailable",
+      "withdrawal_success": "Redemption completed successfully",
+      "withdrawal_failed": "Redemption failed. Please try again.",
+      "loading_error": "Failed to load credit. Please try again.",
+      "funding_required": {
+        "title": "Set up funding",
+        "description": "You need at least one approved funding source before redeeming your credit.",
+        "confirm_button_label": "Set up funding"
+      },
+      "money_account_required": {
+        "title": "Set up Money Account",
+        "description": "You need a linked Money Account before redeeming your credit.",
+        "confirm_button_label": "Set up Money Account"
+      },
+      "refund_info": {
+        "title": "Refund balance",
+        "description": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be moved to your Money account anytime.",
+        "description_no_money_account": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be redeemed to your wallet anytime."
+      }
+    },
+    "credit_balance_tooltip": {
+      "title": "Available balance",
+      "description": "Your balance is made up of your Money account balance and any refunds you've received.",
+      "description_no_money_account": "Your balance is made up of your wallet balance and any refunds you've received.",
+      "money_account": "Money account",
+      "wallet": "Wallet",
+      "refund_balance": "Refund balance"
+    },
+    "credit_banner": {
+      "title": "Refund balance: {{amount}}",
+      "description": "Spend it or move it to your Money account to keep earning on your balance.",
+      "description_no_money_account": "Spend it or redeem it to your wallet.",
+      "confirm_button_label": "Move funds"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -8401,10 +9276,13 @@
       "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
+      "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Log in",
+      "uk_login_button": "Sign in with this account",
       "signup_button": "Sign up",
+      "forgot_password_button": "Forgot password?",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "invalid_otp_code": "Incorrect code, please try again",
@@ -8417,8 +9295,14 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later."
+        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "forbidden_error": "This action isn't available for your account."
       }
+    },
+    "card_forgot_password": {
+      "load_error": "Something went wrong loading the page. Please try again.",
+      "try_again": "Try again",
+      "reset_success": "Password reset successful"
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
@@ -8472,8 +9356,7 @@
     "report_submitted": "Error report has been submitted."
   },
   "pay_with_modal": {
-    "title": "Select payment method",
-    "title_receive": "Select receive token",
+    "modal_title": "Select a token",
     "no_gas": "No native balance for gas",
     "not_supported": "Not supported",
     "crypto": "Crypto"
@@ -8582,7 +9465,8 @@
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
+      "referral_tag_label": "VIP",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -8593,6 +9477,10 @@
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
+      "splash_title": "WELCOME\nTO GOLD FOX\nCOLLECTIVE",
+      "splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
+      "splash_accept_invite": "Accept invite",
+      "splash_not_now": "Not now",
       "next_tier_value": "{{value}} next tier",
       "equity_rebate_label": "Equity rebate",
       "equity_rebate_header": "Equity rebate: {{value}}%",
@@ -8603,7 +9491,23 @@
       "retry_button": "Retry",
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
-      "bps_value": "{{bps}} bps"
+      "bps_value": "{{bps}} bps",
+      "referee_splash_continue": "Continue",
+      "referee_referred_by": "Referred by {{code}}",
+      "referee_page_title": "VIP Pilot",
+      "referee_stats_title": "Stats",
+      "referee_period_last_30d": "Last 30d",
+      "referee_swaps_volume_label": "Swaps volume",
+      "referee_perps_volume_label": "Perps volume",
+      "referee_points_to_label": "Points to {{code}}",
+      "referee_error_title": "We couldn’t load your VIP referee details",
+      "referee_error_description": "Check your connection and try again.",
+      "referee_contact_support": "Contact support",
+      "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
+      "last_updated": "Last updated: {{time}}",
+      "swaps_volume_info_label": "Swaps volume information",
+      "swaps_volume_info_title": "Swaps volume",
+      "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
@@ -8899,7 +9803,18 @@
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
       }
     },
-    "ondo_campaign_prize_pool": {
+    "campaign_ended_stats": {
+      "title": "Stats",
+      "error_title": "Unable to load all stats",
+      "error_description": "We had a problem loading your stats. Please try again later.",
+      "retry": "Retry",
+      "total_participants": "Total participants",
+      "total_volume": "Total volume",
+      "top_return": "Top return",
+      "top_pnl": "Top PnL",
+      "total_winners": "Total winners"
+    },
+    "campaign_prize_pool": {
       "title": "Prize pool",
       "current_label": "Current",
       "next_label": "Next",
@@ -8908,7 +9823,7 @@
       "max_badge": "Max",
       "error_title": "Failed to load prize pool",
       "error_description": "There was an error loading the prize pool. Please try again.",
-      "retry_button": "Retry"
+      "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
       "position_current_value": "Value",
@@ -8973,11 +9888,7 @@
       "qualified_title": "You're qualified",
       "qualified_description": "Increase your net inflows to reach a higher tier and have a chance at a larger payout.",
       "not_eligible_title": "Not eligible",
-      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier.",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_tvl": "Total TVL",
-      "completed_label_top_return": "Top return",
-      "completed_label_winners": "Winners"
+      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier."
     },
     "ondo_campaign_activity": {
       "title": "All activity",
@@ -9023,27 +9934,51 @@
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "leaderboard_powered_by_prefix": "Powered by ",
       "leaderboard_hypertracker_brand": "HyperTracker",
-      "prize_pool_title": "Prize pool",
-      "prize_pool_current_label": "Current",
-      "prize_pool_next_label": "Next",
-      "prize_pool_volume_subtext": "{{current}} of {{target}} volume",
-      "prize_pool_max_tier_subtext": "{{maxThreshold}}+ volume — all milestones reached",
-      "prize_pool_max_badge": "Max",
-      "prize_pool_error_title": "Failed to load prize pool",
-      "prize_pool_error_description": "There was an error loading the prize pool. Please try again.",
-      "prize_pool_retry_button": "Retry",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
       "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
-      "stats_qualify_for_rank_title": "Qualify for this rank",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_retry": "Retry"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "Predict The Pitch",
+      "stats_title": "Stats",
+      "label_rank": "Rank",
+      "label_your_rank": "Your rank",
+      "label_roi": "ROI (after fees)",
+      "label_total_volume": "Total volume",
+      "label_pnl": "PnL (after fees)",
+      "predict_now_cta": "Predict now",
+      "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
+      "positions_error": "Failed to load predictions",
+      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_retry": "Retry",
+      "positions_last_updated": "Last updated: {{time}}",
+      "positions_empty": "No predictions yet",
+      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_total_participants": "{{count}} participants",
+      "last_updated": "Last updated: {{time}}",
+      "leaderboard_error_loading": "Failed to load leaderboard",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "label_markets_traded": "Markets traded",
       "stats_retry": "Retry",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_volume": "Total volume",
-      "completed_label_top_pnl": "Top PnL",
-      "completed_label_winners": "Winners"
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -9052,8 +9987,8 @@
     },
     "earn_rewards": {
       "title": "Earn rewards",
-      "musd_title": "Up to 3% bonus on stables",
-      "musd_subtitle": "Calculate your mUSD bonus",
+      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_subtitle": "Money accounts are here",
       "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
       "card_subtitle_cardholder": "Access your MetaMask Card benefits"
@@ -9108,7 +10043,7 @@
       "non_winner": {
         "title": "The results are in 🏅",
         "description": "See your ranking in the {{campaignName}}.",
-        "cta": "View"
+        "cta": "View details"
       }
     }
   },
@@ -9133,13 +10068,29 @@
       "bridge_fee": "Bridge fee",
       "provider_fee": "Provider fee",
       "network_fee": "Network fee",
+      "transaction_fee": "Transaction fee",
+      "transaction_fees": "Transaction fees",
       "paid_with": "Paid with",
       "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
+      "total_amount": "Total amount",
       "account": "Account",
-      "received_total": "Received total"
+      "received_total": "Received total",
+      "from": "From",
+      "to": "To",
+      "order_id": "Order ID",
+      "network": "Network",
+      "you_sent": "You sent",
+      "you_received": "You received",
+      "token_received": "Token received",
+      "money_account": "Money account",
+      "perps_account": "Perps Account 1",
+      "predictions_account": "Predictions Account 1",
+      "steps_completed": "Steps ({{count}} completed)",
+      "summary": "Summary"
     },
+    "view_on_block_explorer": "View on block explorer",
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
@@ -9160,6 +10111,36 @@
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
+  "activity_details": {
+    "status": "Status",
+    "date": "Date",
+    "account": "Account",
+    "address": "Address",
+    "from": "From",
+    "to": "To",
+    "network": "Network",
+    "transaction_id": "Transaction ID",
+    "network_fee": "Network fee",
+    "bandwidth_fee": "Bandwidth",
+    "energy_fee": "Energy",
+    "bridge_fee": "Bridge fee",
+    "gas_token_fee": "Gas fee",
+    "transaction_fee": "Transaction fee",
+    "unknown_token": "Unknown",
+    "total_amount": "Total amount",
+    "you_sent": "You sent",
+    "you_received": "You received",
+    "view_on_block_explorer": "View on block explorer",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
+    "transaction_pending": "Transaction pending",
+    "likely_to_confirm_in": "Likely to confirm in",
+    "confirm_time_estimate": "< 30 sec",
+    "not_found": "Transaction details are unavailable."
+  },
   "sdk_connect_v2": {
     "show_loading": {
       "title": "Connecting to dApp",
@@ -9177,6 +10158,28 @@
       "title": "Success",
       "description": "Return to the app to continue."
     },
+    "show_cli_link_success": {
+      "title": "MetaMask Agent CLI link successful",
+      "description": "Return to the CLI to continue."
+    },
+    "push_nudge": {
+      "title": "Turn on notifications",
+      "description": "Get alerts for transactions from your CLI session.",
+      "turn_on_button": "Turn on",
+      "loading_title": "Turning on notifications",
+      "loading_description": "Give us a moment while we set things up.",
+      "enable_error": "Couldn't turn on notifications. Try again from Settings."
+    },
+    "show_otp": {
+      "title": "Enter this code",
+      "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
+      "modal_title": "Link MetaMask Agent CLI",
+      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
+      "code_label": "ENTER THIS CODE IN THE CLI",
+      "expires_in": "Expires in {{time}}",
+      "expired": "Code expired",
+      "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
+    },
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."
@@ -9184,6 +10187,11 @@
     "show_internal_error": {
       "title": "Something went wrong",
       "description": "An unexpected error occurred. Please try again."
+    },
+    "agentic_cli_dashboard_webview": {
+      "title": "Select project",
+      "load_error": "Unable to load approval page.",
+      "closed_error": "Dashboard approval closed."
     },
     "show_method_error": {
       "title": "Request failed",
@@ -9202,7 +10210,10 @@
   "trending": {
     "title": "Explore",
     "crypto_movers": "Crypto movers",
+    "hot_tokens": "Hot tokens",
     "perps_movers": "Perps movers",
+    "perps_movers_pill_gainers": "Gainers",
+    "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
     "crypto": "Crypto",
     "stocks": "Stocks",
@@ -9233,15 +10244,11 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, markets and URLs",
+    "quick_trade": "Quick Buy & Sell",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
     "macro_stocks_commodity_perps": "Perps",
-    "macro_pill_stocks": "Stocks",
-    "macro_pill_commodities": "Commodities",
-    "rwa_pill_commodities": "Commodities",
-    "rwa_pill_stocks": "Stocks",
-    "rwa_pill_forex": "Forex",
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
@@ -9414,30 +10421,30 @@
     }
   },
   "homepage": {
+    "action_buttons": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
+      "perps": "Perps",
+      "predict": "Predict",
+      "batch_swap": "Batch Swap",
+      "traders": "Traders"
+    },
     "sections": {
       "money": "Money",
       "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
-      "money_empty_state": {
-        "get_started": "Get started",
-        "earn": "Earn",
-        "earn_apy": "Earn {{percentage}}% APY"
-      },
-      "money_filled_state": {
-        "add": "Add",
-        "apy": "{{percentage}}% APY"
-      },
       "tokens": "Tokens",
       "perps": "Perps",
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "top_traders": "Top Traders",
+      "top_traders": "Weekly Top Traders",
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "Trending",
-      "trending_perpetuals": "Trending perpetuals",
-      "trending_predictions": "Trending predictions",
+      "watchlist": "Watchlist",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
@@ -9462,6 +10469,7 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
+    "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",
       "bearish": "Bearish",
@@ -9478,5 +10486,18 @@
   },
   "stepper_card": {
     "more_information": "More information"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist",
+    "home_empty_title": "Watchlist",
+    "home_empty_subtitle": "You have no watchlist items yet",
+    "fullscreen_title": "Watchlist",
+    "tokens_tab": "Tokens",
+    "edit": "Edit",
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }

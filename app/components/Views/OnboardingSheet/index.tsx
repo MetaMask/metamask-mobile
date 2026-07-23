@@ -1,13 +1,16 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
+
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import Routes from '../../../constants/navigation/Routes';
 import { colors as commonColors } from '../../../styles/common';
 import {
   Box,
@@ -57,7 +60,6 @@ const OnboardingSheet = () => {
   } = params ?? {};
   const { colors } = useTheme();
   const tw = useTailwind();
-
   const onPressCreateAction = () => {
     if (onPressCreate) {
       onPressCreate();
@@ -88,15 +90,15 @@ const OnboardingSheet = () => {
     }
   };
 
-  const goTo = (url: string, title: string) => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
+  const goTo = useCallback(
+    (url: string, title: string) => {
+      navigation.navigate(Routes.WEBVIEW.SIMPLE, {
         url,
         title,
-      },
-    });
-  };
+      });
+    },
+    [navigation],
+  );
 
   const onPressTermsOfUse = () => {
     const url = AppConstants.URLS.TERMS_OF_USE_URL;
@@ -109,10 +111,15 @@ const OnboardingSheet = () => {
   };
 
   const { themeAppearance } = useTheme();
+  const surfaceClass = useElevatedSurface();
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet goBack={navigation.goBack} ref={sheetRef}>
+    <BottomSheet
+      goBack={navigation.goBack}
+      ref={sheetRef}
+      twClassName={surfaceClass}
+    >
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

@@ -6,7 +6,9 @@ import * as useAnalyticsModule from '../../../../hooks/useAnalytics/useAnalytics
 import * as useCopyClipboardModule from '../hooks/useCopyClipboard';
 import { ModalFieldType } from '../../../../../util/notifications';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Mock the required modules
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -31,7 +33,7 @@ describe('TransactionField', () => {
   beforeEach(() => {
     jest.spyOn(useAnalyticsModule, 'useAnalytics').mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useAnalyticsModule.useAnalytics>);
     jest
       .spyOn(useCopyClipboardModule, 'default')
@@ -39,7 +41,7 @@ describe('TransactionField', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should copy transaction hash and track event when copy button is pressed', () => {
@@ -53,14 +55,12 @@ describe('TransactionField', () => {
     const copyButton = getByText('transaction.transaction_id');
 
     fireEvent.press(copyButton);
-    const expectedEvent = MetricsEventBuilder.createEventBuilder({
-      category: 'Notification Detail Clicked',
-    })
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+    )
       .addProperties({
-        chain_id: 1,
+        ...notificationAnalyticsProperties(MOCK_NOTIFICATIONS[0]),
         clicked_item: 'tx_id',
-        notification_id: '3fa85f64-5717-4562-b3fc-2c963f66afa7',
-        notification_type: 'eth_sent',
       })
       .build();
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);

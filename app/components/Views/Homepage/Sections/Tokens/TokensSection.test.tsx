@@ -1,8 +1,11 @@
 import React from 'react';
+import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokensSection from './TokensSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
@@ -82,6 +85,10 @@ jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
 }));
 
+jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(() => false),
+}));
+
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
 jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
@@ -92,36 +99,16 @@ jest.mock('../../../../UI/Tokens/hooks/useRefreshTokens', () => ({
   useRefreshTokens: () => ({ refresh: mockRefresh }),
 }));
 
-const mockFetchTrendingTokens = jest.fn().mockResolvedValue(undefined);
-const mockUseTrendingRequest = jest.fn(() => ({
-  results: [] as Record<string, unknown>[],
-  isLoading: false,
-  error: null,
-  fetch: mockFetchTrendingTokens,
-}));
-jest.mock(
-  '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
-  () => ({
-    useTrendingRequest: (...args: unknown[]) =>
-      Reflect.apply(mockUseTrendingRequest, undefined, args),
-  }),
-);
-
-const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string; key_value_pair?: string }[] | undefined,
-  []
->(() => undefined);
-
-jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
-  useHomepageTrendingTransactionActiveAbTests: () =>
-    mockUseHomepageTrendingTransactionActiveAbTests(),
-}));
-
-const mockShouldShowTokenListItemCta = jest.fn().mockReturnValue(false);
-jest.mock('../../../../UI/Earn/hooks/useMusdCtaVisibility', () => ({
-  useMusdCtaVisibility: () => ({
-    shouldShowTokenListItemCta: mockShouldShowTokenListItemCta,
-  }),
+const mockTokenListItemCta = {
+  label: 'Get 4% APY',
+  color: 'success-default',
+  shouldShow: jest.fn(),
+  onPress: jest.fn(),
+};
+jest.mock('../../../../UI/Money/hooks/useMoneyTokenListCta', () => ({
+  useMoneyTokenListCta: jest.fn(() => ({
+    tokenListItemCta: mockTokenListItemCta,
+  })),
 }));
 
 // Mock ErrorState to avoid design system import chain and enable testID queries
@@ -153,56 +140,19 @@ jest.mock('./components/PopularTokensSkeleton', () => {
   };
 });
 
-jest.mock(
-  '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { Text, TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        token,
-        transactionActiveAbTests,
-      }: {
-        token: { assetId: string; name: string };
-        transactionActiveAbTests?: {
-          key: string;
-          value: string;
-          key_value_pair?: string;
-        }[];
-      }) =>
-        ReactActual.createElement(
-          TouchableOpacity,
-          {
-            testID: `trending-token-row-${token.assetId}${
-              transactionActiveAbTests?.length ? '-ab' : ''
-            }`,
-            onPress: () => jest.fn(),
-          },
-          ReactActual.createElement(Text, null, token.name),
-        ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () => <View testID="trending-token-skeleton" />,
-    };
-  },
-);
-
 // Mock TokenListItem to avoid complex import chains
 const MockTokenListItem = ({
   assetKey,
   showRemoveMenu,
+  tokenListItemCta,
+  tokenPositionInList,
+  tokensInList,
 }: {
   assetKey: { address: string; chainId?: string };
   showRemoveMenu?: (token: unknown) => void;
+  tokenListItemCta?: { label: string };
+  tokenPositionInList?: number;
+  tokensInList?: number;
 }) => {
   const ReactActual = jest.requireActual('react');
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -225,6 +175,18 @@ const MockTokenListItem = ({
         }),
     },
     ReactActual.createElement(Text, null, `Token ${assetKey.address}`),
+    tokenListItemCta
+      ? ReactActual.createElement(
+          Text,
+          { testID: `token-cta-${assetKey.address}` },
+          tokenListItemCta.label,
+        )
+      : null,
+    ReactActual.createElement(
+      Text,
+      { testID: `token-context-${assetKey.address}` },
+      `${tokenPositionInList}/${tokensInList}`,
+    ),
   );
 };
 
@@ -234,6 +196,9 @@ jest.mock(
     TokenListItem: (props: {
       assetKey: { address: string; chainId?: string };
       showRemoveMenu?: (token: unknown) => void;
+      tokenListItemCta?: { label: string };
+      tokenPositionInList?: number;
+      tokensInList?: number;
     }) => MockTokenListItem(props),
   }),
 );
@@ -342,9 +307,6 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
-    TRENDING_TOKENS: 'trending_tokens',
-    TRENDING_PERPS: 'trending_perps',
-    TRENDING_PREDICT: 'trending_predict',
   },
 }));
 
@@ -389,40 +351,10 @@ const mockPopularTokens = [
   },
 ];
 
-const mockTrendingTokenData = [
-  {
-    assetId: 'eip155:1/slip44:60',
-    name: 'Ethereum',
-    symbol: 'ETH',
-    price: '3000',
-    decimals: 18,
-  },
-  {
-    assetId: 'eip155:1/erc20:0xabc',
-    name: 'TokenA',
-    symbol: 'TKA',
-    price: '10',
-    decimals: 18,
-  },
-  {
-    assetId: 'eip155:1/erc20:0xdef',
-    name: 'TokenB',
-    symbol: 'TKB',
-    price: '5',
-    decimals: 18,
-  },
-];
-
 describe('TokensSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRefresh.mockResolvedValue(undefined);
-    mockUseTrendingRequest.mockReturnValue({
-      results: [],
-      isLoading: false,
-      error: null,
-      fetch: mockFetchTrendingTokens,
-    });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
     mockPopularNetworks = ['eip155:1', '0xa'];
@@ -440,8 +372,10 @@ describe('TokensSection', () => {
     jest
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
-    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
   it('renders section title for account with balance', () => {
@@ -452,39 +386,6 @@ describe('TokensSection', () => {
     );
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
-  });
-
-  it('uses useTrendingRequest only in trending-only mode', () => {
-    mockUseIsZeroBalanceAccount.mockReturnValue(false);
-
-    const { unmount: unmountDefault } = renderWithProvider(
-      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-    expect(mockUseTrendingRequest).not.toHaveBeenCalled();
-    unmountDefault();
-
-    mockUseTrendingRequest.mockClear();
-
-    const { unmount: unmountPositions } = renderWithProvider(
-      <TokensSection
-        sectionIndex={0}
-        totalSectionsLoaded={1}
-        mode="positions-only"
-      />,
-    );
-    expect(mockUseTrendingRequest).not.toHaveBeenCalled();
-    unmountPositions();
-
-    mockUseTrendingRequest.mockClear();
-
-    renderWithProvider(
-      <TokensSection
-        sectionIndex={0}
-        totalSectionsLoaded={1}
-        mode="trending-only"
-      />,
-    );
-    expect(mockUseTrendingRequest).toHaveBeenCalled();
   });
 
   it('renders "Tokens" title for zero balance account', () => {
@@ -564,6 +465,41 @@ describe('TokensSection', () => {
     expect(screen.getByTestId('token-item-0xtoken2')).toBeOnTheScreen();
   });
 
+  it('forwards Money CTA to account token rows', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+      { chainId: '0x1', address: '0xtoken2', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.getByTestId('token-cta-0xtoken1')).toHaveTextContent(
+      'Get 4% APY',
+    );
+    expect(screen.getByTestId('token-context-0xtoken1')).toHaveTextContent(
+      '1/2',
+    );
+    expect(screen.getByTestId('token-context-0xtoken2')).toHaveTextContent(
+      '2/2',
+    );
+  });
+
+  it('initializes Money CTA analytics for Wallet home', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(useMoneyTokenListCta).toHaveBeenCalledWith(SCREEN_NAMES.WALLET_HOME);
+  });
+
   it('limits displayed tokens to MAX_TOKENS_DISPLAYED (5)', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
@@ -586,11 +522,14 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
-  it('filters out mUSD from displayed tokens (mUSD is shown only in Cash section)', () => {
+  it('filters out mUSD from displayed tokens when Cash section is enabled', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     jest
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(true);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
@@ -613,7 +552,7 @@ describe('TokensSection', () => {
       <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByLabelText('Tokens'));
+    fireEvent.press(screen.getByTestId(homepageSectionTitleTestId('tokens')));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
@@ -866,252 +805,5 @@ describe('TokensSection', () => {
     });
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
-  });
-
-  describe('mode="positions-only"', () => {
-    it('returns null when account has zero balance', () => {
-      mockUseIsZeroBalanceAccount.mockReturnValue(true);
-
-      const { toJSON } = renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="positions-only"
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
-    });
-
-    it('passes isLoading true and isEmpty false while token list is loading', () => {
-      mockUseIsZeroBalanceAccount.mockReturnValue(false);
-      mockSortedTokenKeys.mockReturnValue([]);
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="positions-only"
-        />,
-      );
-
-      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          isLoading: true,
-          isEmpty: false,
-          itemCount: 0,
-        }),
-      );
-    });
-
-    it('passes isEmpty true when display tokens are empty after load (e.g. only mUSD with Cash section)', () => {
-      mockUseIsZeroBalanceAccount.mockReturnValue(false);
-      jest
-        .requireMock('../../../../UI/Earn/selectors/featureFlags')
-        .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
-      mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
-      mockSortedTokenKeys.mockReturnValue([
-        {
-          chainId: '0x1',
-          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-          isStaked: false,
-        },
-      ]);
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="positions-only"
-        />,
-      );
-
-      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          isLoading: false,
-          isEmpty: true,
-          itemCount: 0,
-        }),
-      );
-    });
-
-    it('renders token items when account has balance', () => {
-      mockUseIsZeroBalanceAccount.mockReturnValue(false);
-      mockSortedTokenKeys.mockReturnValue([
-        { chainId: '0x1', address: '0xtoken1', isStaked: false },
-      ]);
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="positions-only"
-        />,
-      );
-
-      expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
-    });
-  });
-
-  describe('mode="trending-only"', () => {
-    it('renders trending token row items', () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: mockTrendingTokenData,
-        isLoading: false,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('trending-token-row-eip155:1/slip44:60'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('trending-token-row-eip155:1/erc20:0xabc'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders skeletons while trending data is loading', () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: [],
-        isLoading: true,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-        />,
-      );
-
-      expect(screen.getAllByTestId('trending-token-skeleton')).toHaveLength(3);
-    });
-
-    it('returns null when trending list is empty after loading', () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: [],
-        isLoading: false,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-
-      const { toJSON } = renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-          titleOverride="Trending tokens"
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
-    });
-
-    it('uses titleOverride when provided', () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: mockTrendingTokenData,
-        isLoading: false,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-          titleOverride="Trending tokens"
-        />,
-      );
-
-      expect(screen.getByText('Trending tokens')).toBeOnTheScreen();
-    });
-
-    it('navigates to trending tokens full view on title press', () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: mockTrendingTokenData,
-        isLoading: false,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-          titleOverride="Trending tokens"
-        />,
-      );
-
-      fireEvent.press(screen.getByLabelText('Trending tokens'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-      );
-    });
-
-    it('passes transaction AB tests to trending rows when the homepage experiment is active', () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: mockTrendingTokenData,
-        isLoading: false,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue([
-        {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
-        },
-      ]);
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('trending-token-row-eip155:1/slip44:60-ab'),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls fetchTrendingTokens on refresh', async () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: mockTrendingTokenData,
-        isLoading: false,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-
-      const ref = React.createRef<{ refresh: () => Promise<void> }>();
-      renderWithProvider(
-        <TokensSection
-          ref={ref}
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-        />,
-      );
-
-      await act(async () => {
-        await ref.current?.refresh();
-      });
-
-      expect(mockFetchTrendingTokens).toHaveBeenCalledTimes(1);
-    });
   });
 });

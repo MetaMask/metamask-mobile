@@ -26,6 +26,24 @@ function getBuildTypeInfo() {
 }
 
 /**
+ * Resolve performance scenario from a test file path.
+ * Used so Slack category status can reflect quality-gate failures even when
+ * CI jobs exit green by design.
+ * @param {string|null|undefined} testFilePath
+ * @returns {'onboarding'|'imported-wallet'|'mm-connect'}
+ */
+function resolveScenarioFromTestFilePath(testFilePath) {
+  const pathValue = testFilePath || '';
+  if (pathValue.includes('/performance/onboarding/')) {
+    return 'onboarding';
+  }
+  if (pathValue.includes('/performance/mm-connect/')) {
+    return 'mm-connect';
+  }
+  return 'imported-wallet';
+}
+
+/**
  * Recursively find JSON files containing performance metrics
  * @param {string} dir - Directory to search
  * @param {string[]} jsonFiles - Array to collect found files
@@ -401,17 +419,22 @@ function createSummary(groupedResults) {
     });
   });
   
-    // Unique test count: each test counts once per device regardless of retries
-    const uniqueTestCount = Object.keys(testExecutions).length;
+  // Unique test count: each test counts once per device regardless of retries
+  const uniqueTestCount = Object.keys(testExecutions).length;
 
   // Second pass: determine final test status
   // A test is only considered failed if ALL executions failed (no successful retry)
   const failedTestsByTeam = {};
   let totalFailedTests = 0;
   const failedTestsByPlatform = { android: 0, ios: 0 };
+  const failedTestsByCategory = {
+    onboarding: { android: 0, ios: 0 },
+    'imported-wallet': { android: 0, ios: 0 },
+    'mm-connect': { android: 0, ios: 0 },
+  };
 
   const uniqueFailedTestNames = new Set();
-  
+
   Object.values(testExecutions).forEach(execution => {
     // If test passed at least once, it's considered passed (successful retry)
     if (execution.hasPassed) {
@@ -425,10 +448,14 @@ function createSummary(groupedResults) {
       
       const { testInfo } = execution;
       const platformKey = testInfo.platform.toLowerCase();
+      const scenario = resolveScenarioFromTestFilePath(testInfo.testFilePath);
       
       // Track per-platform failures
       if (platformKey === 'android' || platformKey === 'ios') {
         failedTestsByPlatform[platformKey]++;
+        if (failedTestsByCategory[scenario]) {
+          failedTestsByCategory[scenario][platformKey]++;
+        }
       }
       
       // Track by team if team info available
@@ -455,6 +482,7 @@ function createSummary(groupedResults) {
           tags: testInfo.tags,
           platform: testInfo.platform,
           device: testInfo.device,
+          scenario,
           sessionId: testInfo.sessionId ?? null,
           recordingLink: testInfo.videoURL ?? null,
           failureReason,
@@ -522,6 +550,9 @@ function createSummary(groupedResults) {
         android: failedTestsByPlatform.android > 0 ? "failure" : "success",
         ios: failedTestsByPlatform.ios > 0 ? "failure" : "success"
       },
+      // Category/platform failure counts for Slack RESULTS BY CATEGORY.
+      // Reflects quality-gate failures even when CI jobs exit green.
+      failedTestsByCategory,
       failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
@@ -1484,7 +1515,7 @@ function aggregateReports() {
     // Search only in directories where CI artifacts are downloaded
     const searchDirs = [
       './test-results',
-      './performance-results', 
+      './performance-results',
       './onboarding-results',
       './tests/reporters/reports',
     ];

@@ -53,12 +53,12 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
             item_clicked: item.id,
           })
         }
-        onBuyButtonPress={(marketId) =>
+        onBuyButtonPress={({ market }) =>
           trackExploreInteracted({
             interaction_type: 'prediction_voted',
             tab_name: tabName,
             section_name: sectionName,
-            item_clicked: marketId,
+            item_clicked: market.id,
           })
         }
       />
@@ -78,7 +78,7 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
         sectionName={sectionName}
       />
       <HorizontalCarousel<PredictMarketType>
-        data={feed.data}
+        data={feed.data.slice(0, 6)}
         isLoading={feed.isLoading}
         renderItem={renderItem}
         Skeleton={PredictionsSkeleton}

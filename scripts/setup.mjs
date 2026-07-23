@@ -1,16 +1,18 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import fs from 'fs';
-import { $ } from 'execa';
+import { $ as runScript } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
 
 const IS_CI = process.env.CI;
 const IS_OSX = process.platform === 'darwin';
+
 // iOS builds are enabled by default on macOS only but can be enabled or disabled explicitly
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
 let BUILD_ANDROID = true
 let INSTALL_PODS;
+let VERBOSE = IS_CI;
 // GitHub CI pipeline flag - defaults to false
 let GITHUB_CI = false;
 const args = process.argv.slice(2) || [];
@@ -37,6 +39,9 @@ for (const arg of args) {
     case '--build-on-github-ci':
       GITHUB_CI = true;
       continue;
+    case '--verbose':
+      VERBOSE = true;
+      continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
   }
@@ -47,6 +52,7 @@ if (INSTALL_PODS === undefined) {
 if (INSTALL_PODS && !BUILD_IOS) {
   throw new Error('Cannot install pods if iOS setup has been skipped');
 }
+const $  = runScript(VERBOSE ? {stdio: 'inherit'} : undefined);
 
 const rendererOptions = {
   collapseErrors: false,
@@ -125,19 +131,7 @@ const setupIosTask = {
       {
         title: 'Install bundler gem',
         task: async (_, task) => {
-          if (GITHUB_CI) {
-            // In GitHub CI, we still need bundler for self-hosted runners
-            try {
-              await $`gem install bundler -v 2.5.8`;
-            } catch (error) {
-              // If bundler is already installed, continue
-              if (!error.stderr?.includes('already installed')) {
-                throw error;
-              }
-            }
-          } else {
-            await $`gem install bundler -v 2.5.8`;
-          }
+          await $`gem install bundler -v 2.5.8`;
         },
       },
       {
@@ -256,9 +250,9 @@ const expoBuildLinks = {
      Setup complete! Consider getting started with EXPO on MetaMask. Here are the 3 easy steps to get up and running.
 
      Step 1: Install EXPO Executable
-      📱 ${hyperlink('iOS .ipa (physical devices) Note: it requires Apple Registration with MetaMask', 'https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=')}
-      🤖 ${hyperlink('iOS .app (iOS simulator unzip the file and drag in simulator)', 'https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=')}
-      🤖 ${hyperlink('Android .apk (physical devices & emulators)', 'https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss')}
+      📱 iOS simulator: ${hyperlink('yarn install:ios:dev', 'https://github.com/MetaMask/metamask-mobile/blob/main/README.md#download-and-install-the-development-build')} (requires gh auth login)
+      📱 iOS device (.ipa): download ${hyperlink('ios-ipa-main-dev-expo', 'https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml')} from Expo Dev Build on GitHub Actions
+      🤖 Android (.apk): ${hyperlink('yarn install:android:dev', 'https://github.com/MetaMask/metamask-mobile/blob/main/README.md#download-and-install-the-development-build')} (requires gh auth login)
      Step 2: 👀 yarn watch or yarn watch:clean
      Step 3: 🚀 launch app on emulator or scan QR code in terminal
       `);
@@ -384,6 +378,7 @@ const concurrentTasks = {
 const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
   exitOnError: true,
+  renderer: VERBOSE ? 'verbose' : 'default',
   rendererOptions,
 });
 

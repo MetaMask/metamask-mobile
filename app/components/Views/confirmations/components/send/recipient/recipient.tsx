@@ -22,6 +22,7 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { RecipientInput } from '../../recipient-input';
@@ -35,8 +36,12 @@ export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
+  const [autoFilledInputMethod, setAutoFilledInputMethod] = useState<
+    typeof RecipientInputMethod.Pasted | typeof RecipientInputMethod.QrScan
+  >(RecipientInputMethod.Pasted);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
+  const { header: renderRecipientHeader } = useSendNavbar().Recipient;
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
@@ -86,10 +91,14 @@ export const Recipient = () => {
       if (!asset || !chainId) {
         return;
       }
+      const recipientAddress = resolvedAddress || to;
+      if (!recipientAddress) {
+        return;
+      }
       setIsSubmittingTransaction(true);
       setPastedRecipient(undefined);
       captureRecipientSelected(
-        isPasted ? RecipientInputMethod.Pasted : RecipientInputMethod.Manual,
+        isPasted ? autoFilledInputMethod : RecipientInputMethod.Manual,
       );
       await handleSubmitPress(resolvedAddress || to);
       setIsSubmittingTransaction(false);
@@ -98,6 +107,7 @@ export const Recipient = () => {
       to,
       handleSubmitPress,
       captureRecipientSelected,
+      autoFilledInputMethod,
       resolvedAddress,
       setPastedRecipient,
       isSubmittingTransaction,
@@ -205,6 +215,7 @@ export const Recipient = () => {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
+      {renderRecipientHeader()}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
@@ -215,6 +226,7 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
             resetStateOnInput={resetStateOnInput}
             setPastedRecipient={setPastedRecipient}
+            setAutoFilledInputMethod={setAutoFilledInputMethod}
           />
           <ScrollView>
             <RecipientList

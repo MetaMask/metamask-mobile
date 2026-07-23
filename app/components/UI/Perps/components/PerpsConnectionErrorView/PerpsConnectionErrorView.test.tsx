@@ -92,6 +92,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     __esModule: true,
     Button: ({
       label,
@@ -124,26 +125,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    default: ({ children, ...props }: any) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextVariant: {
-      HeadingLG: 'HeadingLG',
-      BodyMD: 'BodyMD',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Error: 'Error',
-      Muted: 'Muted',
-    },
-  };
-});
-
 // Mock usePerpsEventTracking
 const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({

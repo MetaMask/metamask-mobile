@@ -132,7 +132,7 @@ function withRequest<ReturnValue>(
       'NetworkController:getNetworkClientById',
       'TransactionController:getNonceLock',
       'TransactionController:getTransactions',
-      'TransactionController:updateTransaction',
+      'TransactionController:failTransaction',
       'RemoteFeatureFlagController:getState',
     ],
     events: [

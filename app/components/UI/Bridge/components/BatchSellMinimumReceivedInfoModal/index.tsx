@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import {
   BottomSheet,
@@ -17,13 +17,11 @@ import { BatchSellMinimumReceivedInfoModalSelectorsIDs } from './BatchSellMinimu
 import { BatchSellMinimumReceivedInfoModalParams } from './BatchSellMinimumReceivedInfoModal.types';
 
 export function BatchSellMinimumReceivedInfoModal() {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellMinimumReceivedInfoModalParams>();
   const handleBack = sourceModal
     ? () => navigation.replace(sourceModal.screen, sourceModal.params)
     : undefined;
-
   return (
     <BottomSheet
       testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.SHEET}
@@ -44,7 +42,7 @@ export function BatchSellMinimumReceivedInfoModal() {
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.DESCRIPTION}
         >

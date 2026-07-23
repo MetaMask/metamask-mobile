@@ -8,9 +8,9 @@ import React, {
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {
   BottomSheet,
-  type BottomSheetRef,
-  IconName,
   HeaderStandard,
+  IconName,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import {
   IconName as ComponentLibraryIconName,
@@ -20,6 +20,7 @@ import { createNavigationDetails } from '../../../../../../util/navigation/navUt
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   ToastContext,
   ToastVariants,
@@ -32,17 +33,18 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../Deposit/utils/ProviderTokenVault';
+} from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 
 /**
- * Transak native provider path prefix - matches both production
- * ('/providers/transak-native') and staging ('/providers/transak-native-staging')
+ * Transak native provider code. Provider ids are canonical (non-prefixed), so
+ * `transak-native` matches both the native provider and its staging variant
+ * (`transak-native-staging`).
  */
-const TRANSAK_NATIVE_PREFIX = '/providers/transak-native';
+const TRANSAK_NATIVE_CODE = 'transak-native';
 
 const isTransakNativeProvider = (providerId?: string): boolean =>
-  providerId?.startsWith(TRANSAK_NATIVE_PREFIX) ?? false;
+  providerId?.startsWith(TRANSAK_NATIVE_CODE) ?? false;
 
 export const createSettingsModalNavDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -52,10 +54,9 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 function SettingsModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
-
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
 
@@ -106,12 +107,13 @@ function SettingsModal() {
         })
         .build(),
     );
-    sheetRef.current?.onCloseBottomSheet();
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: {
-        redirectToOrders: true,
-      },
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          redirectToOrders: true,
+        },
+      });
     });
   }, [navigation, trackEvent, createEventBuilder]);
 
@@ -211,7 +213,7 @@ function SettingsModal() {
 
       {supportUrl && (
         <MenuItem
-          iconName={IconName.Messages}
+          iconName={IconName.Sms}
           title={strings(
             'fiat_on_ramp.build_quote_settings_modal.contact_support',
           )}

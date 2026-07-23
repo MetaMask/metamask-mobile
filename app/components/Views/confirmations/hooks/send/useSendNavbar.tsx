@@ -9,9 +9,20 @@ import { useSendActions } from './useSendActions';
 export function useSendNavbar() {
   const { handleCancelPress } = useSendActions();
   const navigation = useNavigation();
-  const sendStackState = useNavigationState((state) => state);
+  const parentNavigation = navigation.getParent();
+  // Back/cancel logic must read the main stack (which owns the `Send` route).
+  // When the header is rendered inside Amount/Asset/Recipient, `useNavigationState`
+  // only sees the nested Send stack — not the parent — so we read parent state here.
+  const navigationForStack = parentNavigation ?? navigation;
+  const nestedStackState = useNavigationState((state) => state);
 
   const handleBackPress = useCallback(() => {
+    const parentState = parentNavigation?.getState();
+    const sendStackState =
+      parentState?.routes.some((route) => route.name === 'Send') === true
+        ? parentState
+        : nestedStackState;
+
     const sendRoute = sendStackState.routes.find(
       (route) => route.name === 'Send',
     );
@@ -24,7 +35,7 @@ export function useSendNavbar() {
         : null;
 
       const screenName = previousRoute?.name || Routes.SEND.ASSET;
-      navigation.navigate(Routes.SEND.DEFAULT, { screen: screenName });
+      navigationForStack.navigate(Routes.SEND.DEFAULT, { screen: screenName });
       return;
     }
 
@@ -34,7 +45,7 @@ export function useSendNavbar() {
     );
 
     if (sendRouteIndex <= 0) {
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigationForStack.navigate(Routes.WALLET_VIEW);
       return;
     }
 
@@ -42,11 +53,14 @@ export function useSendNavbar() {
 
     // Navigate to previous route with special handling for specific routes
     if (previousMainRoute.name === 'Home') {
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigationForStack.navigate(Routes.WALLET_VIEW);
     } else {
-      navigation.navigate(previousMainRoute.name, previousMainRoute.params);
+      navigationForStack.navigate(
+        previousMainRoute.name,
+        previousMainRoute.params,
+      );
     }
-  }, [navigation, sendStackState]);
+  }, [navigationForStack, nestedStackState, parentNavigation]);
 
   return {
     Amount: getHeaderCompactStandardNavbarOptions({

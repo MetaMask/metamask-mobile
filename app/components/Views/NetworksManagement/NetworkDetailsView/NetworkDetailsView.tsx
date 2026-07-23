@@ -7,10 +7,7 @@ import React, {
 } from 'react';
 import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import {
-  KeyboardAwareScrollView,
-  KeyboardProvider,
-} from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -21,6 +18,10 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  HeaderStandard,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 import { CaipChainId } from '@metamask/utils';
@@ -33,7 +34,6 @@ import {
 } from '../../../../util/networks';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectIsRpcFailoverEnabled } from '../../../../selectors/featureFlagController/walletFramework';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Icon, {
@@ -41,11 +41,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
 import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import InfoModal from '../../../Base/InfoModal';
 import DeleteNetworkModal from '../components/DeleteNetworkModal';
@@ -262,13 +257,13 @@ const NetworkDetailsView = () => {
 
   const placeholderTextColor = colors.text.muted;
 
-  const content = (
+  return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
       edges={['top', 'bottom']}
       testID={NetworkDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         onBack={handleBack}
         endAccessory={
           !formHook.form.addMode &&
@@ -311,7 +306,7 @@ const NetworkDetailsView = () => {
             {headerTitle}
           </Text>
         </Box>
-      </HeaderCompactStandard>
+      </HeaderStandard>
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
@@ -364,22 +359,21 @@ const NetworkDetailsView = () => {
       {/* Save / Add button — sticky footer */}
       <Box twClassName="px-4 pt-2 pb-4">
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           onPress={handleSave}
-          label={
-            isCustomMainnet
-              ? strings('app_settings.networks_default_cta')
-              : strings('app_settings.network_save')
-          }
           size={ButtonSize.Lg}
           isDisabled={isActionDisabled}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={
             isCustomMainnet
               ? NetworkDetailsViewSelectorsIDs.USE_THIS_NETWORK_BUTTON
               : NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON
           }
-        />
+        >
+          {isCustomMainnet
+            ? strings('app_settings.networks_default_cta')
+            : strings('app_settings.network_save')}
+        </Button>
       </Box>
 
       {/* RPC & Block Explorer modals — only in edit mode */}
@@ -438,8 +432,6 @@ const NetworkDetailsView = () => {
       )}
     </SafeAreaView>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default NetworkDetailsView;

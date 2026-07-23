@@ -45,9 +45,3 @@ const CellSelectWithMenuMeta = {
 };
 
 export default CellSelectWithMenuMeta;
-
-export const CellMultiSelectWithMenu = {
-  args: {
-    avatarProps: SAMPLE_CELLSELECT_WITH_BUTTON_PROPS.avatarProps,
-  },
-};

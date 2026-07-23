@@ -1,18 +1,18 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
-  type BottomSheetRef,
-  Text,
-  TextVariant,
-  TextColor,
   Button,
   ButtonSize,
   ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-
 import styleSheet from './EligibilityFailedModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
@@ -31,7 +31,7 @@ export const createEligibilityFailedModalNavigationDetails =
 
 function EligibilityFailedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   const navigateToContactSupport = useCallback(() => {

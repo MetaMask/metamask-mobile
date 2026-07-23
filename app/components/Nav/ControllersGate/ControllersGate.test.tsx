@@ -13,10 +13,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockIsE2E = false;
+const mockHasTestOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
 }));
 

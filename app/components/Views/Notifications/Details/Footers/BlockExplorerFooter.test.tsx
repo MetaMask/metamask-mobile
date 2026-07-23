@@ -3,7 +3,6 @@ import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { fireEvent, render } from '@testing-library/react-native';
-import type { OnChainRawNotification } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../../locales/i18n';
 import BlockExplorerFooter from './BlockExplorerFooter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -16,6 +15,7 @@ import {
 } from '../../../../UI/Notification/__mocks__/mock_notifications';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { getNetworkDetailsFromNotifPayload } from '../../../../../util/notifications';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -95,13 +95,21 @@ describe('BlockExplorerFooter', () => {
     expect(Linking.openURL).toHaveBeenCalled();
     expect(trackEventMock).toHaveBeenCalledWith(
       AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+      )
+        .addProperties({
+          location: 'notification_detail',
+          text: strings('asset_details.options.view_on_block'),
+          url_domain: 'blockexplorer.com',
+        })
+        .build(),
+    );
+    expect(trackEventMock).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
       )
         .addProperties({
-          notification_id: props.notification.id,
-          notification_type: props.notification.type,
-          chain_id: (props.notification as OnChainRawNotification).payload
-            .chain_id,
+          ...notificationAnalyticsProperties(props.notification),
           clicked_item: 'block_explorer',
         })
         .build(),

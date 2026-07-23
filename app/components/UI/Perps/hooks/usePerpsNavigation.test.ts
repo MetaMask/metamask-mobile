@@ -15,6 +15,9 @@ jest.mock('@react-navigation/native', () => ({
 const mockDepositWithOrder = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
+const mockWithPendingTransactionActiveAbTests = jest.fn(
+  (_tests: unknown, fn: () => Promise<unknown>) => fn(),
+);
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(),
@@ -28,6 +31,16 @@ jest.mock('./usePerpsToasts', () => ({
 jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+  () => ({
+    withPendingTransactionActiveAbTests: (
+      tests: unknown,
+      fn: () => Promise<unknown>,
+    ) => mockWithPendingTransactionActiveAbTests(tests, fn),
+  }),
+);
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
@@ -167,6 +180,35 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('navigates to market details with transaction active A/B tests', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const mockMarket = { symbol: 'SOL' } as Partial<
+        Parameters<typeof result.current.navigateToMarketDetails>[0]
+      >;
+      const transactionActiveAbTests = [
+        {
+          key: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          value: 'treatment',
+          key_value_pair:
+            'homeTMCU725AbtestHomepagePerpsPillsEmptyState=treatment',
+        },
+      ];
+
+      result.current.navigateToMarketDetails(
+        mockMarket as Parameters<
+          typeof result.current.navigateToMarketDetails
+        >[0],
+        'perp_markets',
+        transactionActiveAbTests,
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: mockMarket,
+        source: 'perp_markets',
+        transactionActiveAbTests,
+      });
+    });
+
     it('navigates to perps home without source', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 
@@ -192,10 +234,10 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToMarketList();
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.MARKET_LIST,
-        undefined,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: undefined,
+      });
     });
 
     it('navigates to market list with params', () => {
@@ -204,10 +246,10 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToMarketList(params);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.MARKET_LIST,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
         params,
-      );
+      });
     });
 
     it('navigates to order screen with direction and asset', async () => {
@@ -225,6 +267,38 @@ describe('usePerpsNavigation', () => {
             showPerpsHeader:
               CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
           },
+        );
+      });
+    });
+
+    it('wraps order creation with transaction active A/B tests when provided', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const transactionActiveAbTests = [
+        {
+          key: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          value: 'control',
+          key_value_pair:
+            'homeTMCU725AbtestHomepagePerpsPillsEmptyState=control',
+        },
+      ];
+      const params = {
+        direction: 'long' as const,
+        asset: 'BTC',
+        transactionActiveAbTests,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockWithPendingTransactionActiveAbTests).toHaveBeenCalledWith(
+          transactionActiveAbTests,
+          mockDepositWithOrder,
+        );
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          expect.objectContaining({
+            transactionActiveAbTests,
+          }),
         );
       });
     });

@@ -78,6 +78,17 @@ describe('parseRampIntent', () => {
       });
     });
 
+    it('treats Polygon system address as ERC-20 when only address+chain are provided (Buy should use getCaipAssetIdForToken for natives)', () => {
+      const pathParams = {
+        address: '0x0000000000000000000000000000000000001010',
+        chainId: '137',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        assetId: 'eip155:137/erc20:0x0000000000000000000000000000000000001010',
+      });
+    });
+
     it('returns a RampIntent object if pathParams contain legacy necessary fields with random value', () => {
       const pathParams = {
         address: 'string_random',

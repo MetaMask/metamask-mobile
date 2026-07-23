@@ -35,8 +35,8 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  isE2E,
-  isTest,
+  hasTestOverrides,
+  isTestEnvironment,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
@@ -79,14 +79,14 @@ require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-com
 import 'expo';
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
-if (isE2E) {
+if (hasTestOverrides) {
   // eslint-disable-next-line no-console
   console.warn(
-    '[E2E MODE] App running with isE2E=true. If unexpected, check your .js.env and unset IS_TEST or METAMASK_ENVIRONMENT=e2e.',
+    '[E2E MODE] App running with hasTestOverrides=true. If unexpected, check your .js.env and unset HAS_TEST_OVERRIDES',
   );
   // eslint-disable-next-line no-console
   console.warn(
-    `IS_TEST=${process.env.IS_TEST || 'unset'} METAMASK_ENVIRONMENT=${
+    `HAS_TEST_OVERRIDES=${process.env.HAS_TEST_OVERRIDES || 'unset'} METAMASK_ENVIRONMENT=${
       process.env.METAMASK_ENVIRONMENT || 'unset'
     }`,
   );
@@ -106,7 +106,7 @@ if (isE2E) {
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
 //          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
 //          See FixtureHelper.ts for the port mapping implementation.
-if (isTest) {
+if (isTestEnvironment) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
@@ -243,17 +243,6 @@ if (typeof global.AbortSignal.timeout === 'undefined') {
   };
 }
 
-if (typeof global.Promise.withResolvers === 'undefined') {
-  global.Promise.withResolvers = function () {
-    let resolve, reject;
-    const promise = new Promise((res, rej) => {
-      resolve = res;
-      reject = rej;
-    });
-    return { promise, resolve, reject };
-  };
-}
-
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
@@ -263,7 +252,7 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-if (enableApiCallLogs || isTest) {
+if (enableApiCallLogs || isTestEnvironment) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
@@ -312,6 +301,15 @@ if (enableApiCallLogs || isTest) {
       }
     }
 
+    // Capture the fetch installed by NitroFetchSetup. This shim's synchronous
+    // import (index.js) runs before NitroFetchSetup, so `originalFetch` above
+    // was captured as RN's pre-nitro fetch. By the time this async IIFE resumes
+    // (after the health-check await), NitroFetchSetup has replaced global.fetch
+    // with nitro-fetch AND global.Headers with nitro's Headers. Routing app
+    // requests through nitro-fetch is required: RN's pre-nitro fetch cannot read
+    // a NitroHeaders instance and silently drops headers like Content-Type,
+    // which makes HyperLiquid reject perps orders/candles with a 415.
+    const installedFetch = global.fetch;
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -328,11 +326,11 @@ if (enableApiCallLogs || isTest) {
       }
 
       return isMockServerAvailable
-        ? originalFetch(
+        ? installedFetch(
             `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
             options,
-          ).catch(() => originalFetch(url, options))
-        : originalFetch(url, options);
+          ).catch(() => installedFetch(url, options))
+        : installedFetch(url, options);
     };
 
     if (isMockServerAvailable) {

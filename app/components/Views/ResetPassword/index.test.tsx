@@ -7,6 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import configureMockStore from 'redux-mock-store';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { Provider } from 'react-redux';
@@ -16,6 +17,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   PASSWORD_GUIDE_URL,
   RESET_PASSWORD_GUIDE_URL,
+  RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
@@ -37,8 +39,25 @@ import {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { ReauthenticateErrorType } from '../../../core/Authentication/types';
+import { PASSCODE_DISABLED } from '../../../constants/storage';
+import { passwordRequirementsMet } from '../../../util/password';
+import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+
+jest.mock('../../../util/password', () => ({
+  ...jest.requireActual('../../../util/password'),
+  passwordRequirementsMet: jest.fn(
+    jest.requireActual('../../../util/password').passwordRequirementsMet,
+  ),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -146,7 +165,10 @@ jest.mock('../../../core/Vault', () => {
 
 const mockStore = configureMockStore();
 
-const createState = (seedlessVault: string | null = 'vault string') => ({
+const createState = (
+  seedlessVault: string | null = 'vault string',
+  authConnection?: AuthConnection,
+) => ({
   user: {
     passwordSet: true,
     seedphraseBackedUp: false,
@@ -157,6 +179,7 @@ const createState = (seedlessVault: string | null = 'vault string') => ({
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       SeedlessOnboardingController: {
         vault: seedlessVault,
+        ...(authConnection ? { authConnection } : {}),
       },
     },
   },
@@ -199,9 +222,10 @@ const defaultProps: ResetPasswordProps = {
 const renderComponent = (
   props: ResetPasswordProps = defaultProps,
   seedlessVault: string | null = 'vault string',
+  authConnection?: AuthConnection,
 ) =>
   render(
-    <Provider store={mockStore(createState(seedlessVault))}>
+    <Provider store={mockStore(createState(seedlessVault, authConnection))}>
       <ThemeContext.Provider value={mockTheme}>
         <ResetPassword {...props} />
       </ThemeContext.Provider>
@@ -216,10 +240,15 @@ const flushMicrotasks = async () => {
 
 const navigateToResetForm = async (
   seedlessVault: string | null = 'vault string',
+  authConnection?: AuthConnection,
 ) => {
   mockExportSeedPhrase.mockResolvedValue('test result');
 
-  const component = renderComponent(defaultProps, seedlessVault);
+  const component = renderComponent(
+    defaultProps,
+    seedlessVault,
+    authConnection,
+  );
 
   const currentPasswordInput = component.getByTestId(
     ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -291,6 +320,49 @@ const getWarningModalPrimaryButton = () => {
   const navMock = NavigationService.navigation.navigate as jest.Mock;
   const warningCall = navMock.mock.calls[0];
   return warningCall[1].params.onPrimaryButtonPress;
+};
+
+const findPressHandler = (
+  root: ReactTestInstance,
+  testId?: string,
+): (() => void) | undefined => {
+  const pressableNodes = root.findAll(
+    (node) => typeof node.props?.onPress === 'function',
+  );
+
+  if (testId) {
+    const match = pressableNodes.find((node) => node.props.testID === testId);
+    if (match) {
+      return match.props.onPress;
+    }
+  }
+
+  return pressableNodes[pressableNodes.length - 1]?.props.onPress;
+};
+
+const getWarningModalLearnMoreOnPress = (): (() => void) => {
+  const navMock = NavigationService.navigation.navigate as jest.Mock;
+  const modalCall = navMock.mock.calls.find(
+    (call) =>
+      call[1]?.params?.title ===
+      strings('reset_password.warning_password_change_title'),
+  );
+  const description = modalCall?.[1].params.description as React.ReactElement<{
+    children: React.ReactNode;
+  }>;
+  const children = React.Children.toArray(description.props.children);
+  const learnMoreChild = children.find((child) => {
+    if (!React.isValidElement<{ onPress?: () => void }>(child)) {
+      return false;
+    }
+    return typeof child.props.onPress === 'function';
+  }) as React.ReactElement<{ onPress: () => void }> | undefined;
+  if (!learnMoreChild) {
+    throw new Error(
+      'Learn more onPress not found in warning modal description',
+    );
+  }
+  return learnMoreChild.props.onPress;
 };
 
 describe('ResetPassword', () => {
@@ -389,6 +461,43 @@ describe('ResetPassword', () => {
           ),
         ).toBeOnTheScreen();
       });
+    });
+
+    it('does not show incorrect-password warning for PASSWORD_NOT_SET_WITH_BIOMETRICS', async () => {
+      jest
+        .spyOn(Authentication, 'reauthenticate')
+        .mockRejectedValueOnce(
+          new Error(
+            `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password stored`,
+          ),
+        );
+
+      const component = renderComponent();
+      await flushMicrotasks();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'WrongPassword');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(Authentication.reauthenticate).toHaveBeenCalled();
+      });
+
+      expect(
+        component.queryByText(
+          strings('reveal_credential.warning_incorrect_password'),
+        ),
+      ).toBeNull();
     });
   });
 
@@ -607,6 +716,27 @@ describe('ResetPassword', () => {
         component.getByText(strings('choose_password.description')),
       ).toBeOnTheScreen();
     });
+
+    it('displays social-login description and checkbox copy for Google auth connection', async () => {
+      const component = await navigateToResetForm(
+        'vault string',
+        AuthConnection.Google,
+      );
+
+      expect(
+        component.getByText(
+          strings('choose_password.description_social_login'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        component.getByTestId(ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID),
+      ).toHaveTextContent(strings('reset_password.checkbox_forgot_password'), {
+        exact: false,
+      });
+      expect(
+        component.queryByText(strings('reset_password.i_understand')),
+      ).toBeNull();
+    });
   });
 
   describe('learn more link', () => {
@@ -643,6 +773,36 @@ describe('ResetPassword', () => {
         screen: 'SimpleWebview',
         params: {
           url: RESET_PASSWORD_GUIDE_URL,
+          title: 'support.metamask.io',
+        },
+      });
+    });
+
+    it('opens social-login support URL from seedless warning modal learn more', async () => {
+      const component = await navigateToResetForm();
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            params: expect.objectContaining({
+              description: expect.anything(),
+            }),
+          }),
+        );
+      });
+
+      const learnMoreOnPress = getWarningModalLearnMoreOnPress();
+      await act(async () => {
+        learnMoreOnPress();
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: RESET_PASSWORD_SOCIAL_LOGIN_URL,
           title: 'support.metamask.io',
         },
       });
@@ -774,9 +934,138 @@ describe('ResetPassword', () => {
         );
       });
     });
+
+    it('completes seedless reset after confirming warning modal', async () => {
+      jest
+        .mocked(recreateVaultsWithNewPassword)
+        .mockResolvedValueOnce(undefined);
+
+      const component = await navigateToResetForm();
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: expect.objectContaining({
+              title: strings('reset_password.warning_password_change_title'),
+            }),
+          }),
+        );
+      });
+
+      const onPrimaryButtonPress = getWarningModalPrimaryButton();
+      await act(async () => {
+        await onPrimaryButtonPress();
+      });
+
+      expect(recreateVaultsWithNewPassword).toHaveBeenCalled();
+      expect(Authentication.resetPassword).toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.SECURITY_SETTINGS,
+      );
+    });
+
+    it('clears loading state without navigating on generic vault recreation error', async () => {
+      jest
+        .mocked(recreateVaultsWithNewPassword)
+        .mockRejectedValueOnce(new Error('Unexpected network failure'));
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(recreateVaultsWithNewPassword).toHaveBeenCalled();
+      });
+
+      expect(
+        component.queryByText(strings('reset_password.changing_password')),
+      ).toBeNull();
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.SETTINGS.SECURITY_SETTINGS,
+      );
+    });
+
+    it('shows alert when passwordRequirementsMet returns false on submit', async () => {
+      jest.mocked(passwordRequirementsMet).mockReturnValueOnce(false);
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        strings('choose_password.password_length_error'),
+      );
+      expect(recreateVaultsWithNewPassword).not.toHaveBeenCalled();
+    });
+
+    it('shows alert when passwords do not match on submit', async () => {
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component, {
+        newPassword: 'NewPassword123',
+        confirmPassword: 'DifferentPassword1',
+        pressCheckbox: true,
+      });
+
+      const onPress = findPressHandler(
+        component.root,
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      expect(onPress).toBeDefined();
+
+      await act(async () => {
+        onPress?.();
+      });
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        strings('choose_password.password_dont_match'),
+      );
+      expect(recreateVaultsWithNewPassword).not.toHaveBeenCalled();
+    });
+
+    it('logs error and completes reset when storePassword rejects', async () => {
+      jest
+        .spyOn(Authentication, 'storePassword')
+        .mockRejectedValueOnce(new Error('store failed'));
+      jest
+        .mocked(recreateVaultsWithNewPassword)
+        .mockResolvedValueOnce(undefined);
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.SETTINGS.SECURITY_SETTINGS,
+        );
+      });
+    });
   });
 
   describe('biometry initialization', () => {
+    it('logs error and keeps confirm view when initAuth fails', async () => {
+      jest
+        .spyOn(Authentication, 'getType')
+        .mockRejectedValueOnce(new Error('auth init failed'));
+
+      const component = renderComponent();
+      await flushMicrotasks();
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(
+        component.getByText(
+          strings('manual_backup_step_1.enter_current_password'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('sets biometry type for passcode authentication', async () => {
       jest.spyOn(Authentication, 'getType').mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
@@ -804,6 +1093,29 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
+    });
+
+    it('sets biometry type for device authentication', async () => {
+      jest.spyOn(Authentication, 'getType').mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        availableBiometryType: undefined,
+      });
+
+      const mockStorageWrapper = jest.mocked(StorageWrapper);
+      mockStorageWrapper.getItem.mockImplementation((key) => {
+        if (key === PASSCODE_DISABLED) return Promise.resolve(null);
+        return Promise.resolve(null);
+      });
+
+      const component = await navigateToResetForm();
+
+      expect(Authentication.getType).toHaveBeenCalled();
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        PASSCODE_DISABLED,
+      );
+      expect(
+        component.getByTestId('login-with-biometric-switch'),
+      ).toBeOnTheScreen();
     });
 
     it('sets biometry type and triggers reauthentication when biometrics available', async () => {
@@ -964,6 +1276,40 @@ describe('ResetPassword', () => {
       });
       expect(mockNavigation.replace).toHaveBeenCalledWith(
         Routes.SETTINGS.SECURITY_SETTINGS,
+      );
+    });
+
+    it('navigates to change password error modal when lockApp rejects after outdated password', async () => {
+      jest
+        .spyOn(Authentication, 'lockApp')
+        .mockRejectedValueOnce(new Error('lock failed'));
+
+      await setupSeedlessErrorTest(
+        SeedlessOnboardingControllerErrorMessage.OutdatedPassword,
+      );
+
+      const outdatedModalCall = mockNavigation.navigate.mock.calls.find(
+        (call) =>
+          call[1]?.params?.title ===
+          strings('login.seedless_password_outdated_modal_title'),
+      );
+      const onOutdatedModalPrimaryButtonPress =
+        outdatedModalCall?.[1].params.onPrimaryButtonPress;
+
+      await act(async () => {
+        await onOutdatedModalPrimaryButtonPress();
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings(
+              'reset_password.seedless_change_password_error_modal_title',
+            ),
+          }),
+        }),
       );
     });
   });

@@ -120,6 +120,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    HeaderStandard: () => null,
     Box: ({
       children,
       ...props

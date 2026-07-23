@@ -13,10 +13,15 @@ import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
-import { PredictNavigationParamList } from '../types/navigation';
+import {
+  PredictModalsNavigationParamList,
+  PredictStackParamList,
+} from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
-import PredictFeed from '../views/PredictFeed';
-import PredictWorldCup from '../views/PredictWorldCup';
+import PredictPositionsView from '../views/PredictPositionsView';
+import PredictMarketListRoute from './PredictMarketListRoute';
+import PredictWorldCupRoute from './PredictWorldCupRoute';
+import PredictFeedView from '../views/PredictFeedView';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
 import { PredictPreviewSheetProvider } from '../contexts';
@@ -25,8 +30,9 @@ import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
 
-const Stack = createNativeStackNavigator<PredictNavigationParamList>();
-const ModalStack = createNativeStackNavigator<PredictNavigationParamList>();
+const Stack = createNativeStackNavigator<PredictStackParamList>();
+const ModalStack =
+  createNativeStackNavigator<PredictModalsNavigationParamList>();
 
 const PredictModalStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
@@ -85,7 +91,7 @@ const PredictScreenStack = () => {
       >
         <Stack.Screen
           name={Routes.PREDICT.MARKET_LIST}
-          component={PredictFeed}
+          component={PredictMarketListRoute}
           options={{
             title: strings('predict.markets.title'),
             animation: 'none',
@@ -94,7 +100,14 @@ const PredictScreenStack = () => {
 
         <Stack.Screen
           name={Routes.PREDICT.WORLD_CUP}
-          component={PredictWorldCup}
+          component={PredictWorldCupRoute}
+        />
+
+        <Stack.Screen name={Routes.PREDICT.FEED} component={PredictFeedView} />
+
+        <Stack.Screen
+          name={Routes.PREDICT.POSITIONS}
+          component={PredictPositionsView}
         />
 
         <Stack.Screen

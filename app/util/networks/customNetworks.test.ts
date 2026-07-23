@@ -22,6 +22,8 @@ describe('popularNetwork', () => {
       HyperEVM: toHex('999'),
       MegaETH: toHex('4326'),
       Tempo: toHex('4217'),
+      Arc: toHex('5042'),
+      'Robinhood Chain': toHex('4663'),
     };
 
     PopularList.forEach((rpc) => {
