@@ -233,9 +233,31 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         const existingData = [...series.data];
         const lastPoint = existingData[existingData.length - 1];
 
-        const newValue = priceUpdate
-          ? Number((priceUpdate.bestAsk * 100).toFixed(2))
-          : (lastPoint?.value ?? 50);
+        // An empty/locked/invalid order book arrives as bestAsk 0 (or a
+        // non-finite / out-of-range value). Treat that as "no update" and carry
+        // forward the last real value instead of plotting a literal 0% cliff.
+        // Never fabricate a 50% point when there is no prior value either.
+        //
+        // Note: this intentionally means a genuine bestAsk of exactly 0 (no
+        // liquidity / fully locked outcome) is also carried forward rather than
+        // drawn as 0% - for a live game that is "no tradeable price right now",
+        // which is what we want to show. Valid probabilities live in (0, 1].
+        const rawBestAsk = priceUpdate?.bestAsk;
+        const hasValidPrice =
+          typeof rawBestAsk === 'number' &&
+          Number.isFinite(rawBestAsk) &&
+          rawBestAsk > 0 &&
+          rawBestAsk <= 1;
+
+        const newValue = hasValidPrice
+          ? Number((rawBestAsk * 100).toFixed(2))
+          : lastPoint?.value;
+
+        // Nothing valid to plot and nothing to carry forward: leave this
+        // series untouched rather than injecting a 0 or a 50.
+        if (newValue === undefined) {
+          return series;
+        }
 
         const newPoint: GameChartDataPoint = {
           timestamp: now,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { PanResponder } from 'react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictGameChartContent from './PredictGameChartContent';
 import { GameChartSeries } from './PredictGameChart.types';
@@ -8,6 +9,7 @@ import {
   CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT,
   CHART_INSET_RIGHT_MIN,
 } from './PredictGameChart.constants';
+import { PREDICT_GAME_CHART_CONTENT_TEST_IDS } from './PredictGameChartContent.testIds';
 
 jest.mock('react-native-svg-charts', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -596,6 +598,124 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const hundred = getPrimaryRightInset(pair('A', 100, 'B', 0));
 
       expect(hundred).toBeGreaterThan(twoDigit);
+    });
+  });
+
+  describe('Base layer always renders', () => {
+    it('mounts a line for every series by default (no tooltip interaction needed)', () => {
+      const { getAllByTestId } = renderWithProvider(
+        <PredictGameChartContent data={mockDualSeriesData} testID="chart" />,
+      );
+
+      // Primary + overlay lines are mounted unconditionally (not gated behind
+      // tooltip state), so a tooltip toggle can never remount/blank them.
+      expect(getAllByTestId('line-chart').length).toBe(
+        mockDualSeriesData.length,
+      );
+    });
+
+    it('keeps the overlay lines mounted with full data when the tooltip activates', () => {
+      // Capture the PanResponder config so we can drive a scrub directly,
+      // bypassing the native responder negotiation that RNTL cannot simulate.
+      const createSpy = jest.spyOn(PanResponder, 'create');
+
+      const { getByTestId, getAllByTestId } = renderWithProvider(
+        <PredictGameChartContent data={mockDualSeriesData} testID="chart" />,
+      );
+
+      // Base layer before any interaction: primary + one overlay.
+      expect(getAllByTestId('line-chart')).toHaveLength(2);
+
+      const config = createSpy.mock.calls[0]?.[0] as NonNullable<
+        Parameters<typeof PanResponder.create>[0]
+      >;
+
+      const surface = getByTestId(PREDICT_GAME_CHART_CONTENT_TEST_IDS.SURFACE);
+
+      // Give the surface a measured width (so the touch maps to a data index)
+      // and then activate the tooltip near the right edge via a scrub grant.
+      act(() => {
+        surface.props.onLayout({
+          nativeEvent: { layout: { width: 400, height: 200 } },
+        });
+        config.onPanResponderGrant?.(
+          { nativeEvent: { locationX: 300 } } as never,
+          {} as never,
+        );
+      });
+
+      // The overlay base line still carries its full, untouched data: the
+      // tooltip toggle must not tear it down (the scroll-blank regression).
+      const renderedData = getAllByTestId('chart-data').map((node) =>
+        JSON.parse(String(node.children[0])),
+      );
+      expect(renderedData).toContainEqual([50, 45, 40, 30]);
+
+      // Extra gray "inactive" layers are added on top of the base lines.
+      expect(getAllByTestId('line-chart').length).toBeGreaterThan(2);
+
+      createSpy.mockRestore();
+    });
+  });
+
+  describe('Non-finite values', () => {
+    it('keeps a finite, [0,100]-bounded domain when a series has NaN/Infinity', () => {
+      const data: GameChartSeries[] = [
+        {
+          label: 'SEA',
+          color: TEST_HEX_COLORS.TEAM_SEA,
+          data: [
+            { timestamp: 1, value: 40 },
+            { timestamp: 2, value: NaN },
+            { timestamp: 3, value: 60 },
+          ],
+        },
+        {
+          label: 'DEN',
+          color: TEST_HEX_COLORS.TEAM_DEN,
+          data: [
+            { timestamp: 1, value: 60 },
+            { timestamp: 2, value: Infinity },
+            { timestamp: 3, value: 40 },
+          ],
+        },
+      ];
+
+      const { getAllByTestId } = renderWithProvider(
+        <PredictGameChartContent data={data} />,
+      );
+
+      const lineChart = getAllByTestId('line-chart')[0];
+      expect(Number.isFinite(lineChart.props.yMin)).toBe(true);
+      expect(Number.isFinite(lineChart.props.yMax)).toBe(true);
+      expect(lineChart.props.yMin).toBeGreaterThanOrEqual(0);
+      expect(lineChart.props.yMax).toBeLessThanOrEqual(100);
+    });
+
+    it('falls back to a [0,100] domain when no finite values remain', () => {
+      const data: GameChartSeries[] = [
+        {
+          label: 'SEA',
+          color: TEST_HEX_COLORS.TEAM_SEA,
+          data: [
+            { timestamp: 1, value: NaN },
+            { timestamp: 2, value: Infinity },
+          ],
+        },
+        {
+          label: 'DEN',
+          color: TEST_HEX_COLORS.TEAM_DEN,
+          data: [{ timestamp: 1, value: NaN }],
+        },
+      ];
+
+      const { getAllByTestId } = renderWithProvider(
+        <PredictGameChartContent data={data} />,
+      );
+
+      const lineChart = getAllByTestId('line-chart')[0];
+      expect(lineChart.props.yMin).toBe(0);
+      expect(lineChart.props.yMax).toBe(100);
     });
   });
 });
