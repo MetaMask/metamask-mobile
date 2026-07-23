@@ -51,7 +51,7 @@ const getLedgerDmkBridge = (): Promise<LedgerDmkBridgeConnection> =>
 /**
  * Connect a Ledger device via a DMK session and return the running app name.
  *
- * Called by `LedgerBluetoothDMKAdapter` after it has discovered and connected
+ * Called by `LedgerBluetoothDmkAdapter` after it has discovered and connected
  * to the device through the shared DMK singleton. The session ID is forwarded
  * to the keyring's bridge via `updateSessionId`.
  *
@@ -74,8 +74,8 @@ export const connectLedgerDmkHardware = async (
     return ledgerBridge;
   });
 
-  // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
-  // flows are serialized at the adapter/provider layer.
+  // Keep the BLE exchange outside the KeyringController mutex.
+  // Hardware wallet flows are serialized at the adapter/provider layer.
   throwIfLedgerOperationAborted(abortSignal);
   const result = await bridge.getAppNameAndVersion();
   return result.appName;
