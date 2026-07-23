@@ -296,6 +296,8 @@ jobs:
           ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
           ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
+          # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Run Appium smoke tests (iOS)
         id: run-tests-ios
@@ -326,6 +328,8 @@ jobs:
           USE_PREBUILT_WDA: 'true'
           IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
+          # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Upload Playwright HTML report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}

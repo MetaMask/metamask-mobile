@@ -60,7 +60,7 @@ const MoneyBalanceCard = () => {
     apyPercent,
     isBalanceLoading,
     isBalanceFetchError,
-    isBalanceFetching,
+    moneyBalanceQuery,
     refetchBalance,
     vaultApyQuery,
   } = useMoneyAccountBalance();
@@ -85,6 +85,8 @@ const MoneyBalanceCard = () => {
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
   });
+
+  const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
@@ -113,7 +115,7 @@ const MoneyBalanceCard = () => {
   let buttonVariant: ButtonVariant;
   let containerTestId: string;
 
-  if (!hasMoneyAccount || isError || isRetrying) {
+  if (isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
@@ -204,19 +206,7 @@ const MoneyBalanceCard = () => {
   }, [navigation, trackTooltipClicked]);
 
   const renderBalanceSlot = () => {
-    if (!hasMoneyAccount) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          testID={MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT}
-        >
-          {strings('money.balance_no_account')}
-        </Text>
-      );
-    }
-    if (isBalanceLoading || isRetrying) {
+    if (!hasMoneyAccount || isBalanceLoading || isRetrying) {
       return (
         <Skeleton
           height={24}
