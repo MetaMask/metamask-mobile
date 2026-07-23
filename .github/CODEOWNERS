@@ -315,7 +315,8 @@ app/selectors/featureFlagController/homepage/    @MetaMask/mobile-core-ux @MetaM
 app/components/Views/transactions @MetaMask/transactions
 
 # Web3auth Team
-app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
+app/core/Engine/wallet-init/instance-options/seedless-onboarding-controller.ts @MetaMask/web3auth
+app/core/Engine/wallet-init/instance-options/seedless-onboarding-controller.test.ts @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/Engine/controllers/qr-sync-controller-init.ts      @MetaMask/web3auth
 app/core/Engine/messengers/qr-sync-controller-messenger     @MetaMask/web3auth
