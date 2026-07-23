@@ -6,6 +6,7 @@ import {
   TextColor as DSTextColor,
 } from '@metamask/design-system-react-native';
 import {
+  getPerpsDisplaySymbol,
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
@@ -54,6 +55,7 @@ const PerpsRecentlyViewedTile: React.FC<{
 
   const isPositiveChange = !market.change24h.startsWith('-');
   const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+  const displaySymbol = getPerpsDisplaySymbol(market.symbol);
 
   return (
     <TouchableOpacity
@@ -62,7 +64,7 @@ const PerpsRecentlyViewedTile: React.FC<{
       style={styles.tile}
       testID={`perps-recently-viewed-tile-${market.symbol}`}
       accessibilityRole="button"
-      accessibilityLabel={`${market.symbol} recently viewed market`}
+      accessibilityLabel={`${displaySymbol} recently viewed market`}
     >
       <PerpsTokenLogo symbol={market.symbol} size={32} />
 
@@ -72,7 +74,7 @@ const PerpsRecentlyViewedTile: React.FC<{
           color={TextColor.Default}
           numberOfLines={1}
         >
-          {market.symbol}
+          {displaySymbol}
         </Text>
         <PerpsLeverage maxLeverage={market.maxLeverage} />
       </View>
@@ -131,7 +133,8 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   return (
     <View style={styles.rail} testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL}>
       <SectionHeader
-        title={strings('perps.recently_searched')}
+        title={strings('perps.recently_viewed')}
+        twClassName="pt-1"
         titleProps={{
           variant: DSTextVariant.BodySm,
           color: DSTextColor.TextAlternative,

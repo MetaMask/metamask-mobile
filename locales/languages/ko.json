@@ -480,7 +480,7 @@
     "sync_help_step_three": "3. \"모바일과 동기화\"를 클릭합니다",
     "sync_help_step_four": "4. QR 코드를 스캔해 동기화를 시작합니다",
     "sync_from_browser_extension_button": "MetaMask 확장 프로그램과 동기화하기",
-    "or": "또는",
+    "or": "Or",
     "import_from_seed_button": "비밀 복구 구문을 활용해 불러오기"
   },
   "login": {
@@ -651,7 +651,7 @@
     "seed_phrase_placeholder": "비밀 복구 구문을 입력하세요",
     "create_new_password": "비밀번호 생성",
     "confirm_password": "비밀번호 확인",
-    "import_button": "불러오기",
+    "import_button": "Import",
     "cancel_button": "취소",
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
     "password_dont_match": "비밀번호가 일치하지 않습니다",
@@ -722,8 +722,8 @@
     "help": "지원",
     "lock": "잠금",
     "lock_title": "정말로 지갑을 잠그시겠습니까?",
-    "lock_ok": "예",
-    "lock_cancel": "아니오",
+    "lock_ok": "Yes",
+    "lock_cancel": "No",
     "feedback": "피드백",
     "metamask_support": "MetaMask 지원",
     "public_address": "공개 주소"
@@ -1097,19 +1097,19 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "주간 상위 트레이더",
-      "chain_filter": {
-        "all": "모두",
-        "tokens": "토큰",
-        "perps": "무기한 선물"
-      },
+      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "설정 열기"
       }
     },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
     "feed": {
-      "title": "상위 트레이더",
+      "title": "Top traders",
       "tabs": {
         "leaderboard": "리더보드",
         "feed": "Feed"
@@ -1123,10 +1123,9 @@
         "opened": "진입",
         "closed": "닫힘"
       },
-      "type_filter": {
-        "all": "모든 유형",
-        "tokens": "토큰",
-        "perps": "무기한 선물"
+      "new_position": {
+        "bought": "Holding",
+        "opened": "Open"
       },
       "empty_following": {
         "title": "아직 활동이 없습니다",
@@ -1159,7 +1158,7 @@
       },
       "slide_follow": {
         "title": "Follow the best",
-        "description": "Tap to follow the top three traders who are up big this week."
+        "description": "Tap to follow the top ten traders who are up big this week."
       },
       "slide_notify": {
         "title": "매매 기회를 놓치지 마세요",
@@ -1167,7 +1166,7 @@
         "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
       },
       "next": "다음",
-      "follow_top_three": "Follow the top three",
+      "follow_top_ten": "Follow the top ten",
       "maybe_later": "나중에",
       "got_it": "컨펌",
       "allow_notifications": "알림 허용"
@@ -1180,6 +1179,11 @@
       "traders_you_follow_desc": "알림 받을 대상 선택",
       "traders_you_follow_empty": "아직 팔로우 중인 트레이더가 없습니다.",
       "error_loading_followed": "팔로우 중인 트레이더를 불러올 수 없습니다."
+    },
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
     "follow": "팔로우",
     "following": "팔로우 중",
@@ -1485,6 +1489,7 @@
       "title": "신규 주문",
       "leverage": "레버리지",
       "limit_price": "지정가",
+      "set_price": "Set price",
       "market_price": "시장 가격",
       "enter_price": "가격 입력",
       "trigger_price": "트리거 가격",
@@ -1572,7 +1577,8 @@
         "bid_price": "매수호가",
         "difference_from_market": "시장가 대비 차이:",
         "limit_price_above": "지정가가 현재 가격보다 높습니다",
-        "limit_price_below": "지정가가 현재 가격보다 낮습니다"
+        "limit_price_below": "지정가가 현재 가격보다 낮습니다",
+        "limit_price_too_far": "Price can't be more than 95% away from the market price"
       },
       "leverage_modal": {
         "title": "레버리지",
@@ -1602,7 +1608,7 @@
       "select_payment_token": "결제 토큰 선택",
       "select_token": "토큰 선택",
       "no_payment_tokens": "사용 가능한 결제 토큰 없음",
-      "swap": "스왑",
+      "swap": "Swap",
       "swap_submitted": "스왑 제출 완료",
       "transaction_id": "트랜잭션 ID: {{txId}}",
       "swap_failed": "스왑 실패",
@@ -1715,6 +1721,8 @@
       "funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
       "failed_to_close_position": "포지션 종료에 실패했습니다",
       "failed_to_partially_close_position": "포지션 부분 종료 실패",
+      "failed_to_place_close_order": "Failed to place close order",
+      "failed_to_place_partial_close_order": "Failed to place partial close order",
       "your_position_is_still_active": "포지션이 여전히 유효합니다",
       "fox_points_earned": "{{points}} Fox 포인트 획득!",
       "minimum_remaining_warning": "남은 포지션은 최소 ${{minimum}} 이상이어야 합니다. 현재: ${{remaining}}",
@@ -1777,8 +1785,6 @@
       "loss_percent_placeholder": "손실",
       "profit_roe_placeholder": "% 이익",
       "loss_roe_placeholder": "% 손실",
-      "toggle_take_profit_sign": "Toggle take profit return sign",
-      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "익절은 {{direction}} {{priceType}} 가격이어야 합니다",
       "stop_loss_invalid_price": "손절은 {{direction}} {{priceType}} 가격이어야 합니다",
@@ -1993,6 +1999,7 @@
       "pay_attention_to_volatility": "변동성과 슬리피지에 주의하세요",
       "badge": {
         "experimental": "실험적",
+        "equity": "STOCK",
         "commodity": "상품",
         "crypto": "암호화폐",
         "forex": "외환",
@@ -2450,8 +2457,9 @@
       "referral_code_text": "추천 코드를 사용하여 추가 리워드를 받으세요."
     },
     "market_details": {
-      "category_search": "관련 시장 둘러보기",
-      "fullscreen_chart": "전체 화면 차트"
+      "fullscreen_chart": "전체 화면 차트",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {
@@ -3064,7 +3072,7 @@
     "defi": "디파이",
     "perps": "무기한 선물",
     "predict": "예측",
-    "transactions": "거래",
+    "transactions": "Transactions",
     "no_collectibles": "귀하의 NFT가 보이지 않나요?",
     "no_available_tokens": "토큰이 보이지 않나요?",
     "add_tokens": "토큰 가져오기",
@@ -3295,8 +3303,8 @@
     "search_token": "Search",
     "custom_token": "Custom token",
     "tokens": {
-      "cancel_add_token": "취소",
-      "add_token": "불러오기"
+      "cancel_add_token": "Cancel",
+      "add_token": "Import"
     },
     "collectibles": {
       "cancel_add_collectible": "취소",
@@ -3479,8 +3487,8 @@
   },
   "transfer": {
     "title": "송금",
-    "send": "보내기",
-    "receive": "받기"
+    "send": "Send",
+    "receive": "Receive"
   },
   "accounts": {
     "srp_index": "비밀복구구문 #{{index}}",
@@ -3560,7 +3568,8 @@
       "solana_account_name": "솔라나 계정",
       "tron_account_name": "Tron 계정",
       "tron_nile_account_name": "Tron Nile 계정",
-      "tron_shasta_account_name": "Tron Shasta 계정"
+      "tron_shasta_account_name": "Tron Shasta 계정",
+      "stellar_account_name": "Stellar Account"
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} 계정 생성 실패"
@@ -3616,8 +3625,8 @@
     "content": "마케팅 목적의 데이터 수집을 비활성화했습니다. 이는 이 기기에만 적용됩니다. 다른 기기에서도 MetaMask를 사용하는 경우 해당 기기에서도 데이터 수집을 비활성화해야 합니다."
   },
   "account_selector": {
-    "prev": "이전",
-    "next": "다음",
+    "prev": "Prev",
+    "next": "Next",
     "unlock": "잠금해제",
     "forget": "이 기기 제거"
   },
@@ -3662,10 +3671,10 @@
     "autolock_never": "절대",
     "autolock_after": " {{time}}초 후",
     "autolock_after_minutes": "{{time}}분 후",
-    "reveal_seed_words": "시드 단어 공개",
+    "reveal_seed_words": "Reveal Secret Recovery Phrase",
     "reset_account": "계정 초기화",
     "state_logs_button": "상태 로그 다운로드",
-    "reveal_seed_words_button": "시드 단어 공개",
+    "reveal_seed_words_button": "Reveal Secret Recovery Phrase",
     "reset_account_button": "계정 초기화",
     "reset_account_confirm_button": "네. 초기화합니다",
     "reset_account_cancel_button": "취소",
@@ -3677,17 +3686,17 @@
     "clear_cookies_modal_title": "브라우저 쿠키 지우기",
     "clear_cookies_modal_message": "브라우저의 쿠키를 제거할 예정입니다. 확실합니까?",
     "reset_account_modal_message": "계정을 초기화하면 거래 활동이 지워집니다.",
-    "save_rpc_url": "저장",
+    "save_rpc_url": "Save",
     "invalid_rpc_prefix": "URI에는 적절한 HTTPS 프로토콜 명이 필요합니다",
     "invalid_rpc_url": "잘못된 RPC URL",
     "invalid_block_explorer_url": "잘못된 블록 탐색기 URL",
-    "sync": "동기화",
-    "clear_approved_dapps": "승인된 디앱 지우기",
-    "clear_browser_history": "브라우저 기록 지우기",
+    "sync": "Sync",
+    "clear_approved_dapps": "Clear approved dapps",
+    "clear_browser_history": "Clear browser history",
     "clear_approve_dapps_desc": "승인된 디앱 지우기",
     "clear_browser_history_desc": "브라우저 기록 지우기",
     "clear_browser_cookies_desc": "브라우저 쿠키 지우기",
-    "clear": "지우기",
+    "clear": "Clear",
     "protect_cta": "보호",
     "protect_title": "지갑 복구",
     "banner_social_login_enabled": "{{authConnection}}(으)로 로그인",
@@ -4386,7 +4395,7 @@
   "price_alerts": {
     "create_title": "{{ticker}} 가격 알림 생성",
     "edit_title": "{{ticker}} 가격 알림 수정",
-    "price_reaches": "가격 도달",
+    "price_target": "Price target",
     "price_change": "가격 변동",
     "enter_target_price": "목표 가격 입력",
     "approx_percent": "약 {{percent}}%",
@@ -4394,7 +4403,6 @@
     "approx_percent_below": "낮음(현재 {{ticker}} 가격 대비)",
     "recurring": "반복",
     "quick_percentage": "{{percentage}}%",
-    "price_change_under_development": "이 기능은 현재 개발 중입니다",
     "set_price_alert": "가격 알림 설정",
     "update_price_alert": "가격 알림 업데이트",
     "save_success": "{{ticker}} 가격 알림이 설정되었습니다.",
@@ -4408,7 +4416,30 @@
     "add_alert": "알림 추가",
     "reaches_threshold": "{{threshold}} 도달",
     "once_label": "1회",
-    "no_alerts": "이 자산에 대한 가격 알림이 설정되지 않았습니다."
+    "moves_up": "When price moves up",
+    "moves_down": "When price moves down",
+    "period_1h": "1hr",
+    "period_24h": "24hr",
+    "period_1h_short": "1h",
+    "period_24h_short": "24h",
+    "moves_up_summary": "Moves up {{percent}}%",
+    "moves_down_summary": "Moves down {{percent}}%",
+    "period_recurrence": "{{period}} • {{recurrence}}",
+    "percent_duplicate": "An alert with this configuration already exists.",
+    "percent_max_down": "Price can't fall by more than 100%."
+  },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
   },
   "asset_overview": {
     "market_closed": "시장 마감",
@@ -4707,7 +4738,7 @@
   },
   "transaction": {
     "transaction_id": "트랜잭션 ID",
-    "alert": "알림",
+    "alert": "Alert",
     "amount": "금액",
     "details": "세부 정보",
     "next": "다음",
@@ -4722,9 +4753,9 @@
     "sign_with_ledger": "Ledger로 서명",
     "from": "보내는 사람",
     "gas_fee": "가스요금",
-    "gas_fee_fast": "빠름",
-    "gas_fee_average": "평균",
-    "gas_fee_slow": "느림",
+    "gas_fee_fast": "Fast",
+    "gas_fee_average": "Average",
+    "gas_fee_slow": "Slow",
     "hex_data": "헥스 데이터",
     "custom_nonce": "논스",
     "custom_nonce_tooltip": "이는 계정의 트랜잭션 번호입니다. 논스는 첫 번째 트랜잭션 때 0으로 시작하여 순차적으로 증가합니다.",
@@ -4733,11 +4764,11 @@
     "edit_transaction_nonce": "논스 거래 수정",
     "think_of_the_nonce": "논스는 계정의 거래 수라고 이해하면 됩니다. 모든 계정의 논스는 첫 거래 때 0으로 시작하며 순차적으로 계속됩니다.",
     "nonce_warning": "경고: 계속 진행하면 향후 거래에 문제가 생길 수 있습니다. 주의깊게 사용하세요.",
-    "review_details": "세부 사항",
-    "review_data": "데이터",
+    "review_details": "Details",
+    "review_data": "Data",
     "data": "데이터",
     "data_description": "이 거래와 연관된 데이터",
-    "review_function_type": "기능 유형",
+    "review_function_type": "Function type",
     "review_function": "기능",
     "review_hex_data": "헥스 데이터",
     "insufficient": "자금 부족",
@@ -4923,10 +4954,10 @@
     "open_in_browser": "브라우저에서 열기",
     "change_url": "URL 변경",
     "switch_network": "네트워크 변경",
-    "dapp_browser": "디앱 브라우저",
+    "dapp_browser": "Dapp browser",
     "dapp_browser_message": "MetaMask는 탈중앙화 웹을 위한 여러분의 지갑과 브라우저입니다. 전체를 둘러보세요!",
-    "featured_dapps": "추천 디앱",
-    "my_favorites": "즐겨찾기",
+    "featured_dapps": "Featured dapps",
+    "my_favorites": "Favorites",
     "search": "검색 또는 URL 입력",
     "welcome": "환영합니다!",
     "remove": "제거",
@@ -5033,6 +5064,21 @@
     "activity_market_close_short": "시장가 — 숏 청산",
     "activity_limit_short": "숏 지정가",
     "activity_limit_close_short": "지정가 — 숏 청산",
+    "activity_market_long": "Market long",
+    "activity_stop_market_close_long": "Stop market — close long",
+    "activity_market_close_long": "Market — close long",
+    "activity_limit_long": "Limit long",
+    "activity_limit_close_long": "Limit — close long",
+    "activity_order_status_filled": "Filled",
+    "activity_order_status_canceled": "Canceled",
+    "activity_order_status_rejected": "Rejected",
+    "activity_order_status_open": "Open",
+    "activity_trustline_activated": "Trustline activated",
+    "activity_trustline_activating": "Activating trustline",
+    "activity_trustline_activation_failed": "Activate trustline failed",
+    "activity_trustline_deactivating": "Deactivating trustline",
+    "activity_trustline_deactivated": "Trustline deactivated",
+    "activity_trustline_deactivation_failed": "Deactivate trustline failed",
     "claim": "청구",
     "sent_ether": "ETH 보냄",
     "self_sent_ether": "나에게 보낸 ETH",
@@ -5057,6 +5103,14 @@
     "receive": "받기",
     "swap": "스왑",
     "send": "전송",
+    "activity_swapped": "Swapped",
+    "activity_swapping": "Swapping",
+    "activity_swap_failed": "Swap failed",
+    "activity_bridged": "Bridged",
+    "activity_bridging": "Bridging",
+    "activity_bridge_failed": "Bridge failed",
+    "activity_sending": "Sending",
+    "activity_send_failed": "Send failed",
     "redeposit": "재예치",
     "interaction": "상호작용",
     "contract_deploy": "계약 배포",
@@ -5331,8 +5385,8 @@
   },
   "watch_asset_request": {
     "title": "추천 토큰 추가",
-    "cancel": "취소",
-    "add": "토큰 추가",
+    "cancel": "Cancel",
+    "add": "Add token",
     "message": "이 토큰을 추가할까요?",
     "token": "토큰",
     "balance": "잔고"
@@ -5372,8 +5426,8 @@
     }
   },
   "accountApproval": {
-    "title": "연결 요청",
-    "walletconnect_title": "지갑 연결 요청",
+    "title": "Connect request",
+    "walletconnect_title": "WalletConnect request",
     "action": "이 사이트로 연결하시겠습니까?",
     "action_reconnect": "연결을 재개하려면 사이트에 표시된 번호를 선택하세요",
     "action_reconnect_deeplink": "이 사이트에 다시 연결하시겠습니까?",
@@ -5535,10 +5589,10 @@
     "title": "비밀 복구 구문",
     "info_text_1": "이 단어들을 조심스럽게 종이에 적으세요. 단어의 순서도 틀리지 않게 적으세요.",
     "info_text_2": "이를 다음 화면에 다시 입력하라는 안내를 받을 겁니다.",
-    "cta_text": "구문을 복사했습니다",
+    "cta_text": "I've copied the phrase",
     "confirm_password": "비밀번호 확인하기",
     "before_continiuing": "계속 진행하기 전에 귀하의 비밀번호를 확인해야 합니다",
-    "confirm": "확인"
+    "confirm": "Confirm"
   },
   "account_backup_step_5": {
     "error_title": "앗!",
@@ -5546,10 +5600,10 @@
     "back": "뒤로",
     "title": "비밀 복구 구문 확인",
     "info_text": "이전 화면에 나왔던 순서에 맞게 각 단어를 입력하세요.",
-    "cta_text": "구문 확인",
+    "cta_text": "Confirm phrase",
     "modal_title": "비밀 복구 구문이 확인되었습니다!",
     "modal_text": "이는 보안 수단을 따랐는지 확인하기 위함입니다",
-    "modal_button": "다음"
+    "modal_button": "Next"
   },
   "account_backup_step_6": {
     "title": "보안 팁",
@@ -5559,11 +5613,11 @@
     "tip_3": "다른 사람과 절대 구문을 공유하지 마세요",
     "disclaimer": "*비밀 복구 구문은 다음에서 찾을 수 있습니다:",
     "disclaimer_bold": "IPFS 레졸루션을",
-    "cta_text": "확인했습니다",
+    "cta_text": "Got it",
     "modal_title": "축하합니다!",
     "modal_text": "백업이 완료되었으며 준비가 되었습니다.",
-    "modal_button": "완료",
-    "copy_seed_phrase": "비밀 복구 구문을 클립보드에 복사하세요"
+    "modal_button": "Done",
+    "copy_seed_phrase": "Copy Secret Recovery Phrase to clipboard"
   },
   "manual_backup": {
     "progressOne": "비밀번호 생성",
@@ -5719,17 +5773,10 @@
     "success_withdrawal_title": "출금 완료!",
     "error_title": "앗, 문제가 발생했습니다 :/",
     "received_title": "{{amount}}의 {{assetType}}(을)를 받았습니다",
-    "metamask_swap_completed_title": "스왑 완료",
     "erc20_sent_title": "자금 전송됨",
     "erc20_received_title": "자금 받음",
     "eth_sent_title": "자금 전송됨",
     "eth_received_title": "자금 받음",
-    "rocketpool_stake_completed_title": "스테이킹 완료",
-    "rocketpool_unstake_completed_title": "언스테이킹 완료",
-    "lido_stake_completed_title": "스테이킹 완료",
-    "lido_withdrawal_requested_title": "출금 요청됨",
-    "lido_withdrawal_completed_title": "출금 완료",
-    "lido_stake_ready_to_be_withdrawn_title": "스테이킹이 출금 준비됨",
     "erc721_sent_title": "NFT 전송됨",
     "erc721_received_title": "NFT 받음",
     "erc1155_sent_title": "NFT 전송됨",
@@ -5764,29 +5811,29 @@
     "lido_stake_ready_to_be_withdrawn_message": "출금 요청됨",
     "push_notification_content": {
       "funds_sent_title": "자금 전송됨",
-      "funds_sent_description": "{{amount}} {{symbol}}(을)를 보냈습니다",
-      "funds_sent_default_description": "토큰을 보냈습니다",
+      "funds_sent_description": "You sent {{amount}} {{symbol}}.",
+      "funds_sent_default_description": "You sent funds.",
       "funds_received_title": "자금 받음",
-      "funds_received_description": "{{amount}} {{symbol}}(을)를 받았습니다",
-      "funds_received_default_description": "토큰을 받았습니다",
-      "metamask_swap_completed_title": "스왑 완료",
-      "metamask_swap_completed_description": "MetaMask 스왑이 완료되었습니다",
+      "funds_received_description": "You received {{amount}} {{symbol}}.",
+      "funds_received_default_description": "You received funds.",
+      "metamask_swap_completed_title": "Swap complete",
+      "metamask_swap_completed_description": "Your swap is complete.",
       "nft_sent_title": "NFT 전송됨",
-      "nft_sent_description": "NFT를 성공적으로 보냈습니다",
+      "nft_sent_description": "You sent an NFT.",
       "nft_received_title": "NFT 받음",
-      "nft_received_description": "새로운 NFT를 받았습니다",
-      "rocketpool_stake_completed_title": "스테이킹 완료",
-      "rocketpool_stake_completed_description": "RocketPool 스테이킹이 완료되었습니다",
+      "nft_received_description": "You received new NFTs.",
+      "rocketpool_stake_completed_title": "Stake deposited",
+      "rocketpool_stake_completed_description": "Your Rocket Pool stake deposit is complete.",
       "rocketpool_unstake_completed_title": "언스테이킹 완료",
-      "rocketpool_unstake_completed_description": "RocketPool 언스테이킹이 완료되었습니다",
-      "lido_stake_completed_title": "스테이킹 완료",
-      "lido_stake_completed_description": "Lido 스테이킹이 완료되었습니다",
-      "lido_stake_ready_to_be_withdrawn_title": "스테이킹이 출금 준비됨",
-      "lido_stake_ready_to_be_withdrawn_description": "이제 Lido에 스테이킹한 자산을 출금할 수 있습니다.",
+      "rocketpool_unstake_completed_description": "Your Rocket Pool unstake is complete.",
+      "lido_stake_completed_title": "Stake deposited",
+      "lido_stake_completed_description": "Your Lido stake deposit is complete.",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake ready to withdraw",
+      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is ready to withdraw.",
       "lido_withdrawal_requested_title": "출금 요청됨",
-      "lido_withdrawal_requested_description": "Lido 출금 요청이 제출되었습니다",
-      "lido_withdrawal_completed_title": "출금 완료",
-      "lido_withdrawal_completed_description": "Lido 출금이 완료되었습니다",
+      "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted.",
+      "lido_withdrawal_completed_title": "Withdrawal complete",
+      "lido_withdrawal_completed_description": "Your Lido withdrawal is complete.",
       "perps_position_liquidated_title": "포지션 청산",
       "perps_position_liquidated_description_long": "{{symbol}} 롱 포지션이 종료되었습니다.",
       "perps_position_liquidated_description_short": "{{symbol}} 숏 포지션이 종료되었습니다.",
@@ -6247,7 +6294,7 @@
     "enter_larger_amount": "계속하려면 더 많은 금액을 입력하세요",
     "enter_smaller_amount": "계속하려면 더 적은 금액을 입력하세요",
     "enter_lower_gas_fees": "가스비로 결제할 금액을 더 낮게 입력하세요.",
-    "max": "최대",
+    "max": "Max",
     "try_again": "다시 시도",
     "error": "오류",
     "something_went_wrong": "앗, 문제가 발생했습니다",
@@ -6381,6 +6428,7 @@
     "failed": "실패",
     "cancelled": "취소됨",
     "view_on_provider": "{{provider}}에서 보기",
+    "view_order": "View Order",
     "order_id": "주문 ID",
     "date_and_time": "날짜 및 시간",
     "fees": "수수료",
@@ -7383,6 +7431,9 @@
       "transfer": "전송",
       "card": "카드"
     },
+    "token_list_cta": {
+      "get_apy": "Get {{apy}}% APY"
+    },
     "earnings": {
       "title": "예상 수익",
       "estimated_monthly": "월간",
@@ -7400,6 +7451,7 @@
     },
     "balance_card": {
       "label": "머니 잔액",
+      "currency_suffix": " • mUSD",
       "add": "추가",
       "info_sheet_title": "머니 잔액",
       "info_sheet_body": "언제든지 결제, 송금, 거래에 사용할 수 있는 달러 연동 방식의 mUSD 잔액입니다. 이 금액은 총 계정 잔액 계산 시 포함되지 않습니다.\n\n출금은 해당 블록체인의 일반적인 네트워크 컨펌 시간을 기준으로 즉시 처리됩니다. 다만 유동성이 부족한 경우 일시적으로 지연될 수 있습니다."
@@ -7456,7 +7508,7 @@
       "verification_pending": "신원 인증을 검토 중입니다. 일반적으로 12시간 이내에 완료됩니다."
     },
     "what_you_get": {
-      "title": "Money Account 혜택",
+      "title": "Benefits",
       "benefit_auto_earn": "자동으로 적립될 수 있는 최대 수익",
       "benefit_auto_earn_variable": "(변동형)",
       "benefit_dollar_backed": "1:1 달러 연동 스테이블코인인 mUSD로 자금을 안전하게 보관하세요",
@@ -7482,7 +7534,7 @@
     "more_sheet": {
       "title": "더 보기",
       "how_it_works": "작동 방식",
-      "what_you_get": "Money Account 혜택",
+      "what_you_get": "Benefits",
       "contact_support": "지원팀에 문의"
     },
     "transfer_sheet": {
@@ -7610,6 +7662,12 @@
       "learn_more": "더 보기",
       "swap": "스와프",
       "buy": "매수"
+    },
+    "earn_banner": {
+      "title": "Earn up to {{apy}}% APY",
+      "title_no_apy": "Earn with your Money account",
+      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "cta": "Add {{symbol}}"
     },
     "how_it_works_page": {
       "header_title": "머니",
@@ -8382,7 +8440,10 @@
     "you_swapped": "스왑한 금액",
     "you_received": "수령한 금액",
     "bridge_to_chain": "{{chainName}}(으)로 브릿지",
-    "recipient": "받는 사람"
+    "recipient": "받는 사람",
+    "swapped": "Swapped",
+    "bridged": "Bridged",
+    "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
     "account_already_exists": "이미 존재하는 지갑",
@@ -8467,7 +8528,7 @@
     "social_recovery_title": "{{authConnection}} 복구",
     "social_recovery_enable": "활성화됨",
     "social_login_description": "계정 및 비밀복구구문을 복구하려면 {{authConnection}} 로그인과 MetaMask 비밀번호를 사용하세요.",
-    "srps_title": "비밀복구구문",
+    "srps_title": "Secret Recovery Phrases",
     "srps_description": "두 가지 복구 방법을 모두 설정하면 지갑을 가장 안전하게 보호할 수 있습니다. 하나의 방법에 실패해도 다른 방법으로 지갑을 복구할 수 있습니다."
   },
   "backupAndSync": {
@@ -8774,7 +8835,10 @@
         "invalid_email": "잘못된 이메일 주소입니다",
         "invalid_password": "비밀번호는 최소 15자 이상이어야 하며, 출력 불가능한 문자나 연속된 공백은 사용할 수 없습니다.",
         "join_waitlist": "대기자 명단 등록",
-        "country_not_available": "현재 거주 국가에서는 아직 카드 가입이 지원되지 않습니다."
+        "country_not_available": "현재 거주 국가에서는 아직 카드 가입이 지원되지 않습니다.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "이메일 확인",
@@ -8831,6 +8895,29 @@
         "title": "승인 대기 중",
         "description": "신청을 승인하려면 파트너사가 신원 확인을 진행해야 합니다.",
         "helper_text": "보통 몇 초 정도 소요됩니다. 앱을 종료하지 마세요."
+      },
+      "immersve_kyc_processing": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "incomplete_title": "Finish verifying your identity",
+        "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
+        "continue_button": "Continue verification",
+        "info_needed_title": "Additional information needed",
+        "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
+        "info_needed_button": "Continue verification",
+        "expiring_error": "Your verification session expired. Please contact support to continue."
+      },
+      "immersve_kyc_modal": {
+        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "try_again": "Try again"
+      },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
       },
       "verifying_registration": {
         "title": "본인 인증 중",
@@ -8971,6 +9058,13 @@
       "view_card_details_error": "카드 상세 정보를 불러올 수 없습니다. 다시 시도해 주세요.",
       "biometric_verification_required": "카드 상세 정보를 보려면 인증이 필요합니다.",
       "unfreeze_auth_required": "카드 사용을 재개하려면 인증이 필요합니다.",
+      "card_details": {
+        "card_number_label": "Card number",
+        "expiry_label": "Expiry",
+        "cvv_label": "CVV",
+        "name_label": "Name",
+        "copied": "Copied to clipboard"
+      },
       "warnings": {
         "close_spending_limit": {
           "title": "이용한도가 얼마 남지 않았습니다",
@@ -9188,9 +9282,11 @@
       "auth_prompt_info": "이 기능을 사용하려면 카드 계정에 로그인하세요.",
       "location_button_text": "국제",
       "location_button_text_us": "미국",
+      "location_button_text_uk": "United Kingdom",
       "email_label": "이메일",
       "password_label": "비밀번호",
       "login_button": "로그인",
+      "uk_login_button": "Sign in with this account",
       "signup_button": "가입",
       "forgot_password_button": "비밀번호를 잊으셨나요?",
       "errors": {
@@ -9205,7 +9301,8 @@
         "network_error": "네트워크 오류입니다. 연결을 확인하고 다시 시도하세요.",
         "timeout_error": "요청 시간이 초과되었습니다. 연결을 확인하고 다시 시도하세요.",
         "server_error": "서버 오류입니다. 나중에 다시 시도하세요.",
-        "configuration_error": "서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요."
+        "configuration_error": "서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.",
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
@@ -10033,6 +10130,7 @@
     "bandwidth_fee": "대역폭",
     "energy_fee": "에너지",
     "bridge_fee": "브릿지 수수료",
+    "gas_token_fee": "Gas fee",
     "transaction_fee": "트랜잭션 수수료",
     "unknown_token": "알 수 없음",
     "total_amount": "총 금액",
@@ -10321,6 +10419,17 @@
     }
   },
   "homepage": {
+    "action_buttons": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
+      "perps": "Perps",
+      "predict": "Predict",
+      "batch_swap": "Batch Swap",
+      "traders": "Traders"
+    },
     "sections": {
       "money": "머니",
       "money_empty_description": "아직 mUSD가 없습니다. 홈 화면의 Money 섹션에서 스테이블코인을 mUSD로 전환하세요.",
@@ -10383,6 +10492,13 @@
     "added_to_watchlist": "Added to Watchlist",
     "removed_from_watchlist": "Removed from Watchlist",
     "home_empty_title": "관심 목록",
-    "home_empty_subtitle": "You have no watchlist items yet"
+    "home_empty_subtitle": "You have no watchlist items yet",
+    "fullscreen_title": "Watchlist",
+    "tokens_tab": "Tokens",
+    "edit": "Edit",
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }

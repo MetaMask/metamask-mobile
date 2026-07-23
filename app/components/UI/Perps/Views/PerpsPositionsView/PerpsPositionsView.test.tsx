@@ -191,7 +191,7 @@ describe('PerpsPositionsView', () => {
       BTC: '49500',
     });
 
-    // Mock usePerpsPositions hook
+    // Mock positions stream / loaders
     (usePerpsLivePositions as jest.Mock).mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,

@@ -39,17 +39,14 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  QuickBuy,
-  TOP_TRADERS_QUICK_BUY_FEATURES,
-  type QuickBuyTarget,
-} from '../TraderPositionView/components/QuickBuy';
+import FeedSpotBuyAction, {
+  type FeedSpotBuyActionHandle,
+} from './components/FeedSpotBuyAction';
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
-import FeedTypeSelector from './components/FeedTypeSelector';
-import FeedTypeSheet from './components/FeedTypeSheet';
+import { TypeFilterSelector, TypeFilterSheet } from '../components/TypeFilter';
 import FollowingEmptyState from './components/FollowingEmptyState';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {
@@ -101,10 +98,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   typeFilterRef.current = typeFilter;
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
-  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
-    null,
-  );
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const buyActionRef = useRef<FeedSpotBuyActionHandle>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -118,6 +112,14 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     error,
     refresh,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
+
+  // Only expose the Top Traders Buy Action A/B test (and mount its QuickBuy /
+  // swaps orchestrator) when the loaded feed actually offers a spot Buy, perps
+  // rows navigate to Perps and must not pollute the experiment.
+  const hasSpotItem = useMemo(
+    () => items.some((item) => item.type === 'spot'),
+    [items],
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -143,17 +145,16 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     }
   }, [refresh]);
 
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
-
   const handleAudienceChange = useCallback(
     (next: FeedAudience) => {
       if (audienceRef.current === next) {
         return;
       }
 
-      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_AUDIENCE_FILTER_CHANGED, {
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
+            .AUDIENCE_FILTER_CHANGED,
         [SocialLeaderboardEventProperties.FEED_AUDIENCE]: next,
       });
       audienceRef.current = next;
@@ -169,7 +170,10 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         return;
       }
 
-      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED, {
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
+            .TYPE_FILTER_CHANGED,
         [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: next,
         [SocialLeaderboardEventProperties.PREVIOUS_FEED_TYPE_FILTER]: previous,
       });
@@ -205,13 +209,12 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             : {}),
         });
 
-        setQuickBuyTarget({
+        buyActionRef.current?.open({
           tokenAddress: item.tokenAddress,
           tokenSymbol: item.tokenSymbol,
           tokenName: item.tokenName,
           chain: item.chain,
         });
-        setIsQuickBuyVisible(true);
         return;
       }
 
@@ -250,15 +253,30 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     [navigation],
   );
 
+  const handlePositionPress = useCallback(
+    (item: FeedItem) => {
+      playSelection().catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+        positionId: item.tokenAvatar.positionId,
+        traderId: item.traderId,
+        traderAddress: item.traderAddress,
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
+      });
+    },
+    [navigation],
+  );
+
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<FeedItem, FeedSection>) => (
       <FeedItemRow
         item={item}
         onTradePress={handleTradePress}
+        onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
       />
     ),
-    [handleTradePress, handleTraderPress],
+    [handleTradePress, handlePositionPress, handleTraderPress],
   );
 
   const renderSectionHeader = useCallback(
@@ -425,7 +443,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         twClassName="px-4 py-3"
         gap={3}
       >
-        <FeedTypeSelector
+        <TypeFilterSelector
           value={typeFilter}
           onPress={() => setIsTypeSheetOpen(true)}
         />
@@ -434,20 +452,16 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
 
       {content}
 
-      <FeedTypeSheet
+      <TypeFilterSheet
         isOpen={isTypeSheetOpen}
         value={typeFilter}
         onChange={handleTypeFilterChange}
         onClose={() => setIsTypeSheetOpen(false)}
       />
 
-      <QuickBuy.Root
-        isVisible={isQuickBuyVisible}
-        target={quickBuyTarget}
-        onClose={handleQuickBuyClose}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'trader_feed' }}
-      />
+      {hasSpotItem && (
+        <FeedSpotBuyAction ref={buyActionRef} isActive={isActive} />
+      )}
     </Box>
   );
 };

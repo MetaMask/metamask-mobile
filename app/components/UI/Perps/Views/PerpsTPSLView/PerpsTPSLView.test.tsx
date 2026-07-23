@@ -5,6 +5,11 @@ import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',
@@ -153,8 +158,6 @@ describe('PerpsTPSLView', () => {
       slPercentInputFocused: false,
       tpUsingPercentage: false,
       slUsingPercentage: false,
-      takeProfitSign: '+',
-      stopLossSign: '-',
     },
     handlers: {
       handleTakeProfitPriceChange: jest.fn(),
@@ -175,8 +178,6 @@ describe('PerpsTPSLView', () => {
       handleStopLossPercentageButton: jest.fn(),
       handleTakeProfitOff: jest.fn(),
       handleStopLossOff: jest.fn(),
-      handleTakeProfitSignToggle: jest.fn(),
-      handleStopLossSignToggle: jest.fn(),
     },
     validation: {
       isValid: true,
@@ -579,7 +580,7 @@ describe('PerpsTPSLView', () => {
         undefined,
         '3150.00',
         '2850.00',
-        {
+        expect.objectContaining({
           direction: 'long',
           source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
           positionSize: 0,
@@ -587,44 +588,6 @@ describe('PerpsTPSLView', () => {
           stopLossPercentage: undefined,
           isEditingExistingPosition: false,
           entryPrice: 3000,
-        },
-      );
-    });
-
-    it('reports signed RoE percentages in tracking metadata for negative TP and gain-side SL', async () => {
-      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
-      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
-      renderView({
-        formState: {
-          ...defaultMockReturn.formState,
-          takeProfitPrice: '$2,850.00',
-          stopLossPrice: '$3,150.00',
-          takeProfitSign: '-',
-          stopLossSign: '+',
-        },
-        display: {
-          ...defaultMockReturn.display,
-          formattedTakeProfitPercentage: '10%',
-          formattedStopLossPercentage: '10%',
-        },
-        validation: {
-          ...defaultMockReturn.validation,
-          hasChanges: true,
-        },
-      });
-
-      const setButton = screen.getByText('perps.tpsl.set');
-      await act(async () => {
-        fireEvent.press(setButton);
-      });
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(
-        undefined,
-        '2850.00',
-        '3150.00',
-        expect.objectContaining({
-          takeProfitPercentage: -10,
-          stopLossPercentage: 10,
         }),
       );
     });
@@ -648,7 +611,7 @@ describe('PerpsTPSLView', () => {
         undefined,
         undefined,
         undefined,
-        {
+        expect.objectContaining({
           direction: 'long',
           source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
           positionSize: 0,
@@ -656,7 +619,7 @@ describe('PerpsTPSLView', () => {
           stopLossPercentage: undefined,
           isEditingExistingPosition: false,
           entryPrice: 3000,
-        },
+        }),
       );
     });
 
@@ -741,62 +704,6 @@ describe('PerpsTPSLView', () => {
       renderView();
 
       expect(screen.getByTestId('back-button')).toBeOnTheScreen();
-    });
-  });
-
-  // ==================== RoE Sign Badge ====================
-
-  describe('RoE Sign Badge', () => {
-    it('renders the default + take profit and - stop loss signs', () => {
-      renderView();
-
-      expect(
-        screen.getByTestId('perps-tpsl-tp-roe-sign-badge'),
-      ).toHaveTextContent('+');
-      expect(
-        screen.getByTestId('perps-tpsl-sl-roe-sign-badge'),
-      ).toHaveTextContent('-');
-    });
-
-    it('toggles the take profit sign when the badge is pressed', () => {
-      const mockToggle = jest.fn();
-      renderView({
-        buttons: {
-          ...defaultMockReturn.buttons,
-          handleTakeProfitSignToggle: mockToggle,
-        },
-      });
-
-      fireEvent.press(screen.getByTestId('perps-tpsl-tp-roe-sign-badge'));
-
-      expect(mockToggle).toHaveBeenCalled();
-    });
-
-    it('toggles the stop loss sign when the badge is pressed', () => {
-      const mockToggle = jest.fn();
-      renderView({
-        buttons: {
-          ...defaultMockReturn.buttons,
-          handleStopLossSignToggle: mockToggle,
-        },
-      });
-
-      fireEvent.press(screen.getByTestId('perps-tpsl-sl-roe-sign-badge'));
-
-      expect(mockToggle).toHaveBeenCalled();
-    });
-
-    it('reflects the take profit sign provided by the form hook', () => {
-      renderView({
-        formState: {
-          ...defaultMockReturn.formState,
-          takeProfitSign: '-',
-        },
-      });
-
-      expect(
-        screen.getByTestId('perps-tpsl-tp-roe-sign-badge'),
-      ).toHaveTextContent('-');
     });
   });
 });
