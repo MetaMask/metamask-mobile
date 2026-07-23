@@ -235,8 +235,8 @@
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
     "@react-native/babel-preset@npm:0.83.6": "patch:@react-native/babel-preset@npm%3A0.83.6#~/.yarn/patches/@react-native-babel-preset-npm-0.83.6-90eed53ffb.patch",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
-    "@metamask/bridge-controller@npm:^77.5.0": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
-    "@metamask/bridge-controller@npm:^77.6.0": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch"
+    "@metamask/bridge-controller@npm:^77.7.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
+    "@metamask/bridge-controller@npm:^77.8.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
