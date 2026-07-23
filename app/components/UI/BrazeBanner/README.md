@@ -55,7 +55,7 @@ Tapping the close button always hides the banner immediately for the current ses
 
 ## Deduplication
 
-The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server update. `useBrazeBanner` deduplicates by the banner's `trackingId` — repeated events for the same banner are ignored, while a different banner can replace a warm-cache banner after a refresh.
+The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server update. `useBrazeBanner` deduplicates by the banner's `trackingId` — repeated events for the same banner are ignored, while a different `trackingId` can replace a warm-cache banner after a refresh.
 
 ## Usage
 

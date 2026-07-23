@@ -283,11 +283,19 @@ describe('useBrazeBanner', () => {
   it('ignores subsequent events once a banner is visible when trackingId is unchanged', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
-    fireBannerEvent([makeBanner({ body: 'Original body' })]);
+    fireBannerEvent([
+      makeBanner({ trackingId: 'tracking-1', body: 'Original body' }),
+    ]);
     expect(result.current.status).toBe('visible');
     expect(result.current.body).toBe('Original body');
 
-    fireBannerEvent([makeBanner({ body: 'Changed body' })]);
+    fireBannerEvent([
+      makeBanner({
+        trackingId: 'tracking-1',
+        bannerName: 'different-campaign',
+        body: 'Changed body',
+      }),
+    ]);
     expect(result.current.status).toBe('visible');
     expect(result.current.body).toBe('Original body');
   });
@@ -557,14 +565,22 @@ describe('useBrazeBanner', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
       fireBannerEvent([
-        makeBanner({ trackingId: 'tracking-1', body: 'Original body' }),
+        makeBanner({
+          trackingId: 'tracking-1',
+          bannerName: 'campaign-1',
+          body: 'Original body',
+        }),
       ]);
       expect(result.current.status).toBe('visible');
 
       // Simulate foreground → SDK fires a new bannerCardsUpdated event
       fireAppStateChange('active');
       fireBannerEvent([
-        makeBanner({ trackingId: 'tracking-2', body: 'Refreshed body' }),
+        makeBanner({
+          trackingId: 'tracking-2',
+          bannerName: 'campaign-2',
+          body: 'Refreshed body',
+        }),
       ]);
 
       expect(result.current.body).toBe('Refreshed body');

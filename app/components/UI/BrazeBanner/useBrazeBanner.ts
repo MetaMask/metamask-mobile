@@ -99,8 +99,8 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   // will change the status for the rest of this app session.
   const dismissedRef = useRef(false);
 
-  // Track the currently rendered tracking ID so repeated SDK events for the
-  // same banner do not trigger state updates, while a different banner can
+  // Track the currently rendered trackingId so repeated SDK events for the
+  // same banner do not trigger state updates, while a different trackingId can
   // replace a warm-cache banner after Braze refreshes.
   const currentBannerTrackingIdRef = useRef<string | null>(null);
 
