@@ -272,6 +272,23 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingFiatAmount: amountFiatDebounced,
     });
 
+    // Prefill enabled but nothing to prefill (e.g. zero balance) → show keypad.
+    useEffect(() => {
+      if (
+        isDepositPrefillEnabled &&
+        !isDepositPrefillLoading &&
+        !isDepositPrefilled &&
+        !isPrefillPending
+      ) {
+        setIsKeyboardVisible(true);
+      }
+    }, [
+      isDepositPrefillEnabled,
+      isDepositPrefillLoading,
+      isDepositPrefilled,
+      isPrefillPending,
+    ]);
+
     const hasAutoSubmittedPrefill = useRef(false);
 
     const handleDone = useCallback(async () => {
