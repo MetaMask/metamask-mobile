@@ -11,18 +11,22 @@ import {
   BOTTOM_BADGEWRAPPER_BADGEPOSITION,
 } from './BadgeWrapper.constants';
 
-const mockUseComponentSize = jest.fn(() => ({
-  size: null,
-  onLayout: jest.fn(),
-}));
-
 jest.mock('../../../hooks', () => {
-  const actual = jest.requireActual('../../../hooks');
+  const mockUseComponentSize = jest.fn(() => ({
+    size: null,
+    onLayout: jest.fn(),
+  }));
+  const { useStyles } = jest.requireActual('../../../hooks');
+
   return {
-    ...actual,
+    useStyles,
     useComponentSize: mockUseComponentSize,
+    __mockUseComponentSize: mockUseComponentSize,
   };
 });
+
+const { __mockUseComponentSize: mockUseComponentSize } =
+  jest.requireMock('../../../hooks');
 
 describe('BadgeWrapper', () => {
   beforeEach(() => {
