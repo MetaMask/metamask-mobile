@@ -1,3 +1,4 @@
+import { act } from 'react';
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
@@ -12,9 +13,13 @@ import {
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { toHex } from 'viem';
+import Logger from '../../../../../util/Logger';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 jest.mock('../../../../../util/transaction-controller');
+jest.mock('../../context/confirmation-context');
 
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...(jest.requireActual(
@@ -55,11 +60,16 @@ function runHook({
 describe('useUpdateTokenAmount', () => {
   const updateEditableParamsMock = jest.mocked(updateEditableParams);
   const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
+  const useConfirmationContextMock = jest.mocked(useConfirmationContext);
+  const setIsTransactionDataUpdatingMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     updateAtomicBatchDataMock.mockResolvedValue('0x0');
+    useConfirmationContextMock.mockReturnValue({
+      setIsTransactionDataUpdating: setIsTransactionDataUpdatingMock,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
   });
 
   it('updates all transaction data with new amount', () => {
@@ -111,6 +121,75 @@ describe('useUpdateTokenAmount', () => {
           TOKEN_TRANSFER_DATA_MOCK.length - 4,
         ) + toHex(15000).substring(2),
     });
+  });
+
+  it('returns the nested update promise', async () => {
+    let resolveUpdate: () => void = () => undefined;
+    const updatePromise = new Promise<Hex>((resolve) => {
+      resolveUpdate = () => resolve('0x0');
+    });
+    updateAtomicBatchDataMock.mockReturnValue(updatePromise);
+    const { result } = runHook({
+      transactionMeta: {
+        nestedTransactions: [
+          {
+            data: '0x1234',
+          },
+          {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+            to: tokenAddress1Mock,
+          },
+        ],
+      },
+    });
+
+    let resultPromise: Promise<unknown> = Promise.resolve();
+    act(() => {
+      resultPromise = Promise.resolve(result.current.updateTokenAmount('1.5'));
+    });
+    let isSettled = false;
+    resultPromise.then(() => {
+      isSettled = true;
+    });
+    await Promise.resolve();
+
+    expect(isSettled).toBe(false);
+
+    resolveUpdate();
+    await resultPromise;
+
+    expect(isSettled).toBe(true);
+  });
+
+  it('logs and rejects nested update failures', async () => {
+    const error = new Error('update failed');
+    const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();
+    updateAtomicBatchDataMock.mockRejectedValue(error);
+    const { result } = runHook({
+      transactionMeta: {
+        nestedTransactions: [
+          {
+            data: '0x1234',
+          },
+          {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+            to: tokenAddress1Mock,
+          },
+        ],
+      },
+    });
+
+    let updatePromise: Promise<unknown> = Promise.resolve();
+    await act(async () => {
+      updatePromise = Promise.resolve(result.current.updateTokenAmount('1.5'));
+      await expect(updatePromise).rejects.toThrow('update failed');
+    });
+
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      error,
+      'Failed to update token amount in nested transaction',
+    );
+    expect(setIsTransactionDataUpdatingMock).toHaveBeenLastCalledWith(false);
   });
 
   it('does not update amount if new amount is equal to current amount', () => {
