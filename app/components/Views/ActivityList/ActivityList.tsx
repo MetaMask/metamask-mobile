@@ -2,6 +2,10 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootModalFlowParamList,
+} from '../../../core/NavigationService/types';
 import {
   FlashList,
   type FlashListProps,
@@ -215,7 +219,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
     ref,
   ) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
     const tw = useTailwind();
@@ -1021,7 +1025,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               transactionDetails,
               showSpeedUpModal: noop,
               showCancelModal: noop,
-            },
+            } as NonNullable<RootModalFlowParamList['TransactionDetailsSheet']>,
           });
         } catch {
           if (activityPressTokenRef.current !== pressToken) return;

@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   AvatarTokenSize,
   Box,
@@ -80,7 +81,7 @@ export function RampStatusWithProviderLink({
   providerName?: string;
   providerOrderLink?: string;
 }>) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleProviderLinkPress = useCallback(() => {
     if (!providerOrderLink) {
