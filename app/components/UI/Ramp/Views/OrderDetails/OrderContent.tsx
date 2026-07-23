@@ -82,6 +82,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const providerOrderLink = order.providerOrderLink;
   const cryptoIconUrl = order.cryptoCurrency?.iconUrl;
   const fiatDecimals = order.fiatCurrency?.decimals ?? 2;
+  const providerMatchesTransak = [
+    order.provider?.id,
+    order.provider?.name,
+  ].some((providerValue) => providerValue?.toLowerCase().includes('transak'));
+  const shouldShowRefundMessage =
+    order.status === RampsOrderStatus.Failed &&
+    order.orderType === 'SELL' &&
+    providerMatchesTransak;
   const providerSupportUrl =
     order.provider?.links?.find((link) =>
       link.name.toLowerCase().includes('support'),
@@ -396,6 +404,16 @@ const OrderContent: React.FC<OrderContentProps> = ({
               >
                 {getStatusText()}
               </Text>
+              {shouldShowRefundMessage && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-alternative text-right mt-1 max-w-64"
+                >
+                  {strings(
+                    'ramps_order_details.failed_sell_refund_description',
+                  )}
+                </Text>
+              )}
               {providerOrderLink && (
                 <TouchableOpacity
                   onPress={handleProviderLinkPress}
