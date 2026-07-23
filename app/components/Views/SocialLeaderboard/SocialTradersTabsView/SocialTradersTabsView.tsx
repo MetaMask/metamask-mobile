@@ -67,12 +67,41 @@ const SocialTradersTabsView: React.FC = () => {
   // outside the PagerView, so its QuickBuy sheet isn't clipped by the pager page
   // and the content behind it stays interactive (no backdrop, tap/swipe-through).
   // FeedView reports spot availability and triggers the buy via this ref.
-  const buyActionRef = useRef<FeedSpotBuyActionHandle>(null);
+  const buyActionRef = useRef<FeedSpotBuyActionHandle | null>(null);
   const [feedHasSpotItem, setFeedHasSpotItem] = useState(false);
   // A Buy can be requested in the same tick the feed first renders spot rows —
   // before the availability effect has mounted the orchestrator. Buffer that
   // request (and mount the orchestrator now) so the tap is never a silent no-op.
   const pendingBuyTargetRef = useRef<QuickBuyTarget | null>(null);
+
+  const flushPendingBuy = useCallback(() => {
+    const pending = pendingBuyTargetRef.current;
+    if (!pending || !buyActionRef.current) {
+      return;
+    }
+    buyActionRef.current.open(pending);
+    pendingBuyTargetRef.current = null;
+  }, []);
+
+  const setBuyActionRef = useCallback(
+    (instance: FeedSpotBuyActionHandle | null) => {
+      buyActionRef.current = instance;
+      if (instance) {
+        flushPendingBuy();
+      }
+    },
+    [flushPendingBuy],
+  );
+
+  const handleFeedSpotAvailabilityChange = useCallback(
+    (hasSpotItem: boolean) => {
+      if (!hasSpotItem) {
+        pendingBuyTargetRef.current = null;
+      }
+      setFeedHasSpotItem(hasSpotItem);
+    },
+    [],
+  );
 
   const handleQuickBuy = useCallback((target: QuickBuyTarget) => {
     if (buyActionRef.current) {
@@ -83,14 +112,14 @@ const SocialTradersTabsView: React.FC = () => {
     setFeedHasSpotItem(true);
   }, []);
 
-  // Flush a buffered Buy synchronously once the orchestrator has mounted.
+  // Backup flush when spot availability flips to true (callback ref handles
+  // the common case where feedHasSpotItem was already true).
   useLayoutEffect(() => {
-    if (!feedHasSpotItem || !pendingBuyTargetRef.current) {
+    if (!feedHasSpotItem) {
       return;
     }
-    buyActionRef.current?.open(pendingBuyTargetRef.current);
-    pendingBuyTargetRef.current = null;
-  }, [feedHasSpotItem]);
+    flushPendingBuy();
+  }, [feedHasSpotItem, flushPendingBuy]);
 
   const {
     hasNotificationPreferences,
@@ -249,14 +278,14 @@ const SocialTradersTabsView: React.FC = () => {
           <FeedView
             isActive={activeIndex === FEED_INDEX}
             onQuickBuy={handleQuickBuy}
-            onSpotAvailabilityChange={setFeedHasSpotItem}
+            onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
           />
         </View>
       </PagerView>
 
       {feedHasSpotItem && (
         <FeedSpotBuyAction
-          ref={buyActionRef}
+          ref={setBuyActionRef}
           isActive={activeIndex === FEED_INDEX}
         />
       )}
