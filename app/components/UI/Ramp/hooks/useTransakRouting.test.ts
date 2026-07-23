@@ -96,7 +96,9 @@ jest.mock('./useRampsOrders', () => ({
 }));
 
 const MOCK_SELECTED_PROVIDER = {
-  id: 'transak-native-staging',
+  // Intentionally the production native id — UAT lists both variants, and
+  // resolveNativeProviderCode must remap this to transak-native-staging.
+  id: 'transak-native',
   name: 'Transak',
 };
 
@@ -1739,6 +1741,38 @@ describe('useTransakRouting', () => {
 
     it('falls back to the staging native provider code when the order has no provider', async () => {
       mockGetOrder.mockResolvedValue({ ...depositOrder, provider: undefined });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockRefreshOrder).toHaveBeenCalledWith(
+        'transak-native-staging',
+        'order-hs',
+        MOCK_WALLET_ADDRESS,
+      );
+    });
+
+    it('remaps a production native provider on the order to the staging code', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...depositOrder,
+        provider: '/providers/transak-native',
+      });
       mockGetSession.mockReturnValue({
         id: 'hs-1',
         status: 'continued',
