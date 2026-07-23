@@ -72,8 +72,17 @@ const parseAgenticCliConnectionRequest = (
   return parsed;
 };
 
-const wireAgenticCliClientEvents = (conn: Connection): void => {
+const wireAgenticCliClientEvents = (
+  conn: Connection,
+  hostapp: IHostApplicationAdapter,
+): void => {
   conn.client.on('display_otp', (otp, deadline) => {
+    // The OTP sheet supersedes the connection loading sheet. Dismiss the
+    // loading sheet *before* pushing the OTP sheet so it isn't left stacked
+    // underneath it — otherwise hideConnectionLoading (which only pops when the
+    // loading sheet is the top route) would no-op, and the loading sheet would
+    // re-surface when the OTP sheet is dismissed.
+    hostapp.hideConnectionLoading(conn.info);
     showAgenticCliOtpCode(conn.info, otp, deadline);
   });
 
@@ -146,7 +155,7 @@ export async function handleAgenticCliConnectDeeplink(
       deps.relayURL,
       deps.hostapp,
     );
-    wireAgenticCliClientEvents(conn);
+    wireAgenticCliClientEvents(conn, deps.hostapp);
 
     agenticCliStage = 'mwp-connect';
     await conn.connect({
