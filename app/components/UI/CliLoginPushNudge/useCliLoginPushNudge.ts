@@ -129,6 +129,10 @@ export function useCliLoginPushNudge(): {
             inFlightRef.current = false;
           }
         });
+        // The enable work is deferred to the foreground retry, which manages
+        // its own in-flight guard. Release the guard now so a later tap is not
+        // permanently blocked if the user never returns from device settings.
+        inFlightRef.current = false;
         return;
       }
 
@@ -154,6 +158,11 @@ export function useCliLoginPushNudge(): {
     if (!isNotificationsFeatureEnabled()) {
       return false;
     }
+    // A new nudge supersedes any in-progress denied-permission flow: cancel a
+    // pending foreground retry and release the guard so this toast's Turn on
+    // is not blocked and the previous retry cannot fire on the next resume.
+    clearForegroundRetry();
+    inFlightRef.current = false;
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       iconName: IconName.Notification,
@@ -175,7 +184,7 @@ export function useCliLoginPushNudge(): {
       },
     });
     return true;
-  }, [onTapTurnOn, toastRef]);
+  }, [onTapTurnOn, toastRef, clearForegroundRetry]);
 
   useEffect(
     () => () => {

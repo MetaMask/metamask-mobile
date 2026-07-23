@@ -39,6 +39,7 @@ describe('useCliLoginPushNudge', () => {
   let showToast: jest.Mock;
   let closeToast: jest.Mock;
   let appStateChangeHandler: ((state: string) => void) | undefined;
+  let removeMocks: jest.Mock[];
 
   const wrapper = ({ children }: { children: React.ReactNode }) => {
     const toastRef = {
@@ -66,6 +67,7 @@ describe('useCliLoginPushNudge', () => {
     showToast = jest.fn();
     closeToast = jest.fn();
     appStateChangeHandler = undefined;
+    removeMocks = [];
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockEnableNotifications.mockResolvedValue(undefined);
     jest.spyOn(AppState, 'addEventListener').mockImplementation(((
@@ -73,7 +75,9 @@ describe('useCliLoginPushNudge', () => {
       handler: (state: string) => void,
     ) => {
       appStateChangeHandler = handler;
-      return { remove: jest.fn() };
+      const remove = jest.fn();
+      removeMocks.push(remove);
+      return { remove };
     }) as unknown as typeof AppState.addEventListener);
   });
 
@@ -169,5 +173,37 @@ describe('useCliLoginPushNudge', () => {
 
     expect(mockEnableNotifications).not.toHaveBeenCalled();
     expect(closeToast).toHaveBeenCalled();
+  });
+
+  it('does not block Turn on after opening settings when the user never returns', async () => {
+    mockGetPushPermissionStatus.mockResolvedValue('denied');
+    const { result } = renderNudge();
+
+    act(() => {
+      result.current.showNudge();
+    });
+
+    await tapTurnOn();
+    await tapTurnOn();
+
+    expect(mockOpenSystemSettings).toHaveBeenCalledTimes(2);
+  });
+
+  it('cancels a pending settings-return retry when a new nudge is shown', async () => {
+    mockGetPushPermissionStatus.mockResolvedValue('denied');
+    const { result } = renderNudge();
+
+    act(() => {
+      result.current.showNudge();
+    });
+    await tapTurnOn();
+
+    expect(removeMocks).toHaveLength(1);
+
+    act(() => {
+      result.current.showNudge();
+    });
+
+    expect(removeMocks[0]).toHaveBeenCalled();
   });
 });
