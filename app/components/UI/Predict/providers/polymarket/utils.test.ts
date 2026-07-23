@@ -1477,6 +1477,27 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('applies live-first ordering to raw queryParams', () => {
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'tag_slug=soccer&live=false&order=startTime&ascending=true',
+        live: true,
+      });
+
+      expect(params.toString()).toBe(
+        'tag_slug=soccer&live=true&order=volume24hr&ascending=false',
+      );
+    });
+
+    it('removes live from raw queryParams for the regular phase', () => {
+      const params = buildMarketListQueryParams({
+        queryParams: 'tag_slug=soccer&live=true&order=startTime',
+        live: false,
+      });
+
+      expect(params.toString()).toBe('tag_slug=soccer&order=startTime');
+    });
+
     it('adds pagination to raw queryParams when afterCursor is provided', () => {
       const params = buildMarketListQueryParams({
         queryParams: '?limit=10&tag_slug=soccer',
