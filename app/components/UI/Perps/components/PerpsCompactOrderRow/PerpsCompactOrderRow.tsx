@@ -1,9 +1,5 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   formatPositionSize,
@@ -18,6 +14,11 @@ import {
 } from '../../utils/orderUtils';
 import styleSheet from './PerpsCompactOrderRow.styles';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface PerpsCompactOrderRowProps {
   order: Order;
@@ -85,10 +86,10 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
 
         {/* Order info */}
         <View style={styles.infoContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {orderInfo.orderTypeDisplay}
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {orderInfo.formattedSize} {orderInfo.symbol}
           </Text>
         </View>
@@ -96,15 +97,15 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
 
       <View style={styles.rightSection}>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
           style={styles.priceText}
         >
           {orderInfo.formattedPrice}
         </Text>
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           style={styles.labelText}
         >
           {orderInfo.orderTypeLabel}
