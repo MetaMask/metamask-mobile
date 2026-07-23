@@ -7,8 +7,8 @@
 # in-progress run of this workflow for that branch is cancelled (one branch + one
 # workflow at a time).
 #
-# Version bump: generate-build-version → commit-build-version, then iOS and Android
-# builds are triggered in parallel via auto-rc-ota-build-core.yml (bump commit passed as source_branch).
+# Version bump: generate-build-version, then iOS and Android builds are triggered in parallel
+# via auto-rc-ota-build-core.yml with the generated number applied locally at build time.
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
 #
@@ -31,7 +31,6 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
   pull-requests: write
   actions: write
   id-token: write
@@ -116,28 +115,17 @@ jobs:
     needs: validate-and-find-pr
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
 
-  update_rc_build_version:
-    name: Commit RC build version
-    uses: ./.github/workflows/commit-build-version.yml
-    needs: [validate-and-find-pr, generate_rc_build_version]
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
-    permissions:
-      contents: write
-      id-token: write
-    with:
-      base-branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
-      build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
-
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
-      - update_rc_build_version
+      - generate_rc_build_version
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     with:
       platform: ios
-      source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
+      source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       distribute_external: true
     secrets: inherit
 
@@ -146,11 +134,12 @@ jobs:
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
-      - update_rc_build_version
+      - generate_rc_build_version
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     with:
       platform: android
-      source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
+      source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
     secrets: inherit
 
   post-rc-build-comment:
