@@ -291,29 +291,12 @@ const ImmersveFundingApproval = () => {
     if (!nextAction || nextAction.type !== 'funding' || !isLimitValid) {
       return;
     }
-    const tokenInfo = immersveNetworkToFundingToken(
-      cardFeatureFlag.immersve?.network,
-    );
-    const approveAmountBaseUnits =
-      limitType === 'full'
-        ? BAANX_MAX_LIMIT
-        : ethers.utils
-            .parseUnits(customLimit || '0', tokenInfo.decimals)
-            .toString();
 
     setIsSettling(true);
-    executeFunding(nextAction.write, approveAmountBaseUnits)
+    executeFunding(nextAction.write, BAANX_MAX_LIMIT)
       .then(() => refresh())
       .catch(() => setIsSettling(false));
-  }, [
-    nextAction,
-    executeFunding,
-    refresh,
-    isLimitValid,
-    limitType,
-    customLimit,
-    cardFeatureFlag.immersve?.network,
-  ]);
+  }, [nextAction, executeFunding, refresh, isLimitValid]);
 
   useEffect(() => {
     if (!nextAction) {

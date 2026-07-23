@@ -1,19 +1,21 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -41,7 +43,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   retryAttempts = 0,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
 
   const errorMessage =
@@ -81,8 +83,9 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
         />
 
         <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
           style={styles.errorTitle}
         >
           {strings('perps.errors.connectionFailed.title')}
@@ -91,8 +94,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
         {/* Only show debug details in development */}
         {shouldShowDebugDetails && (
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Muted}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextMuted}
             style={styles.debugMessage}
           >
             Debug: {error instanceof Error ? error.message : error}

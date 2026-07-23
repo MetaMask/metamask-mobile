@@ -1,6 +1,8 @@
 import { RootState } from '../../../../../reducers';
 import {
   InitializationState,
+  PerpsMode,
+  DEFAULT_PERPS_MODE,
   type AccountState,
 } from '@metamask/perps-controller';
 import {
@@ -14,6 +16,7 @@ import {
   selectPerpsPayWithToken,
   selectIsPerpsBalanceSelected,
   selectPerpsRecentlyViewedMarkets,
+  selectPerpsMode,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -914,6 +917,34 @@ describe('PerpsController Selectors', () => {
       const result = selectPerpsPayWithToken(mockState);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectPerpsMode', () => {
+    it('returns the Pro mode from PerpsController state', () => {
+      const mockState = createMockState({ mode: PerpsMode.Pro });
+
+      const result = selectPerpsMode(mockState);
+
+      expect(result).toBe(PerpsMode.Pro);
+    });
+
+    it('returns the Lite mode from PerpsController state', () => {
+      const mockState = createMockState({ mode: PerpsMode.Lite });
+
+      const result = selectPerpsMode(mockState);
+
+      expect(result).toBe(PerpsMode.Lite);
+    });
+
+    it('falls back to the default mode when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      const result = selectPerpsMode(mockState);
+
+      expect(result).toBe(DEFAULT_PERPS_MODE);
     });
   });
 });

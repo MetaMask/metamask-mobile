@@ -24,7 +24,6 @@ const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
   'app/components/UI/AccountInfoCard/index.js',
-  'app/components/UI/AssetOverview/utils/marketDetails.ts',
   'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
   'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
   'app/components/UI/Bridge/hooks/useBridgeQuoteData/index.ts',
@@ -42,7 +41,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Card/hooks/useCardDelegation.ts',
   'app/components/UI/Card/hooks/useNeedsGasFaucet.ts',
   'app/components/UI/Card/sdk/CardSDK.ts',
-  'app/components/UI/CollectibleOverview/index.js',
   'app/components/UI/Earn/Views/EarnInputView/EarnInputView.test.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/Erc20TokenHero/index.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx',
@@ -118,7 +116,6 @@ const utilNumberImportBurndownFiles = [
   'app/core/Engine/controllers/gas-fee-controller/gas-fee-controller-init.test.ts',
   'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
-  'app/selectors/assets/assets-list.ts',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
   // `app/util/**` importers of `./number` or `../number` (resolves to `index.js`);

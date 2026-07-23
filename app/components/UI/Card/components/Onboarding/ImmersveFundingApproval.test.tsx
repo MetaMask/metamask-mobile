@@ -160,7 +160,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 
 const WRITE = {
@@ -198,7 +197,6 @@ describe('ImmersveFundingApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
       reset: mockReset,
       setParams: jest.fn(),
     });

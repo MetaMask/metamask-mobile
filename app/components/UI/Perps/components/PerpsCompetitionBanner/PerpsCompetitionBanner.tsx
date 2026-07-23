@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, Pressable, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   Box,
   Text,
@@ -71,7 +73,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   testID = 'perps-competition-banner',
 }) => {
   const isEnabled = useSelector(selectPerpsCompetitionBannerEnabledFlag);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { track } = usePerpsEventTracking();
   const [isDismissed, setIsDismissed] = useState<boolean | null>(null);
