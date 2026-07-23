@@ -365,7 +365,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
       params: {
-        type: 'socialAI',
+        categoryId: 'socialAI',
+        ausKeys: ['socialAI'],
         title: strings('app_settings.notifications_opts.social_ai_title'),
         description: strings('app_settings.notifications_opts.social_ai_desc'),
       },

@@ -40,6 +40,22 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../util/notifications/categories', () => ({
+  ...jest.requireActual('../../../util/notifications/categories'),
+  useNotificationCategories: () => ({
+    categories: [
+      {
+        categoryId: 'walletActivity',
+        ausKeys: ['walletActivity'],
+        icon: 'Clock',
+      },
+      { categoryId: 'perps', ausKeys: ['perps'], icon: 'Candlestick' },
+      { categoryId: 'marketing', ausKeys: ['marketing'], icon: 'Campaign' },
+    ],
+    isLoading: false,
+  }),
+}));
+
 const mockMetrics = {
   trackEvent: jest.fn(),
   createEventBuilder: jest.fn().mockReturnValue({ build: jest.fn() }),

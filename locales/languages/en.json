@@ -3738,6 +3738,7 @@
     "enable_push_notifications": "Enable push notifications",
     "allow_notifications_desc": "Choose what you're notified about and how.",
     "notifications_opts": {
+      "all_title": "All",
       "preferences_title": "Preferences",
       "push_recommended": "Push",
       "in_app": "In-app",

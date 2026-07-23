@@ -3738,6 +3738,7 @@
     "enable_push_notifications": "启用推送通知",
     "allow_notifications_desc": "选择您要接收通知的内容和方式。",
     "notifications_opts": {
+      "all_title": "所有",
       "preferences_title": "偏好",
       "push_recommended": "推送",
       "in_app": "应用内",

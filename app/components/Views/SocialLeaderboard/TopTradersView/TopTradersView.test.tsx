@@ -453,7 +453,8 @@ describe('TopTradersView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
       params: {
-        type: 'socialAI',
+        categoryId: 'socialAI',
+        ausKeys: ['socialAI'],
         title: 'Trading Signals',
         description:
           'Updates from traders and assets you follow, plus currated market news',

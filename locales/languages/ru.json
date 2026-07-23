@@ -3738,6 +3738,7 @@
     "enable_push_notifications": "Включить push-уведомления",
     "allow_notifications_desc": "Выберите, о чем и как вы хотите получать уведомления.",
     "notifications_opts": {
+      "all_title": "Все",
       "preferences_title": "Настройки",
       "push_recommended": "Push-уведомление",
       "in_app": "В приложении",

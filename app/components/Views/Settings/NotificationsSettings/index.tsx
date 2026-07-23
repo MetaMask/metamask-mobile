@@ -18,10 +18,15 @@ import Routes from '../../../../constants/navigation/Routes';
 
 import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
+import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import {
-  useNotificationStoragePreferences,
-  type NotificationPreferenceSection,
-} from './hooks/useNotificationStoragePreferences';
+  getCategoryDescription,
+  getCategoryTitle,
+  getNotificationsSettingsSectionConfigs,
+  isChannelEnabledForAusKeys,
+  useNotificationCategories,
+} from '../../../../util/notifications/categories';
+import NotificationsSettingsRowSkeleton from './NotificationsSettingsRowSkeleton';
 
 import {
   Box,
@@ -33,7 +38,6 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
-  IconSize,
 } from '@metamask/design-system-react-native';
 import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
@@ -59,11 +63,7 @@ const NotificationRow = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
-        <Icon
-          name={iconName}
-          color={IconColor.IconAlternative}
-          size={IconSize.Lg}
-        />
+        <Icon name={iconName} color={IconColor.IconAlternative} />
         <Box twClassName="ml-4">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
@@ -78,15 +78,12 @@ const NotificationRow = ({
   );
 };
 
-type NotificationPreferenceStatus =
-  NotificationPreferences[NotificationPreferenceSection];
-
-const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
+const getStatusText = (pushEnabled: boolean, inAppEnabled: boolean) => {
   const active = [];
-  if (prefs?.pushNotificationsEnabled) {
+  if (pushEnabled) {
     active.push(strings('app_settings.notifications_opts.status_push'));
   }
-  if (prefs?.inAppNotificationsEnabled) {
+  if (inAppEnabled) {
     active.push(strings('app_settings.notifications_opts.status_in_app'));
   }
   return active.length > 0
@@ -107,14 +104,22 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
 
   const { preferences } = useNotificationStoragePreferences();
+  const { categories, isLoading: isLoadingCategories } =
+    useNotificationCategories();
+  const sections = getNotificationsSettingsSectionConfigs(categories, {
+    isSocialLeaderboardEnabled,
+    isPriceAlertsEnabled,
+  });
 
   const navigateToSection = (
-    type: NotificationPreferenceSection,
+    categoryId: string,
+    ausKeys: string[],
     title: string,
     description: string,
   ) => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION, {
-      type,
+      categoryId,
+      ausKeys,
       title,
       description,
     });
@@ -129,107 +134,48 @@ const NotificationsSettings = ({ navigation }: Props) => {
         </Text>
         <MainNotificationToggle />
 
-        {isMetamaskNotificationsEnabled && (
-          <>
-            <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.wallet_activity_title',
-              )}
-              status={getStatusText(preferences?.walletActivity)}
-              iconName={IconName.Clock}
-              onPress={() =>
-                navigateToSection(
-                  'walletActivity',
-                  strings(
-                    'app_settings.notifications_opts.wallet_activity_title',
-                  ),
-                  strings(
-                    'app_settings.notifications_opts.wallet_activity_desc',
-                  ),
-                )
-              }
-            />
-
-            <NotificationRow
-              title={strings('app_settings.notifications_opts.perps_title')}
-              status={getStatusText(preferences?.perps)}
-              iconName={IconName.Candlestick}
-              onPress={() =>
-                navigateToSection(
-                  'perps',
-                  strings('app_settings.notifications_opts.perps_title'),
-                  strings('app_settings.notifications_opts.perps_desc'),
-                )
-              }
-            />
-
-            <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.agentic_cli_title',
-              )}
-              status={getStatusText(preferences?.agenticCli)}
-              iconName={IconName.Code}
-              onPress={() =>
-                navigateToSection(
-                  'agenticCli',
-                  strings('app_settings.notifications_opts.agentic_cli_title'),
-                  strings('app_settings.notifications_opts.agentic_cli_desc'),
-                )
-              }
-            />
-
-            {isSocialLeaderboardEnabled && (
-              <NotificationRow
-                title={strings(
-                  'app_settings.notifications_opts.social_ai_title',
-                )}
-                status={getStatusText(preferences?.socialAI)}
-                iconName={IconName.Flash}
-                onPress={() =>
-                  navigateToSection(
-                    'socialAI',
-                    strings('app_settings.notifications_opts.social_ai_title'),
-                    strings('app_settings.notifications_opts.social_ai_desc'),
-                  )
-                }
-              />
-            )}
-
-            <NotificationRow
-              title={strings('app_settings.notifications_opts.marketing_title')}
-              status={getStatusText(preferences?.marketing)}
-              iconName={IconName.Campaign}
-              onPress={() =>
-                navigateToSection(
-                  'marketing',
-                  strings('app_settings.notifications_opts.marketing_title'),
-                  strings('app_settings.notifications_opts.marketing_desc'),
-                )
-              }
-            />
-
-            {isPriceAlertsEnabled && (
-              <NotificationRow
-                title={strings(
-                  'app_settings.notifications_opts.price_alerts_title',
-                )}
-                status={getStatusText(preferences?.priceAlerts)}
-                iconName={IconName.Notification}
-                onPress={() =>
-                  navigateToSection(
-                    'priceAlerts',
-                    strings(
-                      'app_settings.notifications_opts.price_alerts_title',
-                    ),
-                    strings(
-                      'app_settings.notifications_opts.price_alerts_desc',
-                    ),
-                  )
-                }
-              />
-            )}
-          </>
+        {isMetamaskNotificationsEnabled && isLoadingCategories && (
+          <NotificationsSettingsRowSkeleton />
         )}
+
+        {isMetamaskNotificationsEnabled &&
+          !isLoadingCategories &&
+          sections.map((section) => {
+            const title = getCategoryTitle(section.categoryId);
+            const description = getCategoryDescription(section.categoryId);
+            const preferencesRecord = preferences as
+              | NotificationPreferences
+              | null
+              | undefined;
+
+            return (
+              <NotificationRow
+                key={section.categoryId}
+                title={title}
+                status={getStatusText(
+                  isChannelEnabledForAusKeys(
+                    preferencesRecord,
+                    section.ausKeys,
+                    'pushNotificationsEnabled',
+                  ),
+                  isChannelEnabledForAusKeys(
+                    preferencesRecord,
+                    section.ausKeys,
+                    'inAppNotificationsEnabled',
+                  ),
+                )}
+                iconName={IconName[section.icon as keyof typeof IconName]}
+                onPress={() =>
+                  navigateToSection(
+                    section.categoryId,
+                    section.ausKeys,
+                    title,
+                    description,
+                  )
+                }
+              />
+            );
+          })}
       </ScrollView>
     </SafeAreaView>
   );

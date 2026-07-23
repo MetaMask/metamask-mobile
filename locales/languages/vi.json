@@ -3738,6 +3738,7 @@
     "enable_push_notifications": "Bật thông báo đẩy",
     "allow_notifications_desc": "Chọn nội dung bạn muốn nhận thông báo và cách nhận.",
     "notifications_opts": {
+      "all_title": "Tất cả",
       "preferences_title": "Tùy chọn",
       "push_recommended": "Thông báo đẩy",
       "in_app": "Trong ứng dụng",

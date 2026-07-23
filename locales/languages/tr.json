@@ -3738,6 +3738,7 @@
     "enable_push_notifications": "Anlık bildirimleri etkinleştir",
     "allow_notifications_desc": "Ne hakkında ve nasıl bildirim alacağınızı seçin.",
     "notifications_opts": {
+      "all_title": "Tümü",
       "preferences_title": "Tercihler",
       "push_recommended": "Anlık Bildirim",
       "in_app": "Uygulama İçi",

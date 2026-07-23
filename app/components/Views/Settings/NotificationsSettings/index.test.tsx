@@ -130,6 +130,29 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   }),
 }));
 
+jest.mock('../../../../util/notifications/categories', () => ({
+  ...jest.requireActual('../../../../util/notifications/categories'),
+  useNotificationCategories: () => ({
+    categories: [
+      {
+        categoryId: 'walletActivity',
+        ausKeys: ['walletActivity'],
+        icon: 'Clock',
+      },
+      { categoryId: 'perps', ausKeys: ['perps'], icon: 'Candlestick' },
+      { categoryId: 'agenticCli', ausKeys: ['agenticCli'], icon: 'Code' },
+      { categoryId: 'socialAI', ausKeys: ['socialAI'], icon: 'Flash' },
+      { categoryId: 'marketing', ausKeys: ['marketing'], icon: 'Campaign' },
+      {
+        categoryId: 'priceAlerts',
+        ausKeys: ['priceAlerts'],
+        icon: 'Notification',
+      },
+    ],
+    isLoading: false,
+  }),
+}));
+
 const socialAISectionTitle = strings(
   'app_settings.notifications_opts.social_ai_title',
 );

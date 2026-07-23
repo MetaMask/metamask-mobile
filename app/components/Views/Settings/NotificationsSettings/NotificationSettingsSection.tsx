@@ -20,7 +20,6 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   useNotificationStoragePreferences,
-  type NotificationPreferenceChannelKey,
   type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
@@ -31,6 +30,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useWalletActivityAccountSelection } from './AccountsList.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import Logger from '../../../../util/Logger';
+import {
+  isChannelEnabledForAusKeys,
+  targetAusKeysInPreferences,
+  type NotificationPreferenceChannelKey,
+} from '../../../../util/notifications/categories';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -122,23 +126,31 @@ const MarketingSectionContent = ({ styles }: SectionContentProps) => (
   </View>
 );
 
-const SECTION_CONTENT_BY_TYPE: Partial<
-  Record<
-    NotificationPreferenceSection,
-    React.ComponentType<SectionContentProps>
-  >
-> = {
-  walletActivity: WalletActivitySectionContent,
-  socialAI: SocialAISectionContent,
-  marketing: MarketingSectionContent,
-};
+const SECTION_CONTENT_RESOLVERS: Array<{
+  matches: (ausKeys: string[]) => boolean;
+  Component: React.ComponentType<SectionContentProps>;
+}> = [
+  {
+    matches: (ausKeys) => ausKeys.includes('walletActivity'),
+    Component: WalletActivitySectionContent,
+  },
+  {
+    matches: (ausKeys) => ausKeys.includes('socialAI'),
+    Component: SocialAISectionContent,
+  },
+  {
+    matches: (ausKeys) => ausKeys.includes('marketing'),
+    Component: MarketingSectionContent,
+  },
+];
 
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
   route: RouteProp<
     {
       params: {
-        type: NotificationPreferenceSection;
+        categoryId: string;
+        ausKeys: string[];
         title: string;
         description: string;
       };
@@ -153,7 +165,7 @@ const NotificationSettingsSection = ({
 }: NotificationSettingsSectionProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { type, title, description } = route.params;
+  const { categoryId, ausKeys, title, description } = route.params;
 
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -163,14 +175,34 @@ const NotificationSettingsSection = ({
   const [pendingChannelToggles, setPendingChannelToggles] = useState<
     Partial<Record<NotificationPreferenceChannelKey, boolean>>
   >({});
+  // TODO: bookkeeping is keyed only by channel, not by (channel, ausKey) — fine
+  // while every category backs a single ausKey, but revisit once a category
+  // can genuinely span multiple ausKeys toggled independently.
   const channelGenerationsRef = useRef<
     Record<NotificationPreferenceChannelKey, number>
   >({
     pushNotificationsEnabled: 0,
     inAppNotificationsEnabled: 0,
   });
-  const sectionPrefs = preferences?.[type];
-  const SectionContent = SECTION_CONTENT_BY_TYPE[type];
+  const sectionExists =
+    targetAusKeysInPreferences(ausKeys, preferences).length > 0;
+  const sectionPrefs = sectionExists
+    ? {
+        pushNotificationsEnabled: isChannelEnabledForAusKeys(
+          preferences,
+          ausKeys,
+          'pushNotificationsEnabled',
+        ),
+        inAppNotificationsEnabled: isChannelEnabledForAusKeys(
+          preferences,
+          ausKeys,
+          'inAppNotificationsEnabled',
+        ),
+      }
+    : undefined;
+  const SectionContent = SECTION_CONTENT_RESOLVERS.find((resolver) =>
+    resolver.matches(ausKeys),
+  )?.Component;
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -203,12 +235,23 @@ const NotificationSettingsSection = ({
         [channel]: nextValue,
       }));
 
-      updateSectionChannel(type, channel, nextValue).catch(() => {
+      const targetAusKeys = targetAusKeysInPreferences(ausKeys, preferences);
+
+      Promise.all(
+        targetAusKeys.map((ausKey) =>
+          updateSectionChannel(
+            ausKey as NotificationPreferenceSection,
+            channel,
+            nextValue,
+          ),
+        ),
+      ).catch(() => {
         Logger.error(
           new Error('Failed to update notification section channel'),
           {
             message: 'NotificationSettingsSection: update channel failed',
-            type,
+            categoryId,
+            ausKeys,
             channel,
             nextValue,
           },
@@ -219,7 +262,13 @@ const NotificationSettingsSection = ({
         }
       });
     },
-    [clearPendingChannelToggle, type, updateSectionChannel],
+    [
+      ausKeys,
+      categoryId,
+      clearPendingChannelToggle,
+      preferences,
+      updateSectionChannel,
+    ],
   );
 
   useEffect(() => {
