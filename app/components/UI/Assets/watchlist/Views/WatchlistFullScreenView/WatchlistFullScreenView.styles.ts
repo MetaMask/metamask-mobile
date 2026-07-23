@@ -32,12 +32,20 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     editableRow: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
     },
     dragHandle: {
+      height: 40,
+      marginTop: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
       paddingRight: 12,
     },
     unwatchStar: {
+      height: 40,
+      marginTop: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
       paddingLeft: 16,
       zIndex: 1,
     },

@@ -19,6 +19,8 @@ const styleSheet = (params: { theme: Theme }) => {
     leftContainer: {
       flex: 1,
       minWidth: 0,
+      alignSelf: 'stretch',
+      justifyContent: 'space-between',
     },
     tokenHeaderRow: {
       display: 'flex',
