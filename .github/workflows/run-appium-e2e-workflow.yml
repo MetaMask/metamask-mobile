@@ -260,7 +260,15 @@ jobs:
 
       - name: Resolve Appium test grep pattern
         id: appium-grep
-        run: echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+          # FixtureValidation must fail if no tests match; smoke shards keep the
+          # flag because sharding can leave empty shards.
+          if [[ "${{ inputs.test_suite_tag }}" == "FixtureValidation" ]]; then
+            echo "pass_with_no_tests=" >> "$GITHUB_OUTPUT"
+          else
+            echo "pass_with_no_tests=--pass-with-no-tests" >> "$GITHUB_OUTPUT"
+          fi
         shell: bash
 
       - name: Verify Appium runner connectivity (iOS)
@@ -279,7 +287,7 @@ jobs:
           --project android-smoke
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          --pass-with-no-tests
+          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
@@ -309,7 +317,7 @@ jobs:
           --project ios-smoke
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          --pass-with-no-tests
+          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
