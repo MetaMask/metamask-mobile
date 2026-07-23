@@ -8,7 +8,11 @@ import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { markFirstPredictionOnUsOutcomeOpened } from '../../../../../reducers/rewards';
 import type {
   PredictMarket,
   PredictMarketBuyButtonPress,
@@ -32,6 +36,8 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
   FirstPredictOnUsMarketsCarouselProps
 > = ({ confirmLabel, markets, usdAmount }) => {
   const tw = useTailwind();
+  const dispatch = useDispatch();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation =
     useNavigation<NavigationProp<ReactNavigation.RootParamList>>();
   const [containerWidth, setContainerWidth] = useState(0);
@@ -72,6 +78,26 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
 
   const handleBuyButtonPress = useCallback<PredictMarketBuyButtonPress>(
     (params) => {
+      const marketId = params.market.id;
+      const outcome = params.outcomeToken.title;
+
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.FIRST_PREDICTION_ON_US_OUTCOME_OPENED,
+        )
+          .addProperties({
+            market_id: marketId,
+            outcome,
+          })
+          .build(),
+      );
+      dispatch(
+        markFirstPredictionOnUsOutcomeOpened({
+          marketId,
+          outcome,
+        }),
+      );
+
       navigation.navigate(Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET, {
         confirmLabel,
         selectedOrder: params,
@@ -79,7 +105,14 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
       });
       return true;
     },
-    [confirmLabel, navigation, usdAmount],
+    [
+      confirmLabel,
+      createEventBuilder,
+      dispatch,
+      navigation,
+      trackEvent,
+      usdAmount,
+    ],
   );
 
   const renderItem = useCallback(

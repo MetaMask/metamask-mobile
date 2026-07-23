@@ -2,6 +2,9 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { markFirstPredictionOnUsOrderConfirmed } from '../../../../../reducers/rewards';
 import { usePredictOrderPreview } from '../../../Predict/hooks/usePredictOrderPreview';
 import { Recurrence, Side, type PredictMarket } from '../../../Predict/types';
 import { useFirstPredictOnUsOrder } from '../../hooks/useFirstPredictOnUsOrder';
@@ -10,6 +13,16 @@ import FirstPredictOnUsOrderSheet, {
 } from './FirstPredictOnUsOrderSheet';
 
 const mockSubmitOrder = jest.fn();
+const mockDispatch = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'event' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties.mockReturnValue({
+    build: mockBuild,
+  }),
+  build: mockBuild,
+}));
 
 jest.mock('../../hooks/useFirstPredictOnUsOrder', () => ({
   useFirstPredictOnUsOrder: jest.fn(),
@@ -17,6 +30,15 @@ jest.mock('../../hooks/useFirstPredictOnUsOrder', () => ({
 
 jest.mock('../../../Predict/hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
 }));
 
 jest.mock(
@@ -90,6 +112,11 @@ describe('FirstPredictOnUsOrderSheet', () => {
       selectedOrder,
       usdAmount: 5,
     };
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    jest.mocked(useAnalytics).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as never);
     jest.mocked(useFirstPredictOnUsOrder).mockReturnValue({
       error: null,
       isLoading: false,
@@ -208,11 +235,26 @@ describe('FirstPredictOnUsOrderSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('submits the fixed sponsored order request on confirm', async () => {
+  it('tracks confirmed order, updates support state, and submits on confirm', async () => {
     mockSubmitOrder.mockResolvedValueOnce(undefined);
     const { getByTestId } = render(<FirstPredictOnUsOrderSheet />);
 
     fireEvent.press(getByTestId('first-predict-on-us-order-confirm'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.FIRST_PREDICTION_ON_US_ORDER,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      market_id: 'market-1',
+      outcome: 'Yes',
+      status: 'confirmed',
+    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      markFirstPredictionOnUsOrderConfirmed({
+        marketId: 'market-1',
+        outcome: 'Yes',
+      }),
+    );
 
     await waitFor(() => {
       expect(mockSubmitOrder).toHaveBeenCalledWith({

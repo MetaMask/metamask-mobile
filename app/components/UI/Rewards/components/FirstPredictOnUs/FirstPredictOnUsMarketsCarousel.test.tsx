@@ -4,13 +4,35 @@ import type { PredictMarket, PredictOutcome } from '../../../Predict/types';
 import PredictMarketCard from '../../../Predict/components/PredictMarket';
 import { FEATURED_CAROUSEL_TEST_IDS } from '../../../Predict/components/FeaturedCarousel/FeaturedCarousel.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { markFirstPredictionOnUsOutcomeOpened } from '../../../../../reducers/rewards';
 import FirstPredictOnUsMarketsCarousel from './FirstPredictOnUsMarketsCarousel';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'event' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties.mockReturnValue({
+    build: mockBuild,
+  }),
+  build: mockBuild,
+}));
 
 jest.mock('../../../Predict/components/PredictMarket', () =>
   jest.fn(() => null),
 );
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@shopify/flash-list', () => {
   const MockReact = jest.requireActual('react');
@@ -92,6 +114,11 @@ describe('FirstPredictOnUsMarketsCarousel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    jest.mocked(useAnalytics).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as never);
   });
 
   it('renders a Predict market card for each configured market', () => {
@@ -171,6 +198,19 @@ describe('FirstPredictOnUsMarketsCarousel', () => {
       expect(handled).toBe(true);
     });
 
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.FIRST_PREDICTION_ON_US_OUTCOME_OPENED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      market_id: '1',
+      outcome: 'Yes',
+    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      markFirstPredictionOnUsOutcomeOpened({
+        marketId: '1',
+        outcome: 'Yes',
+      }),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET,
       {

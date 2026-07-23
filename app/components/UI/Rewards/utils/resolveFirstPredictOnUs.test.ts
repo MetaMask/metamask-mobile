@@ -2,7 +2,7 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { Recurrence, type PredictMarket } from '../../Predict/types';
 import { selectRewardsFirstPredictOnUsEnabled } from '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs';
-import { selectFirstPredictOnUsSplashShown } from '../../../../reducers/rewards/selectors';
+import { selectFirstPredictOnUsOfferViewed } from '../../../../reducers/rewards/selectors';
 import {
   resolveFirstPredictOnUsMarkets,
   resolveFirstPredictOnUsLaunch,
@@ -34,7 +34,7 @@ jest.mock(
 );
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectFirstPredictOnUsSplashShown: jest.fn(),
+  selectFirstPredictOnUsOfferViewed: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -60,8 +60,8 @@ const mockFeatureEnabled =
     typeof selectRewardsFirstPredictOnUsEnabled
   >;
 const mockAlreadyShown =
-  selectFirstPredictOnUsSplashShown as jest.MockedFunction<
-    typeof selectFirstPredictOnUsSplashShown
+  selectFirstPredictOnUsOfferViewed as jest.MockedFunction<
+    typeof selectFirstPredictOnUsOfferViewed
   >;
 
 const buildMarket = (

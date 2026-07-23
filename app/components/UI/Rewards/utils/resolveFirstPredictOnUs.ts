@@ -3,7 +3,7 @@ import Logger from '../../../../util/Logger';
 import { store } from '../../../../store';
 import type { RootState } from '../../../../reducers';
 import { selectRewardsFirstPredictOnUsEnabled } from '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs';
-import { selectFirstPredictOnUsSplashShown } from '../../../../reducers/rewards/selectors';
+import { selectFirstPredictOnUsOfferViewed } from '../../../../reducers/rewards/selectors';
 import type {
   FirstPredictOnUsDto,
   PredictMarketRef,
@@ -150,7 +150,7 @@ const resolve = async (): Promise<ResolvedFirstPredictOnUsLaunch | null> => {
   if (!selectRewardsFirstPredictOnUsEnabled(state)) {
     return null;
   }
-  if (selectFirstPredictOnUsSplashShown(state)) {
+  if (selectFirstPredictOnUsOfferViewed(state)) {
     return null;
   }
 

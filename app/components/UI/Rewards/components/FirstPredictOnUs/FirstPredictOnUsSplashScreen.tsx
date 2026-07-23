@@ -5,10 +5,15 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../../../constants/onboarding';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  markFirstPredictionOnUsOfferViewed,
+  markFirstPredictionOnUsSkipped,
+} from '../../../../../reducers/rewards';
 import type { FirstPredictOnUsDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { PredictMarket } from '../../../Predict/types';
 import FirstPredictOnUsSplashLayout from './FirstPredictOnUsSplashLayout';
@@ -41,6 +46,7 @@ const FirstPredictOnUsSplashScreen: React.FC = () => {
     useNavigation<NavigationProp<ReactNavigation.RootParamList>>();
   const route = useRoute<FirstPredictOnUsSplashRoute>();
   const { content, markets, successFlow } = route.params;
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const onClose = useCallback(() => {
@@ -64,19 +70,21 @@ const FirstPredictOnUsSplashScreen: React.FC = () => {
   const onSkip = useCallback(() => {
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.FIRST_PREDICT_ON_US_SPLASH_SKIPPED,
+        MetaMetricsEvents.FIRST_PREDICTION_ON_US_SKIPPED,
       ).build(),
     );
+    dispatch(markFirstPredictionOnUsSkipped());
     onClose();
-  }, [createEventBuilder, onClose, trackEvent]);
+  }, [createEventBuilder, dispatch, onClose, trackEvent]);
 
   useEffect(() => {
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.FIRST_PREDICT_ON_US_SPLASH_SHOWN,
+        MetaMetricsEvents.FIRST_PREDICTION_ON_US_VIEWED,
       ).build(),
     );
-  }, [createEventBuilder, trackEvent]);
+    dispatch(markFirstPredictionOnUsOfferViewed());
+  }, [createEventBuilder, dispatch, trackEvent]);
 
   return (
     <FirstPredictOnUsSplashLayout
