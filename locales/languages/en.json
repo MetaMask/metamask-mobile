@@ -1149,6 +1149,12 @@
         "title": "Couldn't load the feed",
         "retry": "Try again"
       },
+      "sub_header": {
+        "at_connector": "at",
+        "market_cap_suffix": "MC",
+        "size_at_price": "{{size}} at {{price}}",
+        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
+      },
       "no_data": "No data"
     },
     "onboarding": {

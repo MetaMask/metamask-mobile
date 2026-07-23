@@ -361,7 +361,7 @@
     "@metamask/snaps-rpc-methods": "^17.1.0",
     "@metamask/snaps-sdk": "^11.2.0",
     "@metamask/snaps-utils": "^12.4.0",
-    "@metamask/social-controllers": "^2.5.0",
+    "@metamask/social-controllers": "^2.6.0",
     "@metamask/solana-wallet-snap": "^2.10.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
