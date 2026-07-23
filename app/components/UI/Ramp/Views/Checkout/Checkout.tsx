@@ -343,8 +343,8 @@ const Checkout = () => {
         const quoteRecord = session.params?.quote?.quote;
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
-            .addProperties(
-              buildHeadlessOrderFailedProps({
+            .addProperties({
+              ...buildHeadlessOrderFailedProps({
                 rampSurface: session.params?.rampSurface,
                 // Additive vs the previous inline payload: both fields are
                 // optional in segment-schema and the native flow already
@@ -365,7 +365,7 @@ const Checkout = () => {
                     ? checkoutError.message
                     : String(checkoutError),
               }),
-            )
+            })
             .build(),
         );
       }
