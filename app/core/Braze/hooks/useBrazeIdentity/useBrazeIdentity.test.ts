@@ -26,10 +26,7 @@ const mockUseSelector = jest.mocked(useSelector);
 let mockIsSignedIn = false;
 let mockCanonicalProfileId: string | undefined;
 
-const createState = (
-  isSignedIn: boolean,
-  canonicalProfileId?: string,
-) =>
+const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
   ({
     engine: {
       backgroundState: {
