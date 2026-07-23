@@ -444,18 +444,18 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
-  it('includes mm_pay_time_to_request_quote_ms alongside mm_pay_quote_requested', async () => {
+  it('includes mm_pay_time_to_request_quote_ms measuring from last amount change', async () => {
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
 
     const { result, rerender } = runHook();
+
+    jest.spyOn(Date, 'now').mockReturnValue(1746696741000);
 
     await act(async () => {
       result.current.updatePendingAmount('100');
     });
 
     setConfirmationMetricMock.mockClear();
-
-    jest.spyOn(Date, 'now').mockReturnValue(1746696741000);
 
     await act(async () => {
       result.current.updateTokenAmount();
