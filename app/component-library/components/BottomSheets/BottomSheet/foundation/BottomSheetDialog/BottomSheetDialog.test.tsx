@@ -8,7 +8,8 @@ import Text from '../../../../Texts/Text';
 // Internal dependencies
 import BottomSheetDialog from './BottomSheetDialog';
 import { BottomSheetDialogRef } from './BottomSheetDialog.types';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, ViewStyle } from 'react-native';
+import { ReactTestRendererJSON } from 'react-test-renderer';
 
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
@@ -197,6 +198,51 @@ describe('BottomSheetDialog', () => {
       expect(onCloseMock).toHaveBeenCalledTimes(2);
     });
   });
+  describe('bottom border', () => {
+    // The sheet view is identified by its unique top corner radius.
+    const findSheetStyle = (
+      node: ReactTestRendererJSON | ReactTestRendererJSON[] | string | null,
+    ): ViewStyle | undefined => {
+      if (!node || typeof node === 'string') {
+        return undefined;
+      }
+      if (Array.isArray(node)) {
+        for (const child of node) {
+          const found = findSheetStyle(child);
+          if (found) {
+            return found;
+          }
+        }
+        return undefined;
+      }
+      const flattened = StyleSheet.flatten(node.props.style) as
+        | ViewStyle
+        | undefined;
+      if (flattened?.borderTopLeftRadius === 24) {
+        return flattened;
+      }
+      return findSheetStyle(node.children as ReactTestRendererJSON[] | null);
+    };
+
+    it('removes the bottom border by default', () => {
+      const { toJSON } = render(<BottomSheetDialog />);
+
+      const sheetStyle = findSheetStyle(toJSON());
+
+      expect(sheetStyle?.borderWidth).toBe(1);
+      expect(sheetStyle?.borderBottomWidth).toBe(0);
+    });
+
+    it('keeps the bottom border when hasBottomBorder is true', () => {
+      const { toJSON } = render(<BottomSheetDialog hasBottomBorder />);
+
+      const sheetStyle = findSheetStyle(toJSON());
+
+      expect(sheetStyle?.borderWidth).toBe(1);
+      expect(sheetStyle?.borderBottomWidth).toBeUndefined();
+    });
+  });
+
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 
   describe('swipe gesture', () => {

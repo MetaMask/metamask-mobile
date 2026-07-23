@@ -15,6 +15,11 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   isFullscreen?: boolean;
   /**
+   * Optional boolean that indicates if the sheet's bottom border is shown.
+   * @default false
+   */
+  hasBottomBorder?: boolean;
+  /**
    * Optional boolean that indicates if sheet is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
    * @default true
    */
@@ -47,4 +52,5 @@ export interface BottomSheetDialogStyleSheetVars {
   screenBottomPadding: number;
   style: StyleProp<ViewStyle>;
   isFullscreen: boolean;
+  hasBottomBorder: boolean;
 }
