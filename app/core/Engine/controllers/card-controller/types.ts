@@ -38,6 +38,12 @@ export type CardUnauthenticatedReason = 'onboarding_token_revoked';
 export type CardControllerState = {
   /** ISO 3166-1 alpha-2 country code selected by the user. */
   selectedCountry: string | null;
+  /**
+   * Temporary internal-testing override for Immersve cardProgramId.
+   * Selected on SignUp when cardFeature.immersve.cardProgramIds has multiple options.
+   * Easy to remove once multi-program testing is no longer needed.
+   */
+  selectedCardProgramId: string | null;
   /** Active provider ID, derived from selectedCountry. */
   activeProviderId: string | null;
   /** Whether the user is authenticated with the active provider. */

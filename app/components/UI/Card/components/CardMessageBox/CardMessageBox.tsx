@@ -67,6 +67,16 @@ const CardMessageBox = ({
           'card.card_home.messages.card_provisioning.description',
         ),
       },
+      [CardMessageBoxType.PendingVerification]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.card_home.warnings.pending_verification.title'),
+        description: strings(
+          'card.card_home.warnings.pending_verification.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.card_home.warnings.pending_verification.confirm_button_label',
+        ),
+      },
       [CardMessageBoxType.AuthPrompt]: {
         variant: CardMessageBoxVariant.Info,
         title: strings('card.card_authentication.auth_prompt_info'),
