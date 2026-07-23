@@ -247,6 +247,9 @@ export class QrSyncController extends BaseController<
     }
 
     this.update((state) => {
+      state.syncFlow = this.getIsOnboardingCompleted()
+        ? QrSyncSyncFlows.EXISTING_USER
+        : QrSyncSyncFlows.NEW_USER;
       state.pendingSecretImports = pendingSecretImports;
       state.provisioningMetadata = {
         version: QrSyncMessageVersion.V1,

@@ -13,6 +13,7 @@ import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
+  QrSyncSyncFlows,
 } from './constants';
 import {
   QR_SYNC_CONTROLLER_NAME,
@@ -55,6 +56,7 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     });
 
     expect(controller.state.phase).toBe(QrSyncPhases.REVIEWING_IMPORT);
+    expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.NEW_USER);
     expect(controller.state.provisioningStatus).toBe(
       QrSyncProvisioningStatuses.AWAITING_PASSWORD,
     );
@@ -79,6 +81,7 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
       mnemonic: `  ${TEST_MNEMONIC}  `,
     });
 
+    expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.EXISTING_USER);
     expect(controller.state.pendingSecretImports?.[0]).toMatchObject({
       value: TEST_MNEMONIC,
       isPrimary: true,
