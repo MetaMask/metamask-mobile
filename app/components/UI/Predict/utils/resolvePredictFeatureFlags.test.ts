@@ -444,7 +444,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('falls back to bundled config when version gate fails', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'gamesTagId' in flag) {
+        if (flag && typeof flag === 'object' && 'tabs' in flag) {
           return false;
         }
         return undefined;
@@ -455,7 +455,6 @@ describe('resolvePredictFeatureFlags', () => {
           predictSportsFeed: {
             enabled: true,
             minimumVersion: '99.0.0',
-            gamesTagId: '100639',
             tabs: [],
           },
         },
@@ -468,7 +467,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('uses remote sports feed config when version gate passes', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'gamesTagId' in flag) {
+        if (flag && typeof flag === 'object' && 'tabs' in flag) {
           return true;
         }
         return undefined;
@@ -477,7 +476,6 @@ describe('resolvePredictFeatureFlags', () => {
       const remoteSportsFeed = {
         enabled: true,
         minimumVersion: '1.0.0',
-        gamesTagId: 'games-tag',
         tabs: [
           {
             id: 'soccer',
@@ -515,7 +513,7 @@ describe('resolvePredictFeatureFlags', () => {
           predictSportsFeed: {
             enabled: true,
             minimumVersion: '1.0.0',
-            tabs: [{ id: 'soccer', chips: [] }],
+            tabs: [{ chips: [] }],
           },
         },
       });

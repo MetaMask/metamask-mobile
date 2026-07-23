@@ -7,7 +7,10 @@ import type {
   PredictSportsFeedConfig,
   PredictSportsFeedTabConfig as PredictSportsFeedRemoteTabConfig,
 } from '../types/flags';
-import { DEFAULT_PREDICT_SPORTS_FEED_FLAG } from './flags';
+import {
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  PREDICT_POLYMARKET_GAMES_TAG_ID,
+} from './flags';
 
 export const PREDICT_FEED_IDS = [
   'sports',
@@ -295,7 +298,7 @@ export const createPredictSportsFeedConfig = (
   sportsFeedConfig: PredictSportsFeedConfig = DEFAULT_PREDICT_SPORTS_FEED_FLAG,
 ): PredictFeedConfig => {
   const tabs = sportsFeedConfig.tabs
-    .map((tab) => createSportsTab(tab, sportsFeedConfig.gamesTagId))
+    .map((tab) => createSportsTab(tab, PREDICT_POLYMARKET_GAMES_TAG_ID))
     .filter((tab): tab is PredictFeedTabConfig => tab !== undefined);
 
   if (tabs.length === 0) {

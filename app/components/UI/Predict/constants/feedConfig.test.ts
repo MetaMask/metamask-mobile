@@ -184,7 +184,6 @@ describe('feedConfig', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
       minimumVersion: '1.0.0',
-      gamesTagId: '100639',
       tabs: [
         {
           id: 'custom-tab',
@@ -212,7 +211,6 @@ describe('feedConfig', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
       minimumVersion: '1.0.0',
-      gamesTagId: '100639',
       tabs: [
         {
           id: 'custom-tab',
@@ -240,7 +238,6 @@ describe('feedConfig', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
       minimumVersion: '1.0.0',
-      gamesTagId: '100639',
       tabs: [
         {
           id: 'custom-tab',
@@ -268,7 +265,6 @@ describe('feedConfig', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
       minimumVersion: '1.0.0',
-      gamesTagId: '100639',
       tabs: [
         {
           id: 'custom-tab',
@@ -297,7 +293,6 @@ describe('feedConfig', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
       minimumVersion: '1.0.0',
-      gamesTagId: '100639',
       tabs: [
         {
           id: 'custom-tab',
@@ -324,7 +319,6 @@ describe('feedConfig', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
       minimumVersion: '1.0.0',
-      gamesTagId: '100639',
       tabs: [
         {
           id: 'custom-tab',
