@@ -500,12 +500,38 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
       - name: Download all test reports
         uses: actions/download-artifact@v4
         with:
           pattern: system-test-report-*
           path: all-reports
           merge-multiple: false
+
+      - name: Download visual regression artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: visual-regression-*
+          path: all-visual-reports
+          merge-multiple: false
+
+      - name: Get app version
+        id: version
+        run: echo "value=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Format test results
+        id: results
+        run: |
+          node .github/scripts/format-system-test-results.mjs all-reports all-visual-reports > "$RUNNER_TEMP/system-test-results.json"
+          echo "file=$RUNNER_TEMP/system-test-results.json" >> "$GITHUB_OUTPUT"
 
       - name: Generate summary
         run: |
@@ -516,26 +542,71 @@ jobs:
 
           format_status() {
             case "$1" in
-              success)  echo "passed" ;;
-              failure)  echo "FAILED" ;;
-              skipped)  echo "skipped" ;;
-              cancelled) echo "cancelled" ;;
+              success)  echo "✅ passed" ;;
+              failure)  echo "❌ FAILED" ;;
+              skipped)  echo "⏭️ skipped" ;;
+              cancelled) echo "🚫 cancelled" ;;
               *)        echo "$1" ;;
             esac
           }
 
+          RESULTS_FILE="${{ steps.results.outputs.file }}"
+          read_field() { node -p "JSON.parse(require('fs').readFileSync('$RESULTS_FILE','utf8')).$1"; }
+
+          PASSED=$(read_field passed)
+          FAILED=$(read_field failed)
+          SKIPPED=$(read_field skipped)
+          TABLE=$(read_field table)
+          VISUAL=$(read_field hasVisualFailures)
+
           {
             echo "## Nightly System Test Results"
             echo ""
+            echo "**Version:** ${{ steps.version.outputs.value }} | **Trigger:** ${{ github.event_name }} | **Branch:** ${{ github.ref_name }}"
+            echo ""
+            echo "**Summary:** ${PASSED} passed, ${FAILED} failed, ${SKIPPED} skipped"
+            echo ""
+            echo "### Job Status"
             echo "| Project | Status |"
             echo "|---------|--------|"
             echo "| Android Login | $(format_status "$STATUS_ANDROID_LOGIN") |"
             echo "| Android Onboarding | $(format_status "$STATUS_ANDROID_ONBOARDING") |"
             echo "| iOS Login | $(format_status "$STATUS_IOS_LOGIN") |"
             echo "| iOS Onboarding | $(format_status "$STATUS_IOS_ONBOARDING") |"
+            if [ -n "$TABLE" ] && [ "$TABLE" != "" ]; then
+              echo ""
+              echo "### Failed Tests"
+              echo "$TABLE"
+            fi
+            if [ "$VISUAL" = "true" ]; then
+              echo ""
+              echo "> ⚠️ Some AI visual regression checks failed — review visual artifacts"
+            fi
             echo ""
-            echo "**Trigger:** ${{ github.event_name }}"
-            echo "**Branch:** ${{ github.ref_name }}"
             echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prepare Slack payload
+        id: slack
+        if: always()
+        env:
+          METAMASK_VERSION: ${{ steps.version.outputs.value }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          JOB_STATUS_ANDROID_LOGIN: ${{ needs.run-android-login-tests.result }}
+          JOB_STATUS_ANDROID_ONBOARDING: ${{ needs.run-android-onboarding-tests.result }}
+          JOB_STATUS_IOS_LOGIN: ${{ needs.run-ios-login-tests.result }}
+          JOB_STATUS_IOS_ONBOARDING: ${{ needs.run-ios-onboarding-tests.result }}
+        run: |
+          PAYLOAD_PATH=$(node .github/scripts/post-system-test-results.mjs all-reports all-visual-reports)
+          echo "payload-path=$PAYLOAD_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Send Slack notification
+        if: always()
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_FEATURE_FLAG_DRIFT }}
+          webhook-type: incoming-webhook
+          payload-file-path: ${{ steps.slack.outputs.payload-path }}
 
