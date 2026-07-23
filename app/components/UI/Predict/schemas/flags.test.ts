@@ -1,7 +1,12 @@
 import { create, StructError } from '@metamask/superstruct';
-import { PredictFeeCollectionSchema, PredictWorldCupSchema } from './flags';
+import {
+  PredictFeeCollectionSchema,
+  PredictSportsFeedSchema,
+  PredictWorldCupSchema,
+} from './flags';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 
@@ -268,6 +273,103 @@ describe('PredictWorldCupSchema', () => {
           stages: [{ key: 'group_stage', eventIds: [123] }],
         },
         PredictWorldCupSchema,
+      ),
+    ).toThrow(StructError);
+  });
+});
+
+describe('PredictSportsFeedSchema', () => {
+  it('returns bundled sports config defaults when input is undefined', () => {
+    const result = create(undefined, PredictSportsFeedSchema);
+
+    expect(result).toStrictEqual(DEFAULT_PREDICT_SPORTS_FEED_FLAG);
+  });
+
+  it('preserves configured sports tabs and applies default games tag id', () => {
+    const input = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      tabs: [
+        {
+          id: 'soccer',
+          titleKey: 'predict.feed.tabs.soccer',
+          label: 'Soccer',
+          tagSlug: 'soccer',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+              titleKey: 'predict.feed.filters.games',
+            },
+            {
+              id: 'mls',
+              kind: 'tag',
+              titleKey: 'predict.feed.filters.mls',
+              tagSlug: 'mls',
+              order: 'volume',
+              startTimeMinMinutesAgo: 45,
+              queryParams:
+                'active=true&closed=false&tag_slug=custom-mls&order=startTime&ascending=true',
+            },
+            {
+              id: 'props',
+              kind: 'props',
+              startTimeMinMinutesAgo: null,
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = create(input, PredictSportsFeedSchema);
+
+    expect(result).toStrictEqual(input);
+  });
+
+  it('tolerates unknown keys in the remote payload', () => {
+    const result = create(
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        tabs: [],
+        someFutureField: 'ignored',
+      },
+      PredictSportsFeedSchema,
+    );
+
+    expect(result.enabled).toBe(true);
+    expect(result.tabs).toEqual([]);
+  });
+
+  it('throws for invalid tab entries', () => {
+    expect(() =>
+      create(
+        {
+          tabs: [{ titleKey: 'predict.feed.tabs.soccer', chips: [] }],
+        },
+        PredictSportsFeedSchema,
+      ),
+    ).toThrow(StructError);
+  });
+
+  it('throws for invalid chip order values', () => {
+    expect(() =>
+      create(
+        {
+          tabs: [
+            {
+              id: 'soccer',
+              chips: [
+                {
+                  id: 'games',
+                  kind: 'games',
+                  order: 'unsupported',
+                },
+              ],
+            },
+          ],
+        },
+        PredictSportsFeedSchema,
       ),
     ).toThrow(StructError);
   });

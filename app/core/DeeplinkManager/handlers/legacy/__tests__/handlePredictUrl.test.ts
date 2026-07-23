@@ -414,7 +414,7 @@ describe('handlePredictUrl', () => {
 
     it('passes tab as initialTabId and filter as initialFilterId', async () => {
       await handlePredictUrl({
-        predictPath: '?feed=sports&tab=all&filter=live',
+        predictPath: '?feed=sports&tab=all&filter=games',
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
@@ -422,7 +422,7 @@ describe('handlePredictUrl', () => {
         params: {
           feedId: 'sports',
           initialTabId: 'all',
-          initialFilterId: 'live',
+          initialFilterId: 'games',
           entryPoint: 'deeplink',
         },
       });

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   PredictFeedConfig,
   PredictFeedId,
   PredictFeedTabConfig,
   resolvePredictFeedConfig,
 } from '../constants/feedConfig';
+import { selectPredictSportsFeedConfig } from '../selectors/featureFlags';
 import type {
   PredictFilterOptionsParams,
   PredictMarketListParams,
@@ -34,12 +36,15 @@ export interface PredictFeedRenderFilter {
   label?: string;
   /** Ready-to-use list params; feed straight into `usePredictMarketList`. */
   params: PredictMarketListParams;
+  /** Sports filters can opt into fetching live markets before regular markets. */
+  showLiveFirst?: boolean;
   isDynamic: boolean;
 }
 
 export interface PredictFeedTabSummary {
   id: string;
-  titleKey: string;
+  titleKey?: string;
+  label?: string;
 }
 
 export interface UsePredictFeedConfigOptions {
@@ -140,8 +145,14 @@ export const usePredictFeedConfig = (
   options: UsePredictFeedConfigOptions = {},
 ): PredictFeedConfigResult => {
   const { initialTabId, initialFilterId } = options;
+  const sportsFeedConfig = useSelector(selectPredictSportsFeedConfig);
+  const effectiveSportsFeedConfig =
+    feedId === 'sports' ? sportsFeedConfig : undefined;
 
-  const config = useMemo(() => resolvePredictFeedConfig(feedId), [feedId]);
+  const config = useMemo(
+    () => resolvePredictFeedConfig(feedId, effectiveSportsFeedConfig),
+    [feedId, effectiveSportsFeedConfig],
+  );
 
   const [activeTabId, setActiveTabIdState] = useState<string | undefined>(() =>
     resolveInitialTabId(config, initialTabId),
@@ -186,6 +197,7 @@ export const usePredictFeedConfig = (
         titleKey: filter.titleKey,
         label: filter.label,
         params: filter.params,
+        showLiveFirst: filter.showLiveFirst,
         isDynamic: false,
       })),
     [activeTab],
@@ -257,7 +269,16 @@ export const usePredictFeedConfig = (
   // updated deeplink/navigation params. Skipped on mount (state is already
   // seeded by the lazy initializers above). These are primitive route inputs,
   // not user gestures, so re-seeding on a value change is intentional.
-  const seedKey = [feedId, initialTabId, initialFilterId].join('\u0000');
+  const seedKey = useMemo(
+    () =>
+      JSON.stringify({
+        feedId,
+        initialTabId,
+        initialFilterId,
+        sportsFeedConfig: effectiveSportsFeedConfig,
+      }),
+    [feedId, initialTabId, initialFilterId, effectiveSportsFeedConfig],
+  );
   const previousSeedKeyRef = useRef(seedKey);
   useEffect(() => {
     if (previousSeedKeyRef.current === seedKey) {
@@ -265,7 +286,10 @@ export const usePredictFeedConfig = (
     }
     previousSeedKeyRef.current = seedKey;
 
-    const nextConfig = resolvePredictFeedConfig(feedId);
+    const nextConfig = resolvePredictFeedConfig(
+      feedId,
+      effectiveSportsFeedConfig,
+    );
     const nextTabId = resolveInitialTabId(nextConfig, initialTabId);
     const nextTab = findTab(nextConfig, nextTabId);
 
@@ -277,7 +301,13 @@ export const usePredictFeedConfig = (
     )
       ? initialFilterId
       : undefined;
-  }, [seedKey, feedId, initialTabId, initialFilterId]);
+  }, [
+    seedKey,
+    feedId,
+    initialTabId,
+    initialFilterId,
+    effectiveSportsFeedConfig,
+  ]);
 
   // Honor a dynamic `initialFilterId` once dynamic filters settle. If the
   // target never appears (or the load fails), keep the current default.
@@ -330,10 +360,18 @@ export const usePredictFeedConfig = (
 
   const tabs = useMemo<PredictFeedTabSummary[]>(
     () =>
-      (config?.tabs ?? []).map((tab) => ({
-        id: tab.id,
-        titleKey: tab.titleKey,
-      })),
+      (config?.tabs ?? []).map((tab) => {
+        const tabSummary: PredictFeedTabSummary = {
+          id: tab.id,
+          titleKey: tab.titleKey,
+        };
+
+        if (tab.label !== undefined) {
+          tabSummary.label = tab.label;
+        }
+
+        return tabSummary;
+      }),
     [config],
   );
 

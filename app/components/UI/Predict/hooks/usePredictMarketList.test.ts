@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePredictMarketList } from './usePredictMarketList';
-import type { PredictMarket, PredictMarketListResponse } from '../types';
+import { createChildPage, createPage } from '../testUtils/marketList';
 
 const mockListMarkets = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -35,17 +35,6 @@ const createWrapper = () => {
 
   return { Wrapper };
 };
-
-const createMarket = (id: string): PredictMarket =>
-  ({ id, parentMarketId: undefined }) as unknown as PredictMarket;
-
-const createPage = (
-  ids: string[],
-  nextCursor: string | null = null,
-): PredictMarketListResponse => ({
-  markets: ids.map(createMarket),
-  nextCursor,
-});
 
 describe('usePredictMarketList', () => {
   beforeEach(() => {
@@ -142,6 +131,27 @@ describe('usePredictMarketList', () => {
       ]);
     });
     expect(result.current.hasNextPage).toBe(false);
+  });
+
+  it('does not auto-fetch the next page when the current page has no visible markets', async () => {
+    const { Wrapper } = createWrapper();
+    mockListMarkets.mockResolvedValueOnce(
+      createChildPage(['child-a'], 'cursor-1'),
+    );
+
+    const { result } = renderHook(() => usePredictMarketList(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.markets).toEqual([]);
+    expect(mockListMarkets).toHaveBeenCalledTimes(1);
   });
 
   it('dedupes markets by id across pages, keeping the first occurrence', async () => {

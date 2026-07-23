@@ -9,6 +9,7 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -382,6 +383,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictPortfolioEnabled: false,
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
+  predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
 };

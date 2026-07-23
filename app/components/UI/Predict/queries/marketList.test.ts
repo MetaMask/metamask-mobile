@@ -23,28 +23,33 @@ describe('marketList query', () => {
   describe('normalizeMarketListParams', () => {
     it('defaults limit to the page size and drops absent fields', () => {
       expect(normalizeMarketListParams()).toEqual({
+        queryParams: undefined,
         tags: undefined,
         tagSlugs: undefined,
+        excludedTags: undefined,
         series: undefined,
         order: undefined,
         status: undefined,
         live: undefined,
+        startTimeMinMinutesAgo: undefined,
         search: undefined,
         limit: PREDICT_MARKET_LIST_PAGE_SIZE,
       });
     });
 
-    it('sorts tags, tagSlugs and series so array order does not affect the result', () => {
+    it('sorts tags, tagSlugs, excludedTags and series so array order does not affect the result', () => {
       expect(
         normalizeMarketListParams({
           tags: ['b', 'a'],
           tagSlugs: ['nfl', 'nba'],
+          excludedTags: ['200', '100'],
           series: ['2', '1'],
         }),
       ).toEqual(
         expect.objectContaining({
           tags: ['a', 'b'],
           tagSlugs: ['nba', 'nfl'],
+          excludedTags: ['100', '200'],
           series: ['1', '2'],
         }),
       );
@@ -61,6 +66,72 @@ describe('marketList query', () => {
       expect(nba).not.toEqual(nfl);
     });
 
+    it('produces distinct keys for different lower-bound params', () => {
+      const withoutStartTimeMin = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tags: ['100639'],
+          tagSlugs: ['soccer'],
+          order: 'start_time',
+        }),
+      );
+      const withStartTimeMin = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tags: ['100639'],
+          tagSlugs: ['soccer'],
+          order: 'start_time',
+          startTimeMinMinutesAgo: 30,
+        }),
+      );
+
+      expect(withStartTimeMin).not.toEqual(withoutStartTimeMin);
+    });
+
+    it('produces distinct keys for raw query params', () => {
+      const generated = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+        }),
+      );
+      const raw = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&order=startTime',
+        }),
+      );
+
+      expect(raw).not.toEqual(generated);
+    });
+
+    it('canonicalizes raw query params for stable keys', () => {
+      const first = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: '?tag_slug=soccer&order=startTime',
+        }),
+      );
+      const second = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: ' order=startTime&tag_slug=soccer ',
+        }),
+      );
+
+      expect(first).toEqual(second);
+    });
+
+    it('produces distinct keys for excluded tags', () => {
+      const props = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+          excludedTags: ['100639'],
+        }),
+      );
+      const allSoccer = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+        }),
+      );
+
+      expect(props).not.toEqual(allSoccer);
+    });
+
     it('trims search and treats blank/whitespace as absent', () => {
       expect(normalizeMarketListParams({ search: '  brazil  ' }).search).toBe(
         'brazil',
@@ -75,6 +146,23 @@ describe('marketList query', () => {
       expect(normalizeMarketListParams({ live: false }).live).toBeUndefined();
       expect(normalizeMarketListParams({}).live).toBeUndefined();
       expect(normalizeMarketListParams({ live: true }).live).toBe(true);
+    });
+
+    it('preserves live:false in raw query mode to avoid live-phase cache collisions', () => {
+      const liveOnly = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&live=true',
+        }),
+      );
+      const regularPhase = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&live=true',
+          live: false,
+        }),
+      );
+
+      expect(regularPhase).not.toEqual(liveOnly);
+      expect(regularPhase[2].live).toBe(false);
     });
   });
 

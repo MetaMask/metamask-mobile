@@ -54,11 +54,12 @@ describe('PredictFeedView (component view)', () => {
     expect(await findByText('Sports')).toBeOnTheScreen();
     // sports is a multi-tab feed -> tab bar is visible with the sport tabs
     expect(getByTestId(PredictFeedViewSelectorsIDs.TABS)).toBeOnTheScreen();
-    expect(getAllByText('Basketball').length).toBeGreaterThan(0);
+    expect(getAllByText('All').length).toBeGreaterThan(0);
+    expect(getAllByText('Soccer').length).toBeGreaterThan(0);
     // static filter chips for the active tab
     expect(getByTestId(PredictFeedViewSelectorsIDs.FILTERS)).toBeOnTheScreen();
-    expect(getAllByText('All').length).toBeGreaterThan(0);
-    expect(getAllByText('Live').length).toBeGreaterThan(0);
+    expect(getAllByText('Games').length).toBeGreaterThan(0);
+    expect(getAllByText('Props').length).toBeGreaterThan(0);
 
     expect(Engine.context.PredictController.listMarkets).toHaveBeenCalled();
   });

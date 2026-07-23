@@ -2,6 +2,7 @@
 
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PredictMarketListOrder } from '../constants/flags';
 
 export enum Side {
   BUY = 'BUY',
@@ -636,11 +637,16 @@ export interface GetMarketsResult {
 export interface PredictMarketListParams {
   tags?: string[]; // tag IDs -> tag_id (multi).
   tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
+  excludedTags?: string[]; // tag IDs -> exclude_tag_id (multi).
   series?: string[]; // series IDs -> series_id (multi)
-  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  order?: PredictMarketListOrder;
   // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
   status?: 'open' | 'closed' | 'resolved';
   live?: boolean;
+  // Raw query string override for `/events/keyset` without a leading `?`.
+  queryParams?: string;
+  // Relative lower bound computed in minutes when the request is built -> start_time_min.
+  startTimeMinMinutesAgo?: number;
   // Free-text title filter. The provider maps this to Polymarket's
   // `title_search` query param, which composes with cursor pagination, so
   // search stays on the same feed endpoint (handled in the provider layer, not

@@ -7,6 +7,7 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
@@ -21,6 +22,7 @@ import {
 import {
   parse,
   PredictFeeCollectionSchema,
+  PredictSportsFeedSchema,
   PredictWimbledonTabSchema,
   PredictWorldCupSchema,
 } from '../schemas';
@@ -146,6 +148,18 @@ export function resolvePredictFeatureFlags(
   )
     ? parsedPredictWorldCup
     : DEFAULT_PREDICT_WORLD_CUP_FLAG;
+  const parsedPredictSportsFeed = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
+      flags.predictSportsFeed,
+    ),
+    PredictSportsFeedSchema,
+    DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  );
+  const predictSportsFeed = validatedVersionGatedFeatureFlag(
+    parsedPredictSportsFeed,
+  )
+    ? parsedPredictSportsFeed
+    : DEFAULT_PREDICT_SPORTS_FEED_FLAG;
   const parsedPredictWimbledonTab = parse(
     unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
     PredictWimbledonTabSchema,
@@ -171,6 +185,7 @@ export function resolvePredictFeatureFlags(
     predictHomeRedesignEnabled,
     predictSportCardLivePricesEnabled,
     predictWorldCup,
+    predictSportsFeed,
     predictWimbledonTab,
   };
 }

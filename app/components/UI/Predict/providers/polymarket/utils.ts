@@ -1375,26 +1375,129 @@ export const fetchEventsFromPolymarketApi = async (
  * param mapping easy to audit and test.
  *
  * Mapping rules:
- * - `order`: `volume24hr`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`. Defaults to `volume24hr` (descending).
+ * - `order`: `volume24hr`/`volume`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`; `upcoming` -> `order=startDate&ascending=true`; `start_time` -> `order=startTime&ascending=true`. Defaults to `volume24hr` (descending).
  * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
- * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `series` -> repeated `series_id`.
+ * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `excludedTags` -> repeated `exclude_tag_id`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
+ * - `queryParams` -> raw query string override; `live`, explicit `order`, `afterCursor`, and start-time overrides are still applied.
+ * - `startTimeMinMinutesAgo` -> `start_time_min`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
  */
+const MS_PER_MINUTE = 60 * 1000;
+
+const normalizeRawQueryParams = (queryParams: string): string =>
+  queryParams.trim().replace(/^\?/, '');
+
+const applyRawLiveQueryParam = (
+  queryParams: URLSearchParams,
+  live?: boolean,
+): void => {
+  if (live === true) {
+    queryParams.set('live', 'true');
+    queryParams.set('order', 'volume24hr');
+    queryParams.set('ascending', 'false');
+  } else if (live === false) {
+    queryParams.delete('live');
+  }
+};
+
+type MarketListOrder = NonNullable<PredictMarketListParams['order']>;
+
+const applyOrderQueryParams = (
+  queryParams: URLSearchParams,
+  order: MarketListOrder,
+): void => {
+  switch (order) {
+    case 'liquidity':
+      queryParams.set('order', 'liquidity');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'volume':
+      queryParams.set('order', 'volume');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'ending_soon':
+      queryParams.set('order', 'endDate');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'newest':
+      queryParams.set('order', 'startDate');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'upcoming':
+      queryParams.set('order', 'startDate');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'start_time':
+      queryParams.set('order', 'startTime');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'volume24hr':
+    default:
+      queryParams.set('order', 'volume24hr');
+      queryParams.set('ascending', 'false');
+      break;
+  }
+};
+
+const applyStartTimeMinQueryParam = ({
+  queryParams,
+  startTimeMinMinutesAgo,
+}: {
+  queryParams: URLSearchParams;
+  startTimeMinMinutesAgo?: number;
+}): void => {
+  if (
+    startTimeMinMinutesAgo !== undefined &&
+    Number.isFinite(startTimeMinMinutesAgo)
+  ) {
+    queryParams.set(
+      'start_time_min',
+      new Date(
+        Date.now() - startTimeMinMinutesAgo * MS_PER_MINUTE,
+      ).toISOString(),
+    );
+  }
+};
+
 export const buildMarketListQueryParams = (
   params: PredictMarketListParams = {},
 ): URLSearchParams => {
   const {
+    queryParams: rawQueryParams,
     tags,
     tagSlugs,
+    excludedTags,
     series,
-    order = 'volume24hr',
+    order,
     status = 'open',
     live,
     limit = 20,
     afterCursor,
     search,
+    startTimeMinMinutesAgo,
   } = params;
+
+  if (rawQueryParams?.trim()) {
+    const queryParams = new URLSearchParams(
+      normalizeRawQueryParams(rawQueryParams),
+    );
+    applyRawLiveQueryParam(queryParams, live);
+    if (order) {
+      applyOrderQueryParams(queryParams, order);
+    }
+
+    if (queryParams.toString()) {
+      if (afterCursor) {
+        queryParams.set('after_cursor', afterCursor);
+      }
+      applyStartTimeMinQueryParam({
+        queryParams,
+        startTimeMinMinutesAgo,
+      });
+      return queryParams;
+    }
+  }
 
   const queryParams = new URLSearchParams({
     limit: String(limit),
@@ -1414,28 +1517,11 @@ export const buildMarketListQueryParams = (
       break;
   }
 
-  switch (order) {
-    case 'liquidity':
-      queryParams.set('order', 'liquidity');
-      queryParams.set('ascending', 'false');
-      break;
-    case 'ending_soon':
-      queryParams.set('order', 'endDate');
-      queryParams.set('ascending', 'true');
-      break;
-    case 'newest':
-      queryParams.set('order', 'startDate');
-      queryParams.set('ascending', 'false');
-      break;
-    case 'volume24hr':
-    default:
-      queryParams.set('order', 'volume24hr');
-      queryParams.set('ascending', 'false');
-      break;
-  }
+  applyOrderQueryParams(queryParams, order ?? 'volume24hr');
 
   tags?.forEach((tagId) => queryParams.append('tag_id', tagId));
   tagSlugs?.forEach((tagSlug) => queryParams.append('tag_slug', tagSlug));
+  excludedTags?.forEach((tagId) => queryParams.append('exclude_tag_id', tagId));
   series?.forEach((seriesId) => queryParams.append('series_id', seriesId));
 
   if (live) {
@@ -1445,6 +1531,11 @@ export const buildMarketListQueryParams = (
   if (afterCursor) {
     queryParams.set('after_cursor', afterCursor);
   }
+
+  applyStartTimeMinQueryParam({
+    queryParams,
+    startTimeMinMinutesAgo,
+  });
 
   const trimmedSearch = search?.trim();
   if (trimmedSearch) {

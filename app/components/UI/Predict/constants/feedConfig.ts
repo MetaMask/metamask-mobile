@@ -2,6 +2,15 @@ import type {
   PredictFilterOptionSource,
   PredictMarketListParams,
 } from '../types';
+import type {
+  PredictSportsFeedChipConfig,
+  PredictSportsFeedConfig,
+  PredictSportsFeedTabConfig as PredictSportsFeedRemoteTabConfig,
+} from '../types/flags';
+import {
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  PREDICT_POLYMARKET_GAMES_TAG_ID,
+} from './flags';
 
 export const PREDICT_FEED_IDS = [
   'sports',
@@ -26,6 +35,7 @@ export interface PredictFeedFilterConfig {
   titleKey?: string;
   label?: string;
   params: PredictMarketListParams;
+  showLiveFirst?: boolean;
 }
 
 export interface PredictFeedFiltersConfig {
@@ -35,7 +45,8 @@ export interface PredictFeedFiltersConfig {
 
 export interface PredictFeedTabConfig {
   id: string;
-  titleKey: string;
+  titleKey?: string;
+  label?: string;
   defaultFilterId: string;
   filters: PredictFeedFiltersConfig;
 }
@@ -55,7 +66,10 @@ export interface PredictFeedConfig {
 const FILTER_TITLE_KEYS = {
   all: 'predict.feed.filters.all',
   live: 'predict.feed.filters.live',
+  games: 'predict.feed.filters.games',
+  props: 'predict.feed.filters.props',
 } as const;
+const SPORTS_START_TIME_MIN_MINUTES_AGO = 180;
 
 const createAllFilter = (
   params: PredictMarketListParams,
@@ -75,6 +89,139 @@ const createLiveFilter = (
     live: true,
   },
 });
+
+const normalizeSportsChipQueryParams = (
+  queryParams?: string,
+): string | undefined => {
+  const normalized = queryParams?.trim().replace(/^\?/, '').trim();
+  return normalized || undefined;
+};
+
+const removeStartTimeMinFromQueryParams = (
+  queryParams: string,
+): string | undefined => {
+  const params = new URLSearchParams(queryParams);
+  params.delete('start_time_min');
+  return params.toString() || undefined;
+};
+
+const withSportsChipOverrides = (
+  params: PredictMarketListParams,
+  chip: PredictSportsFeedChipConfig,
+  { applyStartTimeOverride = true }: { applyStartTimeOverride?: boolean } = {},
+): PredictMarketListParams => {
+  const queryParams = normalizeSportsChipQueryParams(chip.queryParams);
+  const resolvedParams: PredictMarketListParams = queryParams
+    ? { queryParams }
+    : { ...params };
+
+  if (chip.order) {
+    resolvedParams.order = chip.order;
+  }
+
+  if (chip.startTimeMinMinutesAgo === null) {
+    delete resolvedParams.startTimeMinMinutesAgo;
+
+    if (resolvedParams.queryParams) {
+      const queryParamsWithoutStartTimeMin = removeStartTimeMinFromQueryParams(
+        resolvedParams.queryParams,
+      );
+
+      if (queryParamsWithoutStartTimeMin) {
+        resolvedParams.queryParams = queryParamsWithoutStartTimeMin;
+      } else {
+        delete resolvedParams.queryParams;
+      }
+    }
+
+    return resolvedParams;
+  }
+
+  if (!applyStartTimeOverride) {
+    return resolvedParams;
+  }
+
+  if (
+    typeof chip.startTimeMinMinutesAgo === 'number' &&
+    Number.isFinite(chip.startTimeMinMinutesAgo)
+  ) {
+    resolvedParams.startTimeMinMinutesAgo = chip.startTimeMinMinutesAgo;
+  }
+
+  return resolvedParams;
+};
+
+const createGamesFilter = (
+  params: PredictMarketListParams,
+  gamesTagId: string,
+  chip: PredictSportsFeedChipConfig,
+): PredictFeedFilterConfig => ({
+  id: chip.id,
+  titleKey: chip.titleKey ?? FILTER_TITLE_KEYS.games,
+  label: chip.label,
+  params: withSportsChipOverrides(
+    {
+      ...params,
+      tags: [...(params.tags ?? []), gamesTagId],
+      order: 'start_time',
+    },
+    chip,
+  ),
+  showLiveFirst: true,
+});
+
+const createPropsFilter = (
+  params: PredictMarketListParams,
+  gamesTagId: string,
+  chip: PredictSportsFeedChipConfig,
+): PredictFeedFilterConfig => {
+  const propsParams: PredictMarketListParams = { ...params };
+  delete propsParams.startTimeMinMinutesAgo;
+
+  return {
+    id: chip.id,
+    titleKey: chip.titleKey ?? FILTER_TITLE_KEYS.props,
+    label: chip.label,
+    params: withSportsChipOverrides(
+      {
+        ...propsParams,
+        excludedTags: [...(propsParams.excludedTags ?? []), gamesTagId],
+      },
+      chip,
+    ),
+    showLiveFirst: false,
+  };
+};
+
+const createTagFilter = (
+  params: PredictMarketListParams,
+  chip: PredictSportsFeedChipConfig,
+): PredictFeedFilterConfig | undefined => {
+  const tagSlug = chip.tagSlug ?? chip.id;
+  if (!tagSlug && !normalizeSportsChipQueryParams(chip.queryParams)) {
+    return undefined;
+  }
+  const tagParams: PredictMarketListParams = { ...params };
+  delete tagParams.startTimeMinMinutesAgo;
+
+  return {
+    id: chip.id,
+    titleKey: chip.titleKey,
+    label: chip.label,
+    params: withSportsChipOverrides(
+      tagSlug
+        ? {
+            ...tagParams,
+            tagSlugs: [tagSlug],
+            order: 'start_time',
+          }
+        : tagParams,
+      chip,
+      { applyStartTimeOverride: false },
+    ),
+    showLiveFirst: true,
+  };
+};
 
 const createCategoryFeed = ({
   id,
@@ -118,65 +265,89 @@ const createCategoryFeed = ({
   ],
 });
 
-const createSportsTab = ({
-  id,
-  titleKey,
-}: {
-  id: string;
-  titleKey: string;
-}): PredictFeedTabConfig => {
+const createSportsFilter = (
+  params: PredictMarketListParams,
+  gamesTagId: string,
+  chip: PredictSportsFeedChipConfig,
+): PredictFeedFilterConfig | undefined => {
+  switch (chip.kind) {
+    case 'games':
+      return createGamesFilter(params, gamesTagId, chip);
+    case 'props':
+      return createPropsFilter(params, gamesTagId, chip);
+    case 'tag':
+      return createTagFilter(params, chip);
+    default:
+      return undefined;
+  }
+};
+
+const createSportsTab = (
+  tab: PredictSportsFeedRemoteTabConfig,
+  gamesTagId: string,
+): PredictFeedTabConfig | undefined => {
+  const sportTagSlug = tab.tagSlug ?? tab.id;
+  if (!sportTagSlug) {
+    return undefined;
+  }
+
   const baseParams: PredictMarketListParams = {
-    tagSlugs: ['sports', id],
+    tagSlugs: [sportTagSlug],
     status: 'open',
-    order: 'volume24hr',
+    order: 'upcoming',
+    startTimeMinMinutesAgo: SPORTS_START_TIME_MIN_MINUTES_AGO,
   };
+  const staticFilters = tab.chips
+    .map((chip) => createSportsFilter(baseParams, gamesTagId, chip))
+    .filter(
+      (filter): filter is PredictFeedFilterConfig => filter !== undefined,
+    );
+
+  if (staticFilters.length === 0) {
+    return undefined;
+  }
+
+  const defaultFilterId = staticFilters.some(
+    (filter) => filter.id === tab.defaultFilterId,
+  )
+    ? (tab.defaultFilterId as string)
+    : staticFilters[0].id;
 
   return {
-    id,
-    titleKey,
-    defaultFilterId: 'all',
+    id: tab.id,
+    titleKey: tab.titleKey,
+    label: tab.label,
+    defaultFilterId,
     filters: {
-      static: [createAllFilter(baseParams), createLiveFilter(baseParams)],
-      dynamic: {
-        source: 'related-tags',
-        baseTagSlug: 'sports',
-        baseParams,
-      },
+      static: staticFilters,
     },
   };
 };
 
-export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
-  sports: {
+export const createPredictSportsFeedConfig = (
+  sportsFeedConfig: PredictSportsFeedConfig = DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+): PredictFeedConfig => {
+  const tabs = sportsFeedConfig.tabs
+    .map((tab) => createSportsTab(tab, PREDICT_POLYMARKET_GAMES_TAG_ID))
+    .filter((tab): tab is PredictFeedTabConfig => tab !== undefined);
+
+  if (tabs.length === 0) {
+    return createPredictSportsFeedConfig(DEFAULT_PREDICT_SPORTS_FEED_FLAG);
+  }
+
+  return {
     id: 'sports',
     titleKey: 'predict.category.sports',
     header: {
       showBackButton: true,
       showSearchButton: true,
     },
-    tabs: [
-      createSportsTab({
-        id: 'basketball',
-        titleKey: 'predict.feed.tabs.basketball',
-      }),
-      createSportsTab({
-        id: 'tennis',
-        titleKey: 'predict.feed.tabs.tennis',
-      }),
-      createSportsTab({
-        id: 'soccer',
-        titleKey: 'predict.feed.tabs.soccer',
-      }),
-      createSportsTab({
-        id: 'baseball',
-        titleKey: 'predict.feed.tabs.baseball',
-      }),
-      createSportsTab({
-        id: 'football',
-        titleKey: 'predict.feed.tabs.football',
-      }),
-    ],
-  },
+    tabs,
+  };
+};
+
+export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
+  sports: createPredictSportsFeedConfig(),
   politics: createCategoryFeed({
     id: 'politics',
     titleKey: 'predict.category.politics',
@@ -258,8 +429,15 @@ export const isPredictFeedId = (
 
 export const resolvePredictFeedConfig = (
   feedId?: string | null,
+  sportsFeedConfig?: PredictSportsFeedConfig,
 ): PredictFeedConfig | undefined =>
-  isPredictFeedId(feedId) ? PREDICT_FEED_REGISTRY[feedId] : undefined;
+  isPredictFeedId(feedId)
+    ? feedId === 'sports'
+      ? sportsFeedConfig
+        ? createPredictSportsFeedConfig(sportsFeedConfig)
+        : PREDICT_FEED_REGISTRY[feedId]
+      : PREDICT_FEED_REGISTRY[feedId]
+    : undefined;
 
 export const resolvePredictFeedDefaultTab = (
   feedId?: string | null,

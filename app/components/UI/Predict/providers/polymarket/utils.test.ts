@@ -1377,9 +1377,12 @@ describe('polymarket utils', () => {
 
     it.each([
       ['volume24hr', { order: 'volume24hr', ascending: 'false' }],
+      ['volume', { order: 'volume', ascending: 'false' }],
       ['liquidity', { order: 'liquidity', ascending: 'false' }],
       ['ending_soon', { order: 'endDate', ascending: 'true' }],
       ['newest', { order: 'startDate', ascending: 'false' }],
+      ['upcoming', { order: 'startDate', ascending: 'true' }],
+      ['start_time', { order: 'startTime', ascending: 'true' }],
     ] as const)('maps order=%s correctly', (order, expected) => {
       const params = buildMarketListQueryParams({ order });
 
@@ -1429,6 +1432,14 @@ describe('polymarket utils', () => {
       expect(params.getAll('tag_slug')).toEqual(['politics']);
     });
 
+    it('appends excluded tags as repeated exclude_tag_id params', () => {
+      const params = buildMarketListQueryParams({
+        excludedTags: ['100639', '102169'],
+      });
+
+      expect(params.getAll('exclude_tag_id')).toEqual(['100639', '102169']);
+    });
+
     it('appends multiple series as repeated series_id params', () => {
       const params = buildMarketListQueryParams({ series: ['10', '20'] });
 
@@ -1453,6 +1464,89 @@ describe('polymarket utils', () => {
 
       expect(params.get('limit')).toBe('50');
       expect(params.get('after_cursor')).toBe('cursor-1');
+    });
+
+    it('uses raw queryParams as the base query when provided', () => {
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'limit=10&active=true&closed=false&tag_slug=soccer&order=startTime&ascending=true',
+      });
+
+      expect(params.toString()).toBe(
+        'limit=10&active=true&closed=false&tag_slug=soccer&order=startTime&ascending=true',
+      );
+    });
+
+    it('applies explicit order overrides to raw queryParams', () => {
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'tag_slug=soccer&order=startTime&ascending=true&volume_min=1000',
+        order: 'volume',
+      });
+
+      expect(params.toString()).toBe(
+        'tag_slug=soccer&order=volume&ascending=false&volume_min=1000',
+      );
+    });
+
+    it('applies live-first ordering to raw queryParams', () => {
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'tag_slug=soccer&live=false&order=startTime&ascending=true',
+        live: true,
+      });
+
+      expect(params.toString()).toBe(
+        'tag_slug=soccer&live=true&order=volume24hr&ascending=false',
+      );
+    });
+
+    it('removes live from raw queryParams for the regular phase', () => {
+      const params = buildMarketListQueryParams({
+        queryParams: 'tag_slug=soccer&live=true&order=startTime',
+        live: false,
+      });
+
+      expect(params.toString()).toBe('tag_slug=soccer&order=startTime');
+    });
+
+    it('adds pagination to raw queryParams when afterCursor is provided', () => {
+      const params = buildMarketListQueryParams({
+        queryParams: '?limit=10&tag_slug=soccer',
+        afterCursor: 'cursor-1',
+      });
+
+      expect(params.get('limit')).toBe('10');
+      expect(params.get('tag_slug')).toBe('soccer');
+      expect(params.get('after_cursor')).toBe('cursor-1');
+    });
+
+    it('applies startTimeMinMinutesAgo on top of raw queryParams', () => {
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(new Date('2026-01-17T10:00:00.000Z').getTime());
+
+      const params = buildMarketListQueryParams({
+        queryParams:
+          'limit=10&tag_slug=soccer&start_time_min=2026-01-01T00%3A00%3A00.000Z',
+        startTimeMinMinutesAgo: 30,
+      });
+
+      expect(params.get('start_time_min')).toBe('2026-01-17T09:30:00.000Z');
+      dateNowSpy.mockRestore();
+    });
+
+    it('maps startTimeMinMinutesAgo to a relative start_time_min param', () => {
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(new Date('2026-01-17T10:00:00.000Z').getTime());
+
+      const params = buildMarketListQueryParams({
+        startTimeMinMinutesAgo: 30,
+      });
+
+      expect(params.get('start_time_min')).toBe('2026-01-17T09:30:00.000Z');
+      dateNowSpy.mockRestore();
     });
 
     it('maps search to the title_search param', () => {
