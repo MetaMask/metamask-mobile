@@ -136,7 +136,7 @@ const OrderSummary = ({
       testID={ids.SUMMARY_MARGIN}
     />
     <KeyValueRow
-      keyLabel={strings('perps.order.liquidation_price')}
+      keyLabel={strings('perps.pro_order_form.est_liquidation')}
       value={liquidationPrice}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
@@ -345,6 +345,7 @@ const PerpsProOrderForm = ({
             <ButtonIcon
               iconName={IconName.AddCircle}
               size={ButtonIconSize.Xs}
+              iconProps={{ color: IconColor.IconAlternative }}
               onPress={onAddFundsPress}
               testID={ids.ADD_FUNDS_BUTTON}
               accessibilityLabel={strings('perps.add_funds')}

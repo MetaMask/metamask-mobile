@@ -119,6 +119,17 @@ describe('PerpsProMarketView', () => {
     ).toBeDisabled();
   });
 
+  it('renders the Pro summary and available balance copy from Figma', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.SUMMARY_LIQUIDATION),
+    ).toHaveTextContent(/Est Liquidation/);
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.AVAILABLE_BALANCE),
+    ).toHaveTextContent('-- available');
+  });
+
   it('keeps the header fixed while the market summary scrolls', () => {
     const { getByTestId } = renderView();
 

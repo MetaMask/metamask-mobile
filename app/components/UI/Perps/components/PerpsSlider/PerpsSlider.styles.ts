@@ -53,7 +53,7 @@ const styleSheet = (params: { theme: Theme; vars: PerpsSliderStyleVars }) => {
       borderRadius: thumbSize / 2,
       position: 'absolute',
       top: (trackHeight - thumbSize) / 2,
-      left: -thumbSize / 2,
+      left: isCompact ? 0 : -thumbSize / 2,
       elevation: 4,
       borderColor: colors.icon.default,
     },

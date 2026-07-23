@@ -133,7 +133,17 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   }));
 
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [
+      {
+        translateX:
+          variant === 'compact'
+            ? Math.max(
+                0,
+                Math.min(translateX.value - 8, sliderWidth.value - 16),
+              )
+            : translateX.value,
+      },
+    ],
   }));
 
   // JS callback wrapper

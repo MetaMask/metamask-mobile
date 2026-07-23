@@ -102,6 +102,7 @@ describe('PerpsSlider', () => {
       expect(styles.thumb).toMatchObject({
         width: 16,
         height: 16,
+        left: 0,
         backgroundColor: mockTheme.colors.icon.default,
       });
       expect(styles.sliderContainer).toMatchObject({ marginHorizontal: 0 });

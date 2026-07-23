@@ -1504,7 +1504,8 @@
       "choose_order_type": "Choose order type",
       "size_usd": "Size USD",
       "toggle_size_unit": "Switch size denomination",
-      "available_balance_unavailable": "Available balance: --",
+      "available_balance_unavailable": "-- available",
+      "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
       "close_keyboard": "Close keyboard"
