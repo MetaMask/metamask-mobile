@@ -2,17 +2,20 @@
 
 ## Philosophy
 
-PredictNext organizes hooks by domain using co-located folders with barrel exports. Data-fetching hooks are granular — each hook triggers exactly one query, so components only pay for the data they actually need. Imperative hooks (trading, transactions, live data) remain deep since they manage complex stateful workflows.
+PredictNext organizes hooks by domain using co-located folders with barrel exports. Data hooks are granular—one descriptor-owned query each. Event hooks carry explicit `venueId`; portfolio and workflow hooks carry `PredictAccountScope`. Imperative hooks remain thin React integrations over deep service-owned workflows. `useLiveData` exists only when a live capability is implemented; bounded polling is valid for Kalshi v1.
 
 The old Predict codebase had 37 hooks, many 100-300 lines each with duplicated caching, error handling, and state management. With BaseDataService handling the heavy lifting at the service level, data hooks shrink to 3-5 lines each. Having 12-15 granular hooks is not the same problem as 37 complex ones.
 
 Guiding rules:
 
-- Each data hook triggers exactly one query — no wasted API calls
-- Imperative hooks are deep and own async workflows
-- Related hooks are co-located in domain folders with barrel exports
-- View-specific derivation stays local to the view
-- Components never import services directly
+- each data hook triggers one Venue/account-scoped query,
+- hooks never infer one global active Venue for mixed data,
+- imperative hooks call deep services; they do not own idempotency/retry state machines,
+- committed operations resume by safe operation reference rather than view-local assumptions,
+- related hooks are co-located with barrel exports,
+- view-specific display derivation stays local,
+- components never import services/adapters directly,
+- sensitive setup values never enter query keys, Redux, errors, or analytics.
 
 Related docs:
 
@@ -27,13 +30,13 @@ Related docs:
 ```
 hooks/
 ├── events/
-│   ├── useFeaturedEvents.ts       # carousel/featured events
+│   ├── useFeaturedEvents.ts       # optional carousel/curation capability
 │   ├── useEventList.ts            # paginated event feed
-│   ├── useEventSearch.ts          # search results
+│   ├── useEventSearch.ts          # optional search capability
 │   ├── useEventDetail.ts          # single event by ID
 │   ├── usePriceHistory.ts         # price history for a market
-│   ├── useCryptoPriceHistory.ts   # crypto up/down price history
-│   ├── useCryptoReferencePrice.ts # crypto up/down Reference Price
+│   ├── useCryptoPriceHistory.ts   # optional crypto capability
+│   ├── useCryptoReferencePrice.ts # optional crypto capability
 │   ├── usePrices.ts               # current Outcome prices
 │   └── index.ts                   # barrel export
 ├── portfolio/
@@ -43,13 +46,13 @@ hooks/
 │   ├── usePnL.ts                  # unrealized P&L
 │   └── index.ts                   # barrel export
 ├── trading/
-│   ├── useTrading.ts              # deep — order state machine
+│   ├── useTrading.ts              # thin integration over TradingService
 │   └── index.ts
 ├── transactions/
-│   ├── useTransactions.ts         # deep — deposit/withdraw/claim
+│   ├── useTransactions.ts         # thin integration over funding service
 │   └── index.ts
-├── live-data/
-│   ├── useLiveData.ts             # deep — WebSocket lifecycle
+├── live-data/                      # directory created with live capability
+│   ├── useLiveData.ts             # optional integration over LiveDataService
 │   └── index.ts
 ├── navigation/
 │   ├── usePredictNavigation.ts
@@ -72,178 +75,65 @@ import { useFeaturedEvents, useBalance } from '../hooks';
 
 ## Hook Catalog — Event Queries
 
-All event hooks map to `MarketDataService` (BaseDataService). Each triggers exactly one query.
-
-### useFeaturedEvents
+Core Event hooks map to `MarketDataService` and take explicit `venueId`. Featured/search/crypto hooks are added and exported only with their adapter/product capability.
 
 ```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type { PredictEvent } from '../../types';
-
-export function useFeaturedEvents() {
-  const descriptor = marketDataQueries.getCarouselEvents();
-
+// Optional: carousel/curation capability.
+export function useFeaturedEvents(venueId: PredictVenueId) {
   return useQuery<PredictEvent[]>({
-    queryKey: descriptor.queryKey,
+    queryKey: marketDataQueries.getCarouselEvents(venueId).queryKey,
   });
 }
-```
 
-### useEventList
-
-```typescript
-import { useCallback, useMemo } from 'react';
-import { useInfiniteQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type { PredictEvent, FetchEventsParams } from '../../types';
-
-export function useEventList(params: FetchEventsParams) {
-  const descriptor = marketDataQueries.getEvents(params);
-
-  const query = useInfiniteQuery<{
-    items: PredictEvent[];
-    cursor?: string | null;
-  }>({
+export function useEventList(
+  venueId: PredictVenueId,
+  params: FetchEventsParams,
+) {
+  const descriptor = marketDataQueries.getEvents(venueId, params);
+  return useInfiniteQuery<PaginatedResult<PredictEvent>>({
     queryKey: descriptor.queryKey,
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.cursor,
   });
-
-  const events = useMemo(
-    () => query.data?.pages.flatMap((page) => page.items) ?? [],
-    [query.data],
-  );
-
-  const fetchMore = useCallback(() => {
-    if (query.hasNextPage && !query.isFetchingNextPage) {
-      void query.fetchNextPage();
-    }
-  }, [query]);
-
-  return {
-    events,
-    fetchMore,
-    isLoading: query.isLoading,
-    isError: query.isError,
-  };
 }
-```
 
-### useEventSearch
-
-```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type {
-  PaginatedResult,
-  PredictEvent,
-  SearchEventsParams,
-} from '../../types';
-
-export function useEventSearch(params: SearchEventsParams) {
-  const descriptor = marketDataQueries.searchEvents(params);
-
+// Optional: search capability.
+export function useEventSearch(
+  venueId: PredictVenueId,
+  params: SearchEventsParams,
+) {
   return useQuery<PaginatedResult<PredictEvent>>({
-    queryKey: descriptor.queryKey,
+    queryKey: marketDataQueries.searchEvents(venueId, params).queryKey,
     enabled: params.query.length > 0,
   });
 }
-```
 
-### useEventDetail
-
-```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type { PredictEvent } from '../../types';
-
-export function useEventDetail(eventId: string) {
-  const descriptor = marketDataQueries.getEvent(eventId);
-
+export function useEventDetail(venueId: PredictVenueId, eventId: string) {
   return useQuery<PredictEvent>({
-    queryKey: descriptor.queryKey,
+    queryKey: marketDataQueries.getEvent(venueId, eventId).queryKey,
   });
 }
-```
 
-### usePriceHistory
-
-```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type { PricePoint, TimePeriod } from '../../types';
-
-export function usePriceHistory(marketId: string, period: TimePeriod) {
-  const descriptor = marketDataQueries.getPriceHistory(marketId, period);
-
+export function usePriceHistory(
+  venueId: PredictVenueId,
+  marketId: string,
+  period: TimePeriod,
+) {
   return useQuery<PricePoint[]>({
-    queryKey: descriptor.queryKey,
+    queryKey: marketDataQueries.getPriceHistory(venueId, marketId, period)
+      .queryKey,
   });
 }
-```
 
-### useCryptoPriceHistory
-
-```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type { CryptoPricePoint, CryptoPriceParams } from '../../types';
-
-export function useCryptoPriceHistory(params: CryptoPriceParams) {
-  const descriptor = marketDataQueries.getCryptoPriceHistory(params);
-
-  return useQuery<CryptoPricePoint[]>({
-    queryKey: descriptor.queryKey,
-    enabled: Boolean(params.symbol) && Boolean(params.eventStartTime),
-  });
-}
-```
-
-### useCryptoReferencePrice
-
-```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type { CryptoReferencePriceParams, ReferencePrice } from '../../types';
-
-export function useCryptoReferencePrice(params: CryptoReferencePriceParams) {
-  const descriptor = marketDataQueries.getCryptoReferencePrice(params);
-
-  return useQuery<ReferencePrice | null>({
-    queryKey: descriptor.queryKey,
-    enabled:
-      Boolean(params.eventId) &&
-      Boolean(params.symbol) &&
-      Boolean(params.eventStartTime) &&
-      Boolean(params.endDate),
-  });
-}
-```
-
-### usePrices
-
-```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../../query-descriptors';
-import type { MarketPrices, PriceQuery } from '../../types';
-
-export function usePrices(queries: PriceQuery[]) {
-  const descriptor = marketDataQueries.getPrices(queries);
-
+export function usePrices(venueId: PredictVenueId, queries: PriceQuery[]) {
   return useQuery<MarketPrices>({
-    queryKey: descriptor.queryKey,
+    queryKey: marketDataQueries.getPrices(venueId, queries).queryKey,
     enabled: queries.length > 0,
   });
 }
 ```
 
-Notes:
-
-- Query descriptor shapes are owned by [interface-ledger.md](./interface-ledger.md).
-- Hooks import descriptor modules and pass `descriptor.queryKey`; they do not hand-author query key arrays.
-- No `queryFn` is supplied — the messenger-backed query client resolves the data source.
-- Each hook can be imported independently. A component needing only featured events does not trigger the event list or search queries.
+Search, carousel, series, and crypto hooks are exported only when the corresponding adapter/product capability exists. Hooks use descriptor keys and no independent `queryFn`/cache policy.
 
 ## Hook Catalog — Portfolio Queries
 
@@ -256,8 +146,8 @@ import { useQuery } from '@metamask/react-data-query';
 import { portfolioQueries } from '../../query-descriptors';
 import type { PredictPosition } from '../../types';
 
-export function usePositions(ownerAddress: string) {
-  const descriptor = portfolioQueries.getPositions(ownerAddress);
+export function usePositions(scope: PredictAccountScope) {
+  const descriptor = portfolioQueries.getPositions(scope);
 
   return useQuery<PredictPosition[]>({
     queryKey: descriptor.queryKey,
@@ -272,8 +162,8 @@ import { useQuery } from '@metamask/react-data-query';
 import { portfolioQueries } from '../../query-descriptors';
 import type { PredictBalance } from '../../types';
 
-export function useBalance(ownerAddress: string) {
-  const descriptor = portfolioQueries.getBalance(ownerAddress);
+export function useBalance(scope: PredictAccountScope) {
+  const descriptor = portfolioQueries.getBalance(scope);
 
   return useQuery<PredictBalance>({
     queryKey: descriptor.queryKey,
@@ -288,8 +178,8 @@ import { useInfiniteQuery } from '@metamask/react-data-query';
 import { portfolioQueries } from '../../query-descriptors';
 import type { ActivityItem } from '../../types';
 
-export function useActivity(ownerAddress: string) {
-  const descriptor = portfolioQueries.getActivity(ownerAddress);
+export function useActivity(scope: PredictAccountScope) {
+  const descriptor = portfolioQueries.getActivity(scope);
 
   return useInfiniteQuery<{ items: ActivityItem[]; cursor?: string | null }>({
     queryKey: descriptor.queryKey,
@@ -304,12 +194,12 @@ export function useActivity(ownerAddress: string) {
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
 import { portfolioQueries } from '../../query-descriptors';
-import type { UnrealizedPnL } from '../../types';
+import type { PredictPnL } from '../../types';
 
-export function usePnL(ownerAddress: string) {
-  const descriptor = portfolioQueries.getUnrealizedPnL(ownerAddress);
+export function usePnL(scope: PredictAccountScope) {
+  const descriptor = portfolioQueries.getUnrealizedPnL(scope);
 
-  return useQuery<UnrealizedPnL>({
+  return useQuery<PredictPnL>({
     queryKey: descriptor.queryKey,
   });
 }
@@ -412,86 +302,47 @@ export function useTrading() {
 }
 ```
 
-`useTrading` is intentionally a thin React integration. The order state machine, deposit-before-order chaining, rate limiting, and analytics emission all live inside `TradingService`. The hook just calls messenger actions and subscribes to the service's Redux slice; it never holds workflow state of its own.
+`useTrading` is a thin React integration. Preview expiry, idempotent submission, optional automatic funding policy, rate limiting, reconciliation, and analytics live inside `TradingService`. Kalshi v1 uses explicit Deposit first. The hook calls messenger actions and subscribes to the service projection; it never owns workflow state.
 
 ### useTransactions
 
-Purpose:
-
-- Handle deposit, withdraw, and claim side effects plus pending transaction state
-
-Maps to:
-
-- `TransactionService`
-
-Return contract:
+`useTransactions(scope)` calls the supported `TransactionService` intents and exposes a view-local projection of the current invocation. The backend Venue Operation remains authoritative after commit.
 
 ```typescript
-function useTransactions(): {
-  deposit: (params: DepositParams) => Promise<FundingReceipt>;
-  withdraw: (params: WithdrawParams) => Promise<FundingReceipt>;
-  claim: (params: ClaimParams) => Promise<FundingReceipt>;
-  pendingTx: PendingTransaction | null;
+type TransactionWorkflowProjection =
+  | { status: 'idle' }
+  | { status: 'preparing' }
+  | { status: 'awaiting_confirmation'; plan: FundingPlan }
+  | { status: 'committing'; operationId: string }
+  | { status: 'reconciling'; operationId: string }
+  | { status: 'success'; receipt: FundingReceipt }
+  | {
+      status: 'error';
+      errorCode: PredictErrorCode;
+      operationId?: string;
+    };
+
+function useTransactions(scope: PredictAccountScope): {
+  deposit?: (params: DepositParams) => Promise<FundingReceipt>;
+  withdraw?: (params: WithdrawParams) => Promise<FundingReceipt>;
+  claim?: (params: ClaimParams) => Promise<FundingReceipt>;
+  resume: (operationId: string) => Promise<FundingReceipt>;
+  workflow: TransactionWorkflowProjection;
+  operations: FundingOperationProjection[];
 };
 ```
 
-Implementation sketch:
+Operations are present only when the Venue capability supports them. Kalshi exposes Deposit/Withdraw and automatic Settlement, so `claim` is absent.
 
-```typescript
-import { useCallback, useState } from 'react';
-import Engine from '../../../core/Engine';
-import type {
-  ClaimParams,
-  DepositParams,
-  PendingTransaction,
-  WithdrawParams,
-} from '../types';
-
-export function useTransactions() {
-  const messenger = Engine.controllerMessenger;
-  const [pendingTx, setPendingTx] = useState<PendingTransaction | null>(null);
-
-  const wrap = useCallback(
-    async <T extends object>(
-      kind: PendingTransaction['kind'],
-      params: T,
-      task: () => Promise<FundingReceipt>,
-    ) => {
-      setPendingTx({ kind, createdAt: Date.now(), params });
-      try {
-        return await task();
-      } finally {
-        setPendingTx(null);
-      }
-    },
-    [],
-  );
-
-  return {
-    deposit: (params: DepositParams) =>
-      wrap('deposit', params, () =>
-        messenger.call('PredictTransactionService:deposit', params),
-      ),
-    withdraw: (params: WithdrawParams) =>
-      wrap('withdraw', params, () =>
-        messenger.call('PredictTransactionService:withdraw', params),
-      ),
-    claim: (params: ClaimParams) =>
-      wrap('claim', params, () =>
-        messenger.call('PredictTransactionService:claim', params),
-      ),
-    pendingTx,
-  };
-}
-```
-
-`pendingTx` stays in `useState` because it's purely view-local — only the screen that initiated the deposit/withdraw/claim needs to render its progress indicator. If another surface ever needs to observe in-flight transactions, that state moves into `TransactionService`'s public state slice rather than being lifted into a shared store at the hook level.
+The hook may keep unsent form/input/loading state locally. `operations` comes from `PredictTransactionService.operationsByAccount` and contains only safe references/status. Once a write commits, durable state belongs to the backend operation. Unmounting the view does not imply cancellation or completion. Retry/resume calls reuse the original operation/idempotency identity.
 
 ### useLiveData
 
+`useLiveData` exists only for a Venue/product surface with a live capability. Kalshi v1 may omit it and rely on bounded read-service polling.
+
 Purpose:
 
-- Subscribe to live channels for prices, scores, and status updates
+- Subscribe to supported live channels for prices, scores, account updates, and status
 
 Maps to:
 
@@ -514,7 +365,11 @@ Implementation sketch:
 ```typescript
 import { useEffect, useState } from 'react';
 import Engine from '../../../core/Engine';
-import type { SubscriptionChannel, SubscriptionParams } from '../types';
+import type {
+  SubscriptionChannel,
+  SubscriptionHandle,
+  SubscriptionParams,
+} from '../types';
 
 export function useLiveData<TData>(
   channel: SubscriptionChannel,
@@ -530,17 +385,29 @@ export function useLiveData<TData>(
     setStatus('reconnecting');
 
     // PredictLiveDataService:subscribe returns a handle that lets us tear down the subscription on unmount.
-    const handlePromise = messenger.call('PredictLiveDataService:subscribe', {
-      channel,
-      params,
-      onOpen: () => setStatus('connected'),
-      onMessage: (nextData: TData) => setData(nextData),
-      onClose: () => setStatus('disconnected'),
-      onReconnect: () => setStatus('reconnecting'),
-    });
+    let disposed = false;
+    let handle: SubscriptionHandle | undefined;
+
+    void messenger
+      .call('PredictLiveDataService:subscribe', {
+        channel,
+        params,
+        observer: {
+          onData: (nextData: TData) => setData(nextData),
+          onStatus: setStatus,
+        },
+      })
+      .then((nextHandle) => {
+        if (disposed) {
+          nextHandle.unsubscribe();
+        } else {
+          handle = nextHandle;
+        }
+      });
 
     return () => {
-      handlePromise.then((handle) => handle.unsubscribe());
+      disposed = true;
+      handle?.unsubscribe();
     };
   }, [channel, messenger, params]);
 
@@ -554,7 +421,7 @@ Read-services internally subscribe to the same `LiveDataService` updates to patc
 
 Purpose:
 
-- Centralize route helpers, tabs, and navigation-specific screen state
+- Centralize typed Venue-qualified route helpers
 
 Maps to:
 
@@ -564,46 +431,22 @@ Return contract:
 
 ```typescript
 function usePredictNavigation(): {
-  navigateToEvent: (eventId: string) => void;
-  navigateToOrder: (marketId: string, outcomeId: string) => void;
+  navigateToEvent: (
+    venueId: PredictVenueId,
+    eventId: string,
+    accountScope?: PredictAccountScope,
+  ) => void;
+  navigateToOrder: (params: {
+    accountScope: PredictAccountScope;
+    eventId: string;
+    marketId: string;
+    outcomeId: string;
+  }) => void;
   navigateBack: () => void;
-  tabs: TabConfig;
-  scrollState: ScrollState;
 };
 ```
 
-Implementation sketch:
-
-```typescript
-import { useMemo, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-
-export function usePredictNavigation() {
-  const navigation = useNavigation();
-  const [scrollY, setScrollY] = useState(0);
-
-  return {
-    navigateToEvent: (eventId: string) =>
-      navigation.navigate('PredictEventDetails', { eventId }),
-    navigateToOrder: (marketId: string, outcomeId: string) =>
-      navigation.navigate('PredictOrderScreen', { marketId, outcomeId }),
-    navigateBack: () => navigation.goBack(),
-    tabs: useMemo(
-      () => ({
-        home: { key: 'home', label: 'Home' },
-        portfolio: { key: 'portfolio', label: 'Portfolio' },
-        activity: { key: 'activity', label: 'Activity' },
-      }),
-      [],
-    ),
-    scrollState: {
-      y: scrollY,
-      setY: setScrollY,
-      isScrolled: scrollY > 0,
-    },
-  };
-}
-```
+Tabs, scroll position, and other screen presentation state remain static constants or view-local state; the navigation hook does not own them.
 
 ### usePredictGuard
 
@@ -619,7 +462,10 @@ Maps to:
 Return contract:
 
 ```typescript
-function usePredictGuard(): {
+function usePredictGuard(params: {
+  venueId: PredictVenueId;
+  accountScope?: PredictAccountScope;
+}): {
   isEligible: boolean;
   canTrade: boolean;
   ensureNetwork: () => Promise<boolean>;
@@ -635,27 +481,37 @@ import { useSelector } from 'react-redux';
 import { ensurePredictSupportedNetwork } from '../network/ensurePredictSupportedNetwork';
 import { selectPredictEligibility, selectPredictReadiness } from '../selectors';
 
-export function usePredictGuard() {
+export function usePredictGuard({
+  venueId,
+  accountScope,
+}: {
+  venueId: PredictVenueId;
+  accountScope?: PredictAccountScope;
+}) {
   // Guard data composes from PredictSessionService (eligibility, Account Readiness)
   // and wallet-side network state. There is no standalone GuardService in the
   // initial seven-service model; if cross-cutting guard logic grows, the design
   // can be revisited later in this document.
-  const eligibility = useSelector(selectPredictEligibility);
-  const readiness = useSelector(selectPredictReadiness);
+  const eligibility = useSelector((state) =>
+    selectPredictEligibility(state, venueId),
+  );
+  const readiness = useSelector((state) =>
+    accountScope ? selectPredictReadiness(state, accountScope) : undefined,
+  );
 
   const ensureNetwork = useCallback(async () => {
-    if (readiness.canTrade) {
+    if (readiness?.canTrade) {
       return true;
     }
     return await ensurePredictSupportedNetwork();
-  }, [readiness.canTrade]);
+  }, [readiness?.canTrade]);
 
   return {
     isEligible: eligibility.eligible,
-    canTrade: readiness.canTrade,
+    canTrade: Boolean(readiness?.canTrade),
     ensureNetwork,
     blockReason:
-      eligibility.blockReason ?? readiness.blockers?.[0]?.code ?? null,
+      eligibility.blockReason ?? readiness?.blockers?.[0]?.code ?? null,
   };
 }
 ```
@@ -701,7 +557,7 @@ export function useBuyViewState({
 }
 ```
 
-This pattern keeps deep hooks stable and reusable while allowing view code to stay explicit.
+This pattern keeps service-backed hooks stable while allowing view-local presentation derivation to stay explicit.
 
 ## Hook Usage by Component Tier
 
@@ -721,8 +577,8 @@ Views (PredictHome, EventDetails, OrderScreen)
         │                    v
         │              BaseDataService (MarketDataService, PortfolioService)
         │                    │
-        │                    ├── MarketDataService → PredictSessionService → PredictClient
-        │                    └── PortfolioService → PredictSessionService → PredictClient
+        │                    ├── MarketDataService → registry.marketData(venueId)
+        │                    └── PortfolioService → PredictSessionService.getClient(scope)
         │
         └── Primitives (EventCard, OutcomeButton, PositionCard)
               │
@@ -751,12 +607,13 @@ This split means:
 
 ```text
 Read path:
-  Widget → useEventList → query descriptor → useQuery(descriptor.queryKey) → messenger → MarketDataService → PredictSessionService → PredictClient → API
-  Widget → useBalance → query descriptor → useQuery(descriptor.queryKey) → messenger → PortfolioService → PredictSessionService → PredictClient → API
+  Widget → useEventList(venueId) → descriptor → MarketDataService → adapter.marketData
+  Widget → useBalance(scope) → descriptor → PortfolioService → PredictSessionService → client.portfolio
 
 Write path:
-  View → useTrading → messenger.call('PredictTradingService:placeOrder') → TradingService → PredictSessionService → PredictClient → API
-  View → useTrading → useSelector(selectPredictActiveOrder) ← state.engine.backgroundState.PredictTradingService
+  View → useTrading(scope) → TradingService → PredictSessionService → client.trading
+  View → useTransactions(scope) → TransactionService/FundingExecutor → client.funding
+  View → selectors ← focused BaseController workflow projections
 ```
 
 Neither path goes through `PredictController`. The composition root only runs once during feature bootstrap; nothing addresses it after that.
@@ -786,12 +643,21 @@ import type { DecimalString } from '../../types';
 export function EventDetails({
   route,
 }: {
-  route: { params: { eventId: string; ownerAddress: string } };
+  route: {
+    params: {
+      venueId: PredictVenueId;
+      eventId: string;
+      accountScope: PredictAccountScope;
+    };
+  };
 }) {
-  const { data: event } = useEventDetail(route.params.eventId);
-  const { data: positions } = usePositions(route.params.ownerAddress);
+  const { venueId, eventId, accountScope } = route.params;
+  const { data: event } = useEventDetail(venueId, eventId);
+  const { data: positions } = usePositions(accountScope);
+  // This view is registered only for a live-capable surface.
   const { data: livePrices } = useLiveData('marketPrices', {
-    eventId: route.params.eventId,
+    venueId,
+    eventId,
   });
 
   if (!event) {

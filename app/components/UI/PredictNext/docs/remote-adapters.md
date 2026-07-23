@@ -1,602 +1,356 @@
-# Remote Venue Adapters Alternative
+# Remote Venue Adapters
 
-This document describes an alternative deployment model for the PredictNext adapter layer. The currently documented target architecture keeps venue adapters in the mobile app. This alternative keeps the same `VenueAdapter` contract but allows an adapter implementation to delegate venue-specific work to a MetaMask Predict backend API.
+Remote Venue adapters are a first-class deployment shape for PredictNext. They are **required for Kalshi account-scoped operations** because Kalshi ISV onboarding and trading use server-held admin and per-user credentials.
 
-## 1. Summary
+A generic remote signing-intent framework is not a Kalshi launch prerequisite. Build that only when another remote Venue needs on-device signatures for Venue protocol payloads.
 
-PredictNext should support **local** and **remote** venue adapters behind the same canonical `VenueAdapter` seam.
+## 1. Deployment Shapes
 
-- A **Local Venue Adapter** runs in the mobile app and calls a venue directly, e.g. `PolymarketAdapter` calling Gamma/CLOB/contracts.
-- A **Remote Venue Adapter** runs in the mobile app but calls MetaMask's Predict backend, e.g. `MetaMaskPredictApiAdapter`. The backend owns the real venue adapters and calls Polymarket, Kalshi, or future venues.
+- A **local Venue Adapter** runs Venue protocol logic in mobile.
+- A **remote Venue Adapter** runs a thin canonical adapter in mobile and delegates Venue protocol logic to the MetaMask Predict backend.
 
-From product services' perspective, both implementations are identical:
-
-```text
-Product services
-  -> PredictSessionService.getClient(ownerAddress, venueId)
-    -> session-bound PredictClient
-      -> VenueAdapter implementation
-        -> local venue API OR MetaMask Predict backend API
-```
-
-The remote implementation is not a second product architecture. It is another implementation of the same `VenueAdapter` contract.
-
-## 2. Motivation
-
-Prediction venues can make breaking changes faster than MetaMask Mobile can safely release and users can update. Recent examples include Polymarket CLOB v2 changes and Proxy Wallet to Deposit Wallet migration work.
-
-A mobile-local adapter means the app can break when a venue changes:
+During Kalshi delivery:
 
 ```text
-Mobile PolymarketAdapter knows CLOB v1 payload shape
-Polymarket ships CLOB v2 payload shape
-Installed mobile clients cannot submit orders until a mobile release ships and users update
+polymarket -> legacy local production path
+kalshi     -> remote adapter only
 ```
 
-A remote adapter lets MetaMask change venue integration logic server-side:
+After Kalshi stabilizes, Polymarket may move behind the same backend contract capability by capability.
 
-```text
-Mobile MetaMaskPredictApiAdapter knows stable Predict API contract
-Backend PolymarketAdapter knows CLOB v1/v2 venue details
-Polymarket ships CLOB v2
-Backend adapter is updated
-Installed mobile clients keep using the same Predict API contract
-```
+The backend is not a Venue. Canonical data remains `venueId: 'kalshi'` or `venueId: 'polymarket'`, never `venueId: 'metamask'`.
 
-## 3. Non-goals
+## 2. Trust Model
 
-The remote adapter model does not mean:
+### Mobile
 
-- the backend gets custody of user private keys
-- the backend signs wallet payloads without user consent
-- mobile becomes a generic opaque-signing surface with no safety checks
-- venue-specific product concepts leak into UI components
-- local adapters are deleted immediately
+Mobile owns:
 
-The goal is to move volatile venue implementation details to the backend while keeping user authorization and wallet signing on-device.
+- user-visible intent and confirmation,
+- the selected Funding Wallet,
+- wallet transaction signing and submission,
+- canonical rendering and workflow projection,
+- runtime validation of backend responses,
+- client compatibility headers.
 
-## 4. Recommended shape
+Mobile does not own:
 
-### 4.1 Keep `VenueAdapter` as the only product seam
+- Kalshi admin or per-user PEMs,
+- Kalshi ISV sub-account routing,
+- authoritative Predict User identity mapping,
+- durable financial operation state,
+- Venue request signing.
 
-Do not add a separate `RemotePredictClient` interface. The same contract should support both modes:
+### Backend
+
+The backend owns:
+
+- deriving the authenticated Predict User from the MetaMask bearer token,
+- mapping that user to a Venue Account,
+- a server-generated stable Kalshi `external_user_id`,
+- admin and per-user credential lifecycle,
+- Venue request signing,
+- durable Account Setup and Venue Operation records,
+- idempotency and lost-response recovery,
+- Venue DTO normalization,
+- rate limits, retries, protocol versions, and reconciliation,
+- observability, redaction, kill switches, and support references.
+
+### Authorization invariant
+
+A privileged backend route never trusts a client-supplied:
+
+- wallet address,
+- email,
+- profile ID,
+- `userId`,
+- Kalshi `external_user_id`.
+
+The backend derives the authoritative subject from authentication. A wallet address supplied for a Deposit or Withdraw is an operation parameter and must be validated against product policy; it is not authorization.
+
+Mobile should use the existing authenticated MetaMask platform client in `app/core/apiClient.ts` rather than a feature-specific unauthenticated fetch wrapper.
+
+## 3. Mobile Adapter Shape
+
+Kalshi may initially use a concrete `KalshiRemoteAdapter`:
 
 ```typescript
-export interface VenueAdapter {
-  readonly venueId: PredictVenueId;
-  readonly capabilities: VenueCapabilities;
-
-  fetchEvents(
-    params: FetchEventsParams,
-    session: PredictVenueSession,
-  ): Promise<PaginatedResult<PredictEvent>>;
-  getOrderPreview(
-    params: OrderPreviewParams,
-    session: PredictVenueSession,
-  ): Promise<OrderPreview>;
-  submitOrder(
-    params: SubmitOrderParams,
-    session: PredictVenueSession,
-  ): Promise<OrderReceipt>;
-  createDepositPlan(
-    params: CreateDepositPlanParams,
-    session: PredictVenueSession,
-  ): Promise<FundingPlan>;
-  createWithdrawPlan(
-    params: CreateWithdrawPlanParams,
-    session: PredictVenueSession,
-  ): Promise<FundingPlan>;
-  createClaimPlan(
-    params: CreateClaimPlanParams,
-    session: PredictVenueSession,
-  ): Promise<FundingPlan>;
-  // ...remaining canonical methods
-}
+const kalshiAdapter = new KalshiRemoteAdapter({ apiClient });
 ```
 
-Then register either implementation for a venue:
+That is preferable to prematurely implementing deployment-mode configuration, a generic adapter factory, and signing-intent execution that only one Venue uses.
+
+When a second remote Venue proves shared behavior, extract:
 
 ```typescript
-const adapterRegistry = {
-  polymarket: featureFlags.remotePredictAdapters
-    ? new MetaMaskPredictApiAdapter({ venueId: 'polymarket', apiClient })
-    : new PolymarketAdapter({ gammaClient, clobClient }),
-
-  kalshi: featureFlags.remotePredictAdapters
-    ? new MetaMaskPredictApiAdapter({ venueId: 'kalshi', apiClient })
-    : new KalshiAdapter({ kalshiClient }),
-};
+new MetaMaskPredictApiAdapter({ venueId, apiClient });
 ```
 
-`MetaMaskPredictApiAdapter` is a mobile adapter implementation. The backend has its own internal venue adapters.
+Both implement the capability-grouped `VenueAdapter` contract in [adapters.md](./adapters.md).
+
+## 4. Backend Contract
+
+The mobile/backend contract is canonical, versioned, and runtime-validated. It exposes product operations, not raw Kalshi endpoints.
+
+Illustrative routes:
 
 ```text
-Mobile
-  MetaMaskPredictApiAdapter(venueId: polymarket)
-    -> POST /predict/v1/polymarket/orders/submit
-
-Backend
-  Predict API router
-    -> BackendPolymarketAdapter
-      -> Polymarket APIs/contracts
-```
-
-### 4.2 Prefer “configured remote adapter per venue” over “MetaMask as a venue”
-
-The backend is not itself a prediction venue. Product state should still say `venueId: 'polymarket'` or `venueId: 'kalshi'`, not `venueId: 'metamask'`.
-
-Use class names such as:
-
-- `MetaMaskPredictApiAdapter`
-- `RemoteVenueAdapter`
-- `BackendVenueAdapter`
-
-Avoid making `metamask` a product venue unless MetaMask itself becomes the exchange/counterparty.
-
-## 5. Stable backend API contract
-
-The backend API should expose canonical Predict workflows, not venue pass-through endpoints.
-
-Recommended high-level endpoints:
-
-```text
-GET  /predict/v1/venues
 GET  /predict/v1/venues/:venueId/status
 
-GET  /predict/v1/:venueId/account/readiness
-POST /predict/v1/:venueId/account/setup/start
-POST /predict/v1/:venueId/account/setup/step
-GET  /predict/v1/:venueId/account/setup/status
+GET  /predict/v1/venues/:venueId/events
+GET  /predict/v1/venues/:venueId/events/:eventId
+GET  /predict/v1/venues/:venueId/markets/:marketId/prices
+GET  /predict/v1/venues/:venueId/markets/:marketId/history
 
-GET  /predict/v1/:venueId/events
-GET  /predict/v1/:venueId/events/:eventId
-GET  /predict/v1/:venueId/markets/:marketId/prices
-GET  /predict/v1/:venueId/markets/:marketId/history
+GET  /predict/v1/venues/:venueId/account/readiness
+POST /predict/v1/venues/:venueId/account/setup/start
+POST /predict/v1/venues/:venueId/account/setup/step
+GET  /predict/v1/venues/:venueId/account/setup/status
 
-GET  /predict/v1/:venueId/portfolio/positions
-GET  /predict/v1/:venueId/portfolio/activity
-GET  /predict/v1/:venueId/portfolio/balance
+GET  /predict/v1/venues/:venueId/portfolio/balance
+GET  /predict/v1/venues/:venueId/portfolio/positions
+GET  /predict/v1/venues/:venueId/portfolio/activity
+GET  /predict/v1/venues/:venueId/portfolio/orders
 
-POST /predict/v1/:venueId/orders/preview
-POST /predict/v1/:venueId/orders/prepare
-POST /predict/v1/:venueId/orders/submit
+POST /predict/v1/venues/:venueId/orders/preview
+POST /predict/v1/venues/:venueId/orders/submit
+POST /predict/v1/venues/:venueId/orders/:orderId/cancel
 
-POST /predict/v1/:venueId/funding/deposit/prepare
-POST /predict/v1/:venueId/funding/withdraw/prepare
-POST /predict/v1/:venueId/funding/claim/prepare
-POST /predict/v1/:venueId/funding/submit
-GET  /predict/v1/:venueId/funding/:fundingId/status
+POST /predict/v1/venues/:venueId/funding/prepare
+POST /predict/v1/venues/:venueId/funding/commit
+GET  /predict/v1/venues/:venueId/funding/:operationId
 ```
 
-Mobile adapter methods map canonical calls to these endpoints. They should not expose Gamma/CLOB/Kalshi endpoint names.
+Only routes for supported capability modules are exposed.
 
-## 6. Signing intent protocol
+### Contract requirements
 
-The hardest part of moving adapters remote is wallet signing. The backend can construct venue-specific payloads, but the mobile app must still request user consent and perform signing with the user's wallet.
+- schemas are shared/generated or validated from the same fixtures in mobile and backend CI,
+- unknown response shapes fail closed for writes,
+- every response carries canonical `venueId`,
+- write preparation returns an opaque operation/preview ID and expiry,
+- write commit takes an idempotency key,
+- raw Venue errors are mapped to canonical errors,
+- credentials, PII, and raw KYC payloads never appear in canonical responses,
+- contract version and minimum client version are explicit.
 
-The remote adapter should use a stable **Signing Intent** protocol.
-
-### 6.1 Prepare/submit pattern
-
-For operations requiring signatures, use a two-step pattern:
+Example headers:
 
 ```text
-1. Mobile calls backend prepare endpoint with canonical product intent.
-2. Backend returns one or more SigningIntents plus an operationId.
-3. Mobile displays canonical confirmation UI and signs each intent.
-4. Mobile calls backend submit endpoint with operationId + signatures.
-5. Backend verifies signatures and submits to the venue.
-6. Backend returns canonical receipt.
-```
-
-Example order flow:
-
-```text
-TradingService.placeOrder()
-  -> PredictClient.getOrderPreview(params)
-  -> user confirms preview
-  -> PredictClient.submitOrder(params)
-       MetaMaskPredictApiAdapter:
-         POST /orders/prepare
-         sign returned SigningIntents
-         POST /orders/submit
-  -> OrderReceipt
-```
-
-The product service still calls one canonical `submitOrder()` method. The remote adapter hides the prepare/sign/submit mechanics inside the adapter implementation.
-
-### 6.2 Signing intent types
-
-The backend may request only signing primitives supported by the installed mobile client.
-
-```typescript
-export type SigningIntent =
-  | Eip712TypedDataSigningIntent
-  | PersonalSignSigningIntent
-  | EvmTransactionSigningIntent
-  | SolanaTransactionSigningIntent
-  | SolanaMessageSigningIntent;
-
-export interface BaseSigningIntent {
-  id: string;
-  purpose:
-    | 'place_order'
-    | 'cancel_order'
-    | 'deposit'
-    | 'withdraw'
-    | 'claim'
-    | 'account_setup';
-  account: string;
-  expiresAt: string;
-  display: SigningDisplay;
-  context: SigningIntentContext;
-}
-
-export interface Eip712TypedDataSigningIntent extends BaseSigningIntent {
-  kind: 'eip712_typed_data';
-  chainId: string;
-  domain: unknown;
-  types: Record<string, unknown>;
-  primaryType: string;
-  message: unknown;
-}
-
-export interface EvmTransactionSigningIntent extends BaseSigningIntent {
-  kind: 'evm_transaction';
-  chainId: string;
-  transaction: ChainTransactionRequest;
-}
-
-export interface SolanaTransactionSigningIntent extends BaseSigningIntent {
-  kind: 'solana_transaction';
-  cluster: 'mainnet' | 'devnet';
-  transaction: ChainTransactionRequest;
-}
-```
-
-### 6.3 Display and semantic context
-
-Signing payloads must not be fully opaque. Each intent includes a display model and a machine-checkable product context.
-
-```typescript
-export interface SigningDisplay {
-  title: string;
-  description?: string;
-  rows: { label: string; value: string }[];
-  riskLevel: 'low' | 'medium' | 'high';
-  consentText: string;
-}
-
-export type SigningIntentContext =
-  | {
-      type: 'order';
-      venueId: PredictVenueId;
-      eventId: string;
-      marketId: string;
-      outcomeId: string;
-      side: 'buy' | 'sell';
-      size: DecimalString;
-      limitPrice: DecimalString;
-      maxSpend?: DecimalString;
-    }
-  | {
-      type: 'funding';
-      venueId: PredictVenueId;
-      operation: FundingOperation;
-      amount?: DecimalString;
-      network?: ChainNamespace;
-      destinationLabel?: string;
-    }
-  | {
-      type: 'account_setup';
-      venueId: PredictVenueId;
-      step: string;
-    };
-```
-
-Mobile should render canonical confirmation content from the product context and display rows. Mobile may pass the raw EIP-712 or transaction payload to wallet signing APIs without understanding venue-specific fields.
-
-## 7. Client capability negotiation
-
-Backend flexibility only helps if the backend knows what the installed mobile client can safely handle.
-
-Every Predict API request should include:
-
-```text
-X-Predict-Client-Contract-Version: 1
+X-Predict-Contract-Version: 1
 X-MetaMask-Mobile-Version: <app version>
-X-Predict-Supported-Signing-Intents: eip712_typed_data,evm_transaction,personal_sign
-X-Predict-Supported-Networks: eip155:137,solana:mainnet
+X-Predict-Supported-Networks: eip155:8453
 ```
 
-The backend response may include:
+The backend returns an upgrade/unsupported-client error rather than a payload the installed app cannot validate or safely execute.
+
+## 5. Account Setup
+
+Account Setup is a deep workflow across mobile and backend.
+
+Mobile renders canonical steps:
 
 ```typescript
-export interface PredictApiCompatibility {
-  contractVersion: number;
-  minSupportedClientContractVersion?: number;
-  upgradeRequired?: boolean;
-  unsupportedReason?: PredictErrorCode;
-}
-```
-
-If a venue migration requires a signing primitive unavailable in older clients, the backend must return a canonical `UPGRADE_REQUIRED` or `UNSUPPORTED_CLIENT_CAPABILITY` error rather than returning an unknown payload shape.
-
-## 8. Safety invariants on mobile
-
-Even with backend-owned adapters, mobile must keep lightweight authorization checks:
-
-- signing account equals selected MetaMask account
-- venue ID matches the active venue
-- intent purpose matches the current workflow
-- intent has not expired
-- chain/network is allowlisted for Predict
-- EVM transaction recipient/spender/verifying contract is allowlisted when known
-- max spend or amount does not exceed the user-confirmed preview
-- operation ID returned by `/prepare` matches the one sent to `/submit`
-- signatures are never reused across operation IDs
-
-These checks protect the user without requiring mobile to know Polymarket CLOB v2 or Kalshi ISV internals.
-
-## 9. Session and auth model
-
-`PredictSessionService` should continue to own app-side session state. For remote adapters, the session contains MetaMask Predict API auth context rather than venue API keys.
-
-Local adapter session example:
-
-```typescript
-interface LocalPolymarketSession extends PredictVenueSession {
-  mode: 'local';
-  clobApiKey: string;
-  accountAddress: string;
-}
-```
-
-Remote adapter session example:
-
-```typescript
-interface RemotePredictSession extends PredictVenueSession {
-  mode: 'remote';
-  accessToken: string;
-  ownerAddress: string;
-  clientContractVersion: number;
-  supportedSigningIntents: SigningIntent['kind'][];
-}
-```
-
-Raw venue API keys, Kalshi sub-account credentials, Polymarket CLOB credentials, and venue migration state should live on the backend whenever the remote adapter is active.
-
-## 10. Funding plans with remote adapters
-
-Remote adapters still return canonical `FundingPlan`s. The difference is where venue preflight happens.
-
-Local Polymarket example:
-
-```text
-PolymarketAdapter.createDepositPlan()
-  -> constructs local EVM wallet-transfer plan
-```
-
-Remote Polymarket example:
-
-```text
-MetaMaskPredictApiAdapter.createDepositPlan()
-  -> POST /funding/deposit/prepare
-  -> backend determines Proxy Wallet vs Deposit Wallet mechanics
-  -> returns canonical FundingPlan with signing intents or wallet transaction request
-```
-
-Remote Kalshi example:
-
-```text
-MetaMaskPredictApiAdapter.createDepositPlan({ network: 'solana', amount })
-  -> backend reserves one-time Solana USDC deposit address
-  -> returns FundingPlan(kind: 'wallet_transfer', network: 'solana', afterSubmit: deposit_indication)
-  -> mobile signs/sends transfer
-  -> adapter calls /funding/submit with txHash
-  -> backend submits deposit indication to Kalshi
-```
-
-## 11. Account setup with remote adapters
-
-Remote adapters are especially useful for account setup because setup workflows change often and can be venue-specific.
-
-Mobile should keep a canonical step renderer:
-
-```typescript
-export type AccountSetupStep =
-  | { kind: 'email_otp'; destination: string }
-  | { kind: 'phone_otp'; destination: string }
+type AccountSetupStep =
+  | { kind: 'email_otp'; destination?: string } // obfuscated only
+  | { kind: 'phone_otp'; destination?: string } // obfuscated only
   | { kind: 'profile_form'; fields: AccountSetupField[] }
   | { kind: 'external_link'; url: string; returnUrl?: string }
   | { kind: 'status_wait'; message: string }
   | { kind: 'complete' };
 ```
 
-Backend decides whether a step means:
+Backend owns:
 
-- Polymarket Deposit Wallet migration
-- Polymarket wallet setup
-- Kalshi new-user KYC
-- Kalshi existing-user linking
-- future venue-specific onboarding
+- new-user versus existing-user-link branching,
+- the exact Kalshi error-envelope distinctions,
+- durable current step and operation state,
+- lost-response recovery,
+- per-user credential mint/list/revoke behavior,
+- opaque Venue status interpretation rules,
+- KYC-provider device/session values when required.
 
-Mobile renders and submits canonical steps only.
+### Sensitive-data rules
 
-## 12. Adapter registry and rollout strategy
+- prefer a Kalshi-hosted or tokenized KYC flow if available,
+- otherwise send profile/KYC fields only over the authenticated operation that needs them,
+- never persist raw fields in mobile state or storage,
+- do not retain profile/SSN in the Predict backend beyond approved policy,
+- redact request/response bodies, errors, analytics, traces, support tooling, and crash reports,
+- tests use synthetic fixtures only.
 
-The adapter registry should support per-venue deployment mode:
+## 6. Funding
 
-```typescript
-export type AdapterDeploymentMode = 'local' | 'remote';
+Remote funding uses prepare/confirm/commit.
 
-export interface AdapterRegistryConfig {
-  defaultMode: AdapterDeploymentMode;
-  perVenueMode?: Partial<Record<PredictVenueId, AdapterDeploymentMode>>;
-}
-```
-
-Rollout examples:
-
-```text
-Phase A: polymarket=local, kalshi=none
-Phase B: polymarket=local with remote shadow reads
-Phase C: polymarket=remote for read APIs, local for order submit
-Phase D: polymarket=remote for reads + orders + funding
-Phase E: kalshi=remote only
-```
-
-The backend can also support shadow comparison:
+### Kalshi Deposit
 
 ```text
-Mobile local adapter returns result used by app
-Remote adapter fetches same result in background
-Telemetry compares canonical output shape and major values
+1. Mobile -> backend prepare(amount, network, idempotency key)
+2. Backend -> Kalshi one-time amount-specific address
+3. Backend -> mobile FundingPlan(wallet_transfer, operationId, exact transaction)
+4. Mobile -> normal app confirmation/sign/send
+5. Mobile -> backend commit(operationId, txHash, idempotency key)
+6. Backend -> Kalshi deposit indication
+7. Backend -> durable prefunded/processing receipt
 ```
 
-Shadowing helps prove backend parity before switching production traffic.
+Rules:
 
-## 13. Testing strategy
+- mobile validates plan Venue, operation, amount, supported network, canonical asset ID, recipient format, and expiry against the locally stated intent before confirmation,
+- mobile derives the critical confirmation rows locally and displays the exact one-time recipient returned by the authenticated backend,
+- an amount/asset/network/context mismatch fails closed before wallet signing,
+- use the asset/network/address returned by the validated backend plan; do not hardcode POC test constants,
+- the transaction plan must be executable, not an address plus manual hash instructions,
+- if wallet submission succeeds and indication fails, the operation remains resumable,
+- repeating prepare/commit with the same idempotency key does not reserve or credit twice,
+- prefunding exposure limits and settlement-failure handling follow the approved commercial/operations policy rather than mobile assumptions.
 
-### Mobile tests
+Base is the recommended first rail if approved. Additional networks are additive capability work, not a foundation requirement.
 
-- `MetaMaskPredictApiAdapter` maps backend canonical responses to `VenueAdapter` return types.
-- signing intent executor rejects unsupported intent kinds.
-- signing intent executor rejects account, venue, chain, expiry, and amount mismatches.
-- remote adapter converts backend errors to canonical `PredictErrorCode`s.
-- local and remote adapter contract tests share the same fixtures.
+### Kalshi Withdraw
 
-### Backend tests
+```text
+1. Mobile -> backend prepare(amount, destination, network, idempotency key)
+2. Backend -> canonical Venue operation preview
+3. Mobile -> explicit user confirmation
+4. Mobile -> backend commit(operationId, idempotency key)
+5. Backend -> payout method register/reuse + Kalshi withdrawal
+6. Backend -> receipt(status: submitted, venue reference)
+```
 
-- backend venue adapters map venue DTOs into canonical Predict API responses.
-- Polymarket CLOB v1/v2 payload changes are covered behind stable signing intent fixtures.
-- Deposit Wallet migration cases return stable account readiness/setup/funding responses.
-- Kalshi ISV setup, deposit indication, withdrawal, and automatic settlement cases return canonical workflows.
-- compatibility matrix rejects unsupported mobile client capabilities.
+Preparing must not withdraw. Because Kalshi has no ISV-safe transfer-status endpoint at launch, the UI must not claim completion. The backend keeps the operation and Venue transfer reference for support reconciliation.
+
+## 7. Order Preview and Submission
+
+Kalshi Orders are signed server-side with the per-user Kalshi credential.
+
+```text
+1. Mobile requests canonical preview intent.
+2. Backend reads the current Venue quote and computes canonical fees/limits.
+3. Backend returns previewId + expiry + display values.
+4. User confirms.
+5. Mobile submits previewId + idempotency key.
+6. Backend revalidates account, price, quantity, fees, expiry, and max spend.
+7. Backend submits with a stable Venue client order ID.
+8. Backend returns canonical Order Receipt; portfolio later reconciles from Fills.
+```
+
+The backend does not trust a full mutable preview echoed by mobile.
+
+For an Immediate-Order-only Kalshi launch, omit cancel/amend/open-order routes and UI. If Resting Orders are enabled, those operations and their reconciliation become mandatory.
+
+## 8. Generic Signing Intents — Deferred
+
+Kalshi launch does not require a generic signing-intent protocol:
+
+- Kalshi Venue Orders use backend-held Kalshi credentials.
+- Deposits use the app's normal wallet transaction confirmation.
+- Withdrawals are server-side Venue operations after explicit mobile confirmation.
+
+A future remote Polymarket adapter may require EIP-712, personal-sign, EVM transaction, or other Venue protocol signatures. Design signing intents then, with two concrete consumers and real payloads.
+
+When introduced, the minimum safety invariants are:
+
+- selected account, Venue, operation, chain, recipient/spender, amount, and expiry match the confirmed intent,
+- mobile derives critical display semantics independently where possible,
+- prepare responses are integrity-bound to operation IDs,
+- signatures cannot be replayed across operations,
+- unsupported installed clients fail closed.
+
+Do not add this framework to the Kalshi critical path.
+
+## 9. Reliability and Retry Policy
+
+### Reads
+
+- retry bounded transient failures,
+- honor Venue/backend rate limits,
+- use cached data only within documented safety/freshness policy,
+- degrade public reads separately from writes.
+
+### Writes
+
+- no blind automatic retry,
+- every prepare and commit has an idempotency key,
+- backend stores the operation before an external irreversible call,
+- lost responses reconcile by operation ID,
+- app teardown stops observation but not the operation,
+- conflicting reuse of an idempotency key fails explicitly,
+- support can trace an operation without access to secrets or PII.
+
+## 10. Credential Lifecycle
+
+Production backend requirements:
+
+- managed secret/KMS or envelope-encrypted storage,
+- strict admin versus per-user key scopes,
+- source-IP allowlisting for production admin calls,
+- private key written atomically before acknowledging key mint,
+- list/revoke/remint recovery when a one-time private-key response is lost,
+- rotation and incident revocation procedures,
+- no response-body logging for key-mint calls,
+- audit logs contain references and outcomes, not key material.
+
+A local Kalshi adapter fallback is forbidden because it would violate these constraints.
+
+## 11. Testing
 
 ### Contract tests
 
-Create shared JSON fixtures for the Predict API contract:
+- mobile and backend validate the same canonical fixtures,
+- unknown fields may be tolerated only where schemas explicitly allow them,
+- missing/invalid required write fields fail closed,
+- compatibility versions are exercised.
 
-```text
-fixtures/predict-api/v1/events.response.json
-fixtures/predict-api/v1/order.prepare.eip712.response.json
-fixtures/predict-api/v1/funding.deposit.solana.response.json
-fixtures/predict-api/v1/account.setup.otp.response.json
-```
+### Backend adapter tests
 
-Both mobile and backend CI should validate against these fixtures or generated schemas.
+- request-signing preimage and timestamp behavior,
+- nested and flat Kalshi error envelopes,
+- Account Setup new/link/resume/lost-response paths,
+- credential mint/list/revoke/remint,
+- Deposit prepare/indication idempotency,
+- Withdraw prepare/commit and reconciliation,
+- Order preview expiry, revalidation, submit idempotency,
+- Fill and Settlement mapping,
+- rate limiting and kill switches,
+- secret/PII log redaction.
 
-## 14. Trade-offs
+### Mobile tests
 
-### Benefits
+- authenticated transport use,
+- runtime response validation,
+- setup/readiness state transitions,
+- wallet transfer confirmation handoff,
+- operation resume after app restart,
+- honest pending/submitted states,
+- read-only/unavailable degradation,
+- no unsupported Claim or Resting Order affordance.
 
-- Venue breaking changes can often be fixed server-side.
-- Mobile product services remain venue-agnostic.
-- Backend can coordinate migrations such as Proxy Wallet to Deposit Wallet.
-- Kalshi-style onboarding and funding workflows fit without bloating mobile adapters.
-- Enables runtime venue kill switches, degraded modes, and compatibility gating.
+## 12. Rollout
 
-### Costs
+Recommended Kalshi rollout:
 
-- Predict backend becomes a critical path for trading, funding, and portfolio reads.
-- Requires strong API versioning and contract tests.
-- Requires careful signing intent safety design.
-- Adds latency and backend reliability requirements.
-- More backend observability, alerting, and incident response needed.
+1. internal hidden route with production architecture,
+2. demo Account Setup and funding validation,
+3. read-only cohort,
+4. setup/deposit/balance cohort,
+5. Immediate Order cohort,
+6. Withdraw cohort,
+7. broader rollout after security/privacy/ops gates.
 
-### Main risk
+Rollback disables Kalshi writes or the entire Kalshi surface. It never moves credentials on-device and never changes the legacy Polymarket lane.
 
-The main risk is turning mobile into an unsafe generic signing client. Avoid that by requiring semantic `SigningIntentContext`, display metadata, allowlists, expiry, operation IDs, and client-side invariant checks.
+## 13. Open Decisions
 
-## 15. Implementation plan
+Before implementation:
 
-### Step 1 — Document the deployment mode
-
-- Add `AdapterDeploymentMode = 'local' | 'remote'` to adapter docs and foundation types.
-- Keep `VenueAdapter` unchanged as the product seam.
-- Add `MetaMaskPredictApiAdapter` as a planned adapter implementation.
-
-### Step 2 — Define Predict API schemas
-
-- Generate or hand-author schemas for canonical backend responses.
-- Include signing intent schemas.
-- Add compatibility headers and error codes.
-
-### Step 3 — Build remote read adapter first
-
-Implement remote methods for low-risk reads:
-
-- `fetchEvents`
-- `fetchEventById`
-- `fetchPrices`
-- `fetchPositions`
-- `fetchActivity`
-- `fetchBalance`
-- `fetchVenueStatus`
-- `fetchAccountReadiness`
-
-### Step 4 — Add account setup and funding prepare flows
-
-- Add remote `startAccountSetup`, `submitAccountSetupStep`, and `resumeAccountSetup` through `PredictSessionService`.
-- Add remote `createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`.
-- Add `submitFundingFollowUp` for Kalshi-style deposit indications.
-
-### Step 5 — Add signing intent executor
-
-Create a mobile primitive used by `MetaMaskPredictApiAdapter`:
-
-```typescript
-interface SigningIntentExecutor {
-  execute(
-    intent: SigningIntent,
-    expectedContext: SigningIntentContext,
-  ): Promise<SigningResult>;
-}
-```
-
-It owns validation, confirmation handoff, signing API calls, and returned signature formatting.
-
-### Step 6 — Move order submission remote
-
-- Implement `/orders/preview`, `/orders/prepare`, and `/orders/submit`.
-- The backend owns venue order payload construction.
-- Mobile signs returned intents and submits signatures.
-- Backend verifies and submits to venue.
-
-### Step 7 — Roll out per venue with fallback
-
-- Start with remote reads in shadow mode.
-- Enable remote reads for a small cohort.
-- Enable remote funding/setup.
-- Enable remote order submission only after signing intent safety checks and contract tests are stable.
-- Keep local adapter fallback while the backend path matures.
-
-## 16. Open questions
-
-1. Should the remote adapter hide prepare/sign/submit inside `submitOrder()`, or should `TradingService` explicitly model these steps for better UI progress reporting?
-2. Which signing intent kinds must be supported in the first mobile version?
-3. How much of the signing display should be backend-provided vs mobile-derived from `SigningIntentContext`?
-4. Should the backend sign prepare responses so mobile can verify the operation payload before signing?
-5. What is the initial fallback policy if remote adapter order submission fails: retry remote only, fall back to local, or disable trading?
-6. How do we handle old clients when a venue migration requires a new signing primitive?
-7. Should `MetaMaskPredictApiAdapter` be configured per venue, or should one instance route all venues internally?
-
-## 17. Recommendation
-
-Support both local and remote adapters, but treat the remote adapter as the long-term production default for volatile venues.
-
-Use local adapters for:
-
-- early development
-- fallback during backend incidents
-- contract-test parity
-- venues whose APIs are stable enough or whose backend integration is not ready
-
-Use remote adapters for:
-
-- Polymarket order/funding workflows that can break with CLOB or wallet migrations
-- Kalshi ISV onboarding, funding, trading, and settlement
-- any venue requiring frequent server-side policy, auth, or migration handling
-
-The architecture should remain adapter-contract-first: product services call `PredictClient`; `PredictSessionService` binds a session; the registered adapter decides whether the operation is local or remote.
+1. authenticated Predict User source and multi-wallet policy,
+2. separate versus merged launch surface,
+3. KYC/PII collection and retention design,
+4. Base-only launch approval,
+5. Immediate versus Resting Order scope,
+6. backend owner/SLO/on-call,
+7. Kalshi-supported recovery for lost successful link/verification and one-time key-mint responses,
+8. withdrawal support reconciliation process,
+9. current Kalshi production/demo endpoint and enablement contract.

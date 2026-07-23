@@ -1,45 +1,103 @@
 # PredictNext
 
-Predict integrates prediction market venues like Polymarket and future Kalshi into MetaMask Mobile. Users browse events, place orders on outcomes, and manage positions. The feature also supports depositing and withdrawing funds.
+PredictNext is the target prediction-markets module for MetaMask Mobile. It supports Venues with materially different identity, account, funding, order, and settlement models, including legacy Polymarket and remote-first Kalshi.
+
+## Current Delivery Decision
+
+Kalshi is the active first production slice of PredictNext.
+
+- Build the minimum venue-neutral modules required by each Kalshi vertical slice.
+- Keep Polymarket on the legacy `Predict/` stack during Kalshi delivery.
+- Require the MetaMask Predict backend for Kalshi account-scoped operations and credentials.
+- Launch Kalshi behind a Venue-specific feature flag and kill switch.
+- Port Polymarket through the proven seams capability by capability after Kalshi stabilizes.
+
+The complete seven-phase Polymarket rewrite and full UI replacement are not Kalshi launch prerequisites. See [docs/migration/kalshi-first.md](docs/migration/kalshi-first.md).
 
 ## Architecture Overview
 
-The system uses a four layer architecture. Components sit at the top, followed by hooks. Controllers and services handle the logic. Adapters connect to external protocols.
+PredictNext uses four layers:
+
+```text
+Product UI modules
+  -> React integration hooks
+    -> deep product services
+      -> capability-grouped Venue adapters
+```
+
+### Identity and Account Scope
+
+PredictNext separates:
+
+- **Predict User** — the person using Predict,
+- **Funding Wallet** — the selected MetaMask wallet for wallet-side execution,
+- **Venue Account** — the account holding Balance and Positions at a Venue.
+
+Public market data is Venue-scoped. Account Readiness, portfolio, trading, and funding are scoped by Venue plus authenticated Predict User context. A wallet address is never treated as proof of person identity.
+
+### Venue Adapters
+
+A `VenueAdapter` registers one Venue and exposes focused capability modules:
+
+- `marketData` — public Event/Market/price reads,
+- `account` — readiness and optional resumable setup,
+- `portfolio` — Balance, Position, Activity, and optional open Orders,
+- `trading` — preview/submit and optional Resting Order operations,
+- optional `funding`,
+- optional `liveData`.
+
+`PredictSessionService` produces a session-bound `PredictClient` for account-scoped capabilities. Public market data does not require a fake account session.
+
+Kalshi uses a remote adapter backed by the MetaMask Predict backend. Polymarket stays on the legacy path until its post-Kalshi migration.
 
 ### Services
 
-Six services manage the domain logic, organized into three canonical shapes (see [docs/services.md §1.5](docs/services.md)). PredictSessionService and TradingService are **Stateful services** (BaseController) that own Redux state slices for session/readiness and the active-order workflow. MarketDataService and PortfolioService are **Read services** (BaseDataService) that own cache-aware reads through shared query descriptors and expose narrow read-model writer interfaces for cache patches. TransactionService and LiveDataService are **Runtime services** — plain classes that own transient lifecycle state in private fields. Each of the six registers as a first-class Engine.context entry. Two helpers — the `predictAnalytics` analytics module and the lifecycle-aware `FundingExecutor` funding primitive — are constructor-injected and are NOT first-class services.
+The long-term target has six deep services in three shapes:
+
+- **Stateful services**: `PredictSessionService`, `TradingService`, `TransactionService`
+- **Read services**: `MarketDataService`, `PortfolioService`
+- **Runtime services**: `LiveDataService`
+
+`FundingExecutor` and `predictAnalytics` are injected helpers, not first-class services.
+
+The Kalshi-first track creates a service only when a vertical slice needs it. For example, Setup → Deposit → Balance needs session, funding, and minimal portfolio modules but does not need `LiveDataService` or the entire target UI.
 
 ### Composition Root
 
-A stateless PredictController acts as the feature composition root. It exposes only `initialize` and `destroy`, instantiates the service graph during bootstrap, and steps off the hot path. Reads and writes flow directly between hooks and services via the Engine messenger.
+`PredictController` is the eventual stateless composition root. It exposes `initialize` and `destroy`, wires only the modules required by the enabled product surface, and steps off hot paths.
 
-### Adapters
+Bootstrap is fail-closed for required write/security modules and may degrade optional read/live capabilities according to documented policy.
 
-Protocol adapters like PolymarketAdapter and the future KalshiAdapter handle external communication. The primary target keeps these adapters local to mobile; [docs/remote-adapters.md](docs/remote-adapters.md) documents an alternative where the same `VenueAdapter` contract is implemented by a MetaMask Predict API adapter that delegates volatile venue logic to the backend.
+### Hooks and Product UI
 
-### Hooks
+Hooks stay organized by domain. Query hooks trigger one Venue-qualified query. Imperative hooks wrap service-owned workflows without recreating idempotency, retry, or state transitions.
 
-Hooks are organized by domain in co-located folders with barrel exports. Data hooks are granular — each triggers exactly one query so components only fetch what they need. Imperative hooks (useTrading, useTransactions, useLiveData) remain deep since they manage complex stateful workflows. Domains include events, portfolio, trading, transactions, live-data, navigation, and guard.
+Product UI modules use primitives → widgets → views as a long-term organization. Kalshi delivery may reuse existing venue-neutral presentation and the app design system; rebuilding every Predict primitive and screen is not a launch prerequisite.
 
-### Product UI modules
+## State and Write Safety
 
-Product UI modules follow a three tier structure. Primitives like EventCard and OutcomeButton live in `components/`. Widgets like EventFeed and OrderForm live in sibling `widgets/` modules, call hooks, prepare display models such as `EventDisplayModel`, and combine primitives. Views like PredictHome and EventDetails live in `views/` and represent full screens.
+- Server read models live in `BaseDataService` query caches.
+- Cross-screen workflow projections live in focused `BaseController` slices.
+- Sensitive Venue Sessions, credentials, and KYC inputs never enter Redux.
+- Durable Account Setup and financial operation state lives on the owned backend for remote Venues.
+- Funding and Orders use prepare → user confirmation → commit → reconciliation.
+- Reads may retry with bounded policy; writes retry only with explicit idempotency semantics.
 
 ## Target Directory Structure
 
-PredictNext is currently in planning/documentation form on this branch. The structure below is the target implementation layout that later migration phases will create incrementally.
+The structure grows incrementally as vertical slices need it:
 
-```
+```text
 PredictNext/
 ├── README.md
 ├── CONTEXT.md
-├── index.ts                          # Public entrypoint
+├── index.ts
 ├── docs/
 │   ├── architecture.md
-│   ├── services.md
+│   ├── interface-ledger.md
 │   ├── adapters.md
 │   ├── remote-adapters.md
+│   ├── services.md
 │   ├── components.md
 │   ├── hooks.md
 │   ├── testing.md
@@ -47,88 +105,69 @@ PredictNext/
 │   ├── error-handling.md
 │   └── migration/
 │       ├── README.md
-│       └── phase-1-*.md
-│       └── phase-2-*.md
-│       └── phase-3-*.md
-│       └── phase-4-*.md
-│       └── phase-5-*.md
-│       └── phase-6-*.md
-│       └── phase-7-*.md
-├── compat/                           # Temporary translation layer (deleted in Phase 7)
-│   ├── mappers.ts
-│   ├── types.ts
-│   └── index.ts
-├── query-descriptors/                # Internal query keys, stale times, and invalidation families
-│   ├── marketData.ts
-│   ├── portfolio.ts
-│   └── index.ts
+│       ├── kalshi-first.md
+│       └── phase-1-*.md ... phase-7-*.md
 ├── types/
+├── errors/
+├── query-descriptors/
 ├── controller/
 ├── services/
-│   ├── trading/
+│   ├── predict-session/
 │   ├── market-data/
 │   ├── portfolio/
+│   ├── trading/
 │   ├── transactions/
 │   ├── live-data/
 │   └── analytics/
 ├── adapters/
 │   ├── types.ts
-│   ├── polymarket/
-│   └── kalshi/ (future)
+│   ├── kalshi/
+│   └── polymarket/              # post-Kalshi migration
 ├── hooks/
-│   ├── events/
-│   ├── portfolio/
-│   ├── trading/
-│   ├── transactions/
-│   ├── live-data/
-│   ├── navigation/
-│   └── guard/
 ├── components/
-│   ├── EventCard/
-│   ├── OutcomeButton/
-│   ├── PositionCard/
-│   ├── PriceDisplay/
-│   ├── Scoreboard/
-│   ├── Chart/
-│   └── Skeleton/
 ├── widgets/
-│   ├── EventFeed/
-│   ├── FeaturedCarousel/
-│   ├── PortfolioSection/
-│   ├── OrderForm/
-│   └── ActivityList/
 ├── views/
-│   ├── PredictHome/
-│   ├── EventDetails/
-│   ├── OrderScreen/
-│   └── TransactionsView/
 ├── routes/
 ├── selectors/
 ├── constants/
 └── utils/
 ```
 
+`compat/` is created only when the first legacy Polymarket capability delegates into PredictNext. It is temporary and deleted after migration.
+
 ## Public Entrypoint
 
-The `index.ts` file defines the public entrypoint. Its allowlist is owned by [docs/interface-ledger.md](docs/interface-ledger.md): views for navigation, selected primitives for embedding, public hooks, selectors, types, and errors. Internal modules like services, adapters, compat, and widgets remain private. Top-level folders are organizational modules, not automatic public interfaces.
+`index.ts` exports only stable views, selected primitives, hooks, selectors, domain types, and errors. Services, adapters, Venue Sessions, backend payloads, query descriptors, and compatibility internals remain private. The allowlist is owned by [docs/interface-ledger.md](docs/interface-ledger.md).
 
 ## Design Principles
 
-Modules are deep with slim interfaces. We use compound components similar to the Vercel style. Read services extend BaseDataService. We define errors out of existence. The team uses the shared PredictNext context glossary for consistent product language.
+- Deep modules with small interfaces
+- Real seams shaped by concrete Venues
+- Venue-qualified data and account state
+- Person identity distinct from wallet execution
+- Backend-held Venue credentials for remote Venues
+- Explicit user confirmation and idempotent writes
+- Runtime validation at remote boundaries
+- No speculative capability completeness
+- Replacement tests before legacy deletion
 
 ## Documentation Index
 
 - [Architecture](docs/architecture.md)
 - [Interface Ledger](docs/interface-ledger.md)
+- [Venue Adapters](docs/adapters.md)
+- [Remote Adapters](docs/remote-adapters.md)
 - [Services](docs/services.md)
-- [Adapters](docs/adapters.md)
-- [Components](docs/components.md)
-- [Hooks](docs/hooks.md)
-- [Testing](docs/testing.md)
 - [State Management](docs/state-management.md)
 - [Error Handling](docs/error-handling.md)
-- [Migration](docs/migration/README.md)
+- [Hooks](docs/hooks.md)
+- [Components](docs/components.md)
+- [Testing](docs/testing.md)
+- [Migration Overview](docs/migration/README.md)
+- [Active Kalshi Track](docs/migration/kalshi-first.md)
 
 ## Migration Status
 
-This branch currently refines the PredictNext architecture and migration plan. Implementation should start only after the foundational contracts are agreed. The feature will be built using an inside-out migration from the original Predict directory: the new adapter and services replace internals first while the old UI stays unchanged, then UI migrates as vertical slices. Check the [migration documentation](docs/migration/README.md) for details.
+This branch remains documentation/planning work. The active next implementation is Stage 0/1 of the Kalshi-first track: close P0 identity/product/security decisions, correct contracts, rotate POC credentials, and build an authenticated production walking skeleton.
+
+The old phase documents remain useful for the later Polymarket strangler track. They do not block Kalshi.

@@ -2,129 +2,254 @@
 
 This ledger owns stable interface facts for PredictNext. If another architecture or migration document disagrees with this file, this file wins.
 
-Keep this file terse and code-like. Explanatory documents should link here instead of redefining query descriptors, runtime namespaces, Service Events, hook names, funding/account-setup action names, error shape, selectors, or public exports.
+Keep this file code-like. Explanatory documents should link here rather than redefining runtime names, identity/scope types, query descriptors, actions, events, errors, or public exports.
 
 Related documents:
 
 - [../CONTEXT.md](../CONTEXT.md) owns product vocabulary.
 - [architecture.md](./architecture.md) owns the architecture narrative.
-- [services.md](./services.md) owns service responsibilities and workflows.
-- [adapters.md](./adapters.md) owns the Venue adapter contract.
+- [adapters.md](./adapters.md) owns capability interfaces and adapter responsibilities.
+- [services.md](./services.md) owns workflows.
+- [migration/kalshi-first.md](./migration/kalshi-first.md) owns active delivery sequencing.
 
-## 1. Runtime namespace rule
+## 1. Runtime Namespace Rule
 
-Literal runtime names use a feature-prefixed namespace. Prose may say `TradingService` or `MarketDataService` for readability, but code snippets, query keys, messenger actions, Service Events, Redux slices, and test mocks use the canonical runtime namespace.
+| Module                | Runtime namespace             |
+| --------------------- | ----------------------------- |
+| PredictController     | `PredictController`           |
+| PredictSessionService | `PredictSessionService`       |
+| MarketDataService     | `PredictMarketDataService`    |
+| PortfolioService      | `PredictPortfolioService`     |
+| TradingService        | `PredictTradingService`       |
+| TransactionService    | `PredictTransactionService`   |
+| LiveDataService       | `PredictLiveDataService`      |
+| predictAnalytics      | no namespace; injected helper |
 
-| Module                | Runtime namespace                                         |
-| --------------------- | --------------------------------------------------------- |
-| PredictController     | `PredictController`                                       |
-| PredictSessionService | `PredictSessionService`                                   |
-| MarketDataService     | `PredictMarketDataService`                                |
-| PortfolioService      | `PredictPortfolioService`                                 |
-| TradingService        | `PredictTradingService`                                   |
-| TransactionService    | `PredictTransactionService`                               |
-| LiveDataService       | `PredictLiveDataService`                                  |
-| predictAnalytics      | (injected helper — no namespace, no Engine.context entry) |
+Code snippets, query keys, messenger actions, Service Events, Redux slices, and test mocks use these names.
 
-## 1.5. PredictClient and VenueAdapter — canonical framing
+## 1.5. VenueAdapter and PredictClient — Canonical Framing
 
-`PredictClient` is a **derived type alias** over `VenueAdapter`, with the trailing `session: PredictVenueSession` parameter stripped from every method. There is no class, no hand-maintained interface, and no separate runtime declaration of `PredictClient` — it is purely a TypeScript view of the canonical `VenueAdapter` contract.
+The canonical framing is:
 
-At runtime, `PredictSessionService.getClient(ownerAddress, venueId?)` returns a **proxy of the active venue adapter** that pre-binds the active `PredictVenueSession` into each method call. Product services consume `PredictClient` and never see `PredictVenueSession`. The proxy lives inside `PredictSessionService`; venue adapters remain stateless.
+> `VenueAdapter` registers one Venue and exposes focused public/account capability modules. `PredictClient` is the session-bound view of that adapter's account-scoped capabilities, produced by `PredictSessionService`; public market data remains Venue-scoped and does not require a Predict Client.
 
-The canonical framing in one sentence (use verbatim when explaining this concept elsewhere):
+Rules:
 
-> `PredictClient` is the session-bound view of `VenueAdapter` — a derived type alias with `session` stripped at compile time, produced as a session-binding proxy at runtime by `PredictSessionService`.
+- `VenueAdapter` groups `marketData`, `account`, `portfolio`, `trading`, optional `funding`, and optional `liveData` capabilities.
+- Capability interfaces are hand-written because Kalshi and Polymarket now prove that these concerns vary independently.
+- Structural presence is executable truth; `PredictVenueInfo.capabilities` is product metadata and must agree in contract tests.
+- `PredictSessionService` may bind a session with closures or an internal helper. A runtime JavaScript `Proxy` is not required.
+- Product modules never receive `PredictVenueSession` or import concrete adapters.
+- Market data does not receive a fake session argument.
+- Account Setup calls go through `VenueAccountSetupAdapter`; `PredictSessionService` does not call Venue/backend routes directly.
+- Kalshi account-scoped operations use a remote adapter. Generic multi-Venue signing intents are deferred until a second remote Venue requires them.
 
-Other docs ([architecture.md](./architecture.md), [adapters.md](./adapters.md), [remote-adapters.md](./remote-adapters.md), [services.md](./services.md), [../CONTEXT.md](../CONTEXT.md)) point at this section rather than re-explaining the concept. Adapter implementations must implement every `VenueAdapter` method (capabilities are advertised via `client.capabilities`, never via optional methods). Implementations may be local venue adapters or remote-backed adapters that relay to MetaMask's Predict backend; the product seam remains the same.
+The capability interfaces are canonical in [adapters.md](./adapters.md).
 
-## 2. Query descriptor rule
+## 2. Identity and Account Scope
 
-Query keys are never hand-authored in hooks or read services. They are produced by internal query descriptor modules:
+A Predict User is not a wallet address.
 
-```ts
+```typescript
+export type PredictUserId = string;
+/** CAIP-10 account ID; preserves chain namespace and address semantics. */
+export type PredictWalletAccountId = string;
+
+export interface PredictUserContext {
+  /** Opaque, stable, non-PII ID derived from authenticated MetaMask identity. */
+  userId: PredictUserId;
+  /** Selected Funding Wallet or wallet-scoped Venue Account context. */
+  walletAccountId?: PredictWalletAccountId;
+}
+
+export interface PredictAccountScope extends PredictUserContext {
+  venueId: PredictVenueId;
+}
+
+export type PredictAccountScopeKey = string;
+```
+
+`getPredictAccountScopeKey(scope)` is the only way to construct a scope key. It deterministically includes `venueId`, `userId`, and the canonical CAIP-10 `walletAccountId` when present. It never applies EVM lowercasing rules to non-EVM addresses.
+
+```typescript
+interface PredictVenueStatus {
+  venueId: PredictVenueId;
+  status: 'available' | 'degraded' | 'unavailable';
+  checkedAt: number;
+  reason?: PredictErrorCode;
+}
+
+interface PredictEligibility {
+  venueId: PredictVenueId;
+  eligible: boolean;
+  blockReason?: string;
+}
+
+type PredictAccountReadinessBlockerCode =
+  | 'account_setup_required'
+  | 'account_setup_pending'
+  | 'kyc_required'
+  | 'kyc_pending'
+  | 'kyc_rejected'
+  | 'jurisdiction_restricted'
+  | 'geo_blocked'
+  | 'funding_wallet_required'
+  | 'unsupported_network'
+  | 'venue_unavailable'
+  | 'unknown';
+
+interface PredictAccountReadinessBlocker {
+  code: PredictAccountReadinessBlockerCode;
+  message?: string;
+  action?: 'complete_setup' | 'retry' | 'select_wallet' | 'switch_network';
+}
+
+interface PredictAccountReadiness {
+  venueId: PredictVenueId;
+  accountScopeKey: PredictAccountScopeKey;
+  canTrade: boolean;
+  status:
+    | 'ready'
+    | 'setup_required'
+    | 'setup_pending'
+    | 'restricted'
+    | 'unavailable';
+  blockers?: PredictAccountReadinessBlocker[];
+}
+```
+
+The session service attaches the local `accountScopeKey`; a remote response is not trusted to identify the caller.
+
+```typescript
+interface PredictPnL {
+  cashPnl: DecimalString;
+  percentPnl: DecimalString;
+}
+```
+
+Rules:
+
+- market-data queries include `venueId` and never include account scope unless the returned model is personalized,
+- portfolio/readiness/workflow queries include `PredictAccountScope`,
+- routes and domain entities include `venueId`,
+- backend authorization derives the Predict User from the bearer token and ignores client identity fields as proof,
+- email, KYC data, API keys, and raw authentication subjects never appear in query keys or Redux,
+- Kalshi may ignore `walletAccountId` for Venue Account identity while still using it as Funding Wallet context,
+- Polymarket may use `walletAccountId` to select a wallet-scoped Venue Account.
+
+## 3. Query Descriptor Rule
+
+Query keys are produced only by internal descriptor modules:
+
+```typescript
 marketDataQueries;
 portfolioQueries;
 ```
 
-A query descriptor owns the whole read seam for one query:
-
-```ts
+```typescript
 interface PredictQueryDescriptor<TKey extends readonly unknown[]> {
   queryKey: TKey;
   family: readonly unknown[];
   staleTime: number;
-  accountScoped: boolean;
+  scope: 'venue' | 'account';
 }
 ```
 
-Hooks pass `descriptor.queryKey` to `useQuery` / `useInfiniteQuery`. Read services pass the same `descriptor.queryKey` and `descriptor.staleTime` to `this.fetchQuery()`. Cache writers invalidate or patch by `descriptor.family`.
-
-A descriptor's query key includes `ownerAddress` only when the returned read model is account-specific.
-
-If a Venue requires an authenticated **Predict Client** for a read-only request, that stays inside the read module implementation. The query key describes the visible read model, not session mechanics.
-
-If a previously public Venue-data read becomes personalized, add a new descriptor rather than silently adding `ownerAddress` to the old one.
-
 ### Market data descriptors
 
-These read **Event**, **Market**, **Outcome**, price, and **Reference Price** data. They do not include `ownerAddress`.
-
-```ts
+```typescript
 interface PredictMarketDataQueryDescriptors {
   getEvents(
+    venueId: PredictVenueId,
     params: FetchEventsParams,
   ): PredictQueryDescriptor<
-    ['PredictMarketDataService:getEvents', FetchEventsParams]
+    ['PredictMarketDataService:getEvents', PredictVenueId, FetchEventsParams]
   >;
 
   getEvent(
+    venueId: PredictVenueId,
     eventId: string,
-  ): PredictQueryDescriptor<['PredictMarketDataService:getEvent', string]>;
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:getEvent', PredictVenueId, string]
+  >;
 
-  getCarouselEvents(): PredictQueryDescriptor<
-    ['PredictMarketDataService:getCarouselEvents']
+  getCarouselEvents(
+    venueId: PredictVenueId,
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:getCarouselEvents', PredictVenueId]
   >;
 
   searchEvents(
+    venueId: PredictVenueId,
     params: SearchEventsParams,
   ): PredictQueryDescriptor<
-    ['PredictMarketDataService:searchEvents', SearchEventsParams]
+    [
+      'PredictMarketDataService:searchEvents',
+      PredictVenueId,
+      SearchEventsParams,
+    ]
   >;
 
   getPriceHistory(
+    venueId: PredictVenueId,
     marketId: string,
     period: TimePeriod,
   ): PredictQueryDescriptor<
-    ['PredictMarketDataService:getPriceHistory', string, TimePeriod]
-  >;
-
-  getCryptoPriceHistory(
-    params: CryptoPriceHistoryParams,
-  ): PredictQueryDescriptor<
-    ['PredictMarketDataService:getCryptoPriceHistory', CryptoPriceHistoryParams]
-  >;
-
-  getCryptoReferencePrice(
-    params: CryptoReferencePriceParams,
-  ): PredictQueryDescriptor<
     [
-      'PredictMarketDataService:getCryptoReferencePrice',
-      CryptoReferencePriceParams,
+      'PredictMarketDataService:getPriceHistory',
+      PredictVenueId,
+      string,
+      TimePeriod,
     ]
   >;
 
   getPrices(
+    venueId: PredictVenueId,
     queries: PriceQuery[],
   ): PredictQueryDescriptor<
-    ['PredictMarketDataService:getPrices', PriceQuery[]]
+    ['PredictMarketDataService:getPrices', PredictVenueId, PriceQuery[]]
+  >;
+
+  getEventSeries?(
+    venueId: PredictVenueId,
+    params: FetchEventSeriesParams,
+  ): PredictQueryDescriptor<
+    [
+      'PredictMarketDataService:getEventSeries',
+      PredictVenueId,
+      FetchEventSeriesParams,
+    ]
+  >;
+
+  getCryptoPriceHistory?(
+    venueId: PredictVenueId,
+    params: CryptoPriceHistoryParams,
+  ): PredictQueryDescriptor<
+    [
+      'PredictMarketDataService:getCryptoPriceHistory',
+      PredictVenueId,
+      CryptoPriceHistoryParams,
+    ]
+  >;
+
+  getCryptoReferencePrice?(
+    venueId: PredictVenueId,
+    params: CryptoReferencePriceParams,
+  ): PredictQueryDescriptor<
+    [
+      'PredictMarketDataService:getCryptoReferencePrice',
+      PredictVenueId,
+      CryptoReferencePriceParams,
+    ]
   >;
 }
 ```
 
-Price reads are **Outcome**-scoped:
+Optional descriptors are added only with their product/adapter capability. They still have an exact Venue-qualified key contract.
 
-```ts
+`PriceQuery` is Outcome-scoped:
+
+```typescript
 interface PriceQuery {
   eventId: string;
   marketId: string;
@@ -134,44 +259,47 @@ interface PriceQuery {
 
 ### Portfolio descriptors
 
-These reads are account-specific and include `ownerAddress`.
-
-```ts
+```typescript
 interface PredictPortfolioQueryDescriptors {
   getPositions(
-    ownerAddress: string,
-  ): PredictQueryDescriptor<['PredictPortfolioService:getPositions', string]>;
+    scope: PredictAccountScope,
+    params?: FetchPositionsParams,
+  ): PredictQueryDescriptor<
+    [
+      'PredictPortfolioService:getPositions',
+      PredictAccountScope,
+      FetchPositionsParams?,
+    ]
+  >;
 
   getActivity(
-    ownerAddress: string,
+    scope: PredictAccountScope,
     cursor?: string,
   ): PredictQueryDescriptor<
-    ['PredictPortfolioService:getActivity', string, string?]
+    ['PredictPortfolioService:getActivity', PredictAccountScope, string?]
   >;
 
   getBalance(
-    ownerAddress: string,
-  ): PredictQueryDescriptor<['PredictPortfolioService:getBalance', string]>;
-
-  getVenueInfo(): PredictQueryDescriptor<
-    ['PredictPortfolioService:getVenueInfo']
+    scope: PredictAccountScope,
+  ): PredictQueryDescriptor<
+    ['PredictPortfolioService:getBalance', PredictAccountScope]
   >;
 
   getUnrealizedPnL(
-    ownerAddress: string,
+    scope: PredictAccountScope,
   ): PredictQueryDescriptor<
-    ['PredictPortfolioService:getUnrealizedPnL', string]
+    ['PredictPortfolioService:getUnrealizedPnL', PredictAccountScope]
   >;
 }
 ```
 
-Query descriptor modules are internal. They are not exported from `PredictNext/index.ts`.
+Descriptor modules are internal and are not exported from `PredictNext/index.ts`.
 
-## 3. Messenger actions
+## 4. Messenger Actions
 
-Actions use the runtime namespace from section 1.
+### Session and Account Setup
 
-```ts
+```typescript
 type PredictSessionServiceActions =
   | 'PredictSessionService:getClient'
   | 'PredictSessionService:invalidate'
@@ -179,156 +307,369 @@ type PredictSessionServiceActions =
   | 'PredictSessionService:startAccountSetup'
   | 'PredictSessionService:resumeAccountSetup'
   | 'PredictSessionService:submitAccountSetupStep';
+```
 
+Canonical handlers:
+
+```typescript
+getClient(scope: PredictAccountScope): Promise<PredictClient>;
+invalidate(scope: PredictAccountScope): void;
+fetchAccountReadiness(
+  scope: PredictAccountScope,
+  opts?: { forceRefresh?: boolean },
+): Promise<PredictAccountReadiness>;
+startAccountSetup(
+  scope: PredictAccountScope,
+  params: StartAccountSetupParams,
+): Promise<AccountSetupState>;
+resumeAccountSetup(scope: PredictAccountScope): Promise<AccountSetupState>;
+submitAccountSetupStep(
+  scope: PredictAccountScope,
+  params: AccountSetupStepParams,
+): Promise<AccountSetupState>;
+```
+
+### Market data
+
+```typescript
 type PredictMarketDataServiceActions =
   | 'PredictMarketDataService:getEvents'
   | 'PredictMarketDataService:getEvent'
   | 'PredictMarketDataService:getCarouselEvents'
   | 'PredictMarketDataService:searchEvents'
   | 'PredictMarketDataService:getPriceHistory'
+  | 'PredictMarketDataService:getEventSeries'
   | 'PredictMarketDataService:getCryptoPriceHistory'
   | 'PredictMarketDataService:getCryptoReferencePrice'
   | 'PredictMarketDataService:getPrices';
+```
 
+Canonical handlers:
+
+```typescript
+getEvents(
+  venueId: PredictVenueId,
+  params: FetchEventsParams,
+): Promise<PaginatedResult<PredictEvent>>;
+getEvent(
+  venueId: PredictVenueId,
+  eventId: string,
+): Promise<PredictEvent>;
+getCarouselEvents(venueId: PredictVenueId): Promise<PredictEvent[]>;
+searchEvents(
+  venueId: PredictVenueId,
+  params: SearchEventsParams,
+): Promise<PaginatedResult<PredictEvent>>;
+getPriceHistory(
+  venueId: PredictVenueId,
+  marketId: string,
+  period: TimePeriod,
+): Promise<PricePoint[]>;
+getEventSeries(
+  venueId: PredictVenueId,
+  params: FetchEventSeriesParams,
+): Promise<PredictEvent[]>;
+getCryptoPriceHistory(
+  venueId: PredictVenueId,
+  params: CryptoPriceHistoryParams,
+): Promise<CryptoPricePoint[]>;
+getCryptoReferencePrice(
+  venueId: PredictVenueId,
+  params: CryptoReferencePriceParams,
+): Promise<ReferencePrice | null>;
+getPrices(
+  venueId: PredictVenueId,
+  queries: PriceQuery[],
+): Promise<MarketPrices>;
+```
+
+Optional handlers are registered only with their product capability.
+
+### Portfolio
+
+```typescript
 type PredictPortfolioServiceActions =
   | 'PredictPortfolioService:getPositions'
   | 'PredictPortfolioService:getActivity'
   | 'PredictPortfolioService:getBalance'
-  | 'PredictPortfolioService:getVenueInfo'
   | 'PredictPortfolioService:getUnrealizedPnL';
+```
 
+Canonical handlers:
+
+```typescript
+getPositions(
+  scope: PredictAccountScope,
+  params?: FetchPositionsParams,
+): Promise<PaginatedResult<PredictPosition>>;
+getActivity(
+  scope: PredictAccountScope,
+  cursor?: string,
+): Promise<PaginatedResult<ActivityItem>>;
+getBalance(scope: PredictAccountScope): Promise<PredictBalance>;
+getUnrealizedPnL(scope: PredictAccountScope): Promise<PredictPnL>;
+```
+
+Optional handlers are registered only with their product capability.
+
+### Trading
+
+```typescript
 type PredictTradingServiceActions =
   | 'PredictTradingService:previewOrder'
   | 'PredictTradingService:placeOrder'
   | 'PredictTradingService:cancelOrder'
   | 'PredictTradingService:selectPaymentToken'
   | 'PredictTradingService:reset';
+```
 
+`cancelOrder` is registered only when the enabled product supports Resting Orders. Kalshi v1 should omit it for an Immediate-Order-only launch.
+
+Order preview and submission use:
+
+```typescript
+interface PredictFees {
+  metamaskFee: DecimalString;
+  venueFee: DecimalString;
+  marketFee?: DecimalString;
+  totalFee: DecimalString;
+  totalFeePercentage: DecimalString;
+}
+
+interface PreviewOrderParams {
+  scope: PredictAccountScope;
+  eventId: string;
+  marketId: string;
+  outcomeId: string;
+  side: 'buy' | 'sell';
+  amount: DecimalString;
+}
+
+interface PlaceOrderParams {
+  scope: PredictAccountScope;
+  previewId: string;
+  idempotencyKey: string;
+}
+
+type PredictOrderStatus =
+  | 'submitted'
+  | 'open'
+  | 'partially_filled'
+  | 'filled'
+  | 'cancelled'
+  | 'rejected';
+
+previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
+placeOrder(params: PlaceOrderParams): Promise<OrderReceipt>;
+cancelOrder(params: {
+  scope: PredictAccountScope;
+  orderId: string;
+  idempotencyKey: string;
+}): Promise<OrderReceipt>;
+selectPaymentToken(token: SelectedPaymentToken): void;
+reset(): void;
+```
+
+`cancelOrder` is registered only with a Resting Order product capability.
+
+`open` applies only to Resting Orders. An Immediate Order reaches a terminal Venue state according to its time-in-force; it is never shown as an indefinitely open Order merely because it had zero Fills.
+
+The backend/adapter revalidates the preview; callers do not submit a mutable preview as authority.
+
+### Funding
+
+```typescript
 type PredictTransactionServiceActions =
   | 'PredictTransactionService:deposit'
   | 'PredictTransactionService:withdraw'
-  | 'PredictTransactionService:claim';
+  | 'PredictTransactionService:claim'
+  | 'PredictTransactionService:resume';
+```
 
-// Transaction actions execute venue-produced Funding Plans. The action names
-// remain product intents; the plan may be an EVM wallet transaction, Solana
-// wallet transfer with a venue follow-up, or a venue API operation.
+Canonical handlers:
 
+```typescript
+deposit(
+  params: DepositParams & { scope: PredictAccountScope },
+): Promise<FundingReceipt>;
+withdraw(
+  params: WithdrawParams & { scope: PredictAccountScope },
+): Promise<FundingReceipt>;
+claim(
+  params: ClaimParams & { scope: PredictAccountScope },
+): Promise<FundingReceipt>;
+resume(params: {
+  scope: PredictAccountScope;
+  operationId: string;
+}): Promise<FundingReceipt>;
+```
+
+Actions are product intents. They prepare a plan, obtain confirmation, and commit through the funding capability. `claim` is not exposed for an automatic-settlement Venue.
+
+### Live data
+
+```typescript
 type PredictLiveDataServiceActions =
   | 'PredictLiveDataService:subscribe'
   | 'PredictLiveDataService:disconnect';
-
-// predictAnalytics has no messenger actions. It is an injected helper module,
-// not a service. Callers hold a direct PredictAnalytics reference and call
-// `track(event, properties)` on it.
 ```
 
-`PredictSessionService` does not expose `ensureSupportedNetwork`. Network switching belongs to app-level wallet/network modules; `usePredictGuard` may compose those modules with **Account Readiness**, but the Predict session module should not grow a network-action interface.
+Canonical handlers:
 
-## 3.5. Funding and Account Setup canonical actions
+```typescript
+subscribe<TData>(params: {
+  channel: SubscriptionChannel;
+  params: SubscriptionParams;
+  observer: LiveSubscriptionObserver<TData>;
+}): Promise<SubscriptionHandle>;
+disconnect(): void;
+```
 
-Funding actions are product-intent actions on `PredictTransactionService`; they do not imply a specific chain or transaction shape.
+`predictAnalytics` has no messenger namespace.
 
-```ts
-type FundingPlanKind = 'wallet_transfer' | 'venue_api' | 'unsupported';
+## 5. Funding Contract
+
+```typescript
 type FundingOperation = 'deposit' | 'withdraw' | 'claim';
 
-type PredictFundingAction =
-  | 'PredictTransactionService:deposit'
-  | 'PredictTransactionService:withdraw'
-  | 'PredictTransactionService:claim';
-```
+type FundingPlanKind = 'wallet_transfer' | 'venue_operation';
 
-The active `PredictClient` creates Funding Plans through the adapter contract (`createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`). `PredictTransactionService` executes those plans and handles any required venue follow-up, such as a Kalshi deposit indication after a Solana USDC transfer.
-
-Account Setup is owned by `PredictSessionService`. Readiness says whether a user can trade; setup actions move the user through a venue-specific onboarding/linking flow until readiness can become `ready`.
-
-```ts
-type PredictAccountSetupAction =
-  | 'PredictSessionService:startAccountSetup'
-  | 'PredictSessionService:resumeAccountSetup'
-  | 'PredictSessionService:submitAccountSetupStep';
-```
-
-Account Setup state is service-owned workflow state, not portfolio data. It may include venue user IDs, link IDs, obfuscated destinations, and KYC status, but raw credentials and API keys stay in private session fields.
-
-## 4. Service Events (observation only)
-
-> **Important**: Service Events are for **observation** (analytics, optional listeners, diagnostics). They are **not** the system of record for cache mutation. Cache coordination between services happens through narrow read-model writer interfaces owned by the cache-owning read services — see `services.md` § "Optimistic portfolio updates (direct cache coordination)".
-
-The ledger owns cross-service product Service Event names and minimum payloads. Publishing ownership is fixed here; cache mutation ownership remains inside the read module that owns the cache and is invoked via **direct method call** on that module's writer interface, not subscription.
-
-`BaseDataService` cache synchronization events, such as `PredictMarketDataService:cacheUpdated:<hash>`, follow the `BaseDataService` infrastructure convention and are not product Service Events.
-
-### Minimum payloads
-
-Every Service Event includes:
-
-```ts
-interface PredictServiceEventBase {
-  venueId: PredictVenueId;
-  occurredAt: number;
-  /** Monotonic per-service sequence number. Subscribers must be idempotent. */
-  seq: number;
-  ownerAddress?: string; // required only for account-specific events
+interface ExpectedFundingIntent {
+  scope: PredictAccountScope;
+  operation: FundingOperation;
+  amount?: DecimalString;
+  destinationAccountId?: PredictWalletAccountId;
+  network?: ChainNamespace;
+  assetId?: string; // canonical CAIP-19 when on-chain
 }
 ```
 
-### Ordering and idempotency rules
+Every `FundingPlan` includes:
 
-- Each emitting service maintains a monotonic `seq` counter; the counter resets on `PredictController.initialize()` and is not persisted.
-- Subscribers may receive the same event twice (e.g. during reconnection storms). All subscribers **must be idempotent**.
-- During `PredictController.destroy()`, the composition root drops any Service Events emitted between the start of teardown and completion of `destroy()`. Subscribers that need to flush state must do so before `destroy()` returns.
-- Out-of-order delivery is possible across services but not within the same emitting service. Subscribers that combine events from multiple services should resolve ordering by `occurredAt`, not by arrival order.
+- `operationId`,
+- `venueId`,
+- `operation`,
+- amount when known,
+- optional expiry,
+- either a typed wallet transaction or a typed Venue operation preview.
+
+```typescript
+type FundingReceiptStatus =
+  | 'submitted'
+  | 'processing'
+  | 'reconciling'
+  | 'prefunded'
+  | 'confirmed'
+  | 'failed';
+
+interface FundingOperationProjection {
+  operationId: string;
+  operation: FundingOperation;
+  status: FundingReceiptStatus;
+  updatedAt: number;
+}
+
+interface FundingReceipt {
+  operationId: string;
+  venueId: PredictVenueId;
+  operation: FundingOperation;
+  status: FundingReceiptStatus;
+  amount?: DecimalString;
+  txHash?: string;
+  venueReference?: string;
+  updatedAt: number;
+}
+```
+
+`confirmed` is used only with authoritative completion evidence. A lost response is `reconciling`; a Kalshi withdrawal remains `submitted`/`processing` while no final status exists.
+
+Rules:
+
+1. Preparation may reserve a one-time address but never moves funds.
+2. User confirmation precedes commit.
+3. Commit includes an idempotency key.
+4. Wallet transfer commit includes the submitted transaction hash.
+5. The backend operation survives mobile teardown.
+6. Repeated commit returns/reconciles the same operation.
+7. Unsupported operations are absent from Venue funding capability metadata; no `unsupported` plan is returned.
+8. A receipt may remain `submitted` or `processing` when the Venue has no final status endpoint.
+
+## 6. Account Setup State
+
+```typescript
+type AccountSetupStep =
+  | { kind: 'email_otp'; destination?: string } // obfuscated only
+  | { kind: 'phone_otp'; destination?: string } // obfuscated only
+  | { kind: 'profile_form'; fields: AccountSetupField[] }
+  | { kind: 'external_link'; url: string; returnUrl?: string }
+  | { kind: 'status_wait'; message: string }
+  | { kind: 'complete' };
+
+interface AccountSetupState {
+  venueId: PredictVenueId;
+  status: 'not_started' | 'in_progress' | 'pending' | 'complete' | 'failed';
+  step?: AccountSetupStep;
+  operationId?: string;
+  updatedAt: number;
+}
+```
+
+Raw profile values, SSN, OTP, API keys, and credentials are never stored in this state. Venue-specific opaque status values may be retained only in redacted diagnostic metadata, not used as branching enums unless the Venue contract guarantees them.
+
+## 7. Service Events — Observation Only
+
+Service Events are for analytics, diagnostics, and optional listeners. Cache mutation uses direct read-model writer interfaces; durable financial state lives in the backend operation ledger.
+
+```typescript
+interface PredictServiceEventBase {
+  venueId: PredictVenueId;
+  occurredAt: number;
+  seq: number;
+  accountScope?: PredictAccountScope;
+  operationId?: string;
+}
+```
+
+Rules:
+
+- sequence is monotonic per emitting service and resets on initialization,
+- subscribers are idempotent,
+- no Service Event contains email, OTP, KYC data, wallet signatures, API keys, or raw Venue credentials,
+- an operation reference is safe to log only when backend policy classifies it as non-secret,
+- Service Events do not authorize retries or commits.
 
 ### Order lifecycle events
 
-Published by `PredictTradingService`.
+Published by `PredictTradingService`:
 
-```ts
+```typescript
 type PredictOrderServiceEventName =
   | 'PredictTradingService:orderPreviewed'
   | 'PredictTradingService:orderSubmitted'
   | 'PredictTradingService:orderSucceeded'
   | 'PredictTradingService:orderFailed';
-
-interface PredictOrderServiceEventPayload extends PredictServiceEventBase {
-  ownerAddress: string;
-  eventId: string;
-  marketId: string;
-  outcomeId: string;
-  side: 'buy' | 'sell';
-  quantity: DecimalString;
-  price: DecimalString;
-  optimisticId?: string;
-}
 ```
 
-### Transaction events
+### Funding events
 
-Published by `PredictTransactionService`.
+Published by `PredictTransactionService`:
 
-```ts
+```typescript
 type PredictTransactionServiceEventName =
   | 'PredictTransactionService:depositSucceeded'
-  | 'PredictTransactionService:withdrawSucceeded'
+  | 'PredictTransactionService:withdrawSubmitted'
   | 'PredictTransactionService:claimSucceeded'
   | 'PredictTransactionService:settlementRecorded'
   | 'PredictTransactionService:transactionFailed';
-
-interface PredictTransactionServiceEventPayload
-  extends PredictServiceEventBase {
-  ownerAddress: string;
-  txHash?: string;
-  venueReference?: string;
-  errorCode?: PredictErrorCode;
-}
 ```
 
-### Live Update events
+A Kalshi withdrawal emits `withdrawSubmitted`, not a success/completion event, until authoritative completion exists.
 
-Published by `PredictLiveDataService`.
+### Live update events
 
-```ts
+Published by `PredictLiveDataService`:
+
+```typescript
 type PredictLiveDataServiceEventName =
   | 'PredictLiveDataService:marketPricesUpdated'
   | 'PredictLiveDataService:gameUpdated'
@@ -336,127 +677,130 @@ type PredictLiveDataServiceEventName =
   | 'PredictLiveDataService:connectionStatusChanged';
 ```
 
-Live Update payloads include the stable identifiers required by the read module that patches or invalidates its cache.
+### Readiness events
 
-```ts
-interface PredictMarketPricesUpdatedPayload extends PredictServiceEventBase {
-  updates: MarketPriceUpdate[];
-}
+Published by `PredictSessionService`:
 
-interface PredictGameUpdatedPayload extends PredictServiceEventBase {
-  eventId: string;
-  game: PredictGame;
-}
-
-interface PredictPortfolioUpdatedPayload extends PredictServiceEventBase {
-  ownerAddress: string;
-  marketId?: string;
-  outcomeId?: string;
-}
-
-interface PredictConnectionStatusChangedPayload
-  extends PredictServiceEventBase {
-  status: LiveDataConnectionStatus;
-}
-```
-
-### Account Readiness events
-
-Published by `PredictSessionService`.
-
-```ts
+```typescript
 type PredictSessionServiceEventName =
   'PredictSessionService:accountReadinessChanged';
-
-interface PredictAccountReadinessChangedPayload
-  extends PredictServiceEventBase {
-  ownerAddress: string;
-  readiness: PredictAccountReadiness;
-}
 ```
 
-### Service Event ownership rule
-
-- `PredictTradingService` publishes **Order** lifecycle Service Events.
-- `PredictTransactionService` publishes **Deposit**, **Withdraw**, **Claim**, and **Settlement** Service Events.
-- `PredictLiveDataService` publishes **Live Update** Service Events.
-- `PredictSessionService` publishes **Account Readiness** Service Events.
-- `PredictPortfolioService` and `PredictMarketDataService` decide how to patch or invalidate their own caches.
-- `PredictTradingService` and `PredictLiveDataService` receive only narrow read-model writer interfaces, not full read-service instances.
-- No module mutates another module's cache directly.
-
-## 5. Hook names
-
-The hook interface is fixed here. Do not create duplicate names for the same intent.
+## 8. Hook Names
 
 ### Event reads
 
-```ts
-useFeaturedEvents;
+```typescript
 useEventList;
-useEventSearch;
 useEventDetail;
 usePriceHistory;
-useCryptoPriceHistory;
-useCryptoReferencePrice;
 usePrices;
 ```
 
-Rules:
-
-- Use `useEventDetail`, not `useEvent`.
-- Use `useEventList`, not `useEventFeed`; feed state belongs to the `EventFeed` module.
-- `usePrices` accepts `PriceQuery[]`, not `marketIds: string[]`.
+Event hooks require `venueId` directly or from a route-level Venue context. They never infer one global active Venue for mixed data.
 
 ### Portfolio reads
 
-```ts
+```typescript
 usePositions;
 useBalance;
 useActivity;
 usePnL;
 ```
 
+Portfolio hooks require `PredictAccountScope`.
+
 ### Imperative and lifecycle hooks
 
-```ts
+```typescript
 useTrading;
 useTransactions;
-useLiveData;
 usePredictNavigation;
 usePredictGuard;
 ```
 
+### Optional capability hooks
+
+```typescript
+useFeaturedEvents; // carousel/curation capability
+useEventSearch; // search capability
+useCryptoPriceHistory; // crypto reference-price capability
+useCryptoReferencePrice; // crypto reference-price capability
+useOrders; // Resting Order capability
+useLiveData; // live-data capability
+```
+
 Rules:
 
-- Use `usePredictGuard`, not `useEligibilityGuard`.
-- Preview belongs behind `useTrading`; do not add a separate `useOrderPreview` hook.
+- use `useEventDetail`, not `useEvent`,
+- use `useEventList`, not `useEventFeed`,
+- preview remains behind `useTrading`,
+- hooks do not recreate idempotency or workflow policy,
+- Kalshi v1 may omit `useLiveData` and use bounded query polling.
 
-## 6. Redux slices and public selectors
+## 9. Redux Slices and Selectors
 
-State-owning modules expose Redux state under their runtime namespace.
+Stateful modules expose:
 
-```ts
+```typescript
 state.engine.backgroundState.PredictSessionService;
 state.engine.backgroundState.PredictTradingService;
+state.engine.backgroundState.PredictTransactionService;
 ```
 
-Public selectors exported from the PredictNext entrypoint:
+Session state uses scope keys:
 
-```ts
-selectPredictEligibility;
-selectPredictReadiness;
-selectPredictActiveOrder;
-selectPredictSelectedPaymentToken;
+```typescript
+interface PredictSessionServiceState {
+  readinessByAccount: Record<PredictAccountScopeKey, PredictAccountReadiness>;
+  setupByAccount: Record<PredictAccountScopeKey, AccountSetupState>;
+  eligibilityByVenue: Partial<Record<PredictVenueId, PredictEligibility>>;
+}
+
+interface TransactionServiceState {
+  operationsByAccount: Record<
+    PredictAccountScopeKey,
+    FundingOperationProjection[]
+  >;
+}
 ```
 
-Internal selectors may exist behind hooks, but adding an exported selector requires updating this ledger.
+No raw Venue Session or sensitive setup input is stored in Redux.
 
-## 7. PredictError interface
+Public selectors:
 
-`PredictError` uses an object parameter for raw construction. Services SHOULD prefer the `PredictError.from(code, overrides?)` factory, which reads `category`, `recoverable`, and the default `message` from the **canonical error registry** below. This eliminates per-call-site authoring of `category` and `recoverable`, which is where drift starts.
+```typescript
+selectPredictEligibility(
+  state: RootState,
+  venueId: PredictVenueId,
+): PredictEligibility;
+selectPredictReadiness(
+  state: RootState,
+  scope: PredictAccountScope,
+): PredictAccountReadiness | undefined;
+selectPredictAccountSetup(
+  state: RootState,
+  scope: PredictAccountScope,
+): AccountSetupState | undefined;
+selectPredictFundingOperations(
+  state: RootState,
+  scope: PredictAccountScope,
+): FundingOperationProjection[];
+selectPredictActiveOrder(state: RootState): TradingWorkflowState;
+selectPredictSelectedPaymentToken(
+  state: RootState,
+): SelectedPaymentToken | null;
+```
 
-```ts
+## 10. PredictError Interface
+
+```typescript
+type PredictErrorCategory =
+  | 'empty_state'
+  | 'unavailable'
+  | 'action_failed'
+  | 'degraded';
+
 interface PredictErrorInput {
   code: PredictErrorCode;
   message: string;
@@ -465,52 +809,13 @@ interface PredictErrorInput {
   metadata?: Record<string, unknown>;
   cause?: unknown;
 }
-
-class PredictError extends Error {
-  constructor(input: PredictErrorInput);
-
-  /**
-   * Construct from a known code. Pulls category, recoverable, and the default
-   * message from PREDICT_ERROR_REGISTRY. Overrides are only for message,
-   * metadata, and cause. Accepts an unknown value to wrap as UNKNOWN.
-   */
-  static from(
-    codeOrError: PredictErrorCode | unknown,
-    overrides?: Partial<Omit<PredictErrorInput, 'code'>>,
-  ): PredictError;
-}
 ```
 
-### Canonical error registry
-
-Every `PredictErrorCode` maps to exactly one `{ category, recoverable, defaultMessage }` entry. The registry lives at `errors/registry.ts` and is the single source of truth — services never hand-author these fields. See `docs/error-handling.md` for the full registry contents.
-
-```ts
-interface PredictErrorRegistryEntry {
-  category: PredictErrorCategory;
-  recoverable: boolean;
-  defaultMessage: string;
-}
-
-declare const PREDICT_ERROR_REGISTRY: Record<
-  PredictErrorCode,
-  PredictErrorRegistryEntry
->;
-```
-
-Hooks and Product UI modules branch on `category` first and `code` second.
-
-```ts
-type PredictErrorCategory =
-  | 'empty_state'
-  | 'unavailable'
-  | 'action_failed'
-  | 'degraded';
-```
+Services prefer `PredictError.from(code, overrides?)`; category, recovery, and default message come from one registry.
 
 Canonical codes:
 
-```ts
+```typescript
 enum PredictErrorCode {
   GEO_BLOCKED = 'GEO_BLOCKED',
   FEATURE_DISABLED = 'FEATURE_DISABLED',
@@ -519,6 +824,8 @@ enum PredictErrorCode {
   UNSUPPORTED_VENUE_CAPABILITY = 'UNSUPPORTED_VENUE_CAPABILITY',
   SERVICE_DEGRADED = 'SERVICE_DEGRADED',
   RATE_LIMITED = 'RATE_LIMITED',
+  UNAUTHENTICATED = 'UNAUTHENTICATED',
+  ACCOUNT_SCOPE_INVALID = 'ACCOUNT_SCOPE_INVALID',
   INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
   ORDER_PREVIEW_EXPIRED = 'ORDER_PREVIEW_EXPIRED',
   ORDER_REJECTED = 'ORDER_REJECTED',
@@ -527,8 +834,11 @@ enum PredictErrorCode {
   KYC_REJECTED = 'KYC_REJECTED',
   OTP_INVALID = 'OTP_INVALID',
   OTP_EXPIRED = 'OTP_EXPIRED',
+  OTP_INVALID_OR_EXPIRED = 'OTP_INVALID_OR_EXPIRED',
   UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
   INVALID_WITHDRAWAL_ADDRESS = 'INVALID_WITHDRAWAL_ADDRESS',
+  OPERATION_EXPIRED = 'OPERATION_EXPIRED',
+  OPERATION_CONFLICT = 'OPERATION_CONFLICT',
   DEPOSIT_FAILED = 'DEPOSIT_FAILED',
   WITHDRAWAL_FAILED = 'WITHDRAWAL_FAILED',
   CLAIM_FAILED = 'CLAIM_FAILED',
@@ -540,37 +850,17 @@ enum PredictErrorCode {
 }
 ```
 
-Example (preferred factory pattern):
+A Venue that cannot distinguish invalid from expired OTP maps to `OTP_INVALID_OR_EXPIRED`; it does not guess.
 
-```ts
-// Service: simply names the code. category, recoverable, and default
-// message come from the registry. Override only what's specific to this call site.
-throw PredictError.from(PredictErrorCode.ORDER_REJECTED, {
-  metadata: { venueId, orderId },
-  cause,
-});
-```
+No error metadata contains secrets or raw KYC values.
 
-Raw constructor usage is reserved for tests or framework-level code that needs full control:
+## 11. Public Entrypoint Exports
 
-```ts
-new PredictError({
-  code: PredictErrorCode.ORDER_REJECTED,
-  message: 'The Venue rejected this Order.',
-  recoverable: true,
-  category: 'action_failed',
-  metadata: { venueId, orderId },
-  cause,
-});
-```
-
-## 8. Public entrypoint exports
-
-`PredictNext/index.ts` exports only stable Product UI modules, hooks, selectors, types, and errors. Top-level folders are organizational modules, not automatic public interfaces.
+`PredictNext/index.ts` exports only stable Product UI modules, hooks, selectors, domain types, and errors.
 
 ### Public exports
 
-```ts
+```typescript
 // Views
 PredictHome;
 EventDetails;
@@ -585,13 +875,9 @@ OutcomeButton;
 PriceDisplay;
 
 // Hooks
-useFeaturedEvents;
 useEventList;
-useEventSearch;
 useEventDetail;
 usePriceHistory;
-useCryptoPriceHistory;
-useCryptoReferencePrice;
 usePrices;
 usePositions;
 useBalance;
@@ -599,27 +885,44 @@ useActivity;
 usePnL;
 useTrading;
 useTransactions;
-useLiveData;
 usePredictNavigation;
 usePredictGuard;
 
 // Selectors
 selectPredictEligibility;
 selectPredictReadiness;
+selectPredictAccountSetup;
+selectPredictFundingOperations;
 selectPredictActiveOrder;
 selectPredictSelectedPaymentToken;
 
 // Types and errors
+PredictUserId;
+PredictWalletAccountId;
+PredictUserContext;
+PredictAccountScope;
+PredictVenueId;
 PredictEvent;
 PredictMarket;
 PredictOutcome;
 PredictPosition;
+PredictOrder;
 OrderPreview;
 OrderReceipt;
+TradingWorkflowState;
+SelectedPaymentToken;
+PredictFees;
 PredictBalance;
+PredictPnL;
+PredictEligibility;
+PredictAccountReadinessBlockerCode;
+PredictAccountReadinessBlocker;
 PredictAccountReadiness;
+AccountSetupState;
 FundingPlan;
 FundingReceipt;
+FundingReceiptStatus;
+FundingOperationProjection;
 PredictVenueStatus;
 EventDisplayModel;
 PredictError;
@@ -627,11 +930,13 @@ PredictErrorCode;
 PredictErrorCategory;
 ```
 
+Optional capability hooks such as `useFeaturedEvents`, `useEventSearch`, `useCryptoPriceHistory`, `useCryptoReferencePrice`, `useOrders`, and `useLiveData` are promoted to the public entrypoint only when their product capability is implemented and supported. Listing a canonical hook name in §8 does not require exporting an unimplemented hook.
+
 ### Internal modules
 
-Do not export these from `PredictNext/index.ts`:
+Do not export these from the feature root:
 
-```ts
+```typescript
 services/*
 adapters/*
 compat/*
@@ -640,8 +945,8 @@ widgets/*
 routes/*
 constants/*
 utils/*
-venue DTOs
+Venue DTOs
 adapter registries
+Venue Sessions
+backend auth payloads
 ```
-
-If a migration phase needs an internal module temporarily, it imports through the migration seam explicitly and marks the import as temporary. Temporary migration access does not promote the module to the public entrypoint.

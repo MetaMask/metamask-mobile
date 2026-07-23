@@ -1,151 +1,119 @@
-# Phase 4: Write Services
+# Phase 4: Polymarket Write-Service Delegation
+
+> **Track status:** post-Kalshi Polymarket strangler work. Not a Kalshi launch dependency. Kalshi builds the minimum write modules in its own vertical stages first.
 
 ## Goal
 
-Extract stateful and write-heavy business logic from the old controller into focused PredictNext services and primitives: TradingService (Stateful), TransactionService (Runtime — user-intent layer), the shared lifecycle-aware `FundingExecutor` primitive (not a service), and LiveDataService (Runtime). Construct the `predictAnalytics` helper module (injected, **not** registered as a first-class service). Hook old PredictController write methods to delegate to these new modules. Cache coordination between write/live services and read services flows through **narrow read-model writer interfaces** owned by the cache-owning read services — Service Events remain for observation only.
+Move legacy Polymarket Order, funding/Claim, and live behavior into the deep PredictNext services without weakening the identity, idempotency, confirmation, or durability contracts proven by Kalshi.
 
-## Prerequisites
+## Preconditions
 
-- Phase 2 complete (generic `PredictClient`, `PolymarketAdapter`, and `PredictSessionService` are functional).
-- Phase 3 can run in parallel with this phase after the read-model writer interfaces are agreed. Write-service PRs may use test doubles for those interfaces until the concrete read services land.
+- corresponding Polymarket adapter capability exists,
+- `PredictAccountScope` and Account Readiness are available,
+- portfolio/market read-model writer interfaces are agreed,
+- every write has idempotency and lost-response semantics,
+- current behavior has characterization coverage and rollback.
 
-## Deliverables
+## TradingService
 
-- `TradingService.ts` managing the order lifecycle and trading state.
-- `TransactionService.ts` exposing public `deposit`/`withdraw`/`claim` actions, wrapping the shared executor with user-intent semantics.
-- `FundingExecutor.ts` sibling module — lifecycle-aware feature primitive (not a service) that owns Funding Plan execution, submission, confirmation tracking, idempotency, cancellation, and teardown. Constructor-injected into both `TransactionService` and `TradingService`.
-- `LiveDataService.ts` providing a unified interface for real-time updates.
-- `predictAnalytics` helper module (`services/analytics/predictAnalytics.ts`) — **injected, not a first-class service**. Constructed by the composition root in Phase 5; this phase only builds the helper module.
-- Refactored `PredictController.ts` where write methods delegate to these services.
+Move behavior incrementally:
 
-## Step-by-Step Tasks
+- preview lifecycle and expiry,
+- Order validation/rate limiting,
+- idempotent submit/reconciliation,
+- state transitions,
+- optional Resting Order cancel/amend,
+- optional automatic Order funding,
+- portfolio writer milestones,
+- analytics.
 
-### 1. Build TradingService
+Rules:
 
-Create `app/components/UI/PredictNext/services/trading/TradingService.ts`. This service handles the complexity of placing and managing orders.
+- obtain `PredictClient` with `PredictSessionService.getClient(scope)`,
+- submit `previewId + idempotencyKey`, not a mutable preview as authority,
+- preserve the same key on retry,
+- use `PortfolioReadModelWriter`, not full PortfolioService,
+- expose cancel/amend only when the Venue/product supports Resting Orders,
+- keep Venue credentials/signers/session objects out of service parameters.
 
-- Move the active-order state machine from `PredictController.ts`.
-- Extract logic from trading hooks such as `usePredictTrading`, `usePredictPlaceOrder`, and `usePredictOrderPreview`.
-- Implement `previewOrder`, `placeOrder`, `cancelOrder`, `selectPaymentToken`, and `reset` methods.
-- Move order rate limiting and active-order transitions out of the legacy `PolymarketProvider` and old controller into this service.
-- For deposit-before-order funding, hold a constructor-injected reference to the shared `FundingExecutor` primitive (sibling module, not a service) and call it directly. Do **not** invoke the public `TransactionService.deposit` action — that path is reserved for user-initiated deposits and includes user-facing analytics that should not fire during order funding.
-- Obtain a `PredictClient` through `PredictSessionService.getClient(ownerAddress)`, then use `getOrderPreview()` and `submitOrder()` on the client; do not pass API keys, signers, or session objects through public trading methods.
-- Register `TradingService` as a first-class Engine messenger client with a scoped messenger.
-- For cache-relevant order lifecycle milestones, call **direct semantic methods** on a constructor-injected `PortfolioReadModelWriter` (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`). Do not inject the full `PortfolioService` into `TradingService`. Service Events for order lifecycle are emitted for observers (analytics, optional listeners), not for cache mutation.
-- Inject the `predictAnalytics` helper through the constructor and call `analytics.track(...)` directly at preview, submit, success, and failure boundaries.
-- Manage payment token selection and order validation logic.
+Kalshi v1 uses explicit Deposit first. Automatic Deposit-before-Order remains optional long-term behavior, not a required TradingService path.
 
-### 2. Build FundingExecutor (primitive) and TransactionService (user-intent wrapper)
+## TransactionService and FundingExecutor
 
-Create two **sibling modules** under `app/components/UI/PredictNext/services/transactions/`:
+Canonical flow:
 
-- `FundingExecutor.ts` — lifecycle-aware feature primitive (not a service)
-- `TransactionService.ts` — Runtime service that exposes the public user-intent layer
+```text
+intent -> prepareFunding -> user confirmation -> FundingExecutor -> commitFunding -> reconcile
+```
 
-#### 2a. FundingExecutor (primitive)
+### FundingExecutor
 
-- Owns Funding Plan execution, transaction-controller signing-hook coordination, submission, confirmation tracking, idempotency, cancellation, teardown, and venue-independent error normalization.
-- No Engine.context entry. No messenger namespace. No Redux state. No analytics emission.
-- Constructed once by `PredictController.initialize()` and injected by constructor reference into BOTH `TransactionService` (for user-intent flows) and `TradingService` (for order funding).
-- Exposes `executePlan(plan, opts?): Promise<FundingReceipt>`, `cancel(planId): void`, and `destroy(): void`.
-- Tracks in-flight plans by `idempotencyKey` so retrying a workflow does not double-submit Predict-specific tracking or duplicate confirmation listeners. The `opts.reason` value (`'order_funding' | 'public_action'`) is for telemetry/test context only; behaviour does not branch on it inside the executor.
-- `cancel(planId)` cancels local confirmation tracking and best-effort pending work; it does not imply the underlying wallet transaction can be cancelled after submission.
-- `destroy()` is idempotent and tears down signing hooks, listeners, and in-flight bookkeeping during feature shutdown.
+- executes typed wallet transaction plans through app confirmation infrastructure,
+- captures transaction hash,
+- commits with original operation/idempotency references,
+- manages local listeners/teardown,
+- never owns durable external operation state,
+- local cancel does not imply an external transaction/operation was cancelled.
 
-#### 2b. TransactionService (Runtime service wrapping the primitive)
+### TransactionService
 
-- Move workflow ownership for Safe, Permit2, deposit wallet preflight, transaction-controller signing hooks, claim before-sign/publish, and transaction status side effects out of the legacy `PolymarketProvider` and old controller.
-- Reuse `PredictClient` Funding Plan creators (`createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`) after obtaining a client through `PredictSessionService.getClient(ownerAddress)`, instead of rebuilding or signing venue payloads in the service. Use `createDepositPlan({ mode: 'fixed-amount' })` and `createWithdrawPlan({ mode: 'fixed-amount' })` when the service already knows the final amount; keep `editable-template` only for flows that intentionally rely on confirmation / Transaction Pay editing.
-- Implement the public messenger actions `deposit`, `withdraw`, and `claim` — each calls `fundingExecutor.executePlan(plan, { reason: 'public_action', idempotencyKey })` and layers on user-intent analytics, public retry policy, and user-facing error normalization via `PredictError.from(...)`.
-- Pending transaction tracking stays view-local in `useTransactions` for screens that initiated the action. If a cross-screen requirement emerges, `TransactionService` would change shape from Runtime to Stateful at that point — not before.
-- Ensure proper error handling for gas estimation and execution failures using `PredictError.from(...)` with codes from the canonical error registry.
+- exposes only supported Deposit/Withdraw/Claim actions,
+- prepares through `client.funding`,
+- obtains explicit confirmation before commit,
+- layers user-intent analytics and error policy,
+- resumes/reconciles by operation ID,
+- sends writer milestones after authoritative results.
 
-### 3. Build LiveDataService
+Polymarket-specific editable zero-amount transaction templates remain in migration compatibility until their confirmation flow is replaced. Do not add them back to canonical Funding Plans.
 
-Create `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`. This service unifies real-time data streams.
+## LiveDataService
 
-- Consolidate logic from parallel live hooks like `useLiveGameUpdates`, `useLiveMarketPrices`, and `usePredictLivePositions`.
-- Use the client's typed `createSubscription` method to manage venue streams.
-- Register `LiveDataService` as a first-class Engine messenger client with a scoped messenger.
-- Normalize venue stream messages into canonical live update payloads.
-- Hold constructor-injected references to `MarketDataReadModelWriter` and `PortfolioReadModelWriter`, not full read-service instances. For every normalized update, call **direct semantic writer methods** such as `marketDataWriter.applyPriceUpdates(updates)` and `portfolioWriter.applyPortfolioUpdate(update)`. Patch caches only when updates include stable identifiers and complete-enough data; invalidate/refetch query families when matching or merge safety is uncertain.
-- Service Events (`PredictLiveDataService:marketPricesUpdated`, `:portfolioUpdated`) are still emitted for **observers** (analytics, optional listeners). They are no longer the system of record for cache mutation.
-- Replace `GameCache`-style overlay behavior with write-through cache updates for sports game state.
-- Move optimistic position overlay behavior into `PortfolioReadModelWriter` cache patches and rollbacks keyed by workflow `optimisticId`, driven by direct calls from `TradingService` (not via Service Event subscription).
-- Inject the `predictAnalytics` helper for live-data analytics (reconnections, prolonged disconnects).
-- Provide a single point of entry for components to listen for market and portfolio updates.
+Build/migrate only when a live capability remains required.
 
-### 4. Build the predictAnalytics helper
+- adapter normalizes transport payloads,
+- service owns socket/reconnect/multiplexing lifecycle,
+- every update retains `venueId` and account scope when applicable,
+- read-model writers own cache patch/invalidation,
+- Service Events are observation-only,
+- bounded polling is valid where product requirements allow it.
 
-Create `app/components/UI/PredictNext/services/analytics/predictAnalytics.ts`. This is a **helper module**, not a service — it is not registered as a first-class `Engine.context` entry and has no messenger namespace.
+## Analytics Helper
 
-- Move the event API from `app/components/UI/Predict/controllers/PredictAnalytics.ts`.
-- Extract embedded analytics calls from the old controller and buy flow hooks.
-- Provide a clean interface for logging user actions, errors, and performance metrics: `interface PredictAnalytics { track(event, properties): void }`.
-- Export `createPredictAnalytics(deps): PredictAnalytics` so the composition root (Phase 5) can construct one instance and inject it into every service that emits analytics.
+`predictAnalytics` remains an injected helper, not an Engine service. It receives only redacted canonical context. Never emit credentials, signatures, KYC values, or raw Venue/backend payloads.
 
-### 5. Update PredictController Write Methods
+## Legacy Delegation
 
-Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate to the new write services.
+Move one workflow at a time:
 
-- Identify current write/session methods on the old controller, including:
-  - `previewOrder`
-  - `placeOrder`
-  - `claimWithConfirmation`
-  - `confirmClaim`
-  - `clearOrderError`
-  - `onPlaceOrderSuccess`
-  - `clearActiveOrderTransactionId`
-  - `selectPaymentToken`
-  - `clearActiveOrder`
-  - `setSelectedPaymentToken`
-  - `depositWithConfirmation`
-  - `initPayWithAnyToken`
-  - `clearPendingDeposit`
-  - `prepareWithdraw`
-  - `beforePublish`
-  - `beforeSign`
-  - `publish`
-  - `clearWithdrawTransaction`
-- Replace their internal logic with calls to the appropriate new service.
-- Translate legacy command parameters to canonical types at the controller boundary.
-- Map service responses back to legacy state shapes to keep old hooks and UI functional.
+1. legacy call maps to canonical scope/intent,
+2. old controller calls the new service action,
+3. canonical receipt/state maps back to the old contract,
+4. old UI remains unchanged,
+5. feature flag controls rollback,
+6. old workflow is deleted after parity.
 
-## Files Created
+Do not make the old controller a second workflow owner.
 
-| File Path                                                                        | Description                                                                                                     | Estimated Lines |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------- |
-| `app/components/UI/PredictNext/services/trading/TradingService.ts`               | Stateful service for order management and trading logic; uses `PortfolioReadModelWriter` for cache coordination | 400-700         |
-| `app/components/UI/PredictNext/services/trading/TradingService.test.ts`          | Trading service tests                                                                                           | 250-400         |
-| `app/components/UI/PredictNext/services/transactions/TransactionService.ts`      | Runtime service: public user-intent layer (deposit/withdraw/claim)                                              | 250-400         |
-| `app/components/UI/PredictNext/services/transactions/FundingExecutor.ts`         | Lifecycle-aware primitive (not a service): Funding Plan execute/follow-up/track/cancel/destroy                  | 250-400         |
-| `app/components/UI/PredictNext/services/transactions/TransactionService.test.ts` | TransactionService user-intent tests                                                                            | 200-300         |
-| `app/components/UI/PredictNext/services/transactions/FundingExecutor.test.ts`    | FundingExecutor lifecycle, idempotency, cancellation, venue follow-up, and teardown tests                       | 150-250         |
-| `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`            | Runtime service for unified real-time subscriptions; uses read-model writer interfaces                          | 200-400         |
-| `app/components/UI/PredictNext/services/live-data/LiveDataService.test.ts`       | Live data service tests                                                                                         | 150-250         |
-| `app/components/UI/PredictNext/services/analytics/predictAnalytics.ts`           | Injected analytics helper module (not a service)                                                                | 80-150          |
-| `app/components/UI/PredictNext/services/analytics/predictAnalytics.test.ts`      | Analytics helper tests                                                                                          | 60-120          |
+## Required Failure Tests
 
-## Files Affected in Old Code
+- expired Order preview,
+- duplicate Order submit,
+- Venue accepts but response is lost,
+- app restarts during committed Order/funding,
+- wallet transaction succeeds but Venue follow-up fails,
+- duplicate funding commit,
+- withdrawal/Claim lost response,
+- local teardown while backend operation remains active,
+- one account/Venue update cannot patch another,
+- secret/PII redaction.
 
-| File Path                                                    | Expected Change                                                                  |
-| ------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `app/components/UI/Predict/controllers/PredictController.ts` | Write methods refactored to delegate to new services.                            |
-| `app/components/UI/Predict/controllers/PredictAnalytics.ts`  | Logic moved to the `predictAnalytics` helper module; file eventually deprecated. |
+## Acceptance Criteria per Workflow
 
-## Acceptance Criteria
-
-- All new services pass service integration tests with mocked dependencies: `PredictSessionService` returning a mock `PredictClient` for venue operations.
-- `TradingService` and `LiveDataService` depend on `PortfolioReadModelWriter` / `MarketDataReadModelWriter` test doubles, not concrete read-service instances.
-- `FundingExecutor` tests cover idempotent retries, `cancel(planId)`, `destroy()`, and listener teardown.
-- The trading flow remains functional from the user's perspective.
-- Transactions (deposit, withdraw, claim) are processed correctly through the new service layer.
-- Real-time updates continue to flow to the UI without interruption.
-- Analytics events are still correctly reported to the backend.
-
-## Estimated PRs
-
-- **PR 1**: TradingService implementation and controller wiring.
-- **PR 2**: TransactionService implementation and transaction workflow migration.
-- **PR 3**: LiveDataService implementation and the `predictAnalytics` helper module.
-- **PR 4**: Final controller cleanup and write method delegation.
+- `PredictAccountScope` is explicit,
+- user confirmation precedes irreversible funding commit,
+- writes are idempotent and reconcilable,
+- durable remote operation state does not depend on mobile memory,
+- adapter/service/UI responsibilities remain separated,
+- old callers retain behavior during delegation,
+- rollback is independent,
+- replacement integration/component-view tests pass before old tests/code are removed.

@@ -2,13 +2,15 @@
 
 This document is the entry point for the PredictNext redesign. It describes the target architecture for prediction markets in MetaMask Mobile, the responsibilities of each layer, and the boundaries that keep the system small at the surface and deep underneath.
 
-PredictNext is designed around a canonical prediction-market model:
+PredictNext is designed around a canonical prediction-market model and explicit account scope:
 
 - `PredictEvent`
 - `PredictMarket[]`
 - `PredictOutcome[]`
+- `PredictUserContext`
+- `PredictAccountScope`
 
-Venue-specific complexity lives below that model. Views, hooks, and most service APIs should speak only in Predict terminology, not in Polymarket or future venue terminology.
+Venue-specific complexity lives below that model. Views, hooks, and most service interfaces speak Predict terminology, not Polymarket or Kalshi protocol language. The architecture distinguishes the Predict User, Funding Wallet, and Venue Account; a wallet address is not treated as person identity.
 
 Related documents:
 
@@ -20,7 +22,18 @@ Related documents:
 - [state-management.md](./state-management.md)
 - [error-handling.md](./error-handling.md)
 - [testing.md](./testing.md)
+- [migration/README.md](./migration/README.md)
+- [migration/kalshi-first.md](./migration/kalshi-first.md)
 - [../CONTEXT.md](../CONTEXT.md)
+
+## 0. Delivery Architecture
+
+The target architecture is implemented through two tracks:
+
+1. **Kalshi-first vertical delivery (active):** build only the modules needed by Setup → Deposit → Balance, then trading/portfolio/withdraw. Kalshi account operations are remote through the owned backend. Legacy Polymarket remains unchanged.
+2. **Polymarket strangling (later):** move public reads, portfolio, trading, funding/Claim, live data, and UI capability by capability through the proven seams.
+
+The six-service inventory and three-tier UI are a destination, not a Kalshi launch checklist. Generic remote signing intents, live data, multi-Venue aggregation, full legacy compat, and full UI replacement are deferred until concrete product requirements need them.
 
 ## 1. Design Principles
 
@@ -37,10 +50,11 @@ In the current implementation, the opposite happened:
 
 The redesign reverses that.
 
-- `VenueAdapter` is the single canonical venue contract. `PredictClient` is the session-bound view of it that product services hold.
-- Venue adapters are narrow stateless translation boundaries.
+- `VenueAdapter` registers one Venue and exposes focused capability modules for market data, account, portfolio, trading, funding, and live data.
+- `PredictClient` is the session-bound view of account-scoped capabilities; public market data does not require a fake session.
+- Venue adapters are narrow translation boundaries.
 - Services are deep modules that own orchestration.
-- Query descriptors are the single read seam for query keys, stale time, account scoping, and invalidation families.
+- Query descriptors are the single read seam for Venue-qualified keys, stale time, account scope, and invalidation families.
 - Read-model writer interfaces are the only cache-mutation seam exposed to write/live services.
 - Hooks are mostly thin integration seams.
 - Components focus on rendering and user interaction.
@@ -53,7 +67,8 @@ PredictNext explicitly pushes operational complexity into the service layer.
 
 Services absorb:
 
-- retry policies
+- bounded read retry policies
+- idempotent write/reconciliation policy
 - cache invalidation
 - concurrency control
 - request deduplication
@@ -65,7 +80,7 @@ Services absorb:
 - transaction orchestration
 - transaction executor lifecycle and teardown
 
-That means higher layers do not coordinate retries, reconcile partial state, or interpret low-level failures. They ask for intent-level operations and receive intent-level results.
+That means higher layers do not coordinate retries, reconcile partial state, or interpret low-level failures. They ask for intent-level operations and receive intent-level results. Reads may retry automatically; a write retries only when its idempotency and lost-response contract makes that safe.
 
 ### Define errors out of existence
 
@@ -73,9 +88,10 @@ The preferred design is not to expose more errors with better naming. It is to m
 
 Examples:
 
-- transient HTTP failures are retried inside data services
+- transient read failures are retried inside data services
 - repeated WebSocket disconnects are handled by reconnection policy in `LiveDataService`
-- deposit-before-order sequencing is hidden inside `TradingService`
+- optional Deposit-before-Order sequencing is hidden inside `TradingService` when enabled by product policy
+- funding and Order commits carry idempotency keys and durable Venue Operation references
 - venue-specific transaction failures are normalized into a single Predict error model
 
 The UI should rarely need to reason about raw transport failures. It should primarily render user-meaningful states:
@@ -89,12 +105,12 @@ The UI should rarely need to reason about raw transport failures. It should prim
 
 Each layer owns a distinct abstraction and should not borrow another layer's language.
 
-| Layer          | Primary abstraction                        | Should not expose                                             |
-| -------------- | ------------------------------------------ | ------------------------------------------------------------- |
-| Venue Adapters | Stateless venue translation (one contract) | UI concepts, caching, orchestration, sessions stored as state |
-| Services       | Product capabilities and workflows         | Venue DTOs, raw transport details, sessions                   |
-| Hooks          | React integration                          | Business workflows duplicated from services                   |
-| Components     | Presentation and interaction               | Venue protocols, transaction plumbing                         |
+| Layer          | Primary abstraction                  | Should not expose                                                  |
+| -------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| Venue Adapters | Capability-grouped Venue translation | UI concepts, caching, product orchestration, persisted credentials |
+| Services       | Product capabilities and workflows   | Venue DTOs, raw transport details, Venue Sessions                  |
+| Hooks          | React integration                    | Business workflows duplicated from services                        |
+| Components     | Presentation and interaction         | Venue protocols, identity/auth, transaction plumbing               |
 
 If a component or hook needs to know too much about venue formats, order transitions, cache policy, or transaction building, complexity has leaked upward and the boundary is wrong.
 
@@ -104,19 +120,22 @@ PredictNext uses a shared domain vocabulary documented in [../CONTEXT.md](../CON
 
 Core terms include:
 
+- Predict User
+- Funding Wallet
+- Venue Account
 - Event
 - Market
 - Outcome
 - Position
-- Activity
+- Fill
 - Order Preview
 - Order Receipt
+- Venue Operation
 - Account Readiness
 - Predict Client
 - Venue Session
-- Price History
 
-This keeps interfaces stable even as venues change. Polymarket and Kalshi may model their APIs differently, but the active `VenueAdapter` translates those differences into the same domain language before the rest of the stack sees them. The session-bound `PredictClient` view services hold is the same shape regardless of which adapter is active.
+This keeps interfaces stable even as Venues change. Polymarket and Kalshi may model identity, funding, and Orders differently, but capability adapters translate those differences before higher layers see them. A Predict Client exposes only the account-scoped capabilities supported by its Venue; public market data is resolved by `venueId` through the market-data capability.
 
 ## 2. Architecture Layers
 
@@ -144,15 +163,24 @@ PredictNext is organized into four layers, bottom-up.
 │ Layer 2: Services + Composition Root                     │
 │   (three service shapes; see services.md §1.5)            │
 │  • Stateful services (BaseController, own a Redux slice): │
-│    PredictSessionService, TradingService                  │
+│    PredictSessionService, TradingService, TransactionSvc  │
 │  • Read services (BaseDataService, own a query cache):    │
 │    MarketDataService, PortfolioService                    │
 │  • Runtime services (plain class, transient lifecycle):   │
-│    TransactionService, LiveDataService                    │
+│    LiveDataService                                        │
 │  • Composition root (no state, off hot paths):            │
 │    PredictController (initialize/destroy only)            │
 │  • Feature primitives & helpers (not services):           │
 │    FundingExecutor, predictAnalytics                      │
+└───────────────────────────┬──────────────────────────────┘
+                            │
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│ Layer 1: Venue Adapters                                  │
+│  • public marketData by venueId                          │
+│  • session-bound account / portfolio / trading           │
+│  • optional funding / liveData                           │
+│  • local Venue API or remote MetaMask Predict backend    │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -160,50 +188,50 @@ Hooks address services directly through the Engine messenger and Redux selectors
 
 ### Layer 1 — Venue Adapters
 
-The venue boundary is defined by a single canonical contract: `VenueAdapter`. Each venue implementation (Polymarket, future Kalshi) implements it as a stateless protocol translator. `PredictSessionService` is the only thing that constructs sessions and binds them; it produces a session-bound view (`PredictClient`) that product services hold. `PredictClient` is a type alias derived from `VenueAdapter` — it is not a separately maintained interface.
+`VenueAdapter` registers one Venue and composes focused capability modules:
 
-Responsibilities (of `VenueAdapter` implementations):
+- `marketData` for public Venue-scoped Event, Market, Outcome, and price reads,
+- `account` for Account Readiness and optional Account Setup,
+- `portfolio` for Balance, Position, Fill/Activity, and optional open Order reads,
+- `trading` for Order Preview/submission and optional Resting Order operations,
+- optional `funding`,
+- optional `liveData`.
 
-- expose canonical venue capabilities through a stateless contract
-- fetch venue data
-- transform venue DTOs into canonical domain entities
-- create venue-specific Funding Plans or order payloads
-- submit venue-specific orders
-- open venue-specific live data connections
+This shape is based on two concrete Venues. Kalshi does not implement Polymarket-only series, crypto-reference, Claim, or stream methods merely to throw an unsupported error.
 
-Non-responsibilities:
+`PredictSessionService` constructs account-scoped Venue Sessions from `PredictAccountScope` and returns a session-bound `PredictClient`. Product modules never receive the session. `MarketDataService` resolves the public `marketData` capability directly by `venueId`; it does not require a selected wallet.
 
-- product workflow orchestration
-- rate limiting
-- optimistic cache patching
-- active-order state transitions
-- UI state
-- analytics
-- session caching (sessions are passed in per method; the session service owns lifecycle)
+Adapter responsibilities:
 
-Target shape:
+- call local Venue APIs or the MetaMask Predict backend,
+- transform DTOs into canonical domain entities,
+- prepare short-lived Order and Funding artifacts,
+- commit account-scoped operations through the Venue protocol,
+- expose supported live channels.
 
-- a single capability-oriented `VenueAdapter` interface grouped by reads, order boundary operations, Funding Plan creators, account setup, venue status, and live subscriptions
-- product services use `PredictSessionService.getClient(ownerAddress, venueId?)` to obtain a `PredictClient` (the session-bound view) and never see `PredictVenueSession`
-- venue adapter implementations are stateless; the session is a method parameter, not an instance field
+Adapter non-responsibilities:
 
-Primary local implementations:
+- product workflow orchestration,
+- cache policy or cross-module cache mutation,
+- active-order state transitions,
+- UI state or analytics,
+- treating wallet addresses as person identity,
+- storing credentials or KYC values in mobile state,
+- blind retry of writes.
 
-- `PolymarketAdapter` — first active local `VenueAdapter` implementation
-- future `KalshiAdapter` — second local `VenueAdapter` implementation
-- `PredictSessionService` — owns session lifecycle and produces the session-bound `PredictClient` view
+Transitional implementations:
 
-Alternative remote-backed implementation:
+- Kalshi uses `KalshiRemoteAdapter` through the authenticated MetaMask Predict backend.
+- Polymarket remains on the legacy production path during Kalshi delivery and later migrates one capability at a time.
+- A generic `MetaMaskPredictApiAdapter` is extracted only after a second remote Venue proves shared transport behavior.
 
-- `MetaMaskPredictApiAdapter` — implements the same `VenueAdapter` contract but relays canonical calls to MetaMask's Predict backend, where venue-specific adapters handle Polymarket, Kalshi, or future venue changes.
-
-The venue contract is described in [adapters.md](./adapters.md). The remote-backed deployment model is described in [remote-adapters.md](./remote-adapters.md).
+The capability contracts are described in [adapters.md](./adapters.md). Remote trust, credential, and operation rules are described in [remote-adapters.md](./remote-adapters.md).
 
 ### Layer 2 — Services + Controller
 
 The service layer is the center of the redesign.
 
-PredictNext uses six deep services plus an injected analytics helper:
+The long-term target uses up to six deep services plus an injected analytics helper. The composition root registers only modules required by the enabled vertical surface:
 
 1. `PredictSessionService`
 2. `MarketDataService`
@@ -232,17 +260,19 @@ These services register directly with Engine via messenger. Reads do not flow th
 
 #### Stateful and Runtime services for orchestration and writes
 
-`PredictSessionService` and `TradingService` are **Stateful services** (BaseController) that own a Redux slice for cross-component reactivity. `TransactionService` and `LiveDataService` are **Runtime services** — plain classes with transient lifecycle state in private fields and no Redux slice. All four have deliberately small public APIs and deep internals. Each registers as a first-class Engine messenger client through a scoped messenger. See [services.md §1.5](./services.md#15-service-shapes) for the canonical shape definitions.
+`PredictSessionService`, `TradingService`, and `TransactionService` are **Stateful services** (`BaseController`). `TransactionService` stores only safe funding-operation projections so money movement can survive navigation/app restart; the backend remains authoritative. `LiveDataService` is a **Runtime service** with transient connection lifecycle in private fields. Each has a small public interface and registers through a scoped messenger. See [services.md §1.5](./services.md#15-service-shapes).
 
 They own:
 
-- venue auth/session caching
-- Account Setup workflows that drive Account Readiness to ready
-- write workflows
-- funding orchestration (public deposit/withdraw/claim via `TransactionService`, plus a shared `FundingExecutor` primitive used directly by `TradingService` for order funding — see [services.md §7](./services.md#7-transactionservice-runtime-service-and-fundingexecutor-primitive))
-- order state transitions
-- direct cache coordination calls into `PortfolioReadModelWriter` / `MarketDataReadModelWriter` for workflow and live-update milestones (Service Events are reserved for observers, not for cache mutation)
-- realtime subscription multiplexing
+- account-scoped Venue Session caching,
+- Account Setup projection delegated through the account adapter capability,
+- Account Readiness policy,
+- prepare/confirm/commit/reconcile write workflows,
+- funding orchestration through `TransactionService` and `FundingExecutor`,
+- optional future Order funding without routing through the public Deposit action,
+- Order state transitions and idempotency,
+- direct cache coordination through read-model writers,
+- optional realtime subscription multiplexing.
 
 The `predictAnalytics` helper handles analytics event formatting and batching. It is injected into services through constructor references, not reached via messenger actions.
 
@@ -252,7 +282,7 @@ The `predictAnalytics` helper handles analytics event formatting and batching. I
 
 Its role is to:
 
-- instantiate the six services in the correct order — Stateful (`PredictSessionService`, `TradingService`), Read (`MarketDataService`, `PortfolioService`), and Runtime (`TransactionService`, `LiveDataService`) — plus the shared `FundingExecutor` primitive
+- instantiate the required subset of Stateful, Read, and Runtime services in dependency order, plus `FundingExecutor` only when funding is enabled
 - construct the `predictAnalytics` helper module and inject it into services that emit analytics
 - pass each service a scoped messenger and any persisted state slice it needs
 - coordinate feature lifecycle for enable/disable, account switch, sign-out, and teardown
@@ -276,11 +306,11 @@ Hooks provide React-friendly access to the service layer while preserving servic
 
 Hooks are organized by domain in co-located folders with barrel exports:
 
-- `hooks/events/` — `useFeaturedEvents`, `useEventList`, `useEventSearch`, `useEventDetail`, `usePriceHistory`, `usePrices`
+- `hooks/events/` — `useEventList`, `useEventDetail`, `usePriceHistory`, `usePrices`; optional featured/search/crypto hooks follow their capabilities
 - `hooks/portfolio/` — `usePositions`, `useBalance`, `useActivity`, `usePnL`
 - `hooks/trading/` — `useTrading`
 - `hooks/transactions/` — `useTransactions`
-- `hooks/live-data/` — `useLiveData`
+- optional `hooks/live-data/` — `useLiveData` when a live product capability ships
 - `hooks/navigation/` — `usePredictNavigation`
 - `hooks/guard/` — `usePredictGuard`
 
@@ -288,9 +318,9 @@ Hooks are organized by domain in co-located folders with barrel exports:
 
 Event and portfolio hooks are granular — each hook triggers exactly one `useQuery` or `useInfiniteQuery` call from `@metamask/react-data-query`. This means a component that only needs the balance does not trigger position, activity, or P&L queries. The actual read logic lives in BaseDataService-backed services via messenger.
 
-#### Deep imperative hooks
+#### Imperative integration hooks
 
-`useTrading`, `useTransactions`, and `useLiveData` remain deep because they wrap imperative service operations and lifecycle concerns (order state machines, transaction orchestration, WebSocket subscriptions).
+`useTrading`, `useTransactions`, and optional `useLiveData` expose small React-friendly interfaces over deep service workflows. State machines, idempotency, reconciliation, and subscription lifecycle remain in services rather than hooks.
 
 #### Navigation and guard hooks
 
@@ -304,11 +334,11 @@ See [hooks.md](./hooks.md) for detail.
 
 ### Layer 4 — Product UI modules
 
-Product UI modules are organized into three tiers with one top-level folder per tier: `components/` for primitives, `widgets/` for composed product sections, and `views/` for route-level surfaces. Top-level does not mean public; exports still flow through the package public API.
+Product UI modules may use three tiers: `components/` for proven reusable primitives, `widgets/` for composed sections, and `views/` for routes. This is a long-term organization, not a Kalshi launch file checklist. Vertical slices reuse app design-system and existing venue-neutral presentation where safe. Top-level does not mean public; exports flow through the package entrypoint.
 
 #### Tier 1: Predict design system primitives
 
-Roughly seven reusable, compound primitives form the UI vocabulary of PredictNext:
+Candidate reusable primitives include:
 
 - `EventCard`
 - `OutcomeButton`
@@ -318,7 +348,7 @@ Roughly seven reusable, compound primitives form the UI vocabulary of PredictNex
 - `Chart`
 - `Skeleton`
 
-These should feel like product-specific design system building blocks: composable, visually consistent, and free of venue logic.
+Create/extract one when real callers prove reuse. Primitives remain composable, visually consistent, and free of Venue protocol, identity, and workflow logic.
 
 #### Tier 2: Composed widgets
 
@@ -346,66 +376,71 @@ See [components.md](./components.md) for detail.
 ### Reading data: events list
 
 ```text
-PredictHome → useEventList(params)
-            → marketDataQueries.getEvents(params)
+PredictHome → useEventList(venueId, params)
+            → marketDataQueries.getEvents(venueId, params)
             → useInfiniteQuery({ queryKey: descriptor.queryKey })
                                     ↕ (messenger bridge)
-                          MarketDataService.getEvents() → this.fetchQuery(descriptor) → PredictSessionService.getClient(ownerAddress) → PredictClient.fetchEvents() → PolymarketAdapter → Polymarket Gamma API
+                          MarketDataService.getEvents(venueId, params)
+                            → this.fetchQuery(descriptor)
+                            → VenueAdapterRegistry.get(venueId).marketData.fetchEvents(params)
+                            → local Venue API or MetaMask Predict backend
 ```
 
 Key properties of this flow:
 
-- the UI does not know which venue is serving data
-- query descriptors are stable, explicit contracts for keys, stale time, account scoping, and invalidation families
-- caching and retries happen below React
-- read operations never route through `PredictController`
+- `venueId` is explicit and part of every market-data cache key,
+- public browsing does not require a selected wallet or Venue Session,
+- the UI does not know whether the adapter is local or remote,
+- query descriptors own keys, stale time, scope, and invalidation families,
+- bounded read retry and caching happen below React,
+- reads never route through `PredictController`.
 
 ### Writing data: place order
 
 ```text
-OrderScreen → useTrading.placeOrder(params)
-                → messenger.call('PredictTradingService:placeOrder', params)
-                    → TradingService.placeOrder(params)
-                        → this.update() → [state machine: PREVIEW → DEPOSITING → PLACING → SUCCESS]
-                        → messenger.call('PredictSessionService:getClient', ownerAddress)
-                        → PredictClient.getOrderPreview()
-                        → fundingExecutor.executePlan(plan, { reason: 'order_funding', idempotencyKey }) (if needed)
-                        → PredictClient.submitOrder()
+OrderScreen → useTrading.placeOrder({ scope, previewId })
+                → messenger.call('PredictTradingService:placeOrder', {
+                     scope, previewId, idempotencyKey
+                   })
+                    → TradingService.placeOrder(...)
+                        → this.update() → [PREVIEWING → PLACING → SUCCESS | ERROR]
+                        → PredictSessionService.getClient(scope)
+                        → PredictClient.trading.submitOrder({
+                             previewId, idempotencyKey
+                           })
+                        → adapter/backend revalidates preview + account + limits
                         → portfolioWriter.onOrderConfirmed(...)
 ```
 
 Key properties of this flow:
 
-- the view expresses intent, not protocol steps
-- the hook addresses `TradingService` directly through the Engine messenger; `PredictController` is not on the path
-- the state machine is implemented through `this.update()` on the `BaseController` state slice, so subscribers re-render reactively from Redux
-- order sequencing is buried in `TradingService`
-- funding requirements are hidden from the caller
-- order preview is a venue quote/read, not a product workflow
-- venue-specific order submission payloads are hidden in `PredictClient`
-- `PredictClient.submitOrder()` is raw venue submission, not a deposit-then-order workflow
-- deposit-before-order funding uses the shared lifecycle-aware `FundingExecutor` primitive directly, not the public `TransactionService.deposit` action
-- cache-relevant order lifecycle milestones are pushed to `PortfolioReadModelWriter` via **direct semantic calls** (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`); Service Events are emitted for observers only
+- the view expresses intent, not protocol steps,
+- `scope` includes Venue and authenticated Predict User context,
+- the hook addresses `TradingService` directly; `PredictController` is not on the path,
+- the backend/adapter treats `previewId`, not a mutable echoed preview, as authority,
+- the idempotency key makes lost-response reconciliation safe,
+- explicit Deposit-before-Order is the Kalshi v1 policy; optional automatic funding can be added inside `TradingService` later,
+- cache-relevant milestones use direct semantic writer calls; Service Events remain observation-only.
 
 ### Real-time data: live prices and game updates
 
 ```text
-Venue stream → PredictClient.createSubscription()
-              → LiveDataService normalizes incoming update
-                ├─ calls MarketDataReadModelWriter.applyPriceUpdates(updates)
-                ├─ calls PortfolioReadModelWriter.applyPortfolioUpdate(update)
-                └─ optional direct subscribers receive the same canonical update
-                      → UI re-renders from updated query cache
+VenueAdapter.liveData?.subscribe(...)
+  → LiveDataService normalizes incoming update
+    ├─ MarketDataReadModelWriter.applyPriceUpdates(updates)
+    ├─ PortfolioReadModelWriter.applyPortfolioUpdate(update)
+    └─ optional direct subscribers receive the same canonical update
+          → UI re-renders from updated query cache
 ```
 
 Key properties of this flow:
 
-- channel subscription is product-level and typed at the hook/service boundary
-- socket ownership lives entirely in `LiveDataService`
-- reconnection, multiplexing, and channel fan-out are internal service concerns
-- read services own cache mutation; `LiveDataService` holds constructor-injected `MarketDataReadModelWriter` and `PortfolioReadModelWriter` interfaces and calls **named methods** on each when an update arrives
-- UI should not combine stale query results with separate overlay state
-- workflow services communicate cache-relevant changes through **direct semantic method calls** on the cache-owning writer interface rather than loose Service Events; Service Events are reserved for observers (analytics, optional listeners)
+- live data is an optional capability; bounded polling is valid for Kalshi v1,
+- channel subscription is product-level and typed,
+- socket ownership, reconnection, multiplexing, and fan-out live in `LiveDataService`,
+- read services own cache mutation through named writer methods,
+- UI does not combine stale query results with a separate overlay,
+- Service Events remain for analytics, diagnostics, and optional listeners.
 
 ## 4. State Management Overview
 
@@ -438,17 +473,24 @@ Stateful services (per [services.md §1.5](./services.md#15-service-shapes)) ext
 
 Use this for:
 
-- active order workflow state (TradingService): status, active preview, last result, last error, selected payment token
-- venue session-derived UI state (PredictSessionService): account readiness summary, current account context
+- active Order workflow projection (TradingService): status, preview reference, last result/error, selected payment token,
+- Account Readiness and Account Setup projection keyed by `PredictAccountScope` (PredictSessionService),
+- safe funding-operation projections/references keyed by account scope (TransactionService).
 
 Why it belongs here:
 
-- needs cross-component reactivity (multiple views observe order status, multiple hooks observe readiness)
-- the owning service is the only writer; the rest of the system reads through selectors
-- field-level metadata lets each service mark workflow state `persist: false` while keeping durable identifiers `persist: true`
-- debug snapshots automatically include the state, which is valuable for diagnosing stuck orders
+- multiple views may observe Order, setup, or readiness state,
+- the owning service is the only writer; the rest of the system reads through selectors,
+- field-level metadata keeps sensitive and volatile fields non-persistent,
+- safe operation references may persist when app-restart recovery requires them.
 
-Most workflow state is `persist: false`. If the app crashes mid-order, the user starts again at preview; that is acceptable product behavior and avoids storing volatile in-flight state.
+Form inputs, raw Venue Sessions, credentials, OTPs, and KYC values are never persisted. An uncommitted Order Preview may be discarded after a crash. A committed Order, Deposit, or Withdraw is different: its durable backend Venue Operation survives the app, and mobile resumes/reconciles it by operation reference.
+
+### Durable remote operation state
+
+For a remote Venue, durable Account Setup and financial operation state lives on the owned backend. This includes idempotency records, external Venue references, commit outcomes, and reconciliation status. Mobile stores only non-secret references required to resume observation.
+
+App teardown may cancel local listeners; it must not erase or duplicate a committed operation.
 
 ### Service internals
 
@@ -536,7 +578,7 @@ Component view tests are the primary surface because they validate meaningful us
 
 #### Service integration tests
 
-Services should be tested by mocking only their immediate venue seam (`PredictSessionService` returning a mock `PredictClient`) and verifying behavior of the deep module:
+Services should be tested through their immediate seams—a fake public market-data capability or a `PredictSessionService` returning a fake `PredictClient`—and verify behavior of the deep module:
 
 - retries
 - state machine transitions
@@ -554,7 +596,7 @@ Standalone unit tests should be limited to pure utilities with real branching va
 
 ### Outcome target
 
-By concentrating complexity in deep modules and shrinking API surface area, the test suite should need far less scaffolding than the current system. The target is roughly an 85% to 90% reduction from the current 87K lines of test code while keeping or improving confidence.
+Concentrating complexity in deep modules should reduce brittle scaffolding, but test-code reduction is not a success metric. Delete legacy tests only after a replacement test at the new interface proves the same behavior. Identity, Account Setup, credentials, Orders, funding, idempotency, app-restart recovery, and PII/secret redaction require explicit risk-based coverage.
 
 Reference [testing.md](./testing.md).
 
@@ -594,14 +636,32 @@ Illustrative entrypoint:
 
 ```typescript
 export type {
+  PredictUserId,
+  PredictWalletAccountId,
+  PredictUserContext,
+  PredictAccountScope,
+  PredictVenueId,
   PredictEvent,
   PredictMarket,
   PredictOutcome,
   PredictPosition,
+  PredictOrder,
   OrderPreview,
   OrderReceipt,
+  TradingWorkflowState,
+  SelectedPaymentToken,
+  PredictFees,
   PredictBalance,
+  PredictPnL,
+  PredictEligibility,
+  PredictAccountReadinessBlockerCode,
+  PredictAccountReadinessBlocker,
   PredictAccountReadiness,
+  AccountSetupState,
+  FundingPlan,
+  FundingReceipt,
+  FundingReceiptStatus,
+  FundingOperationProjection,
 } from './types';
 export { PredictError, PredictErrorCode } from './errors';
 export type { PredictErrorCategory } from './errors';
@@ -621,13 +681,9 @@ export {
 } from './components';
 // Event query hooks
 export {
-  useFeaturedEvents,
   useEventList,
-  useEventSearch,
   useEventDetail,
   usePriceHistory,
-  useCryptoPriceHistory,
-  useCryptoReferencePrice,
   usePrices,
 } from './hooks/events';
 // Portfolio query hooks
@@ -640,15 +696,18 @@ export {
 // Imperative and lifecycle hooks
 export { useTrading } from './hooks/trading';
 export { useTransactions } from './hooks/transactions';
-export { useLiveData } from './hooks/live-data';
 export { usePredictNavigation } from './hooks/navigation';
 export { usePredictGuard } from './hooks/guard';
 export {
   selectPredictEligibility,
   selectPredictReadiness,
+  selectPredictAccountSetup,
+  selectPredictFundingOperations,
   selectPredictActiveOrder,
   selectPredictSelectedPaymentToken,
 } from './selectors';
+// Optional featured/search/crypto, Resting Order, and live-data hooks are exported only when
+// their product capability is implemented.
 ```
 
 ### Internal modules
@@ -657,6 +716,7 @@ The following stay internal and are not exported from the feature root:
 
 - services
 - adapters
+- temporary migration `compat/`
 - widgets
 - query descriptors
 - utils
@@ -683,10 +743,12 @@ This directory is intended to describe the whole PredictNext feature architectur
 - [architecture.md](./architecture.md) — master architecture overview, layering, state, errors, and boundaries.
 - [interface-ledger.md](./interface-ledger.md) — canonical query descriptors, runtime namespaces, Service Events, hooks, selectors, errors, and public entrypoint exports.
 - [services.md](./services.md) — service layer design, controller surface, and service interaction patterns.
-- [adapters.md](./adapters.md) — PredictClient contract, venue adapter responsibilities, and extension model.
+- [adapters.md](./adapters.md) — capability-grouped Venue adapter and session-bound Predict Client contracts.
 - [hooks.md](./hooks.md) — React integration layer, query hooks, imperative hooks, and local derived-state guidance.
 - [components.md](./components.md) — UI composition model, primitive/component tiers, and rendering boundaries.
 - [state-management.md](./state-management.md) — where each category of state lives and why.
 - [error-handling.md](./error-handling.md) — Predict error model, recovery behavior, and UI error states.
-- [testing.md](./testing.md) — recommended testing pyramid and scope boundaries for adapters, services, and views.
-- [../CONTEXT.md](../CONTEXT.md) — domain vocabulary for Events, Markets, Outcomes, Positions, Orders, and account readiness.
+- [testing.md](./testing.md) — risk-based test surfaces for contracts, adapters, services, views, security, and recovery.
+- [migration/README.md](./migration/README.md) — two-track migration overview.
+- [migration/kalshi-first.md](./migration/kalshi-first.md) — active Kalshi vertical-delivery track.
+- [../CONTEXT.md](../CONTEXT.md) — canonical product vocabulary.

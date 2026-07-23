@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>PredictNext — Architecture &amp; Migration Report</title>
+<title>PredictNext — Historical Architecture &amp; Migration Report</title>
 <style>
   :root {
     --bg: #0b0f1a;
@@ -389,17 +389,24 @@
 </head>
 <body>
 
+<div style="max-width:1180px;margin:20px auto 0;padding:16px 20px;border:2px solid #f59e0b;border-radius:12px;background:#2b2110;color:#fde68a;font-family:Inter,system-ui,sans-serif;">
+  <strong>Historical snapshot:</strong> this report describes the original Polymarket-first, seven-phase plan. It is superseded for delivery and stable interfaces by
+  <a href="docs/migration/kalshi-first.md" style="color:#fef3c7;">Kalshi-First Vertical Delivery</a>,
+  <a href="docs/migration/README.md" style="color:#fef3c7;">the two-track migration plan</a>, and
+  <a href="docs/interface-ledger.md" style="color:#fef3c7;">the interface ledger</a>.
+</div>
+
 <header class="hero">
   <div class="eyebrow">MetaMask Mobile · PredictNext</div>
-  <h1>Predict Architecture &amp; Migration Report</h1>
+  <h1>Historical Predict Architecture &amp; Migration Report</h1>
   <p class="lede">
-    A consolidated view of the legacy Predict implementation, the target PredictNext architecture, and the
-    7-phase inside-out migration plan that bridges them without disrupting development or shipping.
+    A snapshot of the original legacy analysis, target architecture, and Polymarket-first seven-phase plan.
+    The active plan is now Kalshi-first vertical delivery followed by incremental Polymarket strangling.
   </p>
   <div class="meta">
     <span><strong>Source:</strong> <code class="inline">app/components/UI/PredictNext/docs/</code></span>
     <span><strong>Scope:</strong> Architecture, services, adapters, hooks, components, state, errors, testing, 7 migration phases</span>
-    <span><strong>Status:</strong> Planning / pre-implementation</span>
+    <span><strong>Status:</strong> Superseded planning snapshot — see canonical Markdown docs</span>
   </div>
 
   <div class="toc">
@@ -991,7 +998,7 @@ Phase 2 → Phase 3               Phase 2 → Phase 4
       <tr>
         <td>Tests</td>
         <td>201,368 LoC test · 1.91 : 1 ratio · large mock-heavy controller test</td>
-        <td>Component view tests (real Redux, minimal mocks) primary; ~85–90 % target reduction</td>
+        <td>Risk-based replacement coverage; no test-line reduction target</td>
       </tr>
       <tr>
         <td>Public surface</td>

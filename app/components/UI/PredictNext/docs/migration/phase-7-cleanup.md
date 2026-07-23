@@ -1,82 +1,84 @@
-# Phase 7: Cleanup
+# Phase 7: Incremental Cleanup and Final Cutover
+
+> **Track status:** cleanup follows each migrated capability. A final directory rename is optional housekeeping, not a launch milestone.
 
 ## Goal
 
-Remove the legacy Predict implementation, delete the translation layer, rename `PredictNext/` to `Predict/`, and finish the migration with zero old-code dependencies remaining.
+Delete legacy implementation, compatibility, state, tests, and imports as soon as their replacement is proven. Finish with no runtime dependency on the old Predict architecture.
 
-## Prerequisites
+## Per-Capability Cleanup
 
-- Phase 6 (UI Migration) complete.
-- All routed screens and external embed points are using `PredictNext`.
-- Zero runtime imports from the old `app/components/UI/Predict/` directory remain in the codebase.
+After a capability reaches production parity:
 
-## Deliverables
+1. remove its feature-flag fallback when rollout policy permits,
+2. delete old controller/provider workflow code,
+3. delete temporary compat mapper/state synthesis for that capability,
+4. remove obsolete legacy tests only after replacement coverage exists,
+5. remove dead messenger actions/selectors/events,
+6. update docs to the shipped behavior,
+7. verify no cross-Venue/cache/identity fallback remains.
 
-- Deleted `app/components/UI/Predict/` directory.
-- Deleted `app/components/UI/PredictNext/compat/` directory.
-- Renamed `app/components/UI/PredictNext/` to `app/components/UI/Predict/`.
-- Updated import paths across the entire repository.
-- Updated `CODEOWNERS` and documentation.
+Do not retain all legacy code until one final cleanup PR.
 
-## Step-by-Step Tasks
+## Final Verification
 
-1. **Final Verification**:
-   - Run a global grep for `from '.*UI/Predict/'` and `from ".*UI/Predict/"` to ensure no production code still imports from the old directory.
-   - Verify that all tests (unit, component view, E2E) pass.
+Before deleting the remaining legacy tree:
 
-2. **Delete Legacy Code**:
-   - Delete the entire `app/components/UI/Predict/` tree.
-   - Delete the `app/components/UI/PredictNext/compat/` translation layer. It is no longer needed since all consumers now use canonical types.
+- all routed screens and external embeds use canonical public exports,
+- all Polymarket and Kalshi capabilities use Venue-qualified interfaces,
+- no production import reaches legacy provider/controller/hooks,
+- no temporary compat path remains,
+- all durable remote writes have reconciliation/ops ownership,
+- secret/PII checks pass,
+- unit, integration, component-view, and required E2E suites pass,
+- iOS and Android smoke checks pass,
+- rollback is no longer dependent on deleted code.
 
-3. **Rename Directory**:
-   - Execute: `git mv app/components/UI/PredictNext/ app/components/UI/Predict/`.
-   - This preserves git history for the new implementation while restoring the original directory name.
+## Delete Legacy Code
 
-4. **Update Import Paths**:
-   - Update all import paths that were pointing to `PredictNext` to point to `Predict`.
-   - Affected areas include:
-     - `app/core/Engine/`
-     - `app/core/NavigationService/`
-     - `app/core/DeeplinkManager/`
-     - `app/components/Views/Homepage/`
-     - `app/components/Views/Wallet/`
-     - `tests/component-view/`
-     - `tests/smoke/` and `tests/regression/` (E2E tests)
+Execute these steps only after each deleted capability has replacement production code proven in CI and replacement coverage through the new interface.
 
-5. **Update Documentation and Metadata**:
-   - Update `CODEOWNERS` if the team structure has changed.
-   - Rewrite `app/components/UI/Predict/README.md` and other docs to describe the final shipped architecture, removing references to the migration process where they are no longer relevant.
-   - Update any scripts or CI configurations that referenced `PredictNext`.
+- remove remaining old `app/components/UI/Predict/` implementation files,
+- remove `PredictNext/compat/`,
+- remove old controller messenger/state wiring,
+- remove dead fixtures/mocks/scripts,
+- update external imports and CODEOWNERS.
 
-6. **Final Test Run**:
-   - Run the full suite of component view tests.
-   - Run all Predict-related E2E tests (smoke and regression).
-   - Perform a final manual smoke test on both iOS and Android.
+Use repository-wide import and symbol searches rather than assuming a directory is unused.
 
-## Files Created
+## Directory Name
 
-| File path                             | Description                              | Estimated lines |
-| ------------------------------------- | ---------------------------------------- | --------------: |
-| `app/components/UI/Predict/README.md` | Updated final architecture documentation |         100-200 |
+After old `Predict/` is deleted, decide whether to:
 
-## Files Affected in Old Code
+- rename `PredictNext/` to `Predict/`, or
+- keep the existing path to preserve history/import stability.
 
-| File path                          | Expected change                                       |
-| ---------------------------------- | ----------------------------------------------------- |
-| `app/components/UI/Predict/` (old) | Deleted.                                              |
-| `app/components/UI/PredictNext/`   | Renamed to `app/components/UI/Predict/`.              |
-| `~15 external files`               | Import paths updated from `PredictNext` to `Predict`. |
+If renaming still provides more clarity than churn:
+
+```bash
+git mv app/components/UI/PredictNext app/components/UI/Predict
+```
+
+Then update Engine, navigation, deeplinks, external views, tests, scripts, and docs in one mechanical change.
+
+## Documentation
+
+Final docs describe the shipped architecture:
+
+- remove transitional track/phase language,
+- retain durable identity, capability, idempotency, recovery, and security decisions,
+- document actual supported Venue/order/funding capabilities,
+- keep operational reconciliation and credential procedures in their owned runbooks,
+- remove stale line-count/test-reduction projections.
 
 ## Acceptance Criteria
 
-- The `app/components/UI/PredictNext/` directory no longer exists.
-- The `app/components/UI/Predict/` directory contains the new architecture.
-- The `compat/` translation layer is completely removed.
-- All tests pass, and the app functions perfectly.
-- No "PredictNext" terminology remains in production code or import paths.
-
-## Estimated PRs
-
-- 1-2 PRs total.
-  1. Deletion of old code and translation layer.
-  2. Directory rename and global import update.
+- no legacy runtime imports or compatibility modules,
+- no global active-Venue assumption where multi-Venue data exists,
+- no wallet-address-as-person-identity path,
+- no old controller/provider business logic,
+- no redundant tests without replacement evidence,
+- all supported Venues use canonical capability modules,
+- all tests and platform smoke checks pass,
+- docs match the shipped system,
+- optional rename is complete or explicitly declined.

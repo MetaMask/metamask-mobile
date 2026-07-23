@@ -1,233 +1,177 @@
-# Phase 1: Foundation
+# Phase 1: Remaining Foundation for Polymarket Migration
+
+> **Track status:** this phase belongs primarily to the post-Kalshi Polymarket strangler track. Kalshi implements only the minimum shared foundation required by its active vertical slices. See [kalshi-first.md](./kalshi-first.md).
 
 ## Goal
 
-Establish the canonical data model, domain context, query descriptor contract, `VenueAdapter` contract (with derived `PredictClient` type), session-service contract, shared error primitives, UI display model contracts, and bidirectional translation layer that every later PredictNext module depends on.
+Complete the canonical and compatibility foundation needed to move legacy Polymarket capabilities into PredictNext after the Kalshi-first interfaces have production evidence.
 
-## Prerequisites
+Do not block Kalshi on:
 
-- None.
+- a full bidirectional legacy mapper,
+- every legacy Polymarket field,
+- editable zero-amount transaction templates,
+- every target hook/view/barrel,
+- a complete Polymarket adapter contract.
+
+## Preconditions
+
+- the shared Kalshi-first identity, capability, account-scope, error, funding, and Order contracts have shipped and been reviewed,
+- Stage 0 has no open P0 identity, security, or product-topology decision,
+- one first Polymarket capability is identified and bounded,
+- its current behavior has characterization coverage and a rollback point.
+
+## Shared Foundation Implemented by the Kalshi Track
+
+The active track should already establish:
+
+- domain vocabulary distinguishing Predict User, Funding Wallet, and Venue Account,
+- `PredictUserId`, `PredictUserContext`, and Venue-qualified `PredictAccountScope`,
+- canonical Event, Market, Outcome, Position, Fill/Activity, Balance, Order Preview/Receipt, Funding Plan/Receipt, Account Readiness, and Account Setup types required by Kalshi,
+- capability-grouped `VenueAdapter` contracts,
+- public market data separated from account-scoped `PredictClient`,
+- remote adapter/mobile-backend contract and runtime schemas,
+- canonical errors,
+- Venue-qualified query descriptor conventions,
+- prepare/confirm/commit and durable Venue Operation semantics,
+- module public-boundary convention.
+
+Do not redefine those interfaces in this phase. Amend them only with evidence from the first Polymarket capability.
 
 ## Deliverables
 
-- Canonical domain types in `app/components/UI/PredictNext/types/index.ts`
-- Query descriptor contract and descriptor modules in `app/components/UI/PredictNext/query-descriptors/`
-- PredictNext glossary in `app/components/UI/PredictNext/CONTEXT.md`
-- PredictNext package overview in `app/components/UI/PredictNext/README.md`
-- `VenueAdapter` contract and derived `PredictClient` type in `app/components/UI/PredictNext/adapters/types.ts`
-- PredictSessionService contract in `app/components/UI/PredictNext/services/predict-session/types.ts`
-- Shared error class in `app/components/UI/PredictNext/errors/PredictError.ts`
-- Translation layer in `app/components/UI/PredictNext/compat/`
-- PredictNext public barrel exports in `app/components/UI/PredictNext/index.ts` and related subdirectory barrels
+- the additional canonical fields required for current Polymarket behavior,
+- temporary `compat/` types and mappers created just before first legacy delegation,
+- Polymarket-specific optional capability contracts proven by real behavior,
+- query descriptors for the first Polymarket capability,
+- characterization and mapper tests,
+- explicit migration-only adapters for legacy transaction templates where required,
+- public exports only for stable caller-facing types/modules.
 
-## Step-by-Step Tasks
+## Tasks
 
-1. Create the canonical domain type module at `app/components/UI/PredictNext/types/index.ts`.
-   - Define and document at minimum:
-     - `PredictEvent` — legacy equivalent: `PredictMarket`
-     - `PredictMarket` — legacy equivalent: `PredictOutcome`
-     - `PredictOutcome` — legacy equivalent: `PredictOutcomeToken`
-     - `PredictMarketGroup` — legacy equivalent: `PredictOutcomeGroup`
-     - `PredictGame` — optional sports metadata on an Event
-     - `PredictTeam` — team metadata used inside `PredictGame`
-     - `PredictPosition`
-     - `PredictOrder`
-     - `ActivityItem`
-     - `PredictBalance` — settlement-currency decimal string balance amount
-     - `PredictVenueInfo` — active venue metadata, settlement currency metadata, and venue capabilities
-     - `OrderPreview`
-     - `OrderReceipt` — legacy equivalent: `OrderResult`
-     - `FundingPlan`
-     - `FundingReceipt`
-     - `ChainTransactionRequest`
-     - `TransactionState`
-     - `LivePricePoint`
-     - `PriceHistoryPoint`
-     - `CryptoPricePoint`
-     - `ReferencePrice`
-     - `PredictAccountReadiness` — product-level venue/account readiness (`canTrade`, status, blockers), not venue account internals, feature flags, or app-wide network guard state
-     - `PredictEligibility`
-     - `VenueCapabilities`
-     - `PredictVenueStatus`
-     - account setup workflow state types
-   - Add JSDoc for every exported type explaining the canonical meaning and the old-code equivalent where relevant.
-   - Explicitly encode the naming conversion from old `Market/Outcome/OutcomeToken` to new `Event/Market/Outcome` in comments so future migrations do not reintroduce old terminology.
-   - Preserve all fields needed to map back to current legacy UI types during Phases 2-5. The compat layer should be mostly field renames, not data synthesis. If a field is intentionally dropped, document why and update the migration plan before implementation.
+### 1. Inventory the first capability
 
-2. Split navigation and feature-flag types into dedicated modules under `PredictNext/types/`.
-   - Create `app/components/UI/PredictNext/types/navigation.ts`.
-   - Create `app/components/UI/PredictNext/types/flags.ts` if feature flags remain feature-owned.
-   - Mirror the useful parts of:
-     - `app/components/UI/Predict/types/navigation.ts`
-     - `app/components/UI/Predict/types/flags.ts`
-   - Rename route params to canonical nouns where that improves clarity, for example `eventId`, `marketId`, `outcomeId`.
+Choose one bounded Polymarket capability, preferably public Event reads.
 
-2.5. Create the internal query descriptor contract in `app/components/UI/PredictNext/query-descriptors/`.
+Record:
 
-- Define `PredictQueryDescriptor<TKey>` with `queryKey`, `family`, `staleTime`, and `accountScoped`.
-- Create `marketDataQueries` and `portfolioQueries` modules with the descriptor names and key shapes from [../interface-ledger.md](../interface-ledger.md).
-- Keep descriptor modules internal. They are imported by hooks, read services, cache writers, and tests, but not exported from `PredictNext/index.ts`.
-- Encode account-scoping in descriptors so market data descriptors omit `ownerAddress` and portfolio descriptors include it.
-- Move stale-time constants and invalidation families into descriptors so hooks and services do not duplicate cache policy.
+- legacy method and consumers,
+- required canonical fields,
+- Venue-specific DTOs and transformations,
+- cache/query behavior,
+- existing tests that characterize behavior,
+- rollback point.
 
-3. Define the venue seam in `app/components/UI/PredictNext/adapters/types.ts`.
-   - Export a single canonical `VenueAdapter` interface grouped by concern. Each method takes a trailing `session: PredictVenueSession` parameter so adapters stay stateless:
-     - venue metadata: `getVenueInfo`,
-     - session creation: `createSession`,
-     - event reads: `fetchEvents`, `fetchEvent`, `fetchEventsByIds`, `fetchCarouselEvents`, `searchEvents`, `fetchEventSeries`,
-     - market data reads: `fetchPriceHistory`, `fetchCryptoPriceHistory`, `fetchCryptoReferencePrice`, `fetchPrices`,
-     - quote reads: `getOrderPreview`,
-     - account-scoped operations: `fetchPositions`, `fetchActivity`, `fetchBalance`, `fetchUnrealizedPnL`, `fetchAccountReadiness`, `submitOrder`, `createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`, `submitFundingFollowUp`,
-     - typed live subscriptions: `createSubscription` with a discriminated channel request.
-   - Export `PredictClient` as a derived type alias — the session-bound view of `VenueAdapter` with the trailing `session` parameter stripped from every method. There is no separately maintained `PredictClient` interface.
-   - Define deposit and withdraw Funding Plan params as discriminated unions with explicit `editable-template` and `fixed-amount` modes. `editable-template` is required for legacy `prepareDeposit` and `prepareWithdraw` parity because the current confirmation / Transaction Pay flow edits zero-amount transfer templates after transaction creation. `fixed-amount` requires an `amount` so forgetting an amount cannot silently create an editable template.
-   - Define `FundingPlan`, `FundingReceipt`, and `ChainTransactionRequest` so funding can be an EVM wallet transaction, Solana wallet transfer with venue follow-up, venue API operation, or unsupported capability.
-   - Define Account Setup workflow state and actions for create/link user, OTP verification, profile submission, KYC, and resumable status checks. This state belongs to `PredictSessionService`, not `PortfolioService`.
-   - Include explicit method return types using the new canonical domain types.
-   - Use explicit venue terms: `venueId` for the external prediction market identifier and `PredictVenueId` for its union type.
-   - Use `ownerAddress` for the MetaMask account at public PredictNext boundaries. The session-bound `PredictClient` view is created for a specific `ownerAddress`; account-scoped methods on the bound view do not require callers to pass `ownerAddress` again.
-   - Do not expose venue account addresses, proxy wallet addresses, wallet types, or deployment flags in canonical account readiness. Those are session/adapter context details; temporary Polymarket migration helpers may expose them only to preserve legacy shapes until Phase 7.
-   - Define a small `PredictSignerProvider` dependency for `PredictSessionService`. Product services never pass legacy `Signer` objects, signing callbacks, API keys, headers, or session objects to venue methods.
-   - Add `VenueCapabilities` describing only **product-visible** features: deposits, withdrawals, manual claims, automatic settlement, account setup, live prices, orderbook, and crypto reference prices. Venue mechanics such as proxy wallets, signing schemes, transaction shape, and sub-account routing stay below the adapter seam and are not exposed as capability flags.
-   - Use decimal strings for canonical product financial values, including balances, prices, volumes, fees, PnL, and order preview amounts. Raw token integers stay inside adapter internals and Funding Plan creators; JavaScript numbers are allowed only for non-financial counts, timestamps, and display-only chart coordinates that are never used for order sizing or settlement.
-   - Keep the contract complete and non-optional. Every adapter implements every method; services branch on `client.capabilities`, not method existence.
-   - Unsupported capability methods must throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` if called. Reserve `VENUE_UNAVAILABLE` for venue outages or unreachable venue APIs.
-   - Keep the contract venue-agnostic so `PolymarketAdapter`, later `KalshiAdapter`, or another adapter all fit the same shape.
-   - Define an adapter registry/resolver used by `PredictSessionService`. PredictNext may have multiple venue implementations registered, but only one active venue is expected at a time; services ask `PredictSessionService` for a client instead of resolving venues directly.
-   - Do not include analytics metadata helpers in `VenueAdapter`. Analytics belongs to the injected `predictAnalytics` helper module (constructed by the composition root, **not** a first-class service).
+Do not inventory the whole feature as a prerequisite.
 
-4. Define the session service contract in `app/components/UI/PredictNext/services/predict-session/types.ts`.
-   - Export `PredictSessionService` with `getClient(ownerAddress, venueId?)` and `invalidate(ownerAddress, venueId?)`.
-   - `PredictSessionService` owns signer resolution, session caching keyed by active `venueId` and `ownerAddress`, eligibility/readiness session state, refresh, invalidation, and construction of `PredictClient` with the active adapter/session.
-   - Do not define public session purposes/scopes. A session represents whatever authenticated context the active venue needs for that MetaMask account.
-   - Internal adapters remain stateless. The generic client uses the active adapter but does not expose it to product services.
-   - Session data is private to `PredictSessionService` and the returned generic client; services must not inspect API keys, headers, venue account addresses, wallet types, deployment flags, or session objects.
+### 2. Extend canonical types only as required
 
-5. Create the shared error model in `app/components/UI/PredictNext/errors/PredictError.ts`.
-   - Export one canonical `PredictErrorCode` enum. Start with:
-     - `GEO_BLOCKED`
-     - `FEATURE_DISABLED`
-     - `NETWORK_MISMATCH`
-     - `VENUE_UNAVAILABLE`
-     - `UNSUPPORTED_VENUE_CAPABILITY`
-     - `SERVICE_DEGRADED`
-     - `RATE_LIMITED`
-     - `INSUFFICIENT_FUNDS`
-     - `ORDER_PREVIEW_EXPIRED`
-     - `ORDER_REJECTED`
-     - `ORDER_PLACEMENT_FAILED`
-     - `DEPOSIT_FAILED`
-     - `WITHDRAWAL_FAILED`
-     - `CLAIM_FAILED`
-     - `TRANSACTION_REJECTED`
-     - `TRANSACTION_FAILED`
-     - `LIVE_DATA_DISCONNECTED`
-     - `ACCOUNT_SETUP_FAILED`
-     - `KYC_REJECTED`
-     - `OTP_INVALID`
-     - `OTP_EXPIRED`
-     - `UNSUPPORTED_NETWORK`
-     - `INVALID_WITHDRAWAL_ADDRESS`
-     - `SETTLEMENT_FAILED`
-     - `UNKNOWN`
-   - Export `PredictError` class with fields such as `code`, `cause`, `recoverable`, `context`, and `displayMessage`.
-   - Add constructors/helpers that make downstream code prefer typed errors over string matching.
-   - Keep this enum consistent across architecture, services, hooks, and testing docs.
+Canonical entities remain Venue-neutral and Venue-qualified.
 
-6. Create the translation layer in `app/components/UI/PredictNext/compat/`.
-   - Create `app/components/UI/PredictNext/compat/mappers.ts` with bidirectional mapping functions:
-     - **Canonical to legacy** (used when old controller or legacy `PolymarketProvider` needs to return old-shaped data to old consumers):
-       - `toOldMarket(event: PredictEvent): LegacyMarket`
-       - `toOldOutcome(market: PredictMarket): LegacyOutcome`
-       - `toOldOutcomeToken(outcome: PredictOutcome): LegacyOutcomeToken`
-       - Additional mappers for positions, orders, activity items as needed.
-     - **Legacy to canonical** (used when old code passes commands to new services):
-       - `toCanonicalEvent(market: LegacyMarket): PredictEvent`
-       - `toCanonicalMarket(outcome: LegacyOutcome): PredictMarket`
-       - `toCanonicalOutcome(token: LegacyOutcomeToken): PredictOutcome`
-       - Additional mappers for order params, navigation params as needed.
-   - Create `app/components/UI/PredictNext/compat/types.ts` to re-export or alias the legacy types that the mappers depend on. Import these from the old `Predict/types/` module rather than redefining them.
-   - Keep all old `Predict/` imports isolated to `compat/`. Other PredictNext modules must not import old `Predict/` types, helpers, clients, or provider code.
-   - The data shapes should remain structurally close during migration — the mappers are primarily field renames, including legacy `providerId` ↔ canonical `venueId`. Where the new canonical model intentionally differs, document the difference in the mapper and test it with legacy fixtures.
-   - This module is intentionally temporary. It will be deleted in Phase 7.
+Rules:
 
-6.5. Create presentation model contracts for public primitives.
+- use decimal strings for financial values,
+- preserve `venueId`,
+- do not put Safe/deposit-wallet mechanics into product account types,
+- keep sports/series/crypto fields optional and owned by the capability that needs them,
+- prefer typed extension metadata over turning every Polymarket field into a mandatory cross-Venue field,
+- update `CONTEXT.md` only for product language, not implementation details.
 
-- Define `EventDisplayModel` and `createEventDisplayModel(event, options)` in `app/components/UI/PredictNext/components/EventCard/`.
-- Keep `EventCard` props small: it receives `display` plus compound children, not every sports/crypto/feed variant as separate public props.
-- Export `createEventDisplayModel` alongside `EventCard` so public callers can render the selected primitive without importing widget internals.
+### 3. Create the temporary compatibility seam
 
-7. Create barrel exports so later phases import from a stable surface.
-   - Update or create:
-     - `app/components/UI/PredictNext/index.ts`
-     - `app/components/UI/PredictNext/types/index.ts` if split into multiple files
-     - `app/components/UI/PredictNext/adapters/index.ts`
-     - `app/components/UI/PredictNext/errors/index.ts`
-     - `app/components/UI/PredictNext/compat/index.ts`
-   - Export only contracts and safe primitives; do not expose service internals yet.
+Create `PredictNext/compat/` only now:
 
-8. Cross-check the glossary against the old codebase.
-   - Read `app/components/UI/Predict/README.md` and `app/components/UI/Predict/types/index.ts`.
-   - Confirm every ambiguous term used there has one canonical replacement in `CONTEXT.md`.
-   - Ensure the same term is used in type names, comments, and folder names.
+```text
+compat/
+├── types.ts
+├── mappers.ts
+├── mappers.test.ts
+└── index.ts
+```
 
-9. Add foundational tests.
-   - Write `app/components/UI/PredictNext/errors/PredictError.test.ts` if the error class has logic.
-   - Write `app/components/UI/PredictNext/compat/mappers.test.ts` to verify bidirectional translation correctness. These mappers are pure functions and benefit from thorough unit tests since every later phase depends on them.
-   - Write `app/components/UI/PredictNext/adapters/types.test-d.ts` only if the repo already uses type assertion tests; otherwise keep contract verification through compile-time usage in later service tests.
+Initial mappers are capability-specific, for example:
 
-10. Freeze the contract before delegation work starts.
+```typescript
+toLegacyMarket(event: PredictEvent): LegacyPredictMarket;
+toCanonicalEvent(market: LegacyPredictMarket): PredictEvent;
+```
 
-- Review this phase with owners of controller, hooks, and UI migration work.
-- Do not begin Phase 2 until the canonical names, client methods, session-service contract, and translation mappers are agreed.
+Rules:
 
-## Files Created
+- legacy imports are isolated to `compat/`,
+- no PredictNext implementation imports legacy helpers/providers,
+- mappings are tested against current fixtures,
+- no synthetic data is invented silently,
+- migration-only mapping is not exported from the public feature entrypoint,
+- remove each mapper when its last legacy consumer moves.
 
-| File path                                                         | Description                                                              | Estimated lines |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------: |
-| `app/components/UI/PredictNext/types/index.ts`                    | Canonical domain types and shared value objects                          |         220-320 |
-| `app/components/UI/PredictNext/types/navigation.ts`               | PredictNext route param types                                            |          60-120 |
-| `app/components/UI/PredictNext/types/flags.ts`                    | Feature-flag types if feature-owned                                      |           20-40 |
-| `app/components/UI/PredictNext/query-descriptors/index.ts`        | Query descriptor barrel exports                                          |            5-10 |
-| `app/components/UI/PredictNext/query-descriptors/marketData.ts`   | Market-data query descriptors                                            |           40-80 |
-| `app/components/UI/PredictNext/query-descriptors/portfolio.ts`    | Portfolio query descriptors                                              |           30-60 |
-| `app/components/UI/PredictNext/adapters/types.ts`                 | `VenueAdapter`, derived `PredictClient`, capabilities, and session types |         170-290 |
-| `app/components/UI/PredictNext/adapters/index.ts`                 | Adapter contract barrel exports                                          |            5-15 |
-| `app/components/UI/PredictNext/services/predict-session/types.ts` | `PredictSessionService` and signer provider contracts                    |           30-70 |
-| `app/components/UI/PredictNext/errors/PredictError.ts`            | Shared error enum and class                                              |          80-140 |
-| `app/components/UI/PredictNext/errors/index.ts`                   | Error barrel exports                                                     |            5-10 |
-| `app/components/UI/PredictNext/compat/mappers.ts`                 | Bidirectional canonical-to-legacy type mappers                           |          80-140 |
-| `app/components/UI/PredictNext/compat/types.ts`                   | Legacy type aliases imported from old Predict                            |           20-40 |
-| `app/components/UI/PredictNext/compat/index.ts`                   | Compat barrel exports                                                    |            5-10 |
-| `app/components/UI/PredictNext/compat/mappers.test.ts`            | Translation mapper unit tests                                            |         100-180 |
-| `app/components/UI/PredictNext/index.ts`                          | Public package entry point for foundational exports                      |           20-40 |
+### 4. Add Polymarket capability contracts from evidence
 
-## Files Affected in Old Code
+The top-level adapter capability groups are stable. Add optional methods only when the chosen Polymarket capability needs them, such as:
 
-| File path                                       | Expected change                                                 |
-| ----------------------------------------------- | --------------------------------------------------------------- |
-| `app/components/UI/Predict/types/index.ts`      | None; reference only while mapping old names to canonical names |
-| `app/components/UI/Predict/types/navigation.ts` | None; reference only while defining new params                  |
-| `app/components/UI/Predict/README.md`           | None; reference only                                            |
-| `app/components/UI/Predict/providers/types.ts`  | None during Phase 1                                             |
+- carousel Events,
+- Event search/series,
+- crypto reference prices,
+- Resting Order/live channels,
+- manual Claim funding.
+
+Do not restore one non-optional ~30-method adapter interface.
+
+### 5. Handle legacy transaction templates outside the canonical plan
+
+Legacy confirmation/Transaction Pay may need editable zero-amount EVM templates. That is migration behavior, not a cross-Venue Funding Plan mode.
+
+Keep it in a Polymarket migration adapter or compatibility helper until the transaction flow moves. Canonical `FundingPlan` remains a prepared, amount-specific, side-effect-free plan with a durable operation reference.
+
+### 6. Add descriptors for the selected capability
+
+- public descriptors include `venueId`,
+- account descriptors include `PredictAccountScope`,
+- descriptor modules own key, family, stale time, and scope,
+- no hook/service hand-authors an alternate key.
+
+### 7. Characterize and test
+
+Before delegation:
+
+- lock existing legacy behavior,
+- test Venue DTO → canonical mapping,
+- test canonical → legacy compatibility mapping,
+- test Venue-qualified descriptors,
+- verify no cross-Venue cache collisions,
+- verify decimal conversion and optional-field behavior.
+
+### 8. Freeze only the reviewed slice
+
+Review and freeze the interface needed by the selected capability. Do not freeze speculative contracts for later Polymarket writes or UI.
+
+## Files Created as Needed
+
+```text
+PredictNext/
+├── compat/                       # temporary, created at first delegation
+├── adapters/polymarket/          # capability implementation grows incrementally
+├── query-descriptors/            # descriptors for migrated reads
+└── types/                        # evidence-based additions
+```
 
 ## Acceptance Criteria
 
-- Every core domain concept has exactly one canonical exported type in `PredictNext/types/`.
-- Query descriptors are the only source for query keys, stale times, account scoping, and query families.
-- `PredictClient` can describe the full venue seam needed by later read, write, funding, account-setup, and live-data services without absorbing service-owned workflows.
-- `PredictClient` methods are non-optional; venue differences are expressed through `VenueCapabilities` and typed unsupported-capability errors.
-- `PredictSessionService` is the only planned owner of venue session caches; internal adapters are stateless.
-- `PredictError` eliminates stringly typed error handling for new code, including Kalshi ISV onboarding, OTP, KYC, unsupported-network, invalid-withdrawal-address, and settlement/funding failures.
-- Translation mappers in `PredictNext/compat/` correctly convert between canonical and legacy types in both directions, verified by unit tests.
-- `EventCard` has a stable `EventDisplayModel` contract so new UI work does not recreate a wide variant prop surface.
-- `PredictNext/index.ts` exposes a stable foundational API without leaking implementation internals.
-- `CONTEXT.md` and the exported types use the same terminology.
-- No production files outside `PredictNext/` are switched yet.
+- shared Kalshi-first identity/capability/write contracts remain intact,
+- the chosen Polymarket capability can be represented without Venue branches above its adapter,
+- all identifiers/cache keys are Venue-qualified,
+- legacy imports exist only in `compat/`,
+- financial values remain decimal strings in canonical modules,
+- migration-only editable templates do not pollute canonical Funding Plans,
+- characterization/replacement tests pass,
+- the capability can be delegated and rolled back independently,
+- no unrelated capability or full UI work is required.
 
-## Estimated PRs
+## Estimated PR Shape
 
-- 2-3 PRs total.
-  1. Types, navigation contracts, and translation layer with tests.
-  2. `VenueAdapter` contract, derived `PredictClient` type alias, and error model.
-  3. Optional cleanup PR for barrels and doc alignment if review scope needs to stay small.
+Prefer one reviewable capability foundation/delegation pair over a fixed phase-wide PR count:
+
+1. canonical/adapter/mapper tests for one capability,
+2. guarded legacy delegation and parity evidence,
+3. cleanup after production confidence.

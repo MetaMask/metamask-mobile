@@ -1,448 +1,342 @@
 # PredictNext Testing Strategy
 
-## Testing Philosophy
+PredictNext tests behavior through the same interfaces callers use. Test volume is not a goal; confidence at identity, credential, Order, funding, and recovery seams is.
 
-PredictNext should test behavior at the level where users experience it. The redesign favors fewer, deeper tests over large numbers of shallow unit tests.
+Follow repository conventions in `docs/testing/` and `tests/AGENTS.md` for the applicable test type.
 
-Principles:
+## Principles
 
-- test real behavior, not implementation details
-- test deep modules at their real seam boundaries
-- rely on component view tests as the main UI confidence layer
-- keep pure unit tests only where logic is truly isolated and stable
+- test deep modules through their public interface,
+- test remote contracts on both sides with shared fixtures/schemas,
+- test user-visible behavior with component-view tests,
+- test irreversible writes under duplicate, timeout, restart, and lost-response scenarios,
+- mock only immediate external seams,
+- use synthetic PII/credentials and assert redaction,
+- delete a legacy test only after stronger replacement coverage exists,
+- do not target a test-file count or test-to-source ratio.
 
-Related docs:
+## Test Surfaces
 
-- [interface ledger](./interface-ledger.md)
-- [components](./components.md)
-- [hooks](./hooks.md)
-- [state management](./state-management.md)
-- [error handling](./error-handling.md)
+| Surface                       | Purpose                                                             | Typical seam                                       |
+| ----------------------------- | ------------------------------------------------------------------- | -------------------------------------------------- |
+| Component-view tests          | Complete user behavior with real Redux/navigation/query integration | service/Engine edges only                          |
+| Service integration tests     | Workflow, cache, state, idempotency, recovery policy                | fake `PredictClient`/writer/backend operation port |
+| Mobile adapter contract tests | Runtime validation and canonical transport mapping                  | mocked owned backend HTTP                          |
+| Backend Kalshi adapter tests  | Kalshi signing, errors, DTO mapping, operation safety               | mocked Kalshi HTTP                                 |
+| Shared contract tests         | Mobile/backend schema compatibility                                 | shared JSON/OpenAPI fixtures                       |
+| Pure unit tests               | Decimal/ID/descriptor/mapper logic with real branches               | function interface                                 |
+| E2E smoke tests               | Critical real demo flow                                             | built app + demo/controlled backend                |
+| Security/privacy tests        | Secret/PII handling and authorization                               | auth/log/trace/storage seams                       |
 
-## Testing Pyramid for Predict
+Counts are determined by behavior and risk.
 
-| Level                     | What                                                     | Count (est.) | Framework                       |
-| ------------------------- | -------------------------------------------------------- | ------------ | ------------------------------- |
-| Component View Tests      | Views with real Redux state                              | ~8-10 files  | tests/component-view/ framework |
-| Service Integration Tests | Services with a mock `PredictClient` (mock bound view)   | ~7-9 files   | Jest + mock PredictClient       |
-| Venue Adapter Tests       | `VenueAdapter` implementations with mock HTTP            | ~1-2 files   | Jest + nock                     |
-| Unit Tests                | Pure utilities, query descriptors, display model mappers | ~5-8 files   | Jest                            |
-| E2E Tests                 | Full user flows                                          | ~10 files    | Detox                           |
+## Component-View Tests
 
-```text
-                    /\
-                   /  \
-                  / E2E \           ~10 files
-                 / Detox  \         Full user flows
-                /──────────\
-               / Component  \       ~8-10 files
-              / View Tests   \      Views + real Redux
-             /────────────────\
-            / Service Integration\   ~7-9 files
-           / Mock PredictClient   \  State machines, retries
-          /────────────────────────\
-         /   Venue Adapter Tests    \  ~1-2 files
-        /     Mock HTTP (nock)       \  DTO transformation
-       /──────────────────────────────\
-      /        Pure Unit Tests         \  ~3-5 files
-     /    formatPrice, parseOutcome     \  Isolated logic
-    /────────────────────────────────────\
-
-         More integration ────> More isolation
-         Fewer files     ────> More files (in old arch)
-         Higher signal   ────> Lower signal
-```
-
-This pyramid concentrates coverage where behavior is most meaningful while preserving fast feedback.
-
-## Component View Tests: Primary Surface
-
-Component view tests are the primary UI safety net.
-
-Why they are the right default:
-
-- they use the existing `tests/component-view/` framework
-- they exercise screens with realistic state
-- they avoid brittle mocking of hook internals
-- they validate composition between views, hooks, Redux, and the engine boundary
+Component-view tests are the primary UI safety net.
 
 Rules:
 
-- mock only Engine edges and allowed native modules
-- drive scenarios with presets and fixture overrides
-- assert visible behavior and interaction outcomes
-- avoid testing individual primitives in isolation
+- use existing `tests/component-view/` presets and renderers,
+- exercise real Redux/query/navigation integration,
+- mock only Engine/backend/native edges permitted by the framework,
+- assert visible behavior and user actions, not hook internals,
+- keep Venue and account scope explicit in fixtures,
+- never put real personal data or credentials in fixtures.
 
-Existing infrastructure to build on:
+### Kalshi-first scenarios
 
-- `initialStatePredict` preset
-- `renderPredictFeedView` renderer
-- `MOCK_PREDICT_MARKET` fixture
+#### Account Setup
 
-Infrastructure to expand:
+- unauthenticated Predict User is guarded,
+- new-user setup advances through canonical steps,
+- existing-user link path displays obfuscated destination,
+- flat account-exists switches to link; duplicate external-user-ID does not,
+- invalid-or-expired OTP offers resend without claiming which condition occurred,
+- pending KYC can resume,
+- KYC rejection produces unavailable behavior,
+- app remount resumes from backend operation state,
+- sensitive fields disappear with the view and never enter Redux.
 
-- presets for positions, active orders, balance states, sports games, resolved events, and geo-blocked users
-- renderers for `PredictHome`, `EventDetails`, `OrderScreen`, and `TransactionsView`
-- fixtures for canonical event, market, outcome, and position models
-- `nock` API mocks in `tests/component-view/api-mocking/predict.ts`
+#### Deposit and Balance
 
-Example view test:
+- prepare shows exact amount/network/recipient from the validated plan,
+- normal wallet confirmation is used; no manual transaction-hash input,
+- user rejection returns to a safe state,
+- submitted transfer plus failed indication shows resumable/reconciling state,
+- duplicate commit does not create duplicate visible operations,
+- balance refreshes after authoritative prefunding,
+- expired plan requires preparation again.
 
-```typescript
-import '../../../tests/component-view/mocks';
-import Engine from '../../../app/core/Engine';
-import { renderPredictHomeView } from '../../../tests/component-view/renderers/predictHome';
-import { MOCK_PREDICT_EVENT } from '../../../tests/component-view/fixtures/predict';
+#### Trading and Portfolio
 
-describe('PredictHome', () => {
-  it('shows featured carousel when events are available', async () => {
-    jest
-      .spyOn(Engine.context.PredictMarketDataService, 'getCarouselEvents')
-      .mockResolvedValue([MOCK_PREDICT_EVENT]);
+- Event/Market data is Venue-qualified,
+- expired preview requests a new preview,
+- insufficient Venue Balance points to explicit Deposit,
+- submit uses preview/idempotency references,
+- Immediate-Order-only Kalshi UI has no open/cancel/amend affordance,
+- automatic Settlement appears as Settlement activity,
+- Claim is absent for Kalshi,
+- Activity renders Fills/Settlements rather than Order creation as execution.
 
-    const { findByTestId } = renderPredictHomeView();
+#### Withdraw
 
-    expect(await findByTestId('featured-carousel')).toBeOnTheScreen();
-  });
-});
-```
+- preparation is side-effect free,
+- explicit confirmation precedes commit,
+- destination/network validation is actionable,
+- successful commit says submitted/processing, not completed,
+- operation reference remains available for support/resume,
+- repeated tap does not create a second withdrawal.
 
-Example renderer shape:
+#### Degradation
 
-```typescript
-import React from 'react';
-import { renderScreen } from '../helpers/renderScreen';
-import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome';
-import { initialStatePredict } from '../presets/predict';
-
-export function renderPredictHomeView(overrides = {}) {
-  return renderScreen(<PredictHome />, {
-    state: {
-      ...initialStatePredict(),
-      ...overrides,
-    },
-  });
-}
-```
-
-Recommended view test scenarios:
-
-- featured carousel visible when curated events exist
-- event feed empty state when search returns zero matches
-- order form disables primary action for insufficient balance
-- geo-blocked user sees unavailable flow instead of trading UI
-- resolved event shows claimable positions and hidden buy actions
-- transactions screen groups pending and completed activity correctly
+- Kalshi read-only surface remains usable when account writes are unavailable,
+- Kalshi kill switch does not change legacy Polymarket,
+- stale prices disable Order commit while browsing remains possible,
+- polling fallback is represented honestly when live data is absent.
 
 ## Service Integration Tests
 
-Service integration tests exercise service logic with a mocked `PredictClient` returned by `PredictSessionService`. The service should be treated as a deep module with one public interface and internal workflow that deserves direct verification.
+Treat each service as a deep module. Use a fake immediate dependency, not mocks of private helpers.
 
-What to test here:
+### PredictSessionService
 
-- state-machine transitions
-- retries and fallback behavior
-- cache patching and invalidation decisions through `MarketDataReadModelWriter` and `PortfolioReadModelWriter`
-- optimistic portfolio patch reconciliation and rollback
-- `AccountReadinessPolicy` blocker precedence through `PredictSessionService`
-- `FundingExecutor` idempotency, cancellation, venue follow-up, and teardown behavior
-- mapping of raw client/adapter failures to `PredictError`
+- scope key includes Venue, Predict User, and optional canonical CAIP-10 wallet account without cross-namespace case normalization,
+- wallet is not treated as person identity,
+- session cache is isolated by account scope,
+- account setup delegates through `client.account.setup`, never raw route paths,
+- readiness blocker precedence is deterministic,
+- setup projection excludes sensitive values,
+- resume reads durable backend state,
+- auth/session invalidation clears only affected scope.
 
-Example: `TradingService` integration test
+### MarketDataService
 
-```typescript
-import { TradingService } from '../TradingService';
-import { PredictErrorCode } from '../../errors/PredictError';
+- query descriptor includes `venueId`,
+- public reads do not require account session,
+- identical Venue-scoped reads dedupe,
+- bounded retry/circuit policy applies to reads,
+- one Venue failure does not invalidate another Venue's cache,
+- optional capability absence is handled at composition/product level.
 
-describe('TradingService', () => {
-  it('completes preview to place flow with deposit when balance is insufficient', async () => {
-    const client = {
-      getOrderPreview: jest
-        .fn()
-        .mockResolvedValue({ total: '25.00', fee: '0.50' }),
-      submitOrder: jest.fn().mockResolvedValue({ orderId: 'order-1' }),
-    };
-    const fundingExecutor = {
-      executePlan: jest.fn().mockResolvedValue({ txHash: '0x1' }),
-    };
-    const portfolioWriter = {
-      onOrderSubmitted: jest.fn(),
-      onOrderConfirmed: jest.fn(),
-      onOrderFailed: jest.fn(),
-    };
+### PortfolioService
 
-    const service = new TradingService({
-      predictSessionService: {
-        getClient: jest.fn().mockResolvedValue(client),
-      },
-      fundingExecutor,
-      portfolioWriter,
-      logger: console as never,
-      analytics: { track: jest.fn() } as never,
-    });
+- every key and writer update includes `PredictAccountScope`,
+- optimistic patches reconcile against authoritative Fills/Positions,
+- rollback invalidates when it cannot be proven safe,
+- Settlement invalidates Balance/Position/Activity,
+- updates for another Venue/account never patch the current cache.
 
-    const preview = await service.previewOrder({
-      marketId: 'market-1',
-      outcomeId: 'yes',
-      amount: '25',
-    });
+### TradingService
 
-    expect(preview.total).toBe('25.00');
+- state transition sequence is exhaustive,
+- preview ID/expiry is respected,
+- commit carries one stable idempotency key,
+- lost response reconciles rather than resubmits,
+- expired preview returns to previewing,
+- Kalshi v1 requires explicit Deposit,
+- Resting Order actions are absent when unsupported,
+- writer milestones occur in correct order.
 
-    await service.placeOrder({
-      marketId: 'market-1',
-      outcomeId: 'yes',
-      amount: '25',
-      paymentToken: 'USDC',
-    });
+### TransactionService and FundingExecutor
 
-    expect(fundingExecutor.executePlan).toHaveBeenCalledTimes(1);
-    expect(client.submitOrder).toHaveBeenCalledTimes(1);
-    expect(portfolioWriter.onOrderConfirmed).toHaveBeenCalledTimes(1);
-  });
+- only safe operation ID/type/status projections persist by account scope,
+- amount/destination/payload/signatures never enter the persisted slice,
+- remount resumes a committed operation from the persisted reference and backend,
+- prepare does not move funds,
+- plan Venue/operation/amount/network/asset/recipient/expiry are checked against local intent,
+- the decoded wallet payload matches `ExpectedAssetTransfer` before confirmation,
+- explicit confirmation occurs before commit,
+- wallet transaction uses the exact validated plan,
+- commit reuses operation/idempotency references,
+- transfer-submitted/indication-failed can resume,
+- withdrawal lost response reconciles without duplicate commit,
+- local cancel/teardown stops observation but not backend operation,
+- unsupported Claim is absent for Kalshi,
+- receipt remains submitted/processing when final status is unavailable.
 
-  it('maps client rejection to PredictError for user-facing handling', async () => {
-    const client = {
-      getOrderPreview: jest.fn(),
-      submitOrder: jest
-        .fn()
-        .mockRejectedValue(new Error('exchange rejected order')),
-    };
+### LiveDataService
 
-    const service = new TradingService({
-      predictSessionService: {
-        getClient: jest.fn().mockResolvedValue(client),
-      },
-      fundingExecutor: { executePlan: jest.fn() } as never,
-      portfolioWriter: {
-        onOrderSubmitted: jest.fn(),
-        onOrderConfirmed: jest.fn(),
-        onOrderFailed: jest.fn(),
-      } as never,
-      logger: console as never,
-      analytics: { track: jest.fn() } as never,
-    });
+Build only when a live capability is implemented. Test:
 
-    await expect(
-      service.placeOrder({
-        marketId: 'market-1',
-        outcomeId: 'yes',
-        amount: '25',
-        paymentToken: 'USDC',
-      }),
-    ).rejects.toMatchObject({
-      code: PredictErrorCode.ORDER_REJECTED,
-      category: 'action_failed',
-      recoverable: true,
-    });
-  });
-});
-```
+- multiplexing,
+- reconnect/backoff,
+- duplicate/out-of-order handling,
+- Venue/account scope preservation,
+- writer patch versus invalidate decisions,
+- teardown.
 
-One test file per service is a good default:
+Polling implementations are tested through read-service refresh behavior instead.
 
-- `MarketDataService.test.ts`
-- `PortfolioService.test.ts`
-- `TradingService.test.ts`
-- `TransactionService.test.ts`
-- `FundingExecutor.test.ts`
-- `LiveDataService.test.ts`
-- `PredictSessionService.test.ts` covering `AccountReadinessPolicy` precedence
-- read-model writer coverage in `MarketDataService.test.ts` and `PortfolioService.test.ts`
-- guard coverage in `usePredictGuard` view tests (no standalone GuardService in the initial seven-service model)
+## Shared Mobile/Backend Contract Tests
 
-## Venue Adapter Integration Tests
+The owned backend is a remote-but-owned seam. Mobile and backend CI validate the same versioned fixtures or generated schemas.
 
-Venue adapter integration tests verify the seam between third-party Venue transports and Predict canonical types. They use `nock` to mock HTTP responses and confirm data transformation. Product services should not import adapters directly; adapter tests exercise a concrete `VenueAdapter` implementation.
-
-What to test:
-
-- response parsing
-- field normalization
-- missing-field tolerance
-- transformation into canonical `PredictEvent`, `PredictMarket`, and `PredictOutcome`
-
-Example:
-
-```typescript
-import nock from 'nock';
-import { PolymarketAdapter } from '../adapters/polymarket/PolymarketAdapter';
-import type { PredictVenueSession } from '../adapters/types';
-
-describe('PolymarketAdapter', () => {
-  afterEach(() => {
-    nock.cleanAll();
-  });
-
-  const session: PredictVenueSession = {
-    venueId: 'polymarket',
-    ownerAddress: '0x123',
-    data: {},
-  };
-
-  it('maps Gamma API events into PredictEvent', async () => {
-    nock('https://gamma-api.polymarket.com')
-      .get('/events')
-      .query(true)
-      .reply(200, [
-        {
-          id: 'event-1',
-          title: 'Will ETH close above $4,000 on Friday?',
-          markets: [
-            {
-              id: 'market-1',
-              outcomes: [
-                { id: 'yes', name: 'Yes', price: 0.63 },
-                { id: 'no', name: 'No', price: 0.37 },
-              ],
-            },
-          ],
-        },
-      ]);
-
-    const adapter = new PolymarketAdapter({
-      baseUrl: 'https://gamma-api.polymarket.com',
-    });
-    const result = await adapter.fetchEvents({ category: 'crypto' }, session);
-    const [event] = result.items;
-
-    expect(event.id).toBe('event-1');
-    expect(event.markets).toHaveLength(1);
-    expect(event.markets[0].outcomes[0]).toMatchObject({
-      id: 'yes',
-      label: 'Yes',
-      price: 0.63,
-    });
-  });
-});
-```
-
-Adapters are tested directly against `VenueAdapter` — that is the only hand-written contract. The session-bound `PredictClient` view is a derived type and has no runtime behavior beyond binding the session parameter, so there is nothing to test about it separately.
-
-## Unit Tests: Minimal and Focused
-
-Unit tests remain valuable for pure functions with no environmental dependencies.
-
-Good candidates:
-
-- price formatting
-- date label formatting
-- validation helpers
-- query descriptor factories (`queryKey`, `family`, `staleTime`, `accountScoped`)
-- `createEventDisplayModel` mapping for feed/detail/carousel surfaces
-- market parsing utilities
-
-Example:
-
-```typescript
-import { formatPrice } from '../formatPrice';
-
-describe('formatPrice', () => {
-  it('formats cents without losing intent', () => {
-    expect(formatPrice(63, 'cents')).toBe('63¢');
-  });
-
-  it('formats dollars with two decimals', () => {
-    expect(formatPrice(12.5, 'dollars')).toBe('$12.50');
-  });
-});
-```
-
-Avoid unit tests for hooks and presentational components when the same behavior is already covered more effectively through view tests.
-
-## What Not to Test
-
-Do not spend test budget on these surfaces:
-
-- individual hooks in isolation
-- individual components in isolation
-- controller delegation that only forwards a call
-- private service methods
-- styles or internal prop plumbing
-
-These tests usually duplicate stronger coverage from view tests and service integration tests.
-
-## Migration Impact
-
-Current state:
-
-- 169 unit tests
-- 87K lines of test code
-- 2.38:1 test-to-source ratio
-
-Target state:
-
-- ~25-30 test files
-- ~8-12K lines of test code
-- ~0.3-0.5:1 test-to-source ratio
-
-Expected reduction:
-
-- roughly 85-90% less test code
-
-The goal is not less confidence. The goal is fewer, higher-value tests.
-
-## Test Infrastructure Checklist
-
-| Item                                          | Type     | Status   | Notes                                           |
-| --------------------------------------------- | -------- | -------- | ----------------------------------------------- |
-| `initialStatePredict`                         | Preset   | Existing | Base state for Predict flows                    |
-| `predictPositionsOpen`                        | Preset   | New      | Open positions for portfolio and detail screens |
-| `predictPositionsResolved`                    | Preset   | New      | Won, lost, and claimable states                 |
-| `predictActiveOrder`                          | Preset   | New      | Pending order session in Redux                  |
-| `predictLowBalance`                           | Preset   | New      | Order disabled and deposit path scenarios       |
-| `predictSportsGame`                           | Preset   | New      | Scoreboard and live sports cards                |
-| `predictGeoBlocked`                           | Preset   | New      | Guard and unavailable routing                   |
-| `renderPredictFeedView`                       | Renderer | Existing | Existing feed surface                           |
-| `renderPredictHomeView`                       | Renderer | New      | Home route integration                          |
-| `renderEventDetailsView`                      | Renderer | New      | Details route integration                       |
-| `renderOrderScreenView`                       | Renderer | New      | Order workflow integration                      |
-| `renderTransactionsView`                      | Renderer | New      | Activity route integration                      |
-| `MOCK_PREDICT_EVENT`                          | Fixture  | New      | Canonical event fixture                         |
-| `MOCK_PREDICT_MARKET`                         | Fixture  | Existing | Binary market fixture                           |
-| `MOCK_PREDICT_OUTCOME`                        | Fixture  | New      | Outcome fixture                                 |
-| `MOCK_PREDICT_POSITION`                       | Fixture  | New      | Position fixture                                |
-| `tests/component-view/api-mocking/predict.ts` | API mock | New      | Shared mock HTTP responses                      |
-
-## Recommended File Layout
+Minimum fixtures:
 
 ```text
-tests/
-  component-view/
-    fixtures/
-      predict.ts
-    presets/
-      predict.ts
-    renderers/
-      predictHome.tsx
-      eventDetails.tsx
-      orderScreen.tsx
-      transactionsView.tsx
-    api-mocking/
-      predict.ts
-app/
-  components/
-    UI/
-      PredictNext/
-        services/
-          MarketDataService.test.ts
-          PortfolioService.test.ts
-          TradingService.test.ts
-          TransactionService.test.ts
-          FundingExecutor.test.ts
-          LiveDataService.test.ts
-          PredictSessionService.test.ts
-        query-descriptors/
-          marketData.test.ts
-          portfolio.test.ts
-        adapters/
-          polymarket/PolymarketAdapter.test.ts
-          kalshi/KalshiAdapter.test.ts
-        components/
-          EventCard/createEventDisplayModel.test.ts
-        utils/
-          formatPrice.test.ts
-          parseOutcome.test.ts
+fixtures/predict-api/v1/venue.status.json
+fixtures/predict-api/v1/account.readiness.json
+fixtures/predict-api/v1/account.setup.email-otp.json
+fixtures/predict-api/v1/account.setup.link.json
+fixtures/predict-api/v1/events.page.json
+fixtures/predict-api/v1/portfolio.balance.json
+fixtures/predict-api/v1/portfolio.positions.json
+fixtures/predict-api/v1/portfolio.fills.json
+fixtures/predict-api/v1/portfolio.settlements.json
+fixtures/predict-api/v1/order.preview.json
+fixtures/predict-api/v1/order.receipt.json
+fixtures/predict-api/v1/funding.deposit.plan.json
+fixtures/predict-api/v1/funding.withdraw.plan.json
+fixtures/predict-api/v1/funding.receipt.json
+fixtures/predict-api/v1/error.json
 ```
 
-This strategy keeps testing aligned with the architecture: deep modules, realistic seams, and a small number of high-signal tests.
+Required assertions:
+
+- mobile rejects malformed required write fields,
+- backend never returns raw Venue credential/PII fields,
+- every entity/operation is Venue-qualified,
+- account-scoped responses contain no client-authoritative identity field,
+- compatibility version behavior is explicit,
+- unknown optional fields follow schema policy,
+- decimal strings stay strings.
+
+Use existing runtime schema tooling; do not add a new validation dependency solely for Predict.
+
+## Backend Kalshi Adapter Tests
+
+### Request signing
+
+- preimage is timestamp + uppercase method + path,
+- host/query/body are excluded as specified,
+- RSA-PSS SHA-256 and salt length are correct,
+- milliseconds and clock-skew failures map correctly,
+- admin credential cannot be used for trading/funding,
+- per-user key scopes are enforced.
+
+### Account Setup
+
+- new user happy path,
+- existing user detected at email and phone points,
+- flat versus nested 409 behavior,
+- link/verification lost-response success recovery,
+- opaque KYC status handling,
+- one-time key mint response stored atomically,
+- key list/revoke/remint recovery,
+- process restart resumes from durable store,
+- duplicate requests do not duplicate identity/sub-account/key.
+
+### Funding
+
+- one-time amount-specific address mapping,
+- Base network/token/address mapping from Venue response/config,
+- prepare idempotency,
+- indication idempotency and failure recovery,
+- payout method register/reuse,
+- Withdraw prepare/commit separation,
+- no-status reconciliation behavior,
+- amount/address/network validation,
+- rate-limit/backoff behavior.
+
+### Trading and Portfolio
+
+- current V2 Order request/response mapping,
+- preview fee/price/count calculation and expiry,
+- submit revalidation and idempotent client order ID,
+- Immediate Order terminal statuses,
+- Resting/partial/cancel/amend only when enabled,
+- Position mapping,
+- Fill-derived activity,
+- Settlement-derived activity,
+- Venue Account auto-scoping and no client `subaccount` field.
+
+### Error envelopes
+
+- standard nested errors,
+- flat account-exists and invalid-phone errors,
+- combined invalid-or-expired OTP,
+- authentication/permission/rate-limit mappings,
+- unknown Venue errors preserve redacted cause and map safely.
+
+## Security and Privacy Tests
+
+These are launch gates.
+
+### Authorization
+
+- privileged routes reject missing/invalid bearer tokens,
+- backend derives Predict User from auth,
+- changing client `userId`, wallet address, email, or external ID cannot impersonate another Venue Account,
+- Funding Wallet policy is enforced independently of person identity,
+- cross-user operation IDs cannot be read or committed.
+
+### Secret storage/logging
+
+- admin/per-user private keys never enter logs, traces, errors, analytics, or responses,
+- key-mint response body is never debug-logged,
+- credentials are encrypted at rest and access is scoped,
+- rotation/revocation paths work,
+- no secret files are accepted by source-control checks.
+
+### PII
+
+Using synthetic markers, assert that email, phone, DOB, address, SSN, and OTP do not enter:
+
+- Redux/persisted mobile storage,
+- query keys/cache snapshots,
+- analytics,
+- logs/traces/Sentry context,
+- support operation metadata,
+- test snapshots.
+
+## Pure Unit Tests
+
+Use unit tests for pure logic with real branching value:
+
+- decimal-string/cents conversion,
+- normalized account-scope key construction,
+- query descriptor factories,
+- canonical Venue DTO mappers,
+- preview expiry checks,
+- idempotency request fingerprinting,
+- error-envelope classification,
+- display-model mapping and formatting.
+
+Avoid isolated hook/presentational tests when a component-view test covers the same behavior more robustly. Design-system primitives with meaningful accessibility/interaction behavior may still deserve focused tests.
+
+## E2E Smoke Tests
+
+Use the smallest set that proves production wiring:
+
+1. authenticate and resume/new Account Setup on Kalshi demo,
+2. prepare/confirm/send Deposit and observe Balance,
+3. preview/place one Immediate Order and observe Position/Fill,
+4. observe automatic Settlement when practical or via controlled fixture environment,
+5. prepare/confirm Withdraw and surface submitted operation reference,
+6. disable Kalshi via flag/kill switch while Polymarket remains usable.
+
+External enablement may make some flows scheduled/manual rather than per-PR CI. Keep deterministic contract/service/component-view coverage in CI.
+
+## Migration Test Rule
+
+During Polymarket strangling:
+
+1. characterize current behavior at the capability seam,
+2. add replacement adapter/service tests,
+3. shadow or compare canonical output where useful,
+4. switch one capability behind a flag,
+5. observe production parity,
+6. delete legacy implementation and its redundant tests only then.
+
+A target such as “85–90% fewer test lines” is explicitly rejected. Less scaffolding is a possible outcome of deeper modules, not an acceptance criterion.
+
+## Definition of Done for a Slice
+
+- contract fixtures pass in mobile and backend,
+- deep service/adapter tests pass,
+- required component-view scenarios pass,
+- duplicate, timeout, app-restart, and lost-response behavior is covered for writes,
+- secret/PII redaction tests pass,
+- E2E/demo evidence exists for the supported flow,
+- feature flag, kill switch, and rollback are verified,
+- no old test is removed without replacement evidence.

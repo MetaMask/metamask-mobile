@@ -1,193 +1,193 @@
 # PredictNext State Management
 
+PredictNext chooses state by lifetime, ownership, sensitivity, and recovery requirements. Remote Venue operations add one category the previous design missed: durable backend workflow state.
+
+Service shapes are defined in [services.md §1.5](./services.md#15-service-shapes). Canonical scope and query keys are defined in [interface-ledger.md](./interface-ledger.md).
+
 ## State Categories
 
-PredictNext uses four state categories, each chosen for a specific kind of responsibility. The service shape that owns each category — Stateful / Read / Runtime — is defined in [services.md §1.5](./services.md#15-service-shapes).
-
-| Category                     | Where                                                             | Why                                                                                               | Examples                                                                                       |
-| ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Server cache                 | **Read services** (`BaseDataService`) and UI query cache          | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                                          |
-| Service-owned workflow state | **Stateful services** (`BaseController`, per-service Redux slice) | Survives navigation; provides cross-component reactivity through Redux selectors                  | Active order workflow union, selected payment token, account readiness, account setup workflow |
-| Transient service internals  | **Runtime services** (plain class, private fields)                | Implementation detail not read directly by UI                                                     | Rate limit timestamps, WebSocket socket handles, circuit breaker state                         |
-| View-local state             | React `useState` and local hooks                                  | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility                           |
+| Category                    | Owner                                        | Examples                                                                                 | Rules                                                                    |
+| --------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Public server read model    | `MarketDataService` (`BaseDataService`)      | Events, Markets, prices                                                                  | Venue-qualified query keys; no wallet/session requirement                |
+| Account server read model   | `PortfolioService` (`BaseDataService`)       | Balance, Positions, Activity, open Orders                                                | Keyed by `PredictAccountScope`                                           |
+| Service workflow projection | Stateful services (`BaseController`)         | Account Readiness, safe setup/funding references, Active Order workflow                  | Cross-screen reactivity; persist only safe references                    |
+| Durable remote operation    | Owned backend                                | Setup progress, idempotency records, Deposit/Withdraw/Order operations, Venue references | Survives app/backend process restart; system of record for remote writes |
+| Transient service internals | Runtime/read/stateful service private fields | sockets, in-flight maps, circuit state, abort handles                                    | Never read directly by UI                                                |
+| View-local state            | React state/local hooks                      | keypad, tab, search, unsent form input                                                   | Dies with the view; sensitive input is never persisted                   |
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    PredictNext State Map                     │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─ React Local State ──────────────────────────────┐      │
-│  │  useState / local hooks                           │      │
-│  │  keypad input, scroll, search, tabs               │      │
-│  │  Dies with the view                               │      │
-│  └───────────────────────────────────────────────────┘      │
-│                                                             │
-│  ┌─ Redux (per-service BaseController slices) ──────┐      │
-│  │  state.engine.backgroundState.PredictTradingService:     │      │
-│  │    activeOrder, selectedPaymentToken, status      │      │
-│  │  state.engine.backgroundState.PredictSession      │      │
-│  │  Service: readiness, eligibility summary          │      │
-│  │  Each slice declares persistence per field        │      │
-│  │  via StateMetadata; most workflow state is        │      │
-│  │  persist: false.                                  │      │
-│  └───────────────────────────────────────────────────┘      │
-│                                                             │
-│  ┌─ BaseDataService Cache ──────────────────────────┐      │
-│  │  Server cache (TanStack Query)                    │      │
-│  │  events, markets, positions, balance, activity    │      │
-│  │  Shared, deduplicated, live-update patched        │      │
-│  └───────────────────────────────────────────────────┘      │
-│                                                             │
-│  ┌─ Service Internals ──────────────────────────────┐      │
-│  │  Transient operational state                      │      │
-│  │  rate limits, socket state, circuits              │      │
-│  │  Never exposed to UI                              │      │
-│  └───────────────────────────────────────────────────┘      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+React local state
+  └─ ephemeral presentation and unsent input
+
+BaseController slices
+  └─ safe cross-screen workflow projection
+
+BaseDataService caches
+  ├─ public Venue read models
+  └─ account-scoped read models
+
+Backend operation store
+  └─ durable setup/write/idempotency/reconciliation state
+
+Private service fields
+  └─ transient implementation bookkeeping
 ```
 
-`PredictController` does not appear in the state map. It is a stateless composition root; it instantiates services and steps out of the way. There is no shared `state.engine.backgroundState.PredictController` slice for PredictNext.
+`PredictController` owns no state. It is a composition root.
 
-This division keeps the persistent state footprint small and places each concern where it can be managed most naturally.
+## Identity and Scope
 
-Related docs:
+```typescript
+interface PredictUserContext {
+  userId: PredictUserId; // opaque, stable, non-PII
+  walletAccountId?: PredictWalletAccountId; // canonical CAIP-10 account ID
+}
 
-- [interface ledger](./interface-ledger.md)
-- [hooks](./hooks.md)
-- [components](./components.md)
-- [error handling](./error-handling.md)
-- [testing](./testing.md)
+interface PredictAccountScope extends PredictUserContext {
+  venueId: PredictVenueId;
+}
+```
+
+Rules:
+
+- a Predict User is not a wallet address,
+- the selected wallet is Funding Wallet or wallet-scoped Venue Account context,
+- every market-data key includes `venueId`,
+- every portfolio/readiness/workflow key includes `PredictAccountScope`,
+- `getPredictAccountScopeKey(scope)` is the only Redux record-key constructor,
+- the backend derives authoritative user identity from authentication and never trusts local scope as authorization,
+- emails, raw profile IDs, OTP/KYC values, credentials, and signatures never appear in query keys or Redux.
 
 ## BaseDataService Integration
 
-PredictNext read services should use `@metamask/base-data-service` so fetched data is cache-aware, deduplicated, and naturally aligned with the UI query layer.
-
-Primary read services:
-
-- `MarketDataService`
-- `PortfolioService`
-
-Key rules:
-
-- each service owns an internal query client
-- service methods call `this.fetchQuery()` with canonical query descriptors
-- UI reads with `useQuery` and `useInfiniteQuery` from `@metamask/react-data-query` using the same descriptor `queryKey`
-- UI does not define `queryFn` for service-backed reads
-- cache synchronization flows through messenger events
-- live updates patch service-owned query caches only when they include stable identifiers and complete-enough data
-- live updates invalidate/refetch query families when safe patching is uncertain
-- UI should not apply separate overlay state
-- stale time, account scoping, and query family invalidation are owned by descriptor modules, not duplicated in hooks or services
-
-Registration requirement:
-
-- add service names to `app/constants/data-services.ts` in `DATA_SERVICES`
-- `app/core/ReactQueryService/` creates the UI query client via `createUIQueryClient`
-
-### Full read data flow
+### Public market data
 
 ```text
-UI: useQuery({ queryKey: marketDataQueries.getEvents(params).queryKey })
-  → ReactQueryService.queryClient (UI QueryClient)
-    → createUIQueryClient intercepts, calls messenger adapter
-      → Engine.controllerMessenger.call('PredictMarketDataService:getEvents', params)
-        → MarketDataService.getEvents(params)
-          → descriptor = marketDataQueries.getEvents(params)
-          → this.fetchQuery({ queryKey: descriptor.queryKey, staleTime: descriptor.staleTime, queryFn: () => client.fetchEvents(params) })
-            → PredictSessionService.getClient(ownerAddress)
-            → PredictClient.fetchEvents(params) → PolymarketAdapter → HTTP → Polymarket Gamma API
-          → result cached in service internal QueryClient
-          → service publishes 'PredictMarketDataService:cacheUpdated:hash' event
-            → UI QueryClient updates cache
-              → component re-renders
-
-Live update path:
-
-Venue stream → PredictClient → LiveDataService
-  → MarketDataReadModelWriter/PortfolioReadModelWriter patch or invalidate internal QueryClient entries
-  → service publishes cacheUpdated events
-  → UI QueryClient updates cache
-  → component re-renders
+useEventList(venueId, params)
+  -> marketDataQueries.getEvents(venueId, params)
+  -> UI query bridge
+  -> PredictMarketDataService:getEvents(venueId, params)
+  -> MarketDataService.fetchQuery(descriptor)
+  -> VenueAdapterRegistry.get(venueId).marketData.fetchEvents(params)
+  -> local Venue API or MetaMask Predict backend
 ```
 
-### Example BaseDataService method
+Public browsing does not require `PredictSessionService.getClient()` merely to inject an unused session.
+
+### Account-scoped portfolio
+
+```text
+useBalance(scope)
+  -> portfolioQueries.getBalance(scope)
+  -> UI query bridge
+  -> PredictPortfolioService:getBalance(scope)
+  -> PortfolioService.fetchQuery(descriptor)
+  -> PredictSessionService.getClient(scope)
+  -> client.portfolio.fetchBalance()
+```
+
+### Registration rules
+
+- Read services register in `DATA_SERVICES` and own their internal query clients.
+- Hooks use the same descriptor keys through `@metamask/react-data-query`.
+- Hooks do not define independent cache policy for service-backed reads.
+- Descriptor modules own key shape, scope, stale time, and invalidation family.
+- Live/write modules mutate read models only through narrow writer interfaces.
+
+### Example market-data method
 
 ```typescript
-import { BaseDataService } from '@metamask/base-data-service';
-import type { EventsParams, PredictEvent } from '../types';
-import { marketDataQueries } from '../../query-descriptors';
-
 export class MarketDataService extends BaseDataService {
   readonly name = 'PredictMarketDataService';
 
-  async getEvents(params: EventsParams = {}) {
-    const descriptor = marketDataQueries.getEvents(params);
+  async getEvents(venueId: PredictVenueId, params: FetchEventsParams) {
+    const descriptor = marketDataQueries.getEvents(venueId, params);
+    const adapter = this.venueAdapterRegistry.get(venueId);
 
-    return await this.fetchQuery<PredictEvent[]>({
+    return this.fetchQuery({
       queryKey: descriptor.queryKey,
       staleTime: descriptor.staleTime,
-      queryFn: async () => {
-        const ownerAddress = await this.getCurrentOwnerAddress();
-        const client = await this.predictSessionService.getClient(ownerAddress);
-        return await client.fetchEvents(params);
-      },
-    });
-  }
-
-  async getEvent(eventId: string) {
-    const descriptor = marketDataQueries.getEvent(eventId);
-
-    return await this.fetchQuery<PredictEvent>({
-      queryKey: descriptor.queryKey,
-      staleTime: descriptor.staleTime,
-      queryFn: async () => {
-        const ownerAddress = await this.getCurrentOwnerAddress();
-        const client = await this.predictSessionService.getClient(ownerAddress);
-        return await client.fetchEvent(eventId);
-      },
+      queryFn: () => adapter.marketData.fetchEvents(params),
     });
   }
 }
 ```
 
-### Example UI query usage
+### Example portfolio method
 
 ```typescript
-import { useQuery } from '@metamask/react-data-query';
-import { marketDataQueries } from '../query-descriptors';
-import type { PredictEvent } from '../types';
+export class PortfolioService extends BaseDataService {
+  readonly name = 'PredictPortfolioService';
 
-export function useEventDetail(eventId: string) {
-  const descriptor = marketDataQueries.getEvent(eventId);
+  async getBalance(scope: PredictAccountScope) {
+    const descriptor = portfolioQueries.getBalance(scope);
 
-  return useQuery<PredictEvent>({
-    queryKey: descriptor.queryKey,
-  });
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: async () => {
+        const client = await this.predictSessionService.getClient(scope);
+        return client.portfolio.fetchBalance();
+      },
+    });
+  }
 }
 ```
-
-This arrangement makes read state declarative and minimizes Redux involvement for fetched data.
 
 ## Redux State Shape
 
-Redux stores only state that needs cross-component reactivity or selective persistence. Market data, portfolio lists, and balances live in the query cache, not in Redux. Workflow state lives in per-service `BaseController` slices, not in a single feature-wide slice.
+Only state needing cross-component reactivity or safe resume belongs in Redux.
 
-Each **Stateful service** declares its own `BaseController` state shape and `StateMetadata`. The full PredictNext Redux footprint is the union of those slices. Read services own a query cache (no Redux slice) and Runtime services own only private fields, so they do not appear here. Concrete shapes are owned by each service's chapter in [services.md](./services.md); this section describes only how each Stateful slice is shaped and which fields persist.
-
-`TradingService` state slice (sketch). The workflow is a **discriminated union by status** so illegal field combinations are not representable; `selectedPayment` is a peer slice because payment selection persists across workflow transitions. Full shape and rationale in [services.md §6](./services.md#6-tradingservice-basecontroller).
+### PredictSessionService
 
 ```typescript
-interface SelectedPaymentToken {
-  tokenAddress: string;
-  symbol: string;
+interface PredictSessionServiceState {
+  readinessByAccount: Record<PredictAccountScopeKey, PredictAccountReadiness>;
+  setupByAccount: Record<PredictAccountScopeKey, AccountSetupState>;
+  eligibilityByVenue: Partial<Record<PredictVenueId, PredictEligibility>>;
 }
+```
 
+Persistence:
+
+- readiness: normally non-persistent; refresh from source,
+- eligibility: non-persistent unless a safe signed config projection requires otherwise,
+- setup projection: persist only a safe backend `operationId`/status when resume requires it,
+- never persist form fields, email, OTP, SSN, KYC payloads, API keys, Venue Sessions, or auth tokens.
+
+### TransactionService
+
+```typescript
+interface TransactionServiceState {
+  operationsByAccount: Record<
+    PredictAccountScopeKey,
+    FundingOperationProjection[]
+  >;
+}
+```
+
+A projection contains only `operationId`, funding operation kind, canonical status, and `updatedAt`. These safe references may persist so Deposit/Withdraw/Claim can resume across navigation or app restart. Amount, destination, transaction payload, signatures, and Venue details are re-fetched from the authenticated backend and never persist in this slice.
+
+### TradingService
+
+```typescript
 type TradingWorkflowState =
   | { status: 'IDLE' }
-  | { status: 'PREVIEWING'; preview: OrderPreview }
-  | { status: 'DEPOSITING'; preview: OrderPreview; transactionId: string }
-  | { status: 'PLACING_ORDER'; preview: OrderPreview }
+  | { status: 'PREVIEWING'; scope: PredictAccountScope }
+  | { status: 'READY'; scope: PredictAccountScope; preview: OrderPreview }
+  | {
+      status: 'FUNDING';
+      scope: PredictAccountScope;
+      preview: OrderPreview;
+      fundingOperationId: string;
+    }
+  | {
+      status: 'PLACING_ORDER';
+      scope: PredictAccountScope;
+      previewId: string;
+      idempotencyKey: string;
+      operationId?: string;
+    }
   | { status: 'SUCCESS'; receipt: OrderReceipt }
   | {
       status: 'ERROR';
@@ -195,7 +195,7 @@ type TradingWorkflowState =
       recoverable: boolean;
       previousState?: Extract<
         TradingWorkflowState,
-        { status: 'PREVIEWING' | 'DEPOSITING' | 'PLACING_ORDER' }
+        { status: 'READY' | 'FUNDING' | 'PLACING_ORDER' }
       >;
     };
 
@@ -203,178 +203,144 @@ interface TradingServiceState {
   workflow: TradingWorkflowState;
   selectedPayment: SelectedPaymentToken | null;
 }
-
-// StateMetadata: both fields persist: false.
-const tradingMetadata: StateMetadata<TradingServiceState> = {
-  workflow: { persist: false, anonymous: true },
-  selectedPayment: { persist: false, anonymous: true },
-};
 ```
 
-`PredictSessionService` state slice (sketch):
+Uncommitted preview state is non-persistent and may be discarded. Once submit commits, the backend operation is authoritative; mobile reuses its operation/idempotency reference rather than issuing a new Order.
 
-```typescript
-interface PredictSessionServiceState {
-  readinessByOwner: Record<string, PredictAccountReadiness>;
-  eligibility: { eligible: boolean; blockReason?: string };
-  // activeVenueId is intentionally omitted from the initial design.
-  // If/when venue selection becomes a sticky user preference rather than
-  // a geo-derived runtime decision, add it as a persist: true field.
-}
+## Durable Backend Operations
 
-const sessionMetadata: StateMetadata<PredictSessionServiceState> = {
-  readinessByOwner: { persist: false, anonymous: true },
-  eligibility: { persist: false, anonymous: true },
-};
-```
+Remote Account Setup and write operations require durable state beyond a mobile process.
 
-Benefits of the per-service shape:
+A backend operation record owns at minimum:
 
-- each service owns one slice with one focused `:stateChange` event
-- field-level `StateMetadata` lets persistence and debug-snapshot inclusion be tuned per concern
-- no shared `PredictController` slice means no cross-feature coupling at the state level
-- adding a service means adding a slice, not extending a god state shape
-- removing a service means removing a slice, not editing a god state shape
+- opaque operation ID,
+- authenticated Predict User/Venue Account mapping,
+- operation kind and current state,
+- idempotency key and request fingerprint,
+- external Venue references,
+- timestamps/expiry,
+- transaction hash when supplied,
+- redacted failure/reconciliation status.
+
+It never exposes or logs credential material or raw KYC values.
+
+### Mobile resume rule
+
+- mobile may persist a non-secret operation reference,
+- app teardown stops local observation only,
+- resume queries the backend operation,
+- a repeated commit reuses the same idempotency key,
+- a conflicting request with a reused key fails explicitly,
+- no local `reset()` implies an external operation was cancelled.
+
+This is required for:
+
+- a Deposit transfer that succeeded before indication failed,
+- a Withdraw whose response was lost,
+- an Order accepted before mobile timed out,
+- interrupted Account Setup or one-time credential minting.
 
 ## Query Descriptor Convention
-
-Canonical query descriptor shapes are owned by [interface-ledger.md](./interface-ledger.md). Descriptor modules return query keys, stale times, account-scoping flags, and invalidation families that follow the runtime namespace rule:
-
-```typescript
-[
-  'PredictMarketDataService:getEvents',
-  { category: 'sports', cursor: 'next-page' },
-];
-['PredictMarketDataService:getEvent', 'event-42'];
-['PredictMarketDataService:getCarouselEvents'];
-['PredictPortfolioService:getPositions', ownerAddress];
-['PredictPortfolioService:getBalance', ownerAddress];
-['PredictPortfolioService:getActivity', ownerAddress, cursor];
-```
-
-Why this matters:
-
-- cache keys are readable in tooling and logs
-- query invalidation becomes consistent
-- UI and services share one stable interface
-- account scoping is executable, not a prose convention
-
-## Stale Time Strategy
-
-Different data types need different freshness policies.
-
-| Data Type       | Stale Time | Rationale                                         |
-| --------------- | ---------- | ------------------------------------------------- |
-| Event metadata  | 5 min      | Titles, images, and descriptions change rarely    |
-| Market prices   | 1 min      | Prices move often and must stay useful            |
-| Resolved events | 1 hour     | Post-resolution data is mostly static             |
-| Positions       | 1 min      | Portfolio views should feel current               |
-| Balance         | 30 sec     | Order entry requires fresher values               |
-| Activity        | 5 min      | Historical records rarely need sub-minute refresh |
-| Carousel        | 5 min      | Curated content changes slowly                    |
-
-Example service configuration:
-
-```typescript
-const descriptor = portfolioQueries.getBalance(ownerAddress);
-
-await this.fetchQuery({
-  queryKey: descriptor.queryKey,
-  staleTime: descriptor.staleTime,
-  queryFn: async () => {
-    const client = await this.predictSessionService.getClient(ownerAddress);
-    return await client.fetchBalance();
-  },
-});
-```
-
-## Cache Invalidation
-
-Mutation flows should invalidate only the queries affected by the write.
-
-Rules:
-
-- after placing order, invalidate positions and balance
-- after deposit or withdraw, invalidate balance
-- after claim, invalidate positions and balance
-- manual refresh invalidates all current-account Predict queries
-
-Example invalidation helper:
-
-```typescript
-import { QueryClient } from '@metamask/react-data-query';
-import { portfolioQueries } from '../query-descriptors';
-
-export async function invalidateAfterOrder(
-  queryClient: QueryClient,
-  ownerAddress: string,
-) {
-  await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: portfolioQueries.getPositions(ownerAddress).family,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: portfolioQueries.getBalance(ownerAddress).family,
-    }),
-  ]);
-}
-```
-
-Manual refresh example:
-
-```typescript
-export async function refreshPredictAccount(
-  queryClient: QueryClient,
-  ownerAddress: string,
-) {
-  await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: portfolioQueries.getPositions(ownerAddress).family,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: portfolioQueries.getActivity(ownerAddress).family,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: portfolioQueries.getBalance(ownerAddress).family,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: portfolioQueries.getUnrealizedPnL(ownerAddress).family,
-    }),
-  ]);
-}
-```
-
-## Where state belongs — decision rule
-
-A useful decision tree, applied in order. Service shape names below refer to [services.md §1.5](./services.md#15-service-shapes).
-
-1. **Is it fetched server data?** → Owning service is a **Read service** (`BaseDataService`). Hooks read via `useQuery`.
-2. **Does it need cross-component reactivity?** → Owning service is a **Stateful service** (`BaseController`) and exposes the field in its slice. Hooks read via `useSelector`. Mutations happen through `this.update()` inside the service. Account Setup workflow state belongs here under `PredictSessionService`.
-3. **Is it transient runtime bookkeeping the UI never reads (sockets, rate-limit windows, in-flight maps)?** → Owning service is a **Runtime service**. The state lives in private fields; it is not on any slice and not in any query cache.
-4. **Does only one screen need it?** → Local `useState` inside the screen (or a view-local hook colocated with the screen).
 
 Examples:
 
 ```typescript
-// Server data: positions live in PortfolioService's query cache.
-const { data: positions } = useQuery({
-  queryKey: portfolioQueries.getPositions(ownerAddress).queryKey,
-});
+['PredictMarketDataService:getEvents', venueId, params];
+['PredictMarketDataService:getEvent', venueId, eventId];
+['PredictMarketDataService:getPrices', venueId, queries];
 
-// Workflow state with cross-component reactivity:
-// activeOrder lives in TradingService's BaseController slice.
-const activeOrder = useSelector(selectPredictActiveOrder);
-
-// Workflow mutations call messenger actions:
-messenger.call('PredictTradingService:placeOrder', params);
-
-// View-local input: keypad amount only the OrderScreen renders.
-const [typedAmount, setTypedAmount] = useState('0');
-
-// Private service detail: rate-limit window, not exposed.
-// (Lives as a private field inside TradingService; never published.)
+['PredictPortfolioService:getPositions', scope, params];
+['PredictPortfolioService:getBalance', scope];
+['PredictPortfolioService:getActivity', scope, cursor];
 ```
+
+The descriptor object includes:
+
+```typescript
+interface PredictQueryDescriptor<TKey extends readonly unknown[]> {
+  queryKey: TKey;
+  family: readonly unknown[];
+  staleTime: number;
+  scope: 'venue' | 'account';
+}
+```
+
+## Stale Time Strategy
+
+Starting policy—not a substitute for product freshness requirements:
+
+| Data            | Initial stale time                | Notes                                           |
+| --------------- | --------------------------------- | ----------------------------------------------- |
+| Event metadata  | 5 min                             | Venue-qualified                                 |
+| Market prices   | 1 min or bounded polling interval | Order submission always revalidates server-side |
+| Resolved Events | 1 hour                            | Mostly static                                   |
+| Positions       | 1 min                             | Invalidate/reconcile after Fill/Settlement      |
+| Balance         | 30 sec                            | Refresh before/after money/order milestones     |
+| Activity        | 5 min                             | Fill/Settlement append model                    |
+| Open Orders     | short/polled/live                 | Only when Resting Orders are enabled            |
+
+Cached price freshness never authorizes an Order. `previewId` expiry and backend revalidation do.
+
+## Cache Invalidation
+
+Rules:
+
+- after Order submit, patch optimistically only when safe, then invalidate Balance, Positions, Activity, and open Orders for the exact `PredictAccountScope`,
+- after Deposit/Withdraw/Claim milestones, invalidate Balance and relevant Activity for the exact scope,
+- after Settlement, invalidate Position, Balance, and Activity,
+- public market updates invalidate only matching Venue families,
+- manual refresh targets one Venue/account scope unless product explicitly asks for all Venues,
+- never invalidate by unqualified Event/Market IDs.
+
+Example:
+
+```typescript
+await Promise.all([
+  queryClient.invalidateQueries({
+    queryKey: portfolioQueries.getPositions(scope).family,
+  }),
+  queryClient.invalidateQueries({
+    queryKey: portfolioQueries.getBalance(scope).family,
+  }),
+  queryClient.invalidateQueries({
+    queryKey: portfolioQueries.getActivity(scope).family,
+  }),
+]);
+```
+
+## Live Updates
+
+Live data is optional. Bounded polling may implement Kalshi v1.
+
+When enabled:
+
+- updates include `venueId`,
+- account updates include `PredictAccountScope`,
+- stable complete updates patch through read-model writer methods,
+- uncertain/partial updates invalidate the smallest correct family,
+- UI does not maintain a separate overlay,
+- out-of-order and duplicate updates are handled at the cache-owning module.
+
+## Where State Belongs — Decision Rule
+
+Apply in order:
+
+1. **Is it a remote irreversible/setup operation?** → durable backend operation; mobile keeps a safe projection/reference only.
+2. **Is it fetched public/account data?** → owning Read service query cache with Venue/account scope.
+3. **Does a safe projection need cross-component reactivity?** → Stateful service Redux slice.
+4. **Is it private lifecycle bookkeeping?** → service private fields.
+5. **Does only one view need it?** → local React state.
+6. **Is it sensitive input or credential material?** → never Redux/query cache/logs; minimize lifetime and follow the approved secure path.
 
 ## Summary
 
-PredictNext state management works best when read data is query-backed, workflow state lives in per-service `BaseController` slices, and ephemeral UI logic stays local. There is no shared `PredictController` Redux slice and no unified feature-wide state shape. Each service owns one slice with one focused `:stateChange` event and one `StateMetadata` config. This removes redundant state ownership and supports the redesign goal of deep modules with slim interfaces.
+PredictNext state is safe when:
+
+- public data is Venue-scoped,
+- account data is `PredictAccountScope`-scoped,
+- person identity is distinct from wallet execution,
+- read models live in query caches,
+- safe workflow projections live in focused Redux slices,
+- remote writes and Account Setup have a durable backend system of record,
+- transient implementation details stay private,
+- sensitive data is never persisted in feature state.

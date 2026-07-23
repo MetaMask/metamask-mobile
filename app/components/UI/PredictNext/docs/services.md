@@ -10,42 +10,45 @@ Related documents:
 - [state-management.md](./state-management.md)
 - [error-handling.md](./error-handling.md)
 - [testing.md](./testing.md)
+- [migration/kalshi-first.md](./migration/kalshi-first.md)
 
 ## 1. Service Overview
 
-PredictNext uses six services in three canonical shapes (see §1.5), plus a `PredictController` composition root and an injected `predictAnalytics` helper module. **Stateful services** extend `BaseController`; **Read services** extend `BaseDataService`; **Runtime services** are plain classes with transient lifecycle state in private fields. All six register as first-class `Engine.context` entries. The pattern follows the Rewards split in MetaMask Mobile, where `RewardsController` (state owner) and `RewardsDataService` (helper) coexist in `Engine.context`.
+The long-term target uses six services in three canonical shapes (see §1.5), plus a `PredictController` composition root and an injected `predictAnalytics` helper module. **Stateful services** extend `BaseController`; **Read services** extend `BaseDataService`; **Runtime services** are plain classes with transient lifecycle state in private fields.
 
-| Module                  | Base class               | Approximate public interface size                | What it owns / hides                                                                                                                                                                                                              |
-| ----------------------- | ------------------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PredictController`     | Plain (composition root) | 2 methods (`initialize`, `destroy`)              | service instantiation order, shared dependency wiring, feature lifecycle. **No Redux state.**                                                                                                                                     |
-| `PredictSessionService` | `BaseController`         | 3 actions + state slice (readiness, eligibility) | PredictClient retrieval, signer resolution, venue auth/session cache, internal `AccountReadinessPolicy`, invalidation                                                                                                             |
-| `MarketDataService`     | `BaseDataService`        | 8 actions + read-model writer interface          | query descriptor consumption, cache strategy, retries, venue pagination normalization, market read-model patching                                                                                                                 |
-| `PortfolioService`      | `BaseDataService`        | 5 actions + read-model writer interface          | positions / activity / balance / PnL read aggregation, cache policy, pagination, background refresh, portfolio read-model patching                                                                                                |
-| `TradingService`        | `BaseController`         | 5 actions + order state machine slice            | order state machine, rate limiting, funding-via-private-executor, narrow read-model writer notifications                                                                                                                          |
-| `TransactionService`    | Runtime service          | 3 public actions (wraps the shared executor)     | user-intent deposit/withdraw/claim flows: analytics, public retry policy, user-facing error normalization                                                                                                                         |
-| `LiveDataService`       | Runtime service          | 2 actions + internal connection status           | socket lifecycle, reconnection, multiplexing, channel fan-out, narrow read-model writer notifications                                                                                                                             |
-| `FundingExecutor`       | Runtime primitive        | `executePlan(plan, opts?)`, `cancel`, `destroy`  | Funding Plan execution, wallet signing coordination, venue follow-up, confirmation tracking, cancellation, teardown, error normalization. **Not a service.** Constructor-injected into `TransactionService` and `TradingService`. |
-| `predictAnalytics`      | Injected helper module   | one `track(event, properties)` method            | analytics emission for product events. **Not a service.** Constructed in the composition root and injected into services.                                                                                                         |
+The Kalshi-first track creates and registers a service only when an enabled vertical slice needs it. Setup → Deposit → Balance does not wait for `LiveDataService`, every Polymarket read, or the full target UI. The six-service inventory is a destination, not a launch checklist.
 
-The design intent is that each service exposes only the capabilities other modules must actually use. Internal helper methods, transport concerns, and workflow states remain private. Read services expose narrow read-model writer interfaces for cache coordination; write and live services never receive full read-service instances. Stateful services declare `StateMetadata` per field so persistence, debug-snapshot inclusion, and UI sync are tuned per concern — most workflow state is `persist: false`, and only durable identifiers persist. (`StateMetadata` is a `BaseController` concept and does not apply to Read or Runtime services.)
+| Module                  | Base class               | Approximate public interface size              | What it owns / hides                                                                                                                                                                                                         |
+| ----------------------- | ------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PredictController`     | Plain (composition root) | 2 methods (`initialize`, `destroy`)            | service instantiation order, shared dependency wiring, feature lifecycle. **No Redux state.**                                                                                                                                |
+| `PredictSessionService` | `BaseController`         | client, readiness, setup actions + state slice | Predict Client retrieval, authenticated user/account scope, Venue Session cache, Account Setup orchestration through the account adapter, `AccountReadinessPolicy`, invalidation                                             |
+| `MarketDataService`     | `BaseDataService`        | 8 actions + read-model writer interface        | query descriptor consumption, cache strategy, retries, venue pagination normalization, market read-model patching                                                                                                            |
+| `PortfolioService`      | `BaseDataService`        | 5 actions + read-model writer interface        | positions / activity / balance / PnL read aggregation, cache policy, pagination, background refresh, portfolio read-model patching                                                                                           |
+| `TradingService`        | `BaseController`         | Order actions + state machine slice            | preview expiry, idempotent Order/reconciliation state machine, rate limiting, optional funding policy, read-model writer notifications                                                                                       |
+| `TransactionService`    | `BaseController`         | funding actions + safe operation projection    | prepare/confirm/commit Deposit, Withdraw, optional Claim; persisted non-secret operation references, resume/reconciliation, analytics, user-facing errors                                                                    |
+| `LiveDataService`       | Runtime service          | 2 actions + internal connection status         | socket lifecycle, reconnection, multiplexing, channel fan-out, narrow read-model writer notifications                                                                                                                        |
+| `FundingExecutor`       | Runtime primitive        | `executePlan(plan, opts)`, `cancel`, `destroy` | Wallet confirmation/submission and funding commit coordination using durable operation/idempotency references. **Not a service.** Constructor-injected into `TransactionService` and optional TradingService funding policy. |
+| `predictAnalytics`      | Injected helper module   | one `track(event, properties)` method          | analytics emission for product events. **Not a service.** Constructed in the composition root and injected into services.                                                                                                    |
 
-`PredictController` itself is not on any hot path. It exists to organize bootstrap, not to mediate calls. Hooks address services directly via messenger actions and Redux selectors.
+The design intent is that each service exposes only the capabilities other modules must use. Internal helpers, transport concerns, and workflow state remain private. Read services expose narrow read-model writer interfaces; write and live services never receive full read-service instances. Stateful services declare `StateMetadata` per field. Sensitive values never persist; only safe operation references persist when resume/reconciliation needs them.
 
-Services branch on `client.capabilities`, not on optional methods. `PredictClient` methods are complete and non-optional; if unsupported code is called anyway, they throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`.
+`PredictController` is not on a hot path. It organizes enabled modules, not calls. Hooks address services through messenger actions, query descriptors, and selectors.
 
-All product services talk to venues through a `PredictClient` returned by `PredictSessionService.getClient(ownerAddress, venueId?)`. Services do not call venue adapters directly and do not pass session objects around. PredictNext may register multiple venue implementations, but the product is expected to run one active venue at a time unless a future requirement explicitly adds multi-active-venue aggregation.
+Structural capability presence is executable truth. Product capability metadata controls affordances and must agree with adapter structure in contract tests. Services do not call methods that exist only to throw unsupported errors.
+
+`MarketDataService` resolves the public `marketData` adapter by explicit `venueId`. Account-scoped services obtain a `PredictClient` from `PredictSessionService.getClient(scope)`, where `scope` is a Venue-qualified `PredictAccountScope`. Services never receive `PredictVenueSession`. No module assumes one global active Venue for mixed data.
 
 ## 1.5. Service Shapes
 
 PredictNext services use three canonical shapes. The name describes what the service **owns**, not whether it has any internal data — a Read service still maintains a query cache, and a Runtime service still tracks lifecycle bookkeeping. The shape is fixed at class definition and never mixed.
 
-| Shape                | Extends           | Owns                                                                                                                                        | Examples                                  |
-| -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| **Stateful service** | `BaseController`  | A Redux slice on `state.engine.backgroundState.<Name>`                                                                                      | `PredictSessionService`, `TradingService` |
-| **Read service**     | `BaseDataService` | A TanStack query cache; no Redux slice                                                                                                      | `MarketDataService`, `PortfolioService`   |
-| **Runtime service**  | plain class       | Transient lifecycle state (sockets, in-flight maps, rate-limit windows, batch handles) in private fields; no Redux slice and no query cache | `TransactionService`, `LiveDataService`   |
+| Shape                | Extends           | Owns                                                                                                                                        | Examples                                                        |
+| -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Stateful service** | `BaseController`  | A Redux slice on `state.engine.backgroundState.<Name>`                                                                                      | `PredictSessionService`, `TradingService`, `TransactionService` |
+| **Read service**     | `BaseDataService` | A TanStack query cache; no Redux slice                                                                                                      | `MarketDataService`, `PortfolioService`                         |
+| **Runtime service**  | plain class       | Transient lifecycle state (sockets, in-flight maps, rate-limit windows, batch handles) in private fields; no Redux slice and no query cache | `LiveDataService`                                               |
 
-The term **Stateful service** is reserved for Redux-slice ownership. Read and Runtime services may carry internal data, but they are not "Stateful" in PredictNext docs. Use **stateless** only for things that truly hold no state between calls: the `predictAnalytics` helper and `VenueAdapter` implementations. `FundingExecutor` is not stateless; it is a runtime primitive with private lifecycle bookkeeping.
+The term **Stateful service** is reserved for Redux-slice ownership. Read and Runtime services may carry internal data, but they are not "Stateful" in PredictNext docs. Use **stateless** only for things that truly hold no state between calls. Venue adapters do not own product state or session caches, though their transport clients may hold connection pools. `FundingExecutor` is a runtime primitive with private lifecycle bookkeeping.
 
 Each shape determines how callers reach the service:
 
@@ -74,15 +77,16 @@ This is a deliberate departure from the legacy `PredictController` (60+ methods,
 
 ### Controller responsibilities
 
-- instantiate Stateful services (`PredictSessionService`, `TradingService`) and Read services (`MarketDataService`, `PortfolioService`) with their scoped messengers and persisted state slices
-- instantiate Runtime services (`TransactionService`, `LiveDataService`) with their dependencies, and construct the `FundingExecutor` primitive shared by `TransactionService` and `TradingService`
+- instantiate the Stateful, Read, and Runtime services required by the enabled Venue surface with scoped messengers and safe persisted state,
+- construct `FundingExecutor` when funding is enabled and inject it into the services that need it,
+- defer optional modules such as `LiveDataService` when bounded polling implements the enabled surface
 - construct the `predictAnalytics` helper module and inject it into every service that emits analytics
 - coordinate initialization order so that services depending on `PredictSessionService` are constructed after it
 - own feature lifecycle entrypoints (`initialize`, `destroy`) for bootstrap, teardown, and feature-flag-driven enable/disable
 
 ### Bootstrap and lifecycle failure semantics
 
-`initialize()` is **transactional and fail-closed**. Either every service constructs cleanly and the feature comes up, or the composition root tears every partially-initialised service back down and reports the feature unavailable.
+`initialize()` is **transactional and fail-closed for the required module set**. Either every module required by the enabled surface constructs cleanly, or the composition root tears the partial graph down and reports that Venue surface unavailable. Optional live/read modules may degrade only when the product explicitly permits it.
 
 Failure modes are explicitly categorised:
 
@@ -122,7 +126,7 @@ That is the entire surface. No proxy methods. No state accessors. Anything more 
 
 A controller whose public methods are a same-name forward to a service method is a shallow module: its interface size matches its implementation size, and the implementation provides no orchestration the service didn't already provide. In `PredictNext`:
 
-- `TradingService` already owns the order workflow (state machine, deposit-via-private-executor chaining, rate limiting, direct read-model writer calls through `PortfolioReadModelWriter`, observer-only lifecycle Service Events). A `PredictController.placeOrder` that forwards to `TradingService.placeOrder` carries no additional logic.
+- `TradingService` already owns the Order workflow (state machine, idempotency/reconciliation, optional automatic funding policy, rate limiting, direct read-model writer calls, observer-only Service Events). A `PredictController.placeOrder` forward adds no logic.
 - `TransactionService` already owns transaction orchestration. A `PredictController.deposit` that forwards adds nothing.
 - `LiveDataService` already owns subscriptions. A `PredictController.subscribe` that forwards adds nothing.
 - `BaseDataService`-backed services already serve reads directly. The controller is never on the read path.
@@ -155,7 +159,7 @@ Collapsing the controller to a composition root deletes the facade entirely. Hoo
                  ┌────────────────┐ ┌────────────────┐
                 │ Transaction    │ │ LiveData       │
                 │ Service        │ │ Service        │
-                │ (Runtime)      │ │ (Runtime)      │
+                │ (BaseController)│ │ (Runtime)      │
                 └────────────────┘ └────────────────┘
 
                  ┌──────────────────────────────────┐
@@ -175,7 +179,8 @@ MarketDataService                  TradingService
     │                                  │
     │                                  ├── this.update() to advance state machine
     │                                  │
-    └─── via PredictSessionService.getClient(owner) ───▶ PredictClient ──▶ active VenueAdapter
+    ├─── public read via VenueAdapterRegistry.get(venueId).marketData
+    └─── account write via PredictSessionService.getClient(scope) ───▶ PredictClient
 
 TradingService / TransactionService / LiveDataService ─▶ predictAnalytics.track(event, properties)   (direct call on injected helper)
 ```
@@ -184,146 +189,123 @@ TradingService / TransactionService / LiveDataService ─▶ predictAnalytics.tr
 
 ## 3. PredictSessionService (BaseController)
 
-`PredictSessionService` extends `BaseController` and is the stateful owner of venue client/session lifecycle and account readiness. It exists so venue adapters can remain stateless while product services avoid resolving signers, managing credentials, tracking eligibility/readiness, or exposing venue-account details. It registers as a first-class `Engine.context` entry; hooks call its actions through messenger and subscribe to its public state slice through Redux selectors.
+`PredictSessionService` owns account-scoped Venue Session lifecycle, Account Readiness, and Account Setup workflow projection. It separates the authenticated Predict User from the selected Funding Wallet and keeps raw Venue credentials/session data outside Redux.
 
-Account Readiness is produced by an internal `AccountReadinessPolicy` module owned by `PredictSessionService`. The policy combines venue readiness, geo and feature eligibility, account setup status, refresh triggers, and blocker precedence into one public `PredictAccountReadiness` projection. Callers never compose those blockers themselves.
+Account Readiness is produced by an internal `AccountReadinessPolicy`. The policy combines Venue readiness, eligibility, Account Setup, wallet/network requirements, and blocker precedence into one projection. Callers do not compose or rank blockers.
 
-Its `BaseController` state holds the small set of session-derived data that needs cross-component reactivity:
-
-- `readinessByOwner`: a record of `PredictAccountReadiness` keyed by `ownerAddress` — the canonical owner of Account Readiness for the whole feature
-- `eligibility`: feature-level eligibility (geo, feature flag)
-
-Internal session material — API keys, signing context, raw venue auth payloads — stays in private fields and is never put in `state` or exposed through public actions. State fields are declared via `StateMetadata` with conservative persistence: most fields are `persist: false`; only durable identifiers such as the active `venueId` (when not derived from geo on each launch) may be `persist: true`.
-
-### Responsibilities
-
-- resolve `PredictSigner` for an `ownerAddress` through `PredictSignerProvider`
-- resolve the active venue adapter and ensure a valid `PredictVenueSession` for `venueId` + `ownerAddress`
-- ask the active adapter to create refreshed session material when the cached session is missing or expired
-- construct and return the session-bound `PredictClient` view of the active adapter
-- cache and refresh session material by active `venueId` and `ownerAddress` in private fields
-- own Account Readiness for the whole feature: invoke `VenueAdapter.fetchAccountReadiness(session)`, run the result through `AccountReadinessPolicy`, store the projection in `readinessByOwner`, expose it for selectors and dependent services
-- own Account Setup workflow state and actions when the active Venue requires onboarding or linking before trading
-- maintain feature-level eligibility (geo, feature flag) in the public state slice
-- invalidate sessions on account switch, sign-out, auth failure, venue change, or explicit caller request
-- keep raw session material (API keys, signing context) private to `PredictSessionService` and the returned `PredictClient`
-
-### Non-responsibilities
-
-- cache canonical read models such as events, positions, balances, or activity
-- implement venue DTO transformation
-- orchestrate deposits, orders, withdrawals, or claims
-- expose venue account addresses, wallet types, deployment flags, API keys, raw auth headers, or session objects
-- let PortfolioService or UI code implement onboarding, OTP, KYC, or existing-user linking workflows
-- mediate cross-service workflows; readiness is exposed for read, refresh, and subscription only — not for orchestration of dependent workflows
-- let hooks or views decide blocker precedence, retryability, or setup actions
-
-### Public interface
+### Public state
 
 ```typescript
 export interface PredictSessionServiceState {
-  readinessByOwner: Record<string, PredictAccountReadiness>;
-  eligibility: { eligible: boolean; blockReason?: string };
+  readinessByAccount: Record<PredictAccountScopeKey, PredictAccountReadiness>;
+  setupByAccount: Record<PredictAccountScopeKey, AccountSetupState>;
+  eligibilityByVenue: Partial<Record<PredictVenueId, PredictEligibility>>;
 }
+```
 
-// Messenger actions registered by PredictSessionService
+Rules:
+
+- scope keys are created only by `getPredictAccountScopeKey(scope)`,
+- `PredictAccountScope` contains Venue, opaque Predict User ID, and optional Funding Wallet address,
+- raw Venue Sessions, credentials, email, OTP, profile/KYC values, and wallet signatures never enter public state,
+- safe backend operation references may persist only when resume needs them,
+- setup form values remain view-local for the minimum time required to submit them.
+
+### Responsibilities
+
+- resolve a registered Venue adapter from `scope.venueId`,
+- create/refresh an account-scoped Venue Session from `PredictUserContext`,
+- construct an operation-scoped `PredictClient` bound to account capabilities,
+- cache Venue Sessions privately by account scope and invalidate them on sign-out, auth failure, wallet/scope change, or explicit refresh,
+- call `client.account.fetchReadiness()`, attach the local `accountScopeKey`, and own the readiness projection,
+- own Account Setup workflow state while delegating Venue calls only through `client.account.setup`,
+- enforce Account Readiness blocker precedence,
+- derive backend auth from the app authentication module for remote adapters,
+- keep Venue credentials and account internals below the seam.
+
+### Non-responsibilities
+
+- public Event/Market/price reads,
+- portfolio caching,
+- Deposit, Withdraw, Claim, or Order orchestration,
+- direct Kalshi/backend route calls,
+- persisting sensitive setup input,
+- treating a wallet address or email as authoritative person identity,
+- deciding UI layout or retry buttons.
+
+### Public actions
+
+```typescript
 export type PredictSessionServiceActions =
   | {
       type: 'PredictSessionService:getClient';
-      handler: (
-        ownerAddress: string,
-        venueId?: PredictVenueId,
-      ) => Promise<PredictClient>;
+      handler: (scope: PredictAccountScope) => Promise<PredictClient>;
     }
   | {
       type: 'PredictSessionService:invalidate';
-      handler: (ownerAddress: string, venueId?: PredictVenueId) => void;
+      handler: (scope: PredictAccountScope) => void;
     }
   | {
       type: 'PredictSessionService:fetchAccountReadiness';
       handler: (
-        ownerAddress: string,
+        scope: PredictAccountScope,
         opts?: { forceRefresh?: boolean },
       ) => Promise<PredictAccountReadiness>;
     }
   | {
       type: 'PredictSessionService:startAccountSetup';
-      handler: (params: StartAccountSetupParams) => Promise<AccountSetupState>;
+      handler: (
+        scope: PredictAccountScope,
+        params: StartAccountSetupParams,
+      ) => Promise<AccountSetupState>;
     }
   | {
       type: 'PredictSessionService:resumeAccountSetup';
-      handler: (ownerAddress: string) => Promise<AccountSetupState>;
+      handler: (scope: PredictAccountScope) => Promise<AccountSetupState>;
     }
   | {
       type: 'PredictSessionService:submitAccountSetupStep';
-      handler: (params: AccountSetupStepParams) => Promise<AccountSetupState>;
+      handler: (
+        scope: PredictAccountScope,
+        params: AccountSetupStepParams,
+      ) => Promise<AccountSetupState>;
     };
-
-export class PredictSessionService extends BaseController<
-  'PredictSessionService',
-  PredictSessionServiceState,
-  PredictSessionServiceMessenger
-> {
-  // Action handlers registered on the messenger during construction.
-  // fetchAccountReadiness invokes adapter.fetchAccountReadiness(session) internally,
-  // then this.update(state => { state.readinessByOwner[ownerAddress] = result; }).
-}
 ```
 
-Product services use `PredictSessionService` before any venue operation:
+Account Setup actions fail with `UNSUPPORTED_VENUE_CAPABILITY` only when a caller violates the structural capability contract. Normal product code checks `client.account.setup` or Venue capability metadata before rendering setup actions.
+
+### Usage
 
 ```typescript
-const client = await messenger.call(
-  'PredictSessionService:getClient',
-  ownerAddress,
+const client = await messenger.call('PredictSessionService:getClient', scope);
+return client.portfolio.fetchBalance();
+```
+
+```typescript
+const scopeKey = getPredictAccountScopeKey(scope);
+const readiness = useSelector(
+  (state: RootState) =>
+    state.engine.backgroundState.PredictSessionService.readinessByAccount[
+      scopeKey
+    ],
 );
-return client.fetchBalance();
 ```
 
-Hooks and views read account readiness through Redux selectors against the service's slice:
+Callers treat a `PredictClient` as operation-scoped. They request one when account work starts so the session can be validated/refreshed; they do not retain it in React state or pass it across account changes.
 
-```typescript
-// In selectors:
-const selectReadiness = (owner: string) => (state: RootState) =>
-  state.engine.backgroundState.PredictSessionService.readinessByOwner[owner];
+### Account Setup durability
 
-// In a hook:
-const readiness = useSelector(selectReadiness(ownerAddress));
-```
+For remote Kalshi, the backend owns durable setup state and lost-response recovery. Mobile stores only the canonical projection and safe operation reference. Resuming setup calls `client.account.setup.resume()`; it never guesses from stale local steps.
 
-Callers should treat `PredictClient` instances as operation-scoped. Do not store a `PredictClient` long-term in UI, hooks, controllers, or services; ask `PredictSessionService` for a client when venue work starts so it can validate or refresh the session first.
+Kalshi-specific rules include:
 
-There is intentionally no public session-purpose enum and no public session object. `PredictSessionService` ensures the returned `PredictClient` has whatever authenticated or unauthenticated context the active venue needs for that MetaMask account. Some read-only venue APIs are still authenticated because the venue needs to know which user is being queried. If a future venue needs multiple internal credential types, `PredictSessionService` and the active adapter can manage that without changing product service APIs.
+- distinguish flat account-exists from duplicate external-user-ID errors,
+- treat Venue status strings as opaque unless contractually stable,
+- recover a successful link/verification response that was lost,
+- handle one-time API-key response loss through list/revoke/remint policy,
+- refresh readiness only after durable setup completion.
 
-### Account Readiness and Account Setup ownership
-
-Account Readiness is owned by `PredictSessionService` exclusively. `PortfolioService` does not expose it; views do not derive it from portfolio data. The session service is the only caller of `VenueAdapter.fetchAccountReadiness(session)` and the only writer of `readinessByOwner`. This avoids the previous three-owner problem (PortfolioService cache + PredictSessionService internal state + adapter method all claiming a piece) and the circular dependency that came with it (PortfolioService needed `getClient()` to fetch readiness; `getClient()` needed readiness to know whether a session was producible).
-
-Account Setup is also owned by `PredictSessionService`. Readiness is the projection (`ready`, `setup_required`, `restricted`, etc.); setup is the resumable workflow that can change that projection. For Kalshi, setup includes new-user creation, email OTP, profile submission, phone OTP, KYC verification, existing-user linking, and status recovery. For Polymarket, setup may include wallet/deposit-wallet readiness. Setup state may contain venue user IDs, link IDs, obfuscated destinations, and KYC status, but raw credentials and API keys stay in private session fields.
-
-`AccountReadinessPolicy` is internal to the session service. Its interface is intentionally narrower than the service:
-
-```typescript
-interface AccountReadinessPolicy {
-  evaluate(input: {
-    ownerAddress: string;
-    venueId: PredictVenueId;
-    venueReadiness: PredictAccountReadiness;
-    eligibility: PredictSessionServiceState['eligibility'];
-    networkStatus?: 'supported' | 'unsupported';
-  }): PredictAccountReadiness;
-}
-```
-
-The policy owns blocker precedence. For example, a geo block should win over a setup prompt, and a venue outage should produce an `unavailable` status even if cached setup data says the account was previously ready. `usePredictGuard` reads the resulting projection and may combine it with app-level network actions, but it does not re-rank blockers.
-
-Refresh policy:
-
-- on first call to `getClient(owner)`, ensure `readinessByOwner[owner]` is populated; fetch if missing
-- on `fetchAccountReadiness(owner, { forceRefresh: true })`, bypass cache and re-invoke the adapter
-- on account switch, invalidate the previous owner's entry
-- on sign-out or session invalidation, clear the affected entry
-- venue-specific events (KYC approved, geo flip) trigger refresh via existing service-event subscriptions
+`AccountReadinessPolicy` consumes `scope`, Venue readiness, Venue eligibility, and wallet/network state. A geo restriction outranks setup; a Venue outage outranks stale ready state.
 
 ## 4. MarketDataService (BaseDataService)
 
@@ -370,7 +352,7 @@ Market data is shared server state:
 - custom pagination trackers
 - view-owned fetch coordination
 
-Sports team metadata is not exposed through a public `TeamsService`. It is an enrichment detail behind event reads: the `PredictClient` and active adapter normalize venue team payloads into canonical `PredictTeam` metadata, and read services cache the resulting `PredictEvent` objects.
+Sports team metadata is not exposed through a public `TeamsService`. It is an enrichment detail behind public Event reads: the selected `VenueAdapter.marketData` capability normalizes Venue team payloads into canonical `PredictTeam` metadata, and the read service caches the resulting `PredictEvent` objects.
 
 ### Public interface
 
@@ -424,14 +406,14 @@ export interface CryptoPricePoint {
   value: DecimalString;
 }
 
-export interface CryptoPriceParams {
+export interface CryptoPriceHistoryParams {
   symbol: string;
   eventStartTime: string;
   variant: string;
   endDate?: string;
 }
 
-export interface CryptoReferencePriceParams extends CryptoPriceParams {
+export interface CryptoReferencePriceParams extends CryptoPriceHistoryParams {
   eventId: string;
   endDate: string;
 }
@@ -447,24 +429,39 @@ export interface PaginatedResult<T> {
 }
 
 export interface MarketDataService {
-  getEvents(params: FetchEventsParams): Promise<PaginatedResult<PredictEvent>>;
-  getEvent(eventId: string): Promise<PredictEvent>;
-  getEventSeries(params: {
-    seriesId: string;
-    endDateMin: string;
-    endDateMax: string;
-    limit?: number;
-  }): Promise<PredictEvent[]>;
-  getCarouselEvents(): Promise<PredictEvent[]>;
-  searchEvents(
+  getEvents(
+    venueId: PredictVenueId,
+    params: FetchEventsParams,
+  ): Promise<PaginatedResult<PredictEvent>>;
+  getEvent(venueId: PredictVenueId, eventId: string): Promise<PredictEvent>;
+  getPriceHistory(
+    venueId: PredictVenueId,
+    marketId: string,
+    period: TimePeriod,
+  ): Promise<PricePoint[]>;
+  getPrices(
+    venueId: PredictVenueId,
+    queries: PriceQuery[],
+  ): Promise<MarketPrices>;
+
+  // Optional Venue capabilities are exposed only when product surfaces use them.
+  getEventSeries?(
+    venueId: PredictVenueId,
+    params: FetchEventSeriesParams,
+  ): Promise<PredictEvent[]>;
+  getCarouselEvents?(venueId: PredictVenueId): Promise<PredictEvent[]>;
+  searchEvents?(
+    venueId: PredictVenueId,
     params: SearchEventsParams,
   ): Promise<PaginatedResult<PredictEvent>>;
-  getPriceHistory(marketId: string, period: TimePeriod): Promise<PricePoint[]>;
-  getCryptoPriceHistory(params: CryptoPriceParams): Promise<CryptoPricePoint[]>;
-  getCryptoReferencePrice(
+  getCryptoPriceHistory?(
+    venueId: PredictVenueId,
+    params: CryptoPriceHistoryParams,
+  ): Promise<CryptoPricePoint[]>;
+  getCryptoReferencePrice?(
+    venueId: PredictVenueId,
     params: CryptoReferencePriceParams,
   ): Promise<ReferencePrice | null>;
-  getPrices(queries: PriceQuery[]): Promise<MarketPrices>;
 }
 ```
 
@@ -474,7 +471,7 @@ Market-data query descriptors are owned by [interface-ledger.md](./interface-led
 
 ## 5. PortfolioService (BaseDataService)
 
-`PortfolioService` is the read model for account-specific prediction-market data.
+`PortfolioService` is the read model for Venue- and Predict-User-scoped prediction-market data. Every method takes `PredictAccountScope`; no portfolio cache is keyed by an unqualified wallet address.
 
 ### Responsibilities
 
@@ -494,19 +491,21 @@ Account Readiness is **not** owned here. It is owned by `PredictSessionService` 
 
 Positions are relatively volatile during active trading, while activity is more append-only and tolerates a slightly longer stale window.
 
-Canonical product financial values exposed by services use decimal strings. Services and UI should not depend on raw token integers or JavaScript floating-point numbers for balances, prices, PnL, fees, or order sizing. `PredictClient` and active adapter order/funding plan methods own conversion to raw venue/token units.
+Canonical product financial values exposed by services use decimal strings. Services and UI do not use raw token integers or JavaScript floating-point numbers for balances, prices, PnL, fees, or order sizing. The account-scoped adapter capability owns conversion to and from raw Venue/token units.
 
 ### Optimistic portfolio updates (direct cache coordination)
 
 `PortfolioService` owns portfolio read-model mutation. Write services call **direct semantic methods** on a narrow `PortfolioReadModelWriter` produced by `PortfolioService` for cache-relevant workflow milestones — no internal pub/sub for cache mutation and no dependency on the full read-service interface.
 
 ```text
-TradingService places order
-  → calls PortfolioReadModelWriter.onOrderSubmitted({ ownerAddress, venueId, marketId, outcomeId, side, quantity, price, optimisticId })
-    → PortfolioService patches getPositions(ownerAddress) optimistically
+TradingService places Order
+  → PortfolioReadModelWriter.onOrderSubmitted({
+      scope, marketId, outcomeId, side, quantity, price, optimisticId
+    })
+    → PortfolioService patches getPositions(scope) optimistically
       → UI re-renders from query cache
-        → API/live update/refetch confirms position
-          → TradingService calls PortfolioReadModelWriter.onOrderConfirmed(optimisticId, receipt)
+        → API/live update/refetch confirms Fills/Position
+          → onOrderConfirmed(scope, optimisticId, receipt)
             → PortfolioService reconciles and removes optimistic marker
 ```
 
@@ -517,19 +516,30 @@ If the workflow fails, `TradingService` calls `PortfolioReadModelWriter.onOrderF
 ```typescript
 export interface PortfolioReadModelWriter {
   onOrderSubmitted(params: {
-    ownerAddress;
-    venueId;
-    marketId;
-    outcomeId;
-    side;
-    quantity;
-    price;
-    optimisticId;
+    scope: PredictAccountScope;
+    marketId: string;
+    outcomeId: string;
+    side: 'buy' | 'sell';
+    quantity: DecimalString;
+    price: DecimalString;
+    optimisticId: string;
   }): void;
-  onOrderConfirmed(optimisticId: string, receipt: OrderReceipt): void;
-  onOrderFailed(optimisticId: string, error: PredictError): void;
-  onClaimSucceeded(params: { ownerAddress; marketId; outcomeId }): void;
-  applyPortfolioUpdate(update: PortfolioUpdate): void; // called by LiveDataService
+  onOrderConfirmed(
+    scope: PredictAccountScope,
+    optimisticId: string,
+    receipt: OrderReceipt,
+  ): void;
+  onOrderFailed(
+    scope: PredictAccountScope,
+    optimisticId: string,
+    error: PredictError,
+  ): void;
+  onClaimSucceeded(params: {
+    scope: PredictAccountScope;
+    marketId: string;
+    outcomeId: string;
+  }): void;
+  applyPortfolioUpdate(update: PortfolioUpdate): void;
 }
 
 export class PortfolioService extends BaseDataService {
@@ -549,24 +559,24 @@ This keeps order workflow ownership in `TradingService` and portfolio read-model
 
 Service Events are reserved for **observers** (analytics, optional listeners) — see [Service Events: observation only](#service-events-observation-only) below.
 
-`PortfolioService` obtains a `PredictClient` through `PredictSessionService.getClient(ownerAddress)` before calling venue methods for refresh.
+`PortfolioService` obtains a `PredictClient` through `PredictSessionService.getClient(scope)` and calls `client.portfolio` for account-scoped refreshes.
 
 ### Public interface
 
 ```typescript
-// PredictPosition, ActivityItem, PredictBalance, PredictVenueInfo, and
-// PredictAccountReadiness are imported from PredictNext/types. Do not
-// redefine them in service modules.
+// Canonical types are imported from PredictNext/types.
 
 export interface PortfolioService {
-  getPositions(ownerAddress: string): Promise<PredictPosition[]>;
+  getPositions(
+    scope: PredictAccountScope,
+    params?: FetchPositionsParams,
+  ): Promise<PaginatedResult<PredictPosition>>;
   getActivity(
-    ownerAddress: string,
+    scope: PredictAccountScope,
     cursor?: string,
   ): Promise<PaginatedResult<ActivityItem>>;
-  getBalance(ownerAddress: string): Promise<PredictBalance>;
-  getVenueInfo(): PredictVenueInfo;
-  getUnrealizedPnL(ownerAddress: string): Promise<DecimalString>;
+  getBalance(scope: PredictAccountScope): Promise<PredictBalance>;
+  getUnrealizedPnL?(scope: PredictAccountScope): Promise<PredictPnL>;
 }
 ```
 
@@ -580,7 +590,7 @@ Portfolio query descriptors are owned by [interface-ledger.md](./interface-ledge
 
 `TradingService` extends `BaseController` and owns the entire active-order workflow. This is one of the deepest modules in the system. It registers as a first-class `Engine.context` entry. Hooks call its actions through messenger and subscribe to its public `state.engine.backgroundState.PredictTradingService` slice through Redux selectors. There is no `PredictController.placeOrder` proxy — hooks talk to `TradingService` directly.
 
-`TradingService` state is declared with `StateMetadata` per field. The order state machine and `selectedPaymentToken` are typically `persist: false` because mid-order recovery is not a product requirement; if a launch interrupts an order, the user starts again from preview.
+`TradingService` state is declared with `StateMetadata` per field. Uncommitted preview/input state is `persist: false`; an expired preview is safely discarded after interruption. Once submission commits, the backend Venue Operation is durable. Mobile may persist only its non-secret operation reference so it can resume/reconcile instead of submitting again.
 
 ### State machine ownership
 
@@ -592,7 +602,8 @@ Statuses (the discriminants):
 
 - `IDLE`
 - `PREVIEWING`
-- `DEPOSITING`
+- `READY`
+- `FUNDING` (only when automatic funding policy is enabled)
 - `PLACING_ORDER`
 - `SUCCESS`
 - `ERROR`
@@ -600,42 +611,31 @@ Statuses (the discriminants):
 The UI can render the current variant, but it should not be responsible for deciding transitions.
 
 ```text
-          +-------+          +------------+
-          | ERROR | <------- | ANY STATE  |
-          +-------+          +------------+
-              |
-              | (reset)
-              v
-          +-------+          +------------+
-   +----> | IDLE  | <------> | PREVIEWING |
-   |      +-------+          +------------+
-   |          |                    |
-   |          v                    |
-   |      +------------+           |
-   |      | DEPOSITING | <---------+
-   |      +------------+
-   |          |
-   |          v
-   |      +---------------+
-   |      | PLACING_ORDER |
-   |      +---------------+
-   |          |
-   |          v
-   |      +---------+
-   +----- | SUCCESS |
-          +---------+
+IDLE -> PREVIEWING -> READY -> [optional FUNDING] -> PLACING_ORDER
+  ^          |          |                              |
+  |          +----------+---------------> ERROR <-----+
+  |
+  +---------------------- SUCCESS <-------------------+
 ```
+
+`READY` carries the short-lived `OrderPreview`. `PLACING_ORDER` carries its `previewId`, idempotency key, and any safe backend operation reference.
 
 ### Internal responsibilities
 
 `TradingService` hides substantial complexity:
 
-- rate limiting to at most one order every three seconds
-- order preview lifecycle using `PredictClient` quote reads
-- automatic deposit-and-order chaining when funding is insufficient — `TradingService` calls the shared `FundingExecutor` primitive (sibling module, see §7) directly for funding, not the public `TransactionService.deposit()` action
-- direct semantic calls into `PortfolioReadModelWriter` for order lifecycle cache patches (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`)
-- request targeted invalidation after write completion when cache patching is insufficient
-- analytics emission at preview, submit, success, and failure boundaries via the injected `predictAnalytics` helper
+- account-scope and Account Readiness guards,
+- rate limiting,
+- short-lived preview lifecycle and expiry,
+- idempotency-key creation and lost-response reconciliation,
+- backend/adapter revalidation at submit,
+- optional automatic funding policy through `FundingExecutor`,
+- direct semantic calls into `PortfolioReadModelWriter`,
+- targeted invalidation after completion,
+- Immediate versus Resting Order capability policy,
+- analytics at preview, submit, success, and failure boundaries.
+
+Kalshi v1 uses explicit Deposit before Order. Automatic Deposit-and-Order chaining is deferred; the long-term service may enable it without changing callers.
 
 ### Public interface
 
@@ -643,7 +643,8 @@ The UI can render the current variant, but it should not be responsible for deci
 export type TradingStateStatus =
   | 'IDLE'
   | 'PREVIEWING'
-  | 'DEPOSITING'
+  | 'READY'
+  | 'FUNDING'
   | 'PLACING_ORDER'
   | 'SUCCESS'
   | 'ERROR';
@@ -659,15 +660,27 @@ export interface SelectedPaymentToken {
  * representable.
  *
  * The ERROR variant carries `previousState` for recoverable errors so retry can
- * resume from the failed step (PREVIEWING / DEPOSITING / PLACING_ORDER) instead
+ * resume from the failed step (READY / FUNDING / PLACING_ORDER) instead
  * of forcing the user back to IDLE. For unrecoverable errors `previousState`
  * is omitted; callers transition back to IDLE.
  */
 export type TradingWorkflowState =
   | { status: 'IDLE' }
-  | { status: 'PREVIEWING'; preview: OrderPreview }
-  | { status: 'DEPOSITING'; preview: OrderPreview; transactionId: string }
-  | { status: 'PLACING_ORDER'; preview: OrderPreview }
+  | { status: 'PREVIEWING'; scope: PredictAccountScope }
+  | { status: 'READY'; scope: PredictAccountScope; preview: OrderPreview }
+  | {
+      status: 'FUNDING';
+      scope: PredictAccountScope;
+      preview: OrderPreview;
+      fundingOperationId: string;
+    }
+  | {
+      status: 'PLACING_ORDER';
+      scope: PredictAccountScope;
+      previewId: string;
+      idempotencyKey: string;
+      operationId?: string;
+    }
   | { status: 'SUCCESS'; receipt: OrderReceipt }
   | {
       status: 'ERROR';
@@ -675,7 +688,7 @@ export type TradingWorkflowState =
       recoverable: boolean;
       previousState?: Extract<
         TradingWorkflowState,
-        { status: 'PREVIEWING' | 'DEPOSITING' | 'PLACING_ORDER' }
+        { status: 'READY' | 'FUNDING' | 'PLACING_ORDER' }
       >;
     };
 
@@ -696,9 +709,14 @@ export type PredictTradingServiceActions =
       type: 'PredictTradingService:placeOrder';
       handler: (params: PlaceOrderParams) => Promise<OrderReceipt>;
     }
+  // Registered only for a Resting-Order product surface.
   | {
       type: 'PredictTradingService:cancelOrder';
-      handler: (orderId: string) => Promise<void>;
+      handler: (params: {
+        scope: PredictAccountScope;
+        orderId: string;
+        idempotencyKey: string;
+      }) => Promise<OrderReceipt>;
     }
   | {
       type: 'PredictTradingService:selectPaymentToken';
@@ -723,7 +741,7 @@ Two earlier draft choices have been retired:
 - A loose product type of nullables (`status` plus `activePreview | null`, `lastOrderReceipt | null`, `lastErrorCode | null`) — replaced by the discriminated union above, so illegal states are not representable and consumer hooks stop branching defensively on `status === 'ERROR' && Boolean(orderError)`-style combinations.
 - Public `readonly orderState` / `readonly selectedPayment` properties — duplicate ownership against `BaseController`'s state slice. State now lives in one place and is read via Redux selectors.
 
-Transitions use `this.update()` with an exhaustive switch on the current variant. Recoverable errors set `previousState` to the variant the workflow was in immediately before failure; a retry can then re-enter that variant directly. Unrecoverable errors omit `previousState`, and callers transition the workflow back to `IDLE`.
+Transitions use `this.update()` with an exhaustive switch. A retry never repeats a committed write with a fresh identity: `PLACING_ORDER` reconciliation reuses the same idempotency key/operation reference. An expired preview returns to `PREVIEWING`. Unrecoverable failures omit `previousState` and return to `IDLE` after acknowledgement.
 
 ### Hidden internals by design
 
@@ -738,114 +756,142 @@ The service may internally require many helpers:
 
 Those helpers should remain private because callers do not benefit from depending on them. The public API stays small even if the implementation is sophisticated.
 
-## 7. TransactionService (Runtime Service) and FundingExecutor (Primitive)
+## 7. TransactionService (BaseController) and FundingExecutor (Primitive)
 
-This section describes **two collaborating modules**: `TransactionService` (a Runtime service per §1.5) and `FundingExecutor` (a feature primitive, not a service). They live in sibling files under `services/transactions/`:
+`TransactionService` exposes user-intent Deposit, Withdraw, and optional Claim actions and owns a small Redux projection of safe funding-operation references. `FundingExecutor` performs wallet/confirmation mechanics for a prepared `FundingPlan`. The backend—not Redux or executor memory—remains authoritative for remote operation state.
 
 ```
 services/transactions/
-├── TransactionService.ts  # Runtime service: public deposit/withdraw/claim actions
-├── FundingExecutor.ts     # Runtime primitive: executes Funding Plans
+├── TransactionService.ts
+├── FundingExecutor.ts
 └── TransactionService.test.ts
 ```
 
-### FundingExecutor (primitive)
+### Canonical workflow
 
-`FundingExecutor` is a runtime feature primitive that owns the mechanics of executing a venue-produced `FundingPlan`: coordinating wallet transfer flows, transaction-controller signing hooks, Solana/EVM submission where applicable, venue follow-up calls such as Kalshi deposit indication, confirmation tracking, cancellation, teardown, and normalizing venue-independent failures into `PredictError`. It has no Engine.context entry, no messenger namespace, no Redux state, no public observation surface, and no analytics emission. It is constructed once by `PredictController.initialize()` and **injected by constructor reference** into the two services that need it:
+```text
+TransactionService intent(scope, amount, ...)
+  -> PredictSessionService.getClient(scope)
+  -> client.funding.prepareFunding({ operation, idempotencyKey, ... })
+  -> FundingPlan with operationId
+  -> user confirmation
+  -> FundingExecutor executes wallet action when required
+  -> client.funding.commitFunding({ operationId, idempotencyKey, execution })
+  -> FundingReceipt
+  -> PortfolioReadModelWriter invalidation/reconciliation
+```
 
-- `TransactionService` wraps it to expose the user-intent layer.
-- `TradingService` calls it directly for order funding.
+Preparing may reserve a one-time address or durable preflight record. It must not move funds. A Venue API Withdraw is committed only after explicit confirmation.
 
-Per §1.5's helper-vs-service decision rule it is still not a service: it owns no durable state, exposes no observable lifecycle to callers, has one logical operation family, and has no cross-feature consumers. Its private maps for in-flight plans, abort handles, confirmation listeners, and venue follow-up attempts are implementation details behind the primitive interface.
+### FundingExecutor responsibilities
 
-Lifecycle rules:
+- validate plan Venue, operation, amount, supported network, canonical asset, recipient format, and expiry against the locally stated intent before wallet confirmation,
+- fail closed on any plan/intent mismatch,
+- hand typed EVM/Solana wallet requests to app transaction/confirmation infrastructure,
+- capture submitted transaction hashes,
+- call the account-scoped funding commit with the original operation/idempotency references,
+- observe confirmations when product behavior needs them,
+- stop local observation and unsubscribe listeners on cancellation/teardown,
+- normalize wallet/transport failures into `PredictError`,
+- never store backend credentials, KYC data, or authoritative operation state,
+- never infer that local teardown cancelled an external operation.
 
-- `executePlan` is idempotent by caller-supplied `idempotencyKey` when provided.
-- `cancel(planId)` aborts local tracking and unsubscribes confirmation listeners when the wallet or venue flow can no longer be observed by Predict.
-- `destroy()` cancels all in-flight tracking and is called from `PredictController.destroy()` before messenger clients are unregistered.
-- The executor never branches product behavior on `opts.reason`; `reason` is telemetry and test context only.
+`cancel(operationId)` cancels only local tracking unless the Venue funding capability explicitly exposes a cancellable external operation. It cannot erase an on-chain transfer or committed Venue withdrawal.
 
-### TransactionService (Runtime service wrapping the primitive)
+### TransactionService responsibilities
 
-`TransactionService` is a Runtime service that exposes the **public user-intent layer**: `deposit()`, `withdraw()`, `claim()` messenger actions invoked when the user explicitly tapped Deposit / Withdraw / Claim. Each action obtains a `PredictClient`, asks it for a `FundingPlan` (`createDepositPlan`, `createWithdrawPlan`, or `createClaimPlan`), then calls `FundingExecutor.executePlan(plan, { reason: 'public_action' })` and layers on top:
+- expose only funding operations present in the active Venue capability,
+- obtain `PredictClient` from `PredictAccountScope`,
+- create/reuse idempotency keys,
+- prepare the plan,
+- request explicit user confirmation,
+- invoke `FundingExecutor`,
+- commit/reconcile through `client.funding`,
+- emit user-intent analytics without sensitive values,
+- apply operation-specific recovery and error policy,
+- update portfolio read models after authoritative milestones.
 
-- user-intent analytics emission (`predictAnalytics.track('Predict Deposited Funds', …)`)
-- user-facing retry policy
-- user-facing error normalization
+Kalshi v1 exposes Deposit and Withdraw, not Claim. Polymarket may later expose Claim. Unsupported operations are absent from the product surface; they do not return fake unsupported plans.
 
-`TradingService` holds its **own** constructor-injected reference to the same `FundingExecutor` and calls `executePlan(plan, { reason: 'order_funding' })` directly for deposit-before-order chaining. Order funding does not pass through `TransactionService.deposit()` and therefore does not emit user-deposit analytics or apply user-deposit retry policy — that distinction belongs to the user-intent wrapper, not to the executor.
+### Durability and retry
 
-This separation prevents the "Deposit-as-order-substep" path from accidentally firing user-deposit analytics, applying user-deposit retry policy, or appearing in cross-screen "user is depositing" UI surfaces. Two callers, one shared primitive, distinct semantics.
+- Reads and status checks may use bounded retry.
+- Prepare/commit retries reuse the same idempotency key.
+- The backend stores the operation before calling an irreversible Venue endpoint.
+- A wallet transfer whose indication fails remains resumable by `operationId` and transaction hash.
+- A lost withdrawal response is reconciled; it is not submitted again with a new key.
+- Safe operation references may persist in a focused mobile state projection when cross-screen/app-restart resume requires it.
+- Raw plan details, credentials, signatures, OTP, and KYC fields do not persist.
+- A Kalshi withdrawal receipt remains `submitted`/`processing` until authoritative completion exists.
 
-### Responsibilities
-
-**FundingExecutor (primitive)**
-
-- executes a `FundingPlan` that may be an EVM wallet transaction, Solana wallet transfer, venue API operation, or unsupported capability
-- coordinates wallet signing lifecycle hooks where a wallet transfer is required
-- invokes required venue follow-up after wallet submission, such as Kalshi `/deposit/indication`
-- normalizes venue-independent failures into `PredictError`
-- owns private in-flight plan, cancellation, follow-up retry, and confirmation-listener bookkeeping
-- exposes teardown so the composition root can cleanly destroy the feature
-- no analytics, no Redux state, no messenger surface
-- consumed by `TransactionService` (public path) and `TradingService` (order-funding path)
-
-**TransactionService (public user-intent actions)**
-
-- public `deposit()` — user explicitly funds their Venue Account
-- public `withdraw()` — user explicitly withdraws to wallet
-- public `claim()` — user explicitly claims a resolved position when the Venue supports manual Claims
-- wraps `FundingExecutor.executePlan(...)` with user-intent analytics, public retry policy, and user-facing error normalization
-
-### Internal complexity absorbed here
-
-The UI and controller should never need to know whether funding requires:
-
-- Safe proxy wallet interaction
-- Permit2 approval
-- venue-specific EIP-712 or Safe payload signing
-- multiple batched EVM calls
-- Solana USDC transfer construction
-- one-time deposit addresses
-- venue postback/follow-up such as a deposit indication
-- venue API withdrawal requests
-
-The `PredictClient` hides venue-specific plan construction, signing preflight, and session details. `FundingExecutor` hides plan execution, signing-hook coordination, venue follow-up, and confirmation tracking. `TransactionService` hides the additional user-intent rules: when and how to request the client from `PredictSessionService`, call client plan creators, hand the resulting `FundingPlan` to the executor, and translate executor failures into user-facing `PredictError` instances.
-
-Pending transaction/funding UI state lives in the `useTransactions` hook (view-local) for screens that initiate a deposit/withdraw/claim. If a future product requirement needs cross-screen visibility of in-flight funding, that observation surface moves into a `TransactionService` public state slice at that point — not before. (At that point `TransactionService` would change shape from Runtime to Stateful per §1.5.)
-
-### Public interface
+### Public state and interfaces
 
 ```typescript
-// Runtime service: public user-intent layer (exposed via messenger actions).
-export interface TransactionService {
-  deposit(params: DepositParams): Promise<FundingReceipt>;
-  withdraw(params: WithdrawParams): Promise<FundingReceipt>;
-  claim(params: ClaimParams): Promise<FundingReceipt>;
+export interface FundingOperationProjection {
+  operationId: string;
+  operation: FundingOperation;
+  status: FundingReceiptStatus;
+  updatedAt: number;
 }
 
-// Feature primitive (not a service). Lives in services/transactions/FundingExecutor.ts.
-// Constructed by the composition root and injected by constructor reference into
-// both TransactionService and TradingService. Not registered on the messenger.
-// Not callable from views or hooks.
+export interface TransactionServiceState {
+  operationsByAccount: Record<
+    PredictAccountScopeKey,
+    FundingOperationProjection[]
+  >;
+}
+
+export interface TransactionService {
+  deposit(
+    params: DepositParams & {
+      scope: PredictAccountScope;
+    },
+  ): Promise<FundingReceipt>;
+  withdraw(
+    params: WithdrawParams & {
+      scope: PredictAccountScope;
+    },
+  ): Promise<FundingReceipt>;
+  claim?(
+    params: ClaimParams & {
+      scope: PredictAccountScope;
+    },
+  ): Promise<FundingReceipt>;
+  resume(params: {
+    scope: PredictAccountScope;
+    operationId: string;
+  }): Promise<FundingReceipt>;
+}
+
+export class TransactionService extends BaseController<
+  'PredictTransactionService',
+  TransactionServiceState,
+  PredictTransactionServiceMessenger
+> {}
+
 export interface FundingExecutor {
   executePlan(
     plan: FundingPlan,
-    opts?: {
-      reason?: 'order_funding' | 'public_action';
-      idempotencyKey?: string;
+    opts: {
+      idempotencyKey: string;
+      reason: 'order_funding' | 'public_action';
+      expectedIntent: ExpectedFundingIntent;
     },
   ): Promise<FundingReceipt>;
-  cancel(planId: string): void;
+  cancel(operationId: string): void;
   destroy(): void;
 }
 ```
 
-The `reason` option lets the executor record telemetry that distinguishes the two callers without changing behaviour — public retry policy, user-facing error normalization, and user-intent analytics all live in `TransactionService`, not in the executor. The optional `idempotencyKey` lets caller-owned workflows safely retry after UI, wallet, or venue interruptions without creating duplicate Predict tracking state.
+Only the non-secret operation reference/type/status projection may persist. Its `StateMetadata` is UI-used but excluded from state logs and debug snapshots unless security review explicitly approves it. Amount, destination, transaction payload, signatures, and Venue details are fetched from the authenticated backend when rendering/resuming.
 
-`PredictError` shape, categories, and codes are owned by [interface-ledger.md](./interface-ledger.md). This service throws `PredictError` values via `PredictError.from(code, overrides?)`, never positional arguments and never hand-authoring `category` (it is derived from `code` by the registry).
+The `reason` is telemetry context only. It never changes safety or idempotency behavior.
 
-Every thrown error exposed from this service should be a `PredictError`. Lower-level exceptions should not escape the boundary.
+### Optional Order funding
+
+`TradingService` may use the same injected `FundingExecutor` for future automatic Order funding, without calling the public `TransactionService.deposit()` action. Kalshi v1 deliberately requires an explicit Deposit first, so this path is not a launch dependency.
+
+`PredictError` shape and codes are owned by [interface-ledger.md](./interface-ledger.md). Lower-level exceptions do not escape the service interface.
 
 ## 8. LiveDataService (Runtime Service)
 
@@ -890,20 +936,21 @@ export interface GameUpdate {
   updatedAt: string;
 }
 
-export interface SubscriptionHandle<TData> {
-  readonly status: LiveDataConnectionStatus;
-  readonly data?: TData;
+export interface LiveSubscriptionObserver<TData> {
+  onData(data: TData): void;
+  onStatus(status: LiveDataConnectionStatus): void;
+}
+
+export interface SubscriptionHandle {
   unsubscribe(): void;
 }
 
 export interface LiveDataService {
-  readonly connectionStatus: LiveDataConnectionStatus;
-
-  subscribe<TData = unknown>(
-    channel: SubscriptionChannel,
-    params: SubscriptionParams,
-    onData: (data: TData) => void,
-  ): SubscriptionHandle<TData>;
+  subscribe<TData = unknown>(params: {
+    channel: SubscriptionChannel;
+    params: SubscriptionParams;
+    observer: LiveSubscriptionObserver<TData>;
+  }): Promise<SubscriptionHandle>;
 
   disconnect(): void;
 }
@@ -929,7 +976,7 @@ Examples:
 
 - sports `GameUpdate` with `game.id` patches cached `PredictEvent` records whose `game.id` matches the update
 - market price updates with canonical market or outcome IDs patch matching price and order-book query entries
-- fill/order/position updates patch matching portfolio queries only when `ownerAddress` and position/order identifiers are known
+- Fill/Order/Position updates patch matching portfolio queries only when `PredictAccountScope` and stable Position/Order identifiers are known
 - broad venue status, league, or account updates invalidate the relevant query family instead of guessing
 
 This replaces the legacy `GameCache` overlay pattern. Query cache data should represent the freshest known read model, not a stale venue response plus a separate overlay layer.
@@ -943,12 +990,13 @@ export interface MarketDataReadModelWriter {
   invalidateEventFamily(params: { eventId?: string; league?: string }): void;
 }
 
-export interface PortfolioReadModelWriter {
-  applyPortfolioUpdate(update: PortfolioUpdate): void;
-}
+export type PortfolioLiveUpdateWriter = Pick<
+  PortfolioReadModelWriter,
+  'applyPortfolioUpdate'
+>;
 ```
 
-The read services create these writers and retain cache mutation locality. `LiveDataService` owns subscription lifecycle and normalization; it does not gain access to read methods, query clients, or descriptor internals beyond the writer behavior.
+The read services create these writers and retain cache mutation locality. `LiveDataService` receives `MarketDataReadModelWriter` and the narrowed `PortfolioLiveUpdateWriter`; it does not gain access to read methods, query clients, or unrelated workflow writer methods.
 
 ## 9. predictAnalytics (Injected Helper Module)
 
@@ -964,7 +1012,7 @@ The earlier "PredictAnalyticsService" framing paid the full cost of a service (m
 - removes an Engine.context entry
 - removes a separate test surface
 - keeps analytics emission as cheap direct calls
-- keeps the six first-class services focused on deep workflow ownership
+- keeps first-class services focused on deep workflow ownership
 
 ### Responsibilities
 
@@ -982,9 +1030,11 @@ export type PredictAnalyticsEvent =
   | 'Predict Previewed Order'
   | 'Predict Placed Order'
   | 'Predict Order Failed'
-  | 'Predict Deposited Funds'
-  | 'Predict Withdrew Funds'
+  | 'Predict Submitted Deposit'
+  | 'Predict Deposit Prefunded'
+  | 'Predict Submitted Withdrawal'
   | 'Predict Claimed Winnings'
+  | 'Predict Recorded Settlement'
   | 'Predict Live Data Reconnected';
 
 export interface PredictAnalytics {
@@ -1010,22 +1060,14 @@ Services cooperate, but dependency directions stay disciplined.
 
 Typical direct dependencies:
 
-- `PredictController` → instantiates and wires every other module during `initialize()`
-- `PredictSessionService` → `VenueAdapterRegistry` / active venue adapter
-- `PredictSessionService` → `PredictSignerProvider`
-- `PredictSessionService` → `AccountReadinessPolicy` (internal helper)
-- `TradingService` → `FundingExecutor` (constructor-injected primitive, for order funding)
-- `TradingService` → `PortfolioReadModelWriter` (constructor-injected reference, for direct cache-coordination calls)
-- `TradingService` → `PredictSessionService` for a bound `PredictClient`
-- `TradingService` → `predictAnalytics` (constructor-injected helper)
-- `MarketDataService` → `PredictSessionService` for a bound `PredictClient`
-- `PortfolioService` → `PredictSessionService` for a bound `PredictClient`
-- `TransactionService` → `FundingExecutor` (constructor-injected primitive, wrapped with user-intent semantics)
-- `TransactionService` → `PredictSessionService` for a bound `PredictClient`
-- `TransactionService` → `predictAnalytics` (constructor-injected helper, for user-intent actions only)
-- `LiveDataService` → `PredictSessionService` for a bound `PredictClient`
-- `LiveDataService` → `MarketDataReadModelWriter` / `PortfolioReadModelWriter` (constructor-injected references, for direct cache-coordination calls)
-- `LiveDataService` → `predictAnalytics` (constructor-injected helper)
+- `PredictController` → instantiates only modules required by the enabled Venue surface
+- `MarketDataService` → `VenueAdapterRegistry` for public `marketData` by `venueId`
+- `PredictSessionService` → `VenueAdapterRegistry`, authenticated user context, and `AccountReadinessPolicy`
+- `PredictSessionService` → account adapter capability for readiness/setup and session-bound `PredictClient`
+- `TradingService` → `PredictSessionService`, optional `FundingExecutor`, `PortfolioReadModelWriter`, and `predictAnalytics`
+- `PortfolioService` → `PredictSessionService` for account-scoped `client.portfolio`
+- `TransactionService` → `PredictSessionService`, `FundingExecutor`, `PortfolioReadModelWriter`, and `predictAnalytics`
+- `LiveDataService` → public or account-scoped live adapter capability plus `MarketDataReadModelWriter`, `PortfolioLiveUpdateWriter`, and `predictAnalytics`
 
 `FundingExecutor` is a feature primitive (see §7), not a service: it is shared by `TransactionService` and `TradingService` and not registered on the messenger.
 
@@ -1034,26 +1076,25 @@ Typical direct dependencies:
 **Cache mutation is direct.** Cross-service read-model updates flow through **direct semantic method calls** on cache-owning writer interfaces, not loose Service Events or full read-service dependencies. Service Events exist for observation (analytics, optional listeners), not for the system of record.
 
 ```text
-MarketDataService ─┐
-PortfolioService ──┤
-TradingService ────┼────────────▶ PredictSessionService ──valid session──▶ PredictClient
-TransactionService ┤                                      │                    │
-LiveDataService ───┘                                      │                    ▼
-                                                           └────────────▶ active VenueAdapter
+MarketDataService ──venueId──▶ VenueAdapterRegistry ──▶ adapter.marketData
 
-FundingExecutor (primitive) ◀────────── TransactionService              (constructor reference, wraps with user-intent semantics)
-FundingExecutor (primitive) ◀────────── TradingService                  (constructor reference, used for order funding)
-TradingService ─────onOrderSubmitted/Confirmed/Failed─────▶ PortfolioReadModelWriter
-LiveDataService ───applyPriceUpdates──────▶ MarketDataReadModelWriter
-LiveDataService ───applyPortfolioUpdate───▶ PortfolioReadModelWriter
-TradingService / TransactionService / LiveDataService ─▶ predictAnalytics.track(...)  (direct helper call)
+PortfolioService ─┐
+TradingService ───┼──scope──▶ PredictSessionService ──session──▶ PredictClient
+TransactionService┤
+LiveDataService ──┘
+
+FundingExecutor ◀──────── TransactionService / optional TradingService
+TradingService ──order milestones────────▶ PortfolioReadModelWriter
+TransactionService ──funding milestones──▶ PortfolioReadModelWriter
+LiveDataService ──canonical updates───────▶ MarketData/Portfolio writers
+Workflow services ────────────────────────▶ predictAnalytics.track(...)
 ```
 
 `predictAnalytics` does not depend back on feature services. Venue adapters do not depend upward on services and do not cache sessions that belong to `PredictSessionService`. Read services do not mutate each other's caches; live updates and write workflows call **named methods** on writer interfaces created by the cache owner.
 
 ### Constructor injection
 
-Dependencies are provided explicitly during `PredictController.initialize()`. Stateful and Read services receive a scoped messenger and an optional persisted-state slice as required by their base class; Runtime services receive the messenger plus direct references where the call pattern is hot enough to justify it over messenger actions. The `FundingExecutor` primitive and the `predictAnalytics` helper are also constructor-injected — see §7 and §9.
+Dependencies are provided explicitly during `PredictController.initialize()`. Only the required module set for the enabled surface is constructed. Stateful and Read services receive scoped messengers and safe persisted projections as required; Runtime services receive direct collaborators. `FundingExecutor` and `predictAnalytics` are constructor-injected. No service receives raw backend credentials or KYC payloads.
 
 ```typescript
 // Direct constructor injection for cache coordination and helpers; messenger actions for cross-feature calls.

@@ -10,16 +10,19 @@ PredictNext uses a 3-tier UI taxonomy:
 
 These UI tiers map to top-level product UI modules: `components/`, `widgets/`, and `views/`. `components/` contains Tier 1 primitives only. `widgets/` and `views/` are sibling modules, not nested under `components/`.
 
-The redesign follows deep modules and slim interfaces. A small number of primitives own the complexity of rendering prediction-market data instead of spreading variant logic across many shallow files. This keeps view code small and gives teams one place to evolve behavior.
+The redesign follows deep modules and slim interfaces. Primitives are extracted when real reuse justifies them; the Kalshi launch does not require rebuilding the full legacy UI or creating every target primitive first. A vertical slice may reuse venue-neutral existing presentation and app design-system modules while keeping new data/workflow seams clean.
 
 Core rules:
 
-- Prefer one deep component over many variant-specific wrappers
-- Keep layout flexibility through composition, not prop explosion
-- Use the MetaMask Mobile design system first: `useTailwind`, `Box`, and `Text`
-- Use compound components where a parent can provide shared context to related children
-- Keep domain formatting and rendering logic inside primitives when it improves reuse
-- Primitives are pure (no hooks) — widgets wire data hooks to primitives — views compose widgets
+- prefer one deep component over variant-specific wrappers when two real callers prove reuse,
+- keep layout flexibility through composition, not prop explosion,
+- use the MetaMask Mobile design system first,
+- use compound components when shared parent context earns its keep,
+- keep domain formatting/rendering local when it improves reuse,
+- primitives are pure; widgets wire data hooks; views compose widgets,
+- route/widget data includes explicit `venueId` or `PredictAccountScope`,
+- render Account Setup, Claim, Settlement, Immediate/Resting Order, and funding actions from capabilities—not Venue-name branches,
+- never place identity, credentials, KYC input, idempotency, or retry policy in presentation modules.
 
 ```text
 TIER 3: Views (route-level)
@@ -230,7 +233,7 @@ If a new surface requires fields that do not fit this model, deepen the display 
 
 ### OutcomeButton
 
-`OutcomeButton` replaces specialized buy, claim, and cash-out buttons with a single stateful action surface.
+`OutcomeButton` can replace specialized buy, Claim, and Cash Out buttons with one presentation surface. The caller renders only actions supported by Venue/product capabilities; Kalshi never passes the Claim variant.
 
 Public contract:
 
@@ -296,7 +299,7 @@ export function OutcomeButton({
 
 ### PositionCard
 
-`PositionCard` handles portfolio states through position status and the `claimable` action flag rather than specialized components. Open, won, lost, settled, and claimable states remain internal to the component.
+`PositionCard` handles portfolio states through canonical status and capability-approved actions rather than Venue branches. Open, won, lost, settled, and claimable presentation remains internal; automatic Settlement never creates a Claim affordance.
 
 ```tsx
 import React from 'react';
@@ -612,18 +615,25 @@ Hooks wired at view level:
 
 Route params:
 
-- none required
+- `venueId: PredictVenueId`
+- `accountScope?: PredictAccountScope` when portfolio content is shown
 
 ```tsx
-export function PredictHome() {
-  const { isEligible } = usePredictGuard();
+export function PredictHome({
+  venueId,
+  accountScope,
+  capabilities,
+}: PredictHomeProps) {
+  const { isEligible } = usePredictGuard({ venueId, accountScope });
   if (!isEligible) return <UnavailableModal />;
 
   return (
     <ScrollView>
-      <FeaturedCarousel />
-      <EventFeed />
-      <PortfolioSection />
+      {capabilities.marketData.featured ? (
+        <FeaturedCarousel venueId={venueId} />
+      ) : null}
+      <EventFeed venueId={venueId} search={capabilities.marketData.search} />
+      {accountScope ? <PortfolioSection scope={accountScope} /> : null}
     </ScrollView>
   );
 }
@@ -642,14 +652,16 @@ Hooks wired at view level:
 
 - `useEventDetail` from `hooks/events` — single event by ID
 - `usePositions` from `hooks/portfolio` — user positions for this event
-- `useLiveData` from `hooks/live-data` — real-time price updates
+- optional `useLiveData` from `hooks/live-data` for live-capable surfaces; otherwise query polling
 - `usePriceHistory` from `hooks/events` — chart data
 
 Note: EventDetails is a view that directly renders primitives rather than composing widgets, because its layout is unique and not reusable elsewhere. This is fine — not every view needs to delegate to widgets.
 
 Route params:
 
+- `venueId: PredictVenueId`
 - `eventId: string`
+- `accountScope?: PredictAccountScope`
 
 ### OrderScreen
 
@@ -663,6 +675,8 @@ Hooks wired at view level:
 
 Route params:
 
+- `accountScope: PredictAccountScope`
+- `eventId: string`
 - `marketId: string`
 - `outcomeId: string`
 
@@ -678,7 +692,7 @@ Hooks wired at view level:
 
 Route params:
 
-- `ownerAddress?: string`
+- `accountScope: PredictAccountScope`
 
 ## UI Directory Structure
 

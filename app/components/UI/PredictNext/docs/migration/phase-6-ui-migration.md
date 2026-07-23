@@ -1,128 +1,112 @@
-# Phase 6: UI Migration (Vertical Slices)
+# Phase 6: UI Migration by Product Slice
+
+> **Track status:** incremental post-service work, not a Kalshi launch prerequisite as a whole. Kalshi builds only the views required by each active vertical slice and may reuse venue-neutral legacy presentation or app design-system modules.
 
 ## Goal
 
-Replace the old Predict UI one screen at a time. Each vertical slice includes new hooks, new primitives in `components/`, new widgets in `widgets/`, and a new view in `views/` for that screen. The data stack is already fully proven in production from Phases 2-5, so UI migration is purely a presentation concern.
+Move product surfaces to canonical hooks/views when doing so reduces coupling or unlocks a Venue. Do not rebuild every Predict primitive before shipping Kalshi, and do not require a complete screen rewrite merely because its data capability migrated.
 
-## Prerequisites
+## Rules
 
-- Phase 5 (New Controller) complete.
-- Design system components (@metamask/design-system-react-native) and Tailwind preset are available.
-- Component view test framework is ready in `tests/component-view/`.
+- one routed surface uses one coherent data/workflow path,
+- hooks and route params carry explicit `venueId` or `PredictAccountScope`,
+- UI branches on product capability metadata, not Venue names,
+- Account Setup, Claim, Settlement, Immediate/Resting Order, and funding affordances follow capability structure,
+- services own idempotency/retry/workflow transitions,
+- sensitive setup input stays view-local and is never persisted/logged,
+- use the app design system first,
+- extract/reuse a primitive only when at least two real callers justify it,
+- every migrated behavior has component-view coverage.
 
-## Deliverables
+## Kalshi Vertical Views
 
-- New granular hooks in `app/components/UI/PredictNext/hooks/`.
-- New primitive components in `app/components/UI/PredictNext/components/`.
-- Event presentation helpers such as `EventDisplayModel` and `createEventDisplayModel` in the `EventCard` module.
-- New widgets in `app/components/UI/PredictNext/widgets/`.
-- New views in `app/components/UI/PredictNext/views/`.
-- Component view tests for every migrated view.
-- Updated route registration in `app/components/UI/PredictNext/routes/`.
+Build in delivery order:
 
-## Step-by-Step Tasks
+1. **Account Setup / Readiness**
+   - canonical setup-step renderer,
+   - new/link paths,
+   - pending/rejected/resume states,
+   - no sensitive state persistence.
+2. **Deposit / Balance**
+   - amount and validated Funding Plan,
+   - app-native transaction confirmation,
+   - indication/reconciling/resume state,
+   - no manual transaction-hash input.
+3. **Markets / Immediate Order**
+   - Venue-qualified Event/detail reads,
+   - preview expiry and explicit Deposit-first policy,
+   - no open/cancel/amend UI when Resting Orders are disabled.
+4. **Portfolio / Activity**
+   - Balance, Positions, Fill and Settlement Activity,
+   - no Claim affordance for automatic Settlement.
+5. **Withdraw**
+   - side-effect-free preview,
+   - explicit confirmation,
+   - honest submitted/processing state and support reference.
 
-### 1. Hook Organization and Implementation
+A separate/flagged Kalshi surface is the fastest default. If product requires a merged feed/portfolio, implement a Venue aggregation module and per-Venue account state first; do not switch one global adapter underneath mixed UI.
 
-- Implement the canonical hook set from [../interface-ledger.md](../interface-ledger.md) in domain folders:
-  - `hooks/events/`: `useFeaturedEvents`, `useEventList`, `useEventSearch`, `useEventDetail`, `usePriceHistory`, `useCryptoPriceHistory`, `useCryptoReferencePrice`, `usePrices`.
-  - `hooks/portfolio/`: `usePositions`, `useBalance`, `useActivity`, `usePnL`.
-  - `hooks/trading/`: `useTrading`.
-  - `hooks/transactions/`: `useTransactions`.
-  - `hooks/live-data/`: `useLiveData`.
-  - `hooks/navigation/`: `usePredictNavigation`.
-  - `hooks/guard/`: `usePredictGuard`.
-- **Rule**: Each data hook triggers exactly one query or subscription.
-- **Rule**: Use barrel exports in each folder for clean imports.
-- **Rule**: Deep imperative hooks (trading, transactions) manage complex stateful workflows.
+## Long-Term UI Organization
 
-### 2. UI Tier Implementation
+The three-tier organization remains useful when real reuse exists:
 
-- Follow the 3-tier product UI architecture:
-  - **Primitives**: Pure components with no hooks. They live in top-level `components/` and use design system primitives (`Box`, `Text`, `ButtonBase`).
-    - Examples: `EventCard`, `OutcomeButton`, `PositionCard`, `PriceDisplay`, `Scoreboard`, `Chart`, `Skeleton`.
-    - `EventCard` receives a stable `EventDisplayModel`, not raw event data plus a long list of feed/detail/sports/crypto variant props.
-  - **Widgets**: Wire data hooks to primitives. They live in top-level `widgets/` and are internal composition modules unless explicitly exported.
-    - Examples: `EventFeed`, `FeaturedCarousel`, `PortfolioSection`, `OrderForm`, `ActivityList`.
-    - Event widgets call `createEventDisplayModel(event, { surface, density })` and pass the resulting model into `EventCard`.
-  - **Views**: Compose widgets and orchestrate with imperative/guard hooks. They live in top-level `views/` and are exported for route registration.
-    - Examples: `PredictHome`, `EventDetails`, `OrderScreen`, `TransactionsView`.
+- `components/` — pure Predict primitives,
+- `widgets/` — hook-connected product sections,
+- `views/` — routed surfaces.
 
-### 3. Vertical Slice Migration
+Potential modules include EventCard, OutcomeButton, PositionCard, EventFeed, PortfolioSection, OrderForm, PredictHome, EventDetails, and TransactionsView. This is an organizational target, not a required file inventory.
 
-Migrate screens in the following order (simplest to most complex):
+`EventDisplayModel` may provide a stable presentation interface where feed/detail/card variants genuinely share rendering. Avoid a wide prop surface and avoid extracting it before two callers prove the seam.
 
-1.  **Event Feed Slice**:
-    - Hooks: `useEventList`, `useEventSearch`, `useFeaturedEvents`.
-    - Components: `EventCard`, `createEventDisplayModel`, `Skeleton`.
-    - Widgets: `EventFeed`, `FeaturedCarousel`.
-    - View: `PredictHome` (replaces `PredictFeed/`).
-2.  **Event Details Slice**:
-    - Hooks: `useEventDetail`, `usePriceHistory`, `usePrices`.
-    - Components: `EventCard` detail display model, `Scoreboard`, `Chart`, `PriceDisplay`.
-    - View: `EventDetails` (replaces `PredictMarketDetails/`).
-3.  **Portfolio Slice**:
-    - Hooks: `usePositions`, `useBalance`, `useActivity`.
-    - Components: `PositionCard`.
-    - Widgets: `PortfolioSection`, `ActivityList`.
-    - View: `PortfolioView` (replaces `PredictTransactionsView/` and portfolio sections).
-4.  **Order Flow Slice**:
-    - Hooks: `useTrading`, `useTransactions`.
-    - Components: `OutcomeButton`, `PredictKeypad`.
-    - Widgets: `OrderForm`.
-    - View: `OrderScreen` (replaces `PredictBuyWithAnyToken`, `PredictBuyPreview`, `PredictSellPreview`).
-5.  **Modals and Guards**:
-    - Migrate `AddFundsModal`, `UnavailableModal`, `GTMModal`.
-    - Implement `usePredictGuard` and wire into views.
+## Polymarket UI Strangling
 
-### 4. Verification and Testing
+After Kalshi stabilizes, switch Polymarket surfaces capability by capability:
 
-- For each migrated view, create:
-  - A preset in `tests/component-view/presets/predict.ts`.
-  - A renderer in `tests/component-view/renderers/`.
-  - A view test file `*.view.test.tsx`.
-- **Rule**: Component view tests are the primary verification surface. No standalone hook or component unit tests are required unless they contain complex non-UI logic.
+1. public Event feed/detail reads,
+2. portfolio sections,
+3. Order flow,
+4. Deposit/Withdraw/Claim,
+5. live/sports/crypto specializations,
+6. external embeds/deeplinks.
 
-### 5. External Consumer Switch
+A migrated view may reuse existing venue-neutral presentational modules while replacing its data/workflow path. Do not import legacy provider/controller/hooks into PredictNext.
 
-- Once all internal views are migrated, switch external import points:
-  - Homepage sections, Wallet actions, Browser tab, and Deeplink handlers.
-  - Update `app/core/NavigationService/types.ts` to point to new routes.
+## Hook Requirements
 
-## Files Created
+Canonical hooks remain organized by domain:
 
-| File path                                                                       | Description                             | Estimated lines |
-| ------------------------------------------------------------------------------- | --------------------------------------- | --------------: |
-| `app/components/UI/PredictNext/hooks/**/*.ts`                                   | Granular domain hooks                   |       500-1,000 |
-| `app/components/UI/PredictNext/components/**/*.tsx`                             | Tier 1: Pure primitive components       |       800-1,500 |
-| `app/components/UI/PredictNext/components/EventCard/createEventDisplayModel.ts` | Event presentation display model mapper |          80-160 |
-| `app/components/UI/PredictNext/widgets/**/*.tsx`                                | Tier 2: Data-wired widgets              |       600-1,200 |
-| `app/components/UI/PredictNext/views/**/*.tsx`                                  | Tier 3: Orchestrated screen views       |         400-800 |
-| `tests/component-view/**/*.view.test.tsx`                                       | Integration tests for migrated views    |       600-1,200 |
+- events: `useEventList`, `useEventDetail`, `usePrices`, optional search/series/crypto hooks,
+- portfolio: `usePositions`, `useBalance`, `useActivity`, optional `usePnL`; add `useOrders` only with a Resting-Order product slice,
+- imperative: `useTrading`, `useTransactions`, optional `useLiveData`,
+- navigation/guard: `usePredictNavigation`, `usePredictGuard`.
 
-## Files Affected in Old Code
+Each query hook triggers one descriptor-owned query. Event hooks include `venueId`; portfolio/workflow hooks include `PredictAccountScope`.
 
-| File path                                    | Expected change                                                 |
-| -------------------------------------------- | --------------------------------------------------------------- |
-| `app/components/UI/Predict/routes/index.tsx` | Switch route components to PredictNext views as they are ready. |
-| `app/components/Views/Homepage/...`          | Switch imports to PredictNext components.                       |
-| `app/components/Views/Wallet/...`            | Switch imports to PredictNext components.                       |
-| `app/core/NavigationService/types.ts`        | Update route param types to canonical versions.                 |
+## Verification
 
-## Acceptance Criteria
+For each slice:
 
-- All Predict screens are rendered using `PredictNext` views, hooks, and components.
-- UI uses `@metamask/design-system-react-native` and Tailwind CSS exclusively.
-- No screen mixes old and new hooks or components.
-- Event feeds, carousels, and details build `EventDisplayModel` in widgets/views before rendering `EventCard`; no migrated screen passes raw event variant props into `EventCard`.
-- Every migrated view has a passing component view test suite.
-- External consumers (Homepage, Wallet) are successfully switched to new components.
-- Performance is equal to or better than the legacy implementation.
+- component-view preset/renderer/test,
+- capability absence scenarios,
+- loading/empty/degraded/error states,
+- operation resume after remount for committed writes,
+- accessibility and sensitive-data behavior,
+- performance comparison where replacing an existing surface,
+- route/flag rollback.
 
-## Estimated PRs
+Standalone hook/component tests are added only for behavior not better covered at the view or pure-function seam.
 
-- 8-12 PRs total.
-  - 1 PR per vertical slice (Feed, Details, Portfolio, Order Flow).
-  - 1-2 PRs for shared hooks and primitives.
-  - 1-2 PRs for modals and guards.
-  - 1 PR for external consumer switches.
+## External Consumers
+
+Switch Homepage, Wallet actions, Browser, deeplinks, and route types only when the exported canonical surface they need is stable. External imports come from the PredictNext public entrypoint, not internal widgets/services/adapters.
+
+## Acceptance Criteria per Slice
+
+- explicit Venue/account scope,
+- no Venue protocol or credential logic in UI,
+- no duplicate workflow/retry/idempotency policy,
+- capability-correct affordances,
+- no sensitive setup values in persisted state/logs,
+- passing component-view coverage,
+- independent feature-flag rollback,
+- equal or better user/performance behavior.

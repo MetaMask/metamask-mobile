@@ -1,110 +1,96 @@
-# Phase 3: Read Services
+# Phase 3: Polymarket Read-Service Delegation
+
+> **Track status:** post-Kalshi Polymarket strangler work. Not a Kalshi launch dependency.
 
 ## Goal
 
-Build MarketDataService and PortfolioService using BaseDataService patterns, backed by shared query descriptors and narrow read-model writer interfaces. Hook old PredictController read methods to delegate to these new services. The old controller translates new service responses back to old state shapes via compat mappers before publishing to old hooks.
+Move selected legacy Polymarket reads into Venue-qualified `MarketDataService` and account-scoped `PortfolioService` one capability at a time. Preserve old controller/hook return shapes through temporary compat mapping.
 
-## Prerequisites
+## Preconditions
 
-- Phase 2 complete (generic `PredictClient`, `PolymarketAdapter`, and `PredictSessionService` are functional and wired to the legacy `PolymarketProvider`).
+- the corresponding Polymarket adapter capability is implemented and tested,
+- query descriptors for that capability exist,
+- compatibility mappers and legacy characterization tests exist,
+- the delegation is flaggable and independently revertible.
 
-## Deliverables
+## MarketDataService
 
-- `MarketDataService.ts` handling all market-related data fetching and caching.
-- `PortfolioService.ts` managing user-specific data like balances and positions through `PredictSessionService`.
-- `query-descriptors/` modules consumed by hooks, read services, and cache writers.
-- `MarketDataReadModelWriter` and `PortfolioReadModelWriter` interfaces exposed internally by the read services for direct cache coordination.
-- Refactored `PredictController.ts` where read-only methods delegate to the new services.
+Public market data:
 
-## Step-by-Step Tasks
+- takes explicit `venueId`,
+- resolves `VenueAdapterRegistry.get(venueId).marketData`,
+- does not require `PredictSessionService` or a selected wallet,
+- uses canonical descriptors for every query,
+- returns canonical Venue-qualified entities,
+- exposes a narrow writer for safe price/game patches and targeted invalidation.
 
-### 1. Build MarketDataService
+Migrate only methods backed by implemented adapter capabilities, for example:
 
-Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`. This service will be the primary source for market information.
+- Events/feed/detail,
+- prices/history,
+- optional search/carousel/series/crypto reference reads.
 
-- Implement `getCarouselEvents`, `getEvents` (feed), `getEvent`, `searchEvents`, `getPriceHistory`, `getCryptoPriceHistory`, `getCryptoReferencePrice`, `getPrices`, and `getEventSeries`.
-- Use `PredictSessionService.getClient(ownerAddress)` to obtain the active `PredictClient` as the data source for market reads.
-- Implement caching logic using the `BaseDataService` pattern to reduce redundant API calls.
-- Consume `marketDataQueries` descriptors for every `this.fetchQuery()` call. Do not hand-author query key arrays or stale times inside the service.
-- Expose an internal `MarketDataReadModelWriter` with cache patch methods such as `applyPriceUpdates`, `applyGameUpdate`, and targeted invalidation by descriptor family.
-- Ensure all methods return canonical types.
+Do not add optional methods solely to recreate the old provider surface.
 
-### 2. Build PortfolioService
+## PortfolioService
 
-Create `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`. This service manages the user's personal state within the Predict feature.
+Account data:
 
-- Implement `getBalance`, `getVenueInfo`, `getPositions` (open, resolved, and claimable), `getActivity`, and `getUnrealizedPnL`.
-- Do **not** implement `getAccountReadiness`. Account Readiness is owned by `PredictSessionService` (which stores `readinessByOwner` in its `BaseController` state slice); hooks read it via Redux selectors.
-- Do not add `getRewards` unless the old code exposes a concrete rewards read path by the time this phase starts.
-- Use `PredictSessionService.getClient(ownerAddress)` for account-scoped venue reads, then call client methods. Do not pass session objects through service APIs.
-- Handle the logic for calculating aggregate values like total portfolio value or total unrealized PnL.
-- Consume `portfolioQueries` descriptors for every `this.fetchQuery()` call. Do not hand-author query key arrays or stale times inside the service.
-- Expose an internal `PortfolioReadModelWriter` with cache patch methods such as `onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`, `onClaimSucceeded`, and `applyPortfolioUpdate`.
+- takes `PredictAccountScope`,
+- obtains `PredictClient` from `PredictSessionService.getClient(scope)`,
+- calls `client.portfolio`,
+- uses account-scoped descriptors,
+- owns Balance, Positions, Activity, optional open Orders/PnL,
+- maps execution Activity from authoritative Fill/Settlement/Claim sources,
+- exposes a narrow read-model writer for workflow/live milestones.
 
-### 3. Update PredictController Read Methods
+Account Readiness remains in `PredictSessionService` under `readinessByAccount` and is absent from PortfolioService.
 
-Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate to the new services.
+## Legacy Delegation
 
-- Identify current read methods on the old controller:
-  - `getMarkets`
-  - `searchMarkets`
-  - `getCarouselMarkets`
-  - `getMarket`
-  - `getMarketSeries`
-  - `getCryptoTargetPrice` (legacy name; maps to PredictNext `getCryptoReferencePrice`)
-  - `getPriceHistory`
-  - `getCryptoPriceHistory`
-  - `getPrices`
-  - `getPositions`
-  - `getActivity`
-  - `getUnrealizedPnL`
-  - `getAccountReadiness` (delegates to `PredictSessionService:fetchAccountReadiness` action, not to a portfolio read)
-  - `getBalance`
-  - `getVenueInfo`
-- Replace their internal logic with calls to `MarketDataService`, `PortfolioService`, or `PredictSessionService` as appropriate. Note that `getAccountReadiness` specifically delegates to `PredictSessionService`, not `PortfolioService`.
-- Use compat mappers from `app/components/UI/PredictNext/compat/mappers.ts` to translate canonical service responses back to the legacy state shapes used by the controller.
-- Keep `ownerAddress` terminology at new service boundaries. Do not expose venue account addresses, session objects, API keys, wallet types, or deployment flags from services; map those only in temporary legacy seams where old code still requires them.
-- Update the controller's internal state and trigger updates to old hooks.
+For each selected read:
 
-### 4. Messenger and Cache Invalidation
+```text
+old controller/provider method
+  -> map legacy params to venueId or PredictAccountScope
+  -> call new read service
+  -> map canonical result to legacy shape
+  -> return unchanged legacy contract
+```
 
-Ensure the new services are properly integrated with the app's messaging system.
+Do not synthesize one global active Venue when data is mixed. Legacy Polymarket delegation uses `venueId: 'polymarket'` explicitly.
 
-- Register `MarketDataService` and `PortfolioService` as first-class Engine messenger clients with scoped messengers.
-- Add service names to `DATA_SERVICES` so `@metamask/react-data-query` can route UI query keys to service actions.
-- Register read actions such as `PredictMarketDataService:getEvents` and `PredictPortfolioService:getPositions` on the service messengers.
-- Define writer interfaces for cache invalidation or patching, even if Phase 3 initially handles only broad invalidation.
-- Implement cache invalidation logic using descriptor families. For example, when a network change occurs, the services should clear their caches and trigger a refresh.
-- Service Events remain observation-only. Do not subscribe to product Service Events as the system of record for cache mutation.
+## Cache Rules
 
-## Files Created
+- market keys include `venueId`,
+- portfolio keys include full `PredictAccountScope`,
+- descriptor modules own key/family/stale time/scope,
+- one Venue/account invalidation never clears another,
+- direct writer calls are the system of record for cache mutation,
+- Service Events remain observation-only,
+- public and account reads have independent circuit/degradation behavior.
 
-| File Path                                                                      | Description                                        | Estimated Lines |
-| ------------------------------------------------------------------------------ | -------------------------------------------------- | --------------- |
-| `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`      | Service for market data, events, and search        | 350-500         |
-| `app/components/UI/PredictNext/services/market-data/MarketDataService.test.ts` | Unit tests for MarketDataService                   | 200-300         |
-| `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`         | Service for user balances, positions, and activity | 400-600         |
-| `app/components/UI/PredictNext/services/portfolio/PortfolioService.test.ts`    | Unit tests for PortfolioService                    | 250-350         |
-| `app/components/UI/PredictNext/query-descriptors/*.ts`                         | Query descriptors shared by hooks and services     | 80-140          |
+## Testing
 
-## Files Affected in Old Code
+- service integration tests at the read-service interface,
+- adapter contract tests for DTO normalization,
+- descriptor tests for Venue/account isolation,
+- writer tests for patch/rollback/invalidation,
+- legacy parity tests through old callers,
+- optional shadow comparison before switching production reads.
 
-| File Path                                                    | Expected Change                                      |
-| ------------------------------------------------------------ | ---------------------------------------------------- |
-| `app/components/UI/Predict/controllers/PredictController.ts` | Read methods refactored to delegate to new services. |
+## Acceptance Criteria per Read Capability
 
-## Acceptance Criteria
+- no public read requires a fake account session,
+- no portfolio read uses an unqualified wallet address,
+- old callers receive the same behavior/shape,
+- canonical financial values are decimal strings,
+- query/cache scope cannot collide across Venues/accounts,
+- rollback disables only the migrated read,
+- old implementation is deleted only after production parity.
 
-- `MarketDataService` passes service integration tests with a mocked `PredictSessionService` returning a mock `PredictClient`.
-- `PortfolioService` passes service integration tests with mocked `PredictSessionService` and `PredictClient` seams.
-- Query descriptor tests prove account-scoped and market-data queries cannot accidentally drift.
-- Writer-interface tests prove cache patches and invalidations use descriptor families rather than copied query arrays.
-- `PredictController` state remains consistent with previous versions.
-- Old hooks like `usePredictMarket` and `usePredictPositions` continue to receive data in the expected legacy format.
-- Data fetching performance is maintained or improved through service-level caching.
+## Suggested PR Shape
 
-## Estimated PRs
-
-- **PR 1**: MarketDataService implementation and controller wiring.
-- **PR 2**: PortfolioService implementation and controller wiring.
-- **PR 3**: Messenger integration and cache invalidation logic.
+1. one market-data capability + parity switch,
+2. one portfolio capability + parity switch,
+3. cleanup after production confidence.
