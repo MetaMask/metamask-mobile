@@ -649,15 +649,11 @@ export default class ChromeCdpHelpers {
     try {
       const target = new URL(dappUrl);
       const candidate = new URL(candidateUrl);
-      const hostAliases = new Set([
-        '10.0.2.2',
-        'localhost',
-        '127.0.0.1',
-        target.hostname,
-        candidate.hostname,
-      ]);
+      const loopbackAliases = new Set(['10.0.2.2', 'localhost', '127.0.0.1']);
       const sameHostFamily =
-        hostAliases.has(target.hostname) && hostAliases.has(candidate.hostname);
+        target.hostname === candidate.hostname ||
+        (loopbackAliases.has(target.hostname) &&
+          loopbackAliases.has(candidate.hostname));
       const samePort =
         (candidate.port || defaultPort(candidate.protocol)) ===
         (target.port || defaultPort(target.protocol));
