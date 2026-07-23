@@ -74,7 +74,6 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
     // actions run. Without it, FrameworkDetector falls back to Detox and
     // Matchers throw ReferenceError: element is not defined.
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
-      void driver;
       // Conservative initial guardrails — calibrate against BrowserStack
       // baselines once this coverage has 10+ clean RC/release-profile runs
       // (see TO-916 acceptance criteria for p50/p95 documentation).
