@@ -122,7 +122,10 @@ const ImmersveKYCModal: React.FC = () => {
             onHttpError={handleError}
             onNavigationStateChange={handleNavigationStateChange}
             originWhitelist={['*']}
+            allowsInlineMediaPlayback
             javaScriptEnabled
+            domStorageEnabled
+            mediaPlaybackRequiresUserAction={false}
             mediaPlaybackRequiresUserGesture={false}
             style={tw.style('flex-1')}
             testID="immersve-kyc-webview"

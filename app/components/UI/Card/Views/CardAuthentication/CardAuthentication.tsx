@@ -33,13 +33,28 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
-import { selectCardForgotPasswordFeatureEnabled } from '../../../../../selectors/featureFlagController/card';
+import {
+  selectCardForgotPasswordFeatureEnabled,
+  selectImmersveOnboardingEnabled,
+} from '../../../../../selectors/featureFlagController/card';
 import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
+import SelectField from '../../components/Onboarding/SelectField';
 import NavigationService from '../../../../../core/NavigationService';
+import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { safeToChecksumAddress } from '../../../../../util/address';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
+import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
+import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboarding';
+import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
+
+type LocationSelection = CardLocation | 'uk';
+const IMMERSVE_UK_COUNTRY_KEY = 'GB';
 
 const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
@@ -72,9 +87,24 @@ const CardAuthentication = () => {
   const isForgotPasswordEnabled = useSelector(
     selectCardForgotPasswordFeatureEnabled,
   );
-  const [selectedLocation, setSelectedLocation] = useState<CardLocation>(
+  const immersveEnabled = useSelector(selectImmersveOnboardingEnabled);
+  const [selection, setSelection] = useState<LocationSelection>(
     persistedLocation ?? 'international',
   );
+  const isUkMode = selection === 'uk';
+  const selectedLocation: CardLocation =
+    selection === 'uk' ? 'international' : selection;
+
+  const accountName = useAccountGroupName();
+  const selectAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const immersveAddress = safeToChecksumAddress(
+    selectAccountByScope('eip155:0')?.address,
+  );
+  const resumeImmersveOnboarding = useImmersveResumeOnboarding();
+  const [isUkSubmitting, setIsUkSubmitting] = useState(false);
+  const [ukError, setUkError] = useState<string | null>(null);
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -196,6 +226,9 @@ const CardAuthentication = () => {
 
       try {
         if (!isOtpStep) {
+          // US/International are Baanx; a prior UK (Immersve) selection persists
+          // activeProviderId, so re-resolve it before initiating this Baanx login.
+          Engine.context.CardController.setSelectedCountry(selectedLocation);
           await initiate.mutateAsync(selectedLocation);
         }
         const result = await submit.mutateAsync({
@@ -313,6 +346,47 @@ const CardAuthentication = () => {
     });
   }, [navigation, trackEvent, createEventBuilder, selectedLocation]);
 
+  const openAccountSelector = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
+        isEvmOnly: true,
+        isSelectOnly: true,
+        disableAddAccountButton: true,
+      }),
+    );
+  }, [navigation]);
+
+  const handleUkSignIn = useCallback(async () => {
+    if (!immersveAddress) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.AUTHENTICATION_LOGIN_BUTTON,
+        })
+        .build(),
+    );
+    setUkError(null);
+    setIsUkSubmitting(true);
+    try {
+      await resumeImmersveOnboarding({
+        country: IMMERSVE_UK_COUNTRY_KEY,
+        address: immersveAddress,
+        showAccountExistsToast: false,
+        navigateFromRoot: true,
+      });
+    } catch (err) {
+      setUkError(getCardProviderErrorMessage(err));
+    } finally {
+      setIsUkSubmitting(false);
+    }
+  }, [
+    immersveAddress,
+    resumeImmersveOnboarding,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   const title = useMemo(
     () =>
       isOtpStep
@@ -415,9 +489,9 @@ const CardAuthentication = () => {
           )}
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
-              onPress={() => setSelectedLocation('international')}
+              onPress={() => setSelection('international')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'international' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selection === 'international' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -434,9 +508,9 @@ const CardAuthentication = () => {
               </Box>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setSelectedLocation('us')}
+              onPress={() => setSelection('us')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'us' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selection === 'us' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -452,75 +526,136 @@ const CardAuthentication = () => {
                 </Text>
               </Box>
             </TouchableOpacity>
-          </Box>
-
-          <Box>
-            <Label>{strings('card.card_authentication.email_label')}</Label>
-            <TextField
-              onChangeText={handleEmailChange}
-              value={email}
-              inputProps={{
-                autoCapitalize: 'none',
-                autoComplete: 'username',
-                numberOfLines: 1,
-                returnKeyType: 'next',
-                keyboardType: 'email-address',
-                maxLength: 255,
-                accessibilityLabel: strings(
-                  'card.card_authentication.email_label',
-                ),
-                testID: CardAuthenticationSelectors.EMAIL_FIELD,
-              }}
-            />
-          </Box>
-          <Box>
-            <Label>{strings('card.card_authentication.password_label')}</Label>
-            <TextField
-              onChangeText={handlePasswordChange}
-              value={password}
-              endAccessory={
-                <TouchableOpacity
-                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  testID={
-                    CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE
-                  }
-                >
-                  <Icon
-                    name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
-                    size={IconSize.Md}
-                  />
-                </TouchableOpacity>
-              }
-              inputProps={{
-                autoCapitalize: 'none',
-                autoComplete: 'password',
-                numberOfLines: 1,
-                maxLength: 255,
-                returnKeyType: 'done',
-                onSubmitEditing: () => performLogin(),
-                secureTextEntry: !isPasswordVisible,
-                accessibilityLabel: strings(
-                  'card.card_authentication.password_label',
-                ),
-                testID: CardAuthenticationSelectors.PASSWORD_FIELD,
-              }}
-            />
-            {isForgotPasswordEnabled && (
+            {immersveEnabled && (
               <TouchableOpacity
-                onPress={handleForgotPassword}
-                testID={CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON}
-                style={tw.style('self-end mt-2')}
+                onPress={() => setSelection('uk')}
+                style={tw.style(
+                  `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selection === 'uk' ? 'border border-text-default' : ''}`,
+                )}
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  twClassName="text-default"
+                <Box
+                  twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
+                  testID={CardAuthenticationSelectors.UK_LOCATION_BOX}
                 >
-                  {strings('card.card_authentication.forgot_password_button')}
-                </Text>
+                  <Text twClassName="text-center">
+                    {countryCodeToFlag('GB')}
+                  </Text>
+                  <Text
+                    twClassName="text-center text-body-sm font-medium"
+                    variant={TextVariant.BodySm}
+                  >
+                    {strings(
+                      'card.card_authentication.location_button_text_uk',
+                    )}
+                  </Text>
+                </Box>
               </TouchableOpacity>
             )}
           </Box>
+
+          {isUkMode ? (
+            <Box>
+              <Label>
+                {strings('card.card_onboarding.sign_up.account_label')}
+              </Label>
+              <SelectField
+                value={accountName ?? undefined}
+                onPress={openAccountSelector}
+                testID={CardAuthenticationSelectors.UK_ACCOUNT_SELECT}
+              />
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative mt-1"
+              >
+                {strings('card.card_onboarding.sign_up.account_description')}
+              </Text>
+              {ukError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-error-default mt-1"
+                  testID={CardAuthenticationSelectors.UK_LOGIN_ERROR_TEXT}
+                >
+                  {ukError}
+                </Text>
+              ) : null}
+            </Box>
+          ) : (
+            <>
+              <Box>
+                <Label>{strings('card.card_authentication.email_label')}</Label>
+                <TextField
+                  onChangeText={handleEmailChange}
+                  value={email}
+                  inputProps={{
+                    autoCapitalize: 'none',
+                    autoComplete: 'username',
+                    numberOfLines: 1,
+                    returnKeyType: 'next',
+                    keyboardType: 'email-address',
+                    maxLength: 255,
+                    accessibilityLabel: strings(
+                      'card.card_authentication.email_label',
+                    ),
+                    testID: CardAuthenticationSelectors.EMAIL_FIELD,
+                  }}
+                />
+              </Box>
+              <Box>
+                <Label>
+                  {strings('card.card_authentication.password_label')}
+                </Label>
+                <TextField
+                  onChangeText={handlePasswordChange}
+                  value={password}
+                  endAccessory={
+                    <TouchableOpacity
+                      onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                      testID={
+                        CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE
+                      }
+                    >
+                      <Icon
+                        name={
+                          isPasswordVisible ? IconName.EyeSlash : IconName.Eye
+                        }
+                        size={IconSize.Md}
+                      />
+                    </TouchableOpacity>
+                  }
+                  inputProps={{
+                    autoCapitalize: 'none',
+                    autoComplete: 'password',
+                    numberOfLines: 1,
+                    maxLength: 255,
+                    returnKeyType: 'done',
+                    onSubmitEditing: () => performLogin(),
+                    secureTextEntry: !isPasswordVisible,
+                    accessibilityLabel: strings(
+                      'card.card_authentication.password_label',
+                    ),
+                    testID: CardAuthenticationSelectors.PASSWORD_FIELD,
+                  }}
+                />
+                {isForgotPasswordEnabled && (
+                  <TouchableOpacity
+                    onPress={handleForgotPassword}
+                    testID={CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON}
+                    style={tw.style('self-end mt-2')}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      twClassName="text-default"
+                    >
+                      {strings(
+                        'card.card_authentication.forgot_password_button',
+                      )}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </Box>
+            </>
+          )}
         </>
       ),
     [
@@ -542,7 +677,12 @@ const CardAuthentication = () => {
       resendCooldown,
       showAuthPrompt,
       tw,
-      selectedLocation,
+      selection,
+      isUkMode,
+      immersveEnabled,
+      accountName,
+      openAccountSelector,
+      ukError,
     ],
   );
 
@@ -578,7 +718,7 @@ const CardAuthentication = () => {
         </>
       ) : (
         <Box twClassName="flex flex-col justify-center gap-2">
-          {error && (
+          {error && !isUkMode && (
             <Text
               variant={TextVariant.BodySm}
               style={{ color: theme.colors.error.default }}
@@ -592,12 +732,18 @@ const CardAuthentication = () => {
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               testID={CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON}
-              onPress={() => performLogin()}
-              isLoading={loading}
+              onPress={isUkMode ? handleUkSignIn : () => performLogin()}
+              isLoading={isUkMode ? isUkSubmitting : loading}
               isFullWidth
-              isDisabled={isLoginDisabled || loading}
+              isDisabled={
+                isUkMode
+                  ? isUkSubmitting || !immersveAddress
+                  : isLoginDisabled || loading
+              }
             >
-              {strings('card.card_authentication.login_button')}
+              {isUkMode
+                ? strings('card.card_authentication.uk_login_button')
+                : strings('card.card_authentication.login_button')}
             </Button>
             <TouchableOpacity
               onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
@@ -624,6 +770,10 @@ const CardAuthentication = () => {
       navigation,
       performLogin,
       theme.colors.error.default,
+      isUkMode,
+      handleUkSignIn,
+      isUkSubmitting,
+      immersveAddress,
     ],
   );
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   AvatarIcon,
@@ -133,7 +134,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
 };
 
 export const PostTradeBottomSheet = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasRefreshedBalancesRef = useRef(false);

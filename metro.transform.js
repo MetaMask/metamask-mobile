@@ -7,8 +7,8 @@ const {
   lintTransformedFile,
 } = require('@metamask/build-utils');
 const { ESLint } = require('eslint');
-const defaultTransformer = require('metro-react-native-babel-transformer');
-const svgTransformer = require('react-native-svg-transformer');
+const defaultTransformer = require('@expo/metro-config/babel-transformer');
+const svgTransformer = require('react-native-svg-transformer/expo');
 
 // Code fence removal variables
 const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
@@ -128,6 +128,11 @@ module.exports.transform = async ({ src, filename, options }) => {
     return svgTransformer.transform({ src, filename, options });
   }
 
+  const isNodeModule = path
+    .normalize(filename)
+    .split(path.sep)
+    .includes('node_modules');
+
   const environment = process.env.METAMASK_ENVIRONMENT ?? 'production';
 
   const shouldLintFencedFiles =
@@ -137,10 +142,7 @@ module.exports.transform = async ({ src, filename, options }) => {
    * Params based on builds we're code splitting
    * i.e: flavorDimensions "version" productFlavors from android/app/build.gradle
    */
-  if (
-    !path.normalize(filename).split(path.sep).includes('node_modules') &&
-    fileExtsToScan.includes(path.extname(filename))
-  ) {
+  if (!isNodeModule && fileExtsToScan.includes(path.extname(filename))) {
     const [processedSource, didModify] = removeFencedCode(filename, src, {
       all: availableFeatures,
       active: getBuildTypeFeatures(),

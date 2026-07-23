@@ -182,6 +182,7 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

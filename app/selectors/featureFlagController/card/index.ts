@@ -182,6 +182,8 @@ export interface ImmersveProgramConfig {
   clientApplicationId?: string;
   partnerAccountId?: string;
   fundingChannelId?: string;
+  apiBaseUrl?: string;
+  appUrl?: string;
 }
 
 export interface SupportedChain {

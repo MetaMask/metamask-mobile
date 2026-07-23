@@ -13,6 +13,10 @@ import type { ImmersveNextAction } from '../util/immersvePrerequisites';
 interface RouteContext {
   email?: string;
   countryKey?: string;
+  /** SignUp-only "already have an account" toast; sign-in re-entry passes false. Defaults to shown. */
+  showAccountExistsToast?: boolean;
+  /** Callers outside the OnboardingNavigator (CardAuthentication) hop via ONBOARDING.ROOT. */
+  navigateFromRoot?: boolean;
 }
 
 /**
@@ -32,48 +36,75 @@ export const useImmersveOnboardingRouter = () => {
 
   return useCallback(
     (action: ImmersveNextAction, ctx: RouteContext = {}) => {
-      const { email, countryKey } = ctx;
+      const { email, countryKey, showAccountExistsToast, navigateFromRoot } =
+        ctx;
+
+      const goToOnboarding = (
+        screen: string,
+        params: Record<string, unknown>,
+      ) => {
+        if (navigateFromRoot) {
+          navigation.navigate(Routes.CARD.ONBOARDING.ROOT, { screen, params });
+        } else {
+          navigation.navigate(screen, params);
+        }
+      };
+
       switch (action.type) {
         case 'contact':
-          navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
-            countryKey,
-            immersve: true,
-            email,
-          });
+          if (navigateFromRoot) {
+            navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
+              screen: Routes.CARD.ONBOARDING.SIGN_UP,
+            });
+          } else {
+            navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
+              countryKey,
+              immersve: true,
+              email,
+            });
+          }
           break;
         case 'kyc':
         case 'pending':
         case 'expected_spend':
-          navigation.navigate(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+          goToOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
             countryKey,
             kycUrl: action.type === 'kyc' ? action.url : undefined,
           });
           break;
         case 'funding':
-          navigation.navigate(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
+          goToOnboarding(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
             countryKey,
           });
           break;
         case 'rejected':
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
-          });
+          if (navigateFromRoot) {
+            navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
+              screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+            });
+          } else {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
+            });
+          }
           break;
         case 'active':
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            labelOptions: [
-              {
-                label: strings(
-                  'card.card_onboarding.sign_up.account_exists_toast',
-                ),
-              },
-            ],
-            iconName: IconName.Confirmation,
-            iconColor: colors.success.default,
-            hasNoTimeout: false,
-          });
+          if (showAccountExistsToast !== false) {
+            toastRef?.current?.showToast({
+              variant: ToastVariants.Icon,
+              labelOptions: [
+                {
+                  label: strings(
+                    'card.card_onboarding.sign_up.account_exists_toast',
+                  ),
+                },
+              ],
+              iconName: IconName.Confirmation,
+              iconColor: colors.success.default,
+              hasNoTimeout: false,
+            });
+          }
           navigation.reset({
             index: 0,
             routes: [{ name: Routes.CARD.HOME }],

@@ -1,19 +1,17 @@
 import React, { memo, useCallback } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import {
+  FontWeight,
   SectionHeader,
-  TextVariant as DSTextVariant,
-  TextColor as DSTextColor,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -54,7 +52,9 @@ const PerpsRecentlyViewedTile: React.FC<{
   }, [onPress, market, index]);
 
   const isPositiveChange = !market.change24h.startsWith('-');
-  const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+  const changeColor = isPositiveChange
+    ? TextColor.SuccessDefault
+    : TextColor.ErrorDefault;
   const displaySymbol = getPerpsDisplaySymbol(market.symbol);
 
   return (
@@ -70,8 +70,9 @@ const PerpsRecentlyViewedTile: React.FC<{
 
       <View style={styles.symbolRow}>
         <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Default}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
           numberOfLines={1}
         >
           {displaySymbol}
@@ -81,15 +82,15 @@ const PerpsRecentlyViewedTile: React.FC<{
 
       <View style={styles.priceRow}>
         <Text
-          variant={TextVariant.BodyXS}
-          color={TextColor.Default}
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextDefault}
           style={styles.priceLabel}
           numberOfLines={1}
         >
           {market.price}
         </Text>
         <Text
-          variant={TextVariant.BodyXS}
+          variant={TextVariant.BodyXs}
           color={changeColor}
           numberOfLines={1}
         >
@@ -133,10 +134,11 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   return (
     <View style={styles.rail} testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL}>
       <SectionHeader
-        title={strings('perps.recently_searched')}
+        title={strings('perps.recently_viewed')}
+        twClassName="pt-1"
         titleProps={{
-          variant: DSTextVariant.BodySm,
-          color: DSTextColor.TextAlternative,
+          variant: TextVariant.BodySm,
+          color: TextColor.TextAlternative,
         }}
       />
 
