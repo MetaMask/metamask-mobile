@@ -91,9 +91,9 @@ enum EVENT_NAME {
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
   TOKEN_DETAILS_CLOSED = 'Token Details Closed',
   TOKEN_DETAILS_SHARED = 'Token Details Shared',
-  WATCHLIST_TOKEN_ADDED = 'Watchlist Token Added',
-  WATCHLIST_TOKEN_REMOVED = 'Watchlist Token Removed',
-  WATCHLIST_PAGE_VIEWED = 'Watchlist Page Viewed',
+  WATCHLIST_TOKEN_ADDED = 'Token Watchlist Token Added',
+  WATCHLIST_TOKEN_REMOVED = 'Token Watchlist Token Removed',
+  WATCHLIST_PAGE_VIEWED = 'Token Watchlist Page Viewed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
   TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
@@ -551,6 +551,10 @@ enum EVENT_NAME {
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   ACTION_BUTTON_CLICKED = 'Action Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
+
+  // Notifications Settings
+  NOTIFICATIONS_SETTINGS_UPDATED = 'Notifications Settings Updated',
+
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
 
@@ -568,17 +572,15 @@ enum EVENT_NAME {
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
-  NOTIFICATIONS_ACTIVATED = 'Notifications Activated',
-  NOTIFICATIONS_MENU_OPENED = 'Notifications Menu Opened',
-  NOTIFICATION_CLICKED = 'Notification Clicked',
-  NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
-  NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
+  NOTIFICATIONS_MENU_OPENED = 'InApp Notifications Menu Opened',
+  NOTIFICATION_CLICKED = 'InApp Notification Clicked',
+  NOTIFICATIONS_MARKED_ALL_AS_READ = 'InApp Notifications Marked All as Read',
+  NOTIFICATION_DETAIL_CLICKED = 'InApp Notification Detail Clicked',
 
   // Push Notifications
   PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
   PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED = 'Push Notification Pre-prompt Button Clicked',
   OS_PUSH_NOTIFICATION_BUTTON_CLICKED = 'OS Push Notification Button Clicked',
-  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
   PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
@@ -1422,6 +1424,9 @@ const events = {
   SRP_SCREENSHOT_ATTEMPTED: generateOpt(EVENT_NAME.SRP_SCREENSHOT_ATTEMPTED),
   USER_TERMS_SHOWN: generateOpt(EVENT_NAME.USER_TERMS_SHOWN),
   USER_TERMS_ACCEPTED: generateOpt(EVENT_NAME.USER_TERMS_ACCEPTED),
+  NOTIFICATIONS_SETTINGS_UPDATED: generateOpt(
+    EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
+  ),
   SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
     EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
   ),
@@ -1533,7 +1538,6 @@ const events = {
     EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
     ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
   ),
-  NOTIFICATIONS_ACTIVATED: generateOpt(EVENT_NAME.NOTIFICATIONS_ACTIVATED),
   NOTIFICATIONS_MENU_OPENED: generateOpt(EVENT_NAME.NOTIFICATIONS_MENU_OPENED),
   NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.NOTIFICATION_CLICKED),
   NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
@@ -1552,9 +1556,6 @@ const events = {
   ),
   OS_PUSH_NOTIFICATION_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.OS_PUSH_NOTIFICATION_BUTTON_CLICKED,
-  ),
-  PUSH_NOTIFICATION_RECEIVED: generateOpt(
-    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
   ),
   PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
 
