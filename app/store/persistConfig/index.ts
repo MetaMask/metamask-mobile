@@ -6,6 +6,7 @@ import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
+import { trackPersistPayloadSize } from '../../util/storage/persistPayloadTelemetry';
 import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
@@ -50,6 +51,7 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
   },
 
   async setItem(key: string, value: string) {
+    trackPersistPayloadSize(key, value);
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
