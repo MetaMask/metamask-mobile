@@ -4,6 +4,7 @@ import Engine from '../Engine';
 import { store } from '../../store';
 import { strings } from '../../../locales/i18n';
 import logger, { redactUrl } from '../SDKConnectV2/services/logger';
+import { maybePromptPushPermissionAfterCliLogin } from './promptPushNotificationPermission';
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import { Connection } from '../SDKConnectV2/services/connection';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
@@ -147,6 +148,10 @@ export async function handleAgenticCliQrLogin({
         ),
       }),
     );
+
+    // Nudge push permission so post-login transaction notifications reach the
+    // user (MMAI-925). Fire-and-forget: never rejects, never blocks login.
+    void maybePromptPushPermissionAfterCliLogin();
   } finally {
     try {
       await cleanupConnection(conn);

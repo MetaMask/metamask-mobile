@@ -1,8 +1,6 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { useCallback } from 'react';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
-import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import ActivityRowView from './ActivityRowView';
 
 export interface MoneyActivityItemProps {
@@ -23,20 +21,19 @@ const MoneyActivityItem = ({
   privacyMode = false,
 }: MoneyActivityItemProps) => {
   const display = useMoneyTransactionDisplayInfo(tx, moneyAddress);
-  const activityDetailsEnabled = useSelector(
-    selectMoneyEnableActivityDetailsFlag,
-  );
+
+  const handlePress = useCallback(() => onPress?.(tx), [onPress, tx]);
 
   return (
     <ActivityRowView
       id={tx.id}
       display={display}
       chainId={tx.chainId}
-      onPress={activityDetailsEnabled ? () => onPress?.(tx) : undefined}
+      onPress={onPress ? handlePress : undefined}
       showNetworkBadge={showNetworkBadge}
       privacyMode={privacyMode}
     />
   );
 };
 
-export default MoneyActivityItem;
+export default React.memo(MoneyActivityItem);

@@ -83,6 +83,12 @@ export function getMultichainAccountName(
       }
       break;
     }
+    case WalletClientType.Stellar: {
+      accountNameToUse = `${strings(
+        'accounts.labels.stellar_account_name',
+      )} ${accountNumber}`;
+      break;
+    }
     default:
       break;
   }

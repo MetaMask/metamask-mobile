@@ -35,7 +35,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -54,10 +55,7 @@ import {
   type PredictMarketBuyButtonPress,
   type PriceQuery,
 } from '../../types';
-import type {
-  PredictEntryPoint,
-  PredictNavigationParamList,
-} from '../../types/navigation';
+import type { PredictEntryPoint } from '../../types/navigation';
 import {
   getEventStartTime,
   getCryptoSymbol,
@@ -1124,8 +1122,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const isCompact = isCarousel;
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigateToMarketDetails } = usePredictNavigation();
   const { openBuySheet } = usePredictPreviewSheet();
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);

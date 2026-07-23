@@ -32,6 +32,9 @@ jest.mock('./usePerpsMarkets');
 jest.mock('./usePerpsSearch');
 jest.mock('./usePerpsSorting');
 jest.mock('react-redux');
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -108,9 +111,13 @@ const mockAllMarkets = [
   ...mockMarketsWithInvalidVolume,
 ];
 
+const NOW = 1_700_000_000_000; // fixed epoch ms for deterministic listedAt math
+const DAYS_AGO = (days: number) => NOW - days * 24 * 60 * 60 * 1000;
+
 describe('usePerpsMarketListView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Date, 'now').mockReturnValue(NOW);
 
     // Reset sortMarkets mock to pass through by default
     mockSortMarkets.mockImplementation(({ markets }) => markets);
@@ -156,6 +163,10 @@ describe('usePerpsMarketListView', () => {
 
     // Mock Redux selectors by identity so call order doesn't matter
     mockSelectorState({ watchlist: ['BTC', 'ETH'] });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('Initial State', () => {
@@ -659,6 +670,48 @@ describe('usePerpsMarketListView', () => {
       });
     });
 
+    it('counts markets listed within the last 30 days as "new", regardless of category', () => {
+      const recentlyListedMarkets = [
+        {
+          ...createMockMarket('BTC', '$1B'),
+          isHip3: false,
+          listedAt: DAYS_AGO(5), // 5 days ago
+        },
+        {
+          ...createMockMarket('AAPL', '$2B'),
+          marketType: 'stock' as const,
+          isHip3: true,
+          listedAt: DAYS_AGO(10), // 10 days ago
+        },
+        {
+          ...createMockMarket('OLDCOIN', '$500M'),
+          isHip3: false,
+          listedAt: DAYS_AGO(45), // 45 days ago, not new
+        },
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: recentlyListedMarkets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        filteredMarkets: recentlyListedMarkets,
+        clearSearch: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      expect(result.current.marketCounts.new).toBe(2);
+    });
+
     it('returns correct counts for mixed market types', () => {
       const mixedMarkets = [
         { ...createMockMarket('BTC', '$1B'), isHip3: false }, // crypto (no marketType, not HIP-3)
@@ -1029,6 +1082,55 @@ describe('usePerpsMarketListView', () => {
       expect(
         result.current.markets.every((m) => m.marketType === 'forex'),
       ).toBe(true);
+    });
+
+    it('filters to markets listed within the last 30 days when filter is "new"', () => {
+      const recentlyListedMarkets = [
+        { ...createMockMarket('BTC', '$1B'), isHip3: false }, // no listedAt, not new
+        {
+          ...createMockMarket('SHIB2', '$100M'),
+          isHip3: false,
+          listedAt: DAYS_AGO(3), // 3 days ago, new
+        },
+        {
+          ...createMockMarket('CASHCAT', '$50M'),
+          marketType: 'stock' as const,
+          isHip3: true,
+          listedAt: DAYS_AGO(20), // 20 days ago, new
+        },
+        {
+          ...createMockMarket('OLDIPO', '$30M'),
+          marketType: 'pre-ipo' as const,
+          isHip3: true,
+          listedAt: DAYS_AGO(60), // 60 days ago, not new
+        },
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: recentlyListedMarkets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        filteredMarkets: recentlyListedMarkets,
+        clearSearch: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'new' }),
+      );
+
+      expect(result.current.markets.map((m) => m.symbol)).toEqual([
+        'SHIB2',
+        'CASHCAT',
+      ]);
     });
 
     it('applies category filter when searching', () => {

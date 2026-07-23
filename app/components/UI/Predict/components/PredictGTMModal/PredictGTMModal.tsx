@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useState, useEffect } from 'react';
 import { Image, View } from 'react-native';
 import Animated, {
@@ -37,7 +38,7 @@ import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const [imageLoaded, setImageLoaded] = useState(false);
   const opacity = useSharedValue(0);

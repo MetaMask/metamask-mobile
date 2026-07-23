@@ -2,5 +2,6 @@
 export const DATA_SERVICES = [
   'SocialService',
   'MoneyAccountBalanceService',
+  'MoneyAccountApiDataService',
   'AuthenticatedUserStorageService',
 ] as const;

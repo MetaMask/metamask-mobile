@@ -150,6 +150,26 @@ interface OnboardingRouteParams {
   showErrorReportSentToast?: boolean;
 }
 
+/**
+ * Kept outside the component so React Compiler can optimize Onboarding.
+ * Conditionals / value blocks inside try/catch inside the component bail out.
+ */
+async function shouldRedirectToVaultRecovery(): Promise<boolean> {
+  const migrationErrorFlag = await FilesystemStorage.getItem(
+    MIGRATION_ERROR_HAPPENED,
+  );
+  if (migrationErrorFlag !== 'true') {
+    return false;
+  }
+  const vaultBackupResult = await getVaultFromBackup();
+  return Boolean(vaultBackupResult.success && vaultBackupResult.vault);
+}
+
+async function isDeviceOffline(): Promise<boolean> {
+  const netState = await netInfoFetch();
+  return !netState.isConnected || netState.isInternetReachable === false;
+}
+
 const styles = StyleSheet.create({
   androidNotificationOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -233,8 +253,8 @@ const Onboarding = () => {
     }
   }, []);
 
-  const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
+  const hasInitializedOnboarding = useRef<boolean>(false);
   const warningCallback = useRef<() => boolean>(() => true);
 
   const disableBackPress = useCallback((): void => {
@@ -309,29 +329,21 @@ const Onboarding = () => {
         return;
       }
 
+      let shouldRecover = false;
       try {
-        // Check for migration error flag
-        // Using FilesystemStorage (excluded from iCloud backup) for reliability
-        const migrationErrorFlag = await FilesystemStorage.getItem(
-          MIGRATION_ERROR_HAPPENED,
-        );
-
-        if (migrationErrorFlag === 'true') {
-          // Migration failed, check if vault backup exists
-          const vaultBackupResult = await getVaultFromBackup();
-
-          if (vaultBackupResult.success && vaultBackupResult.vault) {
-            // Both migration error and vault backup exist - trigger recovery
-            navigation.reset({
-              routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-            });
-          }
-        }
+        shouldRecover = await shouldRedirectToVaultRecovery();
       } catch (error) {
         Logger.error(
           error as Error,
           'Failed to check for migration failure and vault backup',
         );
+        return;
+      }
+
+      if (shouldRecover) {
+        navigation.reset({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
       }
     }, [navigation, route]);
 
@@ -764,30 +776,32 @@ const Onboarding = () => {
   const onPressContinueWithSocialLogin = useCallback(
     async (createWallet: boolean, provider: AuthConnection): Promise<void> => {
       // check for internet connection
+      let isOffline = false;
       try {
-        const netState = await netInfoFetch();
-        if (!netState.isConnected || netState.isInternetReachable === false) {
-          navigation.dispatch(
-            StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-              params: {
-                title: strings(`error_sheet.no_internet_connection_title`),
-                description: strings(
-                  `error_sheet.no_internet_connection_description`,
-                ),
-                descriptionAlign: 'left',
-                primaryButtonLabel: strings(
-                  `error_sheet.no_internet_connection_button`,
-                ),
-                closeOnPrimaryButtonPress: true,
-                type: 'error',
-              },
-            }),
-          );
-          return;
-        }
+        isOffline = await isDeviceOffline();
       } catch (error) {
         console.warn('Network check failed:', error);
+      }
+
+      if (isOffline) {
+        navigation.dispatch(
+          StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings(`error_sheet.no_internet_connection_title`),
+              description: strings(
+                `error_sheet.no_internet_connection_description`,
+              ),
+              descriptionAlign: 'left',
+              primaryButtonLabel: strings(
+                `error_sheet.no_internet_connection_button`,
+              ),
+              closeOnPrimaryButtonPress: true,
+              type: 'error',
+            },
+          }),
+        );
+        return;
       }
 
       // Continue with the social login flow
@@ -879,14 +893,16 @@ const Onboarding = () => {
         }
 
         setLoading();
+        const loginHandlerOptions =
+          provider === AuthConnection.Telegram
+            ? { telegramLoginEnabled: true }
+            : undefined;
         try {
           const loginHandler = createLoginHandler(
             Platform.OS,
             provider,
             false,
-            provider === AuthConnection.Telegram
-              ? { telegramLoginEnabled: true }
-              : undefined,
+            loginHandlerOptions,
           );
 
           socialLoginTraceCtx.current = trace({
@@ -1143,6 +1159,11 @@ const Onboarding = () => {
     ]);
 
   useEffect(() => {
+    if (hasInitializedOnboarding.current) {
+      return;
+    }
+    hasInitializedOnboarding.current = true;
+
     onboardingTraceCtx.current = trace({
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
@@ -1151,7 +1172,6 @@ const Onboarding = () => {
 
     unsetLoading();
     updateNavBar();
-    mounted.current = true;
     checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
@@ -1166,14 +1186,24 @@ const Onboarding = () => {
         startOnboardingAnimation: true,
       }));
     });
+  }, [
+    unsetLoading,
+    updateNavBar,
+    checkIfExistingUser,
+    disableNewPrivacyPolicyToast,
+    checkForMigrationFailureAndVaultBackup,
+    showNotification,
+    route?.params?.delete,
+    route?.params?.showErrorReportSentToast,
+  ]);
 
-    return () => {
-      mounted.current = false;
+  useEffect(
+    () => () => {
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    },
+    [unsetLoading],
+  );
 
   useEffect(() => {
     updateNavBar();

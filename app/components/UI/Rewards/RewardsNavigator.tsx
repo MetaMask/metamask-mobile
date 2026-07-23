@@ -35,6 +35,7 @@ import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
@@ -50,7 +51,7 @@ const Stack = createNativeStackNavigator<RewardsStackParamList>();
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const activeRewardsRoute = useNavigationState(
     getActiveRouteNameFromNavigationState,
