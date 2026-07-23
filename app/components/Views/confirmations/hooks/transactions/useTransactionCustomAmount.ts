@@ -76,6 +76,10 @@ export function useTransactionCustomAmount({
   const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
   const hasPrefilled = useRef(false);
   const depositMaxHumanRef = useRef<string | null>(null);
+  const userHasEditedRef = useRef(false);
+  // Dispatching the metric per keystroke triggers a store-wide selector sweep;
+  // only dispatch when the input type actually changes.
+  const lastAmountInputTypeRef = useRef<string | null>(null);
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -110,6 +114,7 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     depositMaxHumanRef.current = null;
+    userHasEditedRef.current = false;
   }, [payToken?.address, payToken?.chainId]);
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -118,6 +123,13 @@ export function useTransactionCustomAmount({
 
   const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
   useEffect(() => {
+    // Skip if the user has manually typed on the keypad — a transient
+    // hasPrefilled toggle (from tokenKey changes) must not overwrite
+    // their input. The ref resets when the pay token genuinely changes.
+    if (userHasEditedRef.current) {
+      prevHasPrefilled.current = depositPrefill.hasPrefilled;
+      return;
+    }
     if (depositPrefill.hasPrefilled) {
       setAmountFiat(depositPrefill.prefillAmount ?? '0');
     } else if (prevHasPrefilled.current) {
@@ -227,12 +239,17 @@ export function useTransactionCustomAmount({
       }
 
       depositMaxHumanRef.current = null;
+      userHasEditedRef.current = true;
 
-      setConfirmationMetric({
-        properties: {
-          mm_pay_amount_input_type: 'manual',
-        },
-      });
+      if (lastAmountInputTypeRef.current !== 'manual') {
+        lastAmountInputTypeRef.current = 'manual';
+
+        setConfirmationMetric({
+          properties: {
+            mm_pay_amount_input_type: 'manual',
+          },
+        });
+      }
 
       setAmountFiat(newAmount);
     },
@@ -257,6 +274,8 @@ export function useTransactionCustomAmount({
           .multipliedBy(balanceUsd)
           .decimalPlaces(2, BigNumber.ROUND_DOWN),
       );
+
+      lastAmountInputTypeRef.current = `${percentage}%`;
 
       setConfirmationMetric({
         properties: {
