@@ -9,7 +9,7 @@ import { E2E_WALLET_SETUP_ATTRIBUTION_FIELDS } from './walletSetupAttributionE2e
  * Strengthens `Wallet Setup Completed` to a subset property match that includes
  * persisted acquisition fields from `withWalletSetupAttributionForE2e`.
  * Subset (not exact) match because the import flow adds
- * `funding_amount_tranche` only when the post-import balance fetch succeeds,
+ * `funding_amount_range` only when the post-import balance fetch succeeds,
  * which is timing-dependent in E2E.
  */
 export function withStrictWalletSetupAttributionMatch(

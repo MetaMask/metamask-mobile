@@ -13,31 +13,31 @@ import {
 import { selectBalanceByAccountGroup } from '../../selectors/assets/balances';
 
 /**
- * USD tranche buckets for the `funding_amount_tranche` prop on
- * `Wallet Setup Completed` (import flow).
+ * USD range buckets for the `funding_amount_range` prop on
+ * `Wallet Setup Completed` (import flow). Values mirror the enum in the
+ * segment-schema repo (`metamask-onboarding/wallet-setup-completed.yaml`).
  */
-export type FundingAmountTranche =
-  | '$0'
-  | '$0-$10'
-  | '$10-$100'
-  | '$100-$1000'
-  | '$1000-$10000'
-  | '$10000+';
+export type FundingAmountRange =
+  | '< 0.01'
+  | '0.01 - 9.99'
+  | '10.00 - 99.99'
+  | '100.00 - 999.99'
+  | '1000.00 - 9999.99'
+  | '10000.00+';
 
 /**
- * Buckets a USD-equivalent balance into a funding tranche.
- * `$0` means a successfully fetched zero balance — callers must not pass
- * amounts from a failed fetch (omit the prop instead).
+ * Buckets a USD-equivalent balance into a funding range (half-open
+ * intervals: 10.00 falls in '10.00 - 99.99').
+ * `< 0.01` means a successfully fetched (near-)zero balance — callers must
+ * not pass amounts from a failed fetch (omit the prop instead).
  */
-export const getFundingAmountTranche = (
-  amount: number,
-): FundingAmountTranche => {
-  if (amount <= 0) return '$0';
-  if (amount <= 10) return '$0-$10';
-  if (amount <= 100) return '$10-$100';
-  if (amount <= 1000) return '$100-$1000';
-  if (amount <= 10000) return '$1000-$10000';
-  return '$10000+';
+export const getFundingAmountRange = (amount: number): FundingAmountRange => {
+  if (amount < 0.01) return '< 0.01';
+  if (amount < 10) return '0.01 - 9.99';
+  if (amount < 100) return '10.00 - 99.99';
+  if (amount < 1000) return '100.00 - 999.99';
+  if (amount < 10000) return '1000.00 - 9999.99';
+  return '10000.00+';
 };
 
 export const FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS = 15000;
@@ -52,18 +52,18 @@ export const FUNDING_AMOUNT_RETRY_DELAYS_MS = [300, 1000, 3000];
 
 /**
  * Refreshes balances for the freshly imported wallet and returns the funding
- * tranche of the selected account group (Account 1 at import time), across
+ * range of the selected account group (Account 1 at import time), across
  * EVM popular mainnets (native + ERC-20) and the group's non-EVM accounts
  * (Solana etc.), in the user's currency (USD on a fresh install — onboarding
  * happens before the currency can be changed).
  *
  * Returns undefined — so the analytics prop is omitted and Mixpanel shows
  * "(not set)" — if any balance-refresh task fails or the fetch exceeds
- * {@link FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS}. A returned '$0' therefore
- * always reflects a successful fetch of a zero balance.
+ * {@link FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS}. A returned '< 0.01'
+ * therefore always reflects a successful fetch of a zero balance.
  */
-export async function fetchImportedWalletFundingAmountTranche(): Promise<
-  FundingAmountTranche | undefined
+export async function fetchImportedWalletFundingAmountRange(): Promise<
+  FundingAmountRange | undefined
 > {
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -104,7 +104,7 @@ export async function fetchImportedWalletFundingAmountTranche(): Promise<
       .filter((id): id is string => Boolean(id));
 
     // Every task must succeed: a partial fetch could misreport a funded
-    // wallet as '$0', which must only ever mean a confirmed zero balance.
+    // wallet as '< 0.01', which must only ever mean a confirmed zero balance.
     // Delayed retries per task absorb transient RPC failures and poisoned
     // shared batches (see FUNDING_AMOUNT_RETRY_DELAYS_MS).
     const pendingTasks = new Set<string>();
@@ -202,9 +202,9 @@ export async function fetchImportedWalletFundingAmountTranche(): Promise<
     if (!Number.isFinite(totalBalanceInUserCurrency)) {
       return undefined;
     }
-    return getFundingAmountTranche(totalBalanceInUserCurrency);
+    return getFundingAmountRange(totalBalanceInUserCurrency);
   } catch (error) {
-    Logger.log('fetchImportedWalletFundingAmountTranche failed', error);
+    Logger.log('fetchImportedWalletFundingAmountRange failed', error);
     return undefined;
   } finally {
     if (timeoutHandle !== undefined) {

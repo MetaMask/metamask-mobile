@@ -1,9 +1,9 @@
 import {
-  getFundingAmountTranche,
-  fetchImportedWalletFundingAmountTranche,
+  getFundingAmountRange,
+  fetchImportedWalletFundingAmountRange,
   FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
   FUNDING_AMOUNT_RETRY_DELAYS_MS,
-} from './fundingAmountTranche';
+} from './fundingAmountRange';
 import Engine from '../../core/Engine';
 import ReduxService from '../../core/redux';
 import {
@@ -99,37 +99,38 @@ function arrangeSuccessfulRefresh(totalBalanceInUserCurrency: number) {
   }));
 }
 
-describe('getFundingAmountTranche', () => {
+describe('getFundingAmountRange', () => {
   it.each([
-    [0, '$0'],
-    [-1, '$0'],
-    [0.01, '$0-$10'],
-    [10, '$0-$10'],
-    [10.01, '$10-$100'],
-    [100, '$10-$100'],
-    [100.01, '$100-$1000'],
-    [1000, '$100-$1000'],
-    [1000.01, '$1000-$10000'],
-    [10000, '$1000-$10000'],
-    [10000.01, '$10000+'],
-    [1000000, '$10000+'],
-  ])('buckets %s into %s', (amount, expectedTranche) => {
-    expect(getFundingAmountTranche(amount as number)).toBe(expectedTranche);
+    [0, '< 0.01'],
+    [-1, '< 0.01'],
+    [0.009, '< 0.01'],
+    [0.01, '0.01 - 9.99'],
+    [9.99, '0.01 - 9.99'],
+    [10, '10.00 - 99.99'],
+    [99.99, '10.00 - 99.99'],
+    [100, '100.00 - 999.99'],
+    [999.99, '100.00 - 999.99'],
+    [1000, '1000.00 - 9999.99'],
+    [9999.99, '1000.00 - 9999.99'],
+    [10000, '10000.00+'],
+    [1000000, '10000.00+'],
+  ])('buckets %s into %s', (amount, expectedRange) => {
+    expect(getFundingAmountRange(amount as number)).toBe(expectedRange);
   });
 });
 
-describe('fetchImportedWalletFundingAmountTranche', () => {
+describe('fetchImportedWalletFundingAmountRange', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (ReduxService.store.getState as jest.Mock).mockReturnValue({});
   });
 
-  it('returns the tranche of the selected account group balance after a successful refresh', async () => {
+  it('returns the range of the selected account group balance after a successful refresh', async () => {
     arrangeSuccessfulRefresh(50);
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBe('$10-$100');
+    expect(range).toBe('10.00 - 99.99');
     expect(
       mockEngineContext.AccountTrackerController.refresh,
     ).toHaveBeenCalledWith(['mainnet']);
@@ -139,12 +140,12 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
     expect(mockSelectBalanceByAccountGroup).toHaveBeenCalledWith(GROUP_ID);
   });
 
-  it('returns $0 for a confirmed zero balance', async () => {
+  it('returns < 0.01 for a confirmed zero balance', async () => {
     arrangeSuccessfulRefresh(0);
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBe('$0');
+    expect(range).toBe('< 0.01');
   });
 
   it('returns undefined when a refresh task fails on every attempt', async () => {
@@ -154,13 +155,13 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
       new Error('network down'),
     );
 
-    const tranchePromise = fetchImportedWalletFundingAmountTranche();
+    const rangePromise = fetchImportedWalletFundingAmountRange();
     await jest.advanceTimersByTimeAsync(
       FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
     );
-    const tranche = await tranchePromise;
+    const range = await rangePromise;
 
-    expect(tranche).toBeUndefined();
+    expect(range).toBeUndefined();
     expect(
       mockEngineContext.AccountTrackerController.refresh,
     ).toHaveBeenCalledTimes(1 + FUNDING_AMOUNT_RETRY_DELAYS_MS.length);
@@ -174,9 +175,9 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
       .mockRejectedValueOnce(new Error('rate limited'))
       .mockResolvedValueOnce(undefined);
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBe('$10-$100');
+    expect(range).toBe('10.00 - 99.99');
     expect(
       mockEngineContext.TokenBalancesController._executePoll,
     ).toHaveBeenCalledTimes(2);
@@ -191,13 +192,13 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
       }),
     );
 
-    const tranchePromise = fetchImportedWalletFundingAmountTranche();
+    const rangePromise = fetchImportedWalletFundingAmountRange();
     await jest.advanceTimersByTimeAsync(
       FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
     );
-    const tranche = await tranchePromise;
+    const range = await rangePromise;
 
-    expect(tranche).toBeUndefined();
+    expect(range).toBeUndefined();
     jest.useRealTimers();
   });
 
@@ -208,9 +209,9 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
       { id: 'solana-account', type: 'solana:data-account' },
     ]);
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBe('$10-$100');
+    expect(range).toBe('10.00 - 99.99');
     expect(
       mockEngineContext.MultichainBalancesController.updateBalance,
     ).toHaveBeenCalledTimes(1);
@@ -225,9 +226,9 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
   it('skips non-EVM refresh when the selected group has no non-EVM accounts', async () => {
     arrangeSuccessfulRefresh(50);
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBe('$10-$100');
+    expect(range).toBe('10.00 - 99.99');
     expect(
       mockEngineContext.MultichainBalancesController.updateBalance,
     ).not.toHaveBeenCalled();
@@ -246,13 +247,13 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
       new Error('snap unavailable'),
     );
 
-    const tranchePromise = fetchImportedWalletFundingAmountTranche();
+    const rangePromise = fetchImportedWalletFundingAmountRange();
     await jest.advanceTimersByTimeAsync(
       FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
     );
-    const tranche = await tranchePromise;
+    const range = await rangePromise;
 
-    expect(tranche).toBeUndefined();
+    expect(range).toBeUndefined();
     jest.useRealTimers();
   });
 
@@ -260,14 +261,14 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
     arrangeSuccessfulRefresh(50);
     // Sei (0x531) can be enabled in NetworkEnablementController without a
     // NetworkController configuration; passing it to the balance/detection
-    // refreshes throws `Invalid chain ID "0x531"` and drops the tranche.
+    // refreshes throws `Invalid chain ID "0x531"` and drops the range.
     mockEngineContext.NetworkEnablementController.listPopularEvmNetworks.mockReturnValueOnce(
       ['0x1', '0x531'],
     );
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBe('$10-$100');
+    expect(range).toBe('10.00 - 99.99');
     expect(
       mockEngineContext.TokenBalancesController._executePoll,
     ).toHaveBeenCalledWith({ chainIds: ['0x1'] });
@@ -285,9 +286,9 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
       [],
     );
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBeUndefined();
+    expect(range).toBeUndefined();
     expect(
       mockEngineContext.AccountTrackerController.refresh,
     ).not.toHaveBeenCalled();
@@ -297,16 +298,16 @@ describe('fetchImportedWalletFundingAmountTranche', () => {
     arrangeSuccessfulRefresh(50);
     mockSelectSelectedAccountGroupId.mockReturnValue(null);
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBeUndefined();
+    expect(range).toBeUndefined();
   });
 
   it('returns undefined when the balance is not a finite number', async () => {
     arrangeSuccessfulRefresh(NaN);
 
-    const tranche = await fetchImportedWalletFundingAmountTranche();
+    const range = await fetchImportedWalletFundingAmountRange();
 
-    expect(tranche).toBeUndefined();
+    expect(range).toBeUndefined();
   });
 });
