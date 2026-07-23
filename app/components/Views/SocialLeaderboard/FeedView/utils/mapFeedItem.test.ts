@@ -1,8 +1,24 @@
 import { mapFeedItem } from './mapFeedItem';
+import { formatFeedSubHeader } from './formatFeedSubHeader';
 import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: Record<string, string>) => {
+    if (
+      key === 'social_leaderboard.feed.sub_header.size_at_market_cap' &&
+      params
+    ) {
+      return `${params.size} at ${params.marketCap} ${params.abbreviation}`;
+    }
+    if (key === 'social_leaderboard.feed.sub_header.size_at_price' && params) {
+      return `${params.size} at ${params.price}`;
+    }
+    const literals: Record<string, string> = {
+      'social_leaderboard.feed.sub_header.at_connector': 'at',
+      'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
+    };
+    return literals[key] ?? key;
+  },
 }));
 
 describe('mapFeedItem', () => {
@@ -229,8 +245,66 @@ describe('mapFeedItem', () => {
     const result = mapFeedItem(mockSpotFeedItem());
 
     // usdCost 120000 -> "$120K"; price 120000/1000 = 120 -> "at $120.00".
-    expect(result?.subHeader).toContain('$120K');
-    expect(result?.subHeader).toContain('at');
+    expect(
+      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
+    ).toContain('$120K');
+    expect(
+      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
+    ).toContain('at');
+  });
+
+  it('composes a sub-header with trade-time market cap for spot trades', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1000,
+            usdCost: 103_000,
+            marketCap: 73_500_000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$103K',
+      contextValueLabel: '$73.5M',
+      contextKind: 'marketCap',
+    });
+    expect(formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' })).toBe(
+      '$103K at $73.5M MC',
+    );
+  });
+
+  it('omits market cap on perp trades even when Clicker provides it', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 5,
+            usdCost: 50_000,
+            marketCap: 73_500_000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader.contextKind).not.toBe('marketCap');
+    expect(
+      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
+    ).not.toContain('MC');
   });
 
   it('leaves value and PnL labels empty when open-position fields are missing', () => {
