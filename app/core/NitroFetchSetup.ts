@@ -20,7 +20,7 @@
 import {
   fetch as nitroFetch,
   prefetchOnAppStart,
-  Headers,
+  Headers as NitroHeaders,
   Request,
   Response,
 } from 'react-native-nitro-fetch';
@@ -99,6 +99,31 @@ function withPrefetchKey(
   return { ...init, headers };
 }
 
+/**
+ * nitro-fetch's buildNitroRequest discards ArrayBuffer/Uint8Array bodies
+ * (it hardcodes `bodyBytes: undefined` after normalising them). Some
+ * third-party libraries — most notably ethers v5's JsonRpcProvider — encode
+ * their JSON-RPC request body as Uint8Array via toUtf8Bytes(json) and rely on
+ * global.fetch forwarding it correctly. Without this shim those POSTs reach
+ * the RPC endpoint with no body, returning {"error":{"code":-32700,"message":
+ * "Invalid JSON"}}.
+ *
+ * Since every JSON-RPC body is valid UTF-8, converting Uint8Array → string
+ * is always safe here. ArrayBuffer is handled the same way.
+ */
+function normalizeBodyForNitroFetch(
+  init?: RequestInit,
+): RequestInit | undefined {
+  const body = init?.body;
+  if (body instanceof Uint8Array) {
+    return { ...init, body: new TextDecoder().decode(body) };
+  }
+  if (body instanceof ArrayBuffer) {
+    return { ...init, body: new TextDecoder().decode(new Uint8Array(body)) };
+  }
+  return init;
+}
+
 function installProductionNitroFetch(): void {
   // NOTE: nitro-fetch uses a buffered transport by default — the full response
   // body is downloaded natively before the Promise resolves. `response.body.getReader()`
@@ -107,13 +132,13 @@ function installProductionNitroFetch(): void {
   //   - `{ stream: true }` in fetch options (nitro-fetch Cronet streaming transport)
   //   - import `fetch` from 'expo/fetch' directly (see bridge-controller-init.ts)
   global.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
-    nitroFetch(input, withPrefetchKey(input, init));
+    nitroFetch(input, withPrefetchKey(input, normalizeBodyForNitroFetch(init)));
   const _g = globalThis as unknown as {
-    Headers: typeof Headers;
+    Headers: typeof NitroHeaders;
     Request: typeof Request;
     Response: typeof Response;
   };
-  _g.Headers = Headers;
+  _g.Headers = NitroHeaders;
   _g.Request = Request;
   _g.Response = Response;
 

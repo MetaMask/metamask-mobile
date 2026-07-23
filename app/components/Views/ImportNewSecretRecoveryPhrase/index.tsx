@@ -34,6 +34,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import { DUPLICATE_MNEMONIC_ERROR_MESSAGES } from '../../../core/QrSync/duplicateMnemonicError';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
@@ -61,6 +62,34 @@ import {
   validateWords,
   validateMnemonic,
 } from './validation';
+
+async function checkSeedlessPasswordOutdated(): Promise<boolean> {
+  return Authentication.checkIsSeedlessPasswordOutdated({
+    skipCache: true,
+    captureSentryError: true,
+  });
+}
+
+function showImportSrpErrorAlert(errorMessage: string): void {
+  switch (errorMessage) {
+    case DUPLICATE_MNEMONIC_ERROR_MESSAGES[0]:
+    case DUPLICATE_MNEMONIC_ERROR_MESSAGES[1]:
+      Alert.alert(
+        strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
+      );
+      break;
+    case 'KeyringController - The account you are trying to import is a duplicate':
+      Alert.alert(
+        strings('import_new_secret_recovery_phrase.error_duplicate_account'),
+      );
+      break;
+    default:
+      Alert.alert(
+        strings('import_new_secret_recovery_phrase.error_title'),
+        strings('import_new_secret_recovery_phrase.error_message'),
+      );
+  }
+}
 
 /**
  * View that's displayed when the user is trying to import a new secret recovery phrase
@@ -99,11 +128,10 @@ const ImportNewSecretRecoveryPhrase = () => {
     [seedPhrase],
   );
 
+  // Clear validation errors whenever the seed phrase changes.
+  // Always calling setError('') is safe — React bails out when value is unchanged.
   useEffect(() => {
-    if (error) {
-      setError('');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setError('');
   }, [seedPhrase]);
 
   const dismiss = useCallback(() => {
@@ -132,8 +160,8 @@ const ImportNewSecretRecoveryPhrase = () => {
           );
         }
       },
-      onScanError: (error: unknown) => {
-        Logger.error(error as Error, 'QR scan error');
+      onScanError: (scanError: unknown) => {
+        Logger.error(scanError as Error, 'QR scan error');
       },
     });
   }, [navigation]);
@@ -144,19 +172,22 @@ const ImportNewSecretRecoveryPhrase = () => {
     });
   }, [navigation]);
 
-  const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-      )
-        .addProperties({
-          number_of_solana_accounts_discovered: discoveredAccountsCount,
-        })
-        .build(),
-    );
-  };
+  const trackDiscoveryEvent = useCallback(
+    (discoveredAccountsCount: number) => {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+        )
+          .addProperties({
+            number_of_solana_accounts_discovered: discoveredAccountsCount,
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder],
+  );
 
-  const onSubmit = async () => {
+  const onSubmit = useCallback(async () => {
     const phrase = seedPhrase
       .map((item) => item.trim())
       .filter((item) => item !== '')
@@ -177,19 +208,23 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
 
     setLoading(true);
-    try {
-      // check if seedless pwd is outdated skip cache before importing SRP
-      const isSeedlessPwdOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated({
-          skipCache: true,
-          captureSentryError: true,
-        });
-      if (isSeedlessPwdOutdated) {
-        // no need to handle error here, password outdated state will trigger modal that force user to log out
-        setLoading(false);
-        return;
-      }
 
+    let isSeedlessPwdOutdated = false;
+    try {
+      isSeedlessPwdOutdated = await checkSeedlessPasswordOutdated();
+    } catch (e) {
+      showImportSrpErrorAlert((e as Error)?.message);
+      setLoading(false);
+      return;
+    }
+
+    if (isSeedlessPwdOutdated) {
+      // Password outdated state will trigger modal that force user to log out
+      setLoading(false);
+      return;
+    }
+
+    try {
       await importNewSecretRecoveryPhrase(
         phrase,
         undefined,
@@ -197,49 +232,39 @@ const ImportNewSecretRecoveryPhrase = () => {
           trackDiscoveryEvent(discoveredAccountsCount);
         },
       );
-
-      setLoading(false);
-      setSeedPhrase(['']);
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: `${strings('import_new_secret_recovery_phrase.success_1')} ${
-              hdKeyrings.length + 1
-            } ${strings('import_new_secret_recovery_phrase.success_2')}`,
-          },
-        ],
-        iconName: ComponentIconName.Check,
-        hasNoTimeout: false,
-      });
-
-      fetchAccountsWithActivity();
-
-      navigation.navigate('WalletView');
     } catch (e) {
-      switch ((e as Error)?.message) {
-        case 'This mnemonic has already been imported.':
-          Alert.alert(
-            strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
-          );
-          break;
-        case 'KeyringController - The account you are trying to import is a duplicate':
-          Alert.alert(
-            strings(
-              'import_new_secret_recovery_phrase.error_duplicate_account',
-            ),
-          );
-          break;
-        default:
-          Alert.alert(
-            strings('import_new_secret_recovery_phrase.error_title'),
-            strings('import_new_secret_recovery_phrase.error_message'),
-          );
-      }
+      showImportSrpErrorAlert((e as Error)?.message);
       setLoading(false);
+      return;
     }
-  };
+
+    setLoading(false);
+    setSeedPhrase(['']);
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: `${strings('import_new_secret_recovery_phrase.success_1')} ${
+            hdKeyrings.length + 1
+          } ${strings('import_new_secret_recovery_phrase.success_2')}`,
+        },
+      ],
+      iconName: ComponentIconName.Check,
+      hasNoTimeout: false,
+    });
+
+    fetchAccountsWithActivity();
+
+    navigation.navigate('WalletView');
+  }, [
+    seedPhrase,
+    trackDiscoveryEvent,
+    toastRef,
+    hdKeyrings.length,
+    fetchAccountsWithActivity,
+    navigation,
+  ]);
 
   return (
     <Box twClassName="flex-1 bg-default">

@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import {
   RampIntent,
@@ -33,7 +35,7 @@ import { selectProviders } from '../../../../selectors/rampsController';
  * - goToSell: Always navigates to aggregator SELL flow
  */
 export const useRampNavigation = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const rampsServiceDisruptionRegions = useSelector(
     selectRampsServiceDisruptionRegions,
@@ -85,8 +87,9 @@ export const useRampNavigation = () => {
           location,
         )
       ) {
-        navigation.navigate(
-          ...createRampsServiceDisruptionModalNavigationDetails(),
+        navigateWithDetails(
+          navigation,
+          createRampsServiceDisruptionModalNavigationDetails(),
         );
         return;
       }
@@ -111,19 +114,26 @@ export const useRampNavigation = () => {
 
       if (isUnifiedRoutingEnabled) {
         if (!location || location === UNKNOWN_LOCATION) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
+          navigateWithDetails(
+            navigation,
+            createEligibilityFailedModalNavigationDetails(),
           );
           return;
         }
 
         if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+          navigateWithDetails(
+            navigation,
+            createRampUnsupportedModalNavigationDetails(),
+          );
           return;
         }
 
         if (isV2CatalogUnsupported) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+          navigateWithDetails(
+            navigation,
+            createRampUnsupportedModalNavigationDetails(),
+          );
           return;
         }
       }
@@ -139,8 +149,9 @@ export const useRampNavigation = () => {
             (tok) => tok.assetId === controllerAssetId,
           );
           if (!matchedToken || !matchedToken.tokenSupported) {
-            navigation.navigate(
-              ...createRampUnsupportedModalNavigationDetails(),
+            navigateWithDetails(
+              navigation,
+              createRampUnsupportedModalNavigationDetails(),
             );
             return;
           }
@@ -151,8 +162,9 @@ export const useRampNavigation = () => {
         } catch {
           // Token may not be in controller's list yet (still loading).
         }
-        navigation.navigate(
-          ...createBuildQuoteNavDetails({
+        navigateWithDetails(
+          navigation,
+          createBuildQuoteNavDetails({
             assetId: controllerAssetId,
             buyFlowOrigin: options?.buyFlowOrigin,
           }),
@@ -161,12 +173,13 @@ export const useRampNavigation = () => {
       }
 
       if (!intent?.assetId && !overrideUnifiedRouting) {
-        navigation.navigate(...createTokenSelectionNavDetails());
+        navigateWithDetails(navigation, createTokenSelectionNavDetails());
         return;
       }
 
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
+      navigateWithDetails(
+        navigation,
+        createRampNavigationDetails(AggregatorRampType.BUY, intent),
       );
     },
     [
@@ -198,8 +211,9 @@ export const useRampNavigation = () => {
 
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.SELL, intent),
+      navigateWithDetails(
+        navigation,
+        createRampNavigationDetails(AggregatorRampType.SELL, intent),
       );
     },
     [navigation],

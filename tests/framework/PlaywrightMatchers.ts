@@ -71,16 +71,18 @@ export default class PlaywrightMatchers {
         ? this.escapeRegexPatternForUiAutomator(elementId)
         : this.escapeRegexPattern(elementId);
       this.logFind('id pattern', elementId.source);
+      // Android resource IDs are package-qualified (e.g. io.metamask:id/browser-tab-1).
+      // Detox by.id(RegExp) matches the suffix; UiAutomator resourceIdMatches needs .*…*.
+      const androidPattern = `.*${escaped}.*`;
       const locator = isAndroid
-        ? `android=new UiSelector().resourceIdMatches("${escaped}")`
+        ? `android=new UiSelector().resourceIdMatches("${androidPattern}")`
         : `-ios predicate string:name MATCHES "${escaped}"`;
 
       const drv = getDriver();
       if (!drv) throw new Error('Driver is not available');
       if (options.index !== undefined) {
-        const elements = await drv.$$(locator);
-        return this.wrapElementAtIndex(
-          elements as unknown as ChainablePromiseElement[],
+        return this.resolveIndexedElementByLocator(
+          locator,
           options.index,
           `resource id pattern ${elementId.source}`,
         );
@@ -108,9 +110,10 @@ export default class PlaywrightMatchers {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     if (options.index !== undefined) {
-      const elements = await drv.$$(locator);
-      return wrapElement(
-        elements[options.index] as unknown as ChainablePromiseElement,
+      return this.resolveIndexedElementByLocator(
+        locator,
+        options.index,
+        `id ${String(elementId)}`,
       );
     }
     const element = await drv.$(locator);
@@ -179,20 +182,35 @@ export default class PlaywrightMatchers {
       .replace(/\\D/g, '[^0-9]');
   }
 
-  private static wrapElementAtIndex(
-    elements: ChainablePromiseElement[],
+  /**
+   * Resolves an indexed element from a multi-match locator.
+   * When `$$` returns no matches, falls back to a lazy `$` ref so negative
+   * assertions (e.g. expectElementToNotBeVisible) can poll until absent.
+   * Throws when matches exist but the requested index is out of range.
+   */
+  private static async resolveIndexedElementByLocator(
+    locator: string,
     index: number,
     targetDescription: string,
-  ): PlaywrightElement {
+  ): Promise<PlaywrightElement> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const elements = await drv.$$(locator);
+    const matchCount = await elements.length;
     const element = elements[index] as unknown as
       | ChainablePromiseElement
       | undefined;
-    if (!element) {
-      throw new Error(
-        `No element at index ${index} for ${targetDescription} (found ${elements.length} match(es)).`,
+    if (element) {
+      return wrapElement(element);
+    }
+    if (matchCount === 0) {
+      return wrapElement(
+        (await drv.$(locator)) as unknown as ChainablePromiseElement,
       );
     }
-    return wrapElement(element);
+    throw new Error(
+      `No element at index ${index} for ${targetDescription} (found ${matchCount} match(es)).`,
+    );
   }
 
   /**
@@ -248,13 +266,26 @@ export default class PlaywrightMatchers {
     if (!drv) throw new Error('Driver is not available');
     const elements = await drv.$$(xpath);
     const length = await elements.length;
-    if (length === 0) throw new Error(`No elements found for XPath: ${xpath}`);
+    // Return a lazy `$` ref when absent so visibility waits can poll (e.g.
+    // Network fee after a quote loads). Throwing here made
+    // expectElementToBeVisible fail immediately despite a 60s timeout.
+    if (length === 0) {
+      return wrapElement(
+        (await drv.$(xpath)) as unknown as ChainablePromiseElement,
+      );
+    }
     const element =
       index !== undefined
         ? elements[index]
         : lastElement
           ? elements[length - 1]
           : elements[0];
+
+    if (!element) {
+      throw new Error(
+        `No element at index ${index} for XPath: ${xpath} (found ${length} match(es)).`,
+      );
+    }
 
     return wrapElement(element);
   }

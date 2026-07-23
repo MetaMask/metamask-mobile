@@ -95,4 +95,140 @@ describe('AssetDetailsActivityListItem utils', () => {
       showCancelModal,
     });
   });
+
+  describe('contractTokenMetadata enrichment', () => {
+    const USDG_ADDRESS = '0x5fc5360d0400a0fd4f2af552add042d716f1d168';
+    const USDG_ADDRESS_CHECKSUMMED =
+      '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168';
+
+    const createTokenTransfer = (
+      overrides: Partial<TransactionWithImportTime> = {},
+    ) =>
+      createTransaction({
+        type: TransactionType.tokenMethodTransfer,
+        txParams: {
+          from: '0x123',
+          to: USDG_ADDRESS,
+          value: '0x0',
+          data: '0xa9059cbb0000000000000000000000000000000000000000000000000000000000000456',
+        },
+        ...overrides,
+      });
+
+    const expectLocalTransaction = (
+      item: ReturnType<typeof mapTransactionToActivityItem>,
+    ) => {
+      if (item.raw?.type !== 'localTransaction') {
+        throw new Error('Expected local transaction activity item');
+      }
+      return item.raw.data;
+    };
+
+    it('attaches contractTokenMetadata when the tx targets the asset contract', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createTokenTransfer(),
+        assetSymbol: 'USDG',
+        assetDecimals: 6,
+        assetAddress: USDG_ADDRESS,
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1237',
+      });
+
+      const data = expectLocalTransaction(item);
+      expect(data.contractTokenMetadata).toStrictEqual({
+        symbol: 'USDG',
+        decimals: 6,
+      });
+    });
+
+    it('matches assetAddress case-insensitively (checksummed vs lowercase)', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createTokenTransfer(),
+        assetSymbol: 'USDG',
+        assetDecimals: 6,
+        assetAddress: USDG_ADDRESS_CHECKSUMMED,
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1237',
+      });
+
+      expect(expectLocalTransaction(item).contractTokenMetadata).toStrictEqual({
+        symbol: 'USDG',
+        decimals: 6,
+      });
+    });
+
+    it('does not attach contractTokenMetadata when the tx targets another contract', () => {
+      const item = mapTransactionToActivityItem({
+        // to: 0x456 — e.g. a router/swap call on the asset page
+        transaction: createTransaction(),
+        assetSymbol: 'USDG',
+        assetDecimals: 6,
+        assetAddress: USDG_ADDRESS,
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1237',
+      });
+
+      expect(
+        expectLocalTransaction(item).contractTokenMetadata,
+      ).toBeUndefined();
+    });
+
+    it('does not attach contractTokenMetadata when assetAddress is not provided (legacy call)', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createTokenTransfer(),
+        assetSymbol: 'USDG',
+        currentChainId: '0x1237',
+      });
+
+      expect(
+        expectLocalTransaction(item).contractTokenMetadata,
+      ).toBeUndefined();
+    });
+
+    it('does not attach contractTokenMetadata when txParams.to is undefined (contract deployment)', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createTransaction({
+          txParams: { from: '0x123', value: '0x0' },
+        }),
+        assetSymbol: 'USDG',
+        assetDecimals: 6,
+        assetAddress: USDG_ADDRESS,
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1237',
+      });
+
+      expect(
+        expectLocalTransaction(item).contractTokenMetadata,
+      ).toBeUndefined();
+    });
+  });
+
+  describe('nativeAssetSymbol resolution', () => {
+    it('uses the explicit nativeAssetSymbol when provided', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createTransaction(),
+        assetSymbol: 'USDG',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1237',
+      });
+
+      if (item.raw?.type !== 'localTransaction') {
+        throw new Error('Expected local transaction activity item');
+      }
+      expect(item.raw.data.nativeAssetSymbol).toBe('ETH');
+    });
+
+    it('falls back to assetSymbol when nativeAssetSymbol is absent (legacy behavior)', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createTransaction(),
+        assetSymbol: 'USDG',
+        currentChainId: '0x1237',
+      });
+
+      if (item.raw?.type !== 'localTransaction') {
+        throw new Error('Expected local transaction activity item');
+      }
+      expect(item.raw.data.nativeAssetSymbol).toBe('USDG');
+    });
+  });
 });

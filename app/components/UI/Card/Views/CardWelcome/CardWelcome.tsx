@@ -1,4 +1,5 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect } from 'react';
 import { Image, StatusBar, View, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -40,7 +41,7 @@ interface StatusBarNavigation {
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { goBack, navigate } = navigation;
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const postAuthRedirect = useCardPostAuthRedirect();

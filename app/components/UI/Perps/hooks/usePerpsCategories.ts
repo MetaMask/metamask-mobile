@@ -14,6 +14,17 @@ export interface PerpsCategory {
 }
 
 /**
+ * Pseudo-category for markets listed within the last 30 days. Shared by
+ * `PerpsMarketCategoryBadges` (market list filter bar) and `PerpsProducts`
+ * (home pills) so both surfaces show/link to the same "New" concept.
+ * Visibility is gated by `useHasNewMarkets`.
+ */
+export const NEW_CATEGORY: PerpsCategory = {
+  id: 'new',
+  label: strings('perps.home.tabs.new'),
+};
+
+/**
  * Derives unique market categories with localised labels from the current
  * markets list.  Non-HIP-3 markets are bucketed under `'crypto'`.
  *

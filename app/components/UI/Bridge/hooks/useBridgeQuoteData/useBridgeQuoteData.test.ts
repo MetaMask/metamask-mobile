@@ -104,6 +104,10 @@ describe('useBridgeQuoteData', () => {
     mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('returns quote data when quotes are available', () => {
     // Set up mock for this specific test
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
@@ -117,9 +121,15 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
     };
 
-    // destToken must match the quote's destAsset.assetId for destTokenAmount to be calculated
-    // The address should be in CAIP format to match the quote's assetId
+    // Source/dest must match the Solana quote (chain + address) for pair match / amounts
     const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+        decimals: 9,
+      },
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
@@ -145,10 +155,10 @@ describe('useBridgeQuoteData', () => {
       formattedQuoteData: {
         networkFee: '-',
         estimatedTime: '5 seconds',
-        rate: '1 ETH = 0.0000000000000000571 USDC',
+        rate: '1 SOL = 0.0000000000000000571 USDC',
         priceImpact: '-0.20%',
         priceImpactFiat: undefined,
-        slippage: '0.5%',
+        slippage: 'Auto',
       },
       isLoading: false,
       quoteFetchError: null,
@@ -453,6 +463,13 @@ describe('useBridgeQuoteData', () => {
         quoteFetchError: null,
       },
       bridgeReducerOverrides: {
+        sourceToken: {
+          symbol: 'SOL',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+          decimals: 9,
+        },
         destToken: {
           symbol: 'USDC',
           chainId: SolScope.Mainnet,
@@ -507,7 +524,7 @@ describe('useBridgeQuoteData', () => {
         priceImpact: '-0.20%',
         priceImpactFiat: undefined,
         rate: '--',
-        slippage: '0.5%',
+        slippage: 'Auto',
       },
       isLoading: false,
       quoteFetchError: null,
@@ -1465,10 +1482,11 @@ describe('useBridgeQuoteData', () => {
       const bridgeReducerOverrides = {
         sourceAmount: '1',
         sourceToken: {
-          symbol: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
-          address: '0x0000000000000000000000000000000000000000',
-          decimals: 18,
+          symbol: 'SOL',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+          decimals: 9,
         },
         destToken: {
           symbol: 'USDC',
@@ -1487,7 +1505,7 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.formattedQuoteData?.rate).toMatch(/1 ETH = /);
+      expect(result.current.formattedQuoteData?.rate).toMatch(/1 SOL = /);
       expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
     });
 
@@ -1508,10 +1526,11 @@ describe('useBridgeQuoteData', () => {
       const bridgeReducerOverrides = {
         sourceAmount: '1',
         sourceToken: {
-          symbol: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
-          address: '0x0000000000000000000000000000000000000000',
-          decimals: 18,
+          symbol: 'SOL',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+          decimals: 9,
         },
         destToken: {
           symbol: 'USDC',
@@ -1530,7 +1549,7 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.formattedQuoteData?.rate).toMatch(/1 ETH = /);
+      expect(result.current.formattedQuoteData?.rate).toMatch(/1 SOL = /);
       expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
     });
   });

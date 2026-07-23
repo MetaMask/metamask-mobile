@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
   Box,
   Label,
@@ -38,7 +40,7 @@ import {
 } from './RegionSelectorModal';
 
 const PersonalDetails = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { setUser, fetchUserData, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
@@ -132,8 +134,9 @@ const PersonalDetails = () => {
     setOnValueChange((region) => {
       setNationalityKey(region.key);
     });
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: allRegions,
         selectedRegionKey: nationalityKey || null,
       }),

@@ -73,10 +73,16 @@ export function useTransactionCustomAmountAlerts({
     });
   }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
 
-  const alerts = useMemo(
-    () => [...pendingTokenAlerts, ...filteredAlerts],
-    [filteredAlerts, pendingTokenAlerts],
-  );
+  const alerts = useMemo(() => {
+    const merged = [...pendingTokenAlerts, ...filteredAlerts];
+
+    // The hardware wallet alert can only be fixed by switching accounts, so
+    // its message takes priority over amount-level alerts.
+    return [
+      ...merged.filter((a) => a.key === AlertKeys.MMPayHardwareAccount),
+      ...merged.filter((a) => a.key !== AlertKeys.MMPayHardwareAccount),
+    ];
+  }, [filteredAlerts, pendingTokenAlerts]);
 
   const firstAlert = alerts?.[0];
 

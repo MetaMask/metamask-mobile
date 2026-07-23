@@ -2,6 +2,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import {
   AccountState,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
@@ -46,6 +47,7 @@ import { PredictFeatureFlags } from '../types/flags';
 export type {
   AccountState,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
@@ -160,6 +162,7 @@ export interface SignWithdrawParams {
 export interface SignWithdrawResponse {
   callData: Hex;
   amount: number;
+  walletType: AccountState['walletType'];
 }
 
 export interface PredictProvider {
@@ -249,4 +252,6 @@ export interface PredictProvider {
   getMarketSeries?(params: GetSeriesParams): Promise<PredictMarket[]>;
 
   getConnectionStatus?(): ConnectionStatus;
+
+  subscribeToConnectionStatus?(callback: ConnectionStatusCallback): () => void;
 }

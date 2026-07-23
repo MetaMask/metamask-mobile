@@ -7,6 +7,7 @@ import {
 } from './smartTransactionsController';
 import { selectEvmAddress } from './accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
+import { selectIsActivityRedesignEnabled } from './featureFlagController/activityRedesign';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -162,6 +163,49 @@ export const selectRequiredTransactionHashes = createSelector(
     ),
 );
 
+/**
+ * STX gas-token fee legs (`TransactionType.gasPayment`) are batch siblings of
+ * the user action. Redesigned Activity hides them as separate rows (TMCU-1064).
+ */
+export const selectGasPaymentTransactions = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    transactions.filter((tx) => tx.type === TransactionType.gasPayment),
+);
+
+export const selectGasPaymentTransactionIds = createSelector(
+  selectGasPaymentTransactions,
+  (gasPaymentTransactions) =>
+    new Set(gasPaymentTransactions.map((tx) => tx.id)),
+);
+
+export const selectGasPaymentTransactionHashes = createSelector(
+  selectGasPaymentTransactions,
+  (gasPaymentTransactions) =>
+    new Set(
+      gasPaymentTransactions
+        .map((tx) => tx.hash?.toLowerCase())
+        .filter((hash): hash is string => Boolean(hash)),
+    ),
+);
+
+/**
+ * Hashes that Activity API feeds should drop: MetaMask Pay / required children,
+ * plus gas-token fee legs when redesigned Activity is enabled (legacy keeps
+ * fee legs visible — it has no compensating gasToken fee UI).
+ */
+export const selectExcludedActivityTransactionHashes = createSelector(
+  [
+    selectRequiredTransactionHashes,
+    selectGasPaymentTransactionHashes,
+    selectIsActivityRedesignEnabled,
+  ],
+  (requiredHashes, gasPaymentHashes, isActivityRedesignEnabled) =>
+    isActivityRedesignEnabled
+      ? new Set([...requiredHashes, ...gasPaymentHashes])
+      : new Set(requiredHashes),
+);
+
 export const selectRelatedChainIdsByTransactionId = createSelector(
   selectTransactionsStrict,
   (transactions) => {
@@ -199,6 +243,12 @@ export const selectTransactions = createDeepEqualSelector(
       identityFunctionCheck: 'never',
     },
   },
+);
+
+export const selectHasUnapprovedTransactions = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    transactions.some((tx) => tx.status === TransactionStatus.unapproved),
 );
 
 /**
@@ -317,6 +367,8 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectSelectedAccountGroupEvmInternalAccount,
     selectEvmAddress,
     selectRequiredTransactionIds,
+    selectGasPaymentTransactionIds,
+    selectIsActivityRedesignEnabled,
   ],
   (
     nonReplacedTransactions,
@@ -324,14 +376,23 @@ export const selectLocalTransactions = createDeepEqualSelector(
     groupEvmAccount,
     fallbackEvmAddress,
     requiredTransactionIds,
+    gasPaymentTransactionIds,
+    isActivityRedesignEnabled,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
-    const transactions = nonReplacedTransactions.filter(
-      (transaction) =>
-        !requiredTransactionIds.has(transaction.id) &&
-        belongsToActiveAccount(transaction, activeEvmAddress),
-    );
+    const transactions = nonReplacedTransactions.filter((transaction) => {
+      if (requiredTransactionIds.has(transaction.id)) {
+        return false;
+      }
+      if (
+        isActivityRedesignEnabled &&
+        gasPaymentTransactionIds.has(transaction.id)
+      ) {
+        return false;
+      }
+      return belongsToActiveAccount(transaction, activeEvmAddress);
+    });
 
     const pendingSmartTransactionsForActiveAddress =
       pendingSmartTransactions.filter((transaction) =>
@@ -359,21 +420,34 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
     selectSelectedAccountGroupEvmInternalAccount,
     selectEvmAddress,
     selectRequiredTransactionIds,
+    selectGasPaymentTransactionIds,
+    selectIsActivityRedesignEnabled,
   ],
   (
     transactions,
     groupEvmAccount,
     fallbackEvmAddress,
     requiredTransactionIds,
+    gasPaymentTransactionIds,
+    isActivityRedesignEnabled,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
-    return transactions.filter(
-      (transaction) =>
-        isReplacedTransaction(transaction) &&
-        !requiredTransactionIds.has(transaction.id) &&
-        belongsToActiveAccount(transaction, activeEvmAddress),
-    );
+    return transactions.filter((transaction) => {
+      if (!isReplacedTransaction(transaction)) {
+        return false;
+      }
+      if (requiredTransactionIds.has(transaction.id)) {
+        return false;
+      }
+      if (
+        isActivityRedesignEnabled &&
+        gasPaymentTransactionIds.has(transaction.id)
+      ) {
+        return false;
+      }
+      return belongsToActiveAccount(transaction, activeEvmAddress);
+    });
   },
 );
 

@@ -18,6 +18,8 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
+import { ScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/scam-questionnaire';
+import { useSendScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/useSendScamQuestionnaire';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -82,6 +84,14 @@ export const Footer = () => {
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
 
+  const {
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    isScamQuestionnaireVisible,
+    showScamQuestionnaire,
+    scamQuestionnaireProps,
+  } = useSendScamQuestionnaire({ onReject });
+
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
   }, []);
@@ -105,12 +115,25 @@ export const Footer = () => {
   }, [hideConfirmAlertModal, onConfirm, navigation]);
 
   const onSignConfirm = useCallback(async () => {
-    if (hasDangerAlerts) {
+    if (isScamQuestionnaireRequired) {
+      showScamQuestionnaire();
+      return;
+    }
+    // A completed questionnaire stands in for the danger-alert checkbox modal,
+    // so don't surface it again after the user has been through that friction.
+    if (hasDangerAlerts && !isScamQuestionnaireCompleted) {
       showConfirmAlertModal();
       return;
     }
     await onConfirm();
-  }, [hasDangerAlerts, onConfirm, showConfirmAlertModal]);
+  }, [
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    showScamQuestionnaire,
+    hasDangerAlerts,
+    onConfirm,
+    showConfirmAlertModal,
+  ]);
 
   useEffect(() => {
     trackAlertMetrics();
@@ -206,6 +229,9 @@ export const Footer = () => {
           onReject={onHandleReject}
           onConfirm={onHandleConfirm}
         />
+      )}
+      {isScamQuestionnaireVisible && (
+        <ScamQuestionnaire {...scamQuestionnaireProps} />
       )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}

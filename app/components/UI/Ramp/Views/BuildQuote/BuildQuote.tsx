@@ -11,6 +11,7 @@ import {
   useFocusEffect,
   useIsFocused,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
@@ -40,10 +41,7 @@ import styleSheet from './BuildQuote.styles';
 import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import {
-  RampsOrderStatus,
-  normalizeProviderCode,
-} from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
@@ -55,7 +53,10 @@ import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuot
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  useParams,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
@@ -125,7 +126,7 @@ export const createBuildQuoteNavDetails = (
 const DEFAULT_AMOUNT = 100;
 
 function BuildQuote() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
@@ -289,8 +290,9 @@ function BuildQuote() {
 
     const timer = setTimeout(() => {
       lastShownUnavailableKeyRef.current = key;
-      navigation.navigate(
-        ...createTokenNotAvailableModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createTokenNotAvailableModalNavigationDetails({
           assetId: effectiveAssetId ?? '',
           buyFlowOrigin: params?.buyFlowOrigin,
         }),
@@ -477,10 +479,10 @@ function BuildQuote() {
     ) {
       return null;
     }
-    const targetProvider = normalizeProviderCode(selectedProvider.id);
+    const targetProvider = selectedProvider.id;
     return (
       quotesResponse.success.find(
-        (quote) => normalizeProviderCode(quote.provider) === targetProvider,
+        (quote) => quote.provider === targetProvider,
       ) ?? null
     );
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
@@ -499,7 +501,7 @@ function BuildQuote() {
         })
         .build(),
     );
-    navigation.navigate(...createSettingsModalNavDetails());
+    navigateWithDetails(navigation, createSettingsModalNavDetails());
   }, [trackEvent, createEventBuilder, navigation]);
 
   const handleBackPress = useCallback(() => {
@@ -567,8 +569,9 @@ function BuildQuote() {
         })
         .build(),
     );
-    navigation.navigate(
-      ...createPaymentSelectionModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
       }),
     );

@@ -1,5 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
+import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -254,6 +255,27 @@ class ImportWalletView {
   ): Promise<void> {
     await UnifiedGestures.waitAndTap(this.title, {
       description: 'Import Wallet Title',
+    });
+  }
+
+  get importFromExtensionLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          enContent.import_from_seed.import_wallet_from_extension,
+          true,
+        ),
+    });
+  }
+
+  async tapImportFromExtensionLink(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
+      description: 'Import from MetaMask extension link',
+      timeout: 15_000,
     });
   }
 }

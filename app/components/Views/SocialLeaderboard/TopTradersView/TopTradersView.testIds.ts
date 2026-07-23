@@ -7,8 +7,8 @@ export const TopTradersViewSelectorsIDs = {
   PINNED_FILTER_BAR: 'top-traders-view-pinned-filter-bar',
   BACK_BUTTON: 'top-traders-view-back-button',
   NOTIFICATION_BUTTON: 'top-traders-view-notification-button',
+  NOTIFICATIONS_BANNER: 'top-traders-view-notifications-banner',
   TRADER_LIST: 'top-traders-view-list',
-  TAB_FILTER_ALL: 'tab-filter-all',
-  TAB_FILTER_TOKENS: 'tab-filter-tokens',
-  TAB_FILTER_PERPS: 'tab-filter-perps',
+  TYPE_SELECTOR: 'top-traders-view-type-selector',
+  PINNED_TYPE_SELECTOR: 'top-traders-view-pinned-type-selector',
 };

@@ -1,5 +1,4 @@
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
@@ -78,12 +77,10 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
           iconName: IconName.Loading,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Spinner
-                color={ReactNativeDsIconColor.PrimaryDefault}
-                spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-              />
-            </Box>
+            <Spinner
+              color={ReactNativeDsIconColor.IconDefault}
+              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+            />
           ),
         });
         return;
@@ -129,16 +126,11 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
           ],
           iconName: IconName.Error,
           iconColor: theme.colors.error.default,
-          backgroundColor: theme.colors.accent04.normal,
           hasNoTimeout: false,
         });
       }
     },
-    [
-      theme.colors.accent04.normal,
-      theme.colors.error.default,
-      theme.colors.success.default,
-    ],
+    [theme.colors.error.default, theme.colors.success.default],
   );
 
   return useMemo(

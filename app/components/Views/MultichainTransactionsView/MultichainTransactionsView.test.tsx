@@ -8,7 +8,9 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
-import MultichainTransactionsView from './MultichainTransactionsView';
+import MultichainTransactionsView, {
+  getMultichainTransactionItemType,
+} from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
@@ -125,6 +127,20 @@ describe('MultichainTransactionsView', () => {
     },
   ];
 
+  it('uses distinct recycle pools for standard and bridge transactions', () => {
+    expect(
+      getMultichainTransactionItemType(mockTransactions[0], false, {}),
+    ).toBe('transaction');
+    expect(
+      getMultichainTransactionItemType(mockTransactions[1], false, {}),
+    ).toBe('transaction');
+    expect(
+      getMultichainTransactionItemType(mockTransactions[0], false, {
+        [mockTransactions[0].id]: {},
+      }),
+    ).toBe('bridge-transaction');
+  });
+
   const customRender = (ui: React.ReactElement) => {
     const utils = render(ui);
 
@@ -237,13 +253,15 @@ describe('MultichainTransactionsView', () => {
     expect(ActivityListItemRow).toHaveBeenCalledWith(
       expect.objectContaining({
         index: 1,
-        title: 'Send TRX',
         item: expect.objectContaining({
           type: 'send',
         }),
       }),
       undefined,
     );
+    expect(
+      jest.mocked(ActivityListItemRow).mock.calls[0][0],
+    ).not.toHaveProperty('title');
     expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
   });
 

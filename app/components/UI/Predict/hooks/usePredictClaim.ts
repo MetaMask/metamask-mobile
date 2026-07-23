@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -23,20 +24,21 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
+import { RootState } from '../../../../reducers';
 
 export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const { claim: claimWinnings } = usePredictTrading();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '';
 
-  const claimBatchId = useSelector(
-    selectPredictPendingClaimByAddress({ address: selectedAddress }),
+  const claimBatchId = useSelector((state: RootState) =>
+    selectPredictPendingClaimByAddress(state, selectedAddress),
   );
   const isClaimPending = !!claimBatchId;
 

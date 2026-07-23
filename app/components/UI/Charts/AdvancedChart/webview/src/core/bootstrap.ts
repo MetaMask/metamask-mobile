@@ -175,7 +175,7 @@ export function bootstrap(): ChartConfig {
               flushPendingTheme();
               applyScaleLayout();
               applyVisualOverrides(config.visualOverrides);
-              setupLegendOverlay(config.legendOverlay, config.indicatorColors);
+              setupLegendOverlay(config.legendOverlay);
               const chart = widget.activeChart();
               // Match legacy onChartReady: when no explicit visible range
               // was passed, pin a 2-bar gap on the right. TV's default is

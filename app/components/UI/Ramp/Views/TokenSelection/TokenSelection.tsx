@@ -9,6 +9,7 @@ import { ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
@@ -30,7 +31,10 @@ import useSearchTokenResults from '../../hooks/useSearchTokenResults';
 import { RampsToken } from '../../hooks/useRampTokens';
 import { useDepositCryptoCurrencyNetworkName } from '../../hooks/useDepositCryptoCurrencyNetworkName';
 import { useRampsController } from '../../hooks/useRampsController';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
@@ -54,7 +58,7 @@ function TokenSelection() {
     null,
   );
   const theme = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const {
     tokens: controllerTokens,
@@ -250,7 +254,10 @@ function TokenSelection() {
         })
         .build(),
     );
-    navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
+    navigateWithDetails(
+      navigation,
+      createUnsupportedTokenModalNavigationDetails(),
+    );
   }, [navigation, createEventBuilder, trackEvent, rampType]);
 
   const renderToken = useCallback(

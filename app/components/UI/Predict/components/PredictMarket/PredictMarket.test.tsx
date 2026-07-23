@@ -262,6 +262,14 @@ function setupPredictMarketTest(
 }
 
 describe('PredictMarket', () => {
+  it('does not re-render the market card when props are unchanged', () => {
+    const { rerender } = setupPredictMarketTest(mockSingleMarket);
+
+    rerender(<PredictMarket market={mockSingleMarket} />);
+
+    expect(PredictMarketSingle).toHaveBeenCalledTimes(1);
+  });
+
   it('renders PredictMarketSingle for markets with one outcome', () => {
     const { getByTestId } = setupPredictMarketTest(mockSingleMarket);
 

@@ -8,50 +8,6 @@ jest.mock('../../../../../util/theme/themeUtils', () => ({
   useElevatedSurface: () => 'bg-default',
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const MockReact = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-
-  const BottomSheet = MockReact.forwardRef(
-    (
-      {
-        children,
-        testID,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-      },
-      ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      MockReact.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: jest.fn(),
-        onCloseBottomSheet: (callback?: () => void) => {
-          callback?.();
-        },
-      }));
-
-      return <View testID={testID}>{children}</View>;
-    },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({ children }: { children: React.ReactNode }) => (
-    <View testID="bottom-sheet-header">
-      {typeof children === 'string' ? <Text>{children}</Text> : children}
-    </View>
-  );
-
-  return {
-    ...actual,
-    BottomSheet,
-    BottomSheetHeader,
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {

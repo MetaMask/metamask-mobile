@@ -1195,7 +1195,7 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes TopTradersView screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes SocialTradersView screen when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1244,7 +1244,7 @@ describe('MainNavigator', () => {
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('TopTradersView');
+    expect(topTradersScreen?.component.name).toBe('SocialTradersView');
   });
 
   describe('Inner navigator component rendering', () => {

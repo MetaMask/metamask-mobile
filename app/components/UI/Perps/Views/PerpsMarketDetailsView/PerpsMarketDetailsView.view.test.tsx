@@ -6,7 +6,13 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
 import {
   MOCK_PERPS_MARKET_INSIGHTS_REPORT,
@@ -485,21 +491,44 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
         ),
       ).toBeOnTheScreen();
     });
 
-    it('renders header with market title', async () => {
+    it('renders header with full asset name and market pair subtitle', async () => {
       renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(screen.getByText('ETH-USD perp')).toBeOnTheScreen();
     });
 
-    it('renders header price when market has no maxLeverage', async () => {
+    it('renders live price, 24h change, and fullscreen button inside the market summary row', async () => {
+      renderEligibleNoPositionPerpsDetails();
+
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
+      );
+
+      expect(
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the market summary price when the market has no maxLeverage', async () => {
       renderPerpsMarketDetailsView({
         initialParams: {
           market: {
@@ -536,11 +565,16 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
+      );
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
       ).toBeOnTheScreen();
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE),
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -548,7 +582,7 @@ describe('PerpsMarketDetailsView', () => {
       renderEligibleNoPositionPerpsDetails();
 
       const fullscreenButton = await screen.findByTestId(
-        `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 

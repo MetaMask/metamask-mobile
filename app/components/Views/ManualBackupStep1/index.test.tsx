@@ -86,6 +86,13 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../../util/mnemonic', () => ({
+  uint8ArrayToMnemonic: jest.fn(
+    () =>
+      'abstract accident acoustic announce apple april argue artistic atmosphere aunt around awesome',
+  ),
+}));
+
 jest.mock('../../../core/Engine', () => {
   const mockHasFundsFn = jest.fn().mockReturnValue(true);
   const mockExportSeedPhraseFn = jest.fn().mockResolvedValue(new Uint8Array());
@@ -140,7 +147,6 @@ const createMockNavigation = () => ({
 
 interface SetupOptions {
   seedPhrase?: string[];
-  words?: string[];
   backupFlow?: boolean;
   settingsBackup?: boolean;
 }
@@ -186,7 +192,6 @@ const renderPasswordView = async () => {
 
   const result = renderComponent({
     seedPhrase: undefined,
-    words: undefined,
     backupFlow: false,
     settingsBackup: false,
   });
@@ -530,7 +535,6 @@ describe('ManualBackupStep1', () => {
 
       const { wrapper } = renderComponent({
         seedPhrase: undefined,
-        words: undefined,
         backupFlow: false,
         settingsBackup: false,
       });
@@ -550,16 +554,63 @@ describe('ManualBackupStep1', () => {
       mockGetPassword.mockResolvedValue({ password: 'test-password' });
       mockExportSeedPhrase.mockResolvedValue(new Uint8Array([0]));
 
-      renderComponent({
+      const { wrapper } = renderComponent({
         seedPhrase: undefined,
-        words: [],
         backupFlow: false,
         settingsBackup: false,
       });
 
       await waitFor(() => {
         expect(mockGetPassword).toHaveBeenCalled();
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({
+          password: 'test-password',
+        });
       });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows password view when getPassword returns false', async () => {
+      mockGetPassword.mockResolvedValue(false);
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows password view when seed phrase export fails after credentials resolve', async () => {
+      mockGetPassword.mockResolvedValue({ password: 'test-password' });
+      mockExportSeedPhrase.mockRejectedValue(new Error('export failed'));
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
     });
   });
 
@@ -587,6 +638,12 @@ describe('ManualBackupStep1', () => {
         expect(mockExportSeedPhrase).toHaveBeenCalledWith({
           password: 'correct-password',
         });
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+        ).toBeOnTheScreen();
       });
     });
 

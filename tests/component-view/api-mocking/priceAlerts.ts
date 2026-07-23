@@ -11,16 +11,23 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock, { type Scope } from 'nock';
 import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
-import type { PriceAlert } from '../../../app/components/UI/Assets/PriceAlerts/constants';
+import type {
+  AbsolutePriceAlert,
+  PercentChangeAlert,
+  SavePercentAlertParams,
+  UpdatePercentAlertParams,
+} from '../../../app/components/UI/Assets/PriceAlerts/constants';
 
 const PRICE_ALERTS_ORIGIN = 'https://price-alerts.dev-api.cx.metamask.io';
 const ALERTS_PATH = '/v1/alerts';
+const PERCENT_ALERTS_PATH = `${ALERTS_PATH}/percent-change`;
 
-export const mockPriceAlertsData: PriceAlert[] = [
+export const mockPriceAlertsData: AbsolutePriceAlert[] = [
   {
     id: 'alert-1',
     userId: 'user-1',
     asset: 'eip155:1/slip44:60',
+    type: 'absolute_price',
     threshold: 3000,
     recurring: true,
     active: true,
@@ -30,6 +37,7 @@ export const mockPriceAlertsData: PriceAlert[] = [
     id: 'alert-2',
     userId: 'user-1',
     asset: 'eip155:1/slip44:60',
+    type: 'absolute_price',
     threshold: 1500,
     recurring: false,
     active: false,
@@ -38,12 +46,27 @@ export const mockPriceAlertsData: PriceAlert[] = [
 ];
 
 /** Fixture for the alert returned by POST /v1/alerts in tests. */
-export const mockCreatedAlert: PriceAlert = {
+export const mockCreatedAlert: AbsolutePriceAlert = {
   id: 'alert-new',
   userId: 'user-1',
   asset: 'eip155:1/slip44:60',
+  type: 'absolute_price',
   threshold: 1300,
   recurring: true,
+  active: true,
+  createdAt: '2025-06-01T00:00:00.000Z',
+};
+
+/** Fixture for the alert returned by POST /v1/alerts/percent-change in tests. */
+export const mockCreatedPercentAlert: PercentChangeAlert = {
+  id: 'percent-alert-new',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  type: 'percent_change',
+  threshold: 10,
+  period: '1h',
+  direction: 'down',
+  recurring: false,
   active: true,
   createdAt: '2025-06-01T00:00:00.000Z',
 };
@@ -58,7 +81,7 @@ export const mockCreatedAlert: PriceAlert = {
  * @param alerts - The alerts to return from GET /v1/alerts. Defaults to mockPriceAlertsData.
  */
 export function setupPriceAlertsApiMock(
-  alerts: PriceAlert[] = mockPriceAlertsData,
+  alerts: AbsolutePriceAlert[] = mockPriceAlertsData,
 ): void {
   clearAllNockMocks();
   disableNetConnect();
@@ -99,6 +122,37 @@ export function setupPriceAlertsDeleteMock(alertId: string): Scope {
 export function setupPriceAlertsPatchMock(alertId: string): Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .patch(`${ALERTS_PATH}/${alertId}`)
+    .reply(200);
+}
+
+/**
+ * Registers a one-shot POST /v1/alerts/percent-change interceptor.
+ * Passing the expected body makes scope consumption verify the complete payload.
+ */
+export function setupPercentPriceAlertsPostMock(
+  expectedBody: SavePercentAlertParams,
+): Scope {
+  return nock(PRICE_ALERTS_ORIGIN)
+    .post(
+      PERCENT_ALERTS_PATH,
+      expectedBody as unknown as nock.RequestBodyMatcher,
+    )
+    .reply(201, mockCreatedPercentAlert);
+}
+
+/**
+ * Registers a one-shot PATCH /v1/alerts/percent-change/:id interceptor.
+ * Passing the expected body makes scope consumption verify the update payload.
+ */
+export function setupPercentPriceAlertsPatchMock(
+  alertId: string,
+  expectedBody: UpdatePercentAlertParams,
+): Scope {
+  return nock(PRICE_ALERTS_ORIGIN)
+    .patch(
+      `${PERCENT_ALERTS_PATH}/${alertId}`,
+      expectedBody as unknown as nock.RequestBodyMatcher,
+    )
     .reply(200);
 }
 

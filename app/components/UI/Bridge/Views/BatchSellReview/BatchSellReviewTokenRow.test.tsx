@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { Slider } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { BridgeToken } from '../../types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
@@ -20,6 +22,17 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: () => ({}),
   }),
+  useTheme: () => 'light',
+  usePureBlack: () => false,
+  getThemeColors: () => ({
+    'icon-default': 'rgb(0, 0, 0)',
+    'icon-alternative': 'rgb(102, 102, 102)',
+  }),
+}));
+
+jest.mock('../../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../../util/haptics'),
+  playImpact: jest.fn(),
 }));
 
 jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
@@ -29,37 +42,6 @@ jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   return {
     Skeleton: ({ testID }: { testID?: string }) =>
       ReactActual.createElement(RNView, { testID }),
-  };
-});
-
-jest.mock('./BatchSellPercentageSlider', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Pressable: RNPressable, Text: RNText } =
-    jest.requireActual('react-native');
-
-  return {
-    BatchSellPercentageSlider: ({
-      onValueChange,
-      onDragEnd,
-      testID,
-      value,
-    }: {
-      onValueChange: (value: number) => void;
-      onDragEnd?: (value: number) => void;
-      testID?: string;
-      value: number;
-    }) =>
-      ReactActual.createElement(
-        RNPressable,
-        {
-          testID,
-          onPress: () => {
-            onValueChange(75);
-            onDragEnd?.(75);
-          },
-        },
-        ReactActual.createElement(RNText, null, `${value}%`),
-      ),
   };
 });
 
@@ -222,24 +204,59 @@ describe('BatchSellReviewTokenRow', () => {
     expect(getByText('0.74906 ETH • 50%')).toBeOnTheScreen();
   });
 
-  it('forwards slider percent changes on drag end', () => {
-    const { getByTestId } = render(
+  it('commits slider accessibility changes', () => {
+    const { getByTestId, getByText } = render(
       <BatchSellReviewTokenRow
         token={mockToken}
         tokenKey={mockTokenKey}
-        percent={100}
+        percent={50}
+        receivedAmount="123.45 USDC"
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+    const slider = getByTestId(
+      `${BatchSellReviewSelectorsIDs.TOKEN_SLIDER}-${mockTokenKey}`,
+    );
+
+    fireEvent(slider, 'accessibilityAction', {
+      nativeEvent: { actionName: 'increment' },
+    });
+
+    expect(slider.props.accessibilityRole).toBe('adjustable');
+    expect(mockOnPercentChange).toHaveBeenCalledWith(mockTokenKey, 51);
+    expect(getByText('0.76404 ETH • 51%')).toBeOnTheScreen();
+  });
+
+  it('plays grip feedback for slider grip events', () => {
+    const { UNSAFE_getByType } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={50}
         receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
       />,
     );
 
-    fireEvent.press(
-      getByTestId(
-        `${BatchSellReviewSelectorsIDs.TOKEN_SLIDER}-${mockTokenKey}`,
-      ),
+    UNSAFE_getByType(Slider).props.onGrip();
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderGrip);
+  });
+
+  it('plays tick feedback for slider threshold crossings', () => {
+    const { UNSAFE_getByType } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={50}
+        receivedAmount="123.45 USDC"
+        onPercentChange={mockOnPercentChange}
+      />,
     );
 
-    expect(mockOnPercentChange).toHaveBeenCalledWith(mockTokenKey, 75);
+    UNSAFE_getByType(Slider).props.onMark();
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
   });
 
   it('forwards slippage and remove presses', () => {

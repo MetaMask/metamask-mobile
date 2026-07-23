@@ -1,10 +1,14 @@
 import { useCallback } from 'react';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import type { CaipChainId } from '@metamask/utils';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
 
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
@@ -102,7 +106,7 @@ export interface UseContinueWithQuoteResult {
 export function useContinueWithQuote(
   options?: UseContinueWithQuoteOptions,
 ): UseContinueWithQuoteResult {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     selectedToken,
     selectedProvider,
@@ -129,7 +133,7 @@ export function useContinueWithQuote(
 
   const navigateAfterExternalBrowser = useCallback(
     (opts: Parameters<typeof getNavigateAfterExternalBrowserRoutes>[0]) => {
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: getNavigateAfterExternalBrowserRoutes(opts),
       });
@@ -184,8 +188,9 @@ export function useContinueWithQuote(
           }
           await transakRouteAfterAuth(transakQuote, amount);
         } else if (hasAgreedTransakNativePolicy) {
-          navigation.navigate(
-            ...createV2EnterEmailNavDetails({
+          navigateWithDetails(
+            navigation,
+            createV2EnterEmailNavDetails({
               amount: String(amount),
               currency: effectiveCurrency,
               assetId,
@@ -193,8 +198,9 @@ export function useContinueWithQuote(
             }),
           );
         } else {
-          navigation.navigate(
-            ...createV2VerifyIdentityNavDetails({
+          navigateWithDetails(
+            navigation,
+            createV2VerifyIdentityNavDetails({
               amount: String(amount),
               currency: effectiveCurrency,
               assetId,
@@ -244,7 +250,7 @@ export function useContinueWithQuote(
       let redirectUrl: string;
       let buyWidget: Awaited<ReturnType<typeof getBuyWidgetData>>;
       try {
-        providerCode = normalizeProviderCode(quote.provider);
+        providerCode = quote.provider;
         const isCustom = isCustomAction(quote);
         const redirectConfig = getWidgetRedirectConfig(
           quote,
@@ -334,8 +340,9 @@ export function useContinueWithQuote(
           return;
         }
 
-        navigation.navigate(
-          ...createCheckoutNavDetails({
+        navigateWithDetails(
+          navigation,
+          createCheckoutNavDetails({
             url: buyWidget.url,
             providerName: effectiveProviderName,
             userAgent: getQuoteBuyUserAgent(quote),

@@ -18,9 +18,16 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  RampAggregatorRootParamList,
+  RampAggregatorScreensStackParamList,
+  RampModalsNavigationParamList,
+} from '../../types/navigation';
 
-const Stack = createNativeStackNavigator();
-const ModalsStack = createNativeStackNavigator();
+const ScreensStack =
+  createNativeStackNavigator<RampAggregatorScreensStackParamList>();
+const RootStack = createNativeStackNavigator<RampAggregatorRootParamList>();
+const ModalsStack = createNativeStackNavigator<RampModalsNavigationParamList>();
 
 const overlayScreenOptions = {
   ...clearNativeStackNavigatorOptions,
@@ -29,28 +36,28 @@ const overlayScreenOptions = {
 };
 
 const MainRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>
-    <Stack.Screen
+  <ScreensStack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>
+    <ScreensStack.Screen
       name={Routes.RAMP.BUILD_QUOTE}
       component={BuildQuote}
       options={{ headerShown: false }}
     />
-    <Stack.Screen
+    <ScreensStack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
       component={BuildQuote}
       options={{ animation: 'none', headerShown: false }}
     />
-    <Stack.Screen
+    <ScreensStack.Screen
       name={Routes.RAMP.QUOTES}
       component={Quotes}
       options={overlayScreenOptions}
     />
-    <Stack.Screen
+    <ScreensStack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={CheckoutWebView}
       options={overlayScreenOptions}
     />
-  </Stack.Navigator>
+  </ScreensStack.Navigator>
 );
 
 const RampModalsRoutes = () => (
@@ -94,12 +101,12 @@ const RampModalsRoutes = () => (
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator
+    <RootStack.Navigator
       initialRouteName={Routes.RAMP.ID}
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
-      <Stack.Screen
+      <RootStack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
+      <RootStack.Screen
         name={Routes.RAMP.MODALS.ID}
         component={RampModalsRoutes}
         options={{
@@ -107,7 +114,7 @@ const RampRoutes = ({ rampType }: { rampType: RampType }) => (
           ...transparentModalScreenOptions,
         }}
       />
-    </Stack.Navigator>
+    </RootStack.Navigator>
   </RampSDKProvider>
 );
 

@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import React, { useMemo } from 'react';
-import Text, {
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   selectTransactionsByBatchId,
@@ -91,15 +89,24 @@ export function TransactionDetailsSummary() {
 
   const completedCount = txCompletedCount + (hasExtraCompletedStep ? 1 : 0);
 
-  const heading = isMoneyContext
-    ? strings('transaction_details.label.steps_completed', {
-        count: completedCount,
-      })
-    : strings('transaction_details.label.summary');
+  const hasMultipleSteps =
+    transactions.length > 1 || Boolean(fiatOrderId) || Boolean(showSourceHash);
+
+  let heading: string | undefined;
+
+  if (!isMoneyContext) {
+    heading = strings('transaction_details.label.summary');
+  } else if (hasMultipleSteps) {
+    heading = strings('transaction_details.label.steps_completed', {
+      count: completedCount,
+    });
+  }
 
   return (
     <Box gap={12}>
-      <Text color={TextColor.Alternative}>{heading}</Text>
+      {heading ? (
+        <Text color={TextColor.TextAlternative}>{heading}</Text>
+      ) : null}
       <ProgressList showConnectors={false}>
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
@@ -164,6 +171,6 @@ function isSkippedTransaction(
 ): boolean {
   return (
     hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
-    !hasTransactionType(transaction, [TransactionType.relayDeposit])
+    !hasTransactionType(transaction, RELAY_DEPOSIT_TYPES)
   );
 }

@@ -1,5 +1,6 @@
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CaipChainId } from '@metamask/utils';
+import { CARD_TOKEN_ICON_OVERRIDES } from '../constants';
 
 export const buildTokenIconUrl = (
   caipChainId?: CaipChainId,
@@ -7,6 +8,12 @@ export const buildTokenIconUrl = (
 ): string => {
   if (!caipChainId || !address) {
     return '';
+  }
+
+  const override =
+    CARD_TOKEN_ICON_OVERRIDES[`${caipChainId}:${address.toLowerCase()}`];
+  if (override) {
+    return override;
   }
 
   const isSolana = isSolanaChainId(caipChainId);

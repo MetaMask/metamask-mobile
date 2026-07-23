@@ -66,6 +66,7 @@ import {
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
+import { getTokenNetworkFilterAfterNetworkDelete } from './utils/getTokenNetworkFilterAfterNetworkDelete';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -572,35 +573,33 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
               isSendFlow ? (
                 name
               ) : (
-                <View>
-                  <Box twClassName="flex-row gap-2 items-center">
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      numberOfLines={1}
-                      style={styles.networkNameText}
+                <Box twClassName="w-full flex-row gap-2 items-center self-stretch">
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    numberOfLines={1}
+                    style={styles.networkNameText}
+                  >
+                    {name}
+                  </Text>
+                  {!isHardwareWallet &&
+                  isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                    <TagColored
+                      color={TagColor.Success}
+                      style={styles.noNetworkFeeContainer}
+                      labelProps={{
+                        variant: TextVariant.BodySM,
+                        style: {
+                          textTransform: 'none',
+                          textAlign: 'center',
+                          bottom: 1,
+                          fontWeight: 'normal',
+                        },
+                      }}
                     >
-                      {name}
-                    </Text>
-                    {!isHardwareWallet &&
-                    isGasFeesSponsoredNetworkEnabled(chainId) ? (
-                      <TagColored
-                        color={TagColor.Success}
-                        style={styles.noNetworkFeeContainer}
-                        labelProps={{
-                          variant: TextVariant.BodySM,
-                          style: {
-                            textTransform: 'none',
-                            textAlign: 'center',
-                            bottom: 1,
-                            fontWeight: 'normal',
-                          },
-                        }}
-                      >
-                        {strings('networks.no_network_fee')}
-                      </TagColored>
-                    ) : undefined}
-                  </Box>
-                </View>
+                      {strings('networks.no_network_fee')}
+                    </TagColored>
+                  ) : undefined}
+                </Box>
               )
             }
             tertiaryText={
@@ -905,20 +904,13 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
 
       // set tokenNetworkFilter
       const { PreferencesController } = Engine.context;
-      if (!isAllNetwork) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      } else {
-        // Remove the chainId from the tokenNetworkFilter
-        const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
-        PreferencesController.setTokenNetworkFilter({
-          // TODO fix type of preferences controller level
-          // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(newTokenNetworkFilter as any),
-        });
-      }
+      PreferencesController.setTokenNetworkFilter(
+        getTokenNetworkFilterAfterNetworkDelete(
+          isAllNetwork,
+          tokenNetworkFilter,
+          chainId,
+        ) as Record<string, boolean>,
+      );
 
       setShowConfirmDeleteModal({
         isVisible: false,

@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -53,7 +54,7 @@ function RampInfoBottomSheet({
   actions,
 }: RampInfoBottomSheetProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

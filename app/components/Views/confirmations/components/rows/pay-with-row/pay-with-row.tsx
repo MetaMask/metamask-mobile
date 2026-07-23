@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
@@ -61,7 +61,7 @@ interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
-export function PayWithRow({
+function PayWithRowComponent({
   isResultReady,
 }: { isResultReady?: boolean } = {}) {
   const transactionMeta = useTransactionMetadataRequest();
@@ -97,6 +97,8 @@ export function PayWithRow({
 
   return <PayWithRowInteractive />;
 }
+
+export const PayWithRow = memo(PayWithRowComponent);
 
 function PayWithRowLayout({
   label,

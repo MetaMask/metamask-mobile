@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, Pressable, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   Box,
   Text,
@@ -40,9 +42,9 @@ const competitionImage = require('../../../../../images/perps-competition-banner
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: -8,
+    marginTop: 12,
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   banner: {
     borderRadius: 12,
@@ -71,7 +73,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   testID = 'perps-competition-banner',
 }) => {
   const isEnabled = useSelector(selectPerpsCompetitionBannerEnabledFlag);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { track } = usePerpsEventTracking();
   const [isDismissed, setIsDismissed] = useState<boolean | null>(null);

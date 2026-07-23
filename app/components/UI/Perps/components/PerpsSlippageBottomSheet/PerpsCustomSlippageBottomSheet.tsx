@@ -3,6 +3,9 @@ import {
   ButtonIconSize,
   ButtonIconVariant,
   IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
@@ -16,10 +19,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -154,7 +153,7 @@ const PerpsCustomSlippageBottomSheet: React.FC<
       onClose={onClose}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('perps.slippage.use_custom_title')}
         </Text>
       </BottomSheetHeader>
@@ -194,8 +193,8 @@ const PerpsCustomSlippageBottomSheet: React.FC<
         {showError && (
           <Text
             testID={PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR}
-            variant={TextVariant.BodySM}
-            color={TextColor.Error}
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
             style={styles.errorText}
           >
             {strings('perps.slippage.out_of_range', {

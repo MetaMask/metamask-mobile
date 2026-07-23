@@ -7,7 +7,7 @@
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../helpers/remoteFeatureFlagsHelper';
 import { setupMockRequest } from '../../helpers/mockHelpers';
-import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers';
+import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers';
 import { safeGetBodyText } from '../../MockServerE2E';
 import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
 

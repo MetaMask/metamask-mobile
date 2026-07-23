@@ -34,10 +34,15 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  RampModalsNavigationParamList,
+  RampScreensStackParamList,
+  RampTokenListRootParamList,
+} from './types/navigation';
 
-const RootStack = createNativeStackNavigator();
-const Stack = createNativeStackNavigator();
-const ModalsStack = createNativeStackNavigator();
+const RootStack = createNativeStackNavigator<RampTokenListRootParamList>();
+const Stack = createNativeStackNavigator<RampScreensStackParamList>();
+const ModalsStack = createNativeStackNavigator<RampModalsNavigationParamList>();
 
 const overlayScreenOptions = {
   ...clearNativeStackNavigatorOptions,

@@ -141,13 +141,21 @@ describe('MoneyMoreSheet', () => {
     });
   });
 
-  it('opens the MetaMask support URL when "Contact support" is pressed', () => {
+  it('opens the MetaMask support URL in the in-app browser when "Contact support" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+    expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: METAMASK_SUPPORT_URL,
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
   });
 
   describe('analytics', () => {

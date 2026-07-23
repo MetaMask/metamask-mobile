@@ -4,6 +4,7 @@ import {
   type NavigationState,
   type PartialState,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { closeSession, getSession } from './sessionRegistry';
@@ -41,7 +42,7 @@ import { closeSession, getSession } from './sessionRegistry';
 export function useHeadlessSessionDismissal(
   headlessSessionId: string | undefined,
 ): void {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const navigationRef = useRef(navigation);
   navigationRef.current = navigation;
 

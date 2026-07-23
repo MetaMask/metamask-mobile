@@ -57,6 +57,7 @@ import {
   ClaimOrderParams,
   ClaimOrderResponse,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
@@ -289,6 +290,20 @@ const isTransientPriceHistoryError = (error: Error): boolean =>
     error.message,
   );
 
+/**
+ * TTL for cached account states. Deployed wallets are stable, so a longer TTL
+ * is safe; a "not deployed" result is expected to change (e.g. right after a
+ * first deposit) and must expire quickly so a transient RPC failure or race
+ * can't pin a stale state indefinitely.
+ */
+export const ACCOUNT_STATE_CACHE_TTL_MS = 5 * 60 * 1000;
+export const ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS = 30 * 1000;
+
+interface CachedAccountState {
+  accountState: AccountState;
+  expiresAt: number;
+}
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -296,7 +311,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
-  #accountStateByAddress: Map<string, AccountState> = new Map();
+  #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
@@ -320,18 +335,32 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   #getCachedAccountState(ownerAddress: string): AccountState | undefined {
-    return this.#accountStateByAddress.get(
-      this.#getAccountStateCacheKey(ownerAddress),
-    );
+    const cacheKey = this.#getAccountStateCacheKey(ownerAddress);
+    const cached = this.#accountStateByAddress.get(cacheKey);
+
+    if (!cached) {
+      return undefined;
+    }
+
+    if (cached.expiresAt <= Date.now()) {
+      this.#accountStateByAddress.delete(cacheKey);
+      return undefined;
+    }
+
+    return cached.accountState;
   }
 
   #setCachedAccountState(
     ownerAddress: string,
     accountState: AccountState,
   ): void {
+    const ttl = accountState.isDeployed
+      ? ACCOUNT_STATE_CACHE_TTL_MS
+      : ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS;
+
     this.#accountStateByAddress.set(
       this.#getAccountStateCacheKey(ownerAddress),
-      accountState,
+      { accountState, expiresAt: Date.now() + ttl },
     );
   }
 
@@ -2777,6 +2806,31 @@ export class PolymarketProvider implements PredictProvider {
         depositWalletAddress,
         numberToHex(POLYGON_MAINNET_CHAIN_ID),
       );
+
+      if (legacySafeIsDeployed && !depositWalletIsDeployed) {
+        const protocol = this.#getProtocol();
+        const [legacyPusdBalance, legacyUsdceBalance] = await Promise.all([
+          getRawBalance({
+            address: legacySafeAddress,
+            tokenAddress: protocol.collateral.tradingToken,
+          }),
+          getRawBalance({
+            address: legacySafeAddress,
+            tokenAddress: protocol.collateral.legacyUsdceToken,
+          }),
+        ]);
+
+        if (legacyPusdBalance > 0n || legacyUsdceBalance > 0n) {
+          const accountState: AccountState = {
+            address: legacySafeAddress,
+            isDeployed: true,
+            walletType: 'safe',
+          };
+          this.#setCachedAccountState(normalizedOwnerAddress, accountState);
+          return accountState;
+        }
+      }
+
       const accountState: AccountState = {
         address: depositWalletAddress,
         isDeployed: depositWalletIsDeployed,
@@ -3244,20 +3298,28 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Signer address is required');
     }
 
-    const safeAddress =
-      this.#getCachedAccountState(signer.address)?.address ??
-      computeProxyAddress(signer.address);
-
     const amount = getSafeTransferAmount(callData);
-    const requestedAmountRaw = getSafeTransferAmountRaw(callData);
+    const accountState =
+      this.#getCachedAccountState(signer.address) ??
+      (await this.getAccountState({ ownerAddress: signer.address }));
 
+    if (accountState.walletType === 'deposit-wallet') {
+      // Transaction Pay signs and publishes deposit-wallet batches externally.
+      return {
+        callData,
+        amount,
+        walletType: accountState.walletType,
+      };
+    }
+
+    const requestedAmountRaw = getSafeTransferAmountRaw(callData);
     const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
-      safeAddress,
+      safeAddress: accountState.address,
       protocol,
     });
     const signedWithdrawTransaction = await buildWithdrawTransaction({
       signer,
-      safeAddress,
+      safeAddress: accountState.address,
       requestedAmountRaw,
       protocol,
       safeLegacyUsdceBalance,
@@ -3266,6 +3328,7 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedWithdrawTransaction.params.data,
       amount,
+      walletType: accountState.walletType,
     };
   }
 
@@ -3316,6 +3379,12 @@ export class PolymarketProvider implements PredictProvider {
       symbols,
       callback,
     );
+  }
+
+  public subscribeToConnectionStatus(
+    callback: ConnectionStatusCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToConnectionStatus(callback);
   }
 
   public getConnectionStatus(): ConnectionStatus {

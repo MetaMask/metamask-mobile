@@ -18,7 +18,8 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
     SUBMITTED,
     COMPLETED,
   ],
-  expectedTotalCount: 9,
+  // No client-default slippage InputChanged; was 9 when slippage was initialized locally.
+  expectedTotalCount: 8,
   events: [
     {
       name: BRIDGE_BUTTON_CLICKED,
@@ -71,14 +72,13 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
 
-    await Assertions.checkIfArrayHasLength(inputChanged, 4);
+    await Assertions.checkIfArrayHasLength(inputChanged, 3);
 
     const inputs = inputChanged.map((e) => e.properties.input);
     for (const expected of [
       'token_destination',
       'chain_source',
       'chain_destination',
-      'slippage',
     ]) {
       if (!inputs.includes(expected)) {
         throw new Error(

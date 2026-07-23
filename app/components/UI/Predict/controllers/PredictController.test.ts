@@ -41,6 +41,7 @@ import {
 } from '../types';
 import {
   getDefaultPredictControllerState,
+  OPTIMISTIC_BALANCE_MAX_AGE_MS,
   PredictController,
   PredictControllerMessenger,
   type PredictControllerState,
@@ -6599,6 +6600,38 @@ describe('PredictController', () => {
       });
     });
 
+    it('clears cached balance and invalidates account state after confirmed withdrawals', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.confirmed,
+          from: accountAddress,
+        });
+
+        // Cache entries can be keyed by checksummed addresses — seed one to
+        // verify the case-insensitive cleanup.
+        const checksummedAddress =
+          accountAddress.slice(0, 2) + accountAddress.slice(2).toUpperCase();
+        controller.updateStateForTesting((state) => {
+          state.balances[checksummedAddress] = {
+            balance: 250,
+            validUntil: Date.now() + 60_000,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        await Promise.resolve();
+
+        expect(
+          mockPolymarketProvider.invalidateAccountState,
+        ).toHaveBeenCalledWith(accountAddress);
+        expect(controller.state.balances[checksummedAddress]).toBeUndefined();
+      });
+    });
+
     it('invalidates account state and syncs deposit-wallet balance allowance after confirmed deposits', async () => {
       await withController(async ({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
@@ -8682,6 +8715,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -8715,6 +8749,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 250.5,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -8744,6 +8779,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xmodifieddata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -8795,6 +8831,60 @@ describe('PredictController', () => {
       });
     });
 
+    it('leaves deposit-wallet transaction data unchanged for external signing', async () => {
+      const estimateGas = jest.fn().mockResolvedValue({
+        gas: '0x5208',
+        simulationFails: undefined,
+      });
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
+        callData: ERC20_TRANSFER_CALL_DATA,
+        amount: 0.07,
+        walletType: 'deposit-wallet',
+      });
+      mockPolymarketProvider.getAccountState.mockResolvedValue({
+        address: '0x2222222222222222222222222222222222222222' as `0x${string}`,
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+      });
+
+      await withController(
+        async ({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              chainId: 137,
+              status: PredictWithdrawStatus.IDLE,
+              providerId: POLYMARKET_PROVIDER_ID,
+              predictAddress:
+                '0x2222222222222222222222222222222222222222' as `0x${string}`,
+              transactionId: 'tx-1',
+              amount: 0,
+            };
+          });
+          const transaction = {
+            ...mockTransactionMeta,
+            txParams: { ...mockTransactionMeta.txParams },
+          } as unknown as TransactionMeta;
+
+          const result = await controller.beforeSign({
+            transactionMeta: transaction,
+          });
+          result?.updateTransaction?.(transaction);
+
+          expect(transaction.txParams).toEqual(mockTransactionMeta.txParams);
+          expect(transaction.assetsFiatValues).toEqual({ receiving: '0.07' });
+          expect(controller.state.withdrawTransaction).toEqual(
+            expect.objectContaining({
+              amount: 0.07,
+              status: PredictWithdrawStatus.PENDING,
+            }),
+          );
+          expect(mockInvalidateQueries).not.toHaveBeenCalled();
+          expect(estimateGas).not.toHaveBeenCalled();
+        },
+        { mocks: { estimateGas } },
+      );
+    });
+
     it('throw error when prepareWithdrawConfirmation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockRejectedValue(
         new Error('Confirmation preparation failed'),
@@ -8824,6 +8914,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(
@@ -9483,7 +9574,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for BUY orders', async () => {
+    it('holds optimistic balance for the settlement safety window for BUY orders', async () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const mockResult = {
         success: true as const,
@@ -9509,7 +9600,9 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
@@ -9522,8 +9615,18 @@ describe('PredictController', () => {
       );
     });
 
-    it('increases balance by received amount for SELL orders', async () => {
-      const preview = createMockOrderPreview({ side: Side.SELL });
+    it('increases balance by net proceeds for SELL orders', async () => {
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: {
+          metamaskFee: 2.865,
+          providerFee: 0.955,
+          marketFee: 1.2,
+          totalFee: 3.82,
+          totalFeePercentage: 4,
+          collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+        },
+      });
       const mockResult = {
         success: true as const,
         response: {
@@ -9546,7 +9649,7 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.balance).toBe(500 + 95.5);
+          expect(updatedBalance.balance).toBeCloseTo(590.48);
         },
         {
           state: {
@@ -9559,7 +9662,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for SELL orders', async () => {
+    it('holds optimistic balance for the settlement safety window for SELL orders', async () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const mockResult = {
         success: true as const,
@@ -9585,13 +9688,80 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
             balances: {
               '0x1234567890123456789012345678901234567890':
                 createMockPredictBalance(),
+            },
+          },
+        },
+      );
+    });
+
+    it('skips optimistic balance update when there is no cached balance baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(async ({ controller }) => {
+        // Act
+        await controller.placeOrder({
+          preview,
+        });
+
+        // Assert — no baseline means no optimistic entry; the next
+        // getBalance call must fetch the real value from chain.
+        expect(
+          controller.state.balances[
+            '0x1234567890123456789012345678901234567890'
+          ],
+        ).toBeUndefined();
+      });
+    });
+
+    it('clamps optimistic BUY balance at zero when spend exceeds the cached baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBe(0);
+        },
+        {
+          state: {
+            balances: {
+              '0x1234567890123456789012345678901234567890':
+                createMockPredictBalance({ balance: 40 }),
             },
           },
         },
@@ -10489,11 +10659,42 @@ describe('PredictController', () => {
       });
     });
 
-    it('calls analytics.trackEvent for trackCategoryClicked', () => {
+    it('calls analytics.trackEvent for trackHomeViewed', () => {
       withController(({ controller }) => {
-        controller.trackCategoryClicked({
-          categoryName: 'politics',
+        controller.trackHomeViewed({ entryPoint: 'home_section' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackHomeSectionInteraction', () => {
+      withController(({ controller }) => {
+        controller.trackHomeSectionInteraction({
+          sectionId: 'trending',
+          actionType: 'viewed',
           entryPoint: 'home_section',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedTabChanged', () => {
+      withController(({ controller }) => {
+        controller.trackFeedTabChanged({
+          feedId: 'sports',
+          tabId: 'tennis',
+          entryPoint: 'home_section',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedFilterChanged', () => {
+      withController(({ controller }) => {
+        controller.trackFeedFilterChanged({
+          feedId: 'sports',
+          tabId: 'tennis',
+          filterId: 'live',
+          isDynamicFilter: false,
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
@@ -46,23 +40,40 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
 import {
+  type AbsolutePriceAlert,
+  type Alert,
   ManagePriceAlertsTestIds,
-  PriceAlert,
+  type PercentChangeAlert,
   PriceAlertRouteParams,
   PriceAlertAnalytics,
 } from '../../constants';
 import {
+  deleteAlertByType,
   fetchAlerts,
-  deleteAlert,
-  updateAlert,
   priceAlertsQueryKey,
+  updateAlertByType,
 } from '../../api';
+import {
+  formatPercentAlertSubtitle,
+  formatPercentAlertTitle,
+} from '../../utils';
+import useInFlightIds from '../../hooks/useInFlightIds';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
 });
+
+/** Analytics `alert_type` + `alert_period`/`alert_direction` for a given alert. */
+const analyticsPropsForAlert = (alert: Alert) =>
+  alert.type === 'percent_change'
+    ? {
+        alert_type: PriceAlertAnalytics.TYPE.PERCENT,
+        alert_period: alert.period,
+        alert_direction: alert.direction,
+      }
+    : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
@@ -83,14 +94,18 @@ const ManagePriceAlertsView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasResolvedInitialFetch = useRef(false);
-  const [deletingIds, setDeletingIds] = useState<ReadonlySet<string>>(
-    new Set(),
-  );
-  const [togglingIds, setTogglingIds] = useState<ReadonlySet<string>>(
-    new Set(),
-  );
-  const inFlightDeletes = useRef(new Set<string>());
-  const inFlightToggles = useRef(new Set<string>());
+  const {
+    has: isDeleteInFlight,
+    add: startDelete,
+    remove: finishDelete,
+    ids: deletingIds,
+  } = useInFlightIds();
+  const {
+    has: isToggleInFlight,
+    add: startToggle,
+    remove: finishToggle,
+    ids: togglingIds,
+  } = useInFlightIds();
 
   const {
     data: alerts = [],
@@ -98,10 +113,10 @@ const ManagePriceAlertsView: React.FC = () => {
     isError,
   } = useQuery({
     queryKey: priceAlertsQueryKey(assetId),
-    queryFn: async (): Promise<PriceAlert[]> => {
+    queryFn: async (): Promise<Alert[]> => {
       const response = await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return response.json();
+      return (await response.json()) as Alert[];
     },
     retry: false,
     staleTime: 0,
@@ -150,7 +165,7 @@ const ManagePriceAlertsView: React.FC = () => {
   }, [navigation]);
 
   const handleNavigateToCreate = useCallback(
-    (editingAlert?: PriceAlert) => {
+    (editingAlert?: Alert) => {
       navigation.navigate(Routes.CREATE_PRICE_ALERT, {
         symbol,
         ticker,
@@ -158,7 +173,12 @@ const ManagePriceAlertsView: React.FC = () => {
         currentCurrency,
         assetId,
         fromManage: true,
-        existingThresholds: alerts.map((a) => a.threshold),
+        existingAbsoluteAlerts: alerts.filter(
+          (a): a is AbsolutePriceAlert => a.type === 'absolute_price',
+        ),
+        existingPercentAlerts: alerts.filter(
+          (a): a is PercentChangeAlert => a.type === 'percent_change',
+        ),
         editingAlert,
       });
     },
@@ -175,35 +195,31 @@ const ManagePriceAlertsView: React.FC = () => {
 
   const handleDeleteAlert = useCallback(
     async (id: string) => {
-      if (inFlightDeletes.current.has(id)) return;
-      inFlightDeletes.current.add(id);
-      setDeletingIds((prev) => new Set(prev).add(id));
+      if (isDeleteInFlight(id)) return;
+      startDelete(id);
 
       const queryKey = priceAlertsQueryKey(assetId);
-      const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      const previous = queryClient.getQueryData<Alert[]>(queryKey) ?? [];
+      const target = previous.find((a) => a.id === id);
 
       try {
-        const response = await deleteAlert(id);
+        if (!target) throw new Error('Alert not found');
+        const response = await deleteAlertByType(target);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        const deleted = previous.find((a) => a.id === id);
-        if (deleted) {
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
-            )
-              .addProperties({
-                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
-                asset_id: assetId,
-                token_symbol: displayTicker,
-                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-                alert_value: deleted.threshold,
-                alert_recurring: deleted.recurring,
-                alert_active: deleted.active,
-              })
-              .build(),
-          );
-        }
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+            .addProperties({
+              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
+              asset_id: assetId,
+              token_symbol: displayTicker,
+              ...analyticsPropsForAlert(target),
+              alert_value: target.threshold,
+              alert_recurring: target.recurring,
+              alert_active: target.active,
+            })
+            .build(),
+        );
 
         const next = previous.filter((a) => a.id !== id);
         queryClient.setQueryData(queryKey, next);
@@ -227,18 +243,13 @@ const ManagePriceAlertsView: React.FC = () => {
         });
         const response = await fetchAlerts(assetId).catch(() => null);
         if (response?.ok) {
-          const data: PriceAlert[] = await response.json().catch(() => []);
-          queryClient.setQueryData(queryKey, data);
+          const body = (await response.json().catch(() => [])) as Alert[];
+          queryClient.setQueryData(queryKey, body);
         } else {
           queryClient.setQueryData(queryKey, previous);
         }
       } finally {
-        inFlightDeletes.current.delete(id);
-        setDeletingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
+        finishDelete(id);
       }
     },
     [
@@ -250,17 +261,19 @@ const ManagePriceAlertsView: React.FC = () => {
       displayTicker,
       trackEvent,
       createEventBuilder,
+      isDeleteInFlight,
+      startDelete,
+      finishDelete,
     ],
   );
 
   const handleToggleAlert = useCallback(
     async (id: string, newValue: boolean) => {
-      if (inFlightToggles.current.has(id)) return;
-      inFlightToggles.current.add(id);
-      setTogglingIds((prev) => new Set(prev).add(id));
+      if (isToggleInFlight(id)) return;
+      startToggle(id);
 
       const queryKey = priceAlertsQueryKey(assetId);
-      const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      const previous = queryClient.getQueryData<Alert[]>(queryKey) ?? [];
       const toggled = previous.find((a) => a.id === id);
       queryClient.setQueryData(
         queryKey,
@@ -268,29 +281,28 @@ const ManagePriceAlertsView: React.FC = () => {
       );
 
       try {
-        const response = await updateAlert(id, { active: newValue });
+        if (!toggled) throw new Error('Alert not found');
+        const response = await updateAlertByType(toggled, {
+          active: newValue,
+        });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        if (toggled) {
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
-            )
-              .addProperties({
-                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-                asset_id: assetId,
-                token_symbol: displayTicker,
-                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-                alert_value: toggled.threshold,
-                alert_recurring: toggled.recurring,
-                alert_active: newValue,
-                prev_alert_value: toggled.threshold,
-                prev_alert_recurring: toggled.recurring,
-                prev_alert_active: toggled.active,
-              })
-              .build(),
-          );
-        }
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+            .addProperties({
+              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
+              asset_id: assetId,
+              token_symbol: displayTicker,
+              ...analyticsPropsForAlert(toggled),
+              alert_value: toggled.threshold,
+              alert_recurring: toggled.recurring,
+              alert_active: newValue,
+              prev_alert_value: toggled.threshold,
+              prev_alert_recurring: toggled.recurring,
+              prev_alert_active: toggled.active,
+            })
+            .build(),
+        );
       } catch {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -304,12 +316,7 @@ const ManagePriceAlertsView: React.FC = () => {
           previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
         );
       } finally {
-        inFlightToggles.current.delete(id);
-        setTogglingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
+        finishToggle(id);
       }
     },
     [
@@ -320,12 +327,33 @@ const ManagePriceAlertsView: React.FC = () => {
       displayTicker,
       trackEvent,
       createEventBuilder,
+      isToggleInFlight,
+      startToggle,
+      finishToggle,
     ],
   );
 
-  const renderItem = ({ item }: { item: PriceAlert }) => {
+  const renderItem = ({ item }: { item: Alert }) => {
     const isDeleting = deletingIds.has(item.id);
     const isToggling = togglingIds.has(item.id);
+
+    const title =
+      item.type === 'percent_change'
+        ? formatPercentAlertTitle(item)
+        : strings('price_alerts.reaches_threshold', {
+            threshold: formatPriceWithSubscriptNotation(
+              item.threshold,
+              currentCurrency,
+              { maximumFractionDigits: 15 },
+            ),
+          });
+
+    const subtitle =
+      item.type === 'percent_change'
+        ? formatPercentAlertSubtitle(item)
+        : item.recurring
+          ? strings('price_alerts.recurring')
+          : strings('price_alerts.once_label');
 
     return (
       <Box
@@ -342,18 +370,10 @@ const ManagePriceAlertsView: React.FC = () => {
           testID={`${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-${item.id}`}
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings('price_alerts.reaches_threshold', {
-              threshold: formatPriceWithSubscriptNotation(
-                item.threshold,
-                currentCurrency,
-                { maximumFractionDigits: 15 },
-              ),
-            })}
+            {title}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {item.recurring
-              ? strings('price_alerts.recurring')
-              : strings('price_alerts.once_label')}
+            {subtitle}
           </Text>
         </TouchableOpacity>
 

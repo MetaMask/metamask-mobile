@@ -3,6 +3,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
@@ -12,7 +13,9 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { EncapsulatedElementType, FrameworkDetector } from '../../framework';
+import WalletView from './WalletView';
+import TokensFullView from './HomeSections';
 
 class NetworkManager {
   /**
@@ -150,6 +153,7 @@ class NetworkManager {
     const tokenElement = this.getTokenBySymbol(symbol);
     await Assertions.expectElementToNotBeVisible(tokenElement, {
       elemDescription: `Token ${symbol} should not be visible`,
+      timeout: 3000,
     });
   }
 
@@ -205,13 +209,21 @@ class NetworkManager {
    * so that the network filter control bar becomes accessible.
    */
   async navigateToTokensFullView(): Promise<void> {
-    const tokensSectionHeader = Matchers.getElementByText(
-      WalletViewSelectorsText.TOKENS_SECTION,
-    );
-    await Gestures.waitAndTap(tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'Tokens Section Header (navigate to full view)',
+    await encapsulatedAction({
+      detox: async () => {
+        const tokensSectionHeader = Matchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        );
+        await Gestures.waitAndTap(tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'Tokens Section Header (navigate to full view)',
+        });
+      },
+      appium: async () => {
+        await WalletView.tapOnNewTokensSection();
+      },
     });
+    await TokensFullView.waitForVisible();
   }
 
   /**
@@ -235,6 +247,7 @@ class NetworkManager {
     await this.navigateToTokensFullView();
     await Gestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button (from TokensFullView)',
+      timeout: 10_000,
     });
     await this.waitForNetworkManagerToLoad();
   }
@@ -243,7 +256,10 @@ class NetworkManager {
    * Check if the network manager is currently visible
    */
   async isNetworkManagerVisible(): Promise<boolean> {
-    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+    const readinessTarget = FrameworkDetector.isAppium()
+      ? this.popularNetworksContainer
+      : this.networkManagerBottomSheet;
+    return Utilities.isElementVisible(readinessTarget, 1000);
   }
 
   /**
@@ -376,9 +392,53 @@ class NetworkManager {
    * Wait for network manager to be fully loaded
    */
   async waitForNetworkManagerToLoad() {
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet',
-      timeout: 10000,
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          this.networkManagerBottomSheet,
+          {
+            elemDescription: 'Network Manager Bottom Sheet',
+            timeout: 10_000,
+          },
+        );
+      },
+      appium: async () => {
+        // Anvil/localhost fixtures often open the sheet on the Custom tab, so
+        // popular-networks-selector-container is not mounted until we switch.
+        await Utilities.waitUntil(
+          async () =>
+            (await Utilities.isElementVisible(
+              this.popularNetworksContainer,
+              500,
+            )) ||
+            (await Utilities.isElementVisible(
+              this.customNetworksContainer,
+              500,
+            )) ||
+            (await Utilities.isElementVisible(this.popularNetworksTab, 500)),
+          {
+            timeout: 15_000,
+            interval: 500,
+          },
+        );
+
+        if (
+          !(await Utilities.isElementVisible(
+            this.popularNetworksContainer,
+            1_000,
+          ))
+        ) {
+          await this.tapPopularNetworksTab();
+        }
+
+        await Assertions.expectElementToBeVisible(
+          this.popularNetworksContainer,
+          {
+            elemDescription: 'Popular Networks Container',
+            timeout: 15_000,
+          },
+        );
+      },
     });
     // Wait for bottom sheet animation to complete
     // eslint-disable-next-line no-restricted-syntax

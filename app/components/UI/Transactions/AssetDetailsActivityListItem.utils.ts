@@ -17,11 +17,17 @@ export { getActivityFromTo, getActivityValue };
 export const mapTransactionToActivityItem = ({
   transaction: tx,
   assetSymbol,
+  assetDecimals,
+  assetAddress,
+  nativeAssetSymbol,
   currentChainId,
   tokenChainId,
 }: {
   transaction: TransactionWithImportTime;
   assetSymbol?: string;
+  assetDecimals?: number;
+  assetAddress?: string;
+  nativeAssetSymbol?: string;
   currentChainId?: Hex;
   tokenChainId?: Hex;
 }) => {
@@ -34,10 +40,29 @@ export const mapTransactionToActivityItem = ({
       chainId: tx.txParams?.chainId ?? chainId,
     },
   };
+
+  // Attach the asset's metadata only when the tx targets its contract
+  // (transfer/approve: txParams.to === token address), mirroring the
+  // enrichment in useLocalActivityItems. Prevents mislabeling router/swap
+  // txs with this token's decimals.
+  const isAssetContractTx =
+    assetAddress !== undefined &&
+    transaction.txParams?.to?.toLowerCase() === assetAddress.toLowerCase();
+
   const transactionGroup: TransactionGroup = {
     initialTransaction: transaction,
     primaryTransaction: transaction,
-    nativeAssetSymbol: assetSymbol,
+    // Legacy callers passed the asset symbol here; keep that behavior when no
+    // explicit native symbol is provided.
+    nativeAssetSymbol: nativeAssetSymbol ?? assetSymbol,
+    ...(isAssetContractTx
+      ? {
+          contractTokenMetadata: {
+            symbol: assetSymbol,
+            decimals: assetDecimals,
+          },
+        }
+      : {}),
   };
 
   return mapLocalTransaction(transactionGroup);

@@ -55,6 +55,11 @@ const CardMessageBox = ({
         title: strings('card.card_home.warnings.kyc_pending.title'),
         description: strings('card.card_home.warnings.kyc_pending.description'),
       },
+      [CardMessageBoxType.Blocked]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.card_home.warnings.blocked.title'),
+        description: strings('card.card_home.warnings.blocked.description'),
+      },
       [CardMessageBoxType.CardProvisioning]: {
         variant: CardMessageBoxVariant.Info,
         title: strings('card.card_home.messages.card_provisioning.title'),

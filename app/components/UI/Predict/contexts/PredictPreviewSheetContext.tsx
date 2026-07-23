@@ -16,9 +16,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -197,7 +198,7 @@ const PredictPreviewSheetContext = createContext<
  */
 export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
   const ctx = useContext(PredictPreviewSheetContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const fallback = useMemo(
     () => ({
@@ -242,7 +243,7 @@ interface PredictPreviewSheetProviderProps {
 export const PredictPreviewSheetProvider: React.FC<
   PredictPreviewSheetProviderProps
 > = ({ children, disableBottomSheet = false }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,

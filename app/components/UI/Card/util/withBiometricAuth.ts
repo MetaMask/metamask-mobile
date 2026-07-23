@@ -1,4 +1,5 @@
 import { ReauthenticateErrorType } from '../../../../core/Authentication/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
@@ -37,8 +38,9 @@ export async function withBiometricAuth({
         ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
       )
     ) {
-      navigation.navigate(
-        ...createPasswordBottomSheetNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createPasswordBottomSheetNavigationDetails({
           onSuccess: async () => {
             await onSuccess();
           },

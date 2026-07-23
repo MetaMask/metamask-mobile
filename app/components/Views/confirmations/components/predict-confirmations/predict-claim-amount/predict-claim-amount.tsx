@@ -19,6 +19,7 @@ import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/
 import styleSheet from './predict-claim-amount.styles';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import { RootState } from '../../../../../../reducers';
 
 export function PredictClaimAmount() {
   const { styles } = useStyles(styleSheet, {});
@@ -26,11 +27,11 @@ export function PredictClaimAmount() {
   const selectedAddress =
     useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
 
-  const winningsFiat = useSelector(
-    selectPredictWinFiat({ address: selectedAddress }),
+  const winningsFiat = useSelector((state: RootState) =>
+    selectPredictWinFiat(state, selectedAddress),
   );
-  const winningsPnl = useSelector(
-    selectPredictWinPnl({ address: selectedAddress }),
+  const winningsPnl = useSelector((state: RootState) =>
+    selectPredictWinPnl(state, selectedAddress),
   );
 
   if (!(winningsFiat && winningsPnl)) {

@@ -60,9 +60,7 @@
       }
     }
   },
-  "DelegationController": {
-    "delegations": {}
-  },
+  "DelegationController": {},
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": {
@@ -313,6 +311,7 @@
     "whitelistPaths": {}
   },
   "PreferencesController": {
+    "advancedGasFee": {},
     "featureFlags": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
     "useTokenDetection": true,
@@ -532,9 +531,20 @@
     },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
-    "cachedUserDataByProvider": {}
+    "cachedUserDataByProvider": {},
+    "mode": "lite",
+    "proLayoutPreferences": {
+      "chartExpanded": false,
+      "orderBookExpanded": false,
+      "orderBookPosition": "left",
+      "orderFormPosition": "right"
+    }
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -856,9 +866,12 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "syncFlow": null,
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
     "otp": null,
-    "error": null,
-    "importPlan": null
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},
@@ -929,5 +942,7 @@
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
-  "MoneyAccountUpgradeController": {}
+  "MoneyAccountUpgradeController": {
+    "upgradedAccounts": {}
+  }
 }

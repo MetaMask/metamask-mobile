@@ -26,6 +26,7 @@ const mockAddProperties = jest.fn();
 const mockLinkingOpenURL = jest.fn();
 const mockNavigateToSendPage = jest.fn();
 const mockDispatch = jest.fn();
+let lastCameraIsActive: boolean | undefined;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -44,7 +45,10 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('react-native-vision-camera', () => ({
-  Camera: () => null,
+  Camera: (props: { isActive?: boolean }) => {
+    lastCameraIsActive = props.isActive;
+    return null;
+  },
   useCameraDevice: jest.fn(),
   useCameraPermission: jest.fn(),
   useCodeScanner: jest.fn(),
@@ -281,6 +285,7 @@ describe('QrScanner', () => {
     });
 
     onCodeScannedCallback = null;
+    lastCameraIsActive = undefined;
 
     const addDeviceScannerUtilsActual = jest.requireActual(
       './addDeviceScannerUtils',
@@ -337,6 +342,44 @@ describe('QrScanner', () => {
 
     await waitFor(() => {
       expect(mockRequestPermission).not.toHaveBeenCalled();
+    });
+  });
+
+  it('marks permission check complete when requestPermission throws', async () => {
+    const mockRequestPermission = jest
+      .fn()
+      .mockRejectedValue(new Error('permission denied'));
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: false,
+      requestPermission: mockRequestPermission,
+    });
+
+    const alertModule = jest.requireMock(
+      'react-native/Libraries/Alert/Alert',
+    ).default;
+
+    renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(mockRequestPermission).toHaveBeenCalledTimes(1);
+      expect(alertModule.alert).toHaveBeenCalled();
+    });
+  });
+
+  it('passes isMounted state to Camera isActive when focused', async () => {
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: jest.fn().mockResolvedValue('granted'),
+    });
+
+    renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(lastCameraIsActive).toBe(true);
     });
   });
 
@@ -683,6 +726,56 @@ describe('QrScanner', () => {
         });
       });
 
+      it('ends scan and deactivates camera when wallet is locked', async () => {
+        const validatorsModule = jest.requireMock('../../../util/validators');
+        (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
+        (
+          validatorsModule.failedSeedPhraseRequirements as jest.Mock
+        ).mockReturnValue(true);
+
+        const generalUtilsModule = jest.requireMock('../../../util/general');
+        (generalUtilsModule.getURLProtocol as jest.Mock).mockReturnValue('');
+
+        const ethereumjsUtilModule = jest.requireMock('ethereumjs-util');
+        (ethereumjsUtilModule.isValidAddress as jest.Mock).mockReturnValue(
+          true,
+        );
+
+        const EngineModule = jest.requireMock('../../../core/Engine');
+        (
+          EngineModule.context.KeyringController.isUnlocked as jest.Mock
+        ).mockReturnValue(false);
+
+        const alertModule = jest.requireMock(
+          'react-native/Libraries/Alert/Alert',
+        ).default;
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb' },
+          ]);
+        });
+
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+          expect(alertModule.alert).toHaveBeenCalled();
+          expect(lastCameraIsActive).toBe(false);
+          expect(mockAddProperties).toHaveBeenCalledWith(
+            expect.objectContaining({
+              [QRScannerEventProperties.SCAN_RESULT]: ScanResult.WALLET_LOCKED,
+            }),
+          );
+        });
+      });
+
       it('tracks QR_SCANNED with send flow type and scan_success false for invalid address in send flow', async () => {
         const addressUtilsModule = jest.requireMock('../../../util/address');
         (
@@ -970,6 +1063,7 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
           });
+          expect(lastCameraIsActive).toBe(false);
         });
       });
 

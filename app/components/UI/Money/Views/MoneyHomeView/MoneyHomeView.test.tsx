@@ -97,13 +97,13 @@ const mockDepositTokens = [
   },
 ];
 
-const mockUseMoneyEarnableTokens = jest.fn(() => ({
+const mockUseMoneyDepositTokens = jest.fn(() => ({
   tokens: mockDepositTokens as ReturnType<typeof Array.from>,
   isNoFeeToken: jest.fn(() => false),
 }));
 
-jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
-  useMoneyEarnableTokens: () => mockUseMoneyEarnableTokens(),
+jest.mock('../../hooks/useMoneyDepositTokens', () => ({
+  useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
 }));
 
 // Animated Rive graphic pulls in device sensors; not exercised by these tests.
@@ -471,7 +471,6 @@ describe('MoneyHomeView', () => {
       withdrawableMusd: undefined,
       isBalanceLoading: false,
       isBalanceFetchError: false,
-      isBalanceFetching: false,
       isBalanceUnavailable: false,
       lastKnownTotalFiatFormatted: undefined,
       refetchBalance: mockRefetchBalance,
@@ -487,6 +486,8 @@ describe('MoneyHomeView', () => {
           musdBalance: '1000000',
           vmusdValueInMusd: '2000000',
           totalBalance: '3000000',
+          source: 'api',
+          usedFallback: false,
         },
         isLoading: false,
       },
@@ -521,6 +522,10 @@ describe('MoneyHomeView', () => {
 
     mockRefetchBalance.mockReset();
     mockRefetchBalance.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders the main container', () => {
@@ -605,7 +610,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: true,
-        isBalanceFetching: false,
         isBalanceUnavailable: true,
         lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
@@ -736,7 +740,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         isBalanceLoading: true,
         isBalanceFetchError: true,
-        isBalanceFetching: false,
         lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyPercent: 5,
@@ -772,7 +775,6 @@ describe('MoneyHomeView', () => {
           totalFiatRaw: undefined,
           isBalanceLoading: false,
           isBalanceFetchError: false,
-          isBalanceFetching: false,
           refetchBalance: jest.fn(),
           apyPercent: 5,
           vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -813,7 +815,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -863,7 +864,6 @@ describe('MoneyHomeView', () => {
           totalFiatRaw: undefined,
           isBalanceLoading: false,
           isBalanceFetchError: false,
-          isBalanceFetching: false,
           isBalanceUnavailable: true,
           lastKnownTotalFiatFormatted: undefined,
           refetchBalance: jest.fn(),
@@ -933,7 +933,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -964,7 +963,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         isAggregatedBalanceLoading: false,
         isBalanceFetchError: true,
-        isBalanceFetching: false,
         isBalanceUnavailable: true,
         lastKnownTotalFiatFormatted,
         refetchBalance: jest.fn(),
@@ -1104,7 +1102,6 @@ describe('MoneyHomeView', () => {
         tokenTotal: undefined,
         isBalanceLoading: true,
         isBalanceFetchError: false,
-        isBalanceFetching: true,
         isBalanceUnavailable: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
@@ -1123,7 +1120,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1141,7 +1137,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1258,7 +1253,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMoneyEarnableTokens.mockReturnValueOnce({
+    mockUseMoneyDepositTokens.mockReturnValueOnce({
       tokens: Array.from({ length: 6 }, (_, i) => ({
         ...mockDepositTokens[0],
         address:
@@ -1285,7 +1280,6 @@ describe('MoneyHomeView', () => {
       tokenTotal: new BigNumber(0),
       isBalanceLoading: false,
       isBalanceFetchError: false,
-      isBalanceFetching: false,
       refetchBalance: mockRefetchBalance,
       apyPercent: 5,
       vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -1377,7 +1371,6 @@ describe('MoneyHomeView', () => {
         tokenTotal: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -1474,7 +1467,7 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
     });
 
-    it('opens the mUSD price URL when the condensed mUSD card is pressed', () => {
+    it('opens the mUSD price URL in the in-app browser when the condensed mUSD card is pressed', () => {
       const mockOpenURL = jest
         .spyOn(Linking, 'openURL')
         .mockResolvedValue(undefined);
@@ -1483,7 +1476,15 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_CARD));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(mockOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MUSD_PRICE,
+          timestamp: expect.any(Number),
+          fromMoney: true,
+        },
+      });
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
         redirect_target: MONEY_URLS.MUSD_PRICE,
@@ -1707,7 +1708,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -1858,7 +1858,7 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('opens the mUSD price URL when the mUSD token row is pressed', () => {
+    it('opens the mUSD price URL in the in-app browser when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(
         '../../../../../core/NavigationService',
       ).default;
@@ -1870,7 +1870,15 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(mockOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MUSD_PRICE,
+          timestamp: expect.any(Number),
+          fromMoney: true,
+        },
+      });
       expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
@@ -2021,7 +2029,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         isBalanceLoading: true,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -2061,7 +2068,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -2116,7 +2122,7 @@ describe('MoneyHomeView', () => {
 
   describe('navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMoneyEarnableTokens.mockReturnValueOnce({
+      mockUseMoneyDepositTokens.mockReturnValueOnce({
         tokens: Array.from({ length: 6 }, (_, i) => ({
           ...mockDepositTokens[0],
           address:

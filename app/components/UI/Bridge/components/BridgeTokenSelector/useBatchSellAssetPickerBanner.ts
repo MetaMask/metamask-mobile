@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -29,7 +30,7 @@ export function useBatchSellAssetPickerBanner({
   isSearchActive,
   pickerType,
 }: UseBatchSellAssetPickerBannerParams) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);

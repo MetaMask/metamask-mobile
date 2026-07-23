@@ -29,6 +29,14 @@ jest.mock('./hooks/useActivityDetailsItem', () => ({
   useActivityDetailsItem: jest.fn(),
 }));
 
+// The title resolves the bridge quote via this selector; the screen test uses a
+// minimal store, so stub it to an empty history (bridge-title behaviour is
+// covered by the row-content tests).
+jest.mock('../../../selectors/bridgeStatusController', () => ({
+  ...jest.requireActual('../../../selectors/bridgeStatusController'),
+  selectBridgeHistoryForAccount: () => ({}),
+}));
+
 // Focus on screen behaviour; the template dispatch is covered separately.
 jest.mock('./templates/TemplateLoader', () => {
   const ReactActual = jest.requireActual('react');

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ImageSourcePropType, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -64,7 +65,7 @@ const PredictWorldCupMainFeedBanner: React.FC<
   PredictWorldCupMainFeedBannerProps
 > = ({ fallbackImageSource, variant = 'default' }) => {
   const { width: windowWidth } = useWindowDimensions();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasTrackedBannerViewed = useRef(false);
   const predictWorldCupConfig = useSelector(selectPredictWorldCupConfig);
   const bannerWidth = Math.max(

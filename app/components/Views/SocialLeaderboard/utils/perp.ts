@@ -68,7 +68,10 @@ type ClosedPositionFields = Pick<
   | 'positionAmount'
   | 'soldUsd'
   | 'currentValueUSD'
->;
+> & {
+  /** De-leveraged collateral; present on raw feed payloads when `currentValueUSD` is omitted. */
+  marginUsd?: number | null;
+};
 
 type PerpTradeFields = Pick<
   Trade,
@@ -95,14 +98,21 @@ export function isPerpPosition(position: PerpPositionFields): boolean {
  * realized proceeds (`soldUsd`) marks them closed. Perps are different: a closed
  * perp keeps its (non-zero) `positionAmount` in the historical record, so we
  * instead key off the absence of remaining exposure — a closed perp reports no
- * `currentValueUSD`.
+ * `currentValueUSD`. When that mark is absent (e.g. the trader feed), fall back
+ * to `marginUsd` or `positionAmount` rather than treating unknown as closed.
  *
  * Callers that already know the position's open/closed list membership (e.g.
  * the profile tab) should prefer that signal and use this only as a fallback.
  */
 export function isClosedPosition(position: ClosedPositionFields): boolean {
   if (isPerpPosition(position)) {
-    return (position.currentValueUSD ?? 0) === 0;
+    if (position.currentValueUSD != null) {
+      return position.currentValueUSD === 0;
+    }
+    if (position.marginUsd != null) {
+      return position.marginUsd === 0;
+    }
+    return position.positionAmount === 0;
   }
   return position.positionAmount === 0 && position.soldUsd > 0;
 }

@@ -20,6 +20,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
 function ProcessingInfoModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { providerName, providerSupportUrl, statusDescription } =
     useParams<ProcessingInfoModalParams>();
 

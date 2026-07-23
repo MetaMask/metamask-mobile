@@ -25,6 +25,65 @@ if [ -f "$SUMMARY_FILE" ]; then
     uniqueFailedTests=$(jq -r '.failedTestsStats.uniqueFailedTests // .failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
     teamsAffected=$(jq -r '.failedTestsStats.teamsAffected // 0' "$SUMMARY_FILE")
     
+    # Category status must reflect quality-gate failures from summary.json.
+    # Performance jobs intentionally exit green when only quality gates fail, so
+    # GitHub job conclusions alone are not enough for RESULTS BY CATEGORY.
+    category_has_failures() {
+        local platform="$1"   # Android | iOS
+        local category="$2"   # onboarding | imported-wallet
+        local platformKey
+        platformKey=$(echo "$platform" | tr '[:upper:]' '[:lower:]')
+
+        # Prefer aggregated category counts when available.
+        local count
+        count=$(jq -r --arg cat "$category" --arg plat "$platformKey" \
+            '.metadata.failedTestsByCategory[$cat][$plat] // empty' "$SUMMARY_FILE")
+        if [ -n "$count" ]; then
+            [ "$count" -gt 0 ]
+            return $?
+        fi
+
+        # Fallback for older summaries without failedTestsByCategory.
+        jq -e --arg plat "$platform" --arg cat "$category" '
+          [.failedTestsStats.failedTestsByTeam // {} | .[] | .tests[]?
+            | select(.platform == $plat)
+            | (
+                .scenario // (
+                  .testFilePath // ""
+                  | if test("/performance/onboarding/") then "onboarding"
+                    elif test("/performance/mm-connect/") then "mm-connect"
+                    else "imported-wallet"
+                    end
+                )
+              ) as $scenario
+            | select($scenario == $cat)
+          ] | length > 0
+        ' "$SUMMARY_FILE" >/dev/null 2>&1
+    }
+
+    apply_category_failures() {
+        local status="$1"
+        local platform="$2"
+        local category="$3"
+
+        # Preserve SKIPPED (job never ran). Upgrade PASSED/UNKNOWN when summary
+        # has failures for this category/platform (including quality gates).
+        if [[ "$status" == *"SKIPPED"* ]]; then
+            echo "$status"
+            return
+        fi
+        if [[ "$status" == *"FAILED"* ]]; then
+            echo "$status"
+            return
+        fi
+
+        if category_has_failures "$platform" "$category"; then
+            echo "❌ FAILED"
+        else
+            echo "$status"
+        fi
+    }
+
     # Determine test results status by checking job statuses via GitHub API
     if [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_RUN_ID" ]; then
         
@@ -38,18 +97,21 @@ if [ -f "$SUMMARY_FILE" ]; then
                 local platform="$1"
                 local test_type="$2"
                 
-                # Get job conclusion (failure, skipped, success, etc.)
-                local conclusion=$(echo "$jobStatuses" | jq -r ".jobs[] | select(.name | contains(\"$platform\") and contains(\"$test_type\")) | .conclusion" | head -1)
+                # Collect all matching job conclusions (matrix can have multiple devices).
+                local conclusions
+                conclusions=$(echo "$jobStatuses" | jq -r \
+                    --arg p "$platform" --arg t "$test_type" \
+                    '.jobs[] | select(.name | contains($p) and contains($t)) | .conclusion')
                 
-                # Check if job exists at all
-                local exists=$(echo "$jobStatuses" | jq -r ".jobs[] | select(.name | contains(\"$platform\") and contains(\"$test_type\")) | .name" | wc -l)
-                
-                if [ "$conclusion" = "failure" ]; then
-                    echo "❌ FAILED"
-                elif [ "$conclusion" = "skipped" ] || [ "$exists" -eq 0 ]; then
+                if [ -z "$(echo "$conclusions" | sed '/^$/d')" ]; then
                     echo "⏭️ SKIPPED"
-                else
+                elif echo "$conclusions" | grep -qx "failure"; then
+                    echo "❌ FAILED"
+                elif echo "$conclusions" | grep -qx "success"; then
                     echo "✅ PASSED"
+                else
+                    # Jobs exist but none succeeded/failed (e.g. all skipped)
+                    echo "⏭️ SKIPPED"
                 fi
             }
             
@@ -65,18 +127,27 @@ if [ -f "$SUMMARY_FILE" ]; then
             iosImportedWalletStatus="❓ UNKNOWN"
         fi
     else
-        if [ -d "test-results" ] && find test-results -name "*.json" -exec grep -l '"testFailed": true' {} \; | grep -q .; then
-            androidOnboardingStatus="❌ FAILED"
-            iosOnboardingStatus="❌ FAILED"
-            androidImportedWalletStatus="❌ FAILED"
-            iosImportedWalletStatus="❌ FAILED"
-        else
+        # Local / no API: derive skipped platforms from devices present in summary.
+        if [ "$androidCount" -gt 0 ]; then
             androidOnboardingStatus="✅ PASSED"
-            iosOnboardingStatus="✅ PASSED"
             androidImportedWalletStatus="✅ PASSED"
+        else
+            androidOnboardingStatus="⏭️ SKIPPED"
+            androidImportedWalletStatus="⏭️ SKIPPED"
+        fi
+        if [ "$iosCount" -gt 0 ]; then
+            iosOnboardingStatus="✅ PASSED"
             iosImportedWalletStatus="✅ PASSED"
+        else
+            iosOnboardingStatus="⏭️ SKIPPED"
+            iosImportedWalletStatus="⏭️ SKIPPED"
         fi
     fi
+
+    androidOnboardingStatus=$(apply_category_failures "$androidOnboardingStatus" "Android" "onboarding")
+    iosOnboardingStatus=$(apply_category_failures "$iosOnboardingStatus" "iOS" "onboarding")
+    androidImportedWalletStatus=$(apply_category_failures "$androidImportedWalletStatus" "Android" "imported-wallet")
+    iosImportedWalletStatus=$(apply_category_failures "$iosImportedWalletStatus" "iOS" "imported-wallet")
     
     # Build type label
     if [ "$buildType" = "Experimental" ]; then

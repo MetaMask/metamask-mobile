@@ -13,9 +13,15 @@ import {
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
-import { isHip3Filter } from '../utils/marketCategoryMapping';
+import {
+  isHip3Filter,
+  filterMarketsByCategory,
+} from '../utils/marketCategoryMapping';
+import { isRecentlyListed } from '../utils/time';
+import { useNowOnScreenFocus } from './useNowOnScreenFocus';
 import {
   selectPerpsWatchlistMarkets,
+  selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
@@ -106,6 +112,16 @@ interface UsePerpsMarketListViewReturn {
     setMarketTypeFilter: (filter: MarketTypeFilter) => void;
   };
   /**
+   * Recently viewed markets state
+   */
+  recentlyViewedState: {
+    /**
+     * Full market data objects for recently viewed symbols, newest-first.
+     * Symbols with no matching (tradable) market are dropped.
+     */
+    recentlyViewedMarketObjects: PerpsMarketData[];
+  };
+  /**
    * Market counts by type (for hiding empty tabs/pills)
    */
   marketCounts: Record<Exclude<MarketTypeFilter, 'all'>, number>;
@@ -169,8 +185,16 @@ export const usePerpsMarketListView = ({
     showZeroOpenInterest,
   });
 
+  // `usePerpsMarkets` is a cached REST snapshot with no continuous updates, so
+  // the 'new' filter and count below use `now` from useNowOnScreenFocus
+  // (refreshed when this screen regains focus) rather than reading Date.now()
+  // directly in the memos — otherwise a mounted screen could keep showing a
+  // stale "new" result past the 30-day boundary.
+  const now = useNowOnScreenFocus();
+
   // Get Redux state
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
+  const recentlyViewedSymbols = useSelector(selectPerpsRecentlyViewedMarkets);
   const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
 
   // Favorites filter state
@@ -221,26 +245,23 @@ export const usePerpsMarketListView = ({
   const { filteredMarkets: searchedMarkets } = searchHook;
 
   // Apply market type filter to search results (search + category work together)
+  // `filterMarketsByCategory`'s own 'new' bucket is the controller's concept
+  // of uncategorised HIP-3 markets; mobile's "New" means markets listed
+  // within the last 30 days instead (same criterion as the home "Recently
+  // added" rail and the "New" pill/badge gated by useHasNewMarkets — see
+  // `relatedMarkets.ts` for the same distinction). `listedAt` is only
+  // populated when the Terminal backend flag is on (see useHasNewMarkets); a
+  // caller that reaches this filter directly (e.g. a deep link or restored
+  // navigation state) while that flag is off will simply see an empty list
+  // rather than an error, since every market's `listedAt` will be undefined.
   const marketTypeFilteredMarkets = useMemo(() => {
-    if (marketTypeFilter === 'all') {
-      return searchedMarkets;
-    }
-
-    // Special handling for 'crypto' filter - crypto markets are non-HIP3 (main DEX)
-    if (marketTypeFilter === 'crypto') {
-      return searchedMarkets.filter((market) => !market.isHip3);
-    }
-
-    // Special handling for 'new' filter - shows uncategorized HIP-3 markets
     if (marketTypeFilter === 'new') {
-      return searchedMarkets.filter((market) => market.isNewMarket);
+      return searchedMarkets.filter((market) =>
+        isRecentlyListed(market.listedAt, now),
+      );
     }
-
-    // HIP-3 category filter: marketTypeFilter === marketType in v8+
-    return searchedMarkets.filter(
-      (market) => market.marketType === marketTypeFilter,
-    );
-  }, [searchedMarkets, marketTypeFilter]);
+    return filterMarketsByCategory(searchedMarkets, marketTypeFilter);
+  }, [searchedMarkets, marketTypeFilter, now]);
 
   // Use sorting hook for sort state and sorting logic.
   // defaultSortOptionId (from navigation params) takes precedence over the saved user
@@ -297,6 +318,33 @@ export const usePerpsMarketListView = ({
     [allMarkets, watchlistMarkets],
   );
 
+  // Full market objects for recently viewed symbols, in newest-first order,
+  // filtered by the active category so the rail only shows markets relevant
+  // to the current product filter. Symbols with no matching entry in
+  // allMarkets (e.g. delisted) are dropped.
+  //
+  // 'new' is special-cased the same way as `marketTypeFilteredMarkets` above,
+  // so the rail agrees with the main list on what "New" means.
+  const recentlyViewedMarketObjects = useMemo(() => {
+    const marketsBySymbol = new Map(allMarkets.map((m) => [m.symbol, m]));
+    const orderedMarkets = recentlyViewedSymbols.reduce<PerpsMarketData[]>(
+      (acc, symbol) => {
+        const market = marketsBySymbol.get(symbol);
+        if (market) {
+          acc.push(market);
+        }
+        return acc;
+      },
+      [],
+    );
+    if (marketTypeFilter === 'new') {
+      return orderedMarkets.filter((market) =>
+        isRecentlyListed(market.listedAt, now),
+      );
+    }
+    return filterMarketsByCategory(orderedMarkets, marketTypeFilter);
+  }, [allMarkets, recentlyViewedSymbols, marketTypeFilter, now]);
+
   // Apply sorting to searched and favorites-filtered markets
   // Use useMemo to ensure sorting is applied with current sortBy/direction when markets change
   const finalMarkets = useMemo(
@@ -316,7 +364,7 @@ export const usePerpsMarketListView = ({
     ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
 
     allMarkets.forEach((market) => {
-      if (market.isNewMarket) {
+      if (isRecentlyListed(market.listedAt, now)) {
         counts.new++;
       }
       if (!market.isHip3) {
@@ -328,7 +376,7 @@ export const usePerpsMarketListView = ({
       }
     });
     return counts;
-  }, [allMarkets]);
+  }, [allMarkets, now]);
 
   return {
     markets: finalMarkets,
@@ -353,6 +401,9 @@ export const usePerpsMarketListView = ({
     marketTypeFilterState: {
       marketTypeFilter,
       setMarketTypeFilter: handleSetMarketTypeFilter,
+    },
+    recentlyViewedState: {
+      recentlyViewedMarketObjects,
     },
     marketCounts,
     isLoading: isLoadingMarkets,

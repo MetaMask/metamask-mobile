@@ -8,7 +8,15 @@ import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import Device from '../util/device';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-const privates = new WeakMap();
+interface SecureKeychainPrivateState {
+  code: string;
+  isAuthenticating: boolean;
+}
+
+const privates = new WeakMap<
+  SecureKeychainEncryptor,
+  SecureKeychainPrivateState
+>();
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
@@ -32,11 +40,18 @@ enum SecureKeychainTypes {
  * the phone's keychain
  */
 class SecureKeychainEncryptor {
-  isAuthenticating = false;
   private static instance: SecureKeychainEncryptor | null = null;
 
   private constructor(code: string) {
-    privates.set(this, { code });
+    privates.set(this, { code, isAuthenticating: false });
+  }
+
+  get isAuthenticating(): boolean {
+    return this.#getPrivateState().isAuthenticating;
+  }
+
+  set isAuthenticating(value: boolean) {
+    this.#getPrivateState().isAuthenticating = value;
   }
 
   static getInstance(code: string): SecureKeychainEncryptor {
@@ -45,15 +60,23 @@ class SecureKeychainEncryptor {
   }
 
   encryptPassword(password: string) {
-    return encryptor.encrypt(privates.get(this).code, { password });
+    return encryptor.encrypt(this.#getPrivateState().code, { password });
   }
 
   decryptPassword(data: string): Promise<{
     password: string;
   }> {
-    return encryptor.decrypt(privates.get(this).code, data) as Promise<{
+    return encryptor.decrypt(this.#getPrivateState().code, data) as Promise<{
       password: string;
     }>;
+  }
+
+  #getPrivateState(): SecureKeychainPrivateState {
+    const state = privates.get(this);
+    if (!state) {
+      throw new Error('SecureKeychainEncryptor private state is missing');
+    }
+    return state;
   }
 }
 

@@ -11,11 +11,6 @@ export interface ManualBackupStep1Params {
    * Takes precedence over fetching from keyring.
    */
   seedPhrase?: string[];
-  /**
-   * @deprecated Use seedPhrase instead. Kept for backwards compatibility.
-   * Words passed from previous screen as fallback.
-   */
-  words?: string[];
 }
 
 /**

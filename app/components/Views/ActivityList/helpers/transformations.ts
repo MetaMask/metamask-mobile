@@ -186,9 +186,13 @@ export function selectApiEvmTransactions({
 
 export function mapNonEvmTransactions(
   transactions: NonEvmTransaction[],
+  getBridgeHistoryItem?: (txId: string) => BridgeHistoryItem | undefined,
 ): ActivityListItem[] {
   return transactions.map((transaction) =>
-    mapKeyringTransaction({ transaction }),
+    mapKeyringTransaction({
+      transaction,
+      bridgeHistory: getBridgeHistoryItem?.(transaction.id),
+    }),
   );
 }
 

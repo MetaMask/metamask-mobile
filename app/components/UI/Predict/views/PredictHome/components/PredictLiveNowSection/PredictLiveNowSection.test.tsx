@@ -18,6 +18,20 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+const mockTrackHomeSectionInteraction = jest.fn();
+
+jest.mock('../../../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackHomeSectionInteraction: (...args: unknown[]) =>
+          mockTrackHomeSectionInteraction(...args),
+      },
+    },
+  },
+}));
+
 // Mock only the data boundary: the section's own data hook. The hook's own
 // logic (params, filtering, interleave, loading) is covered by
 // usePredictLiveNowSection.test.ts. Here we exercise the real PredictMarket /
@@ -215,6 +229,11 @@ describe('PredictLiveNowSection', () => {
         feedId: 'live',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
+    });
+    expect(mockTrackHomeSectionInteraction).toHaveBeenCalledWith({
+      sectionId: PredictEventValues.SECTION_ID.LIVE_NOW,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
     });
   });
 

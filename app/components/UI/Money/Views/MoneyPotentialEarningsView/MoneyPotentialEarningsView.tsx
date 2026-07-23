@@ -24,7 +24,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
+import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
@@ -55,7 +55,7 @@ const MoneyPotentialEarningsView = () => {
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
   });
 

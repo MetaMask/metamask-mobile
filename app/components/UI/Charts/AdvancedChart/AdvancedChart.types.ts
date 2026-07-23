@@ -821,6 +821,8 @@ export interface LegendIndicatorConfig {
   combineInOnePill?: boolean;
   /** Leading title when combineInOnePill is true (e.g. BB(20,2)). */
   title?: string;
+  /** When true, legend pills render in the study's own sub-pane instead of the main overlay. */
+  subPaneLegend?: boolean;
 }
 
 export interface LegendOverlayConfig {

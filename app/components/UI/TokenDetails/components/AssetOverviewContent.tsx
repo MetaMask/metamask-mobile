@@ -38,13 +38,14 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
+import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
+import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
@@ -121,7 +122,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
     } as ViewStyle,
     perpsPositionCardContainer: {
-      paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
     marketClosedActionButtonContainer: {
@@ -482,7 +482,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
-      isPricePositive: isPricePositive ?? undefined,
       useAmbientColor,
     });
   }, [
@@ -492,10 +491,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     token,
     marketInsightsCaip19Id,
     marketInsightsReport,
+    useAmbientColor,
     priceDiff,
     comparePrice,
-    useAmbientColor,
-    isPricePositive,
   ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -633,6 +631,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             resetNavigationLockRef={resetNavigationLockRef}
             onActionTapped={trackActionTapped}
           />
+          <MoneyEarnBanner asset={token} />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
               {marketInsightsReport ? (
@@ -684,12 +683,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
-              <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
+              <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
                 {strings('asset_overview.perps_position')}
               </Text>
-              <PerpsPositionCard
+              <PerpsCard
                 position={perpsPosition}
-                compact
                 onPress={handlePerpsDiscoveryPress}
                 testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
               />
@@ -718,7 +716,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
-                  isPricePositive={isPricePositive ?? undefined}
                   useAmbientColor={useAmbientColor}
                 />
               </View>

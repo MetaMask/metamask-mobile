@@ -101,7 +101,8 @@ describe('TraderPositionQuickBuy', () => {
         onClose={jest.fn()}
         traderAddress="0xtrader"
         marketCap={1000000}
-        source="leaderboard"
+        source="profile_position"
+        originalEntryPoint="leaderboard"
       />,
     );
     expect(mockQuickBuyRoot).toHaveBeenCalledWith(
@@ -109,7 +110,8 @@ describe('TraderPositionQuickBuy', () => {
         analyticsContext: {
           traderAddress: '0xtrader',
           marketCap: 1000000,
-          source: 'leaderboard',
+          source: 'profile_position',
+          originalEntryPoint: 'leaderboard',
         },
       }),
     );
@@ -134,14 +136,16 @@ describe('TraderPositionQuickBuy', () => {
         isVisible
         position={mockPosition}
         onClose={jest.fn()}
-        source="leaderboard"
+        source="profile_position"
+        originalEntryPoint="leaderboard"
         isTraderPositionClosed
       />,
     );
     expect(mockQuickBuyRoot).toHaveBeenCalledWith(
       expect.objectContaining({
         analyticsContext: expect.objectContaining({
-          source: 'leaderboard',
+          source: 'profile_position',
+          originalEntryPoint: 'leaderboard',
           traderTradeType: 'sell',
         }),
       }),
@@ -163,6 +167,7 @@ describe('TraderPositionQuickBuy', () => {
           traderAddress: '0xtrader',
           marketCap: undefined,
           source: undefined,
+          originalEntryPoint: undefined,
         },
       }),
     );

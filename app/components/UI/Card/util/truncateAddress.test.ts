@@ -61,9 +61,20 @@ describe('truncateAddress', () => {
 
       const result = truncateAddress(address);
 
-      expect(mockIsHexAddress).toHaveBeenCalledWith(address);
+      expect(mockIsHexAddress).toHaveBeenCalledWith(address.toLowerCase());
       expect(mockSafeToChecksumAddress).toHaveBeenCalledWith(address);
       expect(result).toBe('0x12...5678');
+    });
+
+    it('truncates a checksummed (mixed-case) address by lowercasing for the hex check', () => {
+      const address = '0x32A25d1112d5A1A495A8a1aad011aB2a27A04461';
+      mockIsHexAddress.mockReturnValue(true);
+      mockSafeToChecksumAddress.mockReturnValue(address as `0x${string}`);
+
+      const result = truncateAddress(address);
+
+      expect(mockIsHexAddress).toHaveBeenCalledWith(address.toLowerCase());
+      expect(result).toBe('0x32...4461');
     });
 
     it('truncates address with custom character count', () => {
@@ -118,7 +129,7 @@ describe('truncateAddress', () => {
       const result = truncateAddress(label);
 
       expect(mockIsAddress).toHaveBeenCalledWith(label);
-      expect(mockIsHexAddress).toHaveBeenCalledWith(label);
+      expect(mockIsHexAddress).toHaveBeenCalledWith(label.toLowerCase());
       expect(mockSafeToChecksumAddress).not.toHaveBeenCalled();
       expect(result).toBe(label);
     });

@@ -8,6 +8,7 @@ import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -63,7 +64,7 @@ const OrderDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();

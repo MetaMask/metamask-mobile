@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -17,7 +18,7 @@ export const createBuySettingsModalNavigationDetails = createNavigationDetails(
 
 function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleNavigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

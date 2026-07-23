@@ -39,6 +39,7 @@ import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
 import CashTokensFullView from '../../Views/CashTokensFullView';
+import WatchlistFullScreenView from '../../UI/Assets/watchlist/Views/WatchlistFullScreenView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -151,9 +152,10 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  TopTradersView,
+  SocialTradersView,
   TraderProfileView,
   TraderPositionView,
+  SocialLeaderboardOnboarding,
   TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -1072,6 +1074,11 @@ const MainNavigator = () => {
         component={CashTokensFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
+      <NativeStack.Screen
+        name={Routes.WALLET.WATCHLIST_FULL_VIEW}
+        component={WatchlistFullScreenView}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen name="AddAsset" component={AddAsset} />
       <NativeStack.Screen
         name="ConfirmAddAsset"
@@ -1382,7 +1389,7 @@ const MainNavigator = () => {
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={TopTradersView}
+          component={SocialTradersView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
@@ -1397,6 +1404,13 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.ONBOARDING}
+          component={SocialLeaderboardOnboarding}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}

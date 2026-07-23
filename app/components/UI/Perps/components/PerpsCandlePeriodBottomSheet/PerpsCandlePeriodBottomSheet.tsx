@@ -20,7 +20,10 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { getPerpsCandlePeriodBottomSheetSelector } from '../../Perps.testIds';
+import {
+  getPerpsCandlePeriodBottomSheetSelector,
+  PerpsCandlePeriodBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -170,7 +173,9 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'close-button' }}
+        closeButtonProps={{
+          testID: PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        }}
       >
         {strings('perps.chart.candle_intervals')}
       </BottomSheetHeader>

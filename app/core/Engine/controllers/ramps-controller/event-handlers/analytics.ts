@@ -19,7 +19,10 @@ import {
 } from '../terminalOrderAnalyticsRegistry';
 // Type-only import so `react` is not pulled into core; mirrors the emission in
 // `useAnalytics` without importing the hook.
-import type { AnalyticsEvents } from '../../../../../components/UI/Ramp/types/depositAnalytics';
+import type {
+  AnalyticsEvents,
+  RampSurface,
+} from '../../../../../components/UI/Ramp/types/depositAnalytics';
 
 /**
  * Terminal order statuses. `@metamask/ramps-controller` keeps its
@@ -32,6 +35,51 @@ const TERMINAL_ORDER_STATUSES = new Set<RampsOrderStatus>([
   Status.Cancelled,
   Status.IdExpired,
 ]);
+
+export function isTerminalOrderStatus(status: RampsOrderStatus): boolean {
+  return TERMINAL_ORDER_STATUSES.has(status);
+}
+
+/**
+ * Builds the `RAMPS_TRANSACTION_CONFIRMED` payload for a callback-fetched
+ * order. Mirrors the inline payload in `useTransakRouting` / `BankDetails` and
+ * the unified-buy base in `buildV2AnalyticsPayload`.
+ */
+export function buildRampsTransactionConfirmedParams(
+  order: RampsOrder,
+  options: {
+    rampType: AnalyticsEvents['RAMPS_TRANSACTION_CONFIRMED']['ramp_type'];
+    rampSurface?: RampSurface;
+    region?: string;
+  },
+): AnalyticsEvents['RAMPS_TRANSACTION_CONFIRMED'] {
+  const cryptoAmount = Number(order.cryptoAmount);
+  const feeTotal = Number(order.totalFeesFiat);
+  const computedExchangeRate =
+    cryptoAmount > 0 ? (Number(order.fiatAmount) - feeTotal) / cryptoAmount : 0;
+  const country = options.region ?? order.region ?? '';
+
+  return {
+    ramp_type: options.rampType,
+    ...(options.rampSurface ? { ramp_surface: options.rampSurface } : {}),
+    // TRAM-3696: join key back to the provider order. Never emit empty string.
+    ...(order.providerOrderId && { provider_order_id: order.providerOrderId }),
+    amount_source: Number(order.fiatAmount),
+    amount_destination: cryptoAmount,
+    exchange_rate: Number(order.exchangeRate ?? computedExchangeRate),
+    gas_fee: Number(order.networkFees ?? 0),
+    processing_fee: Number(order.partnerFees ?? 0),
+    total_fee: feeTotal,
+    payment_method_id: order.paymentMethod?.id ?? '',
+    country,
+    ...(options.region ? { region: options.region } : {}),
+    chain_id: order.network?.chainId ?? '',
+    currency_destination: order.cryptoCurrency?.assetId ?? '',
+    currency_destination_symbol: order.cryptoCurrency?.symbol,
+    currency_destination_network: order.network?.name,
+    currency_source: order.fiatCurrency?.symbol ?? '',
+  };
+}
 
 /**
  * Builds the `RAMPS_TRANSACTION_FAILED` payload for a headless order. Mirrors
@@ -270,6 +318,39 @@ export function handleOrderStatusChangedForMetrics({
 }
 
 /**
+ * Emits `RAMPS_TRANSACTION_CONFIRMED` when a callback-fetched order is first
+ * observed in a non-terminal state (TRAM-3738). Terminal orders emit via
+ * `emitTerminalOrderAnalyticsFromCallback` instead.
+ */
+export function emitOrderConfirmedAnalyticsFromCallback(
+  order: RampsOrder,
+  options: {
+    rampType: AnalyticsEvents['RAMPS_TRANSACTION_CONFIRMED']['ramp_type'];
+    rampSurface?: RampSurface;
+    region?: string;
+  },
+): void {
+  if (isTerminalOrderStatus(order.status)) {
+    return;
+  }
+  try {
+    const params = buildRampsTransactionConfirmedParams(order, options);
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED,
+      )
+        .addProperties({ ...params })
+        .build(),
+    );
+  } catch (error) {
+    Logger.error(error as Error, {
+      message:
+        'RampsController: Failed to emit RAMPS_TRANSACTION_CONFIRMED from callback',
+    });
+  }
+}
+
+/**
  * Emits the terminal analytics event for a callback-fetched order that is
  * ALREADY terminal on first observation (TRAM-3691).
  *
@@ -293,7 +374,7 @@ export function handleOrderStatusChangedForMetrics({
 export function emitTerminalOrderAnalyticsFromCallback(
   order: RampsOrder,
 ): void {
-  if (!TERMINAL_ORDER_STATUSES.has(order.status)) {
+  if (!isTerminalOrderStatus(order.status)) {
     return;
   }
   try {

@@ -11,7 +11,7 @@ export interface RampsOrderDetailsParams {
 }
 
 export function createRampsOrderDetailsRoute(params: RampsOrderDetailsParams): {
-  name: string;
+  name: typeof Routes.RAMP.RAMPS_ORDER_DETAILS;
   params: RampsOrderDetailsParams;
 } {
   return {
@@ -21,7 +21,7 @@ export function createRampsOrderDetailsRoute(params: RampsOrderDetailsParams): {
 }
 
 export function createBuildQuoteRoute(): {
-  name: string;
+  name: typeof Routes.RAMP.BUILD_QUOTE;
   params: Record<string, never>;
 } {
   return { name: Routes.RAMP.BUILD_QUOTE, params: {} };

@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useSelector, useDispatch } from 'react-redux';
@@ -90,6 +91,8 @@ export enum SwapBridgeNavigationLocation {
   TokenView = MetaMetricsSwapsEventSource.TokenView,
   Rewards = 'Rewards',
   TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
+  FollowTradingTokenScreen = MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
+  FollowTradingFeedScreen = MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
 }
 
 /**
@@ -114,6 +117,10 @@ export const toMetaMetricsSwapsEventSource = (
       return MetaMetricsSwapsEventSource.TokenView;
     case SwapBridgeNavigationLocation.TrendingExplore:
       return MetaMetricsSwapsEventSource.TrendingExplore;
+    case SwapBridgeNavigationLocation.FollowTradingTokenScreen:
+      return MetaMetricsSwapsEventSource.FollowTradingTokenScreen;
+    case SwapBridgeNavigationLocation.FollowTradingFeedScreen:
+      return MetaMetricsSwapsEventSource.FollowTradingFeedScreen;
     default:
       return MetaMetricsSwapsEventSource.MainView;
   }
@@ -135,6 +142,7 @@ export const useSwapBridgeNavigation = ({
   transactionActiveAbTests,
   skipLocationUpdate = false,
   swapButtonEventLocationOverride,
+  skipActionButtonClickTracking = false,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
@@ -161,8 +169,13 @@ export const useSwapBridgeNavigation = ({
   swapButtonEventLocationOverride?:
     | ActionLocation
     | SwapBridgeNavigationLocation;
+  /**
+   * When true, skip consolidated ACTION_BUTTON_CLICKED from this hook so the
+   * caller can emit it with the correct location / position (e.g. homepage grid).
+   */
+  skipActionButtonClickTracking?: boolean;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const getIsBridgeEnabledSource = useSelector(
@@ -370,20 +383,26 @@ export const useSwapBridgeNavigation = ({
       }
 
       // Track Swap button click with new consolidated event
-      const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
-      const actionButtonProps = {
-        action_name: ActionButtonType.SWAP,
-        // Omit action_position for navbar to avoid confusion with main action buttons
-        ...(isFromNavbar
-          ? {}
-          : { action_position: ActionPosition.SECOND_POSITION }),
-        button_label: buttonLabel ?? strings('asset_overview.swap'),
-        location: isFromNavbar
-          ? ActionLocation.NAVBAR
-          : ActionLocation.ASSET_DETAILS,
-      };
+      if (!skipActionButtonClickTracking) {
+        const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
+        const actionButtonProps = {
+          action_name: ActionButtonType.SWAP,
+          // Omit action_position for navbar to avoid confusion with main action buttons
+          ...(isFromNavbar
+            ? {}
+            : { action_position: ActionPosition.SECOND_POSITION }),
+          button_label: buttonLabel ?? strings('asset_overview.swap'),
+          location: isFromNavbar
+            ? ActionLocation.NAVBAR
+            : ActionLocation.ASSET_DETAILS,
+        };
 
-      trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
+        trackActionButtonClick(
+          trackEvent,
+          createEventBuilder,
+          actionButtonProps,
+        );
+      }
 
       const swapEventProperties = {
         location:
@@ -421,6 +440,7 @@ export const useSwapBridgeNavigation = ({
       getIsBridgeEnabledSource,
       skipLocationUpdate,
       swapButtonEventLocationOverride,
+      skipActionButtonClickTracking,
       transactionActiveAbTests,
       isBasicFunctionalityEnabled,
       prefetchPopularTokens,

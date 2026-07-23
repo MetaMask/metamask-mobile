@@ -18,6 +18,13 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
           name: 'USD Coin',
           symbol: 'USDC',
         },
+        {
+          address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
+          enabled: true,
+          name: 'Money account',
+          symbol: 'VEDA',
+        },
       ],
     },
     'eip155:59144': {
@@ -147,6 +154,14 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     accountsApiUrl: 'https://accounts.api.cx.metamask.io',
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
   },
+  immersve: {
+    network: 'base-sepolia',
+    cardProgramId: '',
+    clientApplicationId: '',
+    partnerAccountId: '',
+    fundingChannelId: '',
+  },
+  immersveCountries: ['GB'],
 };
 
 export interface GateVersionedFeatureFlag {
@@ -157,6 +172,18 @@ export interface GateVersionedFeatureFlag {
 export interface CardFeatureFlag {
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
+  immersve?: ImmersveProgramConfig;
+  immersveCountries?: string[];
+}
+
+export interface ImmersveProgramConfig {
+  network?: string;
+  cardProgramId?: string;
+  clientApplicationId?: string;
+  partnerAccountId?: string;
+  fundingChannelId?: string;
+  apiBaseUrl?: string;
+  appUrl?: string;
 }
 
 export interface SupportedChain {
@@ -240,6 +267,16 @@ export const selectCardFiatCreditFeatureEnabled = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.cardFiatCreditFeature as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectImmersveOnboardingEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
