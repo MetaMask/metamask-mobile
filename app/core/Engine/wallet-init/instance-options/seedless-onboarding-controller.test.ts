@@ -233,7 +233,10 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
         salt: 'test-salt',
       });
 
-      await seedlessOnboardingEncryptorAdapter[method]('password', dataFormatVault);
+      await seedlessOnboardingEncryptorAdapter[method](
+        'password',
+        dataFormatVault,
+      );
 
       const expectedNormalized = JSON.stringify({
         data: 'encrypted-data',
@@ -258,7 +261,10 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
         salt: 'test-salt',
       });
 
-      await seedlessOnboardingEncryptorAdapter[method]('password', cipherFormatVault);
+      await seedlessOnboardingEncryptorAdapter[method](
+        'password',
+        cipherFormatVault,
+      );
 
       expect(mock).toHaveBeenCalledWith('password', cipherFormatVault);
     },
@@ -278,7 +284,10 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
         salt: 'test-salt',
       });
 
-      await seedlessOnboardingEncryptorAdapter[method]('password', bothFieldsVault);
+      await seedlessOnboardingEncryptorAdapter[method](
+        'password',
+        bothFieldsVault,
+      );
 
       expect(mock).toHaveBeenCalledWith('password', bothFieldsVault);
     },
