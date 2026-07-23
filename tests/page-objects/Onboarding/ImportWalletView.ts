@@ -157,8 +157,9 @@ class ImportWalletView {
         );
       },
       appium: async () => {
-        const isAndroid = await PlatformDetector.isAndroid();
-        if (isAndroid) {
+        // Android: replaceText does not leave the soft keyboard open;
+        // hideKeyboard() throws on Android when none is visible (unlike iOS).
+        if (PlatformDetector.isAndroid()) {
           await UnifiedGestures.replaceText(
             this.seedPhraseInput(0, onboarding),
             secretRecoveryPhrase,
@@ -166,17 +167,18 @@ class ImportWalletView {
               description: 'Import Wallet Secret Recovery Phrase Input Box',
             },
           );
-        } else {
-          for (const [i, word] of srpArray.entries()) {
-            await UnifiedGestures.typeText(
-              this.seedPhraseInput(i, onboarding),
-              `${word} `,
-              {
-                description: 'Import Wallet Secret Recovery Phrase Input Box',
-                hideKeyboard: false,
-              },
-            );
-          }
+          return;
+        }
+
+        for (const [i, word] of srpArray.entries()) {
+          await UnifiedGestures.typeText(
+            this.seedPhraseInput(i, onboarding),
+            `${word} `,
+            {
+              description: 'Import Wallet Secret Recovery Phrase Input Box',
+              hideKeyboard: false,
+            },
+          );
         }
         await this.tapImportScreenTitleToDismissKeyboard(onboarding);
         await PlaywrightGestures.hideKeyboard();
@@ -193,7 +195,10 @@ class ImportWalletView {
           });
         },
         appium: async () => {
-          await PlaywrightGestures.hideKeyboard();
+          // iOS only — Android replaceText path already has no keyboard.
+          if (!PlatformDetector.isAndroid()) {
+            await PlaywrightGestures.hideKeyboard();
+          }
           await UnifiedGestures.waitAndTap(this.continueButton, {
             description: 'Import Wallet Continue Button',
             timeout: 15_000,
@@ -212,7 +217,9 @@ class ImportWalletView {
         });
       },
       appium: async () => {
-        await PlaywrightGestures.hideKeyboard();
+        if (!PlatformDetector.isAndroid()) {
+          await PlaywrightGestures.hideKeyboard();
+        }
         await UnifiedGestures.tap(
           encapsulated({
             appium: {
