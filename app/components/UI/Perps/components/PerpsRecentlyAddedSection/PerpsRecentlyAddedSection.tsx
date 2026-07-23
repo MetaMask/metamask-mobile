@@ -1,15 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { SectionHeader } from '@metamask/design-system-react-native';
+import {
+  FontWeight,
+  SectionHeader,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
@@ -31,7 +33,9 @@ const PerpsRecentlyAddedTile: React.FC<{
   }, [onPress, market]);
 
   const isPositiveChange = !market.change24h.startsWith('-');
-  const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+  const changeColor = isPositiveChange
+    ? TextColor.SuccessDefault
+    : TextColor.ErrorDefault;
 
   // Mirrors PerpsMarketRowItem: prefer the display name (e.g. "Bitcoin") only
   // when the flag is on, otherwise fall back to the display symbol. Both
@@ -57,8 +61,9 @@ const PerpsRecentlyAddedTile: React.FC<{
       </View>
 
       <Text
-        variant={TextVariant.BodySMMedium}
-        color={TextColor.Default}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
         style={styles.name}
         numberOfLines={1}
       >
@@ -67,14 +72,14 @@ const PerpsRecentlyAddedTile: React.FC<{
 
       <View style={styles.priceRow}>
         <Text
-          variant={TextVariant.BodyXS}
-          color={TextColor.Default}
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextDefault}
           numberOfLines={1}
         >
           {market.price}
         </Text>
         <Text
-          variant={TextVariant.BodyXS}
+          variant={TextVariant.BodyXs}
           color={changeColor}
           numberOfLines={1}
         >
@@ -84,8 +89,8 @@ const PerpsRecentlyAddedTile: React.FC<{
 
       {market.listedAt !== undefined && (
         <Text
-          variant={TextVariant.BodyXS}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
           style={styles.timeLabel}
           numberOfLines={1}
         >
