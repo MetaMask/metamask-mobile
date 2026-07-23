@@ -1,6 +1,9 @@
 import { hasProperty } from '@metamask/utils';
 import { createSelector } from 'reselect';
-import { FeatureFlagNames } from '../../../constants/featureFlags';
+import {
+  DEFAULT_TELEGRAM_LOGIN_ENABLED,
+  FeatureFlagNames,
+} from '../../../constants/featureFlags';
 import { getFeatureFlagValue } from '../env';
 import { selectRemoteFeatureFlags } from '..';
 
@@ -11,12 +14,14 @@ export const TELEGRAM_LOGIN_ENABLED_FLAG_NAME =
   FeatureFlagNames.telegramLoginEnabled;
 
 /**
- * When true, seedless onboarding shows Telegram sign-in and the OAuth factory may return
- * a Telegram login handler when callers pass `telegramLoginEnabled: true`. When false, the
- * Telegram onboarding button is hidden; token refresh still passes `telegramLoginEnabled: true`
- * from `AuthTokenHandler` for existing Telegram sessions.
+ * Re-exported from the centralized feature-flag registry. When true, seedless
+ * onboarding shows Telegram sign-in and the OAuth factory may return a Telegram
+ * login handler when callers pass `telegramLoginEnabled: true`. When false, the
+ * Telegram onboarding button is hidden; token refresh still passes
+ * `telegramLoginEnabled: true` from `AuthTokenHandler` for existing Telegram
+ * sessions.
  */
-export const DEFAULT_TELEGRAM_LOGIN_ENABLED = false;
+export { DEFAULT_TELEGRAM_LOGIN_ENABLED };
 
 export const selectTelegramLoginEnabled = createSelector(
   selectRemoteFeatureFlags,

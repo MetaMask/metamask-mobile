@@ -42,9 +42,26 @@ jest.mock('./messengers/transaction-controller-messenger', () => ({
   getTransactionControllerInitMessenger: jest.fn(() => 'tx-init-messenger'),
 }));
 
+jest.mock('../../../constants/featureFlags', () => ({
+  ...jest.requireActual('../../../constants/featureFlags'),
+  getDefaultFeatureFlags: jest.fn(() => ({
+    defaultFlag: true,
+    sharedFlag: 'default-value',
+  })),
+}));
+
 describe('initializeWallet', () => {
   const messenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
   const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
+  const seededState = {
+    ...state,
+    RemoteFeatureFlagController: {
+      remoteFeatureFlags: {
+        defaultFlag: true,
+        sharedFlag: 'default-value',
+      },
+    },
+  };
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -54,7 +71,7 @@ describe('initializeWallet', () => {
 
     expect(Wallet).toHaveBeenCalledWith({
       messenger,
-      state,
+      state: seededState,
       instanceOptions: {
         approvalController: 'approval-options',
         keyringController: 'keyring-options',
@@ -67,7 +84,37 @@ describe('initializeWallet', () => {
     });
   });
 
-  it('threads the messenger and state through to the builders that need them', () => {
+  it('seeds feature-flag defaults UNDER persisted flags so persisted values win', () => {
+    initializeWallet({
+      messenger,
+      state: {
+        ...state,
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { sharedFlag: 'persisted-value' },
+          cacheTimestamp: 999,
+        },
+      },
+    });
+
+    expect(Wallet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: expect.objectContaining({
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              // default-only flag is filled in
+              defaultFlag: true,
+              // persisted value wins over the default
+              sharedFlag: 'persisted-value',
+            },
+            // other persisted fields preserved
+            cacheTimestamp: 999,
+          },
+        }),
+      }),
+    );
+  });
+
+  it('threads the messenger and (unseeded) state through to the builders that need them', () => {
     initializeWallet({ messenger, state });
 
     expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(messenger);

@@ -12,11 +12,24 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import AppConstants from '../../../AppConstants';
 import type { RootMessenger } from '../../types';
 
+const mockFetchRemoteFeatureFlags = jest.fn();
+
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
-  ClientConfigApiService: jest
-    .fn()
-    .mockImplementation(() => ({ name: 'mock-client-config-api-service' })),
+  ClientConfigApiService: jest.fn().mockImplementation(() => ({
+    name: 'mock-client-config-api-service',
+    onBreak: jest.fn(() => 'on-break-disposable'),
+    onDegraded: jest.fn(() => 'on-degraded-disposable'),
+    fetchRemoteFeatureFlags: mockFetchRemoteFeatureFlags,
+  })),
+}));
+
+jest.mock('../../../../constants/featureFlags', () => ({
+  ...jest.requireActual('../../../../constants/featureFlags'),
+  getDefaultFeatureFlags: jest.fn(() => ({
+    defaultOnlyFlag: true,
+    sharedFlag: 'default-value',
+  })),
 }));
 
 jest.mock('../../../../store', () => ({ store: { getState: jest.fn() } }));
@@ -33,6 +46,10 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    mockFetchRemoteFeatureFlags.mockResolvedValue({
+      remoteFeatureFlags: {},
+      cacheTimestamp: 0,
+    });
   });
 
   it('builds a ClientConfigApiService for the mobile client', () => {
@@ -137,5 +154,69 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     } finally {
       globalWithDev.__DEV__ = originalDev;
     }
+  });
+
+  describe('client config API service default merging', () => {
+    it('merges client-side defaults UNDER the fetched server flags', async () => {
+      mockFetchRemoteFeatureFlags.mockResolvedValue({
+        remoteFeatureFlags: {
+          sharedFlag: 'server-value',
+          serverOnlyFlag: 42,
+        },
+        cacheTimestamp: 123,
+      });
+
+      const options = getRemoteFeatureFlagControllerInstanceOptions({
+        messenger: buildMessenger('metrics-id'),
+        state: {},
+      });
+
+      const result = await options.clientConfigApiService.fetchRemoteFeatureFlags();
+
+      expect(result).toStrictEqual({
+        cacheTimestamp: 123,
+        remoteFeatureFlags: {
+          // default-only flag preserved
+          defaultOnlyFlag: true,
+          // explicit server value wins over default
+          sharedFlag: 'server-value',
+          // server-only flag passes through
+          serverOnlyFlag: 42,
+        },
+      });
+    });
+
+    it('keeps defaults as a fallback when the server returns no flags', async () => {
+      mockFetchRemoteFeatureFlags.mockResolvedValue({
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0,
+      });
+
+      const options = getRemoteFeatureFlagControllerInstanceOptions({
+        messenger: buildMessenger('metrics-id'),
+        state: {},
+      });
+
+      const result = await options.clientConfigApiService.fetchRemoteFeatureFlags();
+
+      expect(result.remoteFeatureFlags).toStrictEqual({
+        defaultOnlyFlag: true,
+        sharedFlag: 'default-value',
+      });
+    });
+
+    it('forwards onBreak and onDegraded to the underlying service', () => {
+      const options = getRemoteFeatureFlagControllerInstanceOptions({
+        messenger: buildMessenger('metrics-id'),
+        state: {},
+      });
+
+      expect(options.clientConfigApiService.onBreak?.(jest.fn())).toBe(
+        'on-break-disposable',
+      );
+      expect(options.clientConfigApiService.onDegraded?.(jest.fn())).toBe(
+        'on-degraded-disposable',
+      );
+    });
   });
 });
