@@ -42,6 +42,10 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
 ];
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
 export const IMMERSVE_SUPPORT_EMAIL = 'support@metamask.io';
+// Placeholder Intercom conversation URL for card support. Final endpoint and
+// query-param names pending confirmation from support/Intercom.
+export const CARD_INTERCOM_SUPPORT_URL =
+  'https://support.metamask.io/?utm_source=mobile_app&product=card';
 export const IMMERSVE_TERMS_URL =
   'https://immersve.com/terms-and-conditions/uk/general-terms-of-use';
 export const HUBSPOT_WAITLIST_URL =

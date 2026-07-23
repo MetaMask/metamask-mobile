@@ -92,7 +92,10 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
-import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import {
+  selectCardIntercomSupportEnabled,
+  selectMetalCardCheckoutFeatureFlag,
+} from '../../../../../selectors/featureFlagController/card';
 import {
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -473,6 +476,7 @@ jest.mock('../../../../../selectors/featureFlagController/deposit', () => ({
 jest.mock('../../../../../selectors/featureFlagController/card', () => ({
   ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
   selectMetalCardCheckoutFeatureFlag: jest.fn(),
+  selectCardIntercomSupportEnabled: jest.fn(),
 }));
 
 // Mock bridge actions
@@ -569,9 +573,14 @@ jest.mock('../../../../../core/Engine', () => ({
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
 import { CardHomeSelectors } from './CardHome.testIds';
-import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CardEntryPoint } from '../../util/metrics';
+import {
+  CARD_INTERCOM_SUPPORT_URL,
+  CARD_SUPPORT_EMAIL,
+  IMMERSVE_SUPPORT_EMAIL,
+} from '../../constants';
+import { buildCardSupportUrl } from '../../util/buildCardSupportUrl';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -780,6 +789,7 @@ function setupMockSelectors(
     lastUnauthenticatedReason: 'onboarding_token_revoked' | null;
     userLocation: 'us' | 'international';
     isMetalCardCheckoutEnabled: boolean;
+    isCardIntercomSupportEnabled: boolean;
     cardHomeDataStatus: 'idle' | 'loading' | 'success' | 'error';
     primaryMoneyAccount: { address: string } | undefined;
     vedaConfig: {
@@ -801,6 +811,7 @@ function setupMockSelectors(
     lastUnauthenticatedReason: null,
     userLocation: 'international' as const,
     isMetalCardCheckoutEnabled: true,
+    isCardIntercomSupportEnabled: false,
     cardHomeDataStatus: 'success' as const,
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
@@ -829,6 +840,8 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+    if (selector === selectCardIntercomSupportEnabled)
+      return config.isCardIntercomSupportEnabled;
 
     if (selector === selectSelectedInternalAccountByScope)
       return () => config.selectedAccount;
@@ -1810,12 +1823,12 @@ describe('CardHome Component', () => {
           us: {
             emailSpecialCharactersDomainsException: '',
             consentSmsNumber: '',
-            supportEmail: CARD_SUPPORT_EMAIL,
+            supportEmail: '',
           },
           intl: {
             emailSpecialCharactersDomainsException: '',
             consentSmsNumber: '',
-            supportEmail: CARD_SUPPORT_EMAIL,
+            supportEmail: '',
           },
         },
       },
@@ -1833,72 +1846,76 @@ describe('CardHome Component', () => {
     );
   });
 
-  it('opens dynamic support email when contact support item is pressed', async () => {
-    const dynamicSupportEmail = 'us-support@cl-cards.com';
-    mockUseRegistrationSettings.mockReturnValue({
-      data: {
-        countries: [],
-        usStates: [],
-        links: {
-          us: {
-            termsAndConditions: '',
-            accountOpeningDisclosure: '',
-            noticeOfPrivacy: '',
-            eSignConsentDisclosure: '',
-          },
-          intl: {
-            termsAndConditions: '',
-            rightToInformation: '',
-          },
-        },
-        config: {
-          us: {
-            emailSpecialCharactersDomainsException: '',
-            consentSmsNumber: '',
-            supportEmail: dynamicSupportEmail,
-          },
-          intl: {
-            emailSpecialCharactersDomainsException: '',
-            consentSmsNumber: '',
-            supportEmail: CARD_SUPPORT_EMAIL,
-          },
-        },
-      },
-      isLoading: false,
-      error: null,
-      fetchData: jest.fn(),
+  it('opens Intercom support webview with context when feature flag is enabled', async () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      isCardIntercomSupportEnabled: true,
+      activeProviderId: 'baanx',
     });
-    setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
     setupLoadCardDataMock({ isAuthenticated: true });
+
+    let supportBaseUrl;
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportBaseUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+    supportBaseUrl = supportBaseUrl || CARD_INTERCOM_SUPPORT_URL;
+
+    const expectedSupportUrl = buildCardSupportUrl(supportBaseUrl, {
+      walletAddress: mockPriorityToken.walletAddress,
+      cardState: 'ACTIVE',
+      provider: 'baanx',
+      isMoneyAccount: false,
+    });
 
     render();
 
-    const contactSupportItem = screen.getByTestId(
-      CardHomeSelectors.CONTACT_SUPPORT_ITEM,
-    );
-    fireEvent.press(contactSupportItem);
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
 
     await waitFor(() => {
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        `mailto:${dynamicSupportEmail}`,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: expectedSupportUrl,
+          title: strings('app_settings.contact_support'),
+        },
+      });
     });
   });
 
-  it('opens fallback support email when contact support item is pressed', async () => {
-    setupMockSelectors({ isAuthenticated: true });
+  it('opens Baanx support email when Intercom feature flag is disabled', async () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      isCardIntercomSupportEnabled: false,
+      activeProviderId: 'baanx',
+    });
     setupLoadCardDataMock({ isAuthenticated: true });
 
     render();
 
-    const contactSupportItem = screen.getByTestId(
-      CardHomeSelectors.CONTACT_SUPPORT_ITEM,
-    );
-    fireEvent.press(contactSupportItem);
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
 
     await waitFor(() => {
       expect(Linking.openURL).toHaveBeenCalledWith(
         `mailto:${CARD_SUPPORT_EMAIL}`,
+      );
+    });
+  });
+
+  it('opens Immersve support email when Intercom feature flag is disabled', async () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      isCardIntercomSupportEnabled: false,
+      activeProviderId: 'immersve',
+    });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        `mailto:${IMMERSVE_SUPPORT_EMAIL}`,
       );
     });
   });
@@ -1912,21 +1929,6 @@ describe('CardHome Component', () => {
       expect.any(Object),
       'https://immersve.com/terms-and-conditions/uk/general-terms-of-use',
     );
-  });
-
-  it('opens the Immersve support email for the Immersve provider', async () => {
-    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
-    setupLoadCardDataMock({ isAuthenticated: true });
-
-    render();
-
-    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
-
-    await waitFor(() => {
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'mailto:support@metamask.io',
-      );
-    });
   });
 
   it('displays correct priority token information', async () => {

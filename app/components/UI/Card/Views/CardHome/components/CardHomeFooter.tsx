@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
@@ -10,8 +10,8 @@ interface CardHomeFooterProps {
   isLoading: boolean;
   hasAlerts: boolean;
   hasSetupActions: boolean;
-  supportEmail: string;
   onNavigateToCardTos: () => void;
+  onContactSupport: () => void;
   onLogout: () => void;
 }
 
@@ -20,8 +20,8 @@ const CardHomeFooter = ({
   isLoading,
   hasAlerts,
   hasSetupActions,
-  supportEmail,
   onNavigateToCardTos,
+  onContactSupport,
   onLogout,
 }: CardHomeFooterProps) => {
   const tw = useTailwind();
@@ -47,7 +47,7 @@ const CardHomeFooter = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => Linking.openURL(`mailto:${supportEmail}`)}
+          onPress={onContactSupport}
           testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}
           style={tw.style('px-4')}
         >

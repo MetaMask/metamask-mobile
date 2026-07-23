@@ -262,6 +262,16 @@ export const selectCardForgotPasswordFeatureEnabled = createSelector(
   },
 );
 
+export const selectCardIntercomSupportEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardIntercomSupport as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export const selectCardFiatCreditFeatureEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

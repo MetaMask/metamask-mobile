@@ -7,6 +7,7 @@ import {
   selectGalileoAppleWalletProvisioningEnabled,
   selectGalileoGoogleWalletProvisioningEnabled,
   selectCardForgotPasswordFeatureEnabled,
+  selectCardIntercomSupportEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -870,6 +871,136 @@ describe('selectCardForgotPasswordFeatureEnabled', () => {
     const result = selectCardForgotPasswordFeatureEnabled(
       stateWithMalformedFlag,
     );
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectCardIntercomSupportEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns false when feature flag state is empty', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectCardIntercomSupportEnabled(mockedEmptyFlagsState);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when RemoteFeatureFlagController state is undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectCardIntercomSupportEnabled(mockedUndefinedFlagsState);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when feature flag is enabled and version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    const stateWithIntercomSupport = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardIntercomSupport: {
+                enabled: true,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectCardIntercomSupportEnabled(stateWithIntercomSupport);
+
+    expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when feature flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithDisabledFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardIntercomSupport: {
+                enabled: false,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectCardIntercomSupportEnabled(stateWithDisabledFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithVersionGate = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardIntercomSupport: {
+                enabled: true,
+                minimumVersion: '99.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectCardIntercomSupportEnabled(stateWithVersionGate);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const stateWithMalformedFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardIntercomSupport: {
+                enabled: 'true', // Invalid type
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectCardIntercomSupportEnabled(stateWithMalformedFlag);
 
     expect(result).toBe(false);
   });

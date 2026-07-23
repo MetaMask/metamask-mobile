@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, RefreshControl, ScrollView } from 'react-native';
 import {
   Box,
   Text,
@@ -53,11 +53,15 @@ import {
   getCardSupportEmail,
   getCardTermsAndConditionsUrl,
 } from '../../util/registrationSettings';
+import { buildCardSupportUrl } from '../../util/buildCardSupportUrl';
 import {
   CardStatus,
   FundingAssetStatus,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import {
+  selectCardIntercomSupportEnabled,
+  selectMetalCardCheckoutFeatureFlag,
+} from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
@@ -77,9 +81,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { CardType, CardMessageBoxType } from '../../types';
 import {
-  isSpendingLimitSupportedToken,
+  CARD_INTERCOM_SUPPORT_URL,
   IMMERSVE_SUPPORT_EMAIL,
   IMMERSVE_TERMS_URL,
+  isSpendingLimitSupportedToken,
 } from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
@@ -119,6 +124,9 @@ const CardHome = () => {
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
+  const isCardIntercomSupportEnabled = useSelector(
+    selectCardIntercomSupportEnabled,
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
@@ -135,7 +143,8 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
-  const isImmersve = useSelector(selectCardActiveProviderId) === 'immersve';
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const isImmersve = activeProviderId === 'immersve';
   const cardTermsAndConditionsUrl = useMemo(
     () =>
       isImmersve
@@ -150,6 +159,44 @@ const CardHome = () => {
         : getCardSupportEmail(registrationSettings, userLocation),
     [isImmersve, registrationSettings, userLocation],
   );
+
+  const handleContactSupport = useCallback(() => {
+    if (!isCardIntercomSupportEnabled) {
+      Linking.openURL(`mailto:${supportEmail}`);
+      return;
+    }
+
+    let supportBaseUrl;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportBaseUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
+    supportBaseUrl = supportBaseUrl || CARD_INTERCOM_SUPPORT_URL;
+
+    const supportUrl = buildCardSupportUrl(supportBaseUrl, {
+      walletAddress: data?.primaryFundingAsset?.walletAddress,
+      cardState: data?.card?.status,
+      provider: activeProviderId ?? undefined,
+      isMoneyAccount: !!primaryToken?.isMoneyAccountEntry,
+    });
+
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: supportUrl,
+        title: strings('app_settings.contact_support'),
+      },
+    });
+  }, [
+    activeProviderId,
+    data?.card?.status,
+    data?.primaryFundingAsset?.walletAddress,
+    isCardIntercomSupportEnabled,
+    navigation,
+    primaryToken?.isMoneyAccountEntry,
+    supportEmail,
+  ]);
 
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
@@ -722,8 +769,8 @@ const CardHome = () => {
           isLoading={isLoading}
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
-          supportEmail={supportEmail}
           onNavigateToCardTos={actions.navigateToCardTosPage}
+          onContactSupport={handleContactSupport}
           onLogout={actions.logoutAction}
         />
 
