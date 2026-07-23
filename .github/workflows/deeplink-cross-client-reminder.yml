@@ -1,0 +1,152 @@
+name: Deeplink cross-client reminder
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: deeplink-cross-client-reminder-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  remind:
+    name: Check for deeplink changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Post deeplink cross-client reminder
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const marker = '<!-- deeplink-cross-client-reminder -->';
+            const christianHandle = '@Montoya';
+            const pr = context.payload.pull_request;
+
+            if (!pr) {
+              core.info('No pull request payload found. Skipping.');
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = pr.number;
+
+            const deeplinkFilePatterns = [
+              /(^|\/)deeplink/i,
+              /(^|\/)deep-link/i,
+              /(^|\/)universal-link/i,
+              /(^|\/)app-link/i,
+              /^app\/constants\/deeplinks\.ts$/i,
+              /^app\/core\/DeeplinkManager\//i,
+              /^docs\/readme\/deeplinking/i,
+              /^docs\/deeplink/i,
+            ];
+
+            const deeplinkLinePatterns = [
+              /\blink(?:-test)?\.metamask\.io\b/i,
+              /\bmetamask:\/\//i,
+              /\bethereum:\/\//i,
+              /\bwc:\/\//i,
+              /\bdeeplink(s|ing)?\b/i,
+              /\bdeep[- ]link(s|ing)?\b/i,
+              /\buniversal link(s)?\b/i,
+              /\bapp link(s)?\b/i,
+            ];
+
+            const changedFiles = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: issue_number,
+              per_page: 100,
+            });
+
+            const addedOrChangedLines = (patch = '') =>
+              patch
+                .split('\n')
+                .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+                .map((line) => line.slice(1));
+
+            const matchedFiles = changedFiles
+              .filter((file) => {
+                const pathMatches = deeplinkFilePatterns.some((pattern) =>
+                  pattern.test(file.filename),
+                );
+                const lineMatches = addedOrChangedLines(file.patch).some((line) =>
+                  deeplinkLinePatterns.some((pattern) => pattern.test(line)),
+                );
+
+                return pathMatches || lineMatches;
+              })
+              .map((file) => file.filename);
+
+            const existingComments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner,
+                repo,
+                issue_number,
+                per_page: 100,
+              },
+            );
+            const existingComment = existingComments.find((comment) =>
+              comment.body?.includes(marker),
+            );
+
+            if (matchedFiles.length === 0) {
+              if (existingComment) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: existingComment.id,
+                });
+                core.info('Deleted stale deeplink reminder comment.');
+              } else {
+                core.info('No deeplink-related changes detected.');
+              }
+              return;
+            }
+
+            const fileList = matchedFiles
+              .slice(0, 10)
+              .map((filename) => `- \`${filename}\``)
+              .join('\n');
+            const remainingCount = matchedFiles.length - 10;
+            const remainingLine =
+              remainingCount > 0 ? `\n- ...and ${remainingCount} more file(s)` : '';
+            const authorMention = pr.user?.login ? `@${pr.user.login}` : 'PR author';
+            const body = [
+              marker,
+              `${christianHandle} ${authorMention} deeplink-related changes were detected in this PR.`,
+              '',
+              'New or changed deeplinks need matching support in both MetaMask Mobile and MetaMask Extension. Please also verify Branch LinkHub coverage when applicable.',
+              '',
+              'Please link the matching client PR, or explain why this deeplink is intentionally client-specific. If an experience is only supported on Mobile, Extension should include a matching route that guides users to the Mobile experience.',
+              '',
+              'Matched file(s):',
+              `${fileList}${remainingLine}`,
+            ].join('\n');
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existingComment.id,
+                body,
+              });
+              core.info(`Updated deeplink reminder comment ${existingComment.id}.`);
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+              core.info('Posted deeplink reminder comment.');
+            }
