@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -21,24 +22,20 @@ import type {
   PredictFilterOption,
   PredictFilterOptionsParams,
 } from '../../../../types';
-import type {
-  PredictFeedRouteParams,
-  PredictNavigationParamList,
-} from '../../../../types/navigation';
+import type { PredictFeedRouteParams } from '../../../../types/navigation';
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
 /**
- * Max number of filter chips rendered on the home section. The full
- * `popular-today` feed shows the complete list; the home rail shows a compact
- * prefix of the same ordered list.
+ * Max number of filter chips rendered on the home section. The home rail shows
+ * a compact prefix of the same ordered list as the Trending feed.
  */
 const POPULAR_TODAY_FILTER_LIMIT = 10;
 const SKELETON_COUNT = 8;
 const DEFAULT_CHIP_ROW_COUNT = 2;
 
 /**
- * Derive the section's filter-options params from the canonical `popular-today`
- * feed registry so there is a single source of truth. Crucially, we do NOT pass
+ * Derive the section's filter-options params from the canonical `trending` feed
+ * registry so there is a single source of truth. Crucially, we do NOT pass
  * a top-level `limit` here: that keeps the React Query cache key identical to
  * the full feed's `usePredictFilterOptions` call (which omits `limit`), so the
  * home section and the feed share the same cached related-tags request instead
@@ -46,7 +43,7 @@ const DEFAULT_CHIP_ROW_COUNT = 2;
  * `POPULAR_TODAY_FILTER_LIMIT` when slicing the returned options.
  */
 const POPULAR_TODAY_FILTER_PARAMS: PredictFilterOptionsParams = (() => {
-  const dynamicConfig = resolvePredictFeedDynamicFilterConfig('popular-today');
+  const dynamicConfig = resolvePredictFeedDynamicFilterConfig('trending');
 
   return {
     source: dynamicConfig?.source ?? 'related-tags',
@@ -100,17 +97,16 @@ interface PredictPopularTodaySectionProps {
 /**
  * Predict home "Popular today" tag rail (PRED-917).
  *
- * Uses the same related-tag source as the full `popular-today` feed. The header
- * opens the all-up Popular Today feed, while each chip opens that feed with the
- * selected related-tag filter preselected.
+ * Uses the same related-tag source as the Trending feed. The header opens the
+ * all-up Trending feed, while each chip opens that feed with the selected
+ * related-tag filter preselected.
  */
 const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   testID = PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SECTION,
   rowCount = DEFAULT_CHIP_ROW_COUNT,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { filterOptions, isLoading } = usePredictFilterOptions(
     POPULAR_TODAY_FILTER_PARAMS,
   );
@@ -137,10 +133,10 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
     [rowCount],
   );
 
-  const navigateToPopularToday = useCallback(
+  const navigateToTrending = useCallback(
     (initialFilterId?: string) => {
       const params: PredictFeedRouteParams = {
-        feedId: 'popular-today',
+        feedId: 'trending',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
         ...(initialFilterId ? { initialFilterId } : {}),
       };
@@ -159,8 +155,8 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
       actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
       entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
     });
-    navigateToPopularToday();
-  }, [navigateToPopularToday]);
+    navigateToTrending();
+  }, [navigateToTrending]);
 
   const handleChipPress = useCallback(
     (option: PredictFilterOption) => {
@@ -173,9 +169,9 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
         isDynamicFilter: true,
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       });
-      navigateToPopularToday(option.id);
+      navigateToTrending(option.id);
     },
-    [navigateToPopularToday],
+    [navigateToTrending],
   );
 
   if (!isLoading && chips.length === 0) {
@@ -183,7 +179,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       <SectionHeader
         testID={PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.HEADER}
         title={strings('predict.feed.popular_today')}
@@ -243,7 +239,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
                   >
                     <Text
                       variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
+                      color={TextColor.TextDefault}
                       fontWeight={FontWeight.Medium}
                     >
                       {label}

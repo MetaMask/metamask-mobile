@@ -7,7 +7,6 @@ interface PerpsMarketHeaderProps {
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;
-  onMarketListPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
   /** Current price from candle stream - syncs header with chart */

@@ -8,6 +8,7 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -46,7 +47,7 @@ import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
 const PredictHome: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -129,7 +130,7 @@ const PredictHome: React.FC = () => {
 
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={{ bottom: 'off' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -160,40 +161,44 @@ const PredictHome: React.FC = () => {
           >
             <Text
               testID={PredictHomeSelectorsIDs.TITLE}
-              variant={TextVariant.DisplayMd}
+              variant={TextVariant.HeadingMd}
             >
               {strings('wallet.predict')}
             </Text>
           </Box>
 
-          <PredictPortfolioModule
-            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-          />
-          <Box
-            testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
-            onLayout={registerSection(PredictEventValues.SECTION_ID.LIVE_NOW)}
-          >
-            <PredictLiveNowSection />
-          </Box>
-          <Box
-            testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
-            onLayout={registerSection(PredictEventValues.SECTION_ID.CATEGORIES)}
-          >
-            <PredictCategoriesSection />
-          </Box>
-          <Box
-            testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
-            onLayout={registerSection(
-              PredictEventValues.SECTION_ID.POPULAR_TODAY,
-            )}
-          >
-            <PredictPopularTodaySection />
-          </Box>
-          <Box
-            testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
-            onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
-          >
-            <PredictTrendingSection />
+          <Box twClassName="gap-6">
+            <PredictPortfolioModule
+              onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            />
+            <Box
+              testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+              onLayout={registerSection(PredictEventValues.SECTION_ID.LIVE_NOW)}
+            >
+              <PredictLiveNowSection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
+              onLayout={registerSection(
+                PredictEventValues.SECTION_ID.CATEGORIES,
+              )}
+            >
+              <PredictCategoriesSection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+              onLayout={registerSection(
+                PredictEventValues.SECTION_ID.POPULAR_TODAY,
+              )}
+            >
+              <PredictPopularTodaySection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
+              onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
+            >
+              <PredictTrendingSection />
+            </Box>
           </Box>
         </Animated.ScrollView>
 

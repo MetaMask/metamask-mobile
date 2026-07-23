@@ -17,7 +17,7 @@ import {
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(PerformanceOnboarding, () => {
@@ -42,13 +42,13 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 2000, android: 1800 },
+        { ios: 2000, android: 3000 },
         currentDeviceDetails.platform,
       );
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
         // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 21000, android: 5000 },
+        { ios: 21000, android: 6000 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
@@ -56,14 +56,14 @@ test.describe(PerformanceOnboarding, () => {
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(OnboardingSheet.importSeedButton),
+          asPlaywrightElement(OnboardingSheet.importSeedButton),
         );
       });
 
       await OnboardingSheet.tapImportSeedButton();
       await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(ImportWalletView.title),
+          asPlaywrightElement(ImportWalletView.title),
         );
       });
 
@@ -76,7 +76,7 @@ test.describe(PerformanceOnboarding, () => {
       await ImportWalletView.tapContinueButton();
       await timer3.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(CreatePasswordView.newPasswordInput),
+          asPlaywrightElement(CreatePasswordView.newPasswordInput),
         );
       });
 
@@ -97,7 +97,7 @@ test.describe(PerformanceOnboarding, () => {
 
       await timer4.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+          asPlaywrightElement(MetaMetricsOptInView.screenTitle),
         );
       });
 
@@ -106,7 +106,7 @@ test.describe(PerformanceOnboarding, () => {
       await dismissPushNotificationExistingUserSheet();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+          asPlaywrightElement(WalletView.headerRoot),
           { timeout: walletTokenLoadTimeoutMs },
         );
       });

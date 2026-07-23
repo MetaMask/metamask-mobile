@@ -224,6 +224,7 @@ const mockRouteParams: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
   };
+  source_section?: string;
   transactionActiveAbTests?: {
     key: string;
     value: string;
@@ -377,10 +378,6 @@ const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
     error: null,
   }),
 );
-
-jest.mock('../../hooks/usePerpsOpenOrders', () => ({
-  usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
-}));
 
 const mockUsePerpsLiveFillsImpl = jest.fn<
   ReturnType<
@@ -553,19 +550,6 @@ jest.mock('../../hooks', () => ({
     resetError: jest.fn(),
     reconnectWithNewContext: jest.fn(),
   }),
-  usePerpsOpenOrders: () => ({
-    orders: [],
-    refresh: mockRefreshOrders,
-    isLoading: false,
-    error: null,
-  }),
-  usePerpsPositions: jest.fn(() => ({
-    positions: [],
-    isLoading: false,
-    isRefreshing: false,
-    error: null,
-    loadPositions: jest.fn(),
-  })),
   usePerpsTPSLUpdate: jest.fn(() => ({
     updateTPSL: jest.fn(),
     isUpdating: false,
@@ -765,12 +749,6 @@ jest.mock('../../components/PerpsNotificationTooltip', () => ({
   },
 }));
 
-// Mock PerpsOpenOrderCard
-jest.mock('../../components/PerpsOpenOrderCard', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
 // Mock PerpsBottomSheetTooltip to avoid SafeAreaProvider issues
 jest.mock(
   '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip',
@@ -921,6 +899,7 @@ describe('PerpsMarketDetailsView', () => {
       maxLeverage: '40x',
     };
     mockRouteParams.transactionActiveAbTests = undefined;
+    mockRouteParams.source_section = undefined;
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
@@ -2637,6 +2616,49 @@ describe('PerpsMarketDetailsView', () => {
         );
       } finally {
         mockRouteParams.transactionActiveAbTests = undefined;
+      }
+    });
+
+    it('forwards route source_section into navigateToOrder params', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+      mockRouteParams.source_section = 'watchlist';
+
+      try {
+        const { getByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        const longButton = getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        );
+        await act(async () => {
+          fireEvent.press(longButton);
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            direction: 'long',
+            asset: 'BTC',
+            source: 'perp_asset_screen',
+            source_section: 'watchlist',
+          }),
+        );
+      } finally {
+        mockRouteParams.source_section = undefined;
       }
     });
 

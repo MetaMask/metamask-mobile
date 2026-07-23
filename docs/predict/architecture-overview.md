@@ -504,15 +504,15 @@ PredictScreenStack
 
 ```typescript
 // selectors/predictController/index.ts
-selectPredictBalanceByAddress({ address }); // Memoized balance lookup
-selectPredictClaimablePositions(); // All claimable positions
-selectPredictClaimablePositionsByAddress(); // Per-address positions
-selectPredictWonPositions(); // Won positions with P&L
-selectPredictPendingDeposits(); // Pending deposits
-selectPredictConfirmedDeposits(); // Confirmed deposits
-selectPredictCancelledDeposits(); // Cancelled deposits
-selectPredictPendingClaims(); // Pending claims
-selectPredictPendingWithdraw(); // Pending withdraw
+selectPredictBalanceByAddress(state, address); // Memoized balance lookup
+selectPredictClaimablePositions(state); // All claimable positions
+selectPredictClaimablePositionsByAddress(state, address); // Per-address positions
+selectPredictWonPositions(state, address); // Won positions with P&L
+selectPredictPendingDeposits(state); // Pending deposits
+selectPredictPendingClaims(state); // Pending claims
+selectPredictPendingDepositByAddress(state, address); // Pending deposit by address
+selectPredictPendingClaimByAddress(state, address); // Pending claim by address
+selectPredictWithdrawTransaction(state); // Pending withdraw
 ```
 
 ---
@@ -550,7 +550,9 @@ Examples:
 export function usePredictBalance() {
   const { getBalance } = usePredictTrading();           // Compose
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();  // Compose
-  const balance = useSelector(selectPredictBalanceByAddress());  // Redux
+  const balance = useSelector((state) =>
+    selectPredictBalanceByAddress(state, selectedAddress),
+  );  // Redux
 
   const loadBalance = useCallback(async () => {
     await ensurePolygonNetworkExists();
