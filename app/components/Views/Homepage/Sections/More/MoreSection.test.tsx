@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import MoreSection from './MoreSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
@@ -131,7 +131,9 @@ describe('MoreSection', () => {
       ),
     );
     const { onReject } = mockNavigate.mock.calls[0][1].params;
-    await onReject();
+    await act(async () => {
+      await onReject();
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
