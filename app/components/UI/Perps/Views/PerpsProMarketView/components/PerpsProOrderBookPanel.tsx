@@ -9,6 +9,7 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -37,6 +38,7 @@ import {
   getDepthRatio,
   getDepthWidth,
   groupOrderBook,
+  FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
   selectDefaultGrouping,
   type OrderBookListCurrency,
@@ -205,6 +207,81 @@ const OrderBookViewIcon = ({
 };
 
 /**
+ * Skeleton ladder matching loaded layout: 5 ask rows + spread + 5 bid rows +
+ * depth-ratio footer (Hyperliquid fast book ≤5 levels/side). Keeps header /
+ * column chrome mounted so height stays stable while data loads.
+ */
+const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
+  const rowIndexes = useMemo(
+    () => Array.from({ length: FAST_ORDER_BOOK_LEVELS }, (_, index) => index),
+    [],
+  );
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      testID={`${testID}-skeleton`}
+      accessibilityState={{ busy: true }}
+    >
+      {rowIndexes.map((index) => (
+        <Box
+          // eslint-disable-next-line react/no-array-index-key
+          key={`ask-skeleton-${index}`}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          style={styles.interactiveRow}
+          twClassName="px-1"
+        >
+          <Skeleton height={12} width="42%" />
+          <Skeleton height={12} width="32%" />
+        </Box>
+      ))}
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="h-8 px-1"
+      >
+        <Skeleton height={12} width="28%" />
+        <Skeleton height={12} width="48%" />
+      </Box>
+
+      {rowIndexes.map((index) => (
+        <Box
+          // eslint-disable-next-line react/no-array-index-key
+          key={`bid-skeleton-${index}`}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          style={styles.interactiveRow}
+          twClassName="px-1"
+        >
+          <Skeleton height={12} width="42%" />
+          <Skeleton height={12} width="32%" />
+        </Box>
+      ))}
+
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        twClassName="gap-1 px-1 pt-2 pb-1"
+      >
+        <Skeleton height={4} width="100%" twClassName="rounded-full" />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="w-full"
+        >
+          <Skeleton height={12} width={52} />
+          <Skeleton height={12} width={52} />
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+/**
  * Pro-mode order book column — live bid/ask ladder with depth bars.
  *
  * Mirrors Extension's `PerpsOrderBook`: raw book on the shared controller
@@ -368,18 +445,18 @@ const PerpsProOrderBookPanel = ({
     grouped && (grouped.bids.length > 0 || grouped.asks.length > 0),
   );
   const hasConnectionError = connectionStatus === 'error';
-  const showPlaceholder =
-    hasConnectionError ||
-    isInitialLoading ||
-    !aggregatedOrderBook ||
-    !grouped ||
-    !hasLadder;
+  // Skeleton only when we have no ladder yet (initial connect / reconnect).
+  // Avoids collapsing the column into a short "Loading..." message.
+  const showSkeleton =
+    !hasConnectionError &&
+    !hasLadder &&
+    (isInitialLoading || connectionStatus === 'connecting');
+  const showEmptyPlaceholder =
+    !showSkeleton && (hasConnectionError || !hasLadder);
 
   let placeholderMessage = strings('perps.order_book.no_data');
   if (hasConnectionError) {
     placeholderMessage = strings('perps.order_book.connection_error');
-  } else if (isInitialLoading) {
-    placeholderMessage = strings('perps.order_book.loading');
   }
 
   const unitLabel = currency === 'usd' ? 'USD' : displaySymbol;
@@ -462,7 +539,9 @@ const PerpsProOrderBookPanel = ({
       </Box>
 
       {/* Ladder */}
-      {showPlaceholder ? (
+      {showSkeleton ? (
+        <OrderBookLadderSkeleton testID={testID} />
+      ) : showEmptyPlaceholder ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}

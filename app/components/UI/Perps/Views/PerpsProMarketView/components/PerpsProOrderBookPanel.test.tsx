@@ -165,6 +165,38 @@ describe('PerpsProOrderBookPanel', () => {
     expect(queryByTestId(`${testID}-bid-row-0`)).not.toBeOnTheScreen();
   });
 
+  it('shows a ladder skeleton while the aggregated book is loading', () => {
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => {
+        if (params.channel === 'orderBookAggregated') {
+          return {
+            orderBook: null,
+            isLoading: true,
+            error: null,
+            connectionStatus: 'connecting',
+            reconnect: mockReconnect,
+          };
+        }
+        return {
+          orderBook: null,
+          isLoading: true,
+          error: null,
+          connectionStatus: 'connected',
+          reconnect: mockReconnect,
+        };
+      },
+    );
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
+    expect(queryByTestId(`${testID}-ask-row-0`)).not.toBeOnTheScreen();
+    expect(queryByTestId(`${testID}-reconnect`)).not.toBeOnTheScreen();
+  });
+
   it('invokes onCollapse when the collapse button is pressed', () => {
     const onCollapse = jest.fn();
     const { getByTestId } = renderWithProvider(
