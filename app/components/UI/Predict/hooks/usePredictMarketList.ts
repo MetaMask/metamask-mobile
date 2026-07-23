@@ -56,10 +56,9 @@ export const usePredictMarketList = (
     ...predictQueries.marketList.options(params),
     enabled,
   });
-  const { data, error } = queryResult;
 
   const markets = useMemo(() => {
-    const pages = data?.pages ?? [];
+    const pages = queryResult.data?.pages ?? [];
 
     // Rank visibility/staleness PER PAGE, then append, so loading more pages
     // never re-orders markets already on screen. `getVisiblePredictMarkets`
@@ -84,14 +83,14 @@ export const usePredictMarketList = (
     }
 
     return accumulated;
-  }, [data]);
+  }, [queryResult.data]);
 
   useEffect(() => {
-    if (!error) {
+    if (!queryResult.error) {
       return;
     }
 
-    Logger.error(ensureError(error), {
+    Logger.error(ensureError(queryResult.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictMarketList',
@@ -105,7 +104,7 @@ export const usePredictMarketList = (
         },
       },
     });
-  }, [error]);
+  }, [queryResult.error]);
 
   return {
     markets,
