@@ -213,4 +213,19 @@ describe('PerpsProOrderBookPanel', () => {
     );
     expect(onCollapse).toHaveBeenCalledTimes(1);
   });
+
+  it('opens settings and saves currency, metric, and grouping', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-currency-base`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-metric-size`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-grouping-100`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
+
+    expect(mockSaveGrouping).toHaveBeenCalledWith(100);
+  });
 });
