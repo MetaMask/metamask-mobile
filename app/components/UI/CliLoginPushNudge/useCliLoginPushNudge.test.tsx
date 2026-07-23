@@ -68,14 +68,13 @@ describe('useCliLoginPushNudge', () => {
     appStateChangeHandler = undefined;
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockEnableNotifications.mockResolvedValue(undefined);
-    jest
-      .spyOn(AppState, 'addEventListener')
-      .mockImplementation((_event: string, handler: (s: string) => void) => {
-        appStateChangeHandler = handler;
-        return { remove: jest.fn() } as unknown as ReturnType<
-          typeof AppState.addEventListener
-        >;
-      });
+    jest.spyOn(AppState, 'addEventListener').mockImplementation(((
+      _event: string,
+      handler: (state: string) => void,
+    ) => {
+      appStateChangeHandler = handler;
+      return { remove: jest.fn() };
+    }) as unknown as typeof AppState.addEventListener);
   });
 
   afterEach(() => {
