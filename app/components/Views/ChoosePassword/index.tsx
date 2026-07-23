@@ -109,7 +109,7 @@ import {
   resolveFirstPredictOnUsLaunch,
   type ResolvedFirstPredictOnUsLaunch,
 } from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
-import { markFirstPredictOnUsSplashShown } from '../../../reducers/rewards';
+import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
 
 interface KeyringState {
   type: string;
@@ -449,7 +449,7 @@ const ChoosePassword = () => {
       : null;
 
     if (firstPredictOnUsLaunch) {
-      dispatch(markFirstPredictOnUsSplashShown());
+      dispatch(markFirstPredictionOnUsOfferViewed());
       navigation.reset({
         index: 0,
         routes: [

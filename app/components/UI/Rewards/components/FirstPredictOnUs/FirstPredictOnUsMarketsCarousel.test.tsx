@@ -6,9 +6,11 @@ import { FEATURED_CAROUSEL_TEST_IDS } from '../../../Predict/components/Featured
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { markFirstPredictionOnUsOutcomeOpened } from '../../../../../reducers/rewards';
 import FirstPredictOnUsMarketsCarousel from './FirstPredictOnUsMarketsCarousel';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'event' }));
@@ -22,6 +24,11 @@ const mockCreateEventBuilder = jest.fn(() => ({
 jest.mock('../../../Predict/components/PredictMarket', () =>
   jest.fn(() => null),
 );
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
@@ -204,6 +211,12 @@ describe('FirstPredictOnUsMarketsCarousel', () => {
       market_id: '1',
       outcome: 'Yes',
     });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      markFirstPredictionOnUsOutcomeOpened({
+        marketId: '1',
+        outcome: 'Yes',
+      }),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET,
       {
