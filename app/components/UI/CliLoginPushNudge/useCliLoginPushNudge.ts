@@ -11,6 +11,7 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications/const
 import { useEnableNotifications } from '../../../util/notifications/hooks/useNotifications';
 import NotificationService, {
   isPushPermissionGranted,
+  isPushPermissionPromptable,
 } from '../../../util/notifications/services/NotificationService';
 
 const NUDGE_LABELS = () => [
@@ -27,12 +28,11 @@ const ERROR_LABELS = () => [
 
 /**
  * Shared toast-based push-permission nudge shown after a successful Agentic CLI
- * QR login (MMAI-925). On "Turn on" it calls enableNotifications(), which turns
- * on in-app notifications and requests the OS permission dialog when the OS can
- * still show it. If native push is still not granted afterwards (denied, or an
- * Android POST_NOTIFICATIONS prompt that is permanently dismissed and no longer
- * shows), it deep-links to the device notification settings and retries once the
- * app returns to the foreground.
+ * QR login (MMAI-925). On "Turn on": when the OS can still show its permission
+ * dialog it calls enableNotifications() (in-app notifications + OS prompt).
+ * Denying that dialog closes the toast without opening Settings. When the OS can
+ * no longer show its dialog (e.g. iOS after a prior denial), it deep-links to
+ * device notification settings and retries once the app returns to foreground.
  */
 export function useCliLoginPushNudge(): {
   showNudge: () => boolean;
@@ -122,17 +122,12 @@ export function useCliLoginPushNudge(): {
     const isCurrent = () => flowEpochRef.current === epoch;
 
     try {
-      // Attempt to enable directly. enableNotifications() turns on in-app
-      // notifications and, when the OS can still show its dialog (iOS
-      // NOT_DETERMINED, or an Android POST_NOTIFICATIONS prompt that has not
-      // been permanently dismissed), requests the native push permission.
-      showLoadingToast();
-      await enableNotifications();
-      if (!isCurrent()) {
-        return;
-      }
-
       if (await isPushPermissionGranted()) {
+        if (!isCurrent()) {
+          return;
+        }
+        showLoadingToast();
+        await enableNotifications();
         if (isCurrent()) {
           toastRef?.current?.closeToast();
         }
@@ -142,38 +137,52 @@ export function useCliLoginPushNudge(): {
         return;
       }
 
-      // Still not granted: the OS dialog was denied, or can no longer be shown
-      // at all. On Android, once POST_NOTIFICATIONS is permanently denied,
-      // requestPermission() silently no-ops (and Notifee cannot detect this up
-      // front), so the only remaining path is the device settings screen.
-      // Deep-link there and retry once the app returns to the foreground.
-      toastRef?.current?.closeToast();
-      NotificationService.openSystemSettings();
-      scheduleForegroundRetry(async () => {
-        if (!isCurrent()) {
-          return;
-        }
-        inFlightRef.current = true;
-        try {
-          if (!(await isPushPermissionGranted())) {
-            if (isCurrent()) {
-              toastRef?.current?.closeToast();
-            }
-            return;
-          }
+      const promptable = await isPushPermissionPromptable();
+      if (!isCurrent()) {
+        return;
+      }
+
+      if (!promptable) {
+        // OS dialog cannot be shown again (e.g. iOS after a prior denial).
+        // Deep-link to device settings and retry on return to foreground.
+        toastRef?.current?.closeToast();
+        NotificationService.openSystemSettings();
+        scheduleForegroundRetry(async () => {
           if (!isCurrent()) {
             return;
           }
-          showLoadingToast();
-          await runEnableFlow(isCurrent);
-        } finally {
-          inFlightRef.current = false;
-        }
-      });
-      // The enable work is deferred to the foreground retry, which manages its
-      // own in-flight guard. Release the guard now so a later tap is not
-      // permanently blocked if the user never returns from device settings.
-      inFlightRef.current = false;
+          inFlightRef.current = true;
+          try {
+            if (!(await isPushPermissionGranted())) {
+              if (isCurrent()) {
+                toastRef?.current?.closeToast();
+              }
+              return;
+            }
+            if (!isCurrent()) {
+              return;
+            }
+            showLoadingToast();
+            await runEnableFlow(isCurrent);
+          } finally {
+            inFlightRef.current = false;
+          }
+        });
+        // The enable work is deferred to the foreground retry, which manages
+        // its own in-flight guard. Release the guard now so a later tap is not
+        // permanently blocked if the user never returns from device settings.
+        inFlightRef.current = false;
+        return;
+      }
+
+      // OS can still show its dialog — request permission via enableNotifications().
+      // If the user denies, dismiss the toast without opening Settings (matches
+      // PushNotificationOnboarding).
+      showLoadingToast();
+      await enableNotifications();
+      if (isCurrent()) {
+        toastRef?.current?.closeToast();
+      }
     } catch {
       if (isCurrent()) {
         toastRef?.current?.closeToast();
