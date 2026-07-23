@@ -5,8 +5,8 @@
  * multiple error states, recovering, and then browsing informational UI
  * (tooltips, market badges, fill tags).
  *
- * Components covered: PerpsLoadingSkeleton, PerpsConnectionErrorView,
- * PerpsErrorState, PerpsTooltipView, PerpsBadge, PerpsFillTag
+ * Components covered: PerpsConnectionErrorView,
+ * PerpsTooltipView, PerpsBadge, PerpsFillTag
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
@@ -15,14 +15,9 @@ import { strings } from '../../../../../locales/i18n';
 import {
   renderPerpsView,
   renderPerpsComponent,
-  renderPerpsComponentDisconnected,
   renderPerpsTooltipView,
 } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView/PerpsConnectionErrorView';
-import PerpsErrorState, {
-  PerpsErrorType,
-} from '../components/PerpsErrorState/PerpsErrorState';
-import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton/PerpsLoadingSkeleton';
 import PerpsBadge from '../components/PerpsBadge/PerpsBadge';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 import PerpsFillTag from '../components/PerpsFillTag/PerpsFillTag';
@@ -49,12 +44,6 @@ const ConnectionErrorRetrying: React.FC = () => (
     isRetrying
   />
 );
-
-const renderErrorState = (errorType: PerpsErrorType, onRetry?: () => void) =>
-  renderPerpsComponent(
-    PerpsErrorState as unknown as React.ComponentType<Record<string, unknown>>,
-    { errorType, onRetry },
-  );
 
 const renderBadge = (type: BadgeType, customLabel?: string) =>
   renderPerpsComponent(
@@ -117,18 +106,7 @@ describe('Errors, Recovery & Information Flow', () => {
   });
 
   it('trader encounters connection issues, retries through error states, recovers, then browses tooltips, badges, and fill tags', async () => {
-    // ── PHASE 1: Connection attempt ──────────────────────────────────────
-    // Trader opens Perps, sees loading skeleton while connecting
-    renderPerpsComponentDisconnected(
-      PerpsLoadingSkeleton as unknown as React.ComponentType<
-        Record<string, unknown>
-      >,
-    );
-    expect(
-      await screen.findByText(strings('perps.connection.connecting_to_perps')),
-    ).toBeOnTheScreen();
-
-    // ── PHASE 2: Connection failure and retry cycle ──────────────────────
+    // ── PHASE 1: Connection failure and retry cycle ──────────────────────
     // Connection fails — trader sees error title and retry button, no go-back
     await act(async () => {
       cleanup();
@@ -162,61 +140,7 @@ describe('Errors, Recovery & Information Flow', () => {
     await screen.findByText(CONNECTION_FAILED_TITLE);
     expect(screen.queryByText(CONNECTION_FAILED_RETRY)).not.toBeOnTheScreen();
 
-    // ── PHASE 3: Error state variants ────────────────────────────────────
-    // CONNECTION_FAILED error state — retry fires callback
-    await act(async () => {
-      cleanup();
-    });
-    const retryFn1 = jest.fn();
-    renderErrorState(PerpsErrorType.CONNECTION_FAILED, retryFn1);
-    expect(await screen.findByText(CONNECTION_FAILED_TITLE)).toBeOnTheScreen();
-    fireEvent.press(screen.getByText(CONNECTION_FAILED_RETRY));
-    expect(retryFn1).toHaveBeenCalledTimes(1);
-
-    // NETWORK_ERROR — title, description, and retry
-    await act(async () => {
-      cleanup();
-    });
-    const retryFn2 = jest.fn();
-    renderErrorState(PerpsErrorType.NETWORK_ERROR, retryFn2);
-    expect(
-      await screen.findByText(strings('perps.errors.networkError.title')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.errors.networkError.description')),
-    ).toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByText(strings('perps.errors.networkError.retry')),
-    );
-    expect(retryFn2).toHaveBeenCalledTimes(1);
-
-    // UNKNOWN without retry — no retry button
-    await act(async () => {
-      cleanup();
-    });
-    renderErrorState(PerpsErrorType.UNKNOWN);
-    expect(
-      await screen.findByText(strings('perps.errors.unknown.title')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.errors.unknown.description')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('perps.errors.unknown.retry')),
-    ).not.toBeOnTheScreen();
-
-    // UNKNOWN with retry — retry button fires callback
-    await act(async () => {
-      cleanup();
-    });
-    const retryFn3 = jest.fn();
-    renderErrorState(PerpsErrorType.UNKNOWN, retryFn3);
-    fireEvent.press(
-      await screen.findByText(strings('perps.errors.unknown.retry')),
-    );
-    expect(retryFn3).toHaveBeenCalledTimes(1);
-
-    // ── PHASE 4: Trader recovers and browses tooltips ────────────────────
+    // ── PHASE 2: Trader recovers and browses tooltips ────────────────────
     // Trader reads the leverage tooltip, then dismisses
     await act(async () => {
       cleanup();
@@ -258,7 +182,7 @@ describe('Errors, Recovery & Information Flow', () => {
       ),
     ).toBeOnTheScreen();
 
-    // ── PHASE 5: Market badges across asset classes ──────────────────────
+    // ── PHASE 3: Market badges across asset classes ──────────────────────
     const badgeTypes: BadgeType[] = [
       'experimental',
       'stock',
@@ -283,7 +207,7 @@ describe('Errors, Recovery & Information Flow', () => {
     renderBadge('crypto', 'CUSTOM');
     expect(await screen.findByText('CUSTOM')).toBeOnTheScreen();
 
-    // ── PHASE 6: Fill tags on past transactions ──────────────────────────
+    // ── PHASE 4: Fill tags on past transactions ──────────────────────────
     // Standard fill — no tag visible
     await act(async () => {
       cleanup();

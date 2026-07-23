@@ -537,7 +537,14 @@
     },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
-    "cachedUserDataByProvider": {}
+    "cachedUserDataByProvider": {},
+    "mode": "lite",
+    "proLayoutPreferences": {
+      "chartExpanded": false,
+      "orderBookExpanded": false,
+      "orderBookPosition": "left",
+      "orderFormPosition": "right"
+    }
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,

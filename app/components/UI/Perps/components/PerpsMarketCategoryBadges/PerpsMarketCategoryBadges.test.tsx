@@ -12,6 +12,7 @@ const DEFAULT_CATEGORIES: PerpsCategory[] = [
 
 jest.mock('../../hooks/usePerpsCategories', () => ({
   usePerpsCategories: () => DEFAULT_CATEGORIES,
+  NEW_CATEGORY: { id: 'new', label: 'New' },
 }));
 
 jest.mock('../../hooks/useHasNewMarkets', () => ({

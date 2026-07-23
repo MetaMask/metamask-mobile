@@ -415,11 +415,22 @@ export const useCryptoUpDownChartData = (
     livePointOffsetFromEventStart <= 90;
   const shouldUseFallbackStartPoint =
     stableHistoricalData.length > 0 || firstLivePointIsNearEventStart;
-  const baseHistoricalData = mergeLivelinePoints(
-    shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
-    stableHistoricalData,
+  const chartData = useMemo(
+    () =>
+      mergeLivelinePoints(
+        mergeLivelinePoints(
+          shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
+          stableHistoricalData,
+        ),
+        livePoints,
+      ),
+    [
+      livePoints,
+      shouldUseFallbackStartPoint,
+      stableFallbackStartPoint,
+      stableHistoricalData,
+    ],
   );
-  const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
   const hasRenderableChartData = chartData.length >= 2;
   const newestLivePointTime = livePoints.at(-1)?.time;
   const liveWindowStartSecs =

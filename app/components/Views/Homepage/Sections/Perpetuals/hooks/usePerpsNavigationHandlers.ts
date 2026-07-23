@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import {
   useNavigation,
   type NavigationProp,
@@ -16,28 +16,20 @@ import type {
   PerpsStackParamList,
 } from '../../../../../UI/Perps/types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { mergeActiveAbTestAssignmentLists } from '../../../../../../util/analytics/activeABTestAssignments';
 
 interface UsePerpsNavigationHandlersArgs {
-  trendingTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  extraTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const usePerpsNavigationHandlers = ({
-  trendingTransactionActiveAbTests,
-  extraTransactionActiveAbTests,
+  transactionActiveAbTests,
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
-  const marketDetailsTransactionActiveAbTests = useMemo(
-    () =>
-      mergeActiveAbTestAssignmentLists(
-        trendingTransactionActiveAbTests,
-        extraTransactionActiveAbTests,
-      ),
-    [trendingTransactionActiveAbTests, extraTransactionActiveAbTests],
-  );
+  const marketDetailsTransactionActiveAbTests = transactionActiveAbTests?.length
+    ? transactionActiveAbTests
+    : undefined;
 
   const navigateToTutorialOrScreen = useCallback(
     <S extends keyof PerpsStackParamList>(

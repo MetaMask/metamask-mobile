@@ -515,6 +515,28 @@ jobs:
           max_attempts: 2
           retry_wait_seconds: 60
           command: |
+            # AGP can leave a partial ndk/<version> directory after a failed
+            # download (corrupt zip → "Error on ZipFile unknown archive"). The
+            # next attempt then fails immediately with CXX1101 (missing
+            # source.properties) instead of re-downloading. Clear incomplete
+            # installs and SDK temp zips before each attempt — same pattern as
+            # .github/actions/setup-e2e-env for system images.
+            if [ "${{ matrix.platform }}" = "android" ]; then
+              SDK_ROOT="${ANDROID_SDK_ROOT:-/opt/android-sdk}"
+              NDK_ROOT="$SDK_ROOT/ndk"
+              if [ -d "$NDK_ROOT" ]; then
+                for ndk_dir in "$NDK_ROOT"/*; do
+                  if [ -d "$ndk_dir" ] && [ ! -f "$ndk_dir/source.properties" ]; then
+                    echo "Removing incomplete NDK install: $ndk_dir"
+                    rm -rf "$ndk_dir"
+                  fi
+                done
+              fi
+              if [ -d "$SDK_ROOT/.temp" ]; then
+                echo "Clearing Android SDK temp downloads under $SDK_ROOT/.temp"
+                find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
+              fi
+            fi
             export NODE_OPTIONS='--max-old-space-size=4096'
             export METRO_MAX_WORKERS='4'
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"

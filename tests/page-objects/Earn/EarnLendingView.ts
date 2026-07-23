@@ -90,7 +90,7 @@ class EarnLendingView {
   async scrollToWithdrawButton(): Promise<void> {
     await Gestures.scrollToElement(
       this.withdrawButton,
-      Matchers.getIdentifier('transactions-container'),
+      Matchers.scrollContainer('transactions-container'),
       {
         direction: 'down',
         scrollAmount: 200,
