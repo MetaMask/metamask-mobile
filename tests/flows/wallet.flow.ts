@@ -442,10 +442,15 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet home should be visible after onboarding completion',
-      timeout: 15000,
-    });
+    if (FrameworkDetector.isAppium()) {
+      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
+    } else {
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description:
+          'Wallet home should be visible after onboarding completion',
+        timeout: 15000,
+      });
+    }
   }
   //'Should dismiss Enable device Notifications checks alert'
   await closeOnboardingModals(fromResetWallet);
@@ -561,20 +566,31 @@ export const CreateNewWallet = async ({
   }
 
   await MetaMetricsOptInView.tapAgreeButton();
-  await device.disableSynchronization(); // Detox is hanging after wallet creation
+  // Detox hangs after wallet creation without disabling sync; Appium has no sync layer.
+  if (FrameworkDetector.isDetox()) {
+    await device.disableSynchronization();
+  }
 
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet home should be visible after onboarding completion',
-      timeout: 15000,
-    });
+    // iOS Appium: wallet-screen often exists but reports displayed=false; use readiness helpers.
+    if (FrameworkDetector.isAppium()) {
+      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
+    } else {
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description:
+          'Wallet home should be visible after onboarding completion',
+        timeout: 15000,
+      });
+    }
   }
 
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-  await device.enableSynchronization();
+  if (FrameworkDetector.isDetox()) {
+    await device.enableSynchronization();
+  }
 };
 
 /**

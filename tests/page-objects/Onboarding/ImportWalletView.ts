@@ -168,17 +168,17 @@ class ImportWalletView {
           );
         } else {
           for (const [i, word] of srpArray.entries()) {
-            const suffix = i === srpArray.length - 1 ? '' : ' ';
             await UnifiedGestures.typeText(
-              // once merged, remove me and create a typeText in Playwright Gestures
               this.seedPhraseInput(i, onboarding),
-              `${word}${suffix}`,
+              `${word} `,
               {
                 description: 'Import Wallet Secret Recovery Phrase Input Box',
+                hideKeyboard: false,
               },
             );
           }
         }
+        await this.tapImportScreenTitleToDismissKeyboard(onboarding);
         await PlaywrightGestures.hideKeyboard();
       },
     });
@@ -186,8 +186,21 @@ class ImportWalletView {
 
   async tapContinueButton(onboarding = true): Promise<void> {
     if (onboarding) {
-      await UnifiedGestures.waitAndTap(this.continueButton, {
-        description: 'Import Wallet Continue Button',
+      await encapsulatedAction({
+        detox: async () => {
+          await UnifiedGestures.waitAndTap(this.continueButton, {
+            description: 'Import Wallet Continue Button',
+          });
+        },
+        appium: async () => {
+          await PlaywrightGestures.hideKeyboard();
+          await UnifiedGestures.waitAndTap(this.continueButton, {
+            description: 'Import Wallet Continue Button',
+            timeout: 15_000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+        },
       });
       return;
     }
@@ -199,6 +212,7 @@ class ImportWalletView {
         });
       },
       appium: async () => {
+        await PlaywrightGestures.hideKeyboard();
         await UnifiedGestures.tap(
           encapsulated({
             appium: {
