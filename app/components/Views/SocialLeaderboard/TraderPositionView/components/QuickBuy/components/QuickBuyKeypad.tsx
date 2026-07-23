@@ -1,25 +1,24 @@
-import { AnimationDuration } from '@metamask/design-tokens';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo } from 'react';
-import Animated, {
-  LinearTransition,
-  SlideInDown,
-  SlideOutDown,
-} from 'react-native-reanimated';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
 import Keypad, { type KeypadChangeData } from '../../../../../../Base/Keypad';
 import useCurrency from '../../../../../../Base/Keypad/useCurrency';
 import { useQuickBuyContext } from '../useQuickBuyContext';
+import CollapsibleReveal from './CollapsibleReveal';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 
 const UNPRICED_KEYPAD_CURRENCY = 'native';
-
-const KEYPAD_ANIM_DURATION = AnimationDuration.Fast;
 
 /**
  * Numeric keypad for the Quick Buy keyboard A/B treatment. When open, renders
  * quick-amount pills + Done above the shared `Base/Keypad`. Pay with / CTA are
  * collapsed in the footer while this is visible.
+ *
+ * Height is animated via CollapsibleReveal (same curve as the footer collapse)
+ * so the bottom-anchored sheet lerps between closed and open height — no dip.
+ * Mount is deferred until the first open so the sheet open animation isn't
+ * competing with keypad layout work.
  */
 const QuickBuyKeypad: React.FC = () => {
   const tw = useTailwind();
@@ -34,6 +33,15 @@ const QuickBuyKeypad: React.FC = () => {
     setIsKeypadOpen,
     features,
   } = useQuickBuyContext();
+
+  // Defer mounting until the first open so flash-icon sheet open stays smooth.
+  // After that, stay mounted (height 0) to keep expand/collapse in sync with footer.
+  const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
+  useEffect(() => {
+    if (isKeypadOpen) {
+      setHasOpenedOnce(true);
+    }
+  }, [isKeypadOpen]);
 
   const keypadCurrency = hasSourcePrice
     ? currentCurrency
@@ -72,22 +80,21 @@ const QuickBuyKeypad: React.FC = () => {
     sourceAmountTokens,
   ]);
 
-  if (!useKeyboard || !isKeypadOpen) {
+  if (!useKeyboard || (!hasOpenedOnce && !isKeypadOpen)) {
     return null;
   }
 
   return (
-    <Animated.View
-      entering={SlideInDown.duration(KEYPAD_ANIM_DURATION)}
-      exiting={SlideOutDown.duration(KEYPAD_ANIM_DURATION)}
+    <CollapsibleReveal
+      expanded={isKeypadOpen}
+      snapExpandedOnMount={false}
+      unmountWhenCollapsed={false}
+      testID="quick-buy-keypad-reveal"
     >
       {features.quickAmountPills ? (
-        <Animated.View
-          layout={LinearTransition.duration(KEYPAD_ANIM_DURATION)}
-          style={tw.style('px-4 pt-1')}
-        >
+        <View style={tw.style('px-4 pt-1')}>
           <QuickBuyQuickAmounts showDone onDonePress={handleDonePress} />
-        </Animated.View>
+        </View>
       ) : null}
       <Box twClassName="px-4 py-4" testID="quick-buy-keypad">
         <Keypad
@@ -96,7 +103,7 @@ const QuickBuyKeypad: React.FC = () => {
           currency={keypadCurrency}
         />
       </Box>
-    </Animated.View>
+    </CollapsibleReveal>
   );
 };
 
