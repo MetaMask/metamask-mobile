@@ -9,9 +9,9 @@ import { NativeModules, Platform } from 'react-native';
 import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 // Firebase Mock
+// NOTE: do not jest.requireActual here — since RNFB v25, importing the real
+// module instantiates RNFBNativeEventEmitter which throws without native modules.
 jest.mock('@react-native-firebase/messaging', () => {
-  const originalModule = jest.requireActual('@react-native-firebase/messaging');
-
   const hasPermission = jest.fn();
   const registerDeviceForRemoteMessages = jest.fn();
   const getToken = jest.fn();
@@ -34,12 +34,19 @@ jest.mock('@react-native-firebase/messaging', () => {
     onNotificationOpenedApp,
   }));
 
-  // Retain the messaging properties
-  Object.assign(mockMessaging, originalModule.default);
+  // Statics mirrored from @react-native-firebase/messaging/lib/statics.ts
+  Object.assign(mockMessaging, {
+    AuthorizationStatus: {
+      NOT_DETERMINED: -1,
+      DENIED: 0,
+      AUTHORIZED: 1,
+      PROVISIONAL: 2,
+      EPHEMERAL: 3,
+    },
+  });
 
   return {
     __esModule: true,
-    ...originalModule,
     default: mockMessaging,
   };
 });
