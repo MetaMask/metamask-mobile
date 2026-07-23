@@ -47,28 +47,20 @@ describe('cliLoginPushNudgeRouting', () => {
   });
 
   describe('resolveCliLoginPushNudgeTurnOnAction', () => {
-    it('enables notifications programmatically when in-app is off', () => {
+    it('enables notifications when the OS dialog is still promptable', () => {
       expect(
         resolveCliLoginPushNudgeTurnOnAction({
-          nativePushStatus: 'granted',
+          isPromptable: true,
         }),
       ).toBe('enable_notifications');
     });
 
-    it('opens device settings when native permission is denied', () => {
+    it('opens device settings when the OS can no longer show its dialog', () => {
       expect(
         resolveCliLoginPushNudgeTurnOnAction({
-          nativePushStatus: 'denied',
+          isPromptable: false,
         }),
       ).toBe('open_device_settings');
-    });
-
-    it('enables notifications when the OS dialog is still available', () => {
-      expect(
-        resolveCliLoginPushNudgeTurnOnAction({
-          nativePushStatus: 'promptable',
-        }),
-      ).toBe('enable_notifications');
     });
   });
 });

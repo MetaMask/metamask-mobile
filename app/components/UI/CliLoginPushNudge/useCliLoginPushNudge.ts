@@ -10,7 +10,8 @@ import { strings } from '../../../../locales/i18n';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications/constants';
 import { useEnableNotifications } from '../../../util/notifications/hooks/useNotifications';
 import NotificationService, {
-  getPushPermissionStatus,
+  isPushPermissionGranted,
+  isPushPermissionPromptable,
 } from '../../../util/notifications/services/NotificationService';
 import { resolveCliLoginPushNudgeTurnOnAction } from '../../../core/AgenticCli/cliLoginPushNudgeRouting';
 
@@ -28,10 +29,10 @@ const ERROR_LABELS = () => [
 
 /**
  * Shared toast-based push-permission nudge shown after a successful Agentic CLI
- * QR login (MMAI-925). On "Turn on": when native permission is promptable (or
- * MetaMask in-app notifications are off) it calls enableNotifications(), which
- * enables in-app notifications and requests the OS permission dialog. When
- * native permission is already denied it deep-links to the device notification
+ * QR login (MMAI-925). On "Turn on": when native permission is still promptable
+ * (platform-aware via isPushPermissionPromptable) it calls enableNotifications(),
+ * which enables in-app notifications and requests the OS permission dialog. When
+ * the OS can no longer show its dialog it deep-links to the device notification
  * settings and retries once the app returns to the foreground.
  */
 export function useCliLoginPushNudge(): {
@@ -43,6 +44,11 @@ export function useCliLoginPushNudge(): {
   });
 
   const inFlightRef = useRef(false);
+  // Bumped each time a new nudge is shown so a fresh CLI login supersedes any
+  // in-progress Turn on flow: async continuations compare their captured epoch
+  // and skip their side effects once superseded, preventing overlapping enable
+  // calls, settings opens, and toast updates.
+  const flowEpochRef = useRef(0);
   const appStateSubscriptionRef = useRef<ReturnType<
     typeof AppState.addEventListener
   > | null>(null);
@@ -73,15 +79,22 @@ export function useCliLoginPushNudge(): {
     appStateSubscriptionRef.current = null;
   }, []);
 
-  const runEnableFlow = useCallback(async () => {
-    try {
-      await enableNotifications();
-      toastRef?.current?.closeToast();
-    } catch {
-      toastRef?.current?.closeToast();
-      showErrorToast();
-    }
-  }, [enableNotifications, toastRef, showErrorToast]);
+  const runEnableFlow = useCallback(
+    async (isCurrent: () => boolean) => {
+      try {
+        await enableNotifications();
+        if (isCurrent()) {
+          toastRef?.current?.closeToast();
+        }
+      } catch {
+        if (isCurrent()) {
+          toastRef?.current?.closeToast();
+          showErrorToast();
+        }
+      }
+    },
+    [enableNotifications, toastRef, showErrorToast],
+  );
 
   const scheduleForegroundRetry = useCallback(
     (retry: () => Promise<void>) => {
@@ -106,25 +119,39 @@ export function useCliLoginPushNudge(): {
     }
     inFlightRef.current = true;
 
+    const epoch = flowEpochRef.current;
+    const isCurrent = () => flowEpochRef.current === epoch;
+
     try {
-      const nativePushStatus = await getPushPermissionStatus();
+      // Platform-aware: on Android any not-granted state is promptable, so we
+      // request the OS dialog rather than sending first-time users to Settings.
+      const promptable = await isPushPermissionPromptable();
+      if (!isCurrent()) {
+        return;
+      }
       const action = resolveCliLoginPushNudgeTurnOnAction({
-        nativePushStatus,
+        isPromptable: promptable,
       });
 
       if (action === 'open_device_settings') {
         toastRef?.current?.closeToast();
         NotificationService.openSystemSettings();
         scheduleForegroundRetry(async () => {
+          if (!isCurrent()) {
+            return;
+          }
           inFlightRef.current = true;
           try {
-            const retryStatus = await getPushPermissionStatus();
-            if (retryStatus === 'denied') {
+            const retryGranted = await isPushPermissionGranted();
+            if (!isCurrent()) {
+              return;
+            }
+            if (!retryGranted) {
               toastRef?.current?.closeToast();
               return;
             }
             showLoadingToast();
-            await runEnableFlow();
+            await runEnableFlow(isCurrent);
           } finally {
             inFlightRef.current = false;
           }
@@ -137,10 +164,12 @@ export function useCliLoginPushNudge(): {
       }
 
       showLoadingToast();
-      await runEnableFlow();
+      await runEnableFlow(isCurrent);
     } catch {
-      toastRef?.current?.closeToast();
-      showErrorToast();
+      if (isCurrent()) {
+        toastRef?.current?.closeToast();
+        showErrorToast();
+      }
     } finally {
       if (!appStateSubscriptionRef.current) {
         inFlightRef.current = false;
@@ -158,10 +187,11 @@ export function useCliLoginPushNudge(): {
     if (!isNotificationsFeatureEnabled()) {
       return false;
     }
-    // A new nudge supersedes any in-progress denied-permission flow: cancel a
-    // pending foreground retry and release the guard so this toast's Turn on
-    // is not blocked and the previous retry cannot fire on the next resume.
+    // A new nudge supersedes any in-progress Turn on flow: cancel a pending
+    // foreground retry, invalidate in-flight async continuations via the epoch,
+    // and release the guard so this toast's Turn on is not blocked.
     clearForegroundRetry();
+    flowEpochRef.current += 1;
     inFlightRef.current = false;
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,

@@ -32,14 +32,17 @@ export function shouldShowCliLoginPushNudge({
 /**
  * Chooses the next step when the user taps "Turn on" on the CLI push nudge toast.
  * MM in-app notifications are enabled programmatically via enableNotifications().
+ *
+ * `isPromptable` must come from `isPushPermissionPromptable()`, which is
+ * platform-aware: iOS only reports NOT_DETERMINED as promptable, while Notifee
+ * does not expose that state on Android, so any not-granted Android state is
+ * treated as promptable and left to `requestPermission` to resolve. We only
+ * deep-link to device settings when the OS can no longer show its own dialog.
  */
 export function resolveCliLoginPushNudgeTurnOnAction({
-  nativePushStatus,
+  isPromptable,
 }: {
-  nativePushStatus: PushPermissionStatus;
+  isPromptable: boolean;
 }): CliLoginPushNudgeTurnOnAction {
-  if (nativePushStatus === 'denied') {
-    return 'open_device_settings';
-  }
-  return 'enable_notifications';
+  return isPromptable ? 'enable_notifications' : 'open_device_settings';
 }

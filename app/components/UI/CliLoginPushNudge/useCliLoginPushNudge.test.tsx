@@ -9,7 +9,8 @@ import type {
 import { useCliLoginPushNudge } from './useCliLoginPushNudge';
 
 const mockEnableNotifications = jest.fn();
-const mockGetPushPermissionStatus = jest.fn();
+const mockIsPushPermissionPromptable = jest.fn();
+const mockIsPushPermissionGranted = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockIsNotificationsFeatureEnabled = jest.fn();
 
@@ -28,7 +29,8 @@ jest.mock('../../../util/notifications/services/NotificationService', () => ({
   default: {
     openSystemSettings: () => mockOpenSystemSettings(),
   },
-  getPushPermissionStatus: () => mockGetPushPermissionStatus(),
+  isPushPermissionPromptable: () => mockIsPushPermissionPromptable(),
+  isPushPermissionGranted: () => mockIsPushPermissionGranted(),
 }));
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -70,6 +72,8 @@ describe('useCliLoginPushNudge', () => {
     removeMocks = [];
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockEnableNotifications.mockResolvedValue(undefined);
+    mockIsPushPermissionPromptable.mockResolvedValue(true);
+    mockIsPushPermissionGranted.mockResolvedValue(false);
     jest.spyOn(AppState, 'addEventListener').mockImplementation(((
       _event: string,
       handler: (state: string) => void,
@@ -113,8 +117,8 @@ describe('useCliLoginPushNudge', () => {
     expect(options.closeButtonOptions?.onPress).toBeDefined();
   });
 
-  it('enables notifications directly when native permission is promptable', async () => {
-    mockGetPushPermissionStatus.mockResolvedValue('promptable');
+  it('enables notifications directly when the OS dialog is still promptable', async () => {
+    mockIsPushPermissionPromptable.mockResolvedValue(true);
     const { result } = renderNudge();
 
     act(() => {
@@ -127,8 +131,8 @@ describe('useCliLoginPushNudge', () => {
     expect(closeToast).toHaveBeenCalled();
   });
 
-  it('opens device settings when native permission is denied', async () => {
-    mockGetPushPermissionStatus.mockResolvedValue('denied');
+  it('opens device settings when the OS can no longer show its dialog', async () => {
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
     const { result } = renderNudge();
 
     act(() => {
@@ -140,8 +144,8 @@ describe('useCliLoginPushNudge', () => {
     expect(mockEnableNotifications).not.toHaveBeenCalled();
   });
 
-  it('enables notifications on return from settings when permission becomes grantable', async () => {
-    mockGetPushPermissionStatus.mockResolvedValueOnce('denied');
+  it('enables notifications on return from settings when permission becomes granted', async () => {
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
     const { result } = renderNudge();
 
     act(() => {
@@ -149,7 +153,7 @@ describe('useCliLoginPushNudge', () => {
     });
     await tapTurnOn();
 
-    mockGetPushPermissionStatus.mockResolvedValue('granted');
+    mockIsPushPermissionGranted.mockResolvedValue(true);
     await act(async () => {
       appStateChangeHandler?.('active');
     });
@@ -157,8 +161,9 @@ describe('useCliLoginPushNudge', () => {
     expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the toast without enabling when the user returns still denied', async () => {
-    mockGetPushPermissionStatus.mockResolvedValue('denied');
+  it('closes the toast without enabling when the user returns still not granted', async () => {
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
+    mockIsPushPermissionGranted.mockResolvedValue(false);
     const { result } = renderNudge();
 
     act(() => {
@@ -176,7 +181,7 @@ describe('useCliLoginPushNudge', () => {
   });
 
   it('does not block Turn on after opening settings when the user never returns', async () => {
-    mockGetPushPermissionStatus.mockResolvedValue('denied');
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
     const { result } = renderNudge();
 
     act(() => {
@@ -190,7 +195,7 @@ describe('useCliLoginPushNudge', () => {
   });
 
   it('cancels a pending settings-return retry when a new nudge is shown', async () => {
-    mockGetPushPermissionStatus.mockResolvedValue('denied');
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
     const { result } = renderNudge();
 
     act(() => {
@@ -205,5 +210,28 @@ describe('useCliLoginPushNudge', () => {
     });
 
     expect(removeMocks[0]).toHaveBeenCalled();
+  });
+
+  it('does not run a superseded settings-return retry after a new nudge', async () => {
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
+    const { result } = renderNudge();
+
+    act(() => {
+      result.current.showNudge();
+    });
+    await tapTurnOn();
+
+    // A new nudge bumps the flow epoch, invalidating the pending retry.
+    act(() => {
+      result.current.showNudge();
+    });
+
+    mockIsPushPermissionGranted.mockResolvedValue(true);
+    await act(async () => {
+      appStateChangeHandler?.('active');
+    });
+
+    expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
   });
 });
