@@ -5,14 +5,10 @@ import {
   BottomSheetRef,
   Box,
   BoxFlexDirection,
-  FilterButton,
-  ListItemSelect,
-  SegmentedControl,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
-  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
@@ -21,8 +17,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
+import type { Colors } from '../../../../../../util/theme/models';
 import {
   formatGroupingLabel,
   type OrderBookListCurrency,
@@ -45,9 +43,82 @@ export interface PerpsProOrderBookConfigSheetProps {
   testID?: string;
 }
 
+const GROUPING_ROW_SIZE = 3;
+
+const chunkOptions = <T,>(items: T[], size: number): T[][] => {
+  const rows: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    rows.push(items.slice(index, index + size));
+  }
+  return rows;
+};
+
+const createChipStyles = (colors: Colors) =>
+  StyleSheet.create({
+    chip: {
+      flex: 1,
+      height: 40,
+      borderRadius: 12,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 12,
+    },
+    chipSelected: {
+      backgroundColor: colors.background.muted,
+      borderColor: colors.border.default,
+    },
+    chipUnselected: {
+      borderColor: colors.border.muted,
+    },
+  });
+
+interface OptionChipProps {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+  testID: string;
+}
+
+/**
+ * Outlined option chip matching Figma FilterButton states:
+ * - selected: muted fill + border-default + text-default
+ * - unselected: transparent + border-muted + text-alternative
+ */
+const OptionChip = ({
+  label,
+  isSelected,
+  onPress,
+  testID,
+}: OptionChipProps) => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createChipStyles(colors), [colors]);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
+      onPress={onPress}
+      testID={testID}
+      style={[
+        styles.chip,
+        isSelected ? styles.chipSelected : styles.chipUnselected,
+      ]}
+    >
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={isSelected ? TextColor.TextDefault : TextColor.TextAlternative}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+};
+
 /**
  * Bottom sheet for Pro order-book list currency, metric, and price grouping.
- * Mirrors Extension's `PerpsOrderBookConfigModal`.
+ * Matches Figma "Order book settings" (layout section omitted).
  *
  * Rendered inside a RN Modal so the sheet is not clipped by the narrow Pro
  * order-book column (BottomSheet uses absolute inset-0 relative to its parent).
@@ -83,7 +154,7 @@ const PerpsProOrderBookConfigSheet = ({
     sheetRef.current?.onCloseBottomSheet(onClose);
   }, [onClose]);
 
-  const handleApply = useCallback(() => {
+  const handleSave = useCallback(() => {
     if (draftGrouping === null) {
       return;
     }
@@ -97,12 +168,17 @@ const PerpsProOrderBookConfigSheet = ({
 
   const primaryButtonProps = useMemo(
     () => ({
-      children: strings('perps.order_book.apply'),
-      onPress: handleApply,
+      children: strings('perps.order_book.save'),
+      onPress: handleSave,
       isDisabled: draftGrouping === null,
       testID: `${testID}-apply`,
     }),
-    [handleApply, draftGrouping, testID],
+    [handleSave, draftGrouping, testID],
+  );
+
+  const groupingRows = useMemo(
+    () => chunkOptions(groupingOptions, GROUPING_ROW_SIZE),
+    [groupingOptions],
   );
 
   if (!isVisible) {
@@ -120,77 +196,84 @@ const PerpsProOrderBookConfigSheet = ({
             {strings('perps.order_book.config_title')}
           </BottomSheetHeader>
 
-          <Box twClassName="gap-4 px-4 pb-2">
-            <Box twClassName="gap-2">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings('perps.order_book.listed_by')}
-              </Text>
-              <SegmentedControl
-                value={draftCurrency}
-                onChange={(value) =>
-                  setDraftCurrency(value as OrderBookListCurrency)
-                }
-                isFullWidth
-                size={ButtonBaseSize.Sm}
-                testID={`${testID}-currency`}
-              >
-                <FilterButton value="base" testID={`${testID}-currency-base`}>
-                  {baseSymbol}
-                </FilterButton>
-                <FilterButton value="usd" testID={`${testID}-currency-usd`}>
-                  USD
-                </FilterButton>
-              </SegmentedControl>
-            </Box>
-
-            <Box twClassName="gap-2">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings('perps.order_book.value_type')}
-              </Text>
-              <SegmentedControl
-                value={draftMetric}
-                onChange={(value) =>
-                  setDraftMetric(value as OrderBookListMetric)
-                }
-                isFullWidth
-                size={ButtonBaseSize.Sm}
-                testID={`${testID}-metric`}
-              >
-                <FilterButton value="size" testID={`${testID}-metric-size`}>
-                  {strings('perps.order_book.size')}
-                </FilterButton>
-                <FilterButton value="total" testID={`${testID}-metric-total`}>
-                  {strings('perps.order_book.total')}
-                </FilterButton>
-              </SegmentedControl>
-            </Box>
-
-            <Box twClassName="gap-2">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings('perps.order_book.group_by')}
-              </Text>
-              <Box flexDirection={BoxFlexDirection.Column}>
-                {groupingOptions.map((value) => (
-                  <ListItemSelect
-                    key={value}
-                    title={formatGroupingLabel(value)}
-                    isSelected={draftGrouping === value}
-                    showSelectedIcon
-                    onPress={() => setDraftGrouping(value)}
-                    testID={`${testID}-grouping-${value}`}
+          <Box twClassName="w-full gap-6 px-0 pb-3 pt-2">
+            <Box twClassName="w-full gap-2">
+              <Box twClassName="px-4">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('perps.order_book.listed_by')}
+                </Text>
+              </Box>
+              <Box twClassName="w-full gap-3">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="w-full gap-2 px-4"
+                  testID={`${testID}-currency`}
+                >
+                  <OptionChip
+                    label={baseSymbol}
+                    isSelected={draftCurrency === 'base'}
+                    onPress={() => setDraftCurrency('base')}
+                    testID={`${testID}-currency-base`}
                   />
+                  <OptionChip
+                    label="USD"
+                    isSelected={draftCurrency === 'usd'}
+                    onPress={() => setDraftCurrency('usd')}
+                    testID={`${testID}-currency-usd`}
+                  />
+                </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="w-full gap-2 px-4"
+                  testID={`${testID}-metric`}
+                >
+                  <OptionChip
+                    label={strings('perps.order_book.size')}
+                    isSelected={draftMetric === 'size'}
+                    onPress={() => setDraftMetric('size')}
+                    testID={`${testID}-metric-size`}
+                  />
+                  <OptionChip
+                    label={strings('perps.order_book.total')}
+                    isSelected={draftMetric === 'total'}
+                    onPress={() => setDraftMetric('total')}
+                    testID={`${testID}-metric-total`}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            <Box twClassName="w-full gap-2">
+              <Box twClassName="px-4">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('perps.order_book.group_by')}
+                </Text>
+              </Box>
+              <Box twClassName="w-full gap-3">
+                {groupingRows.map((row) => (
+                  <Box
+                    key={row.join('-')}
+                    flexDirection={BoxFlexDirection.Row}
+                    twClassName="w-full gap-2 px-4"
+                  >
+                    {row.map((value) => (
+                      <OptionChip
+                        key={value}
+                        label={formatGroupingLabel(value)}
+                        isSelected={draftGrouping === value}
+                        onPress={() => setDraftGrouping(value)}
+                        testID={`${testID}-grouping-${value}`}
+                      />
+                    ))}
+                  </Box>
                 ))}
               </Box>
             </Box>
