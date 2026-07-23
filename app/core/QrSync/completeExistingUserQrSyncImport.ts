@@ -35,17 +35,15 @@ const runExistingUserQrSyncImport = async (
     // Do not race import against a timer — Multichain/keyring import cannot be
     // cancelled, and a timeout would leave late vault mutations after failure UI.
     // skipDiscovery: Phase C applies extension layout, then reconciles user storage.
-    const { entropySource } = await importNewSecretRecoveryPhrase(mnemonic, {
+    // Existing-user sync never receives the extension primary mnemonic, so skip
+    // enrichPrimaryProvisioningEntry — only import remaining (non-primary) secrets.
+    await importNewSecretRecoveryPhrase(mnemonic, {
       shouldSelectAccount: true,
       skipDiscovery: true,
     });
 
-    // Primary SRP is now in the vault. Remaining-secret / Phase B failures must
-    // not show a total import-failed UI (Bugbot: failure UI after primary import).
-    Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
-      entropySource,
-    );
-
+    // Vault import of the scanned mnemonic already succeeded. Remaining-secret /
+    // Phase B failures must not show a total import-failed UI.
     try {
       await Engine.context.QrSyncController.importRemainingSecrets();
     } catch (remainingError) {
@@ -57,16 +55,12 @@ const runExistingUserQrSyncImport = async (
       });
     }
 
-    // Phase C only when Phase B finalized to secrets_imported (Bugbot: Phase C
-    // after incomplete Phase B). Otherwise clear QR state and still go Home —
-    // the primary SRP import already succeeded.
-    if (
-      !startExistingUserQrMetadataProvisioning(
-        QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
-      )
-    ) {
-      Engine.context.QrSyncController.resetState();
-    }
+    // Fire Phase C (preconditions asserted inside provisionFromMetadata), then
+    // always clear QR session state before navigating Home.
+    startExistingUserQrMetadataProvisioning(
+      QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
+    );
+    Engine.context.QrSyncController.resetState();
 
     navigation.navigate(Routes.WALLET_VIEW);
   } catch (error) {
@@ -89,9 +83,8 @@ const runExistingUserQrSyncImport = async (
 };
 
 /**
- * Completes existing-user QR sync by importing the primary mnemonic, remaining
- * secrets, and applying extension wallet/account metadata (Phase C) when Phase B
- * finalized successfully.
+ * Completes existing-user QR sync by importing the scanned mnemonic, remaining
+ * secrets, and starting extension wallet/account metadata provisioning (Phase C).
  * Duplicate SRP is surfaced with SuccessErrorSheet and treated as
  * already-synced.
  */

@@ -1,28 +1,16 @@
-import { QrSyncProvisioningStatuses, QrSyncSyncFlows } from './constants';
+import { QrSyncSyncFlows } from './constants';
 import {
   QrSyncOperations,
   QrSyncSurfaces,
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
-import {
-  isExistingUserQrReadyForMetadataProvisioning,
-  startExistingUserQrMetadataProvisioning,
-} from './startExistingUserQrMetadataProvisioning';
+import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 
 const mockProvisionFromMetadata = jest.fn();
-const mockQrSyncControllerState = {
-  provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED as string,
-  provisioningMetadata: { version: '1.0.0', entries: [] } as object | null,
-};
 
 jest.mock('../Engine', () => ({
   context: {
-    QrSyncController: {
-      get state() {
-        return mockQrSyncControllerState;
-      },
-    },
     QrSyncProvisioningService: {
       provisionFromMetadata: (...args: unknown[]) =>
         mockProvisionFromMetadata(...args),
@@ -41,45 +29,15 @@ jest.mock('./qrSyncTelemetry', () => {
 describe('startExistingUserQrMetadataProvisioning', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockQrSyncControllerState.provisioningStatus =
-      QrSyncProvisioningStatuses.SECRETS_IMPORTED;
-    mockQrSyncControllerState.provisioningMetadata = {
-      version: '1.0.0',
-      entries: [],
-    };
     mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
-  it('reports ready when secrets_imported and metadata exist', () => {
-    expect(isExistingUserQrReadyForMetadataProvisioning()).toBe(true);
-  });
-
-  it('reports not ready when Phase B is incomplete', () => {
-    mockQrSyncControllerState.provisioningStatus =
-      QrSyncProvisioningStatuses.AWAITING_PASSWORD;
-
-    expect(isExistingUserQrReadyForMetadataProvisioning()).toBe(false);
-  });
-
-  it('starts Phase C when ready and returns true', () => {
-    const started = startExistingUserQrMetadataProvisioning(
+  it('starts Phase C via provisionFromMetadata', () => {
+    startExistingUserQrMetadataProvisioning(
       QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
     );
 
-    expect(started).toBe(true);
     expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not start Phase C when Phase B is incomplete and returns false', () => {
-    mockQrSyncControllerState.provisioningStatus =
-      QrSyncProvisioningStatuses.AWAITING_PASSWORD;
-
-    const started = startExistingUserQrMetadataProvisioning(
-      QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
-    );
-
-    expect(started).toBe(false);
-    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
   });
 
   it('reports failure when provisionFromMetadata rejects', async () => {

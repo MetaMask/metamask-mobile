@@ -241,7 +241,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 
-  it('navigates home without sheet when private-key sync adds accounts', async () => {
+  it('navigates home, starts Phase C, and resets when private-key sync adds accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     Engine.context.QrSyncController.state.pendingSecretImports = [
@@ -263,7 +263,7 @@ describe('useQrSyncImportNavigation', () => {
     });
 
     expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
-    expect(mockResetState).not.toHaveBeenCalled();
+    expect(mockResetState).toHaveBeenCalledTimes(1);
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
   });
