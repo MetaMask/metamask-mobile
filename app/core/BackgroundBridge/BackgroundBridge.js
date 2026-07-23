@@ -156,6 +156,9 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
     this.multichainEngine = null;
+    // Monotonic counter used to drop superseded wallet_sessionChanged emits
+    // (latest-wins). See notifyCaipAuthorizationChange.
+    this.sessionChangedGeneration = 0;
     this.multichainSubscriptionManager = null;
     this.multichainMiddlewareManager = null;
 
@@ -1443,6 +1446,20 @@ export class BackgroundBridge extends EventEmitter {
   /**
    * Causes the Multichain RPC engine to emit a sessionChanged notification event with the given payload.
    *
+   * Emitting is async: capability hydration awaits controller/network calls,
+   * and its latency is bimodal (a cold capabilities cache blocks on per-chain
+   * RPC for seconds; a warm one resolves in microtasks). Overlapping calls can
+   * therefore finish out of order — e.g. a slow, older hydration emitting
+   * *after* a newer one — and since dapp SDKs treat the last received
+   * wallet_sessionChanged as truth, the dapp would be left with stale
+   * sessionScopes until the next change. Before capability hydration was
+   * introduced this method was synchronous, so per-bridge emit order was
+   * inherently guaranteed; the generation counter below restores that
+   * guarantee. Rather than serialize (which head-of-line blocks a fresh
+   * update behind a slow earlier one), we capture a monotonic generation per
+   * call and drop superseded emits (latest-wins). This is safe because
+   * wallet_sessionChanged carries a full session snapshot, not a delta.
+   *
    * @param {object} newAuthorization - The new CAIP-25 authorization.
    * @returns {Promise<void>} Resolves once the notification has been emitted (or skipped).
    */
@@ -1450,6 +1467,10 @@ export class BackgroundBridge extends EventEmitter {
     if (!this.multichainEngine) {
       return;
     }
+
+    // Capture this call's generation synchronously, before any await, so a
+    // later call that starts while we're hydrating supersedes this one.
+    const generation = ++this.sessionChangedGeneration;
 
     const sessionScopes = getSessionScopes(newAuthorization, {
       getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
@@ -1478,8 +1499,12 @@ export class BackgroundBridge extends EventEmitter {
       );
     }
 
-    // Drop this emit if the bridge was torn down while we were hydrating.
-    if (!this.multichainEngine) {
+    // Drop this emit if a newer notification superseded it while we were
+    // hydrating, or if the bridge was torn down in the meantime.
+    if (
+      generation !== this.sessionChangedGeneration ||
+      !this.multichainEngine
+    ) {
       return;
     }
 
