@@ -856,6 +856,8 @@ jest.mock('@braze/react-native-sdk', () => ({
   __esModule: true,
   default: {
     changeUser: jest.fn(),
+    enableSDK: jest.fn(),
+    wipeData: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)
       if (typeof callback === 'function') {

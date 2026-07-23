@@ -95,6 +95,7 @@ import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
+import { clearBrazeUser } from '../Braze';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1651,6 +1652,7 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
+    clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state
