@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-native';
-import configureMockStore from 'redux-mock-store';
+import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -35,7 +35,18 @@ jest.mock('../../../constants/network', () => ({
   INFURA_PROJECT_ID: 'test-infura-project-id',
 }));
 
-const mockStore = configureMockStore();
+// A minimal store whose snapshot changes on every SYNC dispatch. The banner
+// selectors are mocked, so the store content is irrelevant, but changing the
+// snapshot forces `useSelector` to re-read the mocks between renders, which
+// simulates the controller syncing new state into redux.
+const storeReducer = (
+  state: { tick: number } | undefined,
+  action: { type: string },
+) => {
+  const current = state ?? { tick: 0 };
+  return action.type === 'SYNC' ? { tick: current.tick + 1 } : current;
+};
+
 const mockNavigate = jest.fn();
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -99,8 +110,8 @@ describe('useNetworkConnectionBanner', () => {
   });
 
   const renderHookWithProviders = () => {
-    const store = mockStore({});
-    return renderHook(() => useNetworkConnectionBanner(), {
+    const store = createStore(storeReducer);
+    const utils = renderHook(() => useNetworkConnectionBanner(), {
       wrapper: ({ children }) => (
         <Provider store={store}>
           <ToastContext.Provider
@@ -115,6 +126,13 @@ describe('useNetworkConnectionBanner', () => {
         </Provider>
       ),
     });
+    // Bump the store snapshot so `useSelector` re-reads the mocked selectors,
+    // mirroring the controller syncing new state into redux.
+    const syncControllerState = () =>
+      act(() => {
+        store.dispatch({ type: 'SYNC' });
+      });
+    return { ...utils, syncControllerState };
   };
 
   it('returns the banner state from the controller selectors', () => {
@@ -139,6 +157,53 @@ describe('useNetworkConnectionBanner', () => {
       }),
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire a second shown event when the failing network is re-saved with the same status and client id', () => {
+    statusMock.mockReturnValue('degraded');
+    mockFailedNetwork({ networkClientId: 'mainnet' });
+
+    const { syncControllerState } = renderHookWithProviders();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    // The controller re-saves the failing network on every re-evaluation, so a
+    // new object reference arrives with the same status and client id.
+    mockFailedNetwork({ networkClientId: 'mainnet' });
+    syncControllerState();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires a new shown event when the banner escalates from degraded to unavailable', () => {
+    statusMock.mockReturnValue('degraded');
+    mockFailedNetwork({ networkClientId: 'mainnet' });
+
+    const { syncControllerState } = renderHookWithProviders();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    statusMock.mockReturnValue('unavailable');
+    mockFailedNetwork({ networkClientId: 'mainnet' });
+    syncControllerState();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('fires again after the banner hides and the same network fails once more', () => {
+    statusMock.mockReturnValue('degraded');
+    mockFailedNetwork({ networkClientId: 'mainnet' });
+
+    const { syncControllerState } = renderHookWithProviders();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    statusMock.mockReturnValue('available');
+    networkMock.mockReturnValue(null);
+    syncControllerState();
+
+    statusMock.mockReturnValue('degraded');
+    mockFailedNetwork({ networkClientId: 'mainnet' });
+    syncControllerState();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
 
   it('does not fire analytics when the banner is hidden', () => {

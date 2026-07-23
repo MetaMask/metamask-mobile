@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
@@ -51,10 +51,21 @@ const useNetworkConnectionBanner = (): {
   const status = useSelector(selectNetworkConnectionBannerStatus);
   const network = useSelector(selectNetworkConnectionBannerNetwork);
 
-  // Fire analytics whenever the banner is visible. The banner's show/hide
-  // and 5s/30s escalation are driven by NetworkConnectionBannerController.
+  // Fire the "shown" analytics once each time the banner becomes visible for a
+  // given status and network. The banner's show/hide and 5s/30s escalation are
+  // driven by NetworkConnectionBannerController, which re-saves the failing
+  // network on every re-evaluation (e.g. to pick up an RPC URL edit). That
+  // changes the `network` reference without the banner actually reappearing, so
+  // dedupe on a stable key to avoid double counting.
+  const lastShownKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if ((status === 'degraded' || status === 'unavailable') && network) {
+      const shownKey = `${status}:${network.networkClientId}`;
+      if (lastShownKeyRef.current === shownKey) {
+        return;
+      }
+      lastShownKeyRef.current = shownKey;
+
       const sanitizedUrl = sanitizeRpcUrl(network.rpcUrl);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN)
@@ -66,6 +77,8 @@ const useNetworkConnectionBanner = (): {
           })
           .build(),
       );
+    } else {
+      lastShownKeyRef.current = null;
     }
   }, [status, network, trackEvent, createEventBuilder]);
 
