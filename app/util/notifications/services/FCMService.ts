@@ -205,7 +205,7 @@ class FCMService {
     deeplinkCallback: (deeplink?: string) => void,
   ) => {
     try {
-      const handleOpenedNotification = (
+      const handleOpenedNotification = async (
         remoteMessage: FirebaseMessagingTypes.RemoteMessage,
       ) => {
         try {
