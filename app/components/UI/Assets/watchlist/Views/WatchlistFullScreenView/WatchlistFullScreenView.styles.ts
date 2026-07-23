@@ -24,6 +24,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingTop: 8,
     },
+    listContainerEditMode: {
+      paddingRight: 8,
+    },
     emptyContentContainer: {
       flex: 1,
     },
@@ -32,7 +35,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     dragHandle: {
-      paddingRight: 16,
+      paddingRight: 12,
     },
     unwatchStar: {
       paddingLeft: 16,

@@ -177,7 +177,10 @@ const WatchlistFullScreenView = () => {
         onReorder={handleReorder}
         dragEnabled={isEditMode}
         itemLayoutAnimation={isEditMode ? rowLayoutAnimation : undefined}
-        style={styles.listContainer}
+        style={[
+          styles.listContainer,
+          isEditMode && styles.listContainerEditMode,
+        ]}
         showsVerticalScrollIndicator={false}
         testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
       />
@@ -193,6 +196,7 @@ const WatchlistFullScreenView = () => {
     renderItem,
     styles.emptyContentContainer,
     styles.listContainer,
+    styles.listContainerEditMode,
   ]);
 
   return (
