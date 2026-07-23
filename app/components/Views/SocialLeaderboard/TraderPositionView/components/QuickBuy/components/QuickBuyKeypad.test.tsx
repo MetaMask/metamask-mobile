@@ -29,6 +29,34 @@ jest.mock('../../../../../../../util/haptics', () => ({
   useHaptics: jest.fn(() => ({ playImpact: jest.fn() })),
 }));
 
+const mockKeypad = jest.fn(
+  ({
+    currency,
+    value,
+  }: {
+    currency?: string;
+    value: string;
+    onChange: (data: { value: string }) => void;
+  }) => {
+    const { View } = jest.requireActual('react-native');
+    return (
+      <View
+        testID="keypad-mock"
+        accessibilityLabel={`${currency ?? ''}:${value}`}
+      />
+    );
+  },
+);
+
+jest.mock('../../../../../../Base/Keypad', () => ({
+  __esModule: true,
+  default: (props: {
+    currency?: string;
+    value: string;
+    onChange: (data: { value: string }) => void;
+  }) => mockKeypad(props),
+}));
+
 const baseContext = {
   useKeyboard: true,
   isKeypadOpen: true,
@@ -81,9 +109,24 @@ describe('QuickBuyKeypad', () => {
     expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-keypad-done')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId('keypad-key-5'));
+    const { onChange } = mockKeypad.mock.calls.at(-1)?.[0] ?? {};
+    onChange?.({ value: '5' });
 
     expect(baseContext.handleAmountChange).toHaveBeenCalledWith('5');
+  });
+
+  it('passes the user display currency and localized value to the keypad', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      currentCurrency: 'EUR',
+      fiatAmount: '250.5',
+    });
+
+    renderWithProvider(<QuickBuyKeypad />);
+
+    expect(screen.getByTestId('keypad-mock').props.accessibilityLabel).toBe(
+      'EUR:250,5',
+    );
   });
 
   it('cleans a trailing decimal and dismisses the keypad when Done is pressed', () => {
@@ -109,8 +152,12 @@ describe('QuickBuyKeypad', () => {
 
     renderWithProvider(<QuickBuyKeypad />);
 
-    fireEvent.press(screen.getByTestId('keypad-key-2'));
+    const { onChange } = mockKeypad.mock.calls.at(-1)?.[0] ?? {};
+    onChange?.({ value: '12' });
 
     expect(baseContext.handleAmountChange).toHaveBeenCalledWith('12');
+    expect(screen.getByTestId('keypad-mock').props.accessibilityLabel).toBe(
+      'native:1',
+    );
   });
 });
