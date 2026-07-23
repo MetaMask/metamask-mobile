@@ -259,6 +259,16 @@ const PerpsHomeView = () => {
     },
     [handleScroll],
   );
+  // `useAnimatedScrollHandler` may retain the first worklet closure. Keep the
+  // RN callback stable while forwarding each event to the latest tracker.
+  const handleScrollEventRef = useRef(handleScrollEvent);
+  handleScrollEventRef.current = handleScrollEvent;
+  const scheduleScrollEventOnRN = useCallback(
+    (scrollY: number, viewportHeight: number) => {
+      handleScrollEventRef.current(scrollY, viewportHeight);
+    },
+    [],
+  );
 
   const {
     scrollY: headerScrollY,
@@ -274,7 +284,7 @@ const PerpsHomeView = () => {
       // eslint-disable-next-line react-compiler/react-compiler -- Reanimated shared values are intentionally mutated from worklets.
       headerScrollY.value = event.contentOffset.y;
       scheduleOnRN(
-        handleScrollEvent,
+        scheduleScrollEventOnRN,
         event.contentOffset.y,
         event.layoutMeasurement.height,
       );
