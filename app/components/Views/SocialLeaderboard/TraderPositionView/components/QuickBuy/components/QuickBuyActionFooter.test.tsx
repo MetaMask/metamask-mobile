@@ -129,16 +129,22 @@ describe('QuickBuyActionFooter', () => {
     expect(screen.queryByTestId('quick-buy-slider')).toBeNull();
   });
 
-  it('hides pay-with and confirm while the keypad is open on the treatment', () => {
+  it('keeps footer mounted but non-interactive while the keypad is open on the treatment', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       useKeyboard: true,
       isKeypadOpen: true,
       features: { payWithSheet: true, quickAmountPills: true },
     });
+
     render(<QuickBuyActionFooter />);
-    expect(screen.queryByTestId('quick-buy-pay-with-button')).toBeNull();
-    expect(screen.queryByTestId('quick-buy-confirm-button')).toBeNull();
-    expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
+
+    expect(screen.getByTestId('quick-buy-footer-reveal')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-pay-with-button')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-footer-reveal-content').props.pointerEvents,
+    ).toBe('none');
   });
 });

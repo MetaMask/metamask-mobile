@@ -87,6 +87,8 @@ const CollapsibleReveal: React.FC<CollapsibleRevealProps> = ({
     opacitySV.value = withTiming(0, KEYPAD_REVEAL_TIMING);
     animatedHeightSV.value = withTiming(0, KEYPAD_REVEAL_TIMING, (finished) => {
       if (finished && unmountWhenCollapsed) {
+        // Reanimated v3 API — scheduleOnRN is v4-only and not available here.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- runOnJS is the v3 bridge
         runOnJS(setIsMounted)(false);
       }
     });
@@ -165,6 +167,7 @@ const CollapsibleReveal: React.FC<CollapsibleRevealProps> = ({
         style={isNatural ? undefined : styles.measuredContent}
         onLayout={isNatural ? undefined : handleAnimatedContentLayout}
         pointerEvents={expanded ? 'auto' : 'none'}
+        testID={testID ? `${testID}-content` : undefined}
       >
         {children}
       </View>
