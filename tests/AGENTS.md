@@ -24,6 +24,12 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
 - [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
 
+### Performance E2E failure autofix (Cursor Automation)
+
+- [docs/testing/performance-failure-autofix.md](../docs/testing/performance-failure-autofix.md) — Agent + Automation: investigate failed performance runs (artifacts, BrowserStack video), Slack DM Javier Vera, open fix PR when not quality-gates-only.
+- Skill: [`.agents/skills/performance-failure-autofix/SKILL.md`](../.agents/skills/performance-failure-autofix/SKILL.md)
+- Command: `/performance-failure-autofix`
+
 ## Canonical Sources (read these, do not duplicate)
 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
