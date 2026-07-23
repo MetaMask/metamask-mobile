@@ -328,7 +328,7 @@
     "@metamask/native-utils": "^0.8.0",
     "@metamask/network-controller": "^34.0.0",
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
-    "@metamask/notification-services-controller": "^25.0.0",
+    "@metamask/notification-services-controller": "^26.0.0",
     "@metamask/permission-controller": "^13.1.1",
     "@metamask/perps-controller": "^9.3.0",
     "@metamask/phishing-controller": "^17.2.0",
