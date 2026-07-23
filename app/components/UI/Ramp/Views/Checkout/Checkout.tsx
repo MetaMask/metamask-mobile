@@ -58,6 +58,7 @@ import { getProviderWebviewColors } from '../../utils/getProviderWebviewColors';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
+import { buildHeadlessOrderFailedProps } from '../../utils/headlessOrderFailedProps';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 import {
   buildBaseProps,
@@ -342,24 +343,29 @@ const Checkout = () => {
         const quoteRecord = session.params?.quote?.quote;
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
-            .addProperties({
-              ramp_type: 'HEADLESS',
-              ramp_surface: session.params?.rampSurface,
-              amount_source: Number(
-                quoteRecord?.amountIn ?? session.params?.amount ?? 0,
-              ),
-              amount_destination: Number(quoteRecord?.amountOut ?? 0),
-              payment_method_id: quoteRecord?.paymentMethod ?? '',
-              region: regionCode ?? '',
-              chain_id: network ?? '',
-              currency_destination: params?.cryptocurrency ?? '',
-              currency_source: params?.currency ?? '',
-              error_message:
-                checkoutError instanceof Error
-                  ? checkoutError.message
-                  : String(checkoutError),
-              is_authenticated: true,
-            })
+            .addProperties(
+              buildHeadlessOrderFailedProps({
+                rampSurface: session.params?.rampSurface,
+                // Additive vs the previous inline payload: both fields are
+                // optional in segment-schema and the native flow already
+                // sends them.
+                providerOrderId: effectiveOrderId ?? undefined,
+                amountSource: Number(
+                  quoteRecord?.amountIn ?? session.params?.amount ?? 0,
+                ),
+                amountDestination: Number(quoteRecord?.amountOut ?? 0),
+                paymentMethodId: quoteRecord?.paymentMethod ?? '',
+                region: regionCode ?? '',
+                chainId: network ?? '',
+                currencyDestination: params?.cryptocurrency ?? '',
+                currencyDestinationSymbol: params?.cryptocurrency,
+                currencySource: params?.currency ?? '',
+                errorMessage:
+                  checkoutError instanceof Error
+                    ? checkoutError.message
+                    : String(checkoutError),
+              }),
+            )
             .build(),
         );
       }
@@ -374,6 +380,7 @@ const Checkout = () => {
       createEventBuilder,
       regionCode,
       network,
+      effectiveOrderId,
       params?.cryptocurrency,
       params?.currency,
     ],
