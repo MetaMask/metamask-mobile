@@ -50,6 +50,7 @@ import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 import { MAX_BROWSER_TABS, MAX_MOUNTED_TABS } from './constants';
+import { deleteTabScreenshotFile } from './tabScreenshotCleanup';
 import { getMountedTabIds } from './utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -155,13 +156,16 @@ export const BrowserPure = (props) => {
   const takeScreenshot = useCallback(
     (url, tabID) =>
       new Promise((resolve, reject) => {
+        const previousImage = tabs.find((tab) => tab.id === tabID)?.image;
+
         captureScreen({
           format: 'jpg',
           quality: 0.2,
           THUMB_WIDTH,
           THUMB_HEIGHT,
         }).then(
-          (uri) => {
+          async (uri) => {
+            await deleteTabScreenshotFile(previousImage);
             updateTab(tabID, {
               url,
               image: uri,
@@ -174,7 +178,7 @@ export const BrowserPure = (props) => {
           },
         );
       }),
-    [updateTab],
+    [tabs, updateTab],
   );
 
   const activeTabUrl = useMemo(
@@ -404,6 +408,7 @@ export const BrowserPure = (props) => {
         }
       }
 
+      void deleteTabScreenshotFile(tab.image);
       triggerCloseTab(tab.id);
     },
     [activeTabId, triggerCloseTab, tabs, setActiveTab],
