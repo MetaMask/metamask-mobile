@@ -420,3 +420,20 @@ export const isEIP155Scope = (scope: CaipChainId): boolean => {
   const { namespace } = parseCaipChainId(scope);
   return isEIP155NameSpace(namespace);
 };
+
+/**
+ * Whether a permission-request origin belongs to the active WalletConnect flow.
+ *
+ * `wc2Metadata.id` stores the WC pairing topic (permission origin), not the
+ * dapp URL. Stale metadata must not classify unrelated in-app browser requests
+ * as WalletConnect.
+ */
+export const isWalletConnectPermissionOrigin = (
+  origin: string,
+  wc2Metadata?: { id?: string },
+): boolean =>
+  Boolean(
+    wc2Metadata?.id &&
+      wc2Metadata.id.length > 0 &&
+      origin === wc2Metadata.id,
+  );

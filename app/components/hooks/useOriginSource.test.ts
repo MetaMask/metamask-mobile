@@ -145,7 +145,7 @@ describe('useOriginSource', () => {
     });
   });
 
-  it('should return WALLET_CONNECT source when WC metadata is present', () => {
+  it('returns WALLET_CONNECT source when WC metadata origin matches', () => {
     const wcState = {
       ...mockState,
       sdk: {
@@ -163,11 +163,38 @@ describe('useOriginSource', () => {
       );
 
     const { result } = renderHook(() =>
-      useOriginSource({ origin: 'some-non-uuid-origin' }),
+      useOriginSource({ origin: 'some-wc-id' }),
     );
     expect(result.current).toEqual({
       source: SourceType.WALLET_CONNECT,
       requestSource: AppConstants.REQUEST_SOURCES.WC,
+    });
+  });
+
+  it('returns IN_APP_BROWSER source when stale WC metadata does not match origin', () => {
+    const wcState = {
+      ...mockState,
+      sdk: {
+        ...mockState.sdk,
+        wc2Metadata: {
+          id: 'stale-pairing-topic',
+          url: 'https://chikn.farm',
+        },
+      },
+    } as RootState;
+
+    jest
+      .requireMock('react-redux')
+      .useSelector.mockImplementation(
+        (selector: (state: RootState) => unknown) => selector(wcState),
+      );
+
+    const { result } = renderHook(() =>
+      useOriginSource({ origin: 'app.uniswap.org' }),
+    );
+    expect(result.current).toEqual({
+      source: SourceType.IN_APP_BROWSER,
+      requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     });
   });
 
