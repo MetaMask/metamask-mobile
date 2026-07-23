@@ -177,7 +177,7 @@ export function useTransactionPayMetrics() {
         },
       }),
     );
-  }, [isInfoLoaded, dispatch, transactionId]);
+  }, [isInfoLoaded, transactionMeta?.time, dispatch, transactionId]);
 
   const didDispatchTimeToLoadQuote = useRef(false);
   useEffect(() => {
