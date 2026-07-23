@@ -1,4 +1,3 @@
-import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
 import type { TokenI } from '../../Tokens/types';
 
@@ -55,12 +54,3 @@ export type StakeModalsNavigationParamList = {
       }
     | undefined;
 };
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type StakeNavigationParamList = StakeScreensStackParamList &
-  StakeModalsNavigationParamList & {
-    StakeScreens: NavigatorScreenParams<StakeScreensStackParamList> | undefined;
-    StakeModals:
-      | NavigatorScreenParams<StakeModalsNavigationParamList>
-      | undefined;
-  };
