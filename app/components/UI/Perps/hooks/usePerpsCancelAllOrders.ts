@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import {
@@ -49,7 +51,7 @@ export const usePerpsCancelAllOrders = (
   orders: Order[] | null,
   options?: UsePerpsCancelAllOrdersOptions,
 ): UsePerpsCancelAllOrdersReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isCanceling, setIsCanceling] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
