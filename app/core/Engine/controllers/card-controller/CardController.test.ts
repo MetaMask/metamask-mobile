@@ -284,7 +284,6 @@ describe('CardController', () => {
       cardHomeData: null,
       cardHomeDataStatus: 'idle',
       moneyAccountCardLinkInProgress: false,
-      selectedCardProgramId: null,
     });
   });
 

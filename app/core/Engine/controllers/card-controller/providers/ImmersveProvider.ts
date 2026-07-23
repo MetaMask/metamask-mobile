@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
+  ARBITRUM_SEPOLIA_RPC_URL,
   BASE_MAINNET_RPC_URL,
   BASE_SEPOLIA_RPC_URL,
 } from '../../../../../components/UI/Card/constants';
@@ -52,6 +53,27 @@ const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
 const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
 // Same ceiling as BAANX_MAX_LIMIT — Immersve does not treat this as a hard cap.
 const IMMERSVE_SPENDABLE_AMOUNT = 2199023255551;
+
+const IMMERSVE_FUNDING_NETWORK_RPC: Record<
+  string,
+  { chainId: number; primaryRpcUrl: string; publicFallback: string }
+> = {
+  'base-mainnet': {
+    chainId: 8453,
+    primaryRpcUrl: BASE_MAINNET_RPC_URL,
+    publicFallback: 'https://mainnet.base.org',
+  },
+  'base-sepolia': {
+    chainId: 84532,
+    primaryRpcUrl: BASE_SEPOLIA_RPC_URL,
+    publicFallback: 'https://sepolia.base.org',
+  },
+  'arbitrum-sepolia': {
+    chainId: 421614,
+    primaryRpcUrl: ARBITRUM_SEPOLIA_RPC_URL,
+    publicFallback: 'https://sepolia-rollup.arbitrum.io/rpc',
+  },
+};
 
 const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
 
@@ -868,7 +890,7 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     try {
-      const provider = await this.createBaseProvider(network);
+      const provider = await this.createFundingNetworkProvider(network);
       if (!provider) return empty;
 
       const { spendableBalance, allowance } =
@@ -894,20 +916,22 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
-  private async createBaseProvider(
+  private async createFundingNetworkProvider(
     network: string | undefined,
   ): Promise<ethers.providers.StaticJsonRpcProvider | null> {
     const resolvedNetwork = network ?? this.network;
-    const chainId = resolvedNetwork === 'base-mainnet' ? 8453 : 84532;
-    const primaryRpcUrl =
-      resolvedNetwork === 'base-mainnet'
-        ? BASE_MAINNET_RPC_URL
-        : BASE_SEPOLIA_RPC_URL;
-    const publicFallback =
-      resolvedNetwork === 'base-mainnet'
-        ? 'https://mainnet.base.org'
-        : 'https://sepolia.base.org';
+    const rpcConfig = IMMERSVE_FUNDING_NETWORK_RPC[resolvedNetwork];
+    if (!rpcConfig) {
+      Logger.error(
+        new Error(`Unsupported Immersve funding network: ${resolvedNetwork}`),
+        getErrorContext('createFundingNetworkProvider', {
+          network: resolvedNetwork,
+        }),
+      );
+      return null;
+    }
 
+    const { chainId, primaryRpcUrl, publicFallback } = rpcConfig;
     const rpcCandidates = Array.from(
       new Set(
         [primaryRpcUrl, publicFallback].filter(
@@ -933,7 +957,9 @@ export class ImmersveProvider implements ICardProvider {
     if (lastRpcError) {
       Logger.error(
         lastRpcError as Error,
-        getErrorContext('createBaseProvider', { network: resolvedNetwork }),
+        getErrorContext('createFundingNetworkProvider', {
+          network: resolvedNetwork,
+        }),
       );
     }
     return null;

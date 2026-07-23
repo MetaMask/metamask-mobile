@@ -13,7 +13,11 @@ import {
   type CardAuthSession,
   type CardAuthTokens,
 } from '../provider-types';
-import { BASE_SEPOLIA_USDC_TOKEN_ADDRESS } from '../../../../../components/UI/Card/constants';
+import {
+  ARBITRUM_SEPOLIA_RPC_URL,
+  ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+  BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+} from '../../../../../components/UI/Card/constants';
 import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/util/onChainAllowance';
 import { ImmersveProvider } from './ImmersveProvider';
 
@@ -1100,6 +1104,52 @@ describe('ImmersveProvider', () => {
       expect(data.primaryFundingAsset).toMatchObject({
         spendableBalance: '',
         spendingCap: '',
+      });
+    });
+
+    it('reads on-chain allowance on Arbitrum Sepolia for arbitrum-sepolia funding', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'arbitrum-sepolia',
+          },
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '20.0',
+        allowance: '8.0',
+        spendableBalance: '8',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(ethers.providers.StaticJsonRpcProvider).toHaveBeenCalledWith(
+        { url: ARBITRUM_SEPOLIA_RPC_URL, skipFetchSetup: true },
+        { name: 'arbitrum-sepolia', chainId: 421614 },
+      );
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+        fundingAddress,
+        '0x2222222222222222222222222222222222222222',
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '8',
+        spendingCap: '8.0',
+        chainId: 'eip155:421614',
       });
     });
   });
