@@ -236,6 +236,31 @@ describe('useGetVipTransactions', () => {
     });
   });
 
+  it('does not treat an empty cached list as displayable rows', () => {
+    setupSelectors({
+      subscriptionId: SUBSCRIPTION_ID,
+      cachedTransactions: [],
+      isVipEnabled: false,
+    });
+
+    const { result } = renderHook(() => useGetVipTransactions('PERPS'));
+
+    expect(result.current.transactions).toBeNull();
+  });
+
+  it('exposes cached transactions immediately so empty UI does not flash', () => {
+    const cached = [MOCK_TX];
+    setupSelectors({
+      subscriptionId: SUBSCRIPTION_ID,
+      cachedTransactions: cached,
+      isVipEnabled: false,
+    });
+
+    const { result } = renderHook(() => useGetVipTransactions('PERPS'));
+
+    expect(result.current.transactions).toEqual(cached);
+  });
+
   it('refresh resets and re-fetches first page with forceFresh', async () => {
     mockCall.mockResolvedValueOnce(MOCK_PAGE_1 as never).mockResolvedValueOnce({
       results: [{ ...MOCK_TX, volumeUsd: '9999.00' }],
@@ -269,6 +294,39 @@ describe('useGetVipTransactions', () => {
     );
     expect(result.current.transactions?.[0].volumeUsd).toBe('9999.00');
     expect(result.current.hasMore).toBe(false);
+  });
+
+  it('retry force-fetches without setting isRefreshing', async () => {
+    mockCall.mockResolvedValueOnce(MOCK_PAGE_1 as never).mockResolvedValueOnce({
+      results: [{ ...MOCK_TX, volumeUsd: '50.00' }],
+      has_more: false,
+      cursor: null,
+    } as never);
+
+    const { result } = renderHook(() => useGetVipTransactions('PERPS'));
+
+    await waitFor(() => {
+      expect(result.current.transactions).toHaveLength(1);
+    });
+
+    await act(async () => {
+      result.current.retry();
+    });
+
+    await waitFor(() => {
+      expect(result.current.transactions?.[0].volumeUsd).toBe('50.00');
+    });
+
+    expect(result.current.isRefreshing).toBe(false);
+    expect(mockCall).toHaveBeenLastCalledWith(
+      'RewardsController:getVipTransactions',
+      {
+        subscriptionId: SUBSCRIPTION_ID,
+        type: 'PERPS',
+        cursor: null,
+        forceFresh: true,
+      },
+    );
   });
 
   it('calls selectVipTransactionsById with subscriptionId and type', () => {

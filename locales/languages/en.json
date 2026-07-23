@@ -9441,8 +9441,7 @@
       "error_title": "Failed to load transactions",
       "error_description": "Something went wrong while loading your transactions. Please try again.",
       "retry_button": "Retry",
-      "empty_title": "No transactions yet",
-      "empty_description": "Your VIP transactions will appear here once you have activity."
+      "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",

@@ -14,6 +14,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
+  FontWeight,
   HeaderStandard,
   Icon,
   IconColor,
@@ -28,7 +30,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import VipPerpsTransactionRow from '../components/Vip/VipPerpsTransactionRow';
 import VipSwapTransactionRow from '../components/Vip/VipSwapTransactionRow';
 import { useGetVipTransactions } from '../hooks/useGetVipTransactions';
@@ -50,7 +51,39 @@ export const REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS = {
   CONTAINER: 'rewards-vip-transactions-container',
   TYPE_SELECTOR: 'rewards-vip-transactions-type-selector',
   LIST: 'rewards-vip-transactions-list',
+  EMPTY: 'rewards-vip-transactions-empty',
+  SKELETON: 'rewards-vip-transactions-skeleton',
 } as const;
+
+const VipTransactionRowSkeleton: React.FC = () => {
+  const tw = useTailwind();
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="w-full py-3 gap-3"
+    >
+      <Skeleton style={tw.style('h-10 w-10 rounded-full')} />
+      <Box twClassName="flex-1 gap-2">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+        >
+          <Skeleton style={tw.style('h-4 w-16 rounded-lg')} />
+          <Skeleton style={tw.style('h-4 w-20 rounded-lg')} />
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+        >
+          <Skeleton style={tw.style('h-3 w-24 rounded-lg')} />
+          <Skeleton style={tw.style('h-3 w-12 rounded-lg')} />
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 const RewardsVipTransactionsView: React.FC = () => {
   const tw = useTailwind();
@@ -70,6 +103,7 @@ const RewardsVipTransactionsView: React.FC = () => {
     error,
     loadMore,
     refresh,
+    retry,
     isRefreshing,
   } = useGetVipTransactions(selectedType);
 
@@ -161,30 +195,40 @@ const RewardsVipTransactionsView: React.FC = () => {
   );
 
   const onEndReached = useCallback(() => {
-    if (hasMore && !isLoadingMore) {
+    if (
+      hasMore &&
+      !isLoading &&
+      !isLoadingMore &&
+      !isRefreshing &&
+      transactions &&
+      transactions.length > 0
+    ) {
       loadMore();
     }
-  }, [hasMore, isLoadingMore, loadMore]);
+  }, [hasMore, isLoading, isLoadingMore, isRefreshing, transactions, loadMore]);
 
   const renderFooter = useCallback(() => {
-    if (!isLoadingMore) return null;
+    if (!isLoadingMore || !transactions || transactions.length === 0) {
+      return null;
+    }
     return (
       <Box twClassName="py-4 items-center">
         <ActivityIndicator />
       </Box>
     );
-  }, [isLoadingMore]);
+  }, [isLoadingMore, transactions]);
+
+  const isInitialLoadPending =
+    isLoading || isRefreshing || transactions === null;
 
   const renderEmpty = useCallback(() => {
-    if (isLoading) return null;
-
     if (error) {
       return (
         <Box twClassName="px-4 pt-2">
           <RewardsErrorBanner
             title={strings('rewards.vip_transactions.error_title')}
             description={strings('rewards.vip_transactions.error_description')}
-            onConfirm={refresh}
+            onConfirm={retry}
             confirmButtonLabel={strings(
               'rewards.vip_transactions.retry_button',
             )}
@@ -193,55 +237,64 @@ const RewardsVipTransactionsView: React.FC = () => {
       );
     }
 
+    // Any in-flight first-page load with no rows → skeletons, never empty copy.
+    if (isInitialLoadPending) {
+      return (
+        <Box
+          twClassName="px-4 pb-2"
+          testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON}
+        >
+          <Box twClassName="pt-4 pb-1">
+            <Skeleton style={tw.style('h-3 w-24 rounded-lg')} />
+          </Box>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <VipTransactionRowSkeleton key={i} />
+          ))}
+        </Box>
+      );
+    }
+
+    // Settled empty list only.
     return (
-      <Box twClassName="px-4 pt-2">
-        <RewardsInfoBanner
-          title={strings('rewards.vip_transactions.empty_title')}
-          description={strings('rewards.vip_transactions.empty_description')}
-        />
+      <Box twClassName="p-4 items-center">
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY}
+        >
+          {strings('rewards.vip_transactions.empty_title')}
+        </Text>
       </Box>
     );
-  }, [isLoading, error, refresh]);
+  }, [error, isInitialLoadPending, retry, tw]);
 
-  const renderListHeader = useCallback(() => {
-    const showSkeletons =
-      isLoading && (!transactions || transactions.length === 0);
-
-    return (
-      <Box>
-        <Pressable
-          onPress={openTypeSelector}
-          testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.TYPE_SELECTOR}
-        >
+  const renderListHeader = useCallback(
+    () => (
+      <Pressable
+        onPress={openTypeSelector}
+        testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.TYPE_SELECTOR}
+      >
+        <Box twClassName="px-4 py-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 px-4 pt-2 pb-1"
+            twClassName="self-start border border-border-default rounded-full px-3 py-1 gap-1"
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
+            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
               {selectedTypeLabel}
             </Text>
             <Icon
               name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
+              size={IconSize.Xs}
+              color={IconColor.IconDefault}
             />
           </Box>
-        </Pressable>
-
-        {showSkeletons ? (
-          <Box twClassName="px-4 pb-2 gap-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} style={tw.style('h-12 rounded-lg')} />
-            ))}
-          </Box>
-        ) : null}
-      </Box>
-    );
-  }, [isLoading, transactions, openTypeSelector, selectedTypeLabel, tw]);
+        </Box>
+      </Pressable>
+    ),
+    [openTypeSelector, selectedTypeLabel],
+  );
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipTransactionsView">

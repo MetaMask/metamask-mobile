@@ -114,20 +114,6 @@ jest.mock('../components/RewardsErrorBanner', () => {
   };
 });
 
-jest.mock('../components/RewardsInfoBanner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ title }: { title: string }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'info-banner' },
-        ReactActual.createElement(Text, null, title),
-      ),
-  };
-});
-
 jest.mock('../hooks/useGetVipTransactions');
 const mockUseGetVipTransactions = jest.mocked(useGetVipTransactions);
 
@@ -146,8 +132,6 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip_transactions.error_description': 'Please try again.',
       'rewards.vip_transactions.retry_button': 'Retry',
       'rewards.vip_transactions.empty_title': 'No transactions yet',
-      'rewards.vip_transactions.empty_description':
-        'Your VIP transactions will appear here.',
     };
     return translations[key] ?? key;
   },
@@ -198,6 +182,7 @@ const transactionDefaults = {
   error: null as string | null,
   loadMore: jest.fn(),
   refresh: jest.fn(),
+  retry: jest.fn(),
   isRefreshing: false,
 };
 
@@ -235,6 +220,82 @@ describe('RewardsVipTransactionsView', () => {
     const { getByText } = render(<RewardsVipTransactionsView />);
 
     expect(getByText('Transactions')).toBeOnTheScreen();
+  });
+
+  it('renders layout-matching skeletons while loading with no transactions', () => {
+    mockUseGetVipTransactions.mockReturnValue({
+      ...transactionDefaults,
+      isLoading: true,
+      transactions: null,
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <RewardsVipTransactionsView />,
+    );
+
+    expect(
+      getByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY),
+    ).toBeNull();
+  });
+
+  it('renders skeletons when transactions are still null before loading starts', () => {
+    mockUseGetVipTransactions.mockReturnValue({
+      ...transactionDefaults,
+      isLoading: false,
+      transactions: null,
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <RewardsVipTransactionsView />,
+    );
+
+    expect(
+      getByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY),
+    ).toBeNull();
+  });
+
+  it('renders skeletons when refreshing an empty list', () => {
+    mockUseGetVipTransactions.mockReturnValue({
+      ...transactionDefaults,
+      isRefreshing: true,
+      isLoading: false,
+      transactions: [],
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <RewardsVipTransactionsView />,
+    );
+
+    expect(
+      getByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY),
+    ).toBeNull();
+  });
+
+  it('does not render skeletons when an error is present', () => {
+    mockUseGetVipTransactions.mockReturnValue({
+      ...transactionDefaults,
+      isLoading: true,
+      error: 'Network failure',
+      transactions: null,
+    });
+
+    const { queryByTestId, getByTestId } = render(
+      <RewardsVipTransactionsView />,
+    );
+
+    expect(
+      queryByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON),
+    ).toBeNull();
+    expect(getByTestId('error-banner')).toBeOnTheScreen();
   });
 
   it('opens the type selector sheet', () => {
@@ -285,16 +346,18 @@ describe('RewardsVipTransactionsView', () => {
 
     const { getByTestId, getByText } = render(<RewardsVipTransactionsView />);
 
-    expect(getByTestId('info-banner')).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY),
+    ).toBeOnTheScreen();
     expect(getByText('No transactions yet')).toBeOnTheScreen();
   });
 
   it('renders error banner and retries on confirm', () => {
-    const refresh = jest.fn();
+    const retry = jest.fn();
     mockUseGetVipTransactions.mockReturnValue({
       ...transactionDefaults,
       error: 'Network failure',
-      refresh,
+      retry,
     });
 
     const { getByTestId, getByText } = render(<RewardsVipTransactionsView />);
@@ -302,7 +365,7 @@ describe('RewardsVipTransactionsView', () => {
     expect(getByTestId('error-banner')).toBeOnTheScreen();
     expect(getByText('Failed to load transactions')).toBeOnTheScreen();
     fireEvent.press(getByTestId('error-banner-retry'));
-    expect(refresh).toHaveBeenCalled();
+    expect(retry).toHaveBeenCalled();
   });
 
   it('calls loadMore when the list reaches the end and has more pages', () => {
