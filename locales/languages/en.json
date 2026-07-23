@@ -4336,6 +4336,12 @@
     "web_site": "Visit our website",
     "contact_us": "Contact us"
   },
+  "support_consent": {
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "confirm": "Confirm",
+    "reject": "Don't share"
+  },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",
     "private_key_title": "Show private key",
