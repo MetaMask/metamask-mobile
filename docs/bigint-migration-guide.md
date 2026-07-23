@@ -122,11 +122,6 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 - `app/components/Views/confirmations/hooks/earn/useCustomAmount.tsx`
 - `app/selectors/earnController/earn/index.ts`
 
-### @MetaMask/metamask-assets
-
-- `app/components/UI/AssetOverview/utils/marketDetails.ts`
-- `app/components/UI/CollectibleOverview/index.js`
-
 ### @MetaMask/mobile-core-ux
 
 - `app/components/UI/TransactionElement/utils-gas.js`
