@@ -232,6 +232,35 @@ describe('feedConfig', () => {
     });
   });
 
+  it('falls back to generated sports params when custom chip query params are blank', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      gamesTagId: '100639',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'custom-chip',
+              kind: 'tag',
+              tagSlug: 'remote-slug',
+              queryParams: ' ? ',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      tagSlugs: ['remote-slug'],
+      status: 'open',
+      order: 'start_time',
+      startTimeMinMinutesAgo: 180,
+    });
+  });
+
   it('applies chip start time minute overrides on generated params', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,

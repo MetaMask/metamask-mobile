@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { usePredictFeedMarketList } from './usePredictFeedMarketList';
 import {
   usePredictMarketList,
@@ -184,5 +184,136 @@ describe('usePredictFeedMarketList', () => {
       { enabled: false },
     );
     expect(result.current.error).toBe(error);
+  });
+
+  it('does not auto-advance empty pages unless the sports policy is enabled', async () => {
+    const liveFetchNextPage = jest.fn().mockResolvedValue(undefined);
+    liveResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: liveFetchNextPage,
+    });
+
+    renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true },
+      ),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(liveFetchNextPage).not.toHaveBeenCalled();
+  });
+
+  it('auto-advances an empty live page until visible sports markets appear', async () => {
+    const liveFetchNextPage = jest.fn().mockImplementation(async () => {
+      liveResult = createMarketListResult({
+        markets: [createMarket('live-1')],
+        fetchNextPage: liveFetchNextPage,
+      });
+    });
+    liveResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: liveFetchNextPage,
+    });
+
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true, autoAdvanceEmptyPages: true },
+      ),
+    );
+
+    await waitFor(() => {
+      expect(result.current.markets.map((market) => market.id)).toEqual([
+        'live-1',
+      ]);
+    });
+    expect(liveFetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it('enables regular markets when empty live pages reach the sports budget', async () => {
+    const liveFetchNextPage = jest.fn().mockResolvedValue(undefined);
+    liveResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: liveFetchNextPage,
+    });
+    regularResult = createMarketListResult({
+      markets: [createMarket('regular-1')],
+    });
+    mockUsePredictMarketList.mockImplementation((params = {}, options = {}) => {
+      if (options.enabled === false) {
+        return createMarketListResult();
+      }
+      return params.live === true ? liveResult : regularResult;
+    });
+
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true, autoAdvanceEmptyPages: true },
+      ),
+    );
+
+    await waitFor(() => {
+      expect(liveFetchNextPage).toHaveBeenCalledTimes(3);
+    });
+    await waitFor(() => {
+      expect(mockUsePredictMarketList).toHaveBeenCalledWith(
+        { tagSlugs: ['sports'] },
+        { enabled: true },
+      );
+    });
+    expect(result.current.markets.map((market) => market.id)).toEqual([
+      'regular-1',
+    ]);
+  });
+
+  it('auto-advances regular sports pages with the same bounded policy', async () => {
+    const regularFetchNextPage = jest.fn().mockResolvedValue(undefined);
+    regularResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: regularFetchNextPage,
+    });
+
+    renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'], excludedTags: ['100639'] },
+        { showLiveFirst: false, autoAdvanceEmptyPages: true },
+      ),
+    );
+
+    await waitFor(() => {
+      expect(regularFetchNextPage).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  it('resets the empty-page budget when the feed params change', async () => {
+    const liveFetchNextPage = jest.fn().mockResolvedValue(undefined);
+    liveResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: liveFetchNextPage,
+    });
+
+    const { rerender } = renderHook(
+      ({ tagSlugs }: { tagSlugs: string[] }) =>
+        usePredictFeedMarketList(
+          { tagSlugs },
+          { showLiveFirst: true, autoAdvanceEmptyPages: true },
+        ),
+      { initialProps: { tagSlugs: ['soccer'] } },
+    );
+
+    await waitFor(() => {
+      expect(liveFetchNextPage).toHaveBeenCalledTimes(3);
+    });
+
+    rerender({ tagSlugs: ['basketball'] });
+
+    await waitFor(() => {
+      expect(liveFetchNextPage).toHaveBeenCalledTimes(6);
+    });
   });
 });

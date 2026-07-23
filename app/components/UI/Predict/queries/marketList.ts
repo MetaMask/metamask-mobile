@@ -14,20 +14,39 @@ export const PREDICT_MARKET_LIST_PAGE_SIZE = 20;
  *
  * `tags`/`tagSlugs`/`excludedTags`/`series` are sorted (order-insensitive).
  * `search` is trimmed and blank/whitespace becomes `undefined` (browse mode).
- * `live` only matters when `true` (matches the provider query builder), so
- * `false`/`undefined` collapse to `undefined`. `limit` defaults to
- * `PREDICT_MARKET_LIST_PAGE_SIZE`.
+ * For generated params, `live: false` and omitted `live` collapse because the
+ * provider treats them the same. In raw-query mode, explicit `live: false` is
+ * preserved because it removes an embedded `live=true` from the final request.
+ * `limit` defaults to `PREDICT_MARKET_LIST_PAGE_SIZE`.
  *
  * `afterCursor` is intentionally excluded — it is the infinite-query page
  * param, not part of the cache key.
  */
+const normalizeRawQueryParams = (queryParams?: string): string | undefined => {
+  const rawQueryParams = queryParams?.trim().replace(/^\?/, '');
+  if (!rawQueryParams) {
+    return undefined;
+  }
+
+  const sortedParams = new URLSearchParams();
+  Array.from(new URLSearchParams(rawQueryParams).entries())
+    .sort(([keyA, valueA], [keyB, valueB]) => {
+      const keyComparison = keyA.localeCompare(keyB);
+      return keyComparison || valueA.localeCompare(valueB);
+    })
+    .forEach(([key, value]) => sortedParams.append(key, value));
+
+  return sortedParams.toString() || undefined;
+};
+
 export const normalizeMarketListParams = (
   params: PredictMarketListParams = {},
 ) => {
   const search = params.search?.trim();
+  const queryParams = normalizeRawQueryParams(params.queryParams);
 
   return {
-    queryParams: params.queryParams?.trim() || undefined,
+    queryParams,
     tags: params.tags?.length
       ? [...params.tags].sort((a, b) => a.localeCompare(b))
       : undefined,
@@ -42,7 +61,12 @@ export const normalizeMarketListParams = (
       : undefined,
     order: params.order,
     status: params.status,
-    live: params.live === true ? true : undefined,
+    live:
+      params.live === true
+        ? true
+        : queryParams && params.live === false
+          ? false
+          : undefined,
     startTimeMin: params.startTimeMin,
     startTimeMinMinutesAgo: params.startTimeMinMinutesAgo,
     search: search || undefined,

@@ -262,7 +262,7 @@ describe('PredictFeedView', () => {
     });
     expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
       {},
-      { enabled: true, showLiveFirst: true },
+      { enabled: true, showLiveFirst: true, autoAdvanceEmptyPages: true },
     );
   });
 
@@ -286,7 +286,7 @@ describe('PredictFeedView', () => {
 
     expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
       { tagSlugs: ['politics'] },
-      { enabled: true, showLiveFirst: false },
+      { enabled: true, showLiveFirst: false, autoAdvanceEmptyPages: false },
     );
   });
 

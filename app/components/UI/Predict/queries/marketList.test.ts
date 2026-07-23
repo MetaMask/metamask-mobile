@@ -102,6 +102,21 @@ describe('marketList query', () => {
       expect(raw).not.toEqual(generated);
     });
 
+    it('canonicalizes raw query params for stable keys', () => {
+      const first = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: '?tag_slug=soccer&order=startTime',
+        }),
+      );
+      const second = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: ' order=startTime&tag_slug=soccer ',
+        }),
+      );
+
+      expect(first).toEqual(second);
+    });
+
     it('produces distinct keys for excluded tags', () => {
       const props = predictMarketListKeys.list(
         normalizeMarketListParams({
@@ -132,6 +147,23 @@ describe('marketList query', () => {
       expect(normalizeMarketListParams({ live: false }).live).toBeUndefined();
       expect(normalizeMarketListParams({}).live).toBeUndefined();
       expect(normalizeMarketListParams({ live: true }).live).toBe(true);
+    });
+
+    it('preserves live:false in raw query mode to avoid live-phase cache collisions', () => {
+      const liveOnly = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&live=true',
+        }),
+      );
+      const regularPhase = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&live=true',
+          live: false,
+        }),
+      );
+
+      expect(regularPhase).not.toEqual(liveOnly);
+      expect(regularPhase[2].live).toBe(false);
     });
   });
 
