@@ -6,6 +6,7 @@ import {
   selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayIsPostQuoteByTransactionId,
   selectTransactionPayQuotesByTransactionId,
+  selectTransactionPayQuotesLastUpdatedByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
   selectTransactionPayTokensByTransactionId,
   selectTransactionPayTotalsByTransactionId,
@@ -15,6 +16,12 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 
 export function useTransactionPayQuotes() {
   return useTransactionPayData(selectTransactionPayQuotesByTransactionId);
+}
+
+export function useTransactionPayQuotesLastUpdated() {
+  return useTransactionPayData(
+    selectTransactionPayQuotesLastUpdatedByTransactionId,
+  );
 }
 
 export function useTransactionPayRequiredTokens() {

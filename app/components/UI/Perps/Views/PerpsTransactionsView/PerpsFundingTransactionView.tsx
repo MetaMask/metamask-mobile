@@ -7,14 +7,13 @@ import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
   HeaderStandard,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
@@ -134,12 +133,15 @@ const PerpsFundingTransactionView: React.FC = () => {
             {detailRows.map((detail, index) => (
               <View key={index} style={styles.detailRow}>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {detail.label}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                >
                   {detail.value}
                 </Text>
               </View>
