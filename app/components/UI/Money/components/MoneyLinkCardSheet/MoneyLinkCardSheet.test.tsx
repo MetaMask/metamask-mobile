@@ -319,14 +319,16 @@ describe('MoneyLinkCardSheet', () => {
     });
   });
 
-  it('dismisses the sheet and dispatches confirmLinkInBackground when the CTA is pressed', () => {
+  it('dismisses the sheet and dispatches confirmLinkInBackground when the CTA is pressed', async () => {
     mockRouteParams = {
       entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     };
     const { getByTestId } = renderWithProvider(<MoneyLinkCardSheet />);
     jest.clearAllMocks();
 
-    fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CTA_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CTA_BUTTON));
+    });
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockConfirmLinkInBackground).toHaveBeenCalledTimes(1);
@@ -357,9 +359,8 @@ describe('MoneyLinkCardSheet', () => {
     mockConfirmLinkInBackground.mockRejectedValue(new Error('link failed'));
     const { getByTestId } = renderWithProvider(<MoneyLinkCardSheet />);
 
-    fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CTA_BUTTON));
     await act(async () => {
-      await Promise.resolve();
+      fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CTA_BUTTON));
     });
 
     expect(mockConfirmLinkInBackground).toHaveBeenCalledTimes(1);
