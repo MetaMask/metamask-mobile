@@ -167,7 +167,9 @@ const MoneyLinkCardSheet = () => {
           justifyContent={BoxJustifyContent.Center}
           testID={MoneyLinkCardSheetTestIds.ILLUSTRATION}
         >
-          <MoneyCardFlipAnimation isMetalCard={isMetalCard} />
+          <MoneyCardFlipAnimation
+            isMetalCard={isCardDataReady ? isMetalCard : undefined}
+          />
         </Box>
         <Box twClassName="gap-2 items-center">
           <Text

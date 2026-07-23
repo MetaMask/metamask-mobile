@@ -42,7 +42,12 @@ const ENTRANCE_TRANSLATE_Y = 10;
 const ENTRANCE_INITIAL_OPACITY = 0.5;
 
 interface MoneyCardFlipAnimationProps {
-  isMetalCard: boolean;
+  /**
+   * Which card variant to show. `undefined` means the variant is not known
+   * yet (card data still loading): space is reserved but nothing renders, so
+   * the one-shot flip plays only once, with the correct variant.
+   */
+  isMetalCard?: boolean;
   testID?: string;
 }
 
@@ -55,6 +60,7 @@ const MoneyCardFlipAnimation = ({
   const [hasRiveError, setHasRiveError] = useState(false);
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
+  const variantKnown = isMetalCard !== undefined;
 
   const entranceOpacity = useSharedValue(ENTRANCE_INITIAL_OPACITY);
   const entranceTranslateY = useSharedValue(ENTRANCE_TRANSLATE_Y);
@@ -64,12 +70,12 @@ const MoneyCardFlipAnimation = ({
   }));
 
   useEffect(() => {
-    if (!animate) return;
+    if (!animate || !variantKnown) return;
     entranceOpacity.value = withTiming(1, { duration: ENTRANCE_DURATION_MS });
     entranceTranslateY.value = withTiming(0, {
       duration: ENTRANCE_DURATION_MS,
     });
-  }, [animate, entranceOpacity, entranceTranslateY]);
+  }, [animate, variantKnown, entranceOpacity, entranceTranslateY]);
 
   const handleError = useCallback((riveError: RNRiveError) => {
     log(`Rive error: ${riveError.message}`);
@@ -77,7 +83,9 @@ const MoneyCardFlipAnimation = ({
   }, []);
 
   let content: React.ReactNode;
-  if (animate) {
+  if (!variantKnown) {
+    content = animate ? null : <Box style={styles.placeholder} />;
+  } else if (animate) {
     content = (
       <Animated.View style={[styles.media, entranceStyle]}>
         <Rive

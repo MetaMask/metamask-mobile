@@ -15,6 +15,10 @@ const styles = StyleSheet.create({
     height: 95,
     borderRadius: 5,
   },
+  placeholder: {
+    width: 150,
+    height: 95,
+  },
 });
 
 export default styles;

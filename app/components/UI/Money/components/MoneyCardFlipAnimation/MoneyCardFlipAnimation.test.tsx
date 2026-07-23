@@ -64,6 +64,29 @@ describe('MoneyCardFlipAnimation', () => {
     ).toBeNull();
   });
 
+  it('renders neither the Rive animation nor the static image while the variant is unknown', () => {
+    const { queryByTestId } = render(<MoneyCardFlipAnimation />);
+
+    expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
+    expect(
+      queryByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
+    ).toBeNull();
+  });
+
+  it('reserves the space without rendering content while the variant is unknown and animations are off', () => {
+    mockUseReduceMotion.mockReturnValue(true);
+
+    const { queryByTestId, getByTestId } = render(<MoneyCardFlipAnimation />);
+
+    expect(
+      getByTestId(MoneyCardFlipAnimationTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
+    expect(
+      queryByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
+    ).toBeNull();
+  });
+
   it('renders the metal artboard with the flip timeline for a metal card', () => {
     render(<MoneyCardFlipAnimation isMetalCard />);
 

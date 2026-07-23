@@ -19,14 +19,14 @@ import {
 } from '../../../Card/util/metrics';
 
 const MOCK_CARD_FLIP_ANIMATION_TEST_ID = 'mock-money-card-flip-animation';
-const mockCardFlipProps: { current?: { isMetalCard: boolean } } = {};
+const mockCardFlipProps: { current?: { isMetalCard?: boolean } } = {};
 
 jest.mock('../MoneyCardFlipAnimation', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: (props: { isMetalCard: boolean }) => {
+    default: (props: { isMetalCard?: boolean }) => {
       mockCardFlipProps.current = { isMetalCard: props.isMetalCard };
       return ReactActual.createElement(View, {
         testID: 'mock-money-card-flip-animation',
@@ -316,6 +316,15 @@ describe('MoneyLinkCardSheet', () => {
       renderWithProvider(<MoneyLinkCardSheet />);
 
       expect(mockCardFlipProps.current?.isMetalCard).toBe(false);
+    });
+
+    it('passes isMetalCard undefined while the card home data fetch is still loading', () => {
+      mockSelectCardHomeData.mockReturnValue(null);
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(mockCardFlipProps.current?.isMetalCard).toBeUndefined();
     });
   });
 
