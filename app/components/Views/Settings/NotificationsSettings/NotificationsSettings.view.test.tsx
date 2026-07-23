@@ -54,12 +54,12 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences';
 
 const SECTION_TITLES = {
-  walletActivity: 'Wallet Activity',
-  perps: 'Trading Activity',
+  walletActivity: 'Wallet activity',
+  perps: 'Trading activity',
   agenticCli: 'Agentic CLI',
-  socialAI: 'Trading Signals',
-  marketing: 'Updates and Rewards',
-  priceAlerts: 'Price Alerts',
+  socialAI: 'Trading signals',
+  marketing: 'Updates and rewards',
+  priceAlerts: 'Price alerts',
 };
 
 const hasFetchedNotificationPreferences = () =>

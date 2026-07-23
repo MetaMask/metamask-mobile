@@ -454,9 +454,9 @@ describe('TopTradersView', () => {
       screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
       params: {
         type: 'socialAI',
-        title: 'Trading Signals',
+        title: 'Trading signals',
         description:
-          'Updates from traders and assets you follow, plus currated market news',
+          'Updates from traders and assets you follow, plus curated market news',
       },
     });
   });
