@@ -3,6 +3,8 @@ import {
   HardwareWalletError,
   LEDGER_ERROR_MAPPINGS,
   HardwareWalletType,
+  getDmkErrorFromTag,
+  DMK_MESSAGE_PATTERNS,
 } from '@metamask/hw-wallet-sdk';
 import { add0x } from '@metamask/utils';
 import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
@@ -157,54 +159,76 @@ function parseLedgerStatusCode(
   );
 }
 
+function parseTransportStatusError(
+  error: object,
+  walletType?: HardwareWalletType | null,
+): HardwareWalletError | null {
+  const statusCode = extractStatusCode(error);
+  if (statusCode === null) {
+    return null;
+  }
+
+  return parseLedgerStatusCode(
+    statusCode,
+    walletType,
+    isErrorLike(error) ? error : undefined,
+  );
+}
+
+function parseDmkError(
+  error: object,
+  walletType?: HardwareWalletType | null,
+): HardwareWalletError | null {
+  const dmk = getDmkErrorFromTag(error);
+  if (!dmk) {
+    return null;
+  }
+
+  return createHardwareWalletError(dmk.code, walletType, undefined, {
+    cause: isErrorLike(error) ? error : undefined,
+    metadata: { errorName: dmk.tag },
+  });
+}
+
 /**
- * Parse error by checking error name
- * Ledger packages throws errors with specific names like 'DisconnectedDevice'
+ * Parse error by checking its `name` property, then DMK `_tag` as fallback.
+ *
+ * Legacy @ledgerhq/errors identify themselves via the standard JS `error.name`
+ * (e.g. 'DisconnectedDevice', 'TransportStatusError'). DMK errors do not set
+ * `name`; those are resolved via SDK `getDmkErrorFromTag` when no legacy
+ * `name` is present. This preserves "name over _tag" precedence: when both
+ * fields are present, `name` wins and `_tag` is ignored.
  */
 function parseErrorByName(
   error: unknown,
   walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
-  if (
-    error === null ||
-    typeof error !== 'object' ||
-    !('name' in error) ||
-    typeof error.name !== 'string'
-  ) {
+  if (error === null || typeof error !== 'object') {
     return null;
   }
 
-  const name = error.name;
+  const name =
+    'name' in error && typeof error.name === 'string' ? error.name : null;
 
-  // TransportStatusError requires special handling - extract and parse the status code
-  // The error name alone doesn't tell us what went wrong; the statusCode does
+  // DMK errors do not have a legacy name. A present name always takes precedence.
+  if (!name) {
+    return parseDmkError(error, walletType);
+  }
+
+  // TransportStatusError requires its status code to determine the error.
   if (name === 'TransportStatusError') {
-    const statusCode = extractStatusCode(error);
-    if (statusCode !== null) {
-      return parseLedgerStatusCode(
-        statusCode,
-        walletType,
-        isErrorLike(error) ? error : undefined,
-      );
-    }
-    // If no status code found, fall through to unknown error
+    return parseTransportStatusError(error, walletType);
+  }
+
+  const errorCode = ERROR_NAME_MAPPINGS[name];
+  if (!errorCode) {
     return null;
   }
 
-  // Check known Ledger error names
-  if (ERROR_NAME_MAPPINGS[name]) {
-    return createHardwareWalletError(
-      ERROR_NAME_MAPPINGS[name],
-      walletType,
-      undefined,
-      {
-        cause: isErrorLike(error) ? error : undefined,
-        metadata: { errorName: name },
-      },
-    );
-  }
-
-  return null;
+  return createHardwareWalletError(errorCode, walletType, undefined, {
+    cause: isErrorLike(error) ? error : undefined,
+    metadata: { errorName: name },
+  });
 }
 
 /**
@@ -273,6 +297,8 @@ function parseErrorByMessage(
       condition: (msg) => msg.includes('scan'),
     },
     { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
+    // DMK message patterns — owned by @metamask/hw-wallet-sdk.
+    ...DMK_MESSAGE_PATTERNS,
   ];
 
   for (const { patterns, code, condition } of messagePatterns) {
