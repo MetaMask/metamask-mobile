@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -43,7 +44,7 @@ interface RewardsSelectSheetProps {
 
 const RewardsSelectSheet: React.FC<RewardsSelectSheetProps> = ({ route }) => {
   const { title, options, selectedValue, onSelect } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleClose = useCallback(() => {
     navigation.goBack();

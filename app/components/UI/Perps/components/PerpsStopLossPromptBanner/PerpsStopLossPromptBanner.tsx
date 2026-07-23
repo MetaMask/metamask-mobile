@@ -1,10 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonSize,
@@ -13,6 +9,9 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
@@ -139,14 +138,17 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
           >
             <View style={styles.addMarginRow}>
               <View style={styles.addMarginTextContainer}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
                   {strings('perps.stop_loss_prompt.near_liquidation_title', {
                     distance: roundedDistance,
                   })}
                 </Text>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.stop_loss_prompt.near_liquidation_subtitle')}
                 </Text>
@@ -175,10 +177,13 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
         >
           <View style={styles.stopLossRow}>
             <View style={styles.stopLossTextContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('perps.stop_loss_prompt.protect_losses_title')}
               </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.stop_loss_prompt.set_stop_loss_subtitle', {
                   price: formattedStopLossPrice,
                   percent: formattedPercent,

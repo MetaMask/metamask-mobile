@@ -1,1 +1,1 @@
-export { default } from './LivePriceDisplay';
+export { default } from './LivePriceHeader';

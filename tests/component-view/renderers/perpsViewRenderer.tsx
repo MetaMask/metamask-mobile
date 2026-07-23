@@ -922,7 +922,7 @@ export function renderPerpsCrossMarginWarningView(
 
 /**
  * Renders a standalone Perps component (not a View) wrapped with Redux, connection, and stream providers.
- * Use for components like PerpsMarketTabs, PerpsErrorState, PerpsBadge, etc. that are not routed views.
+ * Use for components like PerpsBadge, PerpsFillTag, etc. that are not routed views.
  */
 export function renderPerpsComponent(
   Component: React.ComponentType<Record<string, unknown>>,
