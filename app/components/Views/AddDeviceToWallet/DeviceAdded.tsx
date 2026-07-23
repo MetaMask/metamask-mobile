@@ -1,5 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -18,12 +17,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../locales/i18n';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { useNavigation } from '@react-navigation/native';
-import Engine from '../../../core/Engine';
-import { selectQrSyncIsSessionActive } from '../../../selectors/qrSyncController';
 import { useTheme } from '../../../util/theme';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 const LOADER_SIZE = 48;
 const LOADER_BORDER_WIDTH = 4;
@@ -70,27 +64,9 @@ const DeviceAddedLoader = () => {
 
 const DeviceAdded = () => {
   const tw = useTailwind();
-  const navigation = useNavigation<AppNavigationProp>();
-  const isSessionActive = useSelector(selectQrSyncIsSessionActive);
-
-  const handleBack = useCallback(() => {
-    if (isSessionActive) {
-      Engine.context.QrSyncController.cancelSession();
-    } else {
-      // Extension already completed; clear pending secrets so the spinner
-      // does not reappear after leaving this screen.
-      Engine.context.QrSyncController.resetState();
-    }
-
-    navigation.goBack();
-  }, [isSessionActive, navigation]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard
-        onBack={handleBack}
-        backButtonProps={{ testID: 'device-added-back-button' }}
-      />
       <Box twClassName="flex-1 px-4 justify-center items-center gap-4">
         <DeviceAddedLoader />
         <Text
