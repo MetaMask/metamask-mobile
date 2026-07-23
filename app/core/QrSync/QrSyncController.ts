@@ -247,6 +247,9 @@ export class QrSyncController extends BaseController<
     }
 
     this.update((state) => {
+      state.syncFlow = this.getIsOnboardingCompleted()
+        ? QrSyncSyncFlows.EXISTING_USER
+        : QrSyncSyncFlows.NEW_USER;
       state.pendingSecretImports = pendingSecretImports;
       state.provisioningMetadata = {
         version: QrSyncMessageVersion.V1,
@@ -297,9 +300,12 @@ export class QrSyncController extends BaseController<
     }
 
     const { pendingSecretImports } = this.state;
+    const isExistingUser =
+      this.state.syncFlow === QrSyncSyncFlows.EXISTING_USER;
     const remainingSecrets =
       pendingSecretImports?.filter(
         (secret) =>
+          isExistingUser ||
           !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
       ) ?? [];
 

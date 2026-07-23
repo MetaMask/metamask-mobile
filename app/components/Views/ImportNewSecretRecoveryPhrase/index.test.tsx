@@ -183,12 +183,14 @@ describe('ImportNewSecretRecoveryPhrase', () => {
             callback({
               address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
               discoveredAccountsCount: 3,
+              entropySource: 'mock-entropy-source',
             });
           });
         }
         return Promise.resolve({
           address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
           discoveredAccountsCount: 0,
+          entropySource: 'mock-entropy-source',
         });
       },
     );

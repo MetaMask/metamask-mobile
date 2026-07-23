@@ -4,24 +4,21 @@ import { useSelector } from 'react-redux';
 
 import Routes from '../../constants/navigation/Routes';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
-import {
-  selectQrSyncExistingUserImportMnemonic,
-  selectQrSyncShouldNavigateToImport,
-} from '../../selectors/qrSyncController';
+import { selectQrSyncShouldNavigateToImport } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
 import Engine from '../Engine';
-import { QrSyncSecretTypes, QrSyncSyncFlows } from './constants';
-import { completeExistingUserQrSyncImport } from './completeExistingUserQrSyncImport';
+import { QrSyncSyncFlows } from './constants';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
-import type { QrSyncSecretImportEntry } from './types';
+import Logger from '../../util/Logger';
 import {
   QrSyncOperations,
   QrSyncSurfaces,
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
+import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 
 interface UseQrSyncImportNavigationOptions {
   enabled: boolean;
@@ -32,28 +29,14 @@ interface UseQrSyncImportNavigationOptions {
 /** Add Device + QR scanner both mount this hook; only one navigation pass may run. */
 let inFlightImportNavigation: Promise<void> | null = null;
 
-const resolveMnemonicFromPendingSecrets = (
-  pendingSecretImports: QrSyncSecretImportEntry[] | null | undefined,
-): string | null => {
-  if (!pendingSecretImports?.length) {
-    return null;
-  }
-
-  const primaryMnemonic = pendingSecretImports.find(
-    (entry) => entry.type === QrSyncSecretTypes.MNEMONIC && entry.isPrimary,
-  )?.value;
-
-  if (primaryMnemonic) {
-    return primaryMnemonic;
-  }
-
-  return (
-    pendingSecretImports.find(
-      (entry) => entry.type === QrSyncSecretTypes.MNEMONIC,
-    )?.value ?? null
-  );
-};
-
+/**
+ * Existing-user QR sync after SYNC_READY: import all non-primary secrets via
+ * Phase B (`importRemainingSecrets`), then start Phase C metadata layout.
+ *
+ * Extension never sends the primary mnemonic for existing users, so there is no
+ * separate `importNewSecretRecoveryPhrase` path — that would duplicate-import
+ * non-primary mnemonics and skip metadata enrichment.
+ */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
 ): Promise<void> => {
@@ -75,19 +58,30 @@ const finishExistingUserSyncWithoutMnemonic = async (
   const accountsAfter = await Engine.context.KeyringController.getAccounts();
   const addedNewAccounts = accountsAfter.length > accountsBefore.length;
 
-  Engine.context.QrSyncController.resetState();
-  navigation.navigate(Routes.WALLET_VIEW);
-
   // Thrown failures are real import errors. Unchanged account count after a
   // successful importRemainingSecrets call means the secrets were already here.
   if (importFailed && !addedNewAccounts) {
+    Engine.context.QrSyncController.resetState();
+    navigation.navigate(Routes.WALLET_VIEW);
     showImportFailedSheet(navigation);
     return;
   }
 
   if (!addedNewAccounts) {
+    Engine.context.QrSyncController.resetState();
+    navigation.navigate(Routes.WALLET_VIEW);
     showAlreadySyncedSheet(navigation);
+    return;
   }
+
+  // Phase C is non-blocking and needs provisioning metadata until
+  // `completeProvisioning` runs. Do NOT resetState here — early reset leaves
+  // only group 0 (Account 1) per wallet because groups 1..N are created in Phase C.
+  // Matches new-user `finalizeOnboardingCompletion` behavior.
+  startExistingUserQrMetadataProvisioning(
+    QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
+  );
+  navigation.navigate(Routes.WALLET_VIEW);
 };
 
 /**
@@ -105,7 +99,6 @@ export const useQrSyncImportNavigation = ({
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
   );
-  const qrSyncMnemonic = useSelector(selectQrSyncExistingUserImportMnemonic);
   const hasHandledImportNavigationRef = useRef(false);
 
   useEffect(() => {
@@ -122,54 +115,38 @@ export const useQrSyncImportNavigation = ({
       // Prefer live controller state — Redux can lag/strip ephemeral secrets.
       const pendingSecretImports =
         Engine.context.QrSyncController.state?.pendingSecretImports;
-      const mnemonic =
-        resolveMnemonicFromPendingSecrets(pendingSecretImports) ??
-        qrSyncMnemonic;
 
       hasHandledImportNavigationRef.current = true;
 
-      if (mnemonic) {
-        inFlightImportNavigation = completeExistingUserQrSyncImport(
-          navigation,
-          mnemonic,
-        )
-          .catch((error: unknown) => {
-            hasHandledImportNavigationRef.current = false;
-            Engine.context.QrSyncController.resetState();
-            reportQrSyncFailure(error, {
-              surface: QrSyncSurfaces.IMPORT,
-              operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
-              source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
-              syncFlow: QrSyncSyncFlows.EXISTING_USER,
-            });
-          })
-          .finally(() => {
-            inFlightImportNavigation = null;
-          });
+      if (!pendingSecretImports?.length) {
+        Logger.log(
+          'QR sync existing-user import: no pending secrets in sync data',
+        );
+        Engine.context.QrSyncController.resetState();
+        navigation.navigate(Routes.WALLET_VIEW);
         return;
       }
 
-      if (pendingSecretImports?.length) {
-        inFlightImportNavigation = finishExistingUserSyncWithoutMnemonic(
-          navigation,
-        ).finally(() => {
+      inFlightImportNavigation = finishExistingUserSyncWithoutMnemonic(
+        navigation,
+      )
+        .catch((error: unknown) => {
+          hasHandledImportNavigationRef.current = false;
+          Engine.context.QrSyncController.resetState();
+          reportQrSyncFailure(error, {
+            surface: QrSyncSurfaces.IMPORT,
+            operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
+            source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+            syncFlow: QrSyncSyncFlows.EXISTING_USER,
+          });
+        })
+        .finally(() => {
           inFlightImportNavigation = null;
         });
-        return;
-      }
-
-      Engine.context.QrSyncController.resetState();
-      navigation.navigate(Routes.WALLET_VIEW);
       return;
     }
 
     hasHandledImportNavigationRef.current = true;
     navigateToQrSyncImport(navigation);
-  }, [
-    completedOnboarding,
-    enabled,
-    navigation,
-    qrSyncMnemonic,
-    shouldNavigateToImport,
-  ]);
+  }, [completedOnboarding, enabled, navigation, shouldNavigateToImport]);
 };

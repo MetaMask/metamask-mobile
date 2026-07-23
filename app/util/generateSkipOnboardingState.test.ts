@@ -66,6 +66,7 @@ describe('generateSkipOnboardingState', () => {
     mockImportNewSecretRecoveryPhrase.mockResolvedValue({
       address: '0x123',
       discoveredAccountsCount: 1,
+      entropySource: 'mock-entropy-source',
     });
     mockSeedphraseBackedUp.mockReturnValue({ type: 'test' } as never);
     mockStorePrivacyPolicyClickedOrClosed.mockReturnValue({
