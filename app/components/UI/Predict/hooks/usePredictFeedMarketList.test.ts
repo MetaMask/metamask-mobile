@@ -1,316 +1,188 @@
-import React from 'react';
-import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, renderHook } from '@testing-library/react-native';
 import { usePredictFeedMarketList } from './usePredictFeedMarketList';
-import type { PredictMarket, PredictMarketListResponse } from '../types';
+import {
+  usePredictMarketList,
+  type UsePredictMarketListResult,
+} from './usePredictMarketList';
+import { createMarket } from '../testUtils/marketList';
 
-const mockListMarkets = jest.fn();
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      listMarkets: (...args: unknown[]) => mockListMarkets(...args),
-    },
-  },
-}));
+jest.mock('./usePredictMarketList');
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn(), log: jest.fn() },
-}));
+const mockUsePredictMarketList = jest.mocked(usePredictMarketList);
 
-jest.mock('../utils/marketStaleness', () => ({
-  getVisiblePredictMarkets: (markets: unknown) => markets,
-}));
-
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
-  });
-
-  const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-
-  return { Wrapper };
-};
-
-const createMarket = (id: string): PredictMarket =>
-  ({ id, parentMarketId: undefined }) as unknown as PredictMarket;
-
-const createChildMarket = (id: string): PredictMarket =>
-  ({ id, parentMarketId: 'parent-1' }) as unknown as PredictMarket;
-
-const createPage = (
-  ids: string[],
-  nextCursor: string | null = null,
-): PredictMarketListResponse => ({
-  markets: ids.map(createMarket),
-  nextCursor,
-});
-
-const createChildPage = (
-  ids: string[],
-  nextCursor: string | null = null,
-): PredictMarketListResponse => ({
-  markets: ids.map(createChildMarket),
-  nextCursor,
+const createMarketListResult = (
+  overrides: Partial<UsePredictMarketListResult> = {},
+): UsePredictMarketListResult => ({
+  markets: [],
+  isLoading: false,
+  isFetching: false,
+  isFetchingNextPage: false,
+  error: null,
+  hasNextPage: false,
+  refetch: jest.fn().mockResolvedValue(undefined),
+  fetchNextPage: jest.fn().mockResolvedValue(undefined),
+  ...overrides,
 });
 
 describe('usePredictFeedMarketList', () => {
+  let liveResult: UsePredictMarketListResult;
+  let regularResult: UsePredictMarketListResult;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockListMarkets.mockResolvedValue(createPage([]));
+    liveResult = createMarketListResult();
+    regularResult = createMarketListResult();
+    mockUsePredictMarketList.mockImplementation((params = {}) =>
+      params.live === true ? liveResult : regularResult,
+    );
   });
 
-  it('fetches only regular markets when live-first is disabled', async () => {
-    const { Wrapper } = createWrapper();
-    mockListMarkets.mockResolvedValueOnce(createPage(['regular-1']));
+  it('returns the regular phase when live-first is disabled', () => {
+    regularResult = createMarketListResult({
+      markets: [createMarket('regular-1')],
+    });
 
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          { tagSlugs: ['sports'], order: 'start_time' },
-          { showLiveFirst: false },
-        ),
-      { wrapper: Wrapper },
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'], order: 'start_time' },
+        { showLiveFirst: false },
+      ),
     );
 
-    await waitFor(() => {
-      expect(result.current.markets.map((market) => market.id)).toEqual([
-        'regular-1',
-      ]);
-    });
-
-    expect(mockListMarkets).toHaveBeenCalledTimes(1);
-    expect(mockListMarkets).toHaveBeenCalledWith({
-      tagSlugs: ['sports'],
-      order: 'start_time',
-      afterCursor: null,
-    });
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      1,
+      {
+        tagSlugs: ['sports'],
+        order: 'volume24hr',
+        live: true,
+      },
+      { enabled: false },
+    );
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      2,
+      {
+        tagSlugs: ['sports'],
+        order: 'start_time',
+      },
+      { enabled: true },
+    );
+    expect(result.current.markets.map((market) => market.id)).toEqual([
+      'regular-1',
+    ]);
   });
 
-  it('does not fetch when disabled', async () => {
-    const { Wrapper } = createWrapper();
+  it('leaves raw query mutation to the provider query builder', () => {
+    const queryParams = 'tag_slug=sports&live=false&order=startTime';
 
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          { tagSlugs: ['sports'] },
-          { enabled: false, showLiveFirst: true },
-        ),
-      { wrapper: Wrapper },
+    renderHook(() =>
+      usePredictFeedMarketList({ queryParams }, { showLiveFirst: true }),
     );
 
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(mockListMarkets).not.toHaveBeenCalled();
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.markets).toEqual([]);
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      1,
+      { queryParams, live: true },
+      { enabled: true },
+    );
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      2,
+      { queryParams, live: false },
+      { enabled: true },
+    );
   });
 
-  it('adds live true to structured params before fetching regular params', async () => {
-    const { Wrapper } = createWrapper();
-    mockListMarkets
-      .mockResolvedValueOnce(createPage([]))
-      .mockResolvedValueOnce(createPage(['regular-1']));
+  it('enables the regular phase after live markets are exhausted', () => {
+    liveResult = createMarketListResult({
+      markets: [createMarket('shared'), createMarket('live-1')],
+    });
+    regularResult = createMarketListResult({
+      markets: [createMarket('shared'), createMarket('regular-1')],
+    });
 
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          {
-            tagSlugs: ['soccer'],
-            tags: ['100639'],
-            status: 'open',
-            order: 'start_time',
-            startTimeMinMinutesAgo: 180,
-          },
-          { showLiveFirst: true },
-        ),
-      { wrapper: Wrapper },
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true },
+      ),
     );
 
-    await waitFor(() => {
-      expect(result.current.markets.map((market) => market.id)).toEqual([
-        'regular-1',
-      ]);
-    });
-
-    expect(mockListMarkets).toHaveBeenNthCalledWith(1, {
-      tagSlugs: ['soccer'],
-      tags: ['100639'],
-      status: 'open',
-      order: 'volume24hr',
-      startTimeMinMinutesAgo: 180,
-      live: true,
-      afterCursor: null,
-    });
-    expect(mockListMarkets).toHaveBeenNthCalledWith(2, {
-      tagSlugs: ['soccer'],
-      tags: ['100639'],
-      status: 'open',
-      order: 'start_time',
-      startTimeMinMinutesAgo: 180,
-      afterCursor: null,
-    });
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      2,
+      { tagSlugs: ['sports'] },
+      { enabled: true },
+    );
+    expect(result.current.markets.map((market) => market.id)).toEqual([
+      'shared',
+      'live-1',
+      'regular-1',
+    ]);
   });
 
-  it('normalizes live in raw query params for both phases', async () => {
-    const { Wrapper } = createWrapper();
-    mockListMarkets
-      .mockResolvedValueOnce(createPage([]))
-      .mockResolvedValueOnce(createPage(['regular-1']));
-
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          {
-            queryParams: '?tag_slug=sports&live=false&order=startTime',
-          },
-          { showLiveFirst: true },
-        ),
-      { wrapper: Wrapper },
+  it('routes pagination to the active phase', async () => {
+    const liveFetchNextPage = jest.fn().mockResolvedValue(undefined);
+    const regularFetchNextPage = jest.fn().mockResolvedValue(undefined);
+    liveResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: liveFetchNextPage,
+    });
+    regularResult = createMarketListResult({
+      fetchNextPage: regularFetchNextPage,
+    });
+    const { result, rerender } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true },
+      ),
     );
-
-    await waitFor(() => {
-      expect(result.current.markets.map((market) => market.id)).toEqual([
-        'regular-1',
-      ]);
-    });
-
-    expect(mockListMarkets).toHaveBeenNthCalledWith(1, {
-      queryParams: 'tag_slug=sports&live=true&order=volume24hr&ascending=false',
-      live: true,
-      afterCursor: null,
-    });
-    expect(mockListMarkets).toHaveBeenNthCalledWith(2, {
-      queryParams: 'tag_slug=sports&order=startTime',
-      afterCursor: null,
-    });
-  });
-
-  it('paginates live markets before starting the regular phase', async () => {
-    const { Wrapper } = createWrapper();
-    mockListMarkets
-      .mockResolvedValueOnce(createPage(['live-1'], 'cursor-1'))
-      .mockResolvedValueOnce(createPage(['live-2']))
-      .mockResolvedValueOnce(createPage(['regular-1']));
-
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          { tagSlugs: ['sports'], tags: ['100639'] },
-          { showLiveFirst: true },
-        ),
-      { wrapper: Wrapper },
-    );
-
-    await waitFor(() => {
-      expect(result.current.hasNextPage).toBe(true);
-    });
-    expect(mockListMarkets).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       await result.current.fetchNextPage();
     });
-
-    await waitFor(() => {
-      expect(mockListMarkets).toHaveBeenCalledTimes(3);
+    liveResult = createMarketListResult({ hasNextPage: false });
+    rerender({});
+    await act(async () => {
+      await result.current.fetchNextPage();
     });
 
-    expect(mockListMarkets).toHaveBeenNthCalledWith(2, {
-      tagSlugs: ['sports'],
-      tags: ['100639'],
-      order: 'volume24hr',
-      live: true,
-      afterCursor: 'cursor-1',
-    });
-    expect(mockListMarkets).toHaveBeenNthCalledWith(3, {
-      tagSlugs: ['sports'],
-      tags: ['100639'],
-      afterCursor: null,
-    });
-    expect(result.current.markets.map((market) => market.id)).toEqual([
-      'live-1',
-      'live-2',
-      'regular-1',
-    ]);
+    expect(liveFetchNextPage).toHaveBeenCalledTimes(1);
+    expect(regularFetchNextPage).toHaveBeenCalledTimes(1);
   });
 
-  it('dedupes duplicate markets across live and regular phases', async () => {
-    const { Wrapper } = createWrapper();
-    mockListMarkets
-      .mockResolvedValueOnce(createPage(['shared', 'live-1']))
-      .mockResolvedValueOnce(createPage(['shared', 'regular-1']));
-
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          { tagSlugs: ['sports'] },
-          { showLiveFirst: true },
-        ),
-      { wrapper: Wrapper },
+  it('refetches both phases after the live phase is exhausted', async () => {
+    const liveRefetch = jest.fn().mockResolvedValue(undefined);
+    const regularRefetch = jest.fn().mockResolvedValue(undefined);
+    liveResult = createMarketListResult({ refetch: liveRefetch });
+    regularResult = createMarketListResult({ refetch: regularRefetch });
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true },
+      ),
     );
 
-    await waitFor(() => {
-      expect(result.current.markets.map((market) => market.id)).toEqual([
-        'shared',
-        'live-1',
-        'regular-1',
-      ]);
+    await act(async () => {
+      await result.current.refetch();
     });
+
+    expect(liveRefetch).toHaveBeenCalledTimes(1);
+    expect(regularRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('auto-fetches child-only live pages before regular handoff', async () => {
-    const { Wrapper } = createWrapper();
-    mockListMarkets
-      .mockResolvedValueOnce(createChildPage(['child-1'], 'cursor-1'))
-      .mockResolvedValueOnce(createPage(['live-1']))
-      .mockResolvedValueOnce(createPage(['regular-1']));
+  it('surfaces live errors without enabling regular markets', () => {
+    const error = new Error('Live failed');
+    liveResult = createMarketListResult({ error });
 
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          { tagSlugs: ['sports'] },
-          { showLiveFirst: true },
-        ),
-      { wrapper: Wrapper },
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true },
+      ),
     );
 
-    await waitFor(() => {
-      expect(mockListMarkets).toHaveBeenCalledTimes(3);
-    });
-
-    expect(mockListMarkets).toHaveBeenNthCalledWith(2, {
-      tagSlugs: ['sports'],
-      order: 'volume24hr',
-      live: true,
-      afterCursor: 'cursor-1',
-    });
-    expect(result.current.markets.map((market) => market.id)).toEqual([
-      'live-1',
-      'regular-1',
-    ]);
-  });
-
-  it('surfaces live errors without fetching regular markets', async () => {
-    const { Wrapper } = createWrapper();
-    mockListMarkets.mockRejectedValueOnce(new Error('Live failed'));
-
-    const { result } = renderHook(
-      () =>
-        usePredictFeedMarketList(
-          { tagSlugs: ['sports'] },
-          { showLiveFirst: true },
-        ),
-      { wrapper: Wrapper },
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      2,
+      { tagSlugs: ['sports'] },
+      { enabled: false },
     );
-
-    await waitFor(() => {
-      expect(result.current.error).toBeInstanceOf(Error);
-    });
-
-    expect(result.current.error?.message).toBe('Live failed');
-    expect(mockListMarkets).toHaveBeenCalledTimes(1);
+    expect(result.current.error).toBe(error);
   });
 });

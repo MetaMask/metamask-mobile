@@ -78,12 +78,12 @@ export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
   minimumVersion: '7.64.0',
 };
 
-export const PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID = '100639';
+export const PREDICT_POLYMARKET_GAMES_TAG_ID = '100639';
 export const PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG = 'tennis';
 export const PREDICT_WIMBLEDON_DEFAULT_SEARCH = 'Wimbledon';
 
 export const PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS =
-  `active=true&archived=false&closed=false&ended=false&tag_id=${PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID}` +
+  `active=true&archived=false&closed=false&ended=false&tag_id=${PREDICT_POLYMARKET_GAMES_TAG_ID}` +
   `&tag_slug=${PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG}` +
   `&title_search=${PREDICT_WIMBLEDON_DEFAULT_SEARCH}` +
   '&order=volume24hr&ascending=false';
@@ -95,7 +95,6 @@ export const DEFAULT_WIMBLEDON_TAB_FLAG = {
 } satisfies PredictWimbledonTabFlag;
 
 export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
-export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
 
 export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   enabled: false,
@@ -106,12 +105,10 @@ export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   showHubV2: false,
   showHubBanner: false,
   tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
-  gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
+  gamesTagId: PREDICT_POLYMARKET_GAMES_TAG_ID,
   winnerEventId: '',
   stages: [],
 };
-
-export const PREDICT_SPORTS_FEED_DEFAULT_GAMES_TAG_ID = '100639';
 
 const createSportsFeedChip = (
   id: string,
@@ -156,7 +153,7 @@ const createSportsFeedTab = ({
 export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
   enabled: true,
   minimumVersion: '',
-  gamesTagId: PREDICT_SPORTS_FEED_DEFAULT_GAMES_TAG_ID,
+  gamesTagId: PREDICT_POLYMARKET_GAMES_TAG_ID,
   tabs: [
     createSportsFeedTab({
       id: 'all',

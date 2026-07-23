@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePredictMarketList } from './usePredictMarketList';
-import type { PredictMarket, PredictMarketListResponse } from '../types';
+import { createChildPage, createPage } from '../testUtils/marketList';
 
 const mockListMarkets = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -35,28 +35,6 @@ const createWrapper = () => {
 
   return { Wrapper };
 };
-
-const createMarket = (id: string): PredictMarket =>
-  ({ id, parentMarketId: undefined }) as unknown as PredictMarket;
-
-const createChildMarket = (id: string): PredictMarket =>
-  ({ id, parentMarketId: 'parent-1' }) as unknown as PredictMarket;
-
-const createPage = (
-  ids: string[],
-  nextCursor: string | null = null,
-): PredictMarketListResponse => ({
-  markets: ids.map(createMarket),
-  nextCursor,
-});
-
-const createChildPage = (
-  ids: string[],
-  nextCursor: string | null = null,
-): PredictMarketListResponse => ({
-  markets: ids.map(createChildMarket),
-  nextCursor,
-});
 
 describe('usePredictMarketList', () => {
   beforeEach(() => {

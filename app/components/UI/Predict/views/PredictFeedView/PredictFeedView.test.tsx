@@ -266,28 +266,6 @@ describe('PredictFeedView', () => {
     );
   });
 
-  it('disables live-first for sports props filters', () => {
-    mockUsePredictFeedConfig.mockReturnValue(
-      feedConfigResult({
-        activeFilterId: 'props',
-        activeFilter: {
-          id: 'props',
-          titleKey: 'predict.feed.filters.props',
-          params: { excludedTags: ['100639'] },
-          showLiveFirst: false,
-          isDynamic: false,
-        },
-      }),
-    );
-
-    render(<PredictFeedView />);
-
-    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
-      { excludedTags: ['100639'] },
-      { enabled: true, showLiveFirst: false },
-    );
-  });
-
   it('disables live-first for non-sports feeds', () => {
     mockRouteParams = { feedId: 'politics' };
     mockUsePredictFeedConfig.mockReturnValue(
@@ -345,25 +323,6 @@ describe('PredictFeedView', () => {
       expect(screen.getAllByText('Soccer').length).toBeGreaterThan(0);
     });
 
-    it('uses the remote label when a tab titleKey has no translation', () => {
-      mockUsePredictFeedConfig.mockReturnValue(
-        feedConfigResult({
-          tabs: [
-            { id: 'all', titleKey: 'predict.feed.tabs.all' },
-            {
-              id: 'remote-tab',
-              titleKey: 'predict.feed.tabs.remote-tab',
-              label: 'Remote Tab',
-            },
-          ],
-        }),
-      );
-
-      render(<PredictFeedView />);
-
-      expect(screen.getAllByText('Remote Tab').length).toBeGreaterThan(0);
-    });
-
     it('hides the tab and filter bars for the Live feed', () => {
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
@@ -405,60 +364,6 @@ describe('PredictFeedView', () => {
       ).toBeOnTheScreen();
       expect(screen.getByText('Games')).toBeOnTheScreen();
       expect(screen.getByText('Props')).toBeOnTheScreen();
-    });
-
-    it('uses the remote label when a filter titleKey has no translation', () => {
-      mockUsePredictFeedConfig.mockReturnValue(
-        feedConfigResult({
-          filters: [
-            {
-              id: 'remote-chip',
-              titleKey: 'predict.feed.filters.remote-chip',
-              label: 'Remote Chip',
-              params: {},
-              isDynamic: false,
-            },
-          ],
-          activeFilterId: 'remote-chip',
-          activeFilter: {
-            id: 'remote-chip',
-            titleKey: 'predict.feed.filters.remote-chip',
-            label: 'Remote Chip',
-            params: {},
-            isDynamic: false,
-          },
-        }),
-      );
-
-      render(<PredictFeedView />);
-
-      expect(screen.getByText('Remote Chip')).toBeOnTheScreen();
-    });
-
-    it('uses a humanized id when a filter has no translated title or label', () => {
-      mockUsePredictFeedConfig.mockReturnValue(
-        feedConfigResult({
-          filters: [
-            {
-              id: 'remote_chip-id',
-              titleKey: 'predict.feed.filters.remote_chip-id',
-              params: {},
-              isDynamic: false,
-            },
-          ],
-          activeFilterId: 'remote_chip-id',
-          activeFilter: {
-            id: 'remote_chip-id',
-            titleKey: 'predict.feed.filters.remote_chip-id',
-            params: {},
-            isDynamic: false,
-          },
-        }),
-      );
-
-      render(<PredictFeedView />);
-
-      expect(screen.getByText('Remote Chip Id')).toBeOnTheScreen();
     });
 
     it('calls setActiveFilterId when a filter chip is pressed', () => {

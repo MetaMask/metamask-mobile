@@ -1386,7 +1386,7 @@ export const fetchEventsFromPolymarketApi = async (
  * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
  * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `excludedTags` -> repeated `exclude_tag_id`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
- * - `queryParams` -> raw query string override; `afterCursor` and start-time overrides are still applied.
+ * - `queryParams` -> raw query string override; `live`, `afterCursor`, and start-time overrides are still applied.
  * - `startTimeMin`/`startTimeMinMinutesAgo` -> `start_time_min`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
  * - `customQueryParams` overrides matching generated params while preserving repeated values. Pagination and page size remain app-controlled.
@@ -1395,6 +1395,19 @@ const MS_PER_MINUTE = 60 * 1000;
 
 const normalizeRawQueryParams = (queryParams: string): string =>
   queryParams.trim().replace(/^\?/, '');
+
+const applyRawLiveQueryParam = (
+  queryParams: URLSearchParams,
+  live?: boolean,
+): void => {
+  if (live === true) {
+    queryParams.set('live', 'true');
+    queryParams.set('order', 'volume24hr');
+    queryParams.set('ascending', 'false');
+  } else if (live === false) {
+    queryParams.delete('live');
+  }
+};
 
 const applyStartTimeMinQueryParam = ({
   queryParams,
@@ -1444,16 +1457,20 @@ export const buildMarketListQueryParams = (
     const queryParams = new URLSearchParams(
       normalizeRawQueryParams(rawQueryParams),
     );
-    applyStartTimeMinQueryParam({
-      queryParams,
-      startTimeMin,
-      startTimeMinMinutesAgo,
-    });
-    queryParams.delete('after_cursor');
-    if (afterCursor) {
-      queryParams.set('after_cursor', afterCursor);
+    applyRawLiveQueryParam(queryParams, live);
+
+    if (queryParams.toString()) {
+      applyStartTimeMinQueryParam({
+        queryParams,
+        startTimeMin,
+        startTimeMinMinutesAgo,
+      });
+      queryParams.delete('after_cursor');
+      if (afterCursor) {
+        queryParams.set('after_cursor', afterCursor);
+      }
+      return queryParams;
     }
-    return queryParams;
   }
 
   const queryParams = new URLSearchParams();

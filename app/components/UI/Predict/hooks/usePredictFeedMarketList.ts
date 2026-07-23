@@ -14,31 +14,6 @@ export interface UsePredictFeedMarketListOptions
 const LIVE_MARKET_ORDER: NonNullable<PredictMarketListParams['order']> =
   'volume24hr';
 
-const normalizeRawQueryParams = (queryParams: string): string =>
-  queryParams.trim().replace(/^\?/, '');
-
-const withLiveQueryParam = (
-  queryParams: string,
-  live: boolean,
-): string | undefined => {
-  const normalizedQueryParams = normalizeRawQueryParams(queryParams);
-  if (!normalizedQueryParams) {
-    return undefined;
-  }
-
-  const params = new URLSearchParams(normalizedQueryParams);
-  if (live) {
-    params.set('live', 'true');
-    params.set('order', LIVE_MARKET_ORDER);
-    params.set('ascending', 'false');
-  } else {
-    params.delete('live');
-  }
-
-  const nextQueryParams = params.toString();
-  return nextQueryParams || undefined;
-};
-
 const createLivePhaseParams = (
   params: PredictMarketListParams,
 ): PredictMarketListParams => {
@@ -46,15 +21,10 @@ const createLivePhaseParams = (
     ...params,
     live: true,
   };
-  const queryParams = params.queryParams
-    ? withLiveQueryParam(params.queryParams, true)
-    : undefined;
 
-  if (queryParams) {
-    liveParams.queryParams = queryParams;
+  if (params.queryParams) {
     delete liveParams.order;
   } else {
-    delete liveParams.queryParams;
     liveParams.order = LIVE_MARKET_ORDER;
   }
 
@@ -67,16 +37,13 @@ const createRegularPhaseParams = (
   const regularParams: PredictMarketListParams = {
     ...params,
   };
-  const queryParams = params.queryParams
-    ? withLiveQueryParam(params.queryParams, false)
-    : undefined;
 
-  if (queryParams) {
-    regularParams.queryParams = queryParams;
+  if (params.queryParams) {
+    regularParams.live = false;
   } else {
-    delete regularParams.queryParams;
+    delete regularParams.live;
   }
-  delete regularParams.live;
+
   return regularParams;
 };
 

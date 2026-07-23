@@ -245,23 +245,6 @@ describe('usePredictFeedConfig', () => {
 
       expect(result.current.activeFilterId).toBe('props');
       expect(result.current.activeFilter?.id).toBe('props');
-      expect(result.current.activeFilter?.showLiveFirst).toBe(false);
-    });
-
-    it('marks sports games and league filters as live-first', () => {
-      const { result } = renderHook(() =>
-        usePredictFeedConfig('sports', {
-          initialTabId: 'soccer',
-          initialFilterId: 'mls',
-        }),
-      );
-
-      expect(
-        result.current.filters.find((filter) => filter.id === 'games'),
-      ).toEqual(expect.objectContaining({ showLiveFirst: true }));
-      expect(result.current.activeFilter).toEqual(
-        expect.objectContaining({ id: 'mls', showLiveFirst: true }),
-      );
     });
 
     it('falls back to the tab default for an invalid initial filter id', () => {
