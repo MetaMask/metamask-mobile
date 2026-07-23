@@ -4,6 +4,7 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -140,7 +141,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const { deposit } = usePredictDeposit();
   const { claim } = usePredictClaim();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useAppThemeFromContext();
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts

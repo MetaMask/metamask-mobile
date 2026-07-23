@@ -3971,6 +3971,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsProModeEnabled: {
+    name: 'perpsProModeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsHip3AllowlistMarkets: {
     name: 'perpsHip3AllowlistMarkets',
     type: FeatureFlagType.Remote,
@@ -5655,14 +5666,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {},
-    status: FeatureFlagStatus.Active,
-  },
-
-  swapsSWAPS4543AbtestPostTradeModal: {
-    name: 'swapsSWAPS4543AbtestPostTradeModal',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [],
     status: FeatureFlagStatus.Active,
   },
 
