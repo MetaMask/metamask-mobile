@@ -24,12 +24,14 @@ interface WatchlistEditableRowProps {
   token: TrendingAsset;
   position: number;
   isEditMode: boolean;
+  onRemoveFromDraft?: (assetId: string) => void;
 }
 
 const WatchlistEditableRow = ({
   token,
   position,
   isEditMode,
+  onRemoveFromDraft,
 }: WatchlistEditableRowProps) => {
   const { styles } = useStyles(styleSheet, {});
   const removeMutation = useTokenWatchlistRemoveItemMutation();
@@ -43,8 +45,10 @@ const WatchlistEditableRow = ({
         LayoutAnimation.Properties.opacity,
       ),
     );
+
+    onRemoveFromDraft?.(String(token.assetId));
     removeMutation.mutate(token.assetId as CaipAssetType);
-  }, [removeMutation, token.assetId]);
+  }, [onRemoveFromDraft, removeMutation, token.assetId]);
 
   return (
     <View

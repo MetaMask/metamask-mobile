@@ -33,6 +33,8 @@ import styleSheet from './WatchlistFullScreenView.styles';
 
 const SKELETON_COUNT = 5;
 
+const normalizeAssetId = (assetId: string): string => assetId.toLowerCase();
+
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -47,12 +49,34 @@ const WatchlistFullScreenView = () => {
     [data],
   );
 
+  const queryAssetIdSet = useMemo(
+    () =>
+      new Set(
+        queryTokens.map((token) => normalizeAssetId(String(token.assetId))),
+      ),
+    [queryTokens],
+  );
+
   const displayTokens = localTokens.length > 0 ? localTokens : queryTokens;
   const hasItems = displayTokens.length > 0;
 
   useEffect(() => {
-    setLocalTokens((prev) => (prev.length > 0 ? [] : prev));
-  }, [data]);
+    if (!isEditMode) {
+      return;
+    }
+
+    setLocalTokens((prev) => {
+      if (prev.length === 0) {
+        return prev;
+      }
+
+      const next = prev.filter((token) =>
+        queryAssetIdSet.has(normalizeAssetId(String(token.assetId))),
+      );
+
+      return next.length === prev.length ? prev : next;
+    });
+  }, [isEditMode, queryAssetIdSet]);
 
   useEffect(() => {
     if (isEditMode && !hasItems) {
@@ -79,13 +103,32 @@ const WatchlistFullScreenView = () => {
     setIsEditMode(true);
   }, [displayTokens]);
 
+  const handleRemoveFromDraft = useCallback((assetId: string) => {
+    const normalizedAssetId = normalizeAssetId(assetId);
+    setLocalTokens((prev) =>
+      prev.filter(
+        (token) =>
+          normalizeAssetId(String(token.assetId)) !== normalizedAssetId,
+      ),
+    );
+  }, []);
+
   const handleDonePress = useCallback(() => {
-    if (localTokens.length > 0) {
-      const storageOrder = localTokens.map((token) => token.assetId).reverse();
-      updateListMutation.mutate(storageOrder as CaipAssetType[]);
+    const tokensToPersist = localTokens.filter((token) =>
+      queryAssetIdSet.has(normalizeAssetId(String(token.assetId))),
+    );
+
+    if (tokensToPersist.length > 0) {
+      updateListMutation.mutate(
+        tokensToPersist
+          .map((token) => token.assetId)
+          .reverse() as CaipAssetType[],
+      );
     }
+
+    setLocalTokens([]);
     setIsEditMode(false);
-  }, [updateListMutation, localTokens]);
+  }, [localTokens, queryAssetIdSet, updateListMutation]);
 
   const handleReorder = useCallback(
     ({ from, to }: ReorderableListReorderEvent) => {
@@ -100,9 +143,10 @@ const WatchlistFullScreenView = () => {
         token={item}
         position={index}
         isEditMode={isEditMode}
+        onRemoveFromDraft={handleRemoveFromDraft}
       />
     ),
-    [isEditMode],
+    [handleRemoveFromDraft, isEditMode],
   );
 
   const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);

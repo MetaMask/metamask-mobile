@@ -20,7 +20,7 @@ jest.mock('../../../hooks', () => {
   const actual = jest.requireActual('../../../hooks');
   return {
     ...actual,
-    useComponentSize: (...args: unknown[]) => mockUseComponentSize(...args),
+    useComponentSize: mockUseComponentSize,
   };
 });
 

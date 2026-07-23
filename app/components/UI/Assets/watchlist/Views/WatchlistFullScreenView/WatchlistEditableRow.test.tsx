@@ -105,14 +105,21 @@ describe('WatchlistEditableRow', () => {
 
   it('calls remove mutation when unwatch star is pressed in edit mode', () => {
     const token = createToken();
+    const onRemoveFromDraft = jest.fn();
     const { getByTestId } = render(
-      <WatchlistEditableRow token={token} position={1} isEditMode />,
+      <WatchlistEditableRow
+        token={token}
+        position={1}
+        isEditMode
+        onRemoveFromDraft={onRemoveFromDraft}
+      />,
     );
 
     fireEvent.press(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
     );
 
+    expect(onRemoveFromDraft).toHaveBeenCalledWith(token.assetId);
     expect(mockMutate).toHaveBeenCalledTimes(1);
     expect(mockMutate).toHaveBeenCalledWith(token.assetId);
   });
