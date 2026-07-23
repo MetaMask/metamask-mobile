@@ -16,6 +16,15 @@ import {
   updateCachedConsent,
 } from './trace';
 import { AGREED, DENIED } from '../constants/storage';
+import performance from 'react-native-performance';
+
+jest.mock('react-native-performance', () => ({
+  __esModule: true,
+  default: {
+    timeOrigin: 0,
+    now: jest.fn(() => 0),
+  },
+}));
 
 jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
@@ -403,6 +412,80 @@ describe('Trace', () => {
     });
   });
 
+  describe('single clock domain timing', () => {
+    const performanceMock = performance as unknown as {
+      timeOrigin: number;
+      now: jest.Mock;
+    };
+
+    beforeEach(() => {
+      performanceMock.timeOrigin = 1000;
+      performanceMock.now.mockReset();
+    });
+
+    it('produces a non-negative duration with start <= end for a back-to-back trace', () => {
+      updateCachedConsent(true);
+
+      // Performance clock: start reads now()=10, later reads (span end + log) read now()=20
+      performanceMock.now.mockReturnValueOnce(10).mockReturnValue(20);
+
+      const spanEndMock = jest.fn();
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      // Start time is stamped from the performance clock (timeOrigin + first now())
+      const startTime = 1000 + 10;
+      const endTime = spanEndMock.mock.calls[0][0] as number;
+
+      expect(typeof endTime).toBe('number');
+      // Both start and end come from the same (performance) clock domain
+      expect(endTime).toBeGreaterThanOrEqual(startTime);
+      expect(endTime - startTime).toBeGreaterThanOrEqual(0);
+    });
+
+    it('defaults the span end time to the performance clock, not the wall clock', () => {
+      updateCachedConsent(true);
+
+      const dateNowSpy = jest.spyOn(Date, 'now');
+      performanceMock.now.mockReturnValue(750);
+
+      const spanEndMock = jest.fn();
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+      // No explicit timestamp -> should default to getPerformanceTimestamp()
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      // 1000 (timeOrigin) + 750 (now) === performance clock, never Date.now
+      expect(spanEndMock).toHaveBeenCalledWith(1750);
+      expect(dateNowSpy).not.toHaveBeenCalled();
+
+      dateNowSpy.mockRestore();
+    });
+  });
+
   describe('trace timeout cleanup', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -590,6 +673,41 @@ describe('Trace', () => {
       // Both traces should be processed (2 start calls)
       expect(startSpanManualMock).toHaveBeenCalledTimes(2);
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('uses getPerformanceTimestamp (not Date.now) for buffered start and end timing', async () => {
+      const performanceMock = performance as unknown as {
+        timeOrigin: number;
+        now: jest.Mock;
+      };
+      performanceMock.timeOrigin = 1000;
+      performanceMock.now.mockReturnValue(500);
+      const dateNowSpy = jest.spyOn(Date, 'now');
+
+      storageGetItemMock.mockResolvedValue(AGREED);
+      updateCachedConsent(true);
+
+      bufferTraceStartCallLocal({
+        name: TraceName.Middleware,
+        id: 'buffer-clock',
+      });
+      bufferTraceEndCallLocal({
+        name: TraceName.Middleware,
+        id: 'buffer-clock',
+      });
+
+      // Buffered timing must be stamped from the performance clock, never Date.now
+      expect(dateNowSpy).not.toHaveBeenCalled();
+
+      await flushBufferedTraces();
+
+      // Performance-clock start time (timeOrigin 1000 + now 500) flows into span start options
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.objectContaining({ startTime: 1500 }),
+        expect.any(Function),
+      );
+
+      dateNowSpy.mockRestore();
     });
   });
 });
