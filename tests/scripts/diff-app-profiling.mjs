@@ -296,16 +296,38 @@ function findGreenScenarioInDir(dir, { testName, device }) {
     return null;
   }
 
+  // Prefer dedicated app-profiling sidecars when present (new artifact layout).
   const artifacts = findProfilingArtifacts(dir);
-  const artifact = findMatchingArtifact(artifacts, { testName, device });
-  if (!artifact || !hasUsableProfilingSummary(artifact.data)) {
+  const sidecar = findMatchingArtifact(artifacts, { testName, device });
+  if (sidecar && hasUsableProfilingSummary(sidecar.data)) {
+    return {
+      platform: match.platform,
+      device: match.device,
+      artifact: sidecar.data,
+    };
+  }
+
+  // Fallback for older aggregated-reports that only embed profiling on the
+  // metrics entry inside performance-results.json (no app-profiling/ folder).
+  const embeddedArtifact = {
+    testName: match.test.testName,
+    projectName: match.test.projectName ?? null,
+    sessionId: match.test.sessionId ?? null,
+    device: match.device,
+    timestamp: match.test.timestamp ?? new Date().toISOString(),
+    profilingSummary: match.test.profilingSummary ?? null,
+    profilingData: match.test.profilingData ?? null,
+    apiCalls: match.test.apiCalls ?? null,
+    apiCallsError: match.test.apiCallsError ?? null,
+  };
+  if (!hasUsableProfilingSummary(embeddedArtifact)) {
     return null;
   }
 
   return {
     platform: match.platform,
     device: match.device,
-    artifact: artifact.data,
+    artifact: embeddedArtifact,
   };
 }
 
@@ -667,6 +689,7 @@ export {
   getMetricRows,
   hasUsableProfilingSummary,
   findMatchingArtifact,
+  findGreenScenarioInDir,
   buildScenarioComment,
   COMMENT_MARKER,
 };

@@ -190,3 +190,37 @@ test('buildScenarioComment explains missing baseline', () => {
   assert.match(md, /No green baseline found/);
   assert.match(md, new RegExp(COMMENT_MARKER));
 });
+
+test('findGreenScenarioInDir falls back to embedded profilingSummary', async () => {
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const { findGreenScenarioInDir } = await import('./diff-app-profiling.mjs');
+
+  const dir = mkdtempSync(join(tmpdir(), 'profiling-baseline-'));
+  try {
+    writeFileSync(
+      join(dir, 'performance-results.json'),
+      JSON.stringify({
+        Android: {
+          'Pixel 8+14.0': [
+            {
+              testName: 'Asset View',
+              testFailed: false,
+              device: { name: 'Pixel 8', osVersion: '14.0' },
+              profilingSummary: { cpu: { avg: 11, max: 22 }, issues: 0 },
+            },
+          ],
+        },
+      }),
+    );
+
+    const found = findGreenScenarioInDir(dir, {
+      testName: 'Asset View',
+      device: { name: 'Pixel 8', osVersion: '14.0' },
+    });
+    assert.equal(found?.artifact?.profilingSummary?.cpu?.avg, 11);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
