@@ -471,7 +471,7 @@ const PerpsProOrderBookPanel = ({
           )}
         </Box>
       ) : (
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
+        <Box flexDirection={BoxFlexDirection.Column}>
           {showAsks && (
             <Box flexDirection={BoxFlexDirection.Column}>
               {reversedAsks.map((level, index) => (
