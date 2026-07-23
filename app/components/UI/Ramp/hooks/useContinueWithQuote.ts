@@ -394,8 +394,9 @@ export function useContinueWithQuote(
             recordExternalReturnCorrelation({
               sessionId: headlessId,
               providerCode,
+              // Fallback for orderless launches only; when an orderId exists
+              // the persisted Precreated stub carries the wallet of record.
               walletAddress: effectiveWallet,
-              chainId: network || undefined,
               orderId: effectiveOrderId ?? undefined,
               rampSurface: headlessSession.params.rampSurface,
               region: userRegion?.regionCode ?? undefined,
@@ -409,6 +410,7 @@ export function useContinueWithQuote(
                 paymentMethodId: quote.quote?.paymentMethod ?? '',
                 currencySource: effectiveCurrency,
                 currencyDestination: effectiveCryptoSymbol,
+                chainId: network || undefined,
               },
               onOrderCreated: headlessSession.callbacks.onOrderCreated,
               launchedAt: Date.now(),

@@ -22,6 +22,7 @@ jest.mock('../../../../core/Engine', () => ({
       getOrderFromCallback: jest.fn(),
       getOrder: jest.fn(),
       addOrder: jest.fn(),
+      state: { orders: [] },
     },
   },
 }));
@@ -85,6 +86,7 @@ const mockRampsController = jest.requireMock('../../../../core/Engine').context
   getOrderFromCallback: jest.Mock;
   getOrder: jest.Mock;
   addOrder: jest.Mock;
+  state: { orders: unknown[] };
 };
 const mockEmitTerminal = jest.requireMock(
   '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
@@ -120,7 +122,6 @@ function buildCorrelation(
     sessionId,
     providerCode: 'coinbase-m',
     walletAddress: '0xwallet',
-    chainId: '42161',
     rampSurface: 'perps',
     region: 'de',
     analytics: {
@@ -131,6 +132,7 @@ function buildCorrelation(
       paymentMethodId: '/payments/debit-credit-card',
       currencySource: 'EUR',
       currencyDestination: 'ETH',
+      chainId: '42161',
     },
     onOrderCreated: jest.fn(),
     launchedAt: Date.now(),
@@ -145,6 +147,7 @@ describe('externalBrowserReturn', () => {
     __resetSessionRegistryForTests();
     mockRampsController.getOrderFromCallback.mockResolvedValue(ORDER);
     mockRampsController.getOrder.mockResolvedValue(ORDER);
+    mockRampsController.state.orders = [];
   });
 
   describe('correlation store', () => {
@@ -334,6 +337,49 @@ describe('externalBrowserReturn', () => {
         '0xwallet',
       );
       expect(order).toBe(ORDER);
+    });
+
+    it('resolves the wallet from the persisted Precreated stub when the caller omits it', async () => {
+      mockRampsController.state.orders = [
+        { providerOrderId: 'order-1', walletAddress: '0xstub-wallet' },
+      ];
+      recordExternalReturnCorrelation(
+        buildCorrelation('session-stub', {
+          orderId: 'order-1',
+          walletAddress: undefined,
+        }),
+      );
+
+      const order = await completeHeadlessExternalReturn({
+        sessionId: 'session-stub',
+        providerCode: 'coinbase-m',
+        returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-1',
+      });
+
+      expect(order).toBe(ORDER);
+      expect(mockRampsController.getOrderFromCallback).toHaveBeenCalledWith(
+        'coinbase-m',
+        'metamask://on-ramp/providers/coinbase-m?orderId=order-1',
+        '0xstub-wallet',
+      );
+    });
+
+    it('throws when no wallet is available from the caller, the stub, or the record', async () => {
+      recordExternalReturnCorrelation(
+        buildCorrelation('session-nowallet', {
+          orderId: undefined,
+          walletAddress: undefined,
+        }),
+      );
+
+      await expect(
+        completeHeadlessExternalReturn({
+          sessionId: 'session-nowallet',
+          providerCode: 'coinbase-m',
+          returnUrl: 'metamask://on-ramp/providers/coinbase-m',
+        }),
+      ).rejects.toThrow('No wallet address available');
+      expect(mockRampsController.getOrderFromCallback).not.toHaveBeenCalled();
     });
 
     it('normalizes a full-path fallback orderId to the bare order code for getOrder', async () => {

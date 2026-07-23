@@ -149,7 +149,6 @@ describe('handleRampReturnUrl', () => {
       ).toHaveBeenCalledWith({
         sessionId: 'headless-buy-1',
         providerCode: 'coinbase-m',
-        walletAddress: '0xwallet',
         returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-1',
         orderIdFallback: 'order-1',
       });

@@ -100,10 +100,12 @@ async function completeExternalReturnFromDeeplink({
   }${rampReturnPath}`;
 
   try {
+    // No wallet passed: the completion resolves it from the persisted
+    // Precreated stub (the launch's index card), with the correlation's
+    // orderless fallback behind it.
     const order = await completeHeadlessExternalReturn({
       sessionId: correlation.sessionId,
       providerCode: providerCodeFromPath ?? correlation.providerCode,
-      walletAddress: correlation.walletAddress,
       returnUrl,
       orderIdFallback: orderId ?? correlation.orderId,
     });

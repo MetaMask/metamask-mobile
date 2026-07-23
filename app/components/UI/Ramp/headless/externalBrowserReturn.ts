@@ -30,6 +30,7 @@ export interface ExternalReturnAnalyticsContext {
   paymentMethodId?: string;
   currencySource?: string;
   currencyDestination?: string;
+  chainId?: string;
 }
 
 /**
@@ -56,8 +57,12 @@ export interface ExternalReturnAnalyticsContext {
 export interface ExternalReturnCorrelation {
   sessionId: string;
   providerCode: string;
-  walletAddress: string;
-  chainId?: string;
+  /**
+   * FALLBACK only, for orderless launches (no precreated stub exists). When
+   * the record carries an `orderId`, the persisted Precreated stub is the
+   * source of truth for the wallet on return — do not read this first.
+   */
+  walletAddress?: string;
   /** Pre-created order id from the widget response, when the provider returns one. */
   orderId?: string;
   rampSurface?: RampSurface;
@@ -190,7 +195,13 @@ export function clearExternalReturnCorrelation(sessionId?: string): void {
 export interface CompleteExternalReturnArgs {
   sessionId: string;
   providerCode: string;
-  walletAddress: string;
+  /**
+   * Wallet the order belongs to. Optional: when omitted (the deeplink path),
+   * it is resolved from the persisted Precreated stub the launch registered
+   * (`addPrecreatedOrder`), falling back to the correlation record for
+   * orderless launches.
+   */
+  walletAddress?: string;
   /** The full return URL (iOS `openAuth` result URL or the deeplink). */
   returnUrl: string;
   /** Order id fallback when the return URL cannot be resolved server-side. */
@@ -222,7 +233,7 @@ export interface CompleteExternalReturnArgs {
 export async function completeHeadlessExternalReturn(
   args: CompleteExternalReturnArgs,
 ): Promise<RampsOrder | null> {
-  const { sessionId, providerCode, walletAddress, returnUrl } = args;
+  const { sessionId, providerCode, returnUrl } = args;
 
   if (inFlightCompletions.has(sessionId)) {
     return null;
@@ -241,6 +252,27 @@ export async function completeHeadlessExternalReturn(
   try {
     const { RampsController } = Engine.context;
 
+    // Wallet resolution order: explicit caller value (iOS openAuth has it
+    // in-hand), then the persisted Precreated stub keyed by the order code
+    // (the index card the launch already filed), then the correlation's
+    // orderless fallback.
+    const knownOrderId =
+      args.orderIdFallback ??
+      extractOrderIdFromReturnUrl(returnUrl) ??
+      correlation?.orderId;
+    const stubOrder = knownOrderId
+      ? findOrderInControllerState(knownOrderId)
+      : undefined;
+    const walletAddress =
+      args.walletAddress ??
+      stubOrder?.walletAddress ??
+      correlation?.walletAddress;
+    if (!walletAddress) {
+      throw new Error(
+        'No wallet address available to resolve external browser return',
+      );
+    }
+
     let order: RampsOrder | null = null;
     let lookupError: unknown;
     try {
@@ -253,18 +285,14 @@ export async function completeHeadlessExternalReturn(
       lookupError = error;
     }
 
-    const orderIdFallback =
-      args.orderIdFallback ??
-      extractOrderIdFromReturnUrl(returnUrl) ??
-      correlation?.orderId;
-    if (!order && orderIdFallback) {
+    if (!order && knownOrderId) {
       try {
         // Normalize to the bare order code: `buyWidget.orderId` can be a full
         // `/providers/.../orders/...` path, and `getOrder` splices the value
         // into a URL segment (same normalization OrderDetails applies).
         order = await RampsController.getOrder(
           providerCode,
-          extractOrderCode(orderIdFallback),
+          extractOrderCode(knownOrderId),
           walletAddress,
         );
       } catch (error) {
@@ -326,6 +354,24 @@ function extractOrderIdFromReturnUrl(returnUrl: string): string | undefined {
 }
 
 /**
+ * Looks up an order (typically the Precreated stub `addPrecreatedOrder`
+ * registered at launch) in RampsController state by its normalized order
+ * code. The stub is the persisted source of truth for the wallet/provider a
+ * return belongs to — the same lookup OrderDetails does via `getOrderById`.
+ */
+function findOrderInControllerState(orderId: string): RampsOrder | undefined {
+  const orderCode = extractOrderCode(orderId);
+  try {
+    const orders = Engine.context.RampsController.state?.orders ?? [];
+    return orders.find(
+      (order: RampsOrder) => order.providerOrderId === orderCode,
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * RAMPS_CHECKOUT_CLOSED parity for the external-browser checkout (P2.M7).
  * Emitted for the observable user exit (iOS `openAuth` cancel). Android /
  * system-browser abandonment is unobservable by design (no load or close
@@ -377,7 +423,7 @@ export function emitExternalOrderFailed(
         amount_destination: correlation.analytics.amountDestination ?? 0,
         payment_method_id: correlation.analytics.paymentMethodId ?? '',
         region: correlation.region ?? '',
-        chain_id: correlation.chainId ?? '',
+        chain_id: correlation.analytics.chainId ?? '',
         currency_destination: correlation.analytics.currencyDestination ?? '',
         currency_source: correlation.analytics.currencySource ?? '',
         error_message: error instanceof Error ? error.message : String(error),
