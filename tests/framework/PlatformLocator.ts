@@ -12,11 +12,20 @@ export class PlatformDetector {
    * For Detox, reads from the Detox device object.
    */
   static getPlatform(): 'android' | 'ios' {
-    if (FrameworkDetector.isDetox()) {
+    if (FrameworkDetector.isAppium()) {
+      return getCachedPlatform();
+    }
+
+    if (
+      FrameworkDetector.isDetox() &&
+      typeof device !== 'undefined' &&
+      device !== null
+    ) {
       return device.getPlatform() as 'android' | 'ios';
     }
 
-    // For Appium/WebdriverIO, read from cache (no HTTP call)
+    // Playwright/Appium path (including when FrameworkDetector still defaults
+    // to Detox before the driver fixture pins Appium).
     return getCachedPlatform();
   }
 

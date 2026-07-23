@@ -21,9 +21,12 @@ import {
   PredictBalanceSelectorsText,
   PredictFeedSelectorsIDs,
   PredictMarketListSelectorsIDs,
+  PredictSearchSelectorsIDs,
   getPredictFeedSelector,
   getPredictMarketListSelector,
+  getPredictSearchSelector,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
 
 type CategoryTab = 'trending' | 'new' | 'sports' | 'crypto' | 'politics';
 type CategoryTabScrollDirection = 'left' | 'right';
@@ -101,6 +104,44 @@ class PredictMarketList {
     return encapsulated({
       detox: () => Matchers.getElementByText('Add funds'),
       appium: () => PlaywrightMatchers.getElementByText('Add funds'),
+    });
+  }
+
+  get searchButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PredictSearchSelectorsIDs.SEARCH_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictSearchSelectorsIDs.SEARCH_BUTTON,
+          { exact: true },
+        ),
+    });
+  }
+
+  get searchInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TEXTFIELDSEARCH_TEST_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(TEXTFIELDSEARCH_TEST_ID, {
+          exact: true,
+        }),
+    });
+  }
+
+  getSearchResultCard(cardIndex: number): EncapsulatedElementType {
+    const resultCardId = getPredictSearchSelector.resultCard(cardIndex);
+    return encapsulated({
+      detox: () => Matchers.getElementByID(resultCardId),
+      appium: () =>
+        PlaywrightMatchers.getElementById(resultCardId, { exact: true }),
+    });
+  }
+
+  getMarketByTitle(title: string | RegExp): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(title),
+      appium: () => PlaywrightMatchers.getElementByText(title),
     });
   }
 
@@ -414,6 +455,50 @@ class PredictMarketList {
     await UnifiedGestures.waitAndTap(this.addFundsButton, {
       description: 'Predict add funds button',
     });
+  }
+
+  async tapSearchButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.searchButton, {
+      description: 'Predict search button',
+    });
+  }
+
+  async typeSearchQuery(query: string): Promise<void> {
+    await UnifiedGestures.typeText(this.searchInput, query, {
+      description: 'Predict search input',
+      hideKeyboard: true,
+    });
+  }
+
+  async tapSearchResultCard(cardIndex: number = 0): Promise<void> {
+    const card = this.getSearchResultCard(cardIndex);
+    await UnifiedGestures.waitAndTap(card, {
+      description: `Predict search result card ${cardIndex}`,
+      timeout: 60_000,
+    });
+  }
+
+  async tapMarketByTitle(title: string | RegExp): Promise<void> {
+    const market = this.getMarketByTitle(title);
+    const titleDescription =
+      title instanceof RegExp ? title.source : String(title);
+
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToBeVisible(market, {
+          timeout: 15_000,
+          description: `Predict market titled ${titleDescription}`,
+        });
+        await UnifiedGestures.waitAndTap(market, {
+          description: `Predict market titled ${titleDescription}`,
+          timeout: 15_000,
+        });
+      },
+      {
+        timeout: 60_000,
+        description: `Tap predict market titled ${titleDescription}`,
+      },
+    );
   }
 
   async tapBackButton(): Promise<void> {

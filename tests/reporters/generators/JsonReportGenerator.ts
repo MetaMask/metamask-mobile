@@ -24,6 +24,13 @@ export class JsonReportGenerator {
     );
     writtenFiles.push(...deviceFiles);
 
+    // Persist raw BrowserStack app profiling JSON as standalone artifacts
+    const profilingFiles = this.generateProfilingArtifacts(
+      reportData.metrics,
+      reportsDir,
+    );
+    writtenFiles.push(...profilingFiles);
+
     // Generate failed-tests-by-team report
     const failedTestsFile = this.generateFailedTestsByTeamReport(
       reportData.failedTestsByTeam,
@@ -76,6 +83,47 @@ export class JsonReportGenerator {
       logger.info(`Device-specific report saved: ${jsonPath}`);
       writtenFiles.push(jsonPath);
     });
+
+    return writtenFiles;
+  }
+
+  /**
+   * Write the raw BrowserStack app profiling JSON returned by
+   * `/appprofiling/v2` as standalone report artifacts (one file per test
+   * that has profiling data). These are uploaded with
+   * `tests/reporters/reports` in the performance pipeline.
+   */
+  private generateProfilingArtifacts(
+    metrics: MetricsEntry[],
+    reportsDir: string,
+  ): string[] {
+    const writtenFiles: string[] = [];
+
+    for (const metric of metrics) {
+      const profilingData = metric.profilingData;
+      if (!profilingData || profilingData.error) {
+        continue;
+      }
+
+      const safeTestName = (metric.testName ?? 'Unknown')
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .substring(0, 40);
+      const safeDeviceName = (metric.device?.name ?? 'Unknown').replace(
+        /[^a-zA-Z0-9]/g,
+        '_',
+      );
+      const sessionSuffix = metric.sessionId
+        ? `-${metric.sessionId.substring(0, 12)}`
+        : '';
+      const jsonPath = path.join(
+        reportsDir,
+        `browserstack-app-profiling-${safeTestName}-${safeDeviceName}-${metric.device?.osVersion ?? 'unknown'}${sessionSuffix}.json`,
+      );
+
+      fs.writeFileSync(jsonPath, JSON.stringify(profilingData, null, 2));
+      logger.info(`BrowserStack app profiling artifact saved: ${jsonPath}`);
+      writtenFiles.push(jsonPath);
+    }
 
     return writtenFiles;
   }
