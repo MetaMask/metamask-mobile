@@ -130,7 +130,6 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
-import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
@@ -368,7 +367,6 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
-        SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -427,8 +425,9 @@ export class Engine {
     const transactionController = this.#wallet.getInstance(
       'TransactionController',
     );
-    const seedlessOnboardingController =
-      messengerClientsByName.SeedlessOnboardingController;
+    const seedlessOnboardingController = this.#wallet.getInstance(
+      'SeedlessOnboardingController',
+    );
     const geolocationController = messengerClientsByName.GeolocationController;
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;

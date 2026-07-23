@@ -38,7 +38,6 @@ import { getSnapAccountServiceMessenger } from './snap-account-service-messenger
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
-import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
@@ -314,10 +313,6 @@ export const MESSENGER_FACTORIES = {
   PermissionController: {
     getMessenger: getPermissionControllerMessenger,
     getInitMessenger: getPermissionControllerInitMessenger,
-  },
-  SeedlessOnboardingController: {
-    getMessenger: getSeedlessOnboardingControllerMessenger,
-    getInitMessenger: noop,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
