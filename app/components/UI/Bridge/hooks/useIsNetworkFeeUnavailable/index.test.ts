@@ -67,7 +67,7 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(isQuoteNetworkFeeUnavailable(createQuote())).toBe(false);
   });
 
-  it('returns false for a non-BTC/non-Tron quote with zero network fee', () => {
+  it('returns false for a non-BTC/non-Tron/non-Stellar quote with zero network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
@@ -142,6 +142,70 @@ describe('isQuoteNetworkFeeUnavailable', () => {
           quote: {
             ...mockQuoteWithMetadata.quote,
             srcChainId: ChainId.TRON,
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true for a Stellar quote with zero network fee', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            srcChainId: ChainId.STELLAR,
+          },
+          totalNetworkFee: {
+            ...mockQuoteWithMetadata.totalNetworkFee,
+            amount: '0',
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true for a Stellar quote with negative network fee', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            srcChainId: ChainId.STELLAR,
+          },
+          totalNetworkFee: {
+            ...mockQuoteWithMetadata.totalNetworkFee,
+            amount: '-1',
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true for a Stellar quote with missing network fee amount', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            srcChainId: ChainId.STELLAR,
+          },
+          totalNetworkFee: {
+            ...mockQuoteWithMetadata.totalNetworkFee,
+            amount: undefined,
+          } as unknown as NonNullable<ActiveQuote>['totalNetworkFee'],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false for a Stellar quote with positive network fee', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            srcChainId: ChainId.STELLAR,
           },
         }),
       ),

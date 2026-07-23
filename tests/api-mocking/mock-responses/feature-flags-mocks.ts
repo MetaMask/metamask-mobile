@@ -152,6 +152,13 @@ export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
   },
 });
 
+export const remoteFeatureFlagStellarAccounts = (enabled = true) => ({
+  stellarAccounts: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});
+
 /**
  * Enables the Market Insights (AI social market analysis) feature on asset details.
  * Uses minimumVersion '0.0.0' so debug/test builds always pass the version gate.

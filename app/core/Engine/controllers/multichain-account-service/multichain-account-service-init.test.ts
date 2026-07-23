@@ -91,6 +91,18 @@ describe('MultichainAccountServiceInit', () => {
     expect(callArgs.providerConfigs).toBeDefined();
   });
 
+  it('includes Stellar account provider with batched account creation', () => {
+    multichainAccountServiceInit(getInitRequestMock());
+
+    const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
+
+    expect(callArgs.providers).toHaveLength(1);
+    expect(callArgs.providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts)
+      .toMatchObject({
+        batched: true,
+      });
+  });
+
   it('does enable batched account creation for bitcoin, tron, and solana', () => {
     multichainAccountServiceInit(getInitRequestMock());
 

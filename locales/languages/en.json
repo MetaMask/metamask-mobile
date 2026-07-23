@@ -3218,7 +3218,8 @@
       "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
       "token_details": "Token details",
-      "remove_token": "Remove token"
+      "remove_token": "Remove token",
+      "deactivate_asset": "Deactivate asset"
     }
   },
   "nft_details": {
@@ -7145,7 +7146,8 @@
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana",
-      "tron": "Tron"
+      "tron": "Tron",
+      "stellar": "Stellar"
     }
   },
   "show_nft": {
@@ -7724,6 +7726,21 @@
         "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
       }
     }
+  },
+  "asset_spendable_balance": {
+    "balance": "Balance",
+    "spendable": "Spendable",
+    "base_reserved": "Reserved (locked)",
+    "fiat_value": "Value",
+    "total_balance": "Total balance"
+  },
+  "asset_activation": {
+    "activate": "Activate",
+    "activate_description": "Activate {{symbol}} on {{chainName}} to get started.",
+    "inactive": "Inactive",
+    "activate_error": "Something went wrong while adding this trustline. Try again.",
+    "deactivate_error": "Something went wrong while removing this trustline. Try again.",
+    "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
   },
   "stake": {
     "stake": "Stake",

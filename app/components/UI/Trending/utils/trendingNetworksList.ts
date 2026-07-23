@@ -133,6 +133,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     }),
   },
   {
+    id: NetworkToCaipChainId.STELLAR,
+    name: 'Stellar',
+    caipChainId: NetworkToCaipChainId.STELLAR,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.STELLAR,
+    }),
+  },
+  {
     id: NetworkToCaipChainId.ROBINHOOD,
     name: 'Robinhood Chain',
     caipChainId: NetworkToCaipChainId.ROBINHOOD,

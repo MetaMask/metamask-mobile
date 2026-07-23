@@ -6,7 +6,7 @@ import {
   isNativeAddress,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
-import { SolScope, TrxScope, BtcScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope, BtcScope, XlmScope } from '@metamask/keyring-api';
 import type { Hex, CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
@@ -69,6 +69,9 @@ export const usePositionTokenBalance = (
   );
   const tronAccount = useSelector((state: RootState) =>
     selectSelectedInternalAccountByScope(state)(TrxScope.Mainnet),
+  );
+  const stellarAccount = useSelector((state: RootState) =>
+    selectSelectedInternalAccountByScope(state)(XlmScope.Pubnet),
   );
   const bitcoinAccount = useSelector((state: RootState) =>
     selectSelectedInternalAccountByScope(state)(BtcScope.Mainnet),
@@ -170,6 +173,7 @@ export const usePositionTokenBalance = (
           allNetworkConfigs,
           solanaAccount: solanaAccount ?? undefined,
           tronAccount: tronAccount ?? undefined,
+          stellarAccount: stellarAccount ?? undefined,
           bitcoinAccount: bitcoinAccount ?? undefined,
           multichainBalances,
           multichainRates: multichainRates as Record<
@@ -228,6 +232,7 @@ export const usePositionTokenBalance = (
     accountAddress,
     solanaAccount,
     tronAccount,
+    stellarAccount,
     bitcoinAccount,
     multichainBalances,
     multichainRates,

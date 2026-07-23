@@ -16,6 +16,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  XlmScope,
 } from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
@@ -24,6 +25,7 @@ import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTes
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
 ///: END:ONLY_INCLUDE_IF
+import { selectIsStellarAccountsEnabled } from '../featureFlagController/stellarAccountsEnabled';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController ??
@@ -55,6 +57,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     selectIsBitcoinTestnetEnabled,
     ///: END:ONLY_INCLUDE_IF
+    selectIsStellarAccountsEnabled,
   ],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
@@ -62,11 +65,13 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     isBitcoinTestnetEnabled: Json,
     ///: END:ONLY_INCLUDE_IF
+    selectIsStellarAccountsEnabled: Json,
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
     ///: END:ONLY_INCLUDE_IF
+    const isStellarAccountsEnabled = Boolean(selectIsStellarAccountsEnabled);
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -141,6 +146,12 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         isTestnet: true,
       },
       ///: END:ONLY_INCLUDE_IF(tron)
+      [XlmScope.Pubnet]: {
+        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[XlmScope.Pubnet] ?? 7,
+        imageSource: imageIcons.STELLAR,
+        ticker: MULTICHAIN_NETWORK_TICKER[XlmScope.Pubnet] ?? 'XLM',
+        isTestnet: false,
+      },
     };
 
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -162,6 +173,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       // TrxScope.Nile,
       // TrxScope.Shasta,
       ///: END:ONLY_INCLUDE_IF
+      ...(isStellarAccountsEnabled ? [XlmScope.Pubnet] : []),
     ];
 
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -336,6 +348,14 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       ];
     }
     ///: END:ONLY_INCLUDE_IF
+
+    if (account.scopes.includes(XlmScope.Pubnet)) {
+      return [
+        {
+          caipChainId: XlmScope.Pubnet,
+        },
+      ];
+    }
 
     return [];
   },

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { CaipAssetType, Hex, isCaipAssetType } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -84,6 +84,10 @@ import {
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
+import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
+import { getStellarTrustlineAssetInfoForAccount } from '../../../../../selectors/stellar/stellar-assets';
+import { isAssetRequireActivate } from '../../../../../util/multichain/trustline';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -193,6 +197,32 @@ export const TokenListItem = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
+
+    const selectAccountByScope = useSelector(
+      selectSelectedInternalAccountByScope,
+    );
+    const isAssetInactive = useSelector((state: RootState) => {
+      if (
+        !asset?.address ||
+        !asset?.chainId ||
+        !isCaipAssetType(asset.address)
+      ) {
+        return false;
+      }
+      const account = selectAccountByScope(asset.chainId);
+      if (!account?.id) {
+        return false;
+      }
+      const assetMetadata = getStellarTrustlineAssetInfoForAccount(
+        state,
+        account.id,
+        asset.address,
+      );
+      return isAssetRequireActivate({
+        assetId: asset.address,
+        assetMetadata,
+      });
+    });
 
     const { isStockToken } = useRWAToken();
 
@@ -641,6 +671,9 @@ export const TokenListItem = React.memo(
                       caipAssetId={caipAssetIdForSecurity}
                     />
                   )}
+                {
+                  isAssetInactive ? <AssetInactiveBadge /> : null
+                }
               </View>
 
               {renderEarnCta()}

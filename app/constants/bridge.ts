@@ -1,4 +1,4 @@
-import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   BRIDGE_DEV_API_BASE_URL,
@@ -37,6 +37,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'BTC',
   [TrxScope.Mainnet]: 'Tron',
+  [XlmScope.Pubnet]: 'Stellar',
 };
 
 export const BRIDGE_API_BASE_URL =

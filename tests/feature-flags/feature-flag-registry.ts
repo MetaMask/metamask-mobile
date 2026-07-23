@@ -4836,6 +4836,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  stellarAccounts: {
+    name: 'stellarAccounts',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.1',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tronAccounts: {
     name: 'tronAccounts',
     type: FeatureFlagType.Remote,
