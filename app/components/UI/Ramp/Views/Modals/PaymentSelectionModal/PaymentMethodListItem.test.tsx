@@ -13,7 +13,7 @@ const renderWithTheme = (component: React.ReactElement) =>
   );
 
 const mockPaymentMethod: PaymentMethod = {
-  id: '/payments/debit-credit-card',
+  id: 'debit-credit-card',
   paymentType: 'debit-credit-card',
   name: 'Debit or Credit',
   score: 90,
@@ -62,7 +62,7 @@ describe('PaymentMethodListItem', () => {
     expect(getByText('Debit or Credit')).toBeOnTheScreen();
   });
 
-  it('exposes a stable testID derived from the payment method id', () => {
+  it('exposes a stable testID derived from the canonical payment method id', () => {
     const { getByTestId } = renderWithTheme(
       <PaymentMethodListItem
         paymentMethod={mockPaymentMethod}
@@ -71,9 +71,9 @@ describe('PaymentMethodListItem', () => {
     );
 
     expect(
-      getByTestId(paymentMethodTestId('/payments/debit-credit-card')),
+      getByTestId(paymentMethodTestId('debit-credit-card')),
     ).toBeOnTheScreen();
-    expect(paymentMethodTestId('/payments/debit-credit-card')).toBe(
+    expect(paymentMethodTestId('debit-credit-card')).toBe(
       'payment-method-debit-credit-card',
     );
   });
