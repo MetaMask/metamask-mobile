@@ -44,6 +44,8 @@ import {
 } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { useAccountNames } from '../../hooks/DisplayName/useAccountNames';
+import { NameType } from '../Name/Name.types';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
@@ -133,7 +135,7 @@ function normalizeBridgeQuoteChainId(
     return `0x${Number.parseInt(chainId, 10).toString(16)}`;
   }
 
-  return chainId.toLowerCase();
+  return chainId.startsWith('0x') ? chainId.toLowerCase() : chainId;
 }
 
 function getBridgeQuoteNetworkName(
@@ -212,6 +214,18 @@ function getBridgeQuoteTokens(
 
 function shortAddress(address?: string): string | undefined {
   return address ? renderShortAddress(address) : undefined;
+}
+
+function bridgeAmountTokens(
+  sourceToken?: TokenAmount,
+  destinationToken?: TokenAmount,
+): { primaryToken?: TokenAmount; secondaryToken?: TokenAmount } {
+  const primaryToken = destinationToken?.amount
+    ? destinationToken
+    : sourceToken;
+  const secondaryToken =
+    primaryToken === destinationToken ? sourceToken : destinationToken;
+  return { primaryToken, secondaryToken };
 }
 
 function formatProtocolName(protocol: string): string {
@@ -324,6 +338,7 @@ function uniqueTokens(tokens: (TokenAmount | undefined)[]): TokenAmount[] {
 function enrichStablecoinTokenMetadata(
   token: TokenAmount | undefined,
   chainId: string | undefined,
+  options?: { preserveHumanReadableAmount?: boolean },
 ): TokenAmount | undefined {
   const hexChainId = getHexChainId(chainId);
   const isMusd =
@@ -334,9 +349,14 @@ function enrichStablecoinTokenMetadata(
     return token;
   }
 
+  // Ramp buy/sell amounts are already human-readable. Injecting mUSD decimals
+  // would make getHumanReadableTokenAmount treat e.g. "30" as 30 atomic units
+  // (→ 0.00003 mUSD). Still fill assetId for avatars.
   return {
     ...token,
-    decimals: token.decimals ?? MUSD_DECIMALS,
+    ...(options?.preserveHumanReadableAmount
+      ? {}
+      : { decimals: token.decimals ?? MUSD_DECIMALS }),
     assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
   };
 }
@@ -466,6 +486,7 @@ function isNamelessNftToken(token: TokenAmount | undefined): boolean {
 function resolveCoreContent(
   item: ActivityListItem,
   bridgeHistoryItem?: BridgeHistoryItem,
+  counterpartyName?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -483,6 +504,10 @@ function resolveCoreContent(
       const cancelledLabel =
         item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
+      const counterpartyLabel =
+        counterpartyName ||
+        shortAddress(address) ||
+        strings('transactions.unavailable');
 
       return {
         title: statusTitle(item, {
@@ -491,28 +516,31 @@ function resolveCoreContent(
           failed: failedLabel,
           cancelled: cancelledLabel,
         }),
-        subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
+        subtitle: `${subtitlePrefix}: ${counterpartyLabel}`,
+        ...(counterpartyName && address
+          ? {
+              subtitleAccount: {
+                prefix: subtitlePrefix,
+                address,
+                name: counterpartyName,
+              },
+            }
+          : {}),
         primaryToken: token,
       };
     }
     case 'swap': {
       const { sourceToken, destinationToken } = item.data;
-      const sourceSymbol = sourceToken?.symbol ?? '';
-      const destinationSymbol = destinationToken?.symbol ?? '';
 
       return {
         title: statusTitle(item, {
-          success:
-            sourceSymbol && destinationSymbol
-              ? `Swapped ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swaps_transaction'),
-          pending:
-            sourceSymbol && destinationSymbol
-              ? `Swapping ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swap'),
-          failed: 'Swap failed',
+          success: strings('transactions.activity_swapped'),
+          pending: strings('transactions.activity_swapping'),
+          failed: strings('transactions.activity_swap_failed'),
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle:
+          tokenPairSubtitle(sourceToken, destinationToken) ??
+          protocolSubtitle(item),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
       };
@@ -521,9 +549,15 @@ function resolveCoreContent(
       const { sourceToken } = item.data;
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol('Swapped', sourceToken?.symbol),
-          pending: withOptionalSymbol('Swapping', sourceToken?.symbol),
-          failed: 'Swap failed',
+          success: withOptionalSymbol(
+            strings('transactions.activity_swapped'),
+            sourceToken?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_swapping'),
+            sourceToken?.symbol,
+          ),
+          failed: strings('transactions.activity_swap_failed'),
         }),
         subtitle: protocolSubtitle(item),
         primaryToken: sourceToken,
@@ -573,32 +607,33 @@ function resolveCoreContent(
       const destinationSymbol = destinationToken?.symbol;
       const isSourceOnlyApiBridge =
         !bridgeHistoryItem && sourceToken && !destinationToken;
-      const isCrossTokenBridge =
-        sourceSymbol && destinationSymbol && sourceSymbol !== destinationSymbol;
       const subtitle =
         bridgeRouteSubtitle(bridgeHistoryItem) ??
-        (isCrossTokenBridge
-          ? tokenPairSubtitle(sourceToken, destinationToken)
-          : undefined);
+        tokenPairSubtitle(sourceToken, destinationToken);
 
       return {
         title: statusTitle(item, {
           success: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sent', sourceSymbol)
-            : isCrossTokenBridge
-              ? 'Swapped'
-              : withOptionalSymbol(
-                  'Bridged',
-                  destinationSymbol ?? sourceSymbol,
-                ),
+            ? withOptionalSymbol(strings('transactions.sent'), sourceSymbol)
+            : withOptionalSymbol(
+                strings('transactions.activity_bridged'),
+                destinationSymbol ?? sourceSymbol,
+              ),
           pending: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sending', sourceSymbol)
-            : withOptionalSymbol('Bridging', destinationSymbol ?? sourceSymbol),
-          failed: isSourceOnlyApiBridge ? 'Send failed' : 'Bridge failed',
+            ? withOptionalSymbol(
+                strings('transactions.activity_sending'),
+                sourceSymbol,
+              )
+            : withOptionalSymbol(
+                strings('transactions.activity_bridging'),
+                destinationSymbol ?? sourceSymbol,
+              ),
+          failed: isSourceOnlyApiBridge
+            ? strings('transactions.activity_send_failed')
+            : strings('transactions.activity_bridge_failed'),
         }),
         subtitle,
-        primaryToken: sourceToken,
-        secondaryToken: destinationToken,
+        ...bridgeAmountTokens(sourceToken, destinationToken),
       };
     }
     case 'buy':
@@ -835,9 +870,9 @@ function resolveCoreContent(
 
 export function resolveActivityListItemTitle(
   item: ActivityListItem,
-  titleOverride?: string,
+  bridgeHistoryItem?: BridgeHistoryItem,
 ): string {
-  return titleOverride ?? resolveCoreContent(item).title;
+  return resolveCoreContent(item, bridgeHistoryItem).title;
 }
 
 function resolveAmount(
@@ -1190,7 +1225,28 @@ export function useActivityListItemRowContent(
   }
   const lendingTokenData = useTokensData(lendingAssetIds);
 
-  const content = resolveCoreContent(item, bridgeHistoryItem);
+  // The send/receive subtitle names the counterparty. Resolve it against the
+  // user's own accounts so transfers between their accounts read as
+  // "To: <account name>" instead of a hex address.
+  const counterpartyAddress =
+    item.type === 'receive'
+      ? item.data.from
+      : item.type === 'send'
+        ? item.data.to
+        : undefined;
+  const counterpartyName = useAccountNames(
+    counterpartyAddress
+      ? [
+          {
+            value: counterpartyAddress,
+            variation: '',
+            type: NameType.EthereumAddress,
+          },
+        ]
+      : [],
+  )[0];
+
+  const content = resolveCoreContent(item, bridgeHistoryItem, counterpartyName);
 
   let basePrimaryToken: TokenAmount | undefined;
   if (isSpendingCap) {
@@ -1203,9 +1259,15 @@ export function useActivityListItemRowContent(
   } else {
     basePrimaryToken = content.primaryToken;
   }
+  // buy/sell rows today come from ramp orders whose cryptoAmount is human-
+  // readable; do not inject token decimals that would re-scale the amount.
+  const preserveHumanReadableAmount =
+    item.type === 'buy' || item.type === 'sell';
+
   const primaryToken = enrichStablecoinTokenMetadata(
     basePrimaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
 
   const baseSecondaryToken = isLending
@@ -1214,6 +1276,7 @@ export function useActivityListItemRowContent(
   const secondaryToken = enrichStablecoinTokenMetadata(
     baseSecondaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
   const isFundsRow = isDomainFundsKind(item.type);

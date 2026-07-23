@@ -21,6 +21,8 @@ import TrendingTokensSkeleton from '../../../../Trending/components/TrendingToke
 import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import WatchlistEditableRow from './WatchlistEditableRow';
+import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
+import WatchlistSearchContent from './WatchlistSearchContent';
 import styleSheet from './WatchlistFullScreenView.styles';
 
 const SKELETON_COUNT = 5;
@@ -31,6 +33,7 @@ const WatchlistFullScreenView = () => {
   const navigation = useNavigation();
   const { data, isLoading } = useTokenWatchlistQuery();
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const displayTokens = useMemo(
     () => (data ?? []).slice().reverse().map(mapWatchlistTokenToTrendingAsset),
@@ -51,13 +54,22 @@ const WatchlistFullScreenView = () => {
     }
   }, [navigation]);
 
-  // TODO(ASSETS-XXXX): wire up search functionality in a follow-up ticket
-  const handleSearchPress = useCallback(() => undefined, []);
+  const handleDismissSearch = useCallback(() => {
+    setIsSearchMode(false);
+  }, []);
+
+  const handleSearchPress = useCallback(() => {
+    setIsSearchMode(true);
+  }, []);
 
   const handleEditPress = useCallback(() => setIsEditMode(true), []);
   const handleDonePress = useCallback(() => setIsEditMode(false), []);
 
   const endAccessory = useMemo(() => {
+    if (isSearchMode) {
+      return null;
+    }
+
     if (isEditMode) {
       return (
         <TouchableOpacity
@@ -97,6 +109,7 @@ const WatchlistFullScreenView = () => {
       </View>
     );
   }, [
+    isSearchMode,
     isEditMode,
     hasItems,
     handleDonePress,
@@ -106,6 +119,10 @@ const WatchlistFullScreenView = () => {
   ]);
 
   const listContent = useMemo(() => {
+    if (isSearchMode) {
+      return null;
+    }
+
     if (isLoading) {
       return (
         <View style={styles.listContainer}>
@@ -119,8 +136,19 @@ const WatchlistFullScreenView = () => {
     }
 
     if (!hasItems) {
-      return null;
+      return (
+        <View style={styles.emptyContentContainer}>
+          <WatchlistEmptyCTA source="watchlist_fullscreen_empty_cta" />
+        </View>
+      );
     }
+
+    const rowExitAnimation = isEditMode
+      ? FadeOut.duration(ANIMATION_DURATION)
+      : undefined;
+    const rowLayoutAnimation = isEditMode
+      ? LinearTransition.duration(ANIMATION_DURATION)
+      : undefined;
 
     return (
       <ScrollView
@@ -128,12 +156,12 @@ const WatchlistFullScreenView = () => {
         showsVerticalScrollIndicator={false}
         testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
       >
-        <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
+        <Animated.View layout={rowLayoutAnimation}>
           {displayTokens.map((token, index) => (
             <Animated.View
               key={token.assetId}
-              exiting={FadeOut.duration(ANIMATION_DURATION)}
-              layout={LinearTransition.duration(ANIMATION_DURATION)}
+              exiting={rowExitAnimation}
+              layout={rowLayoutAnimation}
             >
               <WatchlistEditableRow
                 token={token}
@@ -145,49 +173,65 @@ const WatchlistFullScreenView = () => {
         </Animated.View>
       </ScrollView>
     );
-  }, [displayTokens, hasItems, isEditMode, isLoading, styles.listContainer]);
+  }, [
+    displayTokens,
+    hasItems,
+    isEditMode,
+    isLoading,
+    isSearchMode,
+    styles.emptyContentContainer,
+    styles.listContainer,
+  ]);
 
   return (
     <View
       style={styles.container}
       testID={WatchlistFullScreenViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        includesTopInset
-        onBack={isEditMode ? undefined : handleBack}
-        backButtonProps={
-          isEditMode
-            ? undefined
-            : {
-                accessibilityLabel: 'Back',
-                testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
-              }
-        }
-        endAccessory={endAccessory}
-        testID={WatchlistFullScreenViewSelectorsIDs.HEADER}
-      />
+      {!isSearchMode ? (
+        <HeaderStandard
+          includesTopInset
+          onBack={isEditMode ? undefined : handleBack}
+          backButtonProps={
+            isEditMode
+              ? undefined
+              : {
+                  accessibilityLabel: 'Back',
+                  testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
+                }
+          }
+          endAccessory={endAccessory}
+          testID={WatchlistFullScreenViewSelectorsIDs.HEADER}
+        />
+      ) : null}
 
-      <View style={styles.titleContainer}>
-        <Text
-          variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
-          testID={WatchlistFullScreenViewSelectorsIDs.TITLE}
-        >
-          {strings('token_watchlist.fullscreen_title')}
-        </Text>
-      </View>
+      {isSearchMode ? (
+        <WatchlistSearchContent onDismiss={handleDismissSearch} />
+      ) : (
+        <>
+          <View style={styles.titleContainer}>
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              testID={WatchlistFullScreenViewSelectorsIDs.TITLE}
+            >
+              {strings('token_watchlist.fullscreen_title')}
+            </Text>
+          </View>
 
-      <View style={styles.tabContainer}>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Sm}
-          testID={WatchlistFullScreenViewSelectorsIDs.TOKENS_TAB}
-        >
-          {strings('token_watchlist.tokens_tab')}
-        </Button>
-      </View>
+          <View style={styles.tabContainer}>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Sm}
+              testID={WatchlistFullScreenViewSelectorsIDs.TOKENS_TAB}
+            >
+              {strings('token_watchlist.tokens_tab')}
+            </Button>
+          </View>
 
-      {listContent}
+          {listContent}
+        </>
+      )}
     </View>
   );
 };

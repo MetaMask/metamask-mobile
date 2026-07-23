@@ -37,6 +37,7 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
@@ -242,20 +243,22 @@ interface PredictMarketListItemProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
-  market,
-  entryPoint,
-  testID,
-  predictFeedTab,
-  transactionActiveAbTests,
-}) => (
-  <PredictMarket
-    market={market}
-    entryPoint={entryPoint}
-    testID={testID}
-    predictFeedTab={predictFeedTab}
-    transactionActiveAbTests={transactionActiveAbTests}
-  />
+const PredictMarketListItem: React.FC<PredictMarketListItemProps> = React.memo(
+  ({
+    market,
+    entryPoint,
+    testID,
+    predictFeedTab,
+    transactionActiveAbTests,
+  }) => (
+    <PredictMarket
+      market={market}
+      entryPoint={entryPoint}
+      testID={testID}
+      predictFeedTab={predictFeedTab}
+      transactionActiveAbTests={transactionActiveAbTests}
+    />
+  ),
 );
 
 interface PredictTabContentProps {
@@ -561,7 +564,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;

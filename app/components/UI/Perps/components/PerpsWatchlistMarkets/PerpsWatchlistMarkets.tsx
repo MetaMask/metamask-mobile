@@ -103,6 +103,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   showLeadingDivider = true,
 }) => {
   const navigation = useNavigation();
+  const { styles } = useStyles(styleSheet, {});
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
@@ -164,9 +165,11 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
     <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
       {showLeadingDivider ? <SectionDivider /> : null}
       <SectionHeader title={strings('perps.home.watchlist')} />
-      <Box paddingHorizontal={4} style={contentContainerStyle}>
+      <Box style={contentContainerStyle}>
         {isLoading ? (
-          <PerpsRowSkeleton count={3} />
+          <Box style={styles.skeletonContainer}>
+            <PerpsRowSkeleton count={3} />
+          </Box>
         ) : (
           <FlatList
             data={markets}
@@ -281,7 +284,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
     return (
       <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
         {watchlistHeader}
-        <Box paddingHorizontal={4} style={contentContainerStyle}>
+        <Box style={[styles.skeletonContainer, contentContainerStyle]}>
           <PerpsRowSkeleton count={3} />
         </Box>
       </Box>
@@ -322,7 +325,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   return (
     <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
       {watchlistHeader}
-      <Box paddingHorizontal={4} style={contentContainerStyle}>
+      <Box style={contentContainerStyle}>
         <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
           {hasWatchlist && (
             <>

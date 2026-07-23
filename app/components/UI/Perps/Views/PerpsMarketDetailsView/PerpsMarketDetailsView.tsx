@@ -32,6 +32,7 @@ import React, {
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import {
   CandlePeriod,
+  PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
   type Position,
@@ -71,12 +72,14 @@ import {
 } from '../../Perps.testIds';
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
+import PerpsModeToggle from '../../components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
-import PerpsNavigationCard, {
-  type NavigationItem,
-} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsMoreSection, {
+  type PerpsMoreItem,
+} from '../../components/PerpsMoreSection';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
@@ -95,6 +98,7 @@ import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvance
 import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
@@ -106,6 +110,7 @@ import {
   usePositionManagement,
   usePerpsTrading,
   usePerpsMarketData,
+  usePerpsMode,
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -336,6 +341,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // component-level optimistic copy is needed — a second copy could disagree with
   // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
   const isWatchlist = useSelector(selectIsWatchlist);
+
+  // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Pressing it
+  // flips the shared mode and flashes the switch on top of the current market
+  // screen — no navigation either direction.
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const handlePerpsModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      setPerpsMode(nextMode);
+      showPerpsModeFlash(nextMode);
+    },
+    [setPerpsMode],
+  );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
@@ -1386,10 +1404,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   );
 
   // Define navigation items for the card
-  const navigationItems: NavigationItem[] = useMemo(
+  const moreItems: PerpsMoreItem[] = useMemo(
     () => [
       {
         label: strings('perps.tutorial.card.title'),
+        startIconName: IconName.Book,
         onPress: () => navigateToTutorial(),
         testID: PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
       },
@@ -1512,6 +1531,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <PerpsMarketTradesList symbol={market.symbol} />
         ) : null,
       },
+      {
+        key: 'more',
+        visible: moreItems.length > 0,
+        content: (
+          <PerpsMoreSection
+            items={moreItems}
+            testID={PerpsMarketDetailsViewSelectorsIDs.MORE_SECTION}
+          />
+        ),
+      },
     ],
     [
       market,
@@ -1520,6 +1549,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       isOrderBookEnabled,
       handleOrderBookPress,
       isRelatedMarketsVisible,
+      moreItems,
     ],
   );
 
@@ -1567,6 +1597,31 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isFavorite={isWatchlist}
         useDetailLayout
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+        // Pro mode: keep the watchlist star and append a read-only pill showing
+        // the active mode. `endAccessory` replaces the header's default end
+        // icons, so the star is re-composed here alongside the pill.
+        endAccessory={
+          isPerpsProModeEnabled ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <ButtonIcon
+                iconName={isWatchlist ? IconName.StarFilled : IconName.Star}
+                size={ButtonIconSize.Md}
+                onPress={handleWatchlistPress}
+                testID={PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON}
+              />
+              <PerpsModeToggle
+                mode={perpsMode}
+                variant="active"
+                onChange={handlePerpsModeChange}
+                source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+              />
+            </Box>
+          ) : undefined
+        }
       />
 
       <View style={styles.scrollableContentContainer}>
@@ -1750,12 +1805,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <PerpsHomeSectionList sections={preMarketInsightsSections} />
 
           <PerpsHomeSectionList sections={postMarketInsightsSections} />
-
-          {navigationItems.length > 0 ? (
-            <View style={styles.chromeBlock}>
-              <PerpsNavigationCard items={navigationItems} />
-            </View>
-          ) : null}
 
           <View style={styles.chromeBlock}>
             <Text
