@@ -289,12 +289,7 @@ export class QrSyncController extends BaseController<
 
   /**
    * Phase B entrypoint: validates state, then delegates vault imports to the
-   * provisioning service.
-   *
-   * New-user: skips the primary mnemonic (already restored + enriched via
-   * Authentication). Existing-user: imports every pending secret — extension
-   * may still flag a wallet `isPrimary`, but that SRP must be imported and
-   * enriched here so Phase C can create groups 1..N.
+   * provisioning service for non-primary pending secrets.
    */
   public async importRemainingSecrets(): Promise<void> {
     if (!isQrSyncReadyForSecretImport(this.state)) {

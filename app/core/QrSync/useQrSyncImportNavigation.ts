@@ -30,13 +30,12 @@ interface UseQrSyncImportNavigationOptions {
 let inFlightImportNavigation: Promise<void> | null = null;
 
 /**
- * Existing-user QR sync after SYNC_READY: import all pending secrets via
+ * Existing-user QR sync after SYNC_READY: import all non-primary secrets via
  * Phase B (`importRemainingSecrets`), then start Phase C metadata layout.
  *
- * Unlike new-user sync, existing-user has no Authentication restore of a
- * primary SRP — extension may still flag a wallet `isPrimary`, and that
- * mnemonic must be vault-imported + enriched here so Phase C can create
- * groups 1..N. There is no separate `importNewSecretRecoveryPhrase` path.
+ * Extension never sends the primary mnemonic for existing users, so there is no
+ * separate `importNewSecretRecoveryPhrase` path — that would duplicate-import
+ * non-primary mnemonics and skip metadata enrichment.
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
