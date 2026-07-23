@@ -6,7 +6,6 @@ import {
   selectIsSignedIn,
   selectCanonicalProfileId,
   selectNeedsProfilePairing,
-  selectCanonicalProfileId,
 } from './index';
 import { RootState } from '../../reducers';
 
@@ -77,54 +76,6 @@ describe('Notification Selectors', () => {
     );
   });
 
-  it('selectCanonicalProfileId returns the canonical id from the first session profile', () => {
-    const stateWithSession = {
-      engine: {
-        backgroundState: {
-          AuthenticationController: {
-            isSignedIn: true,
-            srpSessionData: {
-              entropySourceId1: {
-                profile: {
-                  identifierId: 'identifierId',
-                  profileId: 'profileId',
-                  canonicalProfileId: 'canonicalProfileId',
-                  metaMetricsId: 'metaMetricsId',
-                },
-              },
-            },
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    expect(selectCanonicalProfileId(stateWithSession)).toBe(
-      'canonicalProfileId',
-    );
-  });
-
-  it('selectCanonicalProfileId returns undefined when there is no session profile', () => {
-    expect(selectCanonicalProfileId(mockState)).toBeUndefined();
-  });
-
-  it('selectNeedsProfilePairing returns the persisted value when present', () => {
-    expect(selectNeedsProfilePairing(mockState)).toBe(false);
-  });
-
-  it('selectNeedsProfilePairing defaults to true when the field is absent', () => {
-    const stateWithoutField = {
-      engine: {
-        backgroundState: {
-          AuthenticationController: {
-            isSignedIn: true,
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    expect(selectNeedsProfilePairing(stateWithoutField)).toBe(true);
-  });
-
   it('selectCanonicalProfileId returns the canonical profile ID', () => {
     expect(selectCanonicalProfileId(mockState)).toBe('canonical-profile-id');
   });
@@ -170,5 +121,23 @@ describe('Notification Selectors', () => {
     } as unknown as RootState;
 
     expect(selectCanonicalProfileId(stateWithEmptyCanonical)).toBeUndefined();
+  });
+
+  it('selectNeedsProfilePairing returns the persisted value when present', () => {
+    expect(selectNeedsProfilePairing(mockState)).toBe(false);
+  });
+
+  it('selectNeedsProfilePairing defaults to true when the field is absent', () => {
+    const stateWithoutField = {
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            isSignedIn: true,
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(selectNeedsProfilePairing(stateWithoutField)).toBe(true);
   });
 });
