@@ -18,9 +18,9 @@ import {
   type HapticImpactMoment,
 } from '../../../../../util/haptics';
 import LinearGradient from 'react-native-linear-gradient';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsSlider.styles';
+import { Text } from '@metamask/design-system-react-native';
 
 // Only configure reanimated logger in non-test environments
 if (
