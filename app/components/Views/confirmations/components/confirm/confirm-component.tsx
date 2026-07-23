@@ -186,7 +186,6 @@ export const Confirm = ({
     <BottomSheet
       onClose={() => onReject()}
       shouldNavigateBack={false}
-      style={styles.bottomSheetDialogSheet}
       testID={ConfirmationUIType.MODAL}
     >
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
