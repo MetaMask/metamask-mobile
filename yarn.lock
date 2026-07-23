@@ -7560,23 +7560,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/context-module@npm:2.1.0":
-  version: 2.1.0
-  resolution: "@ledgerhq/context-module@npm:2.1.0"
-  dependencies:
-    bs58: "npm:^6.0.0"
-    crypto-js: "npm:^4.2.0"
-    ethers: "npm:6.14.1"
-    inversify: "npm:7.5.1"
-    purify-ts: "npm:2.1.0"
-    reflect-metadata: "npm:0.2.2"
-  peerDependencies:
-    "@ledgerhq/device-management-kit": ^1.5.1
-  checksum: 10/b641272c78b2e7b35d5547122e32521473f5e37c1140d61c3b0f52688b63e23eab41f30b084e0448d5722abd202999847ebc3a8bb0e97e89aa54e186d73a484e
-  languageName: node
-  linkType: hard
-
-"@ledgerhq/context-module@npm:^2.0.0":
+"@ledgerhq/context-module@npm:2.2.0":
   version: 2.2.0
   resolution: "@ledgerhq/context-module@npm:2.2.0"
   dependencies:
@@ -7602,28 +7586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/device-management-kit@npm:1.5.1":
-  version: 1.5.1
-  resolution: "@ledgerhq/device-management-kit@npm:1.5.1"
-  dependencies:
-    "@noble/hashes": "npm:^1.8.0"
-    "@sentry/minimal": "npm:6.19.7"
-    inversify: "npm:7.5.1"
-    isomorphic-ws: "npm:^5.0.0"
-    purify-ts: "npm:2.1.0"
-    reflect-metadata: "npm:0.2.2"
-    semver: "npm:7.7.2"
-    url: "npm:^0.11.4"
-    uuid: "npm:11.0.3"
-    ws: "npm:^8.18.0"
-    xstate: "npm:5.19.2"
-  peerDependencies:
-    rxjs: 7.8.2
-  checksum: 10/b73a620b6955b70608672e8798e12611faa973bade7521694e1aeea8dc1e8b316475600108259fbad4aeb007b992bb812dd665d5a89c990ea3a6c31ec3c99c86
-  languageName: node
-  linkType: hard
-
-"@ledgerhq/device-management-kit@npm:^1.5.0":
+"@ledgerhq/device-management-kit@npm:1.7.1":
   version: 1.7.1
   resolution: "@ledgerhq/device-management-kit@npm:1.7.1"
   dependencies:
@@ -29175,9 +29138,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers@npm:6.14.1":
-  version: 6.14.1
-  resolution: "ethers@npm:6.14.1"
+"ethers@npm:6.16.0, ethers@npm:^6.15.0":
+  version: 6.16.0
+  resolution: "ethers@npm:6.16.0"
   dependencies:
     "@adraffy/ens-normalize": "npm:1.10.1"
     "@noble/curves": "npm:1.2.0"
@@ -29186,7 +29149,7 @@ __metadata:
     aes-js: "npm:4.0.0-beta.5"
     tslib: "npm:2.7.0"
     ws: "npm:8.17.1"
-  checksum: 10/20bd332bef5f38a94ca79863e56d02dcde692e4eb1f492b7dbbb5817c2488dd3af8056e315f75afbdfd07119dd5fa2dc065cac72859ca0b71eb815690aebeb53
+  checksum: 10/7e980f0a77963fbe14321a3b9746c3ca3cad44932e28bb3506406a66c4b4d9dc1e60ed68d9d784224e9f2582a53d6a0a2e55a7c9559659681f4ad1f70e00e325
   languageName: node
   linkType: hard
 
@@ -29225,21 +29188,6 @@ __metadata:
     "@ethersproject/web": "npm:5.7.1"
     "@ethersproject/wordlists": "npm:5.7.0"
   checksum: 10/227dfa88a2547c799c0c3c9e92e5e246dd11342f4b495198b3ae7c942d5bf81d3970fcef3fbac974a9125d62939b2d94f3c0458464e702209b839a8e6e615028
-  languageName: node
-  linkType: hard
-
-"ethers@npm:^6.15.0":
-  version: 6.16.0
-  resolution: "ethers@npm:6.16.0"
-  dependencies:
-    "@adraffy/ens-normalize": "npm:1.10.1"
-    "@noble/curves": "npm:1.2.0"
-    "@noble/hashes": "npm:1.3.2"
-    "@types/node": "npm:22.7.5"
-    aes-js: "npm:4.0.0-beta.5"
-    tslib: "npm:2.7.0"
-    ws: "npm:8.17.1"
-  checksum: 10/7e980f0a77963fbe14321a3b9746c3ca3cad44932e28bb3506406a66c4b4d9dc1e60ed68d9d784224e9f2582a53d6a0a2e55a7c9559659681f4ad1f70e00e325
   languageName: node
   linkType: hard
 
