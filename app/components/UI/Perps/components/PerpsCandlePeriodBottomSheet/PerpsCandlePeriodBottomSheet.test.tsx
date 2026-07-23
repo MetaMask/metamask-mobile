@@ -30,75 +30,13 @@ import {
   CandlePeriod,
   TimeDuration,
 } from '@metamask/perps-controller';
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View, Pressable, Text: RNText } = jest.requireActual('react-native');
-
-  const BottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        testID,
-        onClose,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-        onClose?: () => void;
-      },
-      ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: jest.fn(),
-        onCloseBottomSheet: (callback?: () => void) => {
-          onClose?.();
-          callback?.();
-        },
-      }));
-
-      return <View testID={testID || 'bottom-sheet'}>{children}</View>;
-    },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({
-    children,
-    onClose,
-    closeButtonProps,
-  }: {
-    children: React.ReactNode;
-    onClose?: () => void;
-    closeButtonProps?: { testID?: string };
-  }) => (
-    <View testID="bottom-sheet-header">
-      {typeof children === 'string' ? <RNText>{children}</RNText> : children}
-      <Pressable
-        testID={closeButtonProps?.testID ?? 'close-button'}
-        onPress={onClose}
-      />
-    </View>
-  );
-
-  return {
-    ...actual,
-    BottomSheet,
-    BottomSheetHeader,
-  };
-});
+import { PerpsCandlePeriodBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));
   return { useTailwind: () => tw };
 });
-
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
 
 // Create mock store
 const configureMockStoreValue = configureMockStore();
@@ -150,7 +88,6 @@ describe('PerpsCandlePeriodBottomSheet', () => {
       expect(
         screen.getByTestId('candle-period-bottom-sheet'),
       ).toBeOnTheScreen();
-      expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
       expect(screen.getByText('Candle intervals')).toBeOnTheScreen();
     });
 
@@ -314,7 +251,11 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         </TestWrapper>,
       );
 
-      fireEvent.press(screen.getByTestId('close-button'));
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });

@@ -18,7 +18,10 @@ import { PredictEventValues } from '../constants/eventNames';
 import { predictQueries } from '../queries';
 import { PlaceOrderParams, Side, type Result } from '../types';
 import { formatPrice } from '../utils/format';
-import { getPredictBuyAllInCost } from '../utils/orders';
+import {
+  getPredictBuyAllInCost,
+  getPredictSellNetProceeds,
+} from '../utils/orders';
 import { checkPlaceOrderError } from '../utils/predictErrorHandler';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
@@ -179,9 +182,7 @@ export function usePredictPlaceOrder(
       setIsLoading(true);
       setError(undefined);
 
-      const {
-        preview: { minAmountReceived, side },
-      } = orderParams;
+      const { side } = orderParams.preview;
 
       const buyTotalAmount =
         side === Side.BUY ? getPredictBuyAllInCost(orderParams.preview) : 0;
@@ -259,7 +260,9 @@ export function usePredictPlaceOrder(
           showOrderPlacedToast();
         } else {
           showCashedOutToast(
-            formatPrice(minAmountReceived, { maximumDecimals: 2 }),
+            formatPrice(getPredictSellNetProceeds(orderParams.preview), {
+              maximumDecimals: 2,
+            }),
           );
         }
 

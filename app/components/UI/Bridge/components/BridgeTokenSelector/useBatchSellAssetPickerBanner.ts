@@ -1,8 +1,11 @@
 import { useCallback, useState } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useDispatch, useSelector } from 'react-redux';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { selectBatchSellEnabled } from '../../../../../selectors/featureFlagController/batchSell';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
@@ -27,7 +30,8 @@ export function useBatchSellAssetPickerBanner({
   isSearchActive,
   pickerType,
 }: UseBatchSellAssetPickerBannerParams) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const isHardwareWallet = selectedAddress
@@ -47,13 +51,15 @@ export function useBatchSellAssetPickerBanner({
 
   const handlePress = useCallback(() => {
     dismiss();
+    dispatch(setSourceAmount(undefined));
+    Engine.context.BridgeController.resetState();
     navigation.dispatch(
       StackActions.replace(Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT, {
         batchSellLocation: BATCH_SELL_ASSET_PICKER_BANNER_LOCATION,
         preserveBridgeState: true,
       }),
     );
-  }, [dismiss, navigation]);
+  }, [dismiss, dispatch, navigation]);
 
   return {
     dismiss,

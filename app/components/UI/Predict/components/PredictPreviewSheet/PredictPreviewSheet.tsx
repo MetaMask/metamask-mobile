@@ -10,12 +10,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { forwardRef, useImperativeHandle } from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface PredictPreviewSheetProps {
   renderHeader?: () => React.ReactNode;
@@ -57,7 +56,6 @@ const PredictPreviewSheet = forwardRef<
       handleSheetClosed,
       getRefHandlers,
     } = usePredictBottomSheet({ onDismiss });
-    const surfaceClass = useElevatedSurface();
 
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
@@ -72,7 +70,6 @@ const PredictPreviewSheet = forwardRef<
         isFullscreen={isFullscreen}
         onClose={handleSheetClosed}
         testID={testID}
-        twClassName={surfaceClass}
       >
         <BottomSheetHeader
           onClose={closeSheet}

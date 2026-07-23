@@ -282,3 +282,60 @@ export function getHomepageDiscoveryPillsTransactionActiveAbTests(
     createActiveABTestAssignment(HOMEPAGE_DISCOVERY_PILLS_AB_KEY, variantName),
   ];
 }
+
+// ─── Homepage action buttons 2×4 grid (TMCU-1103) ────────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-1103).
+ */
+export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY =
+  'homeTMCU1103AbtestActionButtonsGrid';
+
+export enum HomepageActionButtonsGridVariant {
+  Control = 'control',
+  Row1Top = 'row1Top',
+  Row2Top = 'row2Top',
+}
+
+export type HomepageActionButtonsGridRowOrder = 'row1Top' | 'row2Top';
+
+type HomepageActionButtonsGridVariantConfig =
+  | { layout: 'fourSquare' }
+  | {
+      layout: 'eightCircular';
+      rowOrder: HomepageActionButtonsGridRowOrder;
+    };
+
+export const HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS: Record<
+  HomepageActionButtonsGridVariant,
+  HomepageActionButtonsGridVariantConfig
+> = {
+  [HomepageActionButtonsGridVariant.Control]: {
+    layout: 'fourSquare',
+  },
+  [HomepageActionButtonsGridVariant.Row1Top]: {
+    layout: 'eightCircular',
+    rowOrder: 'row1Top',
+  },
+  [HomepageActionButtonsGridVariant.Row2Top]: {
+    layout: 'eightCircular',
+    rowOrder: 'row2Top',
+  },
+};
+
+export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage action buttons 2x4 grid',
+  variationNames: {
+    control: '4 square action buttons',
+    row1Top: '8 circular buttons, Row 1 top',
+    row2Top: '8 circular buttons, Row 2 top',
+  },
+} as const;
+
+export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+    validVariants: Object.values(HomepageActionButtonsGridVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
+  };

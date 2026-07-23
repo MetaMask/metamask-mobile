@@ -3,11 +3,13 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   TransactionStatus,
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
+import { SolScope } from '@metamask/keyring-api';
 import type { ActivityListItem, Status } from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
 import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingActions';
@@ -25,6 +27,8 @@ import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
+const OWNED_ACCOUNT_ADDRESS = '0xAa60919dd0d0964B76620dAaF08bF357e1c9DD73';
+const OWNED_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockState = {
   user: {
@@ -56,6 +60,45 @@ const mockState = {
           '0x1': {
             [LINEA_MUSD_CHECKSUM_ADDRESS]: {
               price: 0.0004,
+            },
+          },
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: 'owned-account-1',
+          accounts: {
+            'owned-account-1': {
+              id: 'owned-account-1',
+              address: OWNED_ACCOUNT_ADDRESS,
+              metadata: { name: 'Account 2' },
+            },
+            'owned-account-solana': {
+              id: 'owned-account-solana',
+              address: OWNED_SOLANA_ADDRESS,
+              metadata: { name: 'Solana Account' },
+            },
+          },
+        },
+      },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet-1': {
+              id: 'entropy:wallet-1',
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                'entropy:wallet-1/1': {
+                  id: 'entropy:wallet-1/1',
+                  metadata: { name: 'ETH DeFi' },
+                  accounts: ['owned-account-1'],
+                },
+                'entropy:wallet-1/2': {
+                  id: 'entropy:wallet-1/2',
+                  metadata: { name: 'Solana' },
+                  accounts: ['owned-account-solana'],
+                },
+              },
             },
           },
         },
@@ -221,6 +264,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       severity,
     });
 
+  const AvatarAccount = ({ address }: { address?: string }) =>
+    ReactActual.createElement(View, {
+      testID: `avatar-account-${address ?? 'unknown'}`,
+    });
+
   const BadgeNetwork = ({ src }: { src?: unknown }) =>
     ReactActual.createElement(View, { src });
 
@@ -248,6 +296,13 @@ jest.mock('@metamask/design-system-react-native', () => {
     AvatarIcon,
     AvatarIconSeverity: { Neutral: 'neutral', Danger: 'danger' },
     AvatarIconSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    AvatarAccount,
+    AvatarAccountVariant: {
+      Jazzicon: 'Jazzicon',
+      Blockies: 'Blockies',
+      Maskicon: 'Maskicon',
+    },
+    AvatarBaseSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
     BadgeNetwork,
     BadgeWrapper,
     BadgeWrapperPosition: { BottomRight: 'BottomRight' },
@@ -454,6 +509,118 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
   });
 
+  it('renders the account name in the subtitle when sending to an owned account', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      // Lowercased on purpose: the owned-account match is case-insensitive.
+      to: OWNED_ACCOUNT_ADDRESS.toLowerCase(),
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('ETH DeFi');
+    expect(
+      getByTestId('activity-subtitle-account-avatar-0xabc'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      to: OWNED_SOLANA_ADDRESS,
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('Solana');
+    // The non-hex address is passed straight through to the avatar (no
+    // checksumming), so the multichain row renders without error.
+    expect(
+      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name in the subtitle when receiving from an owned account', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      from: OWNED_ACCOUNT_ADDRESS,
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'From: ',
+    );
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('ETH DeFi');
+    expect(
+      getByTestId('activity-subtitle-account-avatar-0xabc'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'cancelled',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send cancelled',
+    );
+    // The amount is suppressed — a cancelled send moved nothing.
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('shows "Send failed" and hides the amount for a failed send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'failed',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send failed',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
   it('renders receive title, sender subtitle, and positive primary amount', () => {
     const item = makeItem({
       type: 'receive',
@@ -504,7 +671,7 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
-  it('renders swap title, protocol subtitle, primary and secondary amounts', () => {
+  it('renders swap title, token pair subtitle, primary and secondary amounts', () => {
     const item = makeItem({
       type: 'swap',
       status: 'success',
@@ -524,10 +691,10 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Swapped ETH to USDT',
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'ETH → USDT',
     );
-    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('Curve');
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
       '+300 USDT',
     );
@@ -536,6 +703,27 @@ describe('ActivityListItemRow — row content', () => {
     );
     expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
     expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('falls back to the protocol subtitle for a swap missing one token symbol', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'ACROSS',
+      destinationToken: {
+        amount: '0.0002',
+        symbol: 'ETH',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Across',
+    );
   });
 
   it('renders perps deposits with Perps balance subtitle, fiat primary, and token secondary', () => {
@@ -717,6 +905,202 @@ describe('ActivityListItemRow — row content', () => {
     expect(liquidated).not.toBe(stopLoss);
   });
 
+  const makeLimitOrder = (status: Status, hash: string): ActivityListItem =>
+    ({
+      type: 'limitShort',
+      chainId: 'eip155:42161',
+      status,
+      timestamp: 1_700_000_000_000,
+      hash,
+      data: {
+        token: { amount: '14', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '0.0002', symbol: 'BTC', direction: 'out' },
+      },
+    }) as unknown as ActivityListItem;
+
+  const flattenColor = (node: ReactTestInstance) => {
+    const { StyleSheet } = jest.requireActual('react-native');
+    return StyleSheet.flatten(node.props.style).color;
+  };
+
+  it('keeps a cancelled order title neutral while still marking a failed one red', () => {
+    const neutral = render(
+      <ActivityListItemRow
+        item={makeItem({
+          type: 'send',
+          status: 'success',
+          token: { amount: '1', symbol: 'ETH', direction: 'out' },
+        })}
+        index={0}
+      />,
+    ).getByTestId('activity-title-0xabc');
+    const cancelled = render(
+      <ActivityListItemRow
+        item={makeLimitOrder('cancelled', '0xcxl')}
+        index={1}
+      />,
+    ).getByTestId('activity-title-0xcxl');
+    const failed = render(
+      <ActivityListItemRow
+        item={makeLimitOrder('failed', '0xfail')}
+        index={2}
+      />,
+    ).getByTestId('activity-title-0xfail');
+
+    expect(flattenColor(cancelled)).toBe(flattenColor(neutral));
+    expect(flattenColor(failed)).not.toBe(flattenColor(neutral));
+    expect(cancelled.props.children).toBe(
+      strings('transactions.activity_limit_short'),
+    );
+  });
+
+  it('renders limit orders with the market logo, no network badge, and a status label (not a notional amount)', () => {
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow
+        item={makeLimitOrder('cancelled', '0xlimit')}
+        index={0}
+      />,
+    );
+
+    // Single market logo — not the generic split two-token avatar.
+    const logo = getByTestId('perps-token-logo-BTC');
+    expect(logo.props.symbol).toBe('BTC');
+    // Perps is single-network (Arbitrum) → no network badge is resolved.
+    expect(getNetworkImageSource).not.toHaveBeenCalled();
+
+    expect(queryByTestId('activity-secondary-amount-0xlimit')).toBeNull();
+    expect(getByTestId('activity-primary-amount-0xlimit').props.children).toBe(
+      strings('transactions.activity_order_status_canceled'),
+    );
+  });
+
+  it.each([
+    ['success', 'activity_order_status_filled'],
+    ['cancelled', 'activity_order_status_canceled'],
+    ['failed', 'activity_order_status_rejected'],
+    ['pending', 'activity_order_status_open'],
+  ] as const)(
+    'shows the order status label "%s" in the right column instead of an amount',
+    (status, i18nKey) => {
+      const { getByTestId, queryByTestId } = render(
+        <ActivityListItemRow
+          item={makeLimitOrder(status, `0x${status}`)}
+          index={0}
+        />,
+      );
+
+      expect(queryByTestId(`activity-secondary-amount-0x${status}`)).toBeNull();
+      expect(
+        getByTestId(`activity-primary-amount-0x${status}`).props.children,
+      ).toBe(strings(`transactions.${i18nKey}`));
+    },
+  );
+
+  it('renders the order status muted (matches the extension TextMuted), distinct from a normal amount color', () => {
+    const orderStatus = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeLimitOrder('success', '0xmuted')}
+          index={0}
+        />,
+      ).getByTestId('activity-primary-amount-0xmuted'),
+    );
+    const normalAmount = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'send',
+            status: 'success',
+            token: { amount: '1', symbol: 'ETH', direction: 'out' },
+          })}
+          index={1}
+        />,
+      ).getByTestId('activity-primary-amount-0xabc'),
+    );
+
+    // Muted status color is applied and differs from the default amount color.
+    expect(orderStatus).not.toBe(normalAmount);
+  });
+
+  it.each([
+    ['cancelled', 'transaction.canceled'],
+    ['failed', 'transaction.failed'],
+  ] as const)(
+    'keeps the "— status" suffix on non-order domain rows (%s deposit)',
+    (status, i18nKey) => {
+      const { getByTestId } = render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'perpsAddFunds',
+            status,
+            hash: `0xfunds-${status}`,
+          })}
+          index={0}
+        />,
+      );
+
+      // Unlike orders, funds/predict rows still carry the status in the title.
+      expect(
+        getByTestId(`activity-title-0xfunds-${status}`).props.children,
+      ).toBe(
+        `${strings('transactions.activity_perps_account_funded')} — ${strings(
+          i18nKey,
+        )}`,
+      );
+    },
+  );
+
+  it('colors a perps trade loss with the error color and a gain with the incoming color', () => {
+    const makeClose = (
+      direction: 'in' | 'out',
+      hash: string,
+    ): ActivityListItem =>
+      ({
+        type: 'perpsCloseLong',
+        chainId: 'eip155:42161',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash,
+        data: {
+          token: { amount: '5', symbol: 'USD', direction },
+          sourceToken: { amount: '2.01', symbol: 'ETH', direction: 'out' },
+        },
+      }) as unknown as ActivityListItem;
+
+    const loss = render(
+      <ActivityListItemRow item={makeClose('out', '0xloss')} index={0} />,
+    ).getByTestId('activity-primary-amount-0xloss');
+    const gain = render(
+      <ActivityListItemRow item={makeClose('in', '0xgain')} index={1} />,
+    ).getByTestId('activity-primary-amount-0xgain');
+
+    // Loss shares the error color used for a failed title; gain shares the green
+    // used for an incoming receive amount.
+    const errorColor = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeLimitOrder('failed', '0xfailref')}
+          index={3}
+        />,
+      ).getByTestId('activity-title-0xfailref'),
+    );
+    const incomingColor = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'receive',
+            status: 'success',
+            token: { amount: '1', symbol: 'ETH', direction: 'in' },
+          })}
+          index={4}
+        />,
+      ).getByTestId('activity-primary-amount-0xabc'),
+    );
+
+    expect(flattenColor(loss)).toBe(errorColor);
+    expect(flattenColor(gain)).toBe(incomingColor);
+  });
+
   it('strips the HyperLiquid builder prefix from the trade subtitle', () => {
     const openLong = {
       type: 'perpsOpenLong',
@@ -798,7 +1182,7 @@ describe('ActivityListItemRow — row content', () => {
     ).toBe('4,000 USDC');
   });
 
-  it('appends an em-dash "Failed" suffix to a failed domain (predict) row title', () => {
+  it('appends a spaced em-dash "Failed" suffix to a failed domain (predict) row title', () => {
     const failedWithdraw = {
       type: 'predictionsWithdrawFunds',
       chainId: 'eip155:137',
@@ -820,7 +1204,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xpredictwdfailed').props.children).toBe(
-      `${strings('transactions.activity_prediction_withdrawal')}—${strings(
+      `${strings('transactions.activity_prediction_withdrawal')} — ${strings(
         'transaction.failed',
       )}`,
     );
@@ -982,7 +1366,68 @@ describe('ActivityListItemRow — row content', () => {
     jest.mocked(useTokensData).mockReturnValue({});
   });
 
-  it('renders cross-token bridge as swapped with token pair subtitle', () => {
+  it('resolves a lending-deposit token symbol/decimals from the tokens API and scales the amount', () => {
+    const assetId =
+      'eip155:42161/erc20:0x0000000000000000000000000000000000000002';
+    jest.mocked(useTokensData).mockReturnValue({
+      [assetId]: {
+        assetId,
+        symbol: 'USDT',
+        decimals: 6,
+        name: 'Tether USD',
+        iconUrl: '',
+      },
+    });
+
+    // The adapter carries only the atomic amount + asset id (the tx targets the
+    // pool, so symbol/decimals aren't in local metadata). Without decimals the
+    // amount would render unscaled (10,000 instead of 0.01).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      chainId: 'eip155:42161',
+      sourceToken: { amount: '10000', direction: 'out', assetId },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDT',
+    );
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+
+    jest.mocked(useTokensData).mockReturnValue({});
+  });
+
+  it('renders a lending-deposit amount from adapter-provided decimals without an API lookup', () => {
+    // When the adapter already resolved symbol/decimals, the row scales the
+    // amount without depending on the tokens API (which returns nothing here).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      sourceToken: {
+        amount: '10000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDC',
+    );
+  });
+
+  it('renders a cross-token bridge as bridged on the destination token, not swapped', () => {
+    // A bridge that also changes the token (e.g. ETH → USDT) is still a bridge,
+    // never "Swapped". Without bridge history the route is unknown, so the
+    // subtitle falls back to the token pair.
     const item = makeItem({
       type: 'bridge',
       status: 'success',
@@ -1001,12 +1446,44 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bridged USDT',
+    );
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'ETH → USDT',
     );
+    // Received (destination) amount on top, spent (source) amount below.
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+300 USDT',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '-0.123 ETH',
+    );
     expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
     expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('keeps the source amount on top when a bridge destination amount is unknown', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'pending',
+      sourceToken: {
+        amount: '0.02',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.02 ETH',
+    );
   });
 
   it('renders bridge route and destination amount from bridge history', () => {
@@ -1052,12 +1529,58 @@ describe('ActivityListItemRow — row content', () => {
       'Ethereum → Linea',
     );
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
-      '-5.1 USDC',
-    );
-    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
       '+5.09 USDC',
     );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '-5.1 USDC',
+    );
     expect(getAllByTestId('avatar-token-USDC')).toHaveLength(1);
+  });
+
+  it('renders a non-EVM cross-chain bridge as bridged with the network route', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '9912000',
+        decimals: 9,
+        symbol: 'SOL',
+        direction: 'out',
+      },
+    });
+    const bridgeHistoryItem = {
+      quote: {
+        srcChainId: SolScope.Mainnet,
+        destChainId: 1,
+        srcTokenAmount: '9912000',
+        srcAsset: {
+          assetId: `${SolScope.Mainnet}/slip44:501`,
+          decimals: 9,
+          symbol: 'SOL',
+        },
+        destTokenAmount: '368300000000000',
+        destAsset: {
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          symbol: 'ETH',
+        },
+      },
+    };
+
+    const { getByTestId } = render(
+      <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem as never}
+        item={item}
+        index={0}
+      />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bridged ETH',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Solana → Ethereum',
+    );
   });
 
   it('renders source-only API bridge rows as sends when bridge history is unavailable', () => {
@@ -1087,17 +1610,12 @@ describe('ActivityListItemRow — row content', () => {
 
   it('does not render technical protocol values as subtitles', () => {
     const item = makeItem({
-      type: 'swap',
+      type: 'deposit',
       status: 'success',
       transactionProtocol: 'GNOSIS_SAFE',
-      sourceToken: {
+      token: {
         amount: '1',
         symbol: 'USDC',
-        direction: 'out',
-      },
-      destinationToken: {
-        amount: '1',
-        symbol: 'mUSD',
         direction: 'in',
       },
     });
@@ -1302,6 +1820,7 @@ describe('ActivityListItemRow — display currency conversion', () => {
   // reset them), so restore the suite-wide defaults (USD, equal rates) after
   // each test to keep overrides from leaking.
   afterEach(() => {
+    jest.clearAllMocks();
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
@@ -1395,6 +1914,28 @@ describe('ActivityListItemRow — amount display', () => {
     expect(getByText('+$1')).toBeOnTheScreen();
   });
 
+  it('renders ramp buy mUSD amounts as already-human values (no decimal re-scale)', () => {
+    // FiatOrder.cryptoAmount is human-readable ("30"). Injecting mUSD decimals
+    // would scale 30 → 0.00003 via formatUnits.
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '30',
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+30 mUSD')).toBeOnTheScreen();
+    expect(queryByText('+0.00003 mUSD')).toBeNull();
+  });
+
   it('does not render fiat when token market data is unavailable', () => {
     const item = makeItem({
       status: 'success',
@@ -1452,6 +1993,7 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
   // so restore the suite default (lowercased mUSD key) after each test.
   afterEach(() => {
+    jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
 
@@ -1534,12 +2076,19 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketCloseShort',
   'limitShort',
   'limitCloseShort',
+  'marketLong',
+  'stopMarketCloseLong',
+  'marketCloseLong',
+  'limitLong',
+  'limitCloseLong',
+  'assetActivation',
+  'assetDeactivation',
 ];
 
 const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
-  swap: strings('transactions.swaps_transaction'),
+  swap: 'Swapped',
   swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
@@ -1609,6 +2158,13 @@ const EXPECTED_TITLES = {
   marketCloseShort: strings('transactions.activity_market_close_short'),
   limitShort: strings('transactions.activity_limit_short'),
   limitCloseShort: strings('transactions.activity_limit_close_short'),
+  marketLong: strings('transactions.activity_market_long'),
+  stopMarketCloseLong: strings('transactions.activity_stop_market_close_long'),
+  marketCloseLong: strings('transactions.activity_market_close_long'),
+  limitLong: strings('transactions.activity_limit_long'),
+  limitCloseLong: strings('transactions.activity_limit_close_long'),
+  assetActivation: strings('transactions.activity_trustline_activated'),
+  assetDeactivation: strings('transactions.activity_trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {
@@ -1679,12 +2235,12 @@ describe('getLocalTransactionStatus — all local transaction status paths', () 
     expect(getLocalTransactionStatus(group)).toBe('failed');
   });
 
-  it('maps cancelled (cancel-type tx) → failed', () => {
+  it('maps a confirmed cancel-type tx → cancelled (not failed)', () => {
     const group = makeGroup({
       status: TransactionStatus.confirmed,
       type: 'cancel',
     });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
+    expect(getLocalTransactionStatus(group)).toBe('cancelled');
   });
 
   it('maps submitted → pending', () => {
