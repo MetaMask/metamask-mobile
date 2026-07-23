@@ -336,10 +336,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               : limitPriceWarning}
           </Text>
         ) : (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-          >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {getPerpsDisplaySymbol(asset)}-USD{' '}
             {currentPrice !== undefined && currentPrice !== null
               ? formatPerpsFiat(currentPrice, {
