@@ -7,6 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 import { SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsServiceInterruptionBannerProps } from './PerpsServiceInterruptionBanner.types';
@@ -18,16 +19,21 @@ const PerpsServiceInterruptionBanner: React.FC<
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
   const navigation = useNavigation();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const handleSupportPress = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: SUPPORT_CONFIG.Url,
-        title: strings(SUPPORT_CONFIG.TitleKey),
-      },
-    });
-  }, [navigation]);
+    openSupportWithConsent(
+      (url) =>
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings(SUPPORT_CONFIG.TitleKey),
+          },
+        }),
+      SUPPORT_CONFIG.Url,
+    );
+  }, [navigation, openSupportWithConsent]);
 
   if (!isEnabled) {
     return null;

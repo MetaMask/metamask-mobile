@@ -21,7 +21,10 @@ import {
   PerpsHomeViewSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
 } from '../../Perps.testIds';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  HOME_SCREEN_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock useDiscoveryScrollManager
@@ -224,6 +227,13 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
 }));
 
 // Use real BigNumber library - mocking it causes issues with module initialization
+
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -1042,6 +1052,42 @@ describe('PerpsHomeView', () => {
         params: {
           url: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
           title: 'perps.feedback.title',
+        },
+      });
+    });
+  });
+
+  describe('Contact Support', () => {
+    beforeEach(() => {
+      mockOpenSupportWithConsent.mockClear();
+    });
+
+    it('shows the support consent sheet with the support URL when the support button is pressed', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        SUPPORT_CONFIG.Url,
+      );
+    });
+
+    // Covers only the call-site opener glue: invoking the opener passed to
+    // openSupportWithConsent navigates to the webview. The consent modal
+    // behavior itself is covered by the core support-consent tests.
+    it('navigates to the SimpleWebview when the provided opener is invoked', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+      const [open] = mockOpenSupportWithConsent.mock.calls[0];
+      open(SUPPORT_CONFIG.Url);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: SUPPORT_CONFIG.Url,
+          title: 'perps.support.title',
         },
       });
     });
