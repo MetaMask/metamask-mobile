@@ -10181,11 +10181,7 @@
     },
     "push_nudge": {
       "title": "Turn on notifications",
-      "description": "Get alerts for transactions from your CLI session.",
-      "turn_on_button": "Turn on",
-      "loading_title": "Turning on notifications",
-      "loading_description": "Give us a moment while we set things up.",
-      "enable_error": "Couldn't turn on notifications. Try again from Settings."
+      "description": "Get alerts for transactions from your CLI session."
     },
     "show_otp": {
       "title": "Enter this code",
