@@ -255,9 +255,30 @@ function FeesTooltip({
     return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
   }, [totals, formatFiat]);
 
+  // On-ramp (e.g. Transak) fee, only present for the fiat strategy. The
+  // combined `provider` fee bucket includes both the on-ramp leg and any
+  // bridge/relay provider fee, so we break the on-ramp portion out separately
+  // and show the remainder as the (bridge) provider fee. This keeps the line
+  // items summing to the same row total while disclosing all fees up front.
+  const onRampFeeUsdBN = useMemo(
+    () => new BigNumber(totals.fees.providerFiat?.usd ?? 0),
+    [totals],
+  );
+  const hasOnRampFee = onRampFeeUsdBN.gt(0);
+
+  const providerFeeUsdBN = useMemo(() => {
+    const provider = new BigNumber(totals.fees.provider.usd);
+    return hasOnRampFee ? provider.minus(onRampFeeUsdBN) : provider;
+  }, [totals, onRampFeeUsdBN, hasOnRampFee]);
+
   const providerFeeUsd = useMemo(
-    () => formatFiat(new BigNumber(totals.fees.provider.usd)),
-    [totals, formatFiat],
+    () => formatFiat(providerFeeUsdBN),
+    [providerFeeUsdBN, formatFiat],
+  );
+
+  const onRampFeeUsd = useMemo(
+    () => formatFiat(onRampFeeUsdBN),
+    [onRampFeeUsdBN, formatFiat],
   );
 
   const metaMaskFeeUsd = useMemo(
@@ -277,6 +298,17 @@ function FeesTooltip({
         </Text>
         <Text color={TextColor.Alternative}>{networkFeeUsd}</Text>
       </Box>
+      {hasOnRampFee && (
+        <Box
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Text color={TextColor.Alternative}>
+            {strings('confirm.label.onramp_fee')}
+          </Text>
+          <Text color={TextColor.Alternative}>{onRampFeeUsd}</Text>
+        </Box>
+      )}
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}

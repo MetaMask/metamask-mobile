@@ -8033,6 +8033,7 @@
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee",
       "provider_fee": "Provider fee",
+      "onramp_fee": "On-ramp fee",
       "sending": "Sending"
     },
     "title": {
