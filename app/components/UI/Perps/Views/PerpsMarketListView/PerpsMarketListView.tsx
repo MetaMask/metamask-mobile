@@ -5,7 +5,12 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import {
   View,
   Animated,
@@ -16,10 +21,6 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
@@ -66,6 +67,10 @@ import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
+
+// Stable empty reference so the always-mounted list header doesn't churn when
+// the Recently Viewed rail has nothing to show.
+const EMPTY_RECENTLY_VIEWED: PerpsMarketData[] = [];
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -178,6 +183,15 @@ const PerpsMarketListView = ({
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
   const trimmedSearchQuery = searchQuery.trim().toLowerCase();
+
+  // The count/sort bar lives in fixed chrome above the Recently Viewed rail.
+  // The rail itself is just the FlashList's header, so it scrolls away with
+  // the rows — no sticky overlay, no absolute positioning. Only shown when the
+  // rail has content to show.
+  const showRecentlyViewedRail =
+    isRecentlyViewedEnabled &&
+    !searchQuery.trim() &&
+    recentlyViewedMarketObjects.length > 0;
 
   // Watchlist rows visible in watchlist mode, filtered by the active search
   // query — mirrors the filtering PerpsWatchlistMarketsV2 applies to its
@@ -661,13 +675,13 @@ const PerpsMarketListView = ({
       return (
         <View style={styles.errorContainer}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Error}
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
             style={styles.errorText}
           >
             {strings('perps.failed_to_load_market_data')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.data_updates_automatically')}
           </Text>
         </View>
@@ -770,7 +784,30 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Use reusable PerpsMarketList component
+    // The Recently Viewed rail is simply the FlashList header, so it scrolls
+    // away with the rows. The list has no horizontal content padding, so the
+    // rail's own insets (see PerpsRecentlyViewedRail.styles) already align it
+    // with the search field and market rows. The count/sort bar is fixed
+    // chrome above the list (rendered outside this function).
+    //
+    // The header is ALWAYS mounted (never toggled to null): when the rail has
+    // nothing to show we hand it an empty list so it self-renders null. FlashList
+    // does not reliably recover a header that was swapped out for null, so
+    // toggling here would leave the rail permanently hidden after the first
+    // empty category (e.g. Stocks) — instead we keep the slot and vary content.
+    const listHeader = (
+      <PerpsRecentlyViewedRail
+        markets={
+          showRecentlyViewedRail
+            ? recentlyViewedMarketObjects
+            : EMPTY_RECENTLY_VIEWED
+        }
+        onMarketPress={(market) =>
+          handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
+        }
+      />
+    );
+
     return (
       <Animated.View
         style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
@@ -781,7 +818,14 @@ const PerpsMarketListView = ({
           sortBy={sortBy}
           showBadge={false}
           filterKey={marketTypeFilter}
+          // Reset scroll to the top (revealing the rail) on category change and
+          // when search toggles on/off — clearing search keeps the same
+          // category, so filterKey alone wouldn't bring the rail back.
+          scrollResetKey={`${marketTypeFilter}|${
+            searchQuery.trim() ? 'search' : 'browse'
+          }`}
           contentContainerStyle={listContentContainerStyle}
+          ListHeaderComponent={listHeader}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -837,19 +881,7 @@ const PerpsMarketListView = ({
         />
       )}
 
-      {isRecentlyViewedEnabled &&
-        !isLoadingMarkets &&
-        !error &&
-        !searchQuery.trim() &&
-        !(isWatchlistEnabled && showFavoritesOnly) && (
-          <PerpsRecentlyViewedRail
-            markets={recentlyViewedMarketObjects}
-            onMarketPress={(market) =>
-              handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
-            }
-          />
-        )}
-
+      {/* Fixed count/sort bar, positioned above the scroll-away rail. */}
       {!isLoadingMarkets && !error && (
         <PerpsMarketFiltersBar
           selectedOptionId={selectedOptionId}

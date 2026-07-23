@@ -1,5 +1,9 @@
 import { ethers } from 'ethers';
 import type { CardSmartContractWriteParams } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  BASE_USDC_TOKEN_ADDRESS,
+  BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+} from '../constants';
 
 export function immersveNetworkToCaipChainId(network?: string): string {
   switch (network) {
@@ -7,6 +11,33 @@ export function immersveNetworkToCaipChainId(network?: string): string {
       return 'eip155:8453';
     case 'base-sepolia':
       return 'eip155:84532';
+    default:
+      throw new Error(`Unsupported Immersve funding network: ${network}`);
+  }
+}
+
+export interface ImmersveFundingTokenInfo {
+  caipChainId: string;
+  tokenAddress: string;
+  decimals: number;
+}
+
+export function immersveNetworkToFundingToken(
+  network?: string,
+): ImmersveFundingTokenInfo {
+  switch (network) {
+    case 'base-mainnet':
+      return {
+        caipChainId: 'eip155:8453',
+        tokenAddress: BASE_USDC_TOKEN_ADDRESS,
+        decimals: 6,
+      };
+    case 'base-sepolia':
+      return {
+        caipChainId: 'eip155:84532',
+        tokenAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+        decimals: 6,
+      };
     default:
       throw new Error(`Unsupported Immersve funding network: ${network}`);
   }

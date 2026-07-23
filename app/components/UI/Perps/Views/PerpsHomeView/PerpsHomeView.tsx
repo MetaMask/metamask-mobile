@@ -22,6 +22,7 @@ import {
   TextColor,
   Box,
   BoxFlexDirection,
+  HeaderStandard,
   HeaderStandardAnimated,
   IconName,
   useHeaderStandardAnimated,
@@ -46,6 +47,7 @@ import {
   usePerpsNavigation,
   usePerpsMeasurement,
   usePerpsHomeSectionTracking,
+  usePerpsMode,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
@@ -65,8 +67,13 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
+import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -78,6 +85,7 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
+  selectIsFirstTimePerpsUser,
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
@@ -113,7 +121,6 @@ import {
 } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
-import { BottomSheetRef as ComponentLibraryBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import PerpsMoreSection, {
   type PerpsMoreItem,
 } from '../../components/PerpsMoreSection';
@@ -172,8 +179,38 @@ const PerpsHomeView = ({
     selectPerpsRecentlyAddedEnabledFlag,
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
-  // Mirrors PerpsProducts' own visibility check (enabled + has categories).
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const handleModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      setPerpsMode(nextMode);
+      // First-time users must still go through onboarding (same as Trade sheet):
+      // routing straight into the Pro market would skip the tutorial otherwise,
+      // so no mode-switch flash is shown here.
+      if (isFirstTimePerpsUser) {
+        navigation.navigate(Routes.PERPS.TUTORIAL);
+        return;
+      }
+      // Flash the destination mode on top of the current screen.
+      showPerpsModeFlash(nextMode);
+      // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
+      if (nextMode === PerpsMode.Pro) {
+        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+          market: buildDefaultProMarket(),
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        });
+      }
+    },
+    [isFirstTimePerpsUser, navigation, setPerpsMode],
+  );
+  // Mirrors PerpsProducts' own visibility check (enabled + has categories,
+  // or a "New" pill on its own when there are no categories but at least
+  // one recently listed market — see useHasNewMarkets).
   const productCategories = usePerpsCategories();
+  const hasNewProducts = useHasNewMarkets();
+  const isProductsVisible =
+    isProductsEnabled && (productCategories.length > 0 || hasNewProducts);
   const topMoversFeed = usePerpsTopMovers({
     direction: 'desc',
     enabled: isTopMoversEnabled,
@@ -210,7 +247,7 @@ const PerpsHomeView = ({
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
-  const cancelAllSheetRef = useRef<ComponentLibraryBottomSheetRef>(null);
+  const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
   // Pass button location for tracking deposit entry point
@@ -429,8 +466,9 @@ const PerpsHomeView = ({
     if (isWatchlistVisible) {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
     }
-    // Products self-hides when disabled or when no categories are available.
-    if (isProductsEnabled && productCategories.length > 0)
+    // Products self-hides when disabled, or when there are neither
+    // categories nor a "New" pill to show (see isProductsVisible above).
+    if (isProductsVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     // Top Movers self-hides when its feed finishes empty; mirror that here so
     // PerpsHomeSectionList does not render an orphan divider.
@@ -459,8 +497,7 @@ const PerpsHomeView = ({
     orders,
     isWhatsHappeningVisible,
     isWatchlistVisible,
-    isProductsEnabled,
-    productCategories,
+    isProductsVisible,
     isTopMoversVisible,
     isRecentlyAddedVisible,
     perpsMarkets,
@@ -700,7 +737,7 @@ const PerpsHomeView = ({
             onActionPress={handleCloseAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {positions.map((position, index) => (
                 <PerpsCard
                   key={`${position.symbol}-${index}`}
@@ -727,7 +764,7 @@ const PerpsHomeView = ({
             onActionPress={handleCancelAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {orders.map((order, index) => (
                 <PerpsCard
                   key={order.orderId}
@@ -780,7 +817,7 @@ const PerpsHomeView = ({
       },
       {
         key: 'products',
-        visible: isProductsEnabled && productCategories.length > 0,
+        visible: isProductsVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS),
         content: (
           <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
@@ -918,7 +955,6 @@ const PerpsHomeView = ({
       positionsSubtitleSuffix,
       handleCloseAllPress,
       handleCancelAllPress,
-      styles.positionsOrdersContainer,
       isWhatsHappeningVisible,
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,
@@ -927,8 +963,7 @@ const PerpsHomeView = ({
       suggestedWatchlistMarkets,
       handleWatchlistSeeAllPress,
       transactionActiveAbTests,
-      isProductsEnabled,
-      productCategories.length,
+      isProductsVisible,
       isTopMoversVisible,
       isRecentlyAddedVisible,
       recentlyAddedMarkets,
@@ -1042,28 +1077,59 @@ const PerpsHomeView = ({
   return (
     <View style={styles.container}>
       {/* Header */}
-      {!hideHeader && (
-        <HeaderStandardAnimated
-          includesTopInset
-          scrollY={headerScrollY}
-          titleSectionHeight={titleSectionHeightSv}
-          title={perpsScreenTitle}
-          onBack={handleBackPress}
-          backButtonProps={{
-            accessibilityLabel: 'Back',
-            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Search,
-              onPress: handleSearchToggle,
-              accessibilityLabel: 'Search',
-              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-            },
-          ]}
-          testID="perps-home"
-        />
-      )}
+      {!hideHeader &&
+        (isPerpsProModeEnabled ? (
+          // Pro mode: persistent centered Lite/Pro toggle in the top nav
+          // (the animated compact title would only appear on scroll).
+          // h-16 (64px) matches the Figma header so the 40px toggle keeps its
+          // 12px of breathing room above/below (HeaderBase defaults to 56px).
+          <HeaderStandard
+            includesTopInset
+            twClassName="h-16"
+            title={
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={handleModeChange}
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+              />
+            }
+            onBack={handleBackPress}
+            backButtonProps={{
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleSearchToggle,
+                accessibilityLabel: 'Search',
+                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+              },
+            ]}
+            testID="perps-home"
+          />
+        ) : (
+          <HeaderStandardAnimated
+            includesTopInset
+            scrollY={headerScrollY}
+            titleSectionHeight={titleSectionHeightSv}
+            title={perpsScreenTitle}
+            onBack={handleBackPress}
+            backButtonProps={{
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleSearchToggle,
+                accessibilityLabel: 'Search',
+                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+              },
+            ]}
+            testID="perps-home"
+          />
+        ))}
 
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView

@@ -823,6 +823,65 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
   });
 });
 
+describe('useMoneyTransactionDisplayInfo — market-rate independence (mUSD rows)', () => {
+  it('renders the same pegged fiat line whether rates/market data are present or absent', () => {
+    // mUSD rows never need market rates (the fiat line is the 1:1 peg), so the
+    // hook skips the currencyRates/tokenMarketData subscriptions for them and
+    // the output must not change with the rates state.
+    const { result: withRates } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(musedTx, undefined),
+      { state: musedMarketState(1 / 3000) },
+    );
+    const { result: withoutRates } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(musedTx, undefined),
+      { state: makeState({ currencyRates: {}, tokenMarketData: {} }) },
+    );
+
+    expect(withRates.current.fiatAmount).toBe('+$1,000.00');
+    expect(withoutRates.current.fiatAmount).toBe(withRates.current.fiatAmount);
+    expect(withoutRates.current.primaryAmount).toBe(
+      withRates.current.primaryAmount,
+    );
+  });
+
+  it('renders the same targetFiat fallback for a non-mUSD transfer row with and without market data', () => {
+    // A non-mUSD transfer never resolves money-account transfer meta, so its
+    // fiat line comes from metamaskPay.targetFiat — rates must not affect it.
+    const OTHER_TOKEN: Hex = '0x00000000000000000000000000000000000000aa';
+    const tx = makeTx(TransactionType.incoming, {
+      transferInformation: {
+        amount: '1000000000',
+        symbol: 'OTHER',
+        decimals: 6,
+        contractAddress: OTHER_TOKEN,
+      },
+      metamaskPay: { targetFiat: 2.5 },
+    });
+
+    const otherChecksum = safeToChecksumAddress(OTHER_TOKEN) as string;
+    const { result: withRates } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      {
+        state: makeState({
+          currencyRates: {
+            ETH: { conversionRate: 3000, usdConversionRate: 3000 },
+          },
+          tokenMarketData: {
+            [CHAIN_ID]: { [otherChecksum]: { price: 1 / 3000 } },
+          },
+        }),
+      },
+    );
+    const { result: withoutRates } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currencyRates: {}, tokenMarketData: {} }) },
+    );
+
+    expect(withRates.current.fiatAmount).toBe('+$2.50');
+    expect(withoutRates.current.fiatAmount).toBe(withRates.current.fiatAmount);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Status — derived state + status-aware label
 // ---------------------------------------------------------------------------

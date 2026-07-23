@@ -41,4 +41,4 @@ const MoneyActivityRow = ({
   );
 };
 
-export default MoneyActivityRow;
+export default React.memo(MoneyActivityRow);
