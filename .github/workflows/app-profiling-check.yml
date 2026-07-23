@@ -1,0 +1,248 @@
+# Compares BrowserStack app profiling for a failed performance scenario against
+# the last green baseline on main, then posts a diff comment on the PR.
+#
+# Trigger via bot command on a PR:
+#   @metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run 123456789
+#   @metamaskbot app-profiling-check --all --run 123456789
+#
+# Or manually via Actions tab with workflow_dispatch.
+#
+# NOTE: issue_comment always runs from the default branch (main).
+# To use the workflow version from the PR branch, the issue_comment handler
+# dispatches a workflow_dispatch event on the PR branch, then exits.
+
+name: App Profiling Check
+
+on:
+  issue_comment:
+    types:
+      - created
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to comment on'
+        required: true
+        type: string
+      current_run_id:
+        description: 'Performance workflow run id that produced aggregated-reports'
+        required: true
+        type: string
+      test_name:
+        description: 'Scenario name to compare (leave empty when compare_all=true)'
+        required: false
+        type: string
+        default: ''
+      platform:
+        description: 'Platform (Android / iOS)'
+        required: false
+        type: string
+        default: ''
+      device:
+        description: 'Device key as Name+OSVersion'
+        required: false
+        type: string
+        default: ''
+      compare_all:
+        description: 'Compare all failed scenarios from the current run summary'
+        required: false
+        type: boolean
+        default: false
+      baseline_branch:
+        description: 'Branch used to find the last green baseline'
+        required: false
+        type: string
+        default: main
+
+jobs:
+  # ── issue_comment dispatcher ──────────────────────────────────────────
+  dispatch:
+    name: Dispatch to PR branch
+    if: >-
+      ${{
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '@metamaskbot app-profiling-check')
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: React to the comment
+        continue-on-error: true
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
+            -f content='+1'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get PR details
+        id: pr
+        run: |
+          PR_NUMBER="${{ github.event.issue.number }}"
+          IS_FORK=$(gh pr view "${PR_NUMBER}" --json isCrossRepository --jq '.isCrossRepository')
+          BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')
+          {
+            echo "PR_NUMBER=${PR_NUMBER}"
+            echo "IS_FORK=${IS_FORK}"
+            echo "BRANCH=${BRANCH}"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse bot command
+        id: parse
+        if: steps.pr.outputs.IS_FORK == 'false'
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+
+          # Defaults
+          TEST_NAME=""
+          PLATFORM=""
+          DEVICE=""
+          RUN_ID=""
+          COMPARE_ALL=false
+
+          # --all
+          if echo "$COMMENT_BODY" | grep -Eq -- '(^|[[:space:]])--all([[:space:]]|$)'; then
+            COMPARE_ALL=true
+          fi
+
+          # --run <id>
+          if RUN_MATCH=$(echo "$COMMENT_BODY" | grep -Eo -- '--run[[:space:]]+[0-9]+' | head -n1); then
+            RUN_ID=$(echo "$RUN_MATCH" | awk '{print $2}')
+          fi
+
+          # --platform <value>
+          if PLATFORM_MATCH=$(echo "$COMMENT_BODY" | grep -Eo -- '--platform[[:space:]]+[^[:space:]]+' | head -n1); then
+            PLATFORM=$(echo "$PLATFORM_MATCH" | awk '{print $2}')
+          fi
+
+          # --device "..." or --device ...
+          if DEVICE_MATCH=$(echo "$COMMENT_BODY" | grep -Eo -- '--device[[:space:]]+"[^"]+"' | head -n1); then
+            DEVICE=$(echo "$DEVICE_MATCH" | sed -E 's/^--device[[:space:]]*"//; s/"$//')
+          elif DEVICE_MATCH=$(echo "$COMMENT_BODY" | grep -Eo -- '--device[[:space:]]+[^[:space:]]+' | head -n1); then
+            DEVICE=$(echo "$DEVICE_MATCH" | awk '{print $2}')
+          fi
+
+          # --test "..." or --test ...
+          if TEST_MATCH=$(echo "$COMMENT_BODY" | grep -Eo -- '--test[[:space:]]+"[^"]+"' | head -n1); then
+            TEST_NAME=$(echo "$TEST_MATCH" | sed -E 's/^--test[[:space:]]*"//; s/"$//')
+          elif TEST_MATCH=$(echo "$COMMENT_BODY" | grep -Eo -- '--test[[:space:]]+[^[:space:]]+' | head -n1); then
+            TEST_NAME=$(echo "$TEST_MATCH" | awk '{print $2}')
+          fi
+
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::Missing --run <workflow_run_id> in app-profiling-check command"
+            exit 1
+          fi
+
+          if [ "$COMPARE_ALL" != "true" ] && [ -z "$TEST_NAME" ]; then
+            echo "::error::Provide --test \"Scenario name\" or --all"
+            exit 1
+          fi
+
+          {
+            echo "TEST_NAME=${TEST_NAME}"
+            echo "PLATFORM=${PLATFORM}"
+            echo "DEVICE=${DEVICE}"
+            echo "RUN_ID=${RUN_ID}"
+            echo "COMPARE_ALL=${COMPARE_ALL}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch workflow on PR branch
+        if: steps.pr.outputs.IS_FORK == 'false'
+        run: |
+          ARGS=(
+            gh workflow run "App Profiling Check"
+            --ref "${{ steps.pr.outputs.BRANCH }}"
+            -f pr_number="${{ steps.pr.outputs.PR_NUMBER }}"
+            -f current_run_id="${{ steps.parse.outputs.RUN_ID }}"
+            -f compare_all="${{ steps.parse.outputs.COMPARE_ALL }}"
+            -f baseline_branch="main"
+          )
+
+          if [ -n "${{ steps.parse.outputs.TEST_NAME }}" ]; then
+            ARGS+=(-f test_name="${{ steps.parse.outputs.TEST_NAME }}")
+          fi
+          if [ -n "${{ steps.parse.outputs.PLATFORM }}" ]; then
+            ARGS+=(-f platform="${{ steps.parse.outputs.PLATFORM }}")
+          fi
+          if [ -n "${{ steps.parse.outputs.DEVICE }}" ]; then
+            ARGS+=(-f device="${{ steps.parse.outputs.DEVICE }}")
+          fi
+
+          "${ARGS[@]}"
+
+          gh pr comment "${PR_NUMBER}" --body "🔬 **App profiling check started** for run \`${{ steps.parse.outputs.RUN_ID }}\`. [View workflow runs](${ACTIONS_URL})"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
+          ACTIONS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/workflows/app-profiling-check.yml'
+
+  # ── workflow_dispatch: actual diff ────────────────────────────────────
+  check:
+    name: Diff app profiling
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Run app profiling diff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          CURRENT_RUN_ID: ${{ inputs.current_run_id }}
+          TEST_NAME: ${{ inputs.test_name }}
+          PLATFORM: ${{ inputs.platform }}
+          DEVICE: ${{ inputs.device }}
+          COMPARE_ALL: ${{ inputs.compare_all }}
+          BASELINE_BRANCH: ${{ inputs.baseline_branch }}
+        run: |
+          set -euo pipefail
+
+          ARGS=(
+            node tests/scripts/diff-app-profiling.mjs
+            --pr "${PR_NUMBER}"
+            --run "${CURRENT_RUN_ID}"
+            --baseline-branch "${BASELINE_BRANCH:-main}"
+          )
+
+          if [ "${COMPARE_ALL}" = "true" ]; then
+            ARGS+=(--all)
+          else
+            if [ -z "${TEST_NAME}" ]; then
+              echo "::error::test_name is required when compare_all is false"
+              exit 1
+            fi
+            ARGS+=(--test "${TEST_NAME}")
+          fi
+
+          if [ -n "${PLATFORM}" ]; then
+            ARGS+=(--platform "${PLATFORM}")
+          fi
+          if [ -n "${DEVICE}" ]; then
+            ARGS+=(--device "${DEVICE}")
+          fi
+
+          "${ARGS[@]}"
