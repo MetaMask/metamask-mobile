@@ -1,6 +1,13 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY } from '@metamask/ramps-controller';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import { useHeadlessAllProvidersEnabled } from './useHeadlessAllProvidersEnabled';
+
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  validatedVersionGatedFeatureFlag: jest.fn(),
+}));
+
+const mockValidatedVersionGated = validatedVersionGatedFeatureFlag as jest.Mock;
 
 let mockControllerState: unknown;
 
@@ -17,6 +24,7 @@ jest.mock('react-redux', () => ({
 
 describe('useHeadlessAllProvidersEnabled', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockControllerState = undefined;
   });
 
@@ -68,6 +76,7 @@ describe('useHeadlessAllProvidersEnabled', () => {
       remoteFeatureFlags: {
         [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: {
           enabled: true,
+          featureVersion: '1',
           providerIds: ['/providers/moonpay'],
         },
       },
@@ -86,6 +95,84 @@ describe('useHeadlessAllProvidersEnabled', () => {
 
     const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
 
+    expect(result.current).toBe(true);
+  });
+
+  it('returns false for an enabled payload without the current featureVersion', () => {
+    mockControllerState = {
+      remoteFeatureFlags: {
+        [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: { enabled: true },
+      },
+    };
+
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+
+    expect(result.current).toBe(false);
+  });
+
+  it('validates a payload minimumVersion through the shared version gate', () => {
+    mockValidatedVersionGated.mockReturnValue(true);
+    mockControllerState = {
+      remoteFeatureFlags: {
+        [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '8.6.0',
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+
+    expect(mockValidatedVersionGated).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '8.6.0',
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it('returns false when the shared version gate rejects the minimumVersion', () => {
+    mockValidatedVersionGated.mockReturnValue(false);
+    mockControllerState = {
+      remoteFeatureFlags: {
+        [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '99.0.0',
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+
+    expect(result.current).toBe(false);
+  });
+
+  it('returns false when the shared version gate cannot validate (undefined)', () => {
+    mockValidatedVersionGated.mockReturnValue(undefined);
+    mockControllerState = {
+      remoteFeatureFlags: {
+        [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: 'not-a-version',
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+
+    expect(result.current).toBe(false);
+  });
+
+  it('skips the version gate for the boolean form and payloads without minimumVersion', () => {
+    mockControllerState = {
+      remoteFeatureFlags: { [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: true },
+    };
+
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+
+    expect(mockValidatedVersionGated).not.toHaveBeenCalled();
     expect(result.current).toBe(true);
   });
 

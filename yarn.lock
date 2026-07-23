@@ -9917,16 +9917,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@17.0.0-preview-1ccf11bcb":
-  version: 17.0.0-preview-1ccf11bcb
-  resolution: "@metamask-previews/ramps-controller@npm:17.0.0-preview-1ccf11bcb"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@17.0.0-preview-40d5fb1e2":
+  version: 17.0.0-preview-40d5fb1e2
+  resolution: "@metamask-previews/ramps-controller@npm:17.0.0-preview-40d5fb1e2"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/eb1b9d719e6bd93dbd1d3059d14459cd80171feddc84ed92f2db6ccabc4a7eb1754c34841910d72bd5a1445f9e7f2e3bf4688dbea47ab74b35b75c332d75555b
+  checksum: 10/a996d35979ef239aba94cc3d1763ac03b78f6e26919f9d523c262474d7d188210faabf4825fb137554fd22a6d5b1fa1105c5cf4c120d98ef43bfcd4b05e13ce5
   languageName: node
   linkType: hard
 
