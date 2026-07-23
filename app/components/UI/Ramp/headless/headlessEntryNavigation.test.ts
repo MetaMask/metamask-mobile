@@ -2,30 +2,33 @@ import Routes from '../../../../constants/navigation/Routes';
 import { dismissHeadlessEntryFromRoot } from './headlessEntryNavigation';
 
 /**
- * Builds a root navigation ref whose FOCUSED chain mirrors production:
- * HEADLESS_ENTRY is nested inside the main navigator, never at the root
+ * Builds a root navigation ref whose state mirrors production nesting:
+ * HEADLESS_ENTRY lives inside the main navigator, never at the root
  * (App stack -> Main -> ... -> HEADLESS_ENTRY -> nested stack -> HEADLESS_HOST).
  */
 function buildRootNav({
-  focusedIncludesHeadlessEntry,
+  hostFocused,
   hostSessionId,
 }: {
-  focusedIncludesHeadlessEntry: boolean;
+  hostFocused: boolean;
   hostSessionId?: string;
 }) {
   const goBack = jest.fn();
   const headlessEntryRoute = {
     name: Routes.RAMP.HEADLESS_ENTRY,
+    key: 'entry-1',
     state: {
       index: 0,
       routes: [
         {
           name: 'RampTokenSelectionRoot',
+          key: 'tsr-1',
           state: {
             index: 0,
             routes: [
               {
                 name: Routes.RAMP.HEADLESS_HOST,
+                key: 'host-1',
                 params: hostSessionId
                   ? { headlessSessionId: hostSessionId }
                   : {},
@@ -36,9 +39,7 @@ function buildRootNav({
       ],
     },
   };
-  const mainRoutes = focusedIncludesHeadlessEntry
-    ? [{ name: 'WalletView' }, headlessEntryRoute]
-    : [headlessEntryRoute, { name: 'WalletView' }];
+  const mainRoutes = [{ name: 'WalletView', key: 'w-1' }, headlessEntryRoute];
   return {
     goBack,
     getState: () => ({
@@ -46,8 +47,9 @@ function buildRootNav({
       routes: [
         {
           name: 'HomeNav',
+          key: 'home-1',
           state: {
-            index: mainRoutes.length - 1,
+            index: hostFocused ? 1 : 0,
             routes: mainRoutes,
           },
         },
@@ -57,26 +59,23 @@ function buildRootNav({
 }
 
 describe('dismissHeadlessEntryFromRoot', () => {
-  it('pops when HEADLESS_ENTRY is in the nested focused chain', () => {
-    const nav = buildRootNav({
-      focusedIncludesHeadlessEntry: true,
-      hostSessionId: 'session-1',
-    });
+  it('pops when the focused leaf is the headless Host for the expected session', () => {
+    const nav = buildRootNav({ hostFocused: true, hostSessionId: 'session-1' });
 
     expect(dismissHeadlessEntryFromRoot(nav, 'session-1')).toBe(true);
     expect(nav.goBack).toHaveBeenCalled();
   });
 
   it('pops when no expected session id is given', () => {
-    const nav = buildRootNav({ focusedIncludesHeadlessEntry: true });
+    const nav = buildRootNav({ hostFocused: true });
 
     expect(dismissHeadlessEntryFromRoot(nav)).toBe(true);
     expect(nav.goBack).toHaveBeenCalled();
   });
 
-  it('does nothing when HEADLESS_ENTRY is not focused', () => {
+  it('does nothing when the headless Host is not focused', () => {
     const nav = buildRootNav({
-      focusedIncludesHeadlessEntry: false,
+      hostFocused: false,
       hostSessionId: 'session-1',
     });
 
@@ -85,10 +84,7 @@ describe('dismissHeadlessEntryFromRoot', () => {
   });
 
   it('does not pop an overlay owned by a newer session', () => {
-    const nav = buildRootNav({
-      focusedIncludesHeadlessEntry: true,
-      hostSessionId: 'session-2',
-    });
+    const nav = buildRootNav({ hostFocused: true, hostSessionId: 'session-2' });
 
     expect(dismissHeadlessEntryFromRoot(nav, 'session-1')).toBe(false);
     expect(nav.goBack).not.toHaveBeenCalled();
