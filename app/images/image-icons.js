@@ -15,6 +15,7 @@ import SOLANA from './solana-logo.png';
 import SOLANA_DEVNET from './solana-devnet.jpg';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
+import FLUENT from './fluent.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
 import CHZ from './chiliz.png';
@@ -89,6 +90,7 @@ export default {
   G: GRAVITY,
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
+  FLUENT,
   SOLANA,
   SOLANA_DEVNET,
   FOX_LOGO,
