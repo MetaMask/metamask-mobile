@@ -68,7 +68,6 @@ export const normalizeMarketListParams = (
         : queryParams && params.live === false
           ? false
           : undefined,
-    startTimeMin: params.startTimeMin,
     startTimeMinMinutesAgo: params.startTimeMinMinutesAgo,
     search: search || undefined,
     customQueryParams: customQueryParams || undefined,

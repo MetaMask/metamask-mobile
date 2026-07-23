@@ -1387,7 +1387,7 @@ export const fetchEventsFromPolymarketApi = async (
  * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `excludedTags` -> repeated `exclude_tag_id`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
  * - `queryParams` -> raw query string override; `live`, `afterCursor`, and start-time overrides are still applied.
- * - `startTimeMin`/`startTimeMinMinutesAgo` -> `start_time_min`.
+ * - `startTimeMinMinutesAgo` -> `start_time_min`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
  * - `customQueryParams` overrides matching generated params while preserving repeated values. Pagination and page size remain app-controlled.
  */
@@ -1411,16 +1411,12 @@ const applyRawLiveQueryParam = (
 
 const applyStartTimeMinQueryParam = ({
   queryParams,
-  startTimeMin,
   startTimeMinMinutesAgo,
 }: {
   queryParams: URLSearchParams;
-  startTimeMin?: string;
   startTimeMinMinutesAgo?: number;
 }): void => {
-  if (startTimeMin) {
-    queryParams.set('start_time_min', startTimeMin);
-  } else if (
+  if (
     startTimeMinMinutesAgo !== undefined &&
     Number.isFinite(startTimeMinMinutesAgo)
   ) {
@@ -1449,7 +1445,6 @@ export const buildMarketListQueryParams = (
     afterCursor,
     search,
     customQueryParams,
-    startTimeMin,
     startTimeMinMinutesAgo,
   } = params;
 
@@ -1462,7 +1457,6 @@ export const buildMarketListQueryParams = (
     if (queryParams.toString()) {
       applyStartTimeMinQueryParam({
         queryParams,
-        startTimeMin,
         startTimeMinMinutesAgo,
       });
       queryParams.delete('after_cursor');
@@ -1532,7 +1526,6 @@ export const buildMarketListQueryParams = (
 
   applyStartTimeMinQueryParam({
     queryParams,
-    startTimeMin,
     startTimeMinMinutesAgo,
   });
 

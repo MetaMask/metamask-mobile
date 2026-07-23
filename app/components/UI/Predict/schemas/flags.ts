@@ -4,6 +4,7 @@ import {
   defaulted,
   literal,
   enums,
+  literal,
   number,
   object,
   optional,
@@ -226,7 +227,7 @@ export const PredictSportsFeedChipSchema = type({
   label: optional(string()),
   tagSlug: optional(string()),
   queryParams: optional(string()),
-  startTimeMinMinutesAgo: optional(number()),
+  startTimeMinMinutesAgo: optional(union([number(), literal(null)])),
 });
 
 export const PredictSportsFeedTabSchema = type({
