@@ -46,6 +46,24 @@ import Logger from '../../../util/Logger';
 export const MAX_CONNECTIONS = 20;
 
 /**
+ * Extracts the normalized domain (lowercased hostname) from a self-reported
+ * dapp URL, or `null` when the value cannot be parsed as a URL.
+ *
+ * `metadata.dapp.url` is validated as a valid http(s) URL by
+ * {@link isConnectionRequest}, so parsing should succeed for any request that
+ * reaches the registry. We still parse defensively and treat unparseable
+ * values as "no domain" so a malformed value can never be considered a match
+ * for another connection.
+ */
+export function getSelfReportedDomain(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The ConnectionRegistry is the central service responsible for managing the
  * lifecycle of all SDKConnectV2 connections.
  */
@@ -305,6 +323,16 @@ export class ConnectionRegistry {
         return;
       }
 
+      // Enforce per-domain uniqueness for the self-reported dapp origin before
+      // creating the new connection. Any existing connection reporting the same
+      // domain is disconnected first ("newest wins"). This runs before the
+      // capacity check so freeing a same-domain slot can avoid an unnecessary
+      // oldest-connection eviction.
+      await this.evictConnectionsForDomain(
+        getSelfReportedDomain(connInfo.metadata.dapp.url),
+        connInfo.id,
+      );
+
       await this.evictIfAtCapacity();
 
       this.hostapp.showConnectionLoading(connInfo);
@@ -384,6 +412,56 @@ export class ConnectionRegistry {
       const shouldHideLoadingToast = didConnectionFail || !isQrFlow;
       if (connInfo && shouldHideLoadingToast) {
         this.hostapp.hideConnectionLoading(connInfo);
+      }
+    }
+  }
+
+  /**
+   * Enforces per-domain uniqueness for self-reported dapp origins.
+   *
+   * A dapp's `metadata.dapp.url` is self-reported and unverified, but the
+   * wallet still treats it as the user-facing identity of a connection.
+   * Allowing multiple concurrent connections for the same domain lets a single
+   * dapp accumulate duplicate sessions — each persisting for the full
+   * DEFAULT_SESSION_TTL, consuming the {@link MAX_CONNECTIONS} budget, and
+   * showing up as separate entries in the connections UI. To prevent this we
+   * allow at most one active connection per domain: before a new connection is
+   * created, every existing connection reporting the same domain is
+   * disconnected ("newest wins").
+   *
+   * @param domain The normalized domain of the incoming connection, or `null`
+   * when it could not be derived (in which case no eviction is performed).
+   * @param excludeId The id of the incoming connection, excluded from the
+   * match so an in-progress request never evicts itself. Duplicate-id requests
+   * are already short-circuited earlier in {@link handleConnectDeeplink}.
+   */
+  private async evictConnectionsForDomain(
+    domain: string | null,
+    excludeId: string,
+  ): Promise<void> {
+    if (!domain) return;
+
+    const duplicates = Array.from(this.connections.values()).filter(
+      (conn) =>
+        conn.id !== excludeId &&
+        getSelfReportedDomain(conn.info.metadata.dapp.url) === domain,
+    );
+
+    for (const conn of duplicates) {
+      try {
+        logger.debug(
+          'Evicting existing connection to enforce per-domain uniqueness:',
+          domain,
+          conn.id,
+        );
+        await this.disconnect(conn.id);
+      } catch (error) {
+        logger.error(
+          'Failed to evict existing connection for domain:',
+          domain,
+          conn.id,
+          error,
+        );
       }
     }
   }
