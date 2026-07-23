@@ -242,7 +242,13 @@ const TrendingTokenRowItem = ({
             />
           )}
         </View>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={styles.marketStats}
+        >
           {formatMarketStats(
             token.marketCap ?? 0,
             token.aggregatedUsdVolume ?? 0,

@@ -43,6 +43,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     editableRowContent: {
       flex: 1,
+      minWidth: 0,
     },
     editControlHidden: {
       width: 0,

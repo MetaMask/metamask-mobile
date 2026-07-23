@@ -18,6 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     leftContainer: {
       flex: 1,
+      minWidth: 0,
     },
     tokenHeaderRow: {
       display: 'flex',
@@ -25,9 +26,15 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 4,
       flexShrink: 1,
+      minWidth: 0,
     },
     tokenName: {
       flexShrink: 1,
+      minWidth: 0,
+    },
+    marketStats: {
+      flexShrink: 1,
+      minWidth: 0,
     },
     rightContainer: {
       display: 'flex',

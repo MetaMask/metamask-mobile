@@ -76,7 +76,7 @@ const WatchlistEditableRow = ({
         pointerEvents={isEditMode ? 'auto' : 'none'}
       >
         <ButtonIcon
-          iconName={IconName.StarFilled}
+          iconName={IconName.Trash}
           size={ButtonIconSize.Md}
           onPress={handleUnwatch}
           testID={WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR}
