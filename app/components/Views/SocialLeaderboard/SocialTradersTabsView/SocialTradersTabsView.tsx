@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -30,7 +31,11 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import FeedView from '../FeedView';
+import FeedSpotBuyAction, {
+  type FeedSpotBuyActionHandle,
+} from '../FeedView/components/FeedSpotBuyAction';
 import TopTradersView from '../TopTradersView';
+import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
 import SocialTradersTabBar, {
   type SocialTradersTab,
 } from './SocialTradersTabBar';
@@ -57,6 +62,64 @@ const SocialTradersTabsView: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(LEADERBOARD_INDEX);
+
+  // The spot Buy orchestrator (QuickBuy sheet / swaps A/B) is hosted here,
+  // outside the PagerView, so its QuickBuy sheet isn't clipped by the pager page
+  // and the content behind it stays interactive (no backdrop, tap/swipe-through).
+  // FeedView reports spot availability and triggers the buy via this ref.
+  const buyActionRef = useRef<FeedSpotBuyActionHandle | null>(null);
+  const [feedHasSpotItem, setFeedHasSpotItem] = useState(false);
+  // A Buy can be requested in the same tick the feed first renders spot rows —
+  // before the availability effect has mounted the orchestrator. Buffer that
+  // request (and mount the orchestrator now) so the tap is never a silent no-op.
+  const pendingBuyTargetRef = useRef<QuickBuyTarget | null>(null);
+
+  const flushPendingBuy = useCallback(() => {
+    const pending = pendingBuyTargetRef.current;
+    if (!pending || !buyActionRef.current) {
+      return;
+    }
+    buyActionRef.current.open(pending);
+    pendingBuyTargetRef.current = null;
+  }, []);
+
+  const setBuyActionRef = useCallback(
+    (instance: FeedSpotBuyActionHandle | null) => {
+      buyActionRef.current = instance;
+      if (instance) {
+        flushPendingBuy();
+      }
+    },
+    [flushPendingBuy],
+  );
+
+  const handleFeedSpotAvailabilityChange = useCallback(
+    (hasSpotItem: boolean) => {
+      if (!hasSpotItem) {
+        pendingBuyTargetRef.current = null;
+      }
+      setFeedHasSpotItem(hasSpotItem);
+    },
+    [],
+  );
+
+  const handleQuickBuy = useCallback((target: QuickBuyTarget) => {
+    if (buyActionRef.current) {
+      buyActionRef.current.open(target);
+      return;
+    }
+    pendingBuyTargetRef.current = target;
+    setFeedHasSpotItem(true);
+  }, []);
+
+  // Backup flush when spot availability flips to true (callback ref handles
+  // the common case where feedHasSpotItem was already true).
+  useLayoutEffect(() => {
+    if (!feedHasSpotItem) {
+      return;
+    }
+    flushPendingBuy();
+  }, [feedHasSpotItem, flushPendingBuy]);
 
   const {
     hasNotificationPreferences,
@@ -212,9 +275,20 @@ const SocialTradersTabsView: React.FC = () => {
           collapsable={false}
           testID={SocialTradersTabsViewSelectorsIDs.FEED_PAGE}
         >
-          <FeedView isActive={activeIndex === FEED_INDEX} />
+          <FeedView
+            isActive={activeIndex === FEED_INDEX}
+            onQuickBuy={handleQuickBuy}
+            onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
+          />
         </View>
       </PagerView>
+
+      {feedHasSpotItem && (
+        <FeedSpotBuyAction
+          ref={setBuyActionRef}
+          isActive={activeIndex === FEED_INDEX}
+        />
+      )}
     </SafeAreaView>
   );
 };

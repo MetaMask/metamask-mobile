@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsSlider from './PerpsSlider';
+import styleSheet from './PerpsSlider.styles';
 import { mockTheme } from '../../../../../util/theme';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
@@ -51,11 +52,13 @@ describe('PerpsSlider', () => {
     );
     useStyles.mockImplementation(
       (
-        styleSheet: (params: {
+        createStyles: (params: {
           theme: typeof mockTheme;
+          vars: Record<string, unknown>;
         }) => Record<string, unknown>,
+        vars: Record<string, unknown>,
       ) => ({
-        styles: styleSheet({ theme: mockTheme }),
+        styles: createStyles({ theme: mockTheme, vars }),
       }),
     );
   });
@@ -83,6 +86,36 @@ describe('PerpsSlider', () => {
       expect(screen.queryByText('50%')).toBeNull();
       expect(screen.queryByText('75%')).toBeNull();
       expect(screen.queryByText('100%')).toBeNull();
+      expect(screen.getByTestId('perps-slider-marker-25')).toBeOnTheScreen();
+    });
+
+    it('uses the compact Figma geometry', () => {
+      const styles = styleSheet({
+        theme: mockTheme,
+        vars: { showPercentageLabels: false, variant: 'compact' },
+      });
+
+      expect(styles.track).toMatchObject({ height: 4 });
+      expect(styles.progress).toMatchObject({
+        backgroundColor: mockTheme.colors.icon.default,
+      });
+      expect(styles.thumb).toMatchObject({
+        width: 16,
+        height: 16,
+        left: 0,
+        backgroundColor: mockTheme.colors.icon.default,
+      });
+      expect(styles.interactionArea).toMatchObject({ minHeight: 44 });
+      expect(styles.sliderContainer).toMatchObject({ marginHorizontal: 0 });
+    });
+
+    it('hides markers without hiding percentage labels', () => {
+      render(<PerpsSlider {...defaultProps} showPercentageMarkers={false} />);
+
+      expect(
+        screen.queryByTestId('perps-slider-marker-25'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
     });
 
     it('renders quick values when provided', () => {
@@ -559,16 +592,149 @@ describe('PerpsSlider', () => {
   });
 
   describe('Accessibility', () => {
+    it('exposes compact slider value with adjustable semantics', () => {
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          value={42}
+          variant="compact"
+          showPercentageLabels={false}
+          testID="perps-slider"
+          accessibilityLabel="Order size percentage"
+        />,
+      );
+
+      const slider = screen.getByTestId('perps-slider');
+
+      expect(slider).toHaveProp('accessibilityRole', 'adjustable');
+      expect(slider).toHaveProp('accessibilityLabel', 'Order size percentage');
+      expect(slider).toHaveProp('accessibilityValue', {
+        min: 0,
+        max: 100,
+        now: 42,
+        text: '42%',
+      });
+    });
+
+    it('increments the value by the configured step', () => {
+      const onValueChange = jest.fn();
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          value={50}
+          step={5}
+          onValueChange={onValueChange}
+          testID="perps-slider"
+        />,
+      );
+
+      const slider = screen.getByTestId('perps-slider');
+      act(() =>
+        slider.props.onAccessibilityAction({
+          nativeEvent: { actionName: 'increment' },
+        }),
+      );
+
+      expect(onValueChange).toHaveBeenCalledWith(55);
+    });
+
+    it('decrements the value by the configured step', () => {
+      const onValueChange = jest.fn();
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          value={50}
+          step={5}
+          onValueChange={onValueChange}
+          testID="perps-slider"
+        />,
+      );
+
+      const slider = screen.getByTestId('perps-slider');
+      act(() =>
+        slider.props.onAccessibilityAction({
+          nativeEvent: { actionName: 'decrement' },
+        }),
+      );
+
+      expect(onValueChange).toHaveBeenCalledWith(45);
+    });
+
+    it('does not decrement below the minimum value', () => {
+      const onValueChange = jest.fn();
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          value={0}
+          onValueChange={onValueChange}
+          testID="perps-slider"
+        />,
+      );
+
+      const slider = screen.getByTestId('perps-slider');
+      act(() =>
+        slider.props.onAccessibilityAction({
+          nativeEvent: { actionName: 'decrement' },
+        }),
+      );
+
+      expect(onValueChange).not.toHaveBeenCalled();
+    });
+
+    it('does not increment above the maximum value', () => {
+      const onValueChange = jest.fn();
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          value={100}
+          onValueChange={onValueChange}
+          testID="perps-slider"
+        />,
+      );
+
+      const slider = screen.getByTestId('perps-slider');
+      act(() =>
+        slider.props.onAccessibilityAction({
+          nativeEvent: { actionName: 'increment' },
+        }),
+      );
+
+      expect(onValueChange).not.toHaveBeenCalled();
+    });
+
+    it('ignores accessibility actions while disabled', () => {
+      const onValueChange = jest.fn();
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          onValueChange={onValueChange}
+          disabled
+          testID="perps-slider"
+        />,
+      );
+
+      const slider = screen.getByTestId('perps-slider');
+      act(() =>
+        slider.props.onAccessibilityAction({
+          nativeEvent: { actionName: 'increment' },
+        }),
+      );
+
+      expect(slider).toHaveProp('accessibilityState', { disabled: true });
+      expect(onValueChange).not.toHaveBeenCalled();
+    });
+
     it('provides accessible touch targets for percentage buttons', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
       // Assert - All percentage button labels should be rendered and accessible
-      expect(screen.getByText('0%')).toBeOnTheScreen();
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-      expect(screen.getByText('75%')).toBeOnTheScreen();
-      expect(screen.getByText('100%')).toBeOnTheScreen();
+      for (const percent of [0, 25, 50, 75, 100]) {
+        expect(screen.getByLabelText(`${percent}%`)).toHaveProp(
+          'accessibilityRole',
+          'button',
+        );
+      }
     });
 
     it('provides accessible touch targets for quick value buttons', () => {
