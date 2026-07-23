@@ -85,6 +85,8 @@ class GlobalAlert extends PureComponent {
     switch (content) {
       case 'clipboard-alert':
         return this.renderClipboardAlert();
+      case 'storage-full-alert':
+        return this.renderStorageFullAlert();
       default:
         return <View />;
     }
@@ -93,6 +95,26 @@ class GlobalAlert extends PureComponent {
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
     return createStyles(colors);
+  };
+
+  renderStorageFullAlert = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = this.getStyles(colors);
+
+    return (
+      <ElevatedView style={styles.copyAlert(280)} elevation={5}>
+        <View style={styles.copyAlertIcon}>
+          <Icon
+            name={'exclamation-circle'}
+            size={64}
+            color={colors.overlay.inverse}
+          />
+        </View>
+        <Text style={styles.copyAlertText}>
+          {this.props.data && this.props.data.msg}
+        </Text>
+      </ElevatedView>
+    );
   };
 
   renderClipboardAlert = () => {
