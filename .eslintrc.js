@@ -118,7 +118,6 @@ const utilNumberImportBurndownFiles = [
   'app/core/Engine/controllers/gas-fee-controller/gas-fee-controller-init.test.ts',
   'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
-  'app/selectors/assets/assets-list.ts',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
   // `app/util/**` importers of `./number` or `../number` (resolves to `index.js`);
