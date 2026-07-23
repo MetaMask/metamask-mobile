@@ -37,6 +37,12 @@ export interface HeadlessGetQuotesParams {
   forceRefresh?: boolean;
   /** Override the default redirect URL injected into provider quotes. */
   redirectUrl?: string;
+  /**
+   * Product surface requesting quotes. Mapped to the
+   * `moneyHeadlessAllProviders` flag payload's surface key so a per-surface
+   * provider allowlist (when the flag carries one) applies to this request.
+   */
+  rampSurface?: RampSurface;
 }
 
 /**
