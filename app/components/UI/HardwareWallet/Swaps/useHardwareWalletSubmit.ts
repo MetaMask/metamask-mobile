@@ -109,7 +109,7 @@ interface UseHardwareWalletSubmitOptions {
   approvalRequestId?: string;
   submissionParams?: SubmissionParams;
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
-  setPendingOperationAddress?: (address: string | null) => void;
+  setPendingOperationAddress: (address: string | null) => void;
 }
 
 /**
@@ -207,7 +207,7 @@ export function useHardwareWalletSubmit({
     }
 
     await runSubmit(async () => {
-      setPendingOperationAddress?.(walletAddress);
+      setPendingOperationAddress(walletAddress);
       try {
         const deviceId = await getDeviceIdForAddress(walletAddress);
         const isReady = await ensureDeviceReady?.(deviceId);
@@ -242,7 +242,7 @@ export function useHardwareWalletSubmit({
           await retrySendTransaction(currentPreparedTxMeta);
         }
       } finally {
-        setPendingOperationAddress?.(null);
+        setPendingOperationAddress(null);
       }
     });
   }, [
@@ -253,7 +253,14 @@ export function useHardwareWalletSubmit({
     setPendingOperationAddress,
   ]);
 
-  // ── Bridge flow (UNCHANGED) ─────────────────────────────────────────
+  // ── Bridge flow ────────────────────────────────────────────────────
+  // Wire the DMK session before submitting. BridgeStatusController signs
+  // the EIP-712 intent directly via KeyringController (intent-strategy.mjs:
+  // signTypedMessage → KeyringController:signTypedMessage), which bypasses
+  // the confirmation pipeline. Without this readiness gate the keyring signs
+  // cold and throws "Session ID not set". Mirrors submitSendFlow. For
+  // approval-tx quotes the controller's own requireApproval flow still runs,
+  // hitting ensureDeviceReady's fast path (already connected) — no conflict.
   const submitBridgeFlow = useCallback(async () => {
     const cachedParams = cachedSubmissionParams.current;
     if (!cachedParams || !walletAddress) {
@@ -265,8 +272,31 @@ export function useHardwareWalletSubmit({
       return;
     }
 
-    await runSubmit(() => submitBridgeTxRef.current(cachedParams));
-  }, [dispatch, walletAddress, runSubmit]);
+    await runSubmit(async () => {
+      setPendingOperationAddress(walletAddress);
+      try {
+        const deviceId = await getDeviceIdForAddress(walletAddress);
+        const isReady = await ensureDeviceReady?.(deviceId);
+        if (!isReady) {
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.TransactionFailed,
+            }),
+          );
+          return;
+        }
+        await submitBridgeTxRef.current(cachedParams);
+      } finally {
+        setPendingOperationAddress(null);
+      }
+    });
+  }, [
+    dispatch,
+    walletAddress,
+    runSubmit,
+    ensureDeviceReady,
+    setPendingOperationAddress,
+  ]);
 
   const submit = useCallback(async () => {
     if (isSendFlow) {

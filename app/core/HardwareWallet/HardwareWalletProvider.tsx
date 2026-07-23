@@ -66,6 +66,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     initializeAdapter,
   } = useAdapterLifecycle({
     walletType: effectiveWalletType,
+    deviceId,
     adapterRef: refs.adapterRef,
     handleDeviceEvent,
     handleError,
@@ -158,11 +159,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const hideAwaitingConfirmation = useCallback(() => {
     awaitingConfirmationRejectRef.current = null;
-    // Ledger BLE transports are cached by device id inside the transport
-    // package, so release the transport once signing is no longer awaiting.
-    refs.adapterRef.current?.disconnect().catch(() => undefined);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [refs, updateConnectionState]);
+  }, [updateConnectionState]);
 
   const handleCloseFlow = useCallback(() => {
     awaitingConfirmationRejectRef.current = null;

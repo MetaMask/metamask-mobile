@@ -800,7 +800,50 @@ describe('HardwareWalletsSwaps', () => {
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledWith(MOCK_SUBMISSION_PARAMS);
       });
-      expect(mockEnsureDeviceReady).not.toHaveBeenCalled();
+      // Bridge flow now wires the DMK session before submitting, mirroring
+      // submitSendFlow. ensureDeviceReady must run AND must happen before
+      // submitBridgeTx so the keyring has a live session when it signs.
+      expect(mockEnsureDeviceReady).toHaveBeenCalledTimes(1);
+      const [ensureCallOrder] = mockEnsureDeviceReady.mock.invocationCallOrder;
+      const [submitCallOrder] = mockSubmitBridgeTx.mock.invocationCallOrder;
+      expect(submitCallOrder).toBeGreaterThan(ensureCallOrder);
+    });
+
+    it('awaits ensureDeviceReady before calling submitBridgeTx', async () => {
+      // Block ensureDeviceReady until we release it, so we can prove
+      // submitBridgeTx is gated on its resolution rather than racing.
+      let releaseDeviceReady: () => void = () => undefined;
+      mockEnsureDeviceReady.mockImplementationOnce(
+        () =>
+          new Promise<boolean>((resolve) => {
+            releaseDeviceReady = () => resolve(true);
+          }),
+      );
+
+      renderScreen({});
+
+      // ensureDeviceReady has been invoked but is still pending; submitBridgeTx
+      // must not have fired yet.
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalledTimes(1);
+      });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+
+      releaseDeviceReady();
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(MOCK_SUBMISSION_PARAMS);
+      });
+    });
+
+    it('dispatches TRANSACTION_FAILED and skips submitBridgeTx when ensureDeviceReady returns false', async () => {
+      mockEnsureDeviceReady.mockResolvedValueOnce(false);
+
+      const { store } = renderScreen({});
+
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
+      });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
     it('does not resubmit after initial submission', async () => {

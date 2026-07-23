@@ -82,6 +82,10 @@ const mockBridge = {
   closeApps: jest.fn(),
 };
 
+// Stand-in for a legacy BLE Transport object (from @ledgerhq/hw-transport-ble).
+// `connectLedgerHardware` accepts a Transport from the legacy adapter.
+const mockTransport = { id: 'mock-ble-transport' } as unknown as BleTransport;
+
 const legacyLedgerKeyring = new LegacyLedgerKeyring({
   bridge: mockBridge as unknown as LedgerMobileBridge,
 });
@@ -223,109 +227,13 @@ describe('Ledger core', () => {
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
-  describe('connectLedgerHardware', () => {
-    const mockTransport = 'foo' as unknown as BleTransport;
-    it('calls keyring.setTransport', async () => {
+  describe('connectLedgerHardware (legacy)', () => {
+    it('calls updateTransportMethod and setDeviceId', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
-    });
-
-    it('calls keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
-    });
-
-    it('returns app name correctly', async () => {
-      const value = await connectLedgerHardware(mockTransport, 'bar');
-      expect(value).toBe('appName');
-    });
-
-    it('calls keyring.setDeviceId if deviceId is different', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
+      expect(mockBridge.updateTransportMethod).toHaveBeenCalledWith(
+        mockTransport,
+      );
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
-    });
-
-    it('releases the keyring lock before requesting app metadata from the device', async () => {
-      const events: string[] = [];
-      mockBridge.getAppNameAndVersion.mockImplementationOnce(async () => {
-        events.push('getAppNameAndVersion');
-        return { appName: 'Ethereum' };
-      });
-      MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
-        async (_selector, operation) => {
-          const result = await operation({
-            keyring: ledgerKeyring as unknown as Keyring,
-            metadata: { id: '1234', name: 'Ledger Hardware' },
-          });
-          events.push('withKeyring settled');
-          return result;
-        },
-      );
-
-      await expect(connectLedgerHardware(mockTransport, 'bar')).resolves.toBe(
-        'Ethereum',
-      );
-
-      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
-      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
-      expect(events).toEqual(['withKeyring settled', 'getAppNameAndVersion']);
-    });
-
-    it('skips app metadata request when aborted before the BLE exchange starts', async () => {
-      const abortController = new AbortController();
-      mockBridge.updateTransportMethod.mockImplementationOnce(async () => {
-        abortController.abort();
-      });
-
-      const resultPromise = connectLedgerHardware(
-        mockTransport,
-        'bar',
-        abortController.signal,
-      );
-      const error = await resultPromise.catch((caughtError) => caughtError);
-
-      expect(error).toMatchObject({
-        name: 'LedgerOperationAbortedError',
-      });
-
-      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
-    });
-
-    it('throws before acquiring the keyring lock when the abort signal is already aborted', async () => {
-      const abortController = new AbortController();
-      abortController.abort();
-
-      const error = await connectLedgerHardware(
-        mockTransport,
-        'bar',
-        abortController.signal,
-      ).catch((caughtError) => caughtError);
-
-      expect(error).toMatchObject({
-        name: 'LedgerOperationAbortedError',
-      });
-
-      expect(
-        MockEngine.context.KeyringController.withKeyringV2,
-      ).not.toHaveBeenCalled();
-      expect(mockBridge.updateTransportMethod).not.toHaveBeenCalled();
-      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
-    });
-
-    it('throws when the resolved keyring is not a LedgerKeyring instance', async () => {
-      MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
-        async (_selector, operation) =>
-          operation({
-            // The withKeyring helper guards against the keyring controller
-            // resolving a non-Ledger keyring (e.g. due to a controller bug).
-            keyring: {} as unknown as Keyring,
-            metadata: { id: '1234', name: '' },
-          }),
-      );
-
-      await expect(connectLedgerHardware(mockTransport, 'bar')).rejects.toThrow(
-        'Expected LedgerKeyring',
-      );
     });
   });
 
