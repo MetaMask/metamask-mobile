@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import Routes from '../../../../constants/navigation/Routes';
@@ -18,7 +19,7 @@ import { HeaderStandard } from '@metamask/design-system-react-native';
 
 const GeneralSettings = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,

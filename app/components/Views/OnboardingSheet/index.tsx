@@ -9,6 +9,7 @@ import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
 import { colors as commonColors } from '../../../styles/common';
@@ -48,7 +49,7 @@ type OnboardingSheetRouteProp = RouteProp<
 
 const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<OnboardingSheetRouteProp>();
   const {
     onPressCreate,

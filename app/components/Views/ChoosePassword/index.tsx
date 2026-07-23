@@ -96,6 +96,7 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -167,7 +168,7 @@ const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 

@@ -65,6 +65,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -154,7 +155,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     () => loading || isDeletingInProgress,
     [loading, isDeletingInProgress],
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 

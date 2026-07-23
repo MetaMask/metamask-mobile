@@ -12,6 +12,7 @@ import {
   useRoute,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -62,7 +63,7 @@ const RevealPrivateCredential = ({
   cancel,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RevealPrivateCredentialRouteProp>();
   const tabBarHeight = useContext(BottomTabBarHeightContext);
   const { bottom: safeAreaBottom } = useSafeAreaInsets();
