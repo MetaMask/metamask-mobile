@@ -36,8 +36,10 @@ import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/select
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { PaymentMethod } from '@metamask/ramps-controller';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 jest.mock('./useTransactionPayToken');
+jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('../pay/useTransactionPayData');
@@ -124,6 +126,9 @@ describe('useTransactionPayMetrics', () => {
   const useFiatPaymentHighlightedActionsMock = jest.mocked(
     useFiatPaymentHighlightedActions,
   );
+  const useTransactionAccountOverrideMock = jest.mocked(
+    useTransactionAccountOverride,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -162,6 +167,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
     useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
   });
 
   it('includes available crypto method even before a pay token is selected', async () => {
@@ -1346,6 +1352,161 @@ describe('useTransactionPayMetrics', () => {
       )?.params?.properties;
 
       expect(calledProps).not.toHaveProperty('mm_pay_entry_point');
+    });
+  });
+
+  describe('timing metrics', () => {
+    function timingDispatches(prop: string) {
+      return updateConfirmationMetricMock.mock.calls.filter(
+        (call) =>
+          prop in
+          (call[0] as { params: { properties: Record<string, unknown> } })
+            .params.properties,
+      );
+    }
+
+    it('dispatches confirmation_time_to_open_ms immediately on mount', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      const calls = timingDispatches('confirmation_time_to_open_ms');
+      expect(calls).toHaveLength(1);
+      expect(calls[0][0]).toEqual({
+        id: transactionIdMock,
+        params: {
+          properties: { confirmation_time_to_open_ms: 1000 },
+        },
+      });
+    });
+
+    it('dispatches confirmation_time_to_load_info_ms when pay token loads', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      const calls = timingDispatches('confirmation_time_to_load_info_ms');
+      expect(calls).toHaveLength(1);
+    });
+
+    it('waits for account override on moneyAccountDeposit before dispatching load info', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+      const { rerender } = runHook({
+        type: TransactionType.moneyAccountDeposit,
+      });
+      await act(async () => noop());
+
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(0);
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        '0xabc' as `0x${string}`,
+      );
+      rerender({});
+      await act(async () => noop());
+
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(1);
+    });
+
+    it('does not dispatch load info when pay token never loads', async () => {
+      runHook();
+      await act(async () => noop());
+
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(0);
+    });
+
+    it('dispatches each metric exactly once across re-renders', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { rerender } = runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      rerender({});
+      await act(async () => noop());
+
+      expect(timingDispatches('confirmation_time_to_open_ms')).toHaveLength(1);
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(1);
+    });
+
+    it('dispatches mm_pay_time_to_load_quote_ms when quote arrives after request', async () => {
+      const requestTime = 1746696742000;
+      const quoteArrivalTime = 1746696742600;
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_quote_requested: false },
+      });
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+
+      jest.spyOn(Date, 'now').mockReturnValue(requestTime);
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_quote_requested: true },
+      });
+      rerender({});
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+
+      jest.spyOn(Date, 'now').mockReturnValue(quoteArrivalTime);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+      rerender({});
+      await act(async () => noop());
+
+      const calls = timingDispatches('mm_pay_time_to_load_quote_ms');
+      expect(calls).toHaveLength(1);
+      expect(calls[0][0]).toEqual({
+        id: transactionIdMock,
+        params: {
+          properties: { mm_pay_time_to_load_quote_ms: 600 },
+        },
+      });
+    });
+
+    it('does not dispatch mm_pay_time_to_load_quote_ms without a prior quote request', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
     });
   });
 });

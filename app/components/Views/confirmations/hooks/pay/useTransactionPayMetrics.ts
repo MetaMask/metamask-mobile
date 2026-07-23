@@ -24,6 +24,7 @@ import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -55,9 +56,21 @@ export function useTransactionPayMetrics() {
     selectConfirmationMetricsById(state, transactionId),
   );
 
+  const accountOverride = useTransactionAccountOverride();
+
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
   const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
+
+  const isQuoteRequested =
+    (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
+
+  const quoteRequestedAtMs = useRef<number>(0);
+  useEffect(() => {
+    if (isQuoteRequested && quoteRequestedAtMs.current === 0) {
+      quoteRequestedAtMs.current = Date.now();
+    }
+  }, [isQuoteRequested]);
 
   const hasQuotes = (quotes?.length ?? 0) > 0;
 
@@ -107,6 +120,85 @@ export function useTransactionPayMetrics() {
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
   }
+
+  const needsAccountSelect = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const isInfoLoaded =
+    hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
+
+  const confirmationOpenedAtMs = useRef<number | undefined>(undefined);
+
+  const didDispatchTimeToOpen = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToOpen.current ||
+      typeof transactionMeta?.time !== 'number' ||
+      transactionMeta.time <= 0
+    )
+      return;
+    confirmationOpenedAtMs.current = Date.now();
+    didDispatchTimeToOpen.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_open_ms: Math.round(
+              confirmationOpenedAtMs.current - transactionMeta.time,
+            ),
+          },
+        },
+      }),
+    );
+  }, [transactionMeta?.time, dispatch, transactionId]);
+
+  const didDispatchTimeToLoadInfo = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadInfo.current ||
+      !isInfoLoaded ||
+      confirmationOpenedAtMs.current === undefined
+    )
+      return;
+    didDispatchTimeToLoadInfo.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_load_info_ms: Math.round(
+              Date.now() - confirmationOpenedAtMs.current,
+            ),
+          },
+        },
+      }),
+    );
+  }, [isInfoLoaded, transactionMeta?.time, dispatch, transactionId]);
+
+  const didDispatchTimeToLoadQuote = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadQuote.current ||
+      !hasQuotes ||
+      quoteRequestedAtMs.current === 0
+    )
+      return;
+    didDispatchTimeToLoadQuote.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            mm_pay_time_to_load_quote_ms: Math.round(
+              Date.now() - quoteRequestedAtMs.current,
+            ),
+          },
+        },
+      }),
+    );
+  }, [hasQuotes, dispatch, transactionId]);
 
   const properties: Json = {};
   const sensitiveProperties: Json = {};
