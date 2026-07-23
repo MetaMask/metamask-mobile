@@ -27,7 +27,7 @@
  * polyfill bootstrap at app startup).
  */
 if (
-  typeof globalThis.Reflect === 'undefined' ||
+  globalThis.Reflect === undefined ||
   typeof globalThis.Reflect.metadata !== 'function'
 ) {
   // Use the package subpath so this require bypasses the Metro
