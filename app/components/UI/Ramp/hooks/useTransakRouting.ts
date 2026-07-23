@@ -10,9 +10,11 @@ import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
+  RampsEnvironment,
   RampsOrderStatus,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
+import { getRampsEnvironment } from '../../../../core/Engine/controllers/ramps-controller/ramps-service-init';
 import { REDIRECTION_URL } from '../constants';
 import { generateThemeParameters } from '../utils/depositUtils';
 import type {
@@ -44,6 +46,29 @@ import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+
+// The native provider code must match the environment that `refreshOrder` /
+// `getOrderFromCallback` poll (from `getRampsEnvironment()`). UAT exposes
+// both `transak-native` and `transak-native-staging`, so trusting
+// `selectedProvider.id` or a deposit order's `provider` field can pick the
+// production code against the staging API and return 400.
+function getFallbackNativeProviderCode(): string {
+  return getRampsEnvironment() === RampsEnvironment.Staging
+    ? 'transak-native-staging'
+    : 'transak-native';
+}
+
+function resolveNativeProviderCode(provider?: string | null): string {
+  const fallback = getFallbackNativeProviderCode();
+  if (!provider) {
+    return fallback;
+  }
+  const segment = provider.replace(/^\/providers\//, '');
+  if (segment.startsWith('transak-native')) {
+    return fallback;
+  }
+  return segment;
+}
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -496,9 +521,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             throw new Error('Missing order');
           }
 
-          const providerCode = String(
-            depositOrder.provider ?? 'transak-native',
-          );
+          const providerCode = resolveNativeProviderCode(depositOrder.provider);
           const rampsOrder = await refreshOrder(
             providerCode,
             depositOrder.providerOrderId,
@@ -601,15 +624,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
       // Same pattern as unified Buy WebView Checkout: leave the webview
       // immediately; OrderDetails resolves the order via callback params.
-      if (!selectedProvider?.id) {
-        processingOrderIdRef.current = null;
-        Logger.error(
-          new Error('Missing selected provider'),
-          'useTransakRouting: cannot open OrderDetails without provider',
-        );
-        return;
-      }
-
+      // Always resolve to the env-correct native provider — UAT lists both
+      // `transak-native` and `transak-native-staging`, so selectedProvider
+      // can be the production id against the staging API.
       const cryptoSymbol = selectedToken?.symbol;
       resetWithRoutes(navigation, {
         index: 0,
@@ -618,7 +635,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             name: Routes.RAMP.RAMPS_ORDER_DETAILS,
             params: {
               callbackUrl: url,
-              providerCode: selectedProvider.id,
+              providerCode: resolveNativeProviderCode(selectedProvider?.id),
               walletAddress: walletAddress || '',
               showCloseButton: true,
               ...(cryptoSymbol ? { cryptocurrency: cryptoSymbol } : {}),
@@ -760,8 +777,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   throw new Error('Missing order');
                 }
 
-                const providerCode = String(
-                  depositOrder.provider ?? 'transak-native',
+                const providerCode = resolveNativeProviderCode(
+                  depositOrder.provider,
                 );
                 const rampsOrder = await refreshOrder(
                   providerCode,
