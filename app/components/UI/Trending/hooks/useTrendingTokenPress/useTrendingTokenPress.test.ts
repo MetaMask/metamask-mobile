@@ -11,6 +11,8 @@ import {
   PriceChangeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 jest.mock('@react-navigation/native', () => ({
   StackActions: { push: jest.fn((route, params) => ({ route, params })) },
@@ -28,6 +30,21 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 jest.mock('../../services/TrendingFeedSessionManager', () => ({
   __esModule: true,
   default: { getInstance: jest.fn() },
+}));
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({}));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 const mockNavigationDispatch = jest.fn();
@@ -175,5 +192,30 @@ describe('useTrendingTokenPress', () => {
       await result.current.onPress();
     });
     expect(mockTrackTokenClick).not.toHaveBeenCalled();
+  });
+
+  it('tracks Token List Item Clicked for watchlist row taps', async () => {
+    mockUseSelector.mockReturnValue({ 'eip155:1': {} });
+
+    const { result } = renderHook(() =>
+      useTrendingTokenPress({
+        token: ETH_TOKEN,
+        index: 1,
+        tokenDetailsSource: TokenDetailsSource.WatchlistHomepage,
+      }),
+    );
+    await act(async () => {
+      await result.current.onPress();
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TOKEN_LIST_ITEM_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      asset: ETH_TOKEN.assetId,
+      source: TokenDetailsSource.WatchlistHomepage,
+      position: 1,
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 });

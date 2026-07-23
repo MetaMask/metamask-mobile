@@ -100,6 +100,7 @@ import {
   getMoneyAccountControllerMessenger,
 } from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
+import { getMoneyAccountApiDataServiceMessenger } from './money-account-api-data-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
@@ -448,6 +449,10 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountBalanceService: {
     getMessenger: getMoneyAccountBalanceServiceMessenger,
+    getInitMessenger: noop,
+  },
+  MoneyAccountApiDataService: {
+    getMessenger: getMoneyAccountApiDataServiceMessenger,
     getInitMessenger: noop,
   },
   SocialService: {

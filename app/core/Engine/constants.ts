@@ -27,6 +27,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SocialService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
+  'MoneyAccountApiDataService',
   'ConfigRegistryApiService',
   'ChompApiService',
 ] as const;

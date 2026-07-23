@@ -6,16 +6,23 @@ import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.t
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockUseTokenWatchlistQuery = jest.fn();
+const mockUseTrackWatchlistPageViewed = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
   }),
+  useRoute: () => ({ params: { source: 'watchlist_homepage' } }),
 }));
 
 jest.mock('../../hooks/useTokenWatchlistQuery', () => ({
   useTokenWatchlistQuery: () => mockUseTokenWatchlistQuery(),
+}));
+
+jest.mock('../../hooks/useTrackWatchlistPageViewed', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseTrackWatchlistPageViewed(...args),
 }));
 
 jest.mock('react-native-reanimated', () => {
@@ -107,6 +114,38 @@ describe('WatchlistFullScreenView', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
+    });
+  });
+
+  it('tracks watchlist page viewed when loading completes', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<WatchlistFullScreenView />);
+
+    expect(mockUseTrackWatchlistPageViewed).toHaveBeenCalledWith({
+      tokenCount: 0,
+      isEmpty: true,
+      isLoading: false,
+      source: 'watchlist_homepage',
+    });
+  });
+
+  it('passes token count to page viewed tracking when items exist', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [makeWatchlistToken('eth'), makeWatchlistToken('btc')],
+      isLoading: false,
+    });
+
+    render(<WatchlistFullScreenView />);
+
+    expect(mockUseTrackWatchlistPageViewed).toHaveBeenCalledWith({
+      tokenCount: 2,
+      isEmpty: false,
+      isLoading: false,
+      source: 'watchlist_homepage',
     });
   });
 
