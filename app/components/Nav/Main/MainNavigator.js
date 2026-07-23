@@ -32,6 +32,7 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
+import LibsodiumPoc from '../../Views/LibsodiumPoc';
 import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
@@ -1473,6 +1474,11 @@ const MainNavigator = () => {
           options={{ headerShown: false }}
         />
       )}
+      <NativeStack.Screen
+        name={Routes.LIBSODIUM_POC}
+        component={LibsodiumPoc}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
