@@ -4,6 +4,7 @@ import { getApprovalControllerInstanceOptions } from './instance-options/approva
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
+import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
 import {
   getNetworkControllerInstanceOptions,
@@ -40,6 +41,7 @@ export function initializeWallet({
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),
+      gasFeeController: getGasFeeControllerInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger),
       networkController: getNetworkControllerInstanceOptions(),
       remoteFeatureFlagController:
