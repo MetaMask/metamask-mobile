@@ -25,7 +25,7 @@ export interface UsePredictStackedHeaderResult {
  * handler is an inline worklet — workletized by the app's Reanimated Babel
  * plugin — that writes the offset directly. Keeping the shared-value mutation
  * inside this hook (rather than the rendering component) also matches the
- * existing `useFeedScrollManager` / `useDiscoveryScrollManager` convention.
+ * existing `useFeedScrollManager` convention.
  *
  * The returned `scrollY` / `titleSectionHeight` are passed to
  * `HeaderStandardAnimated` (via `PredictHeaderStacked`).

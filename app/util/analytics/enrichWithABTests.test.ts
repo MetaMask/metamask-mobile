@@ -194,22 +194,6 @@ describe('enrichWithABTests', () => {
     });
   });
 
-  it('enriches Home Viewed events with hub page discovery tabs assignment', () => {
-    const event =
-      AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
-
-    const result = enrichWithABTests(event, {
-      coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(
-        'coreMCU589AbtestHubPageDiscoveryTabs',
-        'treatment',
-      ),
-    ]);
-  });
-
   it('enriches Explore Page Interacted events with Whats Happening Explore assignment', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.EXPLORE_INTERACTED,

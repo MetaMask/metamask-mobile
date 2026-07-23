@@ -103,8 +103,8 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import Reanimated, { SharedValue } from 'react-native-reanimated';
-import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
+import Reanimated, { useAnimatedScrollHandler } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
@@ -134,30 +134,7 @@ import {
   usePerpsTopMovers,
 } from '../../hooks/usePerpsTopMovers';
 
-interface PerpsHomeViewProps {
-  hideHeader?: boolean;
-  walletHeaderTranslateY?: SharedValue<number>;
-  walletHeaderHeight?: number;
-  /** Ref populated with this tab's onTabEnter so the parent can call it on tab switch. */
-  tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
-  /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
-  onHeaderHiddenChange?: (hidden: boolean) => void;
-  /**
-   * Top padding applied inside the scroll content container when embedded in
-   * HomepageDiscoveryTabs — keeps the perps background flush under the discovery
-   * tab bar and adds spacing before the screen title (32px in discovery tabs).
-   */
-  topInset?: number;
-}
-
-const PerpsHomeView = ({
-  hideHeader = false,
-  walletHeaderTranslateY,
-  walletHeaderHeight = 0,
-  tabEnterCallbackRef,
-  onHeaderHiddenChange,
-  topInset = 0,
-}: PerpsHomeViewProps) => {
+const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -282,6 +259,16 @@ const PerpsHomeView = ({
     },
     [handleScroll],
   );
+  // `useAnimatedScrollHandler` may retain the first worklet closure. Keep the
+  // RN callback stable while forwarding each event to the latest tracker.
+  const handleScrollEventRef = useRef(handleScrollEvent);
+  handleScrollEventRef.current = handleScrollEvent;
+  const scheduleScrollEventOnRN = useCallback(
+    (scrollY: number, viewportHeight: number) => {
+      handleScrollEventRef.current(scrollY, viewportHeight);
+    },
+    [],
+  );
 
   const {
     scrollY: headerScrollY,
@@ -291,25 +278,18 @@ const PerpsHomeView = ({
 
   const perpsScreenTitle = strings('perps.title');
 
-  const { scrollHandler: perpsScrollHandler, onTabEnter: perpsOnTabEnter } =
-    useDiscoveryScrollManager({
-      walletHeaderHeight,
-      walletHeaderTranslateY,
-      scrollY: hideHeader ? undefined : headerScrollY,
-      onScrollEvent: handleScrollEvent,
-      onHeaderHiddenChange,
-    });
-
-  // Expose onTabEnter to the parent so it can restore this tab's header state on switch.
-  useEffect(() => {
-    if (tabEnterCallbackRef) {
-      tabEnterCallbackRef.current = perpsOnTabEnter;
-      return () => {
-        tabEnterCallbackRef.current = null;
-      };
-    }
-    return undefined;
-  }, [tabEnterCallbackRef, perpsOnTabEnter]);
+  const perpsScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      'worklet';
+      // eslint-disable-next-line react-compiler/react-compiler -- Reanimated shared values are intentionally mutated from worklets.
+      headerScrollY.value = event.contentOffset.y;
+      scheduleOnRN(
+        scheduleScrollEventOnRN,
+        event.contentOffset.y,
+        event.layoutMeasurement.height,
+      );
+    },
+  });
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -1029,20 +1009,11 @@ const PerpsHomeView = ({
   const scrollContentContainerStyle = useMemo(
     () => [
       styles.scrollViewContent,
-      hideHeader && topInset > 0 ? { paddingTop: topInset } : null,
       showsFixedFooter
         ? { paddingBottom: 0 }
-        : !hideHeader
-          ? { paddingBottom: 16 + insets.bottom }
-          : null,
+        : { paddingBottom: 16 + insets.bottom },
     ],
-    [
-      styles.scrollViewContent,
-      topInset,
-      hideHeader,
-      showsFixedFooter,
-      insets.bottom,
-    ],
+    [styles.scrollViewContent, showsFixedFooter, insets.bottom],
   );
 
   const titleEndAccessory = useMemo(() => {
@@ -1077,59 +1048,58 @@ const PerpsHomeView = ({
   return (
     <View style={styles.container}>
       {/* Header */}
-      {!hideHeader &&
-        (isPerpsProModeEnabled ? (
-          // Pro mode: persistent centered Lite/Pro toggle in the top nav
-          // (the animated compact title would only appear on scroll).
-          // h-16 (64px) matches the Figma header so the 40px toggle keeps its
-          // 12px of breathing room above/below (HeaderBase defaults to 56px).
-          <HeaderStandard
-            includesTopInset
-            twClassName="h-16"
-            title={
-              <PerpsModeToggle
-                mode={perpsMode}
-                onChange={handleModeChange}
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-              />
-            }
-            onBack={handleBackPress}
-            backButtonProps={{
-              accessibilityLabel: 'Back',
-              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-            }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: handleSearchToggle,
-                accessibilityLabel: 'Search',
-                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-              },
-            ]}
-            testID="perps-home"
-          />
-        ) : (
-          <HeaderStandardAnimated
-            includesTopInset
-            scrollY={headerScrollY}
-            titleSectionHeight={titleSectionHeightSv}
-            title={perpsScreenTitle}
-            onBack={handleBackPress}
-            backButtonProps={{
-              accessibilityLabel: 'Back',
-              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-            }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: handleSearchToggle,
-                accessibilityLabel: 'Search',
-                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-              },
-            ]}
-            testID="perps-home"
-          />
-        ))}
+      {isPerpsProModeEnabled ? (
+        // Pro mode: persistent centered Lite/Pro toggle in the top nav
+        // (the animated compact title would only appear on scroll).
+        // h-16 (64px) matches the Figma header so the 40px toggle keeps its
+        // 12px of breathing room above/below (HeaderBase defaults to 56px).
+        <HeaderStandard
+          includesTopInset
+          twClassName="h-16"
+          title={
+            <PerpsModeToggle
+              mode={perpsMode}
+              onChange={handleModeChange}
+              source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            />
+          }
+          onBack={handleBackPress}
+          backButtonProps={{
+            accessibilityLabel: 'Back',
+            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Search,
+              onPress: handleSearchToggle,
+              accessibilityLabel: 'Search',
+              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+            },
+          ]}
+          testID="perps-home"
+        />
+      ) : (
+        <HeaderStandardAnimated
+          includesTopInset
+          scrollY={headerScrollY}
+          titleSectionHeight={titleSectionHeightSv}
+          title={perpsScreenTitle}
+          onBack={handleBackPress}
+          backButtonProps={{
+            accessibilityLabel: 'Back',
+            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Search,
+              onPress: handleSearchToggle,
+              accessibilityLabel: 'Search',
+              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+            },
+          ]}
+          testID="perps-home"
+        />
+      )}
 
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView
@@ -1157,15 +1127,11 @@ const PerpsHomeView = ({
             )}
             <TitleHub
               testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-              title={hideHeader ? undefined : perpsScreenTitle}
-              titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
-              titleProps={
-                hideHeader
-                  ? undefined
-                  : {
-                      testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-                    }
-              }
+              title={perpsScreenTitle}
+              titleEndAccessory={titleEndAccessory}
+              titleProps={{
+                testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+              }}
               amount={
                 !isBalanceEmpty ? (
                   <SensitiveText

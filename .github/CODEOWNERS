@@ -311,7 +311,6 @@ app/components/Views/Homepage/index.ts           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/context/           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/hooks/             @MetaMask/mobile-core-ux
 app/components/Views/Homepage/components/        @MetaMask/mobile-core-ux
-app/selectors/featureFlagController/homepage/    @MetaMask/mobile-core-ux @MetaMask/mobile-platform
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions

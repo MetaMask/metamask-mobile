@@ -98,16 +98,10 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-  topInset?: number;
-  hideTitle?: boolean;
-}> = ({ onDepositWalletWithdrawPress, topInset = 0, hideTitle = false }) => (
-  <Box
-    twClassName="pb-4"
-    style={topInset > 0 ? { paddingTop: topInset } : undefined}
-  >
+}> = ({ onDepositWalletWithdrawPress }) => (
+  <Box twClassName="pb-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
-      hideTitle={hideTitle}
     />
   </Box>
 );
@@ -154,8 +148,6 @@ interface AnimatedHeaderProps {
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
-  topInset?: number;
-  hideTitle?: boolean;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -169,8 +161,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onHeaderLayout,
   onTabBarLayout,
   onDepositWalletWithdrawPress,
-  topInset = 0,
-  hideTitle = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -210,8 +200,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       >
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
-          topInset={topInset}
-          hideTitle={hideTitle}
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
@@ -539,26 +527,11 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 };
 
 interface PredictFeedProps {
-  hideHeader?: boolean;
-  /**
-   * Top padding before the title/balance header when embedded in
-   * HomepageDiscoveryTabs — keeps the predict background flush under the
-   * discovery tab bar and adds spacing before the screen title (32px).
-   */
-  topInset?: number;
   entryPoint?: PredictEntryPoint;
-  onHeaderHiddenChange?: (hidden: boolean) => void;
-  walletHeaderTranslateY?: SharedValue<number>;
-  walletHeaderHeight?: number;
 }
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
-  hideHeader = false,
-  topInset = 0,
   entryPoint: propEntryPoint,
-  onHeaderHiddenChange,
-  walletHeaderTranslateY,
-  walletHeaderHeight,
 }) => {
   const { tabs, activeIndex, setActiveIndex, initialTabKey } = usePredictTabs();
 
@@ -641,9 +614,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     headerRef,
     tabBarRef,
     setActiveIndex,
-    onHeaderHiddenChange,
-    walletHeaderTranslateY,
-    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -679,11 +649,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     showSearch();
   }, [tabs, activeIndex, listEntryPoint, showSearch]);
 
-  const headerTopInset = hideHeader ? topInset : 0;
-
   return (
     <SafeAreaView
-      edges={hideHeader ? [] : { bottom: 'additive' }}
+      edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -691,28 +659,26 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        {!hideHeader && (
-          <Box
-            style={tw.style('z-20', {
-              backgroundColor: colors.background.default,
-            })}
-          >
-            <HeaderStandard
-              includesTopInset
-              onBack={handleBackPress}
-              backButtonProps={{
-                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-              }}
-              endButtonIconProps={[
-                {
-                  iconName: IconName.Search,
-                  onPress: handleShowSearch,
-                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-                },
-              ]}
-            />
-          </Box>
-        )}
+        <Box
+          style={tw.style('z-20', {
+            backgroundColor: colors.background.default,
+          })}
+        >
+          <HeaderStandard
+            includesTopInset
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleShowSearch,
+                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+              },
+            ]}
+          />
+        </Box>
 
         <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
@@ -726,8 +692,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-            topInset={headerTopInset}
-            hideTitle={hideHeader}
           />
 
           {layoutReady && (

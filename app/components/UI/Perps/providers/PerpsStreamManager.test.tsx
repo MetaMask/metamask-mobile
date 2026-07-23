@@ -1955,6 +1955,9 @@ describe('PerpsStreamManager', () => {
     ];
 
     beforeEach(() => {
+      // Market-data tests await Promise-based fetches. Keep real timers active
+      // so waitFor can poll without relying on the outer suite's fake timers.
+      jest.useRealTimers();
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
       mockEngine.context.PerpsController.getMarketDataWithPrices =
         mockGetMarketDataWithPrices;
@@ -3326,55 +3329,6 @@ describe('PerpsStreamManager', () => {
 
       expect(orderPauseSpy).toHaveBeenCalledTimes(1);
       expect(pricesPauseSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('pauseAllChannels / resumeAllChannels', () => {
-    const CHANNEL_NAMES = [
-      'prices',
-      'orders',
-      'positions',
-      'fills',
-      'account',
-      'oiCaps',
-      'topOfBook',
-      'focusedPrice',
-      'candles',
-    ] as const;
-
-    it('pauseAllChannels calls pause() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'pause');
-      }
-
-      testStreamManager.pauseAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].pause).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('resumeAllChannels calls resume() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'resume');
-      }
-
-      testStreamManager.resumeAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].resume).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('does not touch marketData (REST-based, not a stream channel)', () => {
-      const pauseSpy = jest.spyOn(testStreamManager.marketData, 'pause');
-      const resumeSpy = jest.spyOn(testStreamManager.marketData, 'resume');
-
-      testStreamManager.pauseAllChannels();
-      testStreamManager.resumeAllChannels();
-
-      expect(pauseSpy).not.toHaveBeenCalled();
-      expect(resumeSpy).not.toHaveBeenCalled();
     });
   });
 
