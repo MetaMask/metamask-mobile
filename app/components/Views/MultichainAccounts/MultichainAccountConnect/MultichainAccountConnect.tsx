@@ -70,7 +70,6 @@ import {
 } from '../../MultichainAccounts/shared/utils.ts';
 import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
 import {
-  CaipAccountId,
   CaipChainId,
   KnownCaipNamespace,
   parseCaipChainId,
