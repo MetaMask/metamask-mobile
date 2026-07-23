@@ -44,22 +44,21 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import type { KycDisclaimer } from '@metamask/kyc-controller';
 import { useTheme } from '../../../util/theme';
 import ClipboardManager from '../../../core/ClipboardManager';
-import type {
-  Disclaimer,
-  IdentitySubmission,
-  KycRequiredResponse,
-} from './api';
 import MoonpayFrame from './MoonpayFrame';
 import useMoonpayReset from './useMoonpayReset';
-import useMoonpayIdentityFlow, {
+import {
   DEMO_PROFILES,
   type DemoProfile,
   type Phase,
   type DebugEvent,
   type DebugSeverity,
-} from './useMoonpayIdentityFlow';
+  type IdentitySubmission,
+  type KycRequiredResult,
+  type KycFlow,
+} from './useKycFlow';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -205,7 +204,7 @@ const TermsPanel: React.FC<{
   email: string;
   onEmailChange: (v: string) => void;
   onAccept: () => void;
-  disclaimers: Disclaimer[];
+  disclaimers: KycDisclaimer[];
   disclaimersError: string | null;
   disclaimersLoaded: boolean;
   colors: ThemeColors;
@@ -503,7 +502,7 @@ const LoadingPanel: React.FC<{ message: string }> = ({ message }) => (
 );
 
 const DonePanel: React.FC<{
-  result: KycRequiredResponse;
+  result: KycRequiredResult;
   colors: ThemeColors;
   onLaunchSumSub: () => void;
 }> = ({ result, colors, onLaunchSumSub }) => (
@@ -672,10 +671,10 @@ const ErrorPanel: React.FC<{
 );
 
 interface MoonpayDemoProps {
-  launchSumSubSDK: (moonPayAccessToken: string | null) => Promise<void> | void;
+  flow: KycFlow;
 }
 
-const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
+const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ flow }) => {
   const { colors } = useTheme();
 
   const {
@@ -700,10 +699,12 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
     acceptTermsAndCreateSession,
     runKycCheck,
     launchSumSub,
+    clearSavedTerms,
     handleFrameMessage,
     handleCheckFrameError,
     handleAuthFrameError,
-  } = useMoonpayIdentityFlow({ launchSumSubSDK });
+    termsAcceptedAt,
+  } = flow;
 
   const {
     resetState,
@@ -735,6 +736,14 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
               ? 'Resetting…'
               : 'Reset MoonPay session'}
           </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={clearSavedTerms}
+            isDisabled={!termsAcceptedAt}
+          >
+            Clear saved terms
+          </Button>
           {resetState === 'success' && (
             <Text
               variant={TextVariant.BodySm}
@@ -754,6 +763,19 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
             </Text>
           )}
         </View>
+
+        <Text
+          variant={TextVariant.BodySm}
+          color={
+            termsAcceptedAt
+              ? TextColor.SuccessDefault
+              : TextColor.TextAlternative
+          }
+        >
+          {termsAcceptedAt
+            ? `Terms saved (accepted ${termsAcceptedAt})`
+            : 'Terms not saved'}
+        </Text>
 
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           Country (geolocation): {geoCountry ?? 'Resolving…'}
