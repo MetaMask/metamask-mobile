@@ -13,6 +13,7 @@ import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../core/ToastService');
 jest.mock('../../../../core/NavigationService', () => ({
+  isReady: jest.fn(() => true),
   navigation: {
     navigate: jest.fn(),
   },
@@ -79,6 +80,26 @@ describe('v2OrderToast', () => {
         Routes.RAMP.RAMPS_ORDER_DETAILS,
         { orderId: 'test-order-id', showCloseButton: true },
       );
+    });
+
+    it('does not close toast or navigate when Track button is pressed before navigation is ready', () => {
+      (NavigationService.isReady as jest.Mock).mockReturnValueOnce(false);
+      (strings as jest.Mock)
+        .mockReturnValueOnce('Processing your purchase of ETH')
+        .mockReturnValueOnce('This should only take a few minutes...')
+        .mockReturnValueOnce('Track');
+
+      const params: V2OrderToastParams = {
+        orderId: 'test-order-id',
+        cryptocurrency: 'ETH',
+        status: RampsOrderStatus.Pending,
+      };
+
+      const result = buildV2OrderToastOptions(params);
+
+      expect(() => result?.linkButtonOptions?.onPress()).not.toThrow();
+      expect(mockToastService.closeToast).not.toHaveBeenCalled();
+      expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('returns toast options for COMPLETED state with success icon', () => {

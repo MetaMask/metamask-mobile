@@ -60,6 +60,10 @@ export function buildV2OrderToastOptions(
         linkButtonOptions: {
           label: strings('ramps_v2.notifications.track'),
           onPress: () => {
+            if (!NavigationService.isReady()) {
+              return;
+            }
+
             ToastService.closeToast();
             NavigationService.navigation.navigate(
               Routes.RAMP.RAMPS_ORDER_DETAILS,
