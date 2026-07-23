@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -81,7 +82,7 @@ const referredByTextStyle = { color: VIP_GOLD_TEXT_MUTED };
 const RewardsVipRefereeViewContent: React.FC = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
