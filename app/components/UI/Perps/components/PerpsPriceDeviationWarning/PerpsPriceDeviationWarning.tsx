@@ -4,13 +4,12 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsPriceDeviationWarningProps } from './PerpsPriceDeviationWarning.types';
 import styleSheet from './PerpsPriceDeviationWarning.styles';
@@ -40,7 +39,7 @@ const PerpsPriceDeviationWarning: React.FC<PerpsPriceDeviationWarningProps> =
           style={styles.icon}
         />
         <View style={styles.textContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {strings('perps.price_deviation_warning.message')}
           </Text>
         </View>
