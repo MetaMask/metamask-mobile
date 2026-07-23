@@ -333,6 +333,13 @@ const PerpsProOrderBookPanel = ({
   const showBids = viewMode !== 'sell';
   const showAsks = viewMode !== 'buy';
 
+  let viewModeAccessibilityValue = strings('perps.order_book.view_mode_both');
+  if (viewMode === 'buy') {
+    viewModeAccessibilityValue = strings('perps.order_book.view_mode_bids');
+  } else if (viewMode === 'sell') {
+    viewModeAccessibilityValue = strings('perps.order_book.view_mode_asks');
+  }
+
   // Raw, full-precision book — mid price + spread (shared controller socket).
   const { orderBook: rawOrderBook } = usePerpsLiveOrderBook({
     symbol,
@@ -489,6 +496,7 @@ const PerpsProOrderBookPanel = ({
           onPress={handleCycleViewMode}
           accessibilityRole="button"
           accessibilityLabel={strings('perps.order_book.view_toggle')}
+          accessibilityValue={{ text: viewModeAccessibilityValue }}
           testID={`${testID}-view-toggle`}
           hitSlop={8}
           style={styles.viewToggleButton}

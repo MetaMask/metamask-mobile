@@ -157,16 +157,25 @@ describe('PerpsProOrderBookPanel', () => {
     );
 
     const toggle = getByTestId(`${testID}-view-toggle`);
+    expect(toggle).toHaveAccessibilityValue({ text: 'Bids and asks' });
 
     // default → buy (asks hidden)
     fireEvent.press(toggle);
     expect(queryByTestId(`${testID}-ask-row-0`)).not.toBeOnTheScreen();
     expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
+    expect(toggle).toHaveAccessibilityValue({ text: 'Bids only' });
 
     // buy → sell (bids hidden)
     fireEvent.press(toggle);
     expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
     expect(queryByTestId(`${testID}-bid-row-0`)).not.toBeOnTheScreen();
+    expect(toggle).toHaveAccessibilityValue({ text: 'Asks only' });
+
+    // sell → default (both sides)
+    fireEvent.press(toggle);
+    expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
+    expect(toggle).toHaveAccessibilityValue({ text: 'Bids and asks' });
   });
 
   it('shows a ladder skeleton while the aggregated book is loading', () => {

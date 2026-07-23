@@ -1,4 +1,5 @@
 import React from 'react';
+import { Modal } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -190,6 +191,16 @@ describe('PerpsProOrderBookConfigSheet', () => {
     const { getByTestId } = renderSheet({ onClose });
 
     fireEvent.press(getByTestId('config-sheet-close'));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('closes via Modal onRequestClose for Android back', () => {
+    const onClose = jest.fn();
+    const { UNSAFE_getByType } = renderSheet({ onClose });
+
+    UNSAFE_getByType(Modal).props.onRequestClose();
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();

@@ -18,6 +18,11 @@ interface PerpsProMarketLayoutProps {
   /**
    * When true, the order-book column and divider are hidden so the order form
    * expands to full width. An expand control restores the book.
+   *
+   * Collapse unmounts the order-book panel (subscriptions disconnect). On
+   * expand, session-only UI state in that panel — list currency, metric, and
+   * view mode — resets to defaults. Price grouping is unchanged because it is
+   * persisted per market separately from this layout.
    */
   isOrderBookCollapsed?: boolean;
   onExpandOrderBook?: () => void;
@@ -52,6 +57,11 @@ const styles = StyleSheet.create({
  * the order book occupies the fixed-width right column. Configurable panel
  * positioning is deferred until the rearrangeable-layout feature consumes the
  * controller preferences.
+ *
+ * When the book is collapsed, `{orderBook}` is not rendered so the panel
+ * unmounts and live order-book sockets disconnect. That remount-on-expand
+ * path intentionally drops session-only book preferences (currency, metric,
+ * view mode); persisted grouping survives via `usePerpsOrderBookGrouping`.
  */
 const PerpsProMarketLayout = ({
   orderForm,
@@ -87,6 +97,7 @@ const PerpsProMarketLayout = ({
       ) : null}
       {orderForm}
     </Box>
+    {/* Omit the column while collapsed: unmount disconnects subscriptions. */}
     {!isOrderBookCollapsed ? (
       <>
         <Box

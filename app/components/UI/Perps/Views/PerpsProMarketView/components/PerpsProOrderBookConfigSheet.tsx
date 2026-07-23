@@ -195,7 +195,13 @@ const PerpsProOrderBookConfigSheet = ({
 
   return (
     <View>
-      <Modal visible transparent animationType="none" statusBarTranslucent>
+      <Modal
+        visible
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={handleClose}
+      >
         <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
           <BottomSheetHeader
             onClose={handleClose}
