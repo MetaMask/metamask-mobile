@@ -37,6 +37,25 @@ const styleSheet = (params: { theme: Theme }) => {
       borderBottomColor: theme.colors.border.muted,
       marginBottom: ACCOUNT_SELECTOR_VERTICAL_PADDING - BOTTOM_BLOCK_GAP,
     },
+
+    buttonSkeleton: {
+      borderRadius: 999,
+      marginTop: 16,
+    },
+
+    skeletonRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+    },
+
+    skeletonRowRight: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 8,
+    },
   });
 };
 

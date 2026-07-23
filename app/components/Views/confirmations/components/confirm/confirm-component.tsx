@@ -34,6 +34,7 @@ import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import {
   AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
+  PrefillCustomAmountInfoSkeleton,
 } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -57,6 +58,7 @@ export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
   AdvancedCustomAmount = 'advancedCustomAmount',
+  PrefillCustomAmount = 'prefillCustomAmount',
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
 }
@@ -224,6 +226,14 @@ function Loader() {
         loader={loader}
       >
         <AdvancedCustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PrefillCustomAmount) {
+    return (
+      <InfoLoader testId="confirm-loader-prefill-custom-amount" loader={loader}>
+        <PrefillCustomAmountInfoSkeleton />
       </InfoLoader>
     );
   }

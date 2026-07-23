@@ -78,9 +78,14 @@ jest.mock(
     ConfirmationLoader: {
       CustomAmount: 'customAmount',
       AdvancedCustomAmount: 'advancedCustomAmount',
+      PrefillCustomAmount: 'prefillCustomAmount',
     },
   }),
 );
+
+jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
+  selectPrefilledAmountConfig: jest.fn().mockReturnValue({ enabled: false }),
+}));
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn().mockReturnValue({
@@ -173,6 +178,8 @@ function setupSelectors(options: SelectorOptions = {}) {
     if (selector === selectMoneyAccountVaultConfig) return vaultConfig;
     if (selector === selectPrimaryMoneyAccount) return primaryMoneyAccount;
     if (selector === selectEvmAddress) return recipient;
+    // Invoke inline selectors so module-level mocks resolve correctly.
+    if (typeof selector === 'function') return selector(undefined);
     return undefined;
   });
 }
@@ -351,7 +358,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.AdvancedCustomAmount,
+      loader: ConfirmationLoader.PrefillCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
       autoSelectFiatPayment: undefined,
@@ -360,6 +367,27 @@ describe('useMoneyAccountDeposit', () => {
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');
     clearMoneyAccountDepositIntent(observedBatchId);
+  });
+
+  it('uses PrefillCustomAmount loader when prefill feature flag is enabled', async () => {
+    const { selectPrefilledAmountConfig } = jest.requireMock(
+      '../../../../selectors/featureFlagController/confirmations',
+    );
+    selectPrefilledAmountConfig.mockReturnValue({ enabled: true });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loader: ConfirmationLoader.PrefillCustomAmount,
+      }),
+    );
+
+    selectPrefilledAmountConfig.mockReturnValue({ enabled: false });
   });
 
   it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
