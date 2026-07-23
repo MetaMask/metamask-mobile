@@ -13,15 +13,6 @@ jest.mock('../../../Perps/components/PerpsTokenLogo', () => {
   };
 });
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: { fee?: string }) => {
-    if (key === 'rewards.vip_transactions.fee_label') {
-      return `Fee ${params?.fee ?? ''}`;
-    }
-    return key;
-  },
-}));
-
 jest.mock('../../utils/formatUtils', () => ({
   formatUsd: (value: string) => `$${value}`,
   formatRewardsTimeOnly: () => '2:30 PM',
@@ -44,8 +35,8 @@ const MOCK_TX: VipTransactionDto = {
 };
 
 describe('VipPerpsTransactionRow', () => {
-  it('renders coin, volume, fee, and time', () => {
-    const { getByText, getByTestId } = render(
+  it('renders coin, volume, and time without fee', () => {
+    const { getByText, getByTestId, queryByText } = render(
       <VipPerpsTransactionRow transaction={MOCK_TX} testID="perps-row" />,
     );
 
@@ -53,7 +44,7 @@ describe('VipPerpsTransactionRow', () => {
     expect(getByTestId('token-logo-ETH')).toBeOnTheScreen();
     expect(getByText('ETH')).toBeOnTheScreen();
     expect(getByText('$1000.00')).toBeOnTheScreen();
-    expect(getByText('Fee $1.25')).toBeOnTheScreen();
     expect(getByText('2:30 PM')).toBeOnTheScreen();
+    expect(queryByText(/Fee/)).toBeNull();
   });
 });

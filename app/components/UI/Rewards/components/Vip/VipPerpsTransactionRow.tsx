@@ -12,7 +12,6 @@ import {
 import type { VipTransactionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import PerpsTokenLogo from '../../../Perps/components/PerpsTokenLogo';
 import { formatRewardsTimeOnly, formatUsd } from '../../utils/formatUtils';
-import { strings } from '../../../../../../locales/i18n';
 
 export interface VipPerpsTransactionRowProps {
   transaction: VipTransactionDto;
@@ -55,18 +54,8 @@ const VipPerpsTransactionRow: React.FC<VipPerpsTransactionRowProps> = ({
 
         <Box
           flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
+          justifyContent={BoxJustifyContent.End}
         >
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="max-w-[60%]"
-            numberOfLines={1}
-          >
-            {strings('rewards.vip_transactions.fee_label', {
-              fee: formatUsd(transaction.feeUsd),
-            })}
-          </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {formatRewardsTimeOnly(new Date(transaction.timestamp))}
           </Text>

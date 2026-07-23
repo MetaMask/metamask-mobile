@@ -9437,7 +9437,6 @@
       "type_swap": "Swaps",
       "swap_title": "Swap",
       "perps_title": "Perps",
-      "fee_label": "Fee {{fee}}",
       "error_title": "Failed to load transactions",
       "error_description": "Something went wrong while loading your transactions. Please try again.",
       "retry_button": "Retry",
