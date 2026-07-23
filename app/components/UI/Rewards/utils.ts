@@ -222,6 +222,26 @@ export const exitRewardsFlow = (
   });
 };
 
+/**
+ * Resolves the "Contact support" URL used for beta builds only.
+ *
+ * Extracted as its own function (rather than inlined at each call site) so the
+ * branch that depends on it — direct beta Intercom link vs. the support-consent
+ * flow — can be exercised in both directions from unit tests via module
+ * mocking. `///: ONLY_INCLUDE_IF(beta)` code fences are stripped by the Metro
+ * bundler at build time but are inert under Jest, so without this seam the
+ * beta branch always wins in tests and the consent-flow branch is unreachable.
+ */
+export const getBetaSupportUrl = (): string => {
+  let betaSupportUrl = '';
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
+  ///: END:ONLY_INCLUDE_IF
+
+  return betaSupportUrl;
+};
+
 // Referral URL builder
 export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
 export const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;
