@@ -1,5 +1,5 @@
 import React from 'react';
-import { within } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -154,5 +154,31 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
     ).toHaveStyle({ height: 344 });
+  });
+
+  it('collapses the order book so the order form fills the trading area', () => {
+    const { getByTestId, queryByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
+    );
+
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
+    ).toBeOnTheScreen();
   });
 });

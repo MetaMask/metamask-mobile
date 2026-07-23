@@ -61,6 +61,8 @@ export interface PerpsProOrderBookPanelProps {
   szDecimals?: number;
   /** Called when a ladder row is tapped (limit-price prefills). */
   onSelectPrice?: (price: string) => void;
+  /** Hides the order-book column so the order form can go full width. */
+  onCollapse?: () => void;
 }
 
 interface OrderBookRowProps {
@@ -214,6 +216,7 @@ const PerpsProOrderBookPanel = ({
   marketPrice,
   szDecimals,
   onSelectPrice,
+  onCollapse,
 }: PerpsProOrderBookPanelProps) => {
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
   const displaySymbol = getPerpsDisplaySymbol(symbol);
@@ -412,13 +415,28 @@ const PerpsProOrderBookPanel = ({
             sellColor={sellColor}
           />
         </Pressable>
-        <ButtonIcon
-          iconName={IconName.Setting}
-          accessibilityLabel={strings('perps.order_book.config_title')}
-          size={ButtonIconSize.Md}
-          onPress={() => setIsConfigOpen(true)}
-          testID={`${testID}-grouping-trigger`}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          {onCollapse ? (
+            <ButtonIcon
+              iconName={IconName.Collapse}
+              accessibilityLabel={strings('perps.order_book.collapse')}
+              size={ButtonIconSize.Md}
+              onPress={onCollapse}
+              testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON}
+            />
+          ) : null}
+          <ButtonIcon
+            iconName={IconName.Setting}
+            accessibilityLabel={strings('perps.order_book.config_title')}
+            size={ButtonIconSize.Md}
+            onPress={() => setIsConfigOpen(true)}
+            testID={`${testID}-grouping-trigger`}
+          />
+        </Box>
       </Box>
 
       {/* Column headers */}

@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -38,6 +38,15 @@ const PerpsProMarketView = () => {
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const market = route.params?.market;
+  const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+
+  const handleCollapseOrderBook = useCallback(() => {
+    setIsOrderBookCollapsed(true);
+  }, []);
+
+  const handleExpandOrderBook = useCallback(() => {
+    setIsOrderBookCollapsed(false);
+  }, []);
 
   if (!market?.symbol) {
     return (
@@ -84,11 +93,14 @@ const PerpsProMarketView = () => {
         <PerpsProChartPanel />
         <PerpsProStatsBar />
         <PerpsProMarketLayout
+          isOrderBookCollapsed={isOrderBookCollapsed}
+          onExpandOrderBook={handleExpandOrderBook}
           orderForm={<PerpsProOrderFormPanel />}
           orderBook={
             <PerpsProOrderBookPanel
               symbol={market.symbol}
               marketPrice={marketPrice}
+              onCollapse={handleCollapseOrderBook}
             />
           }
         />

@@ -461,6 +461,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   VERTICAL_DIVIDER: 'perps-pro-market-vertical-divider',
   ORDER_FORM_PANEL: 'perps-pro-market-order-form-panel',
   ORDER_BOOK_PANEL: 'perps-pro-market-order-book-panel',
+  ORDER_BOOK_COLLAPSE_BUTTON: 'perps-pro-market-order-book-collapse',
+  ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
 };
 

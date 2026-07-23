@@ -164,4 +164,21 @@ describe('PerpsProOrderBookPanel', () => {
     expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
     expect(queryByTestId(`${testID}-bid-row-0`)).not.toBeOnTheScreen();
   });
+
+  it('invokes onCollapse when the collapse button is pressed', () => {
+    const onCollapse = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onCollapse={onCollapse}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
+    );
+    expect(onCollapse).toHaveBeenCalledTimes(1);
+  });
 });
