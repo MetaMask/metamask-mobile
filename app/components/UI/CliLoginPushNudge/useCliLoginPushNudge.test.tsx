@@ -131,6 +131,20 @@ describe('useCliLoginPushNudge', () => {
     expect(closeToast).toHaveBeenCalled();
   });
 
+  it('enables notifications directly when OS push is already granted', async () => {
+    mockIsPushPermissionGranted.mockResolvedValue(true);
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
+    const { result } = renderNudge();
+
+    act(() => {
+      result.current.showNudge();
+    });
+    await tapTurnOn();
+
+    expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+    expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+  });
+
   it('opens device settings when the OS can no longer show its dialog', async () => {
     mockIsPushPermissionPromptable.mockResolvedValue(false);
     const { result } = renderNudge();
@@ -226,11 +240,13 @@ describe('useCliLoginPushNudge', () => {
       result.current.showNudge();
     });
 
+    mockIsPushPermissionGranted.mockClear();
     mockIsPushPermissionGranted.mockResolvedValue(true);
     await act(async () => {
       appStateChangeHandler?.('active');
     });
 
+    // The superseded retry returns before re-checking permission or enabling.
     expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
     expect(mockEnableNotifications).not.toHaveBeenCalled();
   });

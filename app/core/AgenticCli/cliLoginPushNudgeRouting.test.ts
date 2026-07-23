@@ -50,14 +50,25 @@ describe('cliLoginPushNudgeRouting', () => {
     it('enables notifications when the OS dialog is still promptable', () => {
       expect(
         resolveCliLoginPushNudgeTurnOnAction({
+          isGranted: false,
           isPromptable: true,
         }),
       ).toBe('enable_notifications');
     });
 
-    it('opens device settings when the OS can no longer show its dialog', () => {
+    it('enables notifications when OS push is already granted (in-app off)', () => {
       expect(
         resolveCliLoginPushNudgeTurnOnAction({
+          isGranted: true,
+          isPromptable: false,
+        }),
+      ).toBe('enable_notifications');
+    });
+
+    it('opens device settings when the OS is neither granted nor promptable', () => {
+      expect(
+        resolveCliLoginPushNudgeTurnOnAction({
+          isGranted: false,
           isPromptable: false,
         }),
       ).toBe('open_device_settings');

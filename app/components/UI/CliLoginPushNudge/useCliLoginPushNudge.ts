@@ -125,11 +125,17 @@ export function useCliLoginPushNudge(): {
     try {
       // Platform-aware: on Android any not-granted state is promptable, so we
       // request the OS dialog rather than sending first-time users to Settings.
-      const promptable = await isPushPermissionPromptable();
+      // We also enable directly when already granted (in-app-off / unregistered
+      // case) instead of pointlessly deep-linking to device settings.
+      const [granted, promptable] = await Promise.all([
+        isPushPermissionGranted(),
+        isPushPermissionPromptable(),
+      ]);
       if (!isCurrent()) {
         return;
       }
       const action = resolveCliLoginPushNudgeTurnOnAction({
+        isGranted: granted,
         isPromptable: promptable,
       });
 
