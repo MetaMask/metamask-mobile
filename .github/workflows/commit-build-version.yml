@@ -40,7 +40,7 @@ jobs:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
           permissions: |
             contents: write
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ inputs.base-branch }}

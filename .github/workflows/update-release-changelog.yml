@@ -71,14 +71,14 @@ jobs:
             workflows: write
 
       - name: Checkout release branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref_name }}
           token: ${{ steps.get-token.outputs.token }}
           fetch-depth: 0
 
       - name: Checkout github-tools
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: MetaMask/github-tools
           path: github-tools

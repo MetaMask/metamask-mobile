@@ -168,7 +168,7 @@ jobs:
         id: download-reusable-metadata
         if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/ios
@@ -225,7 +225,7 @@ jobs:
         id: download-reusable-app
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -394,7 +394,7 @@ jobs:
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -402,7 +402,7 @@ jobs:
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -426,7 +426,7 @@ jobs:
 
       - name: Restore yarn cache (reuse-hit path)
         if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -434,7 +434,7 @@ jobs:
 
       - name: Install JS dependencies (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -447,14 +447,14 @@ jobs:
       - name: Restore .metamask folder (reuse-hit path)
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
         id: restore-metamask-lean
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Run lightweight project setup (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -491,7 +491,7 @@ jobs:
       - name: Restore iOS app matching fingerprint from branch cache
         if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: cache-restore
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -500,7 +500,7 @@ jobs:
       - name: Restore iOS app matching fingerprint from main cache
         if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: cache-restore-main
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -685,7 +685,7 @@ jobs:
       - name: Upload iOS APP Artifact (Simulator) (current)
         id: upload-app
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -707,7 +707,7 @@ jobs:
       - name: Upload iOS build metadata (current)
         id: upload-metadata
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-build-metadata/ios.json
@@ -733,7 +733,7 @@ jobs:
       - name: Upload iOS Source Map (current)
         id: upload-sourcemap
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
           path: sourcemaps/ios/index.js.map

@@ -110,7 +110,7 @@ jobs:
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           ref: ${{ inputs.ref }}
@@ -129,7 +129,7 @@ jobs:
 
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider == 'namespace' && '' || (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') }}
@@ -178,14 +178,14 @@ jobs:
       - name: Restore .metamask folder
         id: restore-metamask
         if: ${{ inputs.runner_provider != 'namespace' && inputs.platform != '' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: ${{ inputs.platform != '' && (inputs.runner_provider == 'namespace' || steps.restore-metamask.outputs.cache-hit != 'true') }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -193,7 +193,7 @@ jobs:
           command: yarn install:foundryup
 
       - name: Setup project
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         if: inputs.platform != ''
         with:
           timeout_minutes: 10
@@ -245,7 +245,7 @@ jobs:
 
       - name: Save node_modules cache
         if: inputs.use-cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: |
             node_modules
@@ -285,7 +285,7 @@ jobs:
 
       - name: Upload node_modules tarball
         if: inputs.upload-artifact && inputs.use-tarball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: node-modules-${{ inputs.platform }}.tar.zst
@@ -296,7 +296,7 @@ jobs:
 
       - name: Upload node_modules artifact (zip)
         if: inputs.upload-artifact && !inputs.use-tarball
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: |

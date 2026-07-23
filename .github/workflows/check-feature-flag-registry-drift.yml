@@ -20,16 +20,16 @@ jobs:
       has-drift: ${{ steps.check.outputs.HAS_DRIFT }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
           cache: "yarn"
 
       - name: Install dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -58,14 +58,14 @@ jobs:
 
       - name: Upload drift report
         if: steps.check.outputs.HAS_DRIFT == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: drift-report
           path: report.json
 
       - name: Upload updated registry
         if: steps.check.outputs.HAS_DRIFT == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: updated-registry
           path: tests/feature-flags/feature-flag-registry.ts

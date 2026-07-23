@@ -79,7 +79,7 @@ jobs:
       commit_sha: ${{ steps.resolve-pr.outputs.commit_sha }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -212,12 +212,12 @@ jobs:
       build_name: ${{ steps.config.outputs.build_name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate-pr.outputs.commit_sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -266,20 +266,20 @@ jobs:
       BASE_ARTIFACT_NAME: ${{ needs.setup-dependencies-base.outputs.artifact-name }}
     steps:
       - name: Checkout target commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate-pr.outputs.commit_sha }}
           fetch-depth: 1
 
       - name: Checkout base branch snapshot
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ env.BASE_BRANCH_REF }}
           path: main
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -291,7 +291,7 @@ jobs:
           validation-context: PR commit
 
       - name: Download node_modules artifact (PR commit)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.PR_ARTIFACT_NAME }}
 
@@ -327,7 +327,7 @@ jobs:
           validation-context: base branch
 
       - name: Download node_modules artifact (base branch)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.BASE_ARTIFACT_NAME }}
           path: main

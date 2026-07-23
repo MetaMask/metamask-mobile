@@ -76,7 +76,7 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Setup E2E environment (Android)
@@ -108,7 +108,7 @@ jobs:
 
       - name: Cache ffmpeg (Homebrew)
         if: ${{ inputs.platform == 'ios' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/mms-ffmpeg
           key: brew-ffmpeg-${{ runner.os }}-v1
@@ -151,13 +151,13 @@ jobs:
             inputs.runner_provider == 'namespace' &&
             steps.download-android-apk-namespace.outcome != 'success'
           }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
       - name: Download Android build artifacts (current)
         if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
@@ -170,7 +170,7 @@ jobs:
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
       - name: Download iOS build artifacts (current)
         if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -223,7 +223,7 @@ jobs:
 
       - name: Restore WDA DerivedData cache
         if: ${{ inputs.platform == 'ios' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/appium-wda
           key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
@@ -341,7 +341,7 @@ jobs:
           retention-days: 7
       - name: Upload Playwright HTML report (current)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: appium-smoke-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
@@ -360,7 +360,7 @@ jobs:
           retention-days: 7
       - name: Upload Playwright JSON report (current)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/playwright-json/playwright-report.json
@@ -377,7 +377,7 @@ jobs:
           retention-days: 7
       - name: Upload failure screen recordings (current)
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
