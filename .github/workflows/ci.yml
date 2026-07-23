@@ -309,6 +309,26 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
+      # Upload the audit baseline when audit:ci succeeds on push to main so
+      # subsequent PR runs can diff against it.  Runs in this job to reuse the
+      # already-installed node_modules — no extra yarn install needed.
+      - name: Upload audit baseline artifact
+        if: ${{ matrix['scripts'] == 'audit:ci' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-baseline
+          path: .tmp/audit-current.json
+          retention-days: 90
+      # Optional: push to S3 so `yarn audit` can download it locally too.
+      # Requires AUDIT_BASELINE_S3_URI, AUDIT_BASELINE_AWS_ACCESS_KEY_ID,
+      # AUDIT_BASELINE_AWS_SECRET_ACCESS_KEY secrets to be configured.
+      - name: Upload baseline to S3 (optional)
+        if: ${{ matrix['scripts'] == 'audit:ci' && github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.AUDIT_BASELINE_S3_URI != '' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AUDIT_BASELINE_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AUDIT_BASELINE_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AUDIT_BASELINE_AWS_REGION || 'us-east-1' }}
+        run: aws s3 cp .tmp/audit-current.json "${{ secrets.AUDIT_BASELINE_S3_URI }}"
       - name: Require clean working directory
         shell: bash
         run: |
