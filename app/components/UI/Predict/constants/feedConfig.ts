@@ -115,6 +115,10 @@ const withSportsChipOverrides = (
     ? { queryParams }
     : { ...params };
 
+  if (chip.order) {
+    resolvedParams.order = chip.order;
+  }
+
   if (chip.startTimeMinMinutesAgo === null) {
     delete resolvedParams.startTimeMinMinutesAgo;
 
