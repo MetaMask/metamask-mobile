@@ -3,6 +3,7 @@ import type { CardSmartContractWriteParams } from '../../../../core/Engine/contr
 import {
   BASE_USDC_TOKEN_ADDRESS,
   BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+  ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
 } from '../constants';
 
 export function immersveNetworkToCaipChainId(network?: string): string {
@@ -11,6 +12,8 @@ export function immersveNetworkToCaipChainId(network?: string): string {
       return 'eip155:8453';
     case 'base-sepolia':
       return 'eip155:84532';
+    case 'arbitrum-sepolia':
+      return 'eip155:421614';
     default:
       throw new Error(`Unsupported Immersve funding network: ${network}`);
   }
@@ -36,6 +39,12 @@ export function immersveNetworkToFundingToken(
       return {
         caipChainId: 'eip155:84532',
         tokenAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+        decimals: 6,
+      };
+    case 'arbitrum-sepolia':
+      return {
+        caipChainId: 'eip155:421614',
+        tokenAddress: ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
         decimals: 6,
       };
     default:
