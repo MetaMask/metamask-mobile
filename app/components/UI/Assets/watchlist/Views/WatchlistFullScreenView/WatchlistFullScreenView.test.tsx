@@ -386,6 +386,7 @@ describe('WatchlistFullScreenView', () => {
     });
     rerender(<WatchlistFullScreenView />);
 
+    expect(mockUpdateListMutate).not.toHaveBeenCalled();
     expect(
       queryByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
     ).toBeNull();
@@ -703,6 +704,8 @@ describe('WatchlistFullScreenView', () => {
         getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xeth'),
       );
 
+      expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
+      expectUpdateListMutateCalledWith([]);
       expect(
         queryByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
       ).toBeNull();
@@ -713,6 +716,85 @@ describe('WatchlistFullScreenView', () => {
       });
       rerender(<WatchlistFullScreenView />);
 
+      expect(queryByTestId('editable-row-eip155:1/erc20:0xeth')).toBeNull();
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),
+      ).toBeNull();
+      expect(getByTestId('watchlist-empty-cta')).toBeDefined();
+    });
+
+    it('persists empty watchlist when all tokens are unwatched in edit mode', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue(threeTokenFixture());
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xeth'),
+      );
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xbtc'),
+      );
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xsol'),
+      );
+
+      expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
+      expectUpdateListMutateCalledWith([]);
+    });
+
+    it('clears draft after query syncs following unwatch-all', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId, rerender } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xeth'),
+      );
+
+      expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
+      expectUpdateListMutateCalledWith([]);
+      expect(getByTestId('watchlist-empty-cta')).toBeDefined();
+
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [],
+        isLoading: false,
+      });
+      rerender(<WatchlistFullScreenView />);
+
+      expect(queryByTestId('editable-row-eip155:1/erc20:0xeth')).toBeNull();
+      expect(getByTestId('watchlist-empty-cta')).toBeDefined();
+    });
+
+    it('keeps empty display locked while cached query is stale after unwatch-all', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId('watchlist-mock-unwatch-eip155:1/erc20:0xeth'),
+      );
+
+      expect(mockUpdateListMutate).toHaveBeenCalledTimes(1);
+      expectUpdateListMutateCalledWith([]);
       expect(queryByTestId('editable-row-eip155:1/erc20:0xeth')).toBeNull();
       expect(
         queryByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),

@@ -63,12 +63,33 @@ export const useWatchlistEditDraft = ({
     }
   }, [draft, isEditMode, queryAssetIdSet, queryTokens]);
 
+  const commitPendingChanges = useCallback(() => {
+    if (draft === null) {
+      return;
+    }
+
+    const changed = !ordersMatch(draft.order, baselineOrderRef.current);
+
+    if (!changed) {
+      setDraft(null);
+      setIsEditMode(false);
+      return;
+    }
+
+    const storageOrder = getStorageOrderFromDraft(draft, queryAssetIdSet);
+    updateListMutation.mutate(storageOrder as CaipAssetType[], {
+      onError: () => {
+        setDraft(null);
+      },
+    });
+    setIsEditMode(false);
+  }, [draft, queryAssetIdSet, updateListMutation]);
+
   useEffect(() => {
     if (isEditMode && displayTokens.length === 0) {
-      setIsEditMode(false);
-      setDraft(null);
+      commitPendingChanges();
     }
-  }, [displayTokens.length, isEditMode]);
+  }, [commitPendingChanges, displayTokens.length, isEditMode]);
 
   const handleEditPress = useCallback(() => {
     baselineOrderRef.current = getTokenAssetIdOrder(queryTokens);
@@ -103,30 +124,8 @@ export const useWatchlistEditDraft = ({
   );
 
   const handleDonePress = useCallback(() => {
-    if (draft === null) {
-      return;
-    }
-
-    const changed = !ordersMatch(draft.order, baselineOrderRef.current);
-
-    if (changed) {
-      const storageOrder = getStorageOrderFromDraft(draft, queryAssetIdSet);
-
-      if (storageOrder.length > 0) {
-        updateListMutation.mutate(storageOrder as CaipAssetType[], {
-          onError: () => {
-            setDraft(null);
-          },
-        });
-      }
-
-      setIsEditMode(false);
-      return;
-    }
-
-    setDraft(null);
-    setIsEditMode(false);
-  }, [draft, queryAssetIdSet, updateListMutation]);
+    commitPendingChanges();
+  }, [commitPendingChanges]);
 
   return {
     isEditMode,
