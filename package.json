@@ -484,6 +484,7 @@
     "psl": "^1.15.0",
     "pump": "3.0.0",
     "punycode": "^2.1.1",
+    "pusher-js": "^8.4.0",
     "qs": "6.15.2",
     "query-string": "^6.12.1",
     "randomfill": "^1.0.4",

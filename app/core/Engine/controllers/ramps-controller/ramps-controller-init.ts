@@ -72,6 +72,9 @@ export const rampsControllerInit: MessengerClientInitFunction<
     controller
       .init()
       .then(() => {
+        // Starts HTTP polling for all pending V2 orders, and (from
+        // @metamask/ramps-controller >= 17.1.0) subscribes pending Transak
+        // Native orders to Transak Pusher channels for real-time wake-ups.
         controller.startOrderPolling();
       })
       .catch(() => {
