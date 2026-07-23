@@ -25,6 +25,7 @@ import NftGridItem from './NftGridItem';
 import NftGridItemBottomSheet from './NftGridItemBottomSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
+import NftSkeletonCell from './NftSkeletonCell';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -49,6 +50,12 @@ import { useNftDetection } from '../../hooks/useNftDetection';
 interface NftGridProps {
   isFullView?: boolean;
 }
+
+interface SkeletonSentinel {
+  skeleton: true;
+  key: string;
+}
+type GridItem = Nft | SkeletonSentinel;
 
 const NftGridContent = ({
   allFilteredCollectibles,
@@ -246,21 +253,47 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
     }, [navigation, trackEvent, createEventBuilder]);
 
+    // Append skeleton sentinels after real NFTs so empty slots shimmer while detecting.
+    // Count = slots needed to complete the current row + 6 full extra slots.
+    // e.g. 5 NFTs → 1 to complete row + 6 = 7 skeletons; 4 NFTs → 2 + 6 = 8.
+    const gridData: GridItem[] = useMemo(() => {
+      if (!isNftFetchingProgress) return collectiblesToRender;
+      const rowRemainder = (3 - (collectiblesToRender.length % 3)) % 3;
+      const skeletonCount = rowRemainder + 6;
+      const skeletonItems: SkeletonSentinel[] = Array.from(
+        { length: skeletonCount },
+        (_, i) => ({ skeleton: true as const, key: `skeleton-${i}` }),
+      );
+      return [...collectiblesToRender, ...skeletonItems];
+    }, [collectiblesToRender, isNftFetchingProgress]);
+
     const nftRowList = useMemo(
       () => (
         <FlashList
-          data={collectiblesToRender}
-          renderItem={({ item, index }) => (
-            <Box twClassName={['pr-2', 'px-1', 'pl-2'][index % 3]}>
-              <NftGridItem
-                item={item}
-                onLongPress={handleLongPress}
-                source={nftSource}
-              />
-            </Box>
-          )}
-          keyExtractor={(item) =>
-            `${item.chainId}-${item.address}-${item.tokenId}`
+          data={gridData}
+          renderItem={({ item, index }: { item: GridItem; index: number }) => {
+            const padding = ['pr-2', 'px-1', 'pl-2'][index % 3];
+            if ('skeleton' in item) {
+              return (
+                <Box twClassName={padding}>
+                  <NftSkeletonCell />
+                </Box>
+              );
+            }
+            return (
+              <Box twClassName={padding}>
+                <NftGridItem
+                  item={item}
+                  onLongPress={handleLongPress}
+                  source={nftSource}
+                />
+              </Box>
+            );
+          }}
+          keyExtractor={(item: GridItem) =>
+            'skeleton' in item
+              ? item.key
+              : `${item.chainId}-${item.address}-${item.tokenId}`
           }
           testID={RefreshTestId}
           refreshControl={
@@ -277,7 +310,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
         />
       ),
       [
-        collectiblesToRender,
+        gridData,
         isFullView,
         handleLongPress,
         nftSource,
