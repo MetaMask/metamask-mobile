@@ -34,6 +34,8 @@ The native build fingerprint for test-only PRs is computed from **`main` HEAD** 
 
 If `main` has new native-changing commits but its CI build has not finished yet, reuse lookup may miss — CI logs a warning and **falls back to a fresh native build** instead of failing the workflow. Performance E2E on test-only PRs resolves BrowserStack apps via stable main `custom_id`s (`MetaMask-Android-*-main`) first, then legacy `…-main-<run_id>` IDs; if none are found it **falls back to a fresh dual Android upload** instead of failing.
 
+Manual `workflow_dispatch` of **Build Apps and Run Performance E2E Tests** uses the same test-only detection against `main`: test-only branches reuse main BrowserStack apps; otherwise a fresh Android dual upload runs. Explicit Android `bs://` URL inputs still skip build/upload. Scheduled and `main` push runs always build.
+
 This applies when all changed files match `e2e_test_files` or `e2e_ignorable` filters in `.github/rules/filter-rules.yml`, with at least one E2E test file changed, and no E2E-relevant workflow files were modified.
 
 Use the `force-builds` label or `[force-builds]` commit tag to override reuse and compile fresh builds — including on test-only PRs that would otherwise require main-branch artifacts.
