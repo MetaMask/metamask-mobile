@@ -258,6 +258,23 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
     expect(mockDecrypt).toHaveBeenCalledWith('password', cipherFormatVault);
   });
 
+  it('decrypt passes vault with both data and cipher through unchanged', async () => {
+    const { mockDecrypt } = getEncryptorMocks();
+    const bothFieldsVault = JSON.stringify({
+      data: 'adapter-data',
+      cipher: 'original-cipher',
+      iv: 'test-iv',
+      salt: 'test-salt',
+    });
+
+    await seedlessOnboardingEncryptorAdapter.decrypt(
+      'password',
+      bothFieldsVault,
+    );
+
+    expect(mockDecrypt).toHaveBeenCalledWith('password', bothFieldsVault);
+  });
+
   it('decryptWithDetail normalizes data-format vault before decryption', async () => {
     const { mockDecryptWithDetail } = getEncryptorMocks();
     const dataFormatVault = JSON.stringify({
@@ -299,6 +316,26 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
     expect(mockDecryptWithDetail).toHaveBeenCalledWith(
       'password',
       cipherFormatVault,
+    );
+  });
+
+  it('decryptWithDetail passes vault with both data and cipher through unchanged', async () => {
+    const { mockDecryptWithDetail } = getEncryptorMocks();
+    const bothFieldsVault = JSON.stringify({
+      data: 'adapter-data',
+      cipher: 'original-cipher',
+      iv: 'test-iv',
+      salt: 'test-salt',
+    });
+
+    await seedlessOnboardingEncryptorAdapter.decryptWithDetail(
+      'password',
+      bothFieldsVault,
+    );
+
+    expect(mockDecryptWithDetail).toHaveBeenCalledWith(
+      'password',
+      bothFieldsVault,
     );
   });
 
