@@ -13,15 +13,14 @@ import type { RootMessenger } from '../types';
  * @returns The AiDigestControllerMessenger.
  */
 export function getAiDigestControllerMessenger(
-  rootMessenger: RootMessenger,
-): AiDigestControllerMessenger {
-  return new Messenger<
-    'AiDigestController',
+  rootMessenger: RootMessenger<
     MessengerActions<AiDigestControllerMessenger>,
-    MessengerEvents<AiDigestControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AiDigestControllerMessenger>
+  >,
+): AiDigestControllerMessenger {
+  const messenger: AiDigestControllerMessenger = new Messenger({
     namespace: 'AiDigestController',
     parent: rootMessenger,
   });
+  return messenger;
 }
