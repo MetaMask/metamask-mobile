@@ -12,6 +12,7 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
 // eslint-disable-next-line import-x/no-namespace
 import * as tokenUtils from '../../utils/tokenUtils';
+import { ARC_HEX_CHAIN_ID } from '../../../../../enablement/assets/arc';
 
 describe('useAutoUpdateDestToken', () => {
   const mockEthToken: BridgeToken = {
@@ -276,6 +277,55 @@ describe('useAutoUpdateDestToken', () => {
           symbol: 'ETH',
           chainId: ethChainId,
           address: '0x0000000000000000000000000000000000000000',
+        }),
+      );
+    });
+
+    it('updates dest to default from token when source changes to match default dest and default from token is defined (ARC)', () => {
+      const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+
+      // Current dest is the default EURC
+      const eurcTokenOnArc: BridgeToken = {
+        address: '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1',
+        symbol: 'EURC',
+        name: 'EURC',
+        decimals: 6,
+        chainId: ARC_HEX_CHAIN_ID,
+      };
+
+      // New source is also EURC (conflicts with dest)
+      const eurcTokenOnArcSource: BridgeToken = {
+        address: '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1',
+        symbol: 'EURC',
+        name: 'EURC',
+        decimals: 6,
+        chainId: ARC_HEX_CHAIN_ID,
+      };
+
+      const { result } = renderHookWithProvider(
+        () => useAutoUpdateDestToken(),
+        {
+          state: {
+            ...initialState,
+            bridge: {
+              ...initialState.bridge,
+              destToken: eurcTokenOnArc,
+              isDestTokenManuallySet: false,
+            },
+          },
+        },
+      );
+
+      // Change source to EURC (same as current dest)
+      result.current.autoUpdateDestToken(eurcTokenOnArcSource);
+
+      // Dest should update to native USDC (the ERC20 version) since source now conflicts with default
+      // and a corresponding entry is defined in BRIDGE_CHAINID_TO_DEFAULT_FROM_TOKEN.
+      expect(setDestTokenSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'USDC',
+          chainId: ARC_HEX_CHAIN_ID,
+          address: '0x3600000000000000000000000000000000000000',
         }),
       );
     });
