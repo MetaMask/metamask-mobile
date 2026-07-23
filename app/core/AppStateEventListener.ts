@@ -17,9 +17,24 @@ import {
   selectAppInstallEventFired,
 } from '../reducers/user/selectors';
 import { setAppInstallEventFired } from '../actions/user';
+import AppConstants from './AppConstants';
 
 /** Prevents parallel start() calls from double-firing before Redux persists. */
 let trackAppInstallInFlight = false;
+
+/** Delay so an incoming deeplink can land before App Opened fires. */
+const APP_OPENED_DEEPLINK_DELAY_MS = 2000;
+
+export enum AppOpenedType {
+  ColdStart = 'cold_start',
+  WarmStart = 'warm_start',
+}
+
+export enum AppOpenedSource {
+  PushNotification = 'push_notification',
+  Deeplink = 'deeplink',
+  Direct = 'direct',
+}
 
 /**
  * Fire the App Installed analytics event exactly once on first install.
@@ -96,6 +111,9 @@ export class AppStateEventListener {
   public currentDeeplink: string | null = null;
   public pendingDeeplink: string | null = null;
   public pendingDeeplinkSource: string | null = null;
+  // Origin of currentDeeplink. Unlike pendingDeeplinkSource, it survives
+  // until the delayed App Opened event fires.
+  private currentDeeplinkSource: string | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -118,10 +136,17 @@ export class AppStateEventListener {
 
     // Fire App Installed event once on first install
     this.trackAppInstallOnce();
+
+    // Cold start launches straight into 'active' with no state transition,
+    // so the change handler never fires — track it here.
+    setTimeout(() => {
+      this.processAppStateChange(AppOpenedType.ColdStart);
+    }, APP_OPENED_DEEPLINK_DELAY_MS);
   }
 
   public setCurrentDeeplink(deeplink: string | null, source?: string) {
     this.currentDeeplink = deeplink;
+    this.currentDeeplinkSource = source ?? null;
     this.pendingDeeplink = deeplink;
     this.pendingDeeplinkSource = source ?? null;
   }
@@ -138,8 +163,8 @@ export class AppStateEventListener {
     if (nextAppState === 'active' && this.lastAppState === 'background') {
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
-        this.processAppStateChange();
-      }, 2000);
+        this.processAppStateChange(AppOpenedType.WarmStart);
+      }, APP_OPENED_DEEPLINK_DELAY_MS);
     }
     // On iOS, returning from background passes through an intermediate 'inactive'
     // state before reaching 'active'. Don't overwrite 'background' with 'inactive'
@@ -168,7 +193,22 @@ export class AppStateEventListener {
 
   private trackAppInstallOnce = trackAppInstallOnce;
 
-  private processAppStateChange = () => {
+  // Push opens are only detectable via the deeplink on the push payload,
+  // so a push without a deeplink is reported as direct.
+  private getAppOpenedSource = (): AppOpenedSource => {
+    if (!this.currentDeeplink) {
+      return AppOpenedSource.Direct;
+    }
+    const isPushSource =
+      this.currentDeeplinkSource ===
+        AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION ||
+      this.currentDeeplinkSource === AppConstants.DEEPLINKS.ORIGIN_BRAZE;
+    return isPushSource
+      ? AppOpenedSource.PushNotification
+      : AppOpenedSource.Deeplink;
+  };
+
+  private processAppStateChange = (appOpenedType: AppOpenedType) => {
     try {
       const attribution = processAttribution({
         currentDeeplink: this.currentDeeplink,
@@ -181,11 +221,12 @@ export class AppStateEventListener {
           ReduxService.store.dispatch(saveAttribution(persistedPayload));
         }
       }
-      // Note: User identification is handled when settings change individually
-      // We only track the APP_OPENED event on app state transitions
       const appOpenedEventBuilder = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.APP_OPENED,
-      );
+      ).addProperties({
+        type: appOpenedType,
+        source: this.getAppOpenedSource(),
+      });
       if (attribution) {
         const { attributionId, ...utmParams } = attribution;
         DevLogger.log(
@@ -198,6 +239,7 @@ export class AppStateEventListener {
       // One-shot use for attribution: keeping currentDeeplink causes every
       // background→active cycle to re-save and reset capturedAt (TTL).
       this.currentDeeplink = null;
+      this.currentDeeplinkSource = null;
     } catch (error) {
       Logger.error(
         error as Error,

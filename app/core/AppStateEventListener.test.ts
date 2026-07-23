@@ -114,6 +114,13 @@ describe('AppStateEventListener', () => {
     );
     appStateManager = new AppStateEventListener();
     appStateManager.start();
+    // Flush the cold-start APP_OPENED scheduled by start() so each test
+    // only observes its own events.
+    jest.advanceTimersByTime(2000);
+    mockAnalytics.trackEvent.mockClear();
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockClear();
+    mockEventBuilder.addProperties.mockClear();
+    (Logger.error as jest.Mock).mockClear();
   });
 
   afterEach(() => {
@@ -160,6 +167,10 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      type: 'warm_start',
+      source: 'deeplink',
+    });
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       mockAttribution,
     );
@@ -215,6 +226,10 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      type: 'warm_start',
+      source: 'direct',
+    });
     expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       mockEventBuilder.build(),
     );
@@ -360,6 +375,182 @@ describe('AppStateEventListener', () => {
       missingReduxStoreError,
       appStateManagerErrorMessage,
     );
+  });
+
+  describe('cold start', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+        mockEventBuilder,
+      );
+      jest
+        .spyOn(ReduxService, 'store', 'get')
+        .mockReturnValue(createMockReduxStore());
+      (processAttribution as jest.Mock).mockReturnValue(undefined);
+    });
+
+    it('fires APP_OPENED with type cold_start after start()', () => {
+      const coldStartManager = new AppStateEventListener();
+      coldStartManager.start();
+      jest.advanceTimersByTime(2000);
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.APP_OPENED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'cold_start',
+        source: 'direct',
+      });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the deeplink-settling delay before firing', () => {
+      const coldStartManager = new AppStateEventListener();
+      coldStartManager.start();
+
+      jest.advanceTimersByTime(1999);
+      expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(1);
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires cold start only once when start() is called twice', () => {
+      const coldStartManager = new AppStateEventListener();
+      coldStartManager.start();
+      coldStartManager.start();
+      jest.advanceTimersByTime(2000);
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('includes attribution properties when opened via deeplink', () => {
+      const mockStore = createMockReduxStore();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+      const mockAttribution = {
+        attributionId: 'cold123',
+        utm_source: 'source',
+      };
+      (processAttribution as jest.Mock).mockReturnValue(mockAttribution);
+
+      const coldStartManager = new AppStateEventListener();
+      coldStartManager.start();
+      coldStartManager.setCurrentDeeplink(
+        'metamask://connect?attributionId=cold123',
+      );
+      jest.advanceTimersByTime(2000);
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith(
+        saveAttribution({
+          attribution_id: 'cold123',
+          utm_source: 'source',
+        }),
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'cold_start',
+        source: 'deeplink',
+      });
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        mockAttribution,
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('still fires a warm start APP_OPENED after the cold start one', () => {
+      let coldStartListener: (state: AppStateStatus) => void = () => undefined;
+      (AppState.addEventListener as jest.Mock).mockImplementation(
+        (_, listener) => {
+          coldStartListener = listener;
+          return { remove: jest.fn() };
+        },
+      );
+
+      const coldStartManager = new AppStateEventListener();
+      coldStartManager.start();
+      jest.advanceTimersByTime(2000);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'cold_start',
+        source: 'direct',
+      });
+
+      coldStartListener('background');
+      coldStartListener('active');
+      jest.advanceTimersByTime(2000);
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'warm_start',
+        source: 'direct',
+      });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('App Opened source', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+        mockEventBuilder,
+      );
+      jest
+        .spyOn(ReduxService, 'store', 'get')
+        .mockReturnValue(createMockReduxStore());
+      (processAttribution as jest.Mock).mockReturnValue(undefined);
+    });
+
+    const warmOpen = () => {
+      mockAppStateListener('background');
+      mockAppStateListener('active');
+      jest.advanceTimersByTime(2000);
+    };
+
+    it('reports push_notification when opened from an FCM push deeplink', () => {
+      appStateManager.setCurrentDeeplink(
+        'metamask://notification',
+        'push-notification',
+      );
+      warmOpen();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'warm_start',
+        source: 'push_notification',
+      });
+    });
+
+    it('reports push_notification when opened from a Braze push deeplink', () => {
+      appStateManager.setCurrentDeeplink('metamask://promo', 'braze');
+      warmOpen();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'warm_start',
+        source: 'push_notification',
+      });
+    });
+
+    it('reports deeplink when opened from an external link without a source', () => {
+      appStateManager.setCurrentDeeplink('https://link.metamask.io/swap');
+      warmOpen();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'warm_start',
+        source: 'deeplink',
+      });
+    });
+
+    it('reverts to direct on the next open after a deeplink open', () => {
+      appStateManager.setCurrentDeeplink(
+        'metamask://notification',
+        'push-notification',
+      );
+      warmOpen();
+      mockEventBuilder.addProperties.mockClear();
+
+      warmOpen();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        type: 'warm_start',
+        source: 'direct',
+      });
+    });
   });
 
   describe('trackAppInstallOnce', () => {
