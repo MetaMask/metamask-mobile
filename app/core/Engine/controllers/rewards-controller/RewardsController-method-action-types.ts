@@ -645,26 +645,6 @@ export type RewardsControllerGetBenefitsAction = {
   handler: RewardsController['getBenefits'];
 };
 
-/**
- * Get the VIP dashboard with caching.
- * @param subscriptionId - The subscription ID for authentication
- * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
- */
-export type RewardsControllerGetVIPDashboardAction = {
-  type: `RewardsController:getVIPDashboard`;
-  handler: RewardsController['getVIPDashboard'];
-};
-
-/**
- * Get the VIP referee stats with caching.
- * @param subscriptionId - The subscription ID for authentication
- * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
- */
-export type RewardsControllerGetVipRefereeDashboardAction = {
-  type: `RewardsController:getVipRefereeDashboard`;
-  handler: RewardsController['getVipRefereeDashboard'];
-};
-
 export type RewardsControllerGetVipTransactionsAction = {
   type: `RewardsController:getVipTransactions`;
   handler: RewardsController['getVipTransactions'];
@@ -688,6 +668,26 @@ export type RewardsControllerHasVipTransactionsChangedAction = {
 export type RewardsControllerLookupVipTransactionAction = {
   type: `RewardsController:lookupVipTransaction`;
   handler: RewardsController['lookupVipTransaction'];
+};
+
+/**
+ * Get the VIP dashboard with caching.
+ * @param subscriptionId - The subscription ID for authentication
+ * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
+ */
+export type RewardsControllerGetVIPDashboardAction = {
+  type: `RewardsController:getVIPDashboard`;
+  handler: RewardsController['getVIPDashboard'];
+};
+
+/**
+ * Get the VIP referee stats with caching.
+ * @param subscriptionId - The subscription ID for authentication
+ * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
+ */
+export type RewardsControllerGetVipRefereeDashboardAction = {
+  type: `RewardsController:getVipRefereeDashboard`;
+  handler: RewardsController['getVipRefereeDashboard'];
 };
 
 /**
@@ -907,13 +907,13 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
-  | RewardsControllerGetVIPDashboardAction
-  | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerGetVipTransactionsAction
   | RewardsControllerGetVipTransactionsIfChangedAction
   | RewardsControllerGetVipTransactionsLastUpdatedAction
   | RewardsControllerHasVipTransactionsChangedAction
   | RewardsControllerLookupVipTransactionAction
+  | RewardsControllerGetVIPDashboardAction
+  | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction

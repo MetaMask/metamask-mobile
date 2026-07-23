@@ -260,7 +260,7 @@ describe('RewardsVipTransactionsView', () => {
     ).toBeNull();
   });
 
-  it('renders skeletons when refreshing an empty list', () => {
+  it('keeps empty state visible while pull-to-refresh runs', () => {
     mockUseGetVipTransactions.mockReturnValue({
       ...transactionDefaults,
       isRefreshing: true,
@@ -273,10 +273,10 @@ describe('RewardsVipTransactionsView', () => {
     );
 
     expect(
-      getByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON),
+      getByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY),
+      queryByTestId(REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON),
     ).toBeNull();
   });
 

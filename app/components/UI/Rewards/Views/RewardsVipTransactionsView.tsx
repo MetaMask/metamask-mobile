@@ -218,8 +218,7 @@ const RewardsVipTransactionsView: React.FC = () => {
     );
   }, [isLoadingMore, transactions]);
 
-  const isInitialLoadPending =
-    isLoading || isRefreshing || transactions === null;
+  const isInitialLoadPending = isLoading || transactions === null;
 
   const renderEmpty = useCallback(() => {
     if (error) {

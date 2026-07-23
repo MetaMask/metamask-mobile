@@ -202,6 +202,15 @@ describe('useGetVipTransactions', () => {
       },
     );
     expect(result.current.transactions).toHaveLength(2);
+    // Policy A: Redux keeps first page only — loadMore must not dispatch merges.
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setVipTransactions({
+        subscriptionId: SUBSCRIPTION_ID,
+        type: 'PERPS',
+        transactions: MOCK_PAGE_1.results,
+      }),
+    );
   });
 
   it('does not loadMore when hasMore is false', async () => {
@@ -248,7 +257,7 @@ describe('useGetVipTransactions', () => {
     expect(result.current.transactions).toBeNull();
   });
 
-  it('exposes cached transactions immediately so empty UI does not flash', () => {
+  it('exposes cached transactions when VIP is disabled and no fetch runs', () => {
     const cached = [MOCK_TX];
     setupSelectors({
       subscriptionId: SUBSCRIPTION_ID,
@@ -259,6 +268,54 @@ describe('useGetVipTransactions', () => {
     const { result } = renderHook(() => useGetVipTransactions('PERPS'));
 
     expect(result.current.transactions).toEqual(cached);
+  });
+
+  it('hides cached transactions while an enabled first-page fetch is in flight', async () => {
+    let resolveFetch: (value: typeof MOCK_PAGE_1) => void = () => undefined;
+    mockCall.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }) as never,
+    );
+    setupSelectors({
+      subscriptionId: SUBSCRIPTION_ID,
+      cachedTransactions: [MOCK_TX],
+    });
+
+    const { result } = renderHook(() => useGetVipTransactions('PERPS'));
+
+    await waitFor(() => {
+      expect(mockCall).toHaveBeenCalled();
+    });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.transactions).toBeNull();
+
+    await act(async () => {
+      resolveFetch(MOCK_PAGE_1);
+    });
+
+    await waitFor(() => {
+      expect(result.current.transactions).toEqual(MOCK_PAGE_1.results);
+    });
+  });
+
+  it('shows cache and suppresses error when first-page fetch fails', async () => {
+    mockCall.mockRejectedValueOnce(new Error('Network failure') as never);
+    setupSelectors({
+      subscriptionId: SUBSCRIPTION_ID,
+      cachedTransactions: [MOCK_TX],
+    });
+
+    const { result } = renderHook(() => useGetVipTransactions('PERPS'));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.transactions).toEqual([MOCK_TX]);
+    expect(result.current.error).toBeNull();
   });
 
   it('refresh resets and re-fetches first page with forceFresh', async () => {
