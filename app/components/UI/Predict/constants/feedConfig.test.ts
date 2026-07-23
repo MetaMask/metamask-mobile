@@ -289,6 +289,33 @@ describe('feedConfig', () => {
     });
   });
 
+  it('disables generated start time params when chip start time is null', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+              startTimeMinMinutesAgo: null,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      tagSlugs: ['custom-tab'],
+      tags: ['100639'],
+      status: 'open',
+      order: 'start_time',
+    });
+  });
+
   it('applies chip start time minute overrides on custom query params', () => {
     const config = createPredictSportsFeedConfig({
       enabled: true,
@@ -312,6 +339,32 @@ describe('feedConfig', () => {
     expect(config.tabs[0].filters.static[0].params).toEqual({
       queryParams: 'tag_slug=remote-slug&order=startTime',
       startTimeMinMinutesAgo: 15,
+    });
+  });
+
+  it('removes start time params from custom query params when chip start time is null', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+              queryParams:
+                'tag_slug=remote-slug&order=startTime&start_time_min=2026-01-01T00%3A00%3A00.000Z',
+              startTimeMinMinutesAgo: null,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      queryParams: 'tag_slug=remote-slug&order=startTime',
     });
   });
 
@@ -340,6 +393,32 @@ describe('feedConfig', () => {
     });
   });
 
+  it('removes start time params from league query params when chip start time is null', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      tabs: [
+        {
+          id: 'custom-tab',
+          tagSlug: 'custom-tab',
+          chips: [
+            {
+              id: 'mls',
+              kind: 'tag',
+              queryParams:
+                'tag_slug=mls&order=startTime&start_time_min=2026-01-01T00%3A00%3A00.000Z',
+              startTimeMinMinutesAgo: null,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].params).toEqual({
+      queryParams: 'tag_slug=mls&order=startTime',
+    });
+  });
+
   it('applies the sports start time lower bound to games filters', () => {
     PREDICT_FEED_REGISTRY.sports.tabs.forEach((tab) => {
       const gamesFilter = tab.filters.static.find(
@@ -355,7 +434,6 @@ describe('feedConfig', () => {
       tab.filters.static
         .filter((filter) => filter.id !== 'games')
         .forEach((filter) => {
-          expect(filter.params.startTimeMin).toBeUndefined();
           expect(filter.params.startTimeMinMinutesAgo).toBeUndefined();
         });
     });
@@ -418,7 +496,6 @@ describe('feedConfig', () => {
       'status',
       'live',
       'queryParams',
-      'startTimeMin',
       'startTimeMinMinutesAgo',
       'search',
       'limit',

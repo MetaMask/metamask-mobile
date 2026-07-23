@@ -97,6 +97,14 @@ const normalizeSportsChipQueryParams = (
   return normalized || undefined;
 };
 
+const removeStartTimeMinFromQueryParams = (
+  queryParams: string,
+): string | undefined => {
+  const params = new URLSearchParams(queryParams);
+  params.delete('start_time_min');
+  return params.toString() || undefined;
+};
+
 const withSportsChipOverrides = (
   params: PredictMarketListParams,
   chip: PredictSportsFeedChipConfig,
@@ -107,12 +115,32 @@ const withSportsChipOverrides = (
     ? { queryParams }
     : { ...params };
 
+  if (chip.startTimeMinMinutesAgo === null) {
+    delete resolvedParams.startTimeMinMinutesAgo;
+
+    if (resolvedParams.queryParams) {
+      const queryParamsWithoutStartTimeMin = removeStartTimeMinFromQueryParams(
+        resolvedParams.queryParams,
+      );
+
+      if (queryParamsWithoutStartTimeMin) {
+        resolvedParams.queryParams = queryParamsWithoutStartTimeMin;
+      } else {
+        delete resolvedParams.queryParams;
+      }
+    }
+
+    return resolvedParams;
+  }
+
+  if (!applyStartTimeOverride) {
+    return resolvedParams;
+  }
+
   if (
-    applyStartTimeOverride &&
-    chip.startTimeMinMinutesAgo !== undefined &&
+    typeof chip.startTimeMinMinutesAgo === 'number' &&
     Number.isFinite(chip.startTimeMinMinutesAgo)
   ) {
-    delete resolvedParams.startTimeMin;
     resolvedParams.startTimeMinMinutesAgo = chip.startTimeMinMinutesAgo;
   }
 
@@ -144,7 +172,6 @@ const createPropsFilter = (
   chip: PredictSportsFeedChipConfig,
 ): PredictFeedFilterConfig => {
   const propsParams: PredictMarketListParams = { ...params };
-  delete propsParams.startTimeMin;
   delete propsParams.startTimeMinMinutesAgo;
 
   return {
@@ -171,7 +198,6 @@ const createTagFilter = (
     return undefined;
   }
   const tagParams: PredictMarketListParams = { ...params };
-  delete tagParams.startTimeMin;
   delete tagParams.startTimeMinMinutesAgo;
 
   return {

@@ -310,6 +310,11 @@ describe('PredictSportsFeedSchema', () => {
               queryParams:
                 'active=true&closed=false&tag_slug=custom-mls&order=startTime&ascending=true',
             },
+            {
+              id: 'props',
+              kind: 'props',
+              startTimeMinMinutesAgo: null,
+            },
           ],
         },
       ],

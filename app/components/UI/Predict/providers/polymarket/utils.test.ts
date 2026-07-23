@@ -1524,14 +1524,6 @@ describe('polymarket utils', () => {
       dateNowSpy.mockRestore();
     });
 
-    it('maps startTimeMin to the start_time_min param', () => {
-      const params = buildMarketListQueryParams({
-        startTimeMin: '2026-01-12T10:00:00.000Z',
-      });
-
-      expect(params.get('start_time_min')).toBe('2026-01-12T10:00:00.000Z');
-    });
-
     it('maps startTimeMinMinutesAgo to a relative start_time_min param', () => {
       const dateNowSpy = jest
         .spyOn(Date, 'now')

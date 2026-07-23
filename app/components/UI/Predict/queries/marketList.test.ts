@@ -31,7 +31,6 @@ describe('marketList query', () => {
         order: undefined,
         status: undefined,
         live: undefined,
-        startTimeMin: undefined,
         startTimeMinMinutesAgo: undefined,
         search: undefined,
         limit: PREDICT_MARKET_LIST_PAGE_SIZE,

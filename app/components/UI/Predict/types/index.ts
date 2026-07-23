@@ -651,9 +651,7 @@ export interface PredictMarketListParams {
   live?: boolean;
   // Raw query string override for `/events/keyset` without a leading `?`.
   queryParams?: string;
-  // Lower bound for event start time -> start_time_min.
-  startTimeMin?: string;
-  // Relative lower bound computed in minutes when the request is built.
+  // Relative lower bound computed in minutes when the request is built -> start_time_min.
   startTimeMinMinutesAgo?: number;
   // Free-text title filter. The provider maps this to Polymarket's
   // `title_search` query param, which composes with cursor pagination, so

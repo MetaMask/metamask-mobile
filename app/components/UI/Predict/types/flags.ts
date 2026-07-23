@@ -67,9 +67,9 @@ export interface PredictSportsFeedChipConfig {
   /**
    * Optional start-time lower bound in minutes relative to request time. Applies
    * on top of generated params or `queryParams` and overrides any default
-   * start-time lower bound for this chip.
+   * start-time lower bound for this chip. Use `null` to disable the lower bound.
    */
-  startTimeMinMinutesAgo?: number;
+  startTimeMinMinutesAgo?: number | null;
 }
 
 export interface PredictSportsFeedTabConfig {

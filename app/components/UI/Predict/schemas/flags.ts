@@ -3,11 +3,13 @@ import {
   boolean,
   defaulted,
   enums,
+  literal,
   number,
   object,
   optional,
   string,
   type,
+  union,
 } from '@metamask/superstruct';
 import { HexSchema } from './common';
 import {
@@ -128,7 +130,7 @@ export const PredictSportsFeedChipSchema = type({
   label: optional(string()),
   tagSlug: optional(string()),
   queryParams: optional(string()),
-  startTimeMinMinutesAgo: optional(number()),
+  startTimeMinMinutesAgo: optional(union([number(), literal(null)])),
 });
 
 export const PredictSportsFeedTabSchema = type({
