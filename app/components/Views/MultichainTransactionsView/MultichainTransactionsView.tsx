@@ -86,6 +86,33 @@ interface MultichainTransactionsViewProps {
   location?: TransactionDetailLocation;
 }
 
+export const getMultichainTransactionItemType = (
+  item: Transaction | GroupedActivityListItem,
+  shouldUseActivityRedesign: boolean,
+  bridgeHistoryItemsBySrcTxHash: Readonly<Record<string, unknown>>,
+) => {
+  if (shouldUseActivityRedesign) {
+    if (item.type === 'pending-header' || item.type === 'date-header') {
+      return item.type;
+    }
+
+    const transaction =
+      item.type === 'item' && item.item.raw?.type === 'keyringTransaction'
+        ? item.item.raw.data
+        : undefined;
+
+    return transaction && bridgeHistoryItemsBySrcTxHash[transaction.id]
+      ? 'bridge-activity'
+      : 'activity-item';
+  }
+
+  const transaction = item as Transaction;
+
+  return bridgeHistoryItemsBySrcTxHash[transaction.id]
+    ? 'bridge-transaction'
+    : 'transaction';
+};
+
 const MultichainTransactionsView = ({
   transactions,
   header,
@@ -312,7 +339,11 @@ const MultichainTransactionsView = ({
               renderItem={renderListItem}
               keyExtractor={keyExtractor}
               getItemType={(item) =>
-                'type' in item ? item.type : 'transaction'
+                getMultichainTransactionItemType(
+                  item,
+                  shouldUseActivityRedesign,
+                  bridgeHistoryItemsBySrcTxHash,
+                )
               }
               ListHeaderComponent={header}
               ListEmptyComponent={renderEmptyList}
