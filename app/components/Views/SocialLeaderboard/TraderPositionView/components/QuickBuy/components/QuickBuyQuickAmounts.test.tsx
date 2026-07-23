@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
@@ -13,15 +18,14 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../utils/quickBuyQuickAmounts', () => ({
-  getBuyQuickAmounts: jest.fn(() => [
-    { value: 10, label: '$10', presetTierUsd: 10 },
-    { value: 50, label: '$50', presetTierUsd: 50 },
-    { value: 100, label: '$100', presetTierUsd: 100 },
-    { value: 250, label: '$250', presetTierUsd: 250 },
-  ]),
-  SELL_QUICK_PERCENTAGES: [25, 50, 75, 100],
-}));
+jest.mock('../utils/quickBuyQuickAmounts', () => {
+  const actual = jest.requireActual('../utils/quickBuyQuickAmounts');
+  return {
+    ...actual,
+    formatQuickBuyPillLabel: (value: number, currency: string) =>
+      `${currency}:${value}`,
+  };
+});
 
 const mockPlayImpact = jest.fn();
 
@@ -35,7 +39,8 @@ jest.mock('../../../../../../../util/haptics', () => ({
 const baseContext = {
   tradeMode: 'buy' as const,
   currentCurrency: 'USD',
-  usdToCurrentCurrencyRate: 1,
+  buyQuickAmounts: [10, 50, 100, 250] as [number, number, number, number],
+  sellQuickPercentages: [25, 50, 75, 100] as [number, number, number, number],
   hasSourcePrice: true,
   isSliderDisabled: false,
   handleQuickAmountPress: jest.fn(),
@@ -55,10 +60,10 @@ describe('QuickBuyQuickAmounts', () => {
   it('renders buy pills and commits the tapped fiat amount', async () => {
     renderWithProvider(<QuickBuyQuickAmounts />);
 
-    expect(screen.getByText('$10')).toBeOnTheScreen();
-    expect(screen.getByText('$250')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-buy-pill-10')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-buy-pill-250')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('$50'));
+    fireEvent.press(screen.getByTestId('quick-buy-buy-pill-50'));
 
     await waitFor(() => {
       expect(mockPlayImpact).toHaveBeenCalledWith(

@@ -20,6 +20,15 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
+  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
+    buyAmounts: [10, 50, 100, 250],
+    sellPercentages: [25, 50, 75, 100],
+    savePreferences: jest.fn(),
+    isLoaded: true,
+  })),
+}));
+
 jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));

@@ -12,6 +12,7 @@ export const SCREEN_SLIDE_OFFSET = 24;
 /** Navigation depth per screen; sign of the delta gives transition direction. */
 export const SCREEN_DEPTH: Record<QuickBuyScreen, number> = {
   amount: 0,
+  editQuickAmounts: 1,
   payWith: 1,
   quoteDetails: 1,
   selectQuote: 2,

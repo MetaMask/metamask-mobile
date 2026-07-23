@@ -4,24 +4,17 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName as DsIconName,
 } from '@metamask/design-system-react-native';
-import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTradeModeToggle from './QuickBuyTradeModeToggle';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
 const QuickBuyToolbar: React.FC = () => {
-  const {
-    formattedRate,
-    formattedExchangeRate,
-    setActiveScreen,
-    features,
-    isPriceImpactError,
-    hasSellableBalance,
-  } = useQuickBuyContext();
+  const { features, hasSellableBalance, setActiveScreen } =
+    useQuickBuyContext();
 
-  // Prefer the quote-derived rate (available once a quote is fetched),
-  // fall back to the price-metadata rate for the pre-quote state.
-  const rateLabel = formattedRate ?? formattedExchangeRate;
   const showFullToggle = features.tradeModes.length > 1 && hasSellableBalance;
 
   return (
@@ -33,11 +26,16 @@ const QuickBuyToolbar: React.FC = () => {
     >
       <QuickBuyTradeModeToggle buyOnly={!showFullToggle} />
 
-      <QuickBuyRateTag
-        label={rateLabel}
-        onPress={() => setActiveScreen('quoteDetails')}
-        isHighPriceImpact={isPriceImpactError}
-      />
+      {features.quickAmountPills ? (
+        <ButtonIcon
+          iconName={DsIconName.Setting}
+          size={ButtonIconSize.Md}
+          onPress={() => setActiveScreen('editQuickAmounts')}
+          testID="quick-buy-edit-amounts-button"
+        />
+      ) : (
+        <Box />
+      )}
     </Box>
   );
 };

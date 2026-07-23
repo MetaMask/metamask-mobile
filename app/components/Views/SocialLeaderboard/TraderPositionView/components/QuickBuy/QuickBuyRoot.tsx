@@ -28,6 +28,7 @@ import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 import { QuickBuyProvider } from './QuickBuyContext';
+import QuickBuyEditQuickAmountsScreen from './QuickBuyEditQuickAmountsScreen';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
@@ -56,6 +57,8 @@ function renderActiveScreen(
   }
 
   switch (activeScreen) {
+    case 'editQuickAmounts':
+      return <QuickBuyEditQuickAmountsScreen />;
     case 'payWith':
       return <QuickBuyTokenSelectScreen />;
     case 'quoteDetails':
@@ -113,6 +116,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const navigateToScreen = useCallback(
     (next: QuickBuyScreen) => {
       setHasNavigated(true);
+      setLockedHeight(null);
       setActiveScreen((current) => {
         directionSV.value =
           SCREEN_DEPTH[next] >= SCREEN_DEPTH[current] ? 1 : -1;
@@ -172,7 +176,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // bottom; the scroll-only screens (quote details / select quote / pay with /
   // receive) sit flush to the edge instead of leaving dead space below.
   const hasBottomCta =
-    activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
+    activeScreen === 'amount' ||
+    activeScreen === 'editQuickAmounts' ||
+    activeScreen === 'priceImpactConfirm';
 
   return (
     <BottomSheetDialog

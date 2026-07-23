@@ -20,6 +20,7 @@ import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
+import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
@@ -41,12 +42,16 @@ const QuickBuyActionFooter: React.FC = () => {
     destBalanceFiat,
     selectedDestStable,
     features,
+    formattedRate,
+    formattedExchangeRate,
+    isPriceImpactError,
     setActiveScreen,
   } = useQuickBuyContext();
 
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
   const pickerBalanceFiat =
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
+  const rateLabel = formattedRate ?? formattedExchangeRate;
 
   return (
     <Box twClassName="px-4">
@@ -114,6 +119,29 @@ const QuickBuyActionFooter: React.FC = () => {
           </Box>
         </TouchableOpacity>
       </Box>
+
+      {rateLabel || isPriceImpactError ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="pb-5"
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.rate')}
+          </Text>
+
+          <QuickBuyRateTag
+            label={rateLabel}
+            onPress={
+              features.quoteDetails
+                ? () => setActiveScreen('quoteDetails')
+                : undefined
+            }
+            isHighPriceImpact={isPriceImpactError}
+          />
+        </Box>
+      ) : null}
 
       <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 

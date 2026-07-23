@@ -31,6 +31,7 @@ describe('SCREEN_DEPTH', () => {
   it('maps every screen to its navigation depth', () => {
     expect(SCREEN_DEPTH).toEqual({
       amount: 0,
+      editQuickAmounts: 1,
       payWith: 1,
       quoteDetails: 1,
       selectQuote: 2,

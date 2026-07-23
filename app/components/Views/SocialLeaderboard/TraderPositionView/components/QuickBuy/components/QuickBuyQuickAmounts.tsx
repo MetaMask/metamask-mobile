@@ -1,6 +1,6 @@
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -10,8 +10,8 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import {
-  getBuyQuickAmounts,
-  SELL_QUICK_PERCENTAGES,
+  resolveBuyQuickAmounts,
+  resolveSellQuickPercentages,
 } from '../utils/quickBuyQuickAmounts';
 
 /**
@@ -31,13 +31,28 @@ const QuickBuyQuickAmounts: React.FC = () => {
   const {
     tradeMode,
     currentCurrency,
-    usdToCurrentCurrencyRate,
+    buyQuickAmounts,
+    sellQuickPercentages,
     hasSourcePrice,
     isSliderDisabled,
     handleQuickAmountPress,
     handleSliderChange,
     handleSliderDragEnd,
   } = useQuickBuyContext();
+
+  const buyAmounts = useMemo(
+    () => resolveBuyQuickAmounts(buyQuickAmounts, currentCurrency),
+    [buyQuickAmounts, currentCurrency],
+  );
+
+  const sellAmounts = useMemo(
+    () =>
+      resolveSellQuickPercentages(
+        sellQuickPercentages,
+        strings('social_leaderboard.quick_buy.max'),
+      ),
+    [sellQuickPercentages],
+  );
 
   const handleSellPercentPress = useCallback(
     (percent: number) => {
@@ -53,9 +68,9 @@ const QuickBuyQuickAmounts: React.FC = () => {
   );
 
   const handleBuyAmountPress = useCallback(
-    (value: number, presetTierUsd: number) => {
+    (value: number, presetValue: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
-      handleQuickAmountPress(value, presetTierUsd);
+      handleQuickAmountPress(value, presetValue);
     },
     [handleQuickAmountPress, playImpact],
   );
@@ -63,43 +78,32 @@ const QuickBuyQuickAmounts: React.FC = () => {
   if (tradeMode === 'sell') {
     return (
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
-        {SELL_QUICK_PERCENTAGES.map((percent) => (
+        {sellAmounts.map((option) => (
           <Button
-            key={percent}
+            key={option.percent}
             {...QUICK_AMOUNT_PILL_PROPS}
-            label={
-              percent === 100
-                ? strings('social_leaderboard.quick_buy.max')
-                : `${percent}%`
-            }
-            onPress={() => handleSellPercentPress(percent)}
+            label={option.label}
+            onPress={() => handleSellPercentPress(option.percent)}
             isDisabled={isSliderDisabled}
             style={tw.style('min-w-0 flex-1 px-2')}
-            testID={`quick-buy-sell-pill-${percent}`}
+            testID={`quick-buy-sell-pill-${option.percent}`}
           />
         ))}
       </Box>
     );
   }
 
-  const buyAmounts = getBuyQuickAmounts(
-    currentCurrency,
-    usdToCurrentCurrencyRate,
-  );
-
   return (
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
-      {buyAmounts.map((option) => (
+      {buyAmounts.map((option, index) => (
         <Button
-          key={option.presetTierUsd}
+          key={`${option.presetValue}-${index}`}
           {...QUICK_AMOUNT_PILL_PROPS}
           label={option.label}
-          onPress={() =>
-            handleBuyAmountPress(option.value, option.presetTierUsd)
-          }
+          onPress={() => handleBuyAmountPress(option.value, option.presetValue)}
           isDisabled={isSliderDisabled}
           style={tw.style('min-w-0 flex-1 px-2')}
-          testID={`quick-buy-buy-pill-${option.presetTierUsd}`}
+          testID={`quick-buy-buy-pill-${option.presetValue}`}
         />
       ))}
     </Box>
