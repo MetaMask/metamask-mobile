@@ -23,6 +23,7 @@ interface PerpsProCompactInputProps {
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
 }
+
 const PerpsProCompactInput = ({
   label,
   value,
@@ -37,6 +38,7 @@ const PerpsProCompactInput = ({
   const tw = useTailwind();
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+
   const input = (
     <Input
       value={value}
@@ -80,4 +82,5 @@ const PerpsProCompactInput = ({
     </Box>
   );
 };
+
 export default PerpsProCompactInput;

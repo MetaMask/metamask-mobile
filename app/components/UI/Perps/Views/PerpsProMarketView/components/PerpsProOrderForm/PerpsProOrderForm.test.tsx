@@ -10,7 +10,9 @@ jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
+
 const ids = PerpsProOrderFormSelectorsIDs;
+
 const createProps = (
   overrides: Partial<PerpsProOrderFormProps> = {},
 ): PerpsProOrderFormProps => ({
@@ -37,6 +39,7 @@ const createProps = (
   onPlaceOrderPress: jest.fn(),
   ...overrides,
 });
+
 const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 

@@ -1,11 +1,12 @@
 import React, { useCallback, memo } from 'react';
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type OrderType,
 } from '@metamask/perps-controller';
+
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import PerpsOrderTypeBottomSheetView from './PerpsOrderTypeBottomSheetView';
 

@@ -8,6 +8,7 @@ import type { OrderType } from '@metamask/perps-controller';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
+
 export interface PerpsOrderTypeBottomSheetViewProps {
   isVisible?: boolean;
   onClose: () => void;
@@ -17,6 +18,7 @@ export interface PerpsOrderTypeBottomSheetViewProps {
   showSelectedIcon?: boolean;
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
+
 const PerpsOrderTypeBottomSheetView = ({
   isVisible = true,
   onClose,
@@ -42,14 +44,17 @@ const PerpsOrderTypeBottomSheetView = ({
       testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
     },
   ] as const;
+
   useEffect(() => {
     if (isVisible && !externalSheetRef) {
       sheetRef.current?.onOpenBottomSheet();
     }
   }, [isVisible, externalSheetRef, sheetRef]);
+
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, [sheetRef]);
+
   const handleSelect = useCallback(
     (orderType: OrderType) => {
       onSelect(orderType);
@@ -57,9 +62,11 @@ const PerpsOrderTypeBottomSheetView = ({
     },
     [handleClose, onSelect],
   );
+
   if (!isVisible) {
     return null;
   }
+
   return (
     <BottomSheet
       ref={sheetRef}

@@ -41,7 +41,9 @@ import type {
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
 } from './PerpsProOrderForm.types';
+
 const ids = PerpsProOrderFormSelectorsIDs;
+
 const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
   ({
     iconName,
@@ -50,18 +52,22 @@ const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
     size: ButtonIconSize.Xs,
     testID,
   }) as const;
+
 const summaryKeyTextProps = {
   variant: TextVariant.BodyXs,
   fontWeight: FontWeight.Regular,
 };
+
 const summaryValueTextProps = {
   variant: TextVariant.BodyXs,
   fontWeight: FontWeight.Medium,
 };
+
 interface SelectionIndicatorProps {
   isSelected: boolean;
   testID: string;
 }
+
 const SelectionIndicator = ({ isSelected, testID }: SelectionIndicatorProps) =>
   isSelected ? (
     <Box
@@ -85,6 +91,7 @@ interface ReduceOnlyRowProps extends SelectionIndicatorProps {
   label: string;
   onChange: (value: boolean) => void;
 }
+
 const ReduceOnlyRow = ({
   label,
   isSelected,
@@ -111,6 +118,7 @@ interface TPSLRowProps extends SelectionIndicatorProps {
   label: string;
   onPress?: () => void;
 }
+
 const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
   const isDisabled = !onPress;
 
@@ -179,6 +187,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
       )}
     </Box>
   ) : null;
+
 const OrderSummary = ({
   margin,
   liquidationPrice,
@@ -244,6 +253,7 @@ const OrderSummary = ({
     />
   </Box>
 );
+
 const PerpsProOrderForm = ({
   direction,
   onDirectionChange,
@@ -275,6 +285,7 @@ const PerpsProOrderForm = ({
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
   const isLong = direction === 'long';
+
   return (
     <>
       <Box twClassName="gap-4" testID={ids.CONTAINER}>

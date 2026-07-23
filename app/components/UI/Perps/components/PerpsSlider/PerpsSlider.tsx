@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Text } from '@metamask/design-system-react-native';
 import {
   type AccessibilityActionEvent,
   TouchableOpacity,
@@ -9,6 +10,7 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   configureReanimatedLogger,
   ReanimatedLogLevel,
@@ -21,10 +23,8 @@ import {
   ImpactMoment,
   type HapticImpactMoment,
 } from '../../../../../util/haptics';
-import LinearGradient from 'react-native-linear-gradient';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsSlider.styles';
-import { Text } from '@metamask/design-system-react-native';
 
 // Only configure reanimated logger in non-test environments
 if (
