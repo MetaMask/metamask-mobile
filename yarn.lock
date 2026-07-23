@@ -8337,6 +8337,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/client-utils@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "@metamask/client-utils@npm:1.2.1"
+  dependencies:
+    "@metamask/contract-metadata": "npm:^2.4.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/core-backend": "npm:^7.0.0"
+    "@metamask/keyring-api": "npm:^23.5.0"
+    "@metamask/transaction-controller": "npm:^69.2.1"
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/69f00137b4831e8f02335dbef244e65e09b33acc450db27bac9744c392a81cc8fd3107bb5b4c09bf3d01c1ecc75aa1655853ede31cbda62244bcea7d9d4b9b1f
+  languageName: node
+  linkType: hard
+
 "@metamask/compliance-controller@npm:2.1.0":
   version: 2.1.0
   resolution: "@metamask/compliance-controller@npm:2.1.0"
@@ -35896,6 +35910,7 @@ __metadata:
     "@metamask/chain-agnostic-permission": "npm:^1.5.0"
     "@metamask/chomp-api-service": "npm:^3.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
+    "@metamask/client-utils": "npm:^1.2.1"
     "@metamask/compliance-controller": "npm:2.1.0"
     "@metamask/config-registry-controller": "npm:^0.3.1"
     "@metamask/connectivity-controller": "npm:^0.3.0"
