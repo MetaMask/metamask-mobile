@@ -28,12 +28,7 @@ const PerpsOrderTypeBottomSheetView = ({
 }: PerpsOrderTypeBottomSheetViewProps) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
-  const orderTypes: {
-    type: OrderType;
-    title: string;
-    description: string;
-    testID: string;
-  }[] = [
+  const orderTypes = [
     {
       type: 'market',
       title: strings('perps.order.type.market.title'),
@@ -46,7 +41,7 @@ const PerpsOrderTypeBottomSheetView = ({
       description: strings('perps.order.type.limit.description'),
       testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
     },
-  ];
+  ] as const;
   useEffect(() => {
     if (isVisible && !externalSheetRef) {
       sheetRef.current?.onOpenBottomSheet();
@@ -62,11 +57,9 @@ const PerpsOrderTypeBottomSheetView = ({
     },
     [handleClose, onSelect],
   );
-
   if (!isVisible) {
     return null;
   }
-
   return (
     <BottomSheet
       ref={sheetRef}

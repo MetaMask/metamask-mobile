@@ -1,17 +1,11 @@
 import type { OrderType } from '@metamask/perps-controller';
 export type PerpsProOrderDirection = 'long' | 'short';
-export type PerpsProOrderNotice =
-  | {
-      id: string;
-      variant: 'banner';
-      title?: string;
-      message: string;
-    }
-  | {
-      id: string;
-      variant: 'inline';
-      message: string;
-    };
+export interface PerpsProOrderNotice {
+  id: string;
+  variant: 'banner' | 'inline';
+  title?: string;
+  message: string;
+}
 export interface PerpsProOrderSummaryProps {
   margin: string;
   liquidationPrice: string;
@@ -30,6 +24,7 @@ export interface PerpsProOrderFormProps {
   onLeveragePress?: () => void;
   orderType: OrderType;
   onOrderTypeChange: (orderType: OrderType) => void;
+  onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
   onUseMidPricePress?: () => void;

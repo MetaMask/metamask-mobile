@@ -5,9 +5,19 @@ import { strings } from '../../../../../../../locales/i18n';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import type { PerpsProOrderDirection } from './PerpsProOrderForm/PerpsProOrderForm.types';
-const PerpsProOrderFormPanel = () => {
+
+export interface PerpsProOrderFormPanelProps {
+  orderType: OrderType;
+  onOrderTypeChange: (orderType: OrderType) => void;
+  onOrderTypeButtonPress: () => void;
+}
+
+const PerpsProOrderFormPanel = ({
+  orderType,
+  onOrderTypeChange,
+  onOrderTypeButtonPress,
+}: PerpsProOrderFormPanelProps) => {
   const [direction, setDirection] = useState<PerpsProOrderDirection>('long');
-  const [orderType, setOrderType] = useState<OrderType>('market');
   const [limitPrice, setLimitPrice] = useState('');
   const [size, setSize] = useState('');
   const [balancePercentage, setBalancePercentage] = useState(0);
@@ -25,7 +35,8 @@ const PerpsProOrderFormPanel = () => {
         leverageLabel="3x"
         onLeveragePress={() => undefined}
         orderType={orderType}
-        onOrderTypeChange={setOrderType}
+        onOrderTypeChange={onOrderTypeChange}
+        onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={setLimitPrice}
         onUseMidPricePress={() => undefined}

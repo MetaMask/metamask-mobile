@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsSlider from './PerpsSlider';
+import styleSheet from './PerpsSlider.styles';
 import { mockTheme } from '../../../../../util/theme';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
@@ -51,11 +52,13 @@ describe('PerpsSlider', () => {
     );
     useStyles.mockImplementation(
       (
-        styleSheet: (params: {
+        createStyles: (params: {
           theme: typeof mockTheme;
+          vars: Record<string, unknown>;
         }) => Record<string, unknown>,
+        vars: Record<string, unknown>,
       ) => ({
-        styles: styleSheet({ theme: mockTheme }),
+        styles: createStyles({ theme: mockTheme, vars }),
       }),
     );
   });
@@ -84,6 +87,17 @@ describe('PerpsSlider', () => {
       expect(screen.queryByText('75%')).toBeNull();
       expect(screen.queryByText('100%')).toBeNull();
       expect(screen.getByTestId('perps-slider-marker-25')).toBeOnTheScreen();
+    });
+
+    it('uses the compact Figma geometry', () => {
+      const styles = styleSheet({
+        theme: mockTheme,
+        vars: { showPercentageLabels: false, variant: 'compact' },
+      });
+
+      expect(styles.track).toMatchObject({ height: 4 });
+      expect(styles.thumb).toMatchObject({ width: 16, height: 16 });
+      expect(styles.sliderContainer).toMatchObject({ marginHorizontal: 0 });
     });
 
     it('hides markers without hiding percentage labels', () => {

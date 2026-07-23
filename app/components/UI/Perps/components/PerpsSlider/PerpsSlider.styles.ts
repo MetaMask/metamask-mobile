@@ -1,32 +1,41 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+interface PerpsSliderStyleVars {
+  showPercentageLabels: boolean;
+  variant: 'default' | 'compact';
+}
+
+const styleSheet = (params: { theme: Theme; vars: PerpsSliderStyleVars }) => {
+  const { theme, vars } = params;
   const { colors } = theme;
+  const isCompact = vars.variant === 'compact';
+  const trackHeight = isCompact ? 4 : 8;
+  const thumbSize = isCompact ? 16 : 32;
 
   return StyleSheet.create({
     container: {
-      paddingVertical: 8,
+      paddingTop: isCompact ? 16 : 8,
+      paddingBottom: isCompact ? 12 : 8,
     },
     sliderContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginHorizontal: 16,
+      marginHorizontal: isCompact ? 0 : 16,
     },
     trackContainer: {
       flex: 1,
       position: 'relative',
-      paddingBottom: 30,
+      paddingBottom: vars.showPercentageLabels ? 30 : 0,
     },
     track: {
-      height: 8,
+      height: trackHeight,
       backgroundColor: colors.border.muted,
       borderRadius: 20,
       position: 'relative',
     },
     progress: {
-      height: 8,
+      height: trackHeight,
       backgroundColor: colors.icon.alternative,
       borderRadius: 20,
       position: 'absolute',
@@ -34,13 +43,13 @@ const styleSheet = (params: { theme: Theme }) => {
       top: 0,
     },
     thumb: {
-      width: 32,
-      height: 32,
+      width: thumbSize,
+      height: thumbSize,
       backgroundColor: colors.icon.defaultPressed,
-      borderRadius: 16,
+      borderRadius: thumbSize / 2,
       position: 'absolute',
-      top: -13,
-      left: -16,
+      top: (trackHeight - thumbSize) / 2,
+      left: -thumbSize / 2,
       elevation: 4,
       borderColor: colors.icon.default,
     },
@@ -82,7 +91,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.text.muted,
       borderRadius: 2.5,
       position: 'absolute',
-      top: 2,
+      top: isCompact ? 0 : 2,
       transform: [{ translateX: -2.5 }],
       zIndex: -2,
     },

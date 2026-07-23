@@ -1505,7 +1505,7 @@
       "size_usd": "Size USD",
       "toggle_size_unit": "Switch size denomination",
       "available_balance_unavailable": "Available balance: --",
-      "tpsl": "Take profit / Stop loss",
+      "tpsl": "TP / SL",
       "place_order": "Place order",
       "close_keyboard": "Close keyboard"
     },

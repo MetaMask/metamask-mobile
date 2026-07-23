@@ -44,6 +44,7 @@ interface PerpsSliderProps {
   disabled?: boolean;
   progressColor?: 'default' | 'gradient';
   quickValues?: number[];
+  variant?: 'default' | 'compact';
 }
 
 const PerpsSlider: React.FC<PerpsSliderProps> = ({
@@ -57,8 +58,12 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   disabled = false,
   progressColor = 'default',
   quickValues,
+  variant = 'default',
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {
+    showPercentageLabels,
+    variant,
+  });
 
   // Shared values for animations
   const sliderWidth = useSharedValue(0);

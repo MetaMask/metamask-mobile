@@ -3,33 +3,30 @@ import {
   BannerAlertSeverity,
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   ButtonBase,
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
-  Checkbox,
   FilterButton,
+  FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   KeyValueRow,
-  KeyValueRowVariant,
   SegmentedControl,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useState } from 'react';
-import { InputAccessoryView, Keyboard, Platform, View } from 'react-native';
+import React from 'react';
+import { InputAccessoryView, Keyboard, Platform } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsSlider from '../../../../components/PerpsSlider';
-import PerpsOrderTypeBottomSheetView from '../../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
 import PerpsProCompactInput, {
   PERPS_PRO_INPUT_ACCESSORY_ID,
 } from './PerpsProCompactInput';
@@ -39,6 +36,9 @@ import type {
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
 } from './PerpsProOrderForm.types';
+const ids = PerpsProOrderFormSelectorsIDs;
+const buttonIcon = (iconName: IconName, onPress?: () => void) =>
+  onPress ? { iconName, onPress } : undefined;
 interface SelectionRowProps {
   label: string;
   isSelected: boolean;
@@ -50,36 +50,39 @@ const SelectionRow = ({
   isSelected,
   onChange,
   testID,
-}: SelectionRowProps) => (
-  <ButtonBase
-    size={ButtonBaseSize.Sm}
-    twClassName="rounded-xl bg-muted px-3 py-4"
-    isFullWidth
-    onPress={() => onChange(!isSelected)}
-    testID={testID}
-    accessibilityState={{ selected: isSelected }}
-  >
+}: SelectionRowProps) => {
+  const indicator = isSelected ? (
     <Box
-      twClassName="w-full"
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
+      twClassName="size-5 items-center justify-center rounded-full bg-icon-default"
+      testID={`${testID}-indicator`}
     >
-      <Text variant={TextVariant.BodySm}>{label}</Text>
-      <View
-        pointerEvents="none"
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      >
-        <Checkbox
-          isSelected={isSelected}
-          onChange={() => undefined}
-          testID={`${testID}-checkbox`}
-        />
-      </View>
+      <Icon
+        name={IconName.CheckBold}
+        size={IconSize.Xs}
+        color={IconColor.PrimaryInverse}
+      />
     </Box>
-  </ButtonBase>
-);
+  ) : (
+    <Box
+      twClassName="size-5 rounded-full border-2 border-muted"
+      testID={`${testID}-indicator`}
+    />
+  );
+  return (
+    <ButtonBase
+      twClassName="h-12 rounded-xl bg-muted px-3"
+      contentWrapperProps={{ twClassName: 'w-full justify-between' }}
+      textProps={{ variant: TextVariant.BodySm, fontWeight: FontWeight.Medium }}
+      endAccessory={indicator}
+      isFullWidth
+      onPress={() => onChange(!isSelected)}
+      testID={testID}
+      accessibilityState={{ selected: isSelected }}
+    >
+      {label}
+    </ButtonBase>
+  );
+};
 const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) => (
   <Box twClassName="gap-2">
     {notices.map((notice) =>
@@ -89,14 +92,14 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) => (
           severity={BannerAlertSeverity.Warning}
           title={notice.title}
           description={notice.message}
-          testID={`${PerpsProOrderFormSelectorsIDs.NOTICE}-${notice.id}`}
+          testID={`${ids.NOTICE}-${notice.id}`}
         />
       ) : (
         <Text
           key={notice.id}
           variant={TextVariant.BodyXs}
           color={TextColor.ErrorDefault}
-          testID={`${PerpsProOrderFormSelectorsIDs.NOTICE}-${notice.id}`}
+          testID={`${ids.NOTICE}-${notice.id}`}
         >
           {notice.message}
         </Text>
@@ -114,50 +117,41 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
 }: PerpsProOrderSummaryProps) => (
-  <Box twClassName="gap-2" testID={PerpsProOrderFormSelectorsIDs.SUMMARY}>
+  <Box twClassName="gap-2" testID={ids.SUMMARY}>
     <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
       keyLabel={strings('perps.order.margin')}
       value={margin}
-      testID={PerpsProOrderFormSelectorsIDs.SUMMARY_MARGIN}
+      testID={ids.SUMMARY_MARGIN}
     />
     <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
       keyLabel={strings('perps.order.liquidation_price')}
       value={liquidationPrice}
-      testID={PerpsProOrderFormSelectorsIDs.SUMMARY_LIQUIDATION}
+      testID={ids.SUMMARY_LIQUIDATION}
     />
     {slippage !== undefined ? (
       <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
         keyLabel={strings('perps.slippage.slippage')}
         value={slippage}
-        valueEndButtonIconProps={
-          onSlippagePress
-            ? { iconName: IconName.ArrowRight, onPress: onSlippagePress }
-            : undefined
-        }
-        testID={PerpsProOrderFormSelectorsIDs.SUMMARY_SLIPPAGE}
+        valueEndButtonIconProps={buttonIcon(
+          IconName.ArrowRight,
+          onSlippagePress,
+        )}
+        testID={ids.SUMMARY_SLIPPAGE}
       />
     ) : null}
     <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
       keyLabel={strings('perps.order.fees')}
       value={
         <PerpsFeesDisplay
           fee={fee}
           originalFee={originalFee}
           feeDiscountPercentage={feeDiscountPercentage}
-          testID={PerpsProOrderFormSelectorsIDs.SUMMARY_FEES_VALUE}
+          testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
         />
       }
-      keyEndButtonIconProps={
-        onFeesInfoPress
-          ? { iconName: IconName.Info, onPress: onFeesInfoPress }
-          : undefined
-      }
-      testID={PerpsProOrderFormSelectorsIDs.SUMMARY_FEES}
+      keyEndButtonIconProps={buttonIcon(IconName.Info, onFeesInfoPress)}
+      testID={ids.SUMMARY_FEES}
     />
   </Box>
 );
@@ -169,6 +163,7 @@ const PerpsProOrderForm = ({
   onLeveragePress,
   orderType,
   onOrderTypeChange,
+  onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
   onUseMidPricePress,
@@ -191,14 +186,10 @@ const PerpsProOrderForm = ({
   isPlaceOrderLoading = false,
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
-  const [isOrderTypeSheetVisible, setIsOrderTypeSheetVisible] = useState(false);
-  const handleOrderTypeChange = (nextOrderType: typeof orderType) => {
-    onOrderTypeChange(nextOrderType);
-    setIsOrderTypeSheetVisible(false);
-  };
+  const isLong = direction === 'long';
   return (
     <>
-      <Box twClassName="gap-4" testID={PerpsProOrderFormSelectorsIDs.CONTAINER}>
+      <Box twClassName="gap-4" testID={ids.CONTAINER}>
         <SegmentedControl
           value={direction}
           onChange={(value) =>
@@ -206,70 +197,71 @@ const PerpsProOrderForm = ({
           }
           isFullWidth
           size={ButtonBaseSize.Sm}
-          testID={PerpsProOrderFormSelectorsIDs.DIRECTION_CONTROL}
+          testID={ids.DIRECTION_CONTROL}
         >
           <FilterButton
             value="long"
-            testID={PerpsProOrderFormSelectorsIDs.DIRECTION_LONG}
+            twClassName={isLong ? 'bg-success-muted' : ''}
+            textProps={isLong ? { color: TextColor.SuccessDefault } : undefined}
+            testID={ids.DIRECTION_LONG}
           >
             {strings('perps.market.long')}
           </FilterButton>
           <FilterButton
             value="short"
-            testID={PerpsProOrderFormSelectorsIDs.DIRECTION_SHORT}
+            twClassName={!isLong ? 'bg-error-muted' : ''}
+            textProps={!isLong ? { color: TextColor.ErrorDefault } : undefined}
+            testID={ids.DIRECTION_SHORT}
           >
             {strings('perps.market.short')}
           </FilterButton>
         </SegmentedControl>
-
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
-          <Box twClassName="flex-1 rounded-lg bg-muted px-3 py-2">
+        <Box twClassName="flex-row items-center justify-between">
+          <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
             <Text variant={TextVariant.BodySm}>{marginModeLabel}</Text>
           </Box>
           <ButtonBase
             size={ButtonBaseSize.Sm}
             onPress={onLeveragePress}
             isDisabled={!onLeveragePress}
-            twClassName="flex-1 rounded-lg bg-muted"
-            testID={PerpsProOrderFormSelectorsIDs.LEVERAGE_BUTTON}
+            twClassName="rounded-lg bg-muted px-2"
+            testID={ids.LEVERAGE_BUTTON}
           >
             {leverageLabel}
           </ButtonBase>
         </Box>
-
-        <Box twClassName="rounded-xl bg-muted">
+        <Box twClassName="overflow-hidden rounded-xl bg-muted">
           <ButtonBase
-            size={ButtonBaseSize.Sm}
-            onPress={() => setIsOrderTypeSheetVisible(true)}
-            twClassName="w-full justify-between px-3 py-3"
-            testID={PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON}
+            onPress={onOrderTypeButtonPress}
+            twClassName="h-12 w-full bg-transparent px-3"
+            contentWrapperProps={{ twClassName: 'w-full justify-between' }}
+            textProps={{ variant: TextVariant.BodySm }}
+            endIconName={IconName.ArrowRight}
+            endIconProps={{
+              size: IconSize.Sm,
+              testID: `${ids.ORDER_TYPE_BUTTON}-chevron`,
+            }}
+            testID={ids.ORDER_TYPE_BUTTON}
           >
-            <Box
-              twClassName="w-full"
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-            >
-              <Text variant={TextVariant.BodySm}>
-                {orderType === 'market'
-                  ? strings('perps.order.type.market.title')
-                  : strings('perps.order.type.limit.title')}
-              </Text>
-              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
-            </Box>
+            {orderType === 'market'
+              ? strings('perps.order.type.market.title')
+              : strings('perps.order.type.limit.title')}
           </ButtonBase>
           {orderType === 'limit' ? (
             <PerpsProCompactInput
-              label={strings('perps.order.limit_price')}
+              label={strings('perps.order.limit_price_modal.title')}
               value={limitPrice}
               onChangeText={onLimitPriceChange}
-              testID={PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT}
+              testID={ids.LIMIT_PRICE_INPUT}
+              variant="inline"
+              placeholder={strings('perps.order.limit_price_modal.title')}
               endAccessory={
                 <ButtonBase
                   size={ButtonBaseSize.Sm}
                   onPress={onUseMidPricePress}
                   isDisabled={!onUseMidPricePress}
-                  testID={PerpsProOrderFormSelectorsIDs.MID_PRICE_BUTTON}
+                  twClassName="h-12 bg-transparent px-0"
+                  testID={ids.MID_PRICE_BUTTON}
                 >
                   {strings('perps.order.limit_price_modal.mid_price')}
                 </ButtonBase>
@@ -277,18 +269,18 @@ const PerpsProOrderForm = ({
             />
           ) : null}
         </Box>
-
         <PerpsProCompactInput
           label={strings('perps.pro_order_form.size_usd')}
           value={size}
           onChangeText={onSizeChange}
-          testID={PerpsProOrderFormSelectorsIDs.SIZE_INPUT}
+          testID={ids.SIZE_INPUT}
+          placeholder="0.00"
           endAccessory={
             <ButtonIcon
               iconName={IconName.SwapHorizontal}
               size={ButtonIconSize.Xs}
               onPress={onSizeUnitPress}
-              testID={PerpsProOrderFormSelectorsIDs.SIZE_UNIT_BUTTON}
+              testID={ids.SIZE_UNIT_BUTTON}
               accessibilityLabel={strings(
                 'perps.pro_order_form.toggle_size_unit',
               )}
@@ -302,46 +294,39 @@ const PerpsProOrderForm = ({
               maximumValue={100}
               showPercentageLabels={false}
               showPercentageMarkers
+              variant="compact"
             />
           }
         />
-
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
+        <Box twClassName="flex-row items-center gap-1">
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            testID={PerpsProOrderFormSelectorsIDs.AVAILABLE_BALANCE}
+            testID={ids.AVAILABLE_BALANCE}
           >
             {availableBalance}
           </Text>
           <ButtonIcon
-            iconName={IconName.Add}
+            iconName={IconName.AddCircle}
             size={ButtonIconSize.Xs}
             onPress={onAddFundsPress}
-            testID={PerpsProOrderFormSelectorsIDs.ADD_FUNDS_BUTTON}
+            testID={ids.ADD_FUNDS_BUTTON}
             accessibilityLabel={strings('perps.add_funds')}
           />
         </Box>
-
         <SelectionRow
           label={strings('perps.order.reduce_only')}
           isSelected={reduceOnly}
           onChange={onReduceOnlyChange}
-          testID={PerpsProOrderFormSelectorsIDs.REDUCE_ONLY}
+          testID={ids.REDUCE_ONLY}
         />
         <SelectionRow
           label={strings('perps.pro_order_form.tpsl')}
           isSelected={isTPSLConfigured}
           onChange={() => onTPSLPress?.()}
-          testID={PerpsProOrderFormSelectorsIDs.TPSL}
+          testID={ids.TPSL}
         />
-
         <Notices notices={notices} />
-
         <ButtonSemantic
           severity={
             placeOrderIntent === 'long'
@@ -353,14 +338,12 @@ const PerpsProOrderForm = ({
           isDisabled={isPlaceOrderDisabled}
           isLoading={isPlaceOrderLoading}
           onPress={onPlaceOrderPress}
-          testID={PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON}
+          testID={ids.PLACE_ORDER_BUTTON}
         >
           {placeOrderLabel}
         </ButtonSemantic>
-
         <OrderSummary {...summary} />
       </Box>
-
       {Platform.OS === 'ios' ? (
         <InputAccessoryView nativeID={PERPS_PRO_INPUT_ACCESSORY_ID}>
           <Box
@@ -371,7 +354,7 @@ const PerpsProOrderForm = ({
               iconName={IconName.ArrowDown}
               size={ButtonIconSize.Sm}
               onPress={Keyboard.dismiss}
-              testID={PerpsProOrderFormSelectorsIDs.KEYBOARD_CLOSE}
+              testID={ids.KEYBOARD_CLOSE}
               accessibilityLabel={strings(
                 'perps.pro_order_form.close_keyboard',
               )}
@@ -379,15 +362,6 @@ const PerpsProOrderForm = ({
           </Box>
         </InputAccessoryView>
       ) : null}
-
-      <PerpsOrderTypeBottomSheetView
-        isVisible={isOrderTypeSheetVisible}
-        onClose={() => setIsOrderTypeSheetVisible(false)}
-        onSelect={handleOrderTypeChange}
-        currentOrderType={orderType}
-        title={strings('perps.pro_order_form.choose_order_type')}
-        showSelectedIcon
-      />
     </>
   );
 };
