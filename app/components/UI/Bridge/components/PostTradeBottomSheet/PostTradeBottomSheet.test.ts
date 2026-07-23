@@ -6,10 +6,7 @@ import {
   getPostTradeSuggestionPillTestId,
   PostTradeBottomSheetTestIds,
 } from './PostTradeBottomSheet.testIds';
-import {
-  type PostTradeBottomSheetParams,
-  PostTradeStatus,
-} from './PostTradeBottomSheet.types';
+import { PostTradeStatus } from './PostTradeBottomSheet.types';
 import { getDefaultDestToken } from '../../utils/tokenUtils';
 import { useABTest } from '../../../../../hooks';
 import {
@@ -37,7 +34,25 @@ let mockPostTradeTrendingTokens = {
   error: null,
   refetch: jest.fn(),
 };
-let mockParams: PostTradeBottomSheetParams = {
+let mockParams: {
+  status: PostTradeStatus;
+  sourceAmount: string;
+  destAmount: string;
+  sourceToken: {
+    address: string;
+    symbol: string;
+    chainId: string;
+    decimals: number;
+  };
+  destToken: {
+    address: string;
+    symbol: string;
+    chainId: string;
+    decimals: number;
+  };
+  transactionMetaId?: string;
+  transactionHash?: string;
+} = {
   status: PostTradeStatus.Failed,
   sourceAmount: '1.23456',
   destAmount: '2.34567',
