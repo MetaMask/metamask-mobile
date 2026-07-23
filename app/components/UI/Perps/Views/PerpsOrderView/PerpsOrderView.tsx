@@ -331,6 +331,30 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
+  // Live slider display value for immediate UI feedback while dragging. The
+  // committed `orderForm.amount` only updates on drag end (or immediately for
+  // non-slider input methods), since it drives the expensive fee/rewards/
+  // slippage recompute pipeline (usePerpsOrderFees et al.).
+  const [displayAmount, setDisplayAmount] = useState(orderForm.amount);
+
+  useEffect(() => {
+    setDisplayAmount(orderForm.amount);
+  }, [orderForm.amount]);
+
+  const handleSliderValueChange = useCallback((value: number) => {
+    inputMethodRef.current = 'slider';
+    setDisplayAmount(Math.floor(value).toString());
+  }, []);
+
+  const handleSliderDragEnd = useCallback(
+    (value: number) => {
+      const amount = Math.floor(value).toString();
+      setDisplayAmount(amount);
+      setAmount(amount);
+    },
+    [setAmount],
+  );
+
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
 
@@ -670,7 +694,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return assetData.price;
   }, [orderForm.type, orderForm.limitPrice, assetData.price]);
 
-  // Real-time position size calculation - memoized to prevent recalculation
+  // Committed position size - feeds margin/validation/submission, so it only
+  // recomputes once per commit (orderForm.amount), not once per drag frame.
   const positionSize = useMemo(() => {
     // During loading, show '--' placeholder (consistent with other unavailable data displays)
     if (isLoadingMarketData) {
@@ -685,6 +710,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     });
   }, [orderForm.amount, effectivePrice, szDecimals, isLoadingMarketData]);
+
+  // Live position size for the token-size subtitle only - cheap synchronous
+  // calc, safe to recompute every drag frame off the live display amount.
+  const livePositionSize = useMemo(() => {
+    if (isLoadingMarketData) {
+      return PERPS_CONSTANTS.FallbackDataDisplay;
+    }
+
+    return calculatePositionSize({
+      amount: displayAmount,
+      price: effectivePrice,
+      szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+    });
+  }, [displayAmount, effectivePrice, szDecimals, isLoadingMarketData]);
 
   const marginRequired = useMemo(() => {
     if (!isLoadingMarketData && orderForm.amount) {
@@ -1725,11 +1764,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       >
         {/* Amount Display */}
         <PerpsAmountDisplay
-          amount={orderForm.amount}
+          amount={displayAmount}
           showWarning={!isLoadingAccount && spendableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          tokenAmount={positionSize}
+          tokenAmount={livePositionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={spendableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
@@ -1739,12 +1778,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.sliderSection}>
             <PerpsSlider
-              value={parseFloat(orderForm.amount || '0')}
-              onValueChange={(value) => {
-                inputMethodRef.current = 'slider';
-                const amount = Math.floor(value).toString();
-                setAmount(amount);
-              }}
+              value={parseFloat(displayAmount || '0')}
+              onValueChange={handleSliderValueChange}
+              onDragEnd={handleSliderDragEnd}
               key={payToken?.symbol ?? ''}
               minimumValue={0}
               maximumValue={maxPossibleAmount}
