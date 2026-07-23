@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -27,7 +28,7 @@ export interface HighRateAlertModalParams {
 
 export function HighRateAlertModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { goBack } = useNavigation();
+  const { goBack } = useNavigation<AppNavigationProp>();
   const { sourceToken, destToken } = useParams<HighRateAlertModalParams>();
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,

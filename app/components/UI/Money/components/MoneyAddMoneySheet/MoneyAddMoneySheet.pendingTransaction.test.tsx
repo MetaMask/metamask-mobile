@@ -37,7 +37,8 @@ const mockPrimaryMoneyAccount = {
   address: '0x1111111111111111111111111111111111111111',
 };
 
-// Mutable mock of Engine.state.TransactionController so the test can simulate
+// Mutable mock of the TransactionController state (exposed via Engine.state
+// and Engine.context.TransactionController.state) so the test can simulate
 // the TransactionController removing a transaction after it is rejected.
 const mockEngineState: {
   TransactionController: { transactions: TransactionMeta[] };
@@ -123,6 +124,11 @@ jest.mock('../../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn(() => 'network-client-1'),
     },
     ApprovalController: { rejectRequest: jest.fn() },
+    TransactionController: {
+      get state() {
+        return mockEngineState.TransactionController;
+      },
+    },
   },
 
   get state() {
@@ -182,6 +188,7 @@ const SheetHarness = () => {
 };
 
 function renderHarness(pendingTransactions: TransactionMeta[]) {
+  mockEngineState.TransactionController = { transactions: pendingTransactions };
   return renderWithProvider(<SheetHarness />, {
     state: {
       engine: {
@@ -202,6 +209,10 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     jest.clearAllMocks();
     // Reset the module-level binding so a prior test's setter can't leak in.
     unmountSheet = () => undefined;
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     mockEngineState.TransactionController = { transactions: [] };
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '0',

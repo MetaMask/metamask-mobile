@@ -44,7 +44,7 @@ const positionDetails = {
   name: 'Spurs vs. Pelicans',
   cashOutValue: '$30.75',
   initialBalance: '$28.16',
-  newBalance: '$58.66',
+  newBalance: '$57.44',
 };
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
@@ -137,7 +137,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           await WalletView.scrollAndTapPredictionsSection();
           await WalletView.tapOnAvailableBalance();
           await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-            description: 'Predictions balance should be updated to $58.66',
+            description: 'Predictions balance should be updated to $57.44',
           });
 
           await PredictMarketList.tapBackButton();

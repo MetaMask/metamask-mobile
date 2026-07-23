@@ -29,9 +29,12 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
   | typeof PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL
+  | typeof PredictEventValues.ENTRY_POINT.REWARDS
+  | typeof PredictEventValues.ENTRY_POINT.GTM_MODAL
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
+  | typeof PredictEventValues.ENTRY_POINT.BUY_PREVIEW
   | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
   | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
@@ -59,7 +62,7 @@ export interface PredictMarketListRouteParams {
  * Generic Predict feed route parameters.
  *
  * Consumed by the config-driven `PredictFeedView` (powers Sports / Politics /
- * Crypto / Live / Trending / Popular Today). Carries stable IDs only — the
+ * Crypto / Live / Trending). Carries stable IDs only — the
  * view resolves them into a render-ready config via `usePredictFeedConfig`.
  * The route registration + deeplink parsing that populates these params lands
  * separately (route + deeplinks ticket); the view reads them via `useRoute`.

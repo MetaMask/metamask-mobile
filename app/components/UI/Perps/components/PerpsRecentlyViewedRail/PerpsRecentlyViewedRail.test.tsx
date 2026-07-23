@@ -91,7 +91,7 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(
       screen.getByTestId(PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Recently searched')).toBeOnTheScreen();
+    expect(screen.getByText('Recently viewed')).toBeOnTheScreen();
     expect(
       screen.getByTestId('perps-recently-viewed-tile-BTC'),
     ).toBeOnTheScreen();
@@ -120,6 +120,21 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(screen.getByText('40x')).toBeOnTheScreen();
     expect(screen.getByText('$50,000.00')).toBeOnTheScreen();
     expect(screen.getByText('+2.5%')).toBeOnTheScreen();
+  });
+
+  it('strips the dex prefix from the displayed symbol and accessibility label', () => {
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[createMarket('xyz:TSLA')]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(screen.getByText('TSLA')).toBeOnTheScreen();
+    expect(screen.queryByText('xyz:TSLA')).toBeNull();
+    expect(
+      screen.getByLabelText('TSLA recently viewed market'),
+    ).toBeOnTheScreen();
   });
 
   it('preserves the newest-first order passed in via props', () => {

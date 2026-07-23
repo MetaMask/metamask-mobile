@@ -57,6 +57,15 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// True when the module being resolved was requested from a file inside
+// @metamask/perps-controller. Normalizes separators first so this works on
+// Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
+// the package, not just a package-name prefix.
+const isPerpsControllerOrigin = (context) =>
+  (context.originModulePath ?? '')
+    .replace(/\\/g, '/')
+    .includes('/@metamask/perps-controller/');
+
 module.exports = function (baseConfig) {
   return getSentryExpoConfig(__dirname, {
     getDefaultConfig: (projectRoot, options) => {
@@ -143,7 +152,7 @@ module.exports = function (baseConfig) {
               // to resolve it statically. Return an empty module stub.
               if (
                 moduleName === './providers/MYXProvider' &&
-                context.originModulePath?.includes('@metamask/perps-controller')
+                isPerpsControllerOrigin(context)
               ) {
                 return { type: 'empty' };
               }
@@ -156,7 +165,7 @@ module.exports = function (baseConfig) {
               if (
                 moduleName ===
                   'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
-                context.originModulePath?.includes('@metamask/perps-controller')
+                isPerpsControllerOrigin(context)
               ) {
                 return context.resolveRequest(
                   context,
