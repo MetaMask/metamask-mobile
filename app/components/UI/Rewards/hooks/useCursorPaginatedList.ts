@@ -170,12 +170,14 @@ export const useCursorPaginatedList = <T>({
     setIsRefreshing(true);
     setCursor(null);
     setHasMore(true);
-    const result = await fetchList({
-      isFirstPage: true,
-      forceFresh: true,
-      preserveItems: true,
-    });
-    if (!result.cancelled) {
+    try {
+      await fetchList({
+        isFirstPage: true,
+        forceFresh: true,
+        preserveItems: true,
+      });
+    } finally {
+      // Always clear — including when resetKey/enabled cancels the request.
       setIsRefreshing(false);
     }
   }, [fetchList]);
@@ -208,6 +210,7 @@ export const useCursorPaginatedList = <T>({
     setCursor(null);
     setHasMore(true);
     setIsLoadingMore(false);
+    setIsRefreshing(false);
     fetchList({ isFirstPage: true, preserveItems: false });
 
     return () => {

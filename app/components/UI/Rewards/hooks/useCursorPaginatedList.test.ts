@@ -2,7 +2,9 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useCursorPaginatedList } from './useCursorPaginatedList';
 
-interface Item { id: string }
+interface Item {
+  id: string;
+}
 
 const PAGE_1 = {
   results: [{ id: '1' }],
@@ -388,5 +390,61 @@ describe('useCursorPaginatedList', () => {
     });
 
     expect(fetchPage).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears isRefreshing when resetKey changes during an in-flight refresh', async () => {
+    let resolveRefresh: (value: typeof PAGE_1) => void = () => undefined;
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({
+        results: [{ id: 'switched' }],
+        has_more: false,
+        cursor: null,
+      });
+
+    const { result, rerender } = renderHook(
+      ({ resetKey }: { resetKey: string }) =>
+        useCursorPaginatedList<Item>({
+          enabled: true,
+          resetKey,
+          fetchPage,
+        }),
+      { initialProps: { resetKey: 'a' } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    act(() => {
+      result.current.refresh();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isRefreshing).toBe(true);
+    });
+
+    rerender({ resetKey: 'b' });
+
+    await waitFor(() => {
+      expect(result.current.isRefreshing).toBe(false);
+    });
+
+    await act(async () => {
+      resolveRefresh(PAGE_1);
+    });
+
+    await waitFor(() => {
+      expect(result.current.items?.[0].id).toBe('switched');
+    });
+
+    expect(result.current.isRefreshing).toBe(false);
   });
 });
