@@ -311,6 +311,9 @@ const MultichainTransactionsView = ({
               data={activityListData}
               renderItem={renderListItem}
               keyExtractor={keyExtractor}
+              getItemType={(item) =>
+                'type' in item ? item.type : 'transaction'
+              }
               ListHeaderComponent={header}
               ListEmptyComponent={renderEmptyList}
               ListFooterComponent={footer}
