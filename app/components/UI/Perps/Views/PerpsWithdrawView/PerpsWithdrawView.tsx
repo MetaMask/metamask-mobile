@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -81,7 +83,7 @@ const MAX_INPUT_LENGTH = 20;
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // State
   const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
