@@ -21,6 +21,7 @@ export { usePerpsMarketListView } from './usePerpsMarketListView';
 export { usePerpsSearch } from './usePerpsSearch';
 export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
+export { usePerpsMode } from './usePerpsMode';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';
