@@ -20,6 +20,7 @@ import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
 import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
+import { useSubtitleAccountParts } from './useSubtitleAccountParts';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
 export function PendingActivityListItemRow({
@@ -52,6 +53,19 @@ export function PendingActivityListItemRow({
       ? `${strings('transaction.queued')} • ${content.subtitle}`
       : content.subtitle
     : undefined;
+
+  const subtitleAccountParts = useSubtitleAccountParts(
+    content,
+    styles,
+    testIdSuffix,
+  );
+  const subtitleParts =
+    subtitleAccountParts && isQueued
+      ? {
+          ...subtitleAccountParts,
+          pre: `${strings('transaction.queued')} • ${subtitleAccountParts.pre}`,
+        }
+      : subtitleAccountParts;
 
   const titleAccessory = isQueued ? undefined : (
     <View style={styles.titleSpinner}>
@@ -89,6 +103,7 @@ export function PendingActivityListItemRow({
       styles={styles}
       subtitle={subtitle}
       subtitleLeadingAccessory={subtitleLeadingAccessory}
+      subtitleParts={subtitleParts}
       title={titleOverride ?? content.title}
       titleAccessory={titleAccessory}
     />

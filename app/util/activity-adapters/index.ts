@@ -7,9 +7,11 @@ export type {
   ActivityFee,
   ActivityListItem,
   ActivityKind,
+  PerpsOrderKind,
   Status,
   TokenAmount,
 } from './types';
+export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
 export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
 export {
   isNftTransferType,
@@ -20,6 +22,11 @@ export { mapLocalTransaction } from './adapters/local-transaction';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';
+export { mapRampsOrder } from './adapters/ramps-order';
+export {
+  isRampFiatOrder,
+  isRampRampsOrder,
+} from './adapters/ramp-order-guards';
 export {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
@@ -43,7 +50,10 @@ export {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
+  isGasTokenFeeWithAmount,
   isSpendingCapWithAmount,
+  preferLocalOrApiActivityItem,
+  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

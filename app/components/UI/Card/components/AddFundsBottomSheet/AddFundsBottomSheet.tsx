@@ -42,7 +42,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
-interface AddFundsModalNavigationDetails {
+export interface AddFundsModalNavigationDetails {
   priorityToken?: CardFundingToken;
 }
 

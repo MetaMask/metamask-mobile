@@ -35,7 +35,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -54,10 +55,7 @@ import {
   type PredictMarketBuyButtonPress,
   type PriceQuery,
 } from '../../types';
-import type {
-  PredictEntryPoint,
-  PredictNavigationParamList,
-} from '../../types/navigation';
+import type { PredictEntryPoint } from '../../types/navigation';
 import {
   getEventStartTime,
   getCryptoSymbol,
@@ -123,9 +121,8 @@ const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
 };
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
-const PROGRESS_RING_RADIUS =
-  (PROGRESS_RING_SIZE - PROGRESS_RING_STROKE_WIDTH) / 2;
-const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
+const COMPACT_PROGRESS_RING_SIZE = 40;
+const COMPACT_PROGRESS_RING_STROKE_WIDTH = 2;
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
@@ -814,49 +811,62 @@ const ProgressLogo = React.memo(
     progress,
     color,
     trackColor,
+    compact,
   }: {
     imageUrl?: string;
     progress: number;
     color: string;
     trackColor: string;
+    compact?: boolean;
   }) => {
     const tw = useTailwind();
-    const strokeDashoffset = PROGRESS_RING_CIRCUMFERENCE * (1 - progress);
+    const ringSize = compact ? COMPACT_PROGRESS_RING_SIZE : PROGRESS_RING_SIZE;
+    const strokeWidth = compact
+      ? COMPACT_PROGRESS_RING_STROKE_WIDTH
+      : PROGRESS_RING_STROKE_WIDTH;
+    const radius = (ringSize - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference * (1 - progress);
 
     return (
-      <Box twClassName="h-[54px] w-[54px] items-center justify-center">
+      <Box
+        twClassName="items-center justify-center"
+        style={tw.style({ width: ringSize, height: ringSize })}
+      >
         <Box twClassName="absolute inset-0">
           <Svg
-            width={PROGRESS_RING_SIZE}
-            height={PROGRESS_RING_SIZE}
-            viewBox={`0 0 ${PROGRESS_RING_SIZE} ${PROGRESS_RING_SIZE}`}
+            width={ringSize}
+            height={ringSize}
+            viewBox={`0 0 ${ringSize} ${ringSize}`}
           >
             <Circle
-              cx={PROGRESS_RING_SIZE / 2}
-              cy={PROGRESS_RING_SIZE / 2}
-              r={PROGRESS_RING_RADIUS}
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={radius}
               stroke={trackColor}
               strokeOpacity={0.7}
-              strokeWidth={PROGRESS_RING_STROKE_WIDTH}
+              strokeWidth={strokeWidth}
               fill="transparent"
             />
             <Circle
-              cx={PROGRESS_RING_SIZE / 2}
-              cy={PROGRESS_RING_SIZE / 2}
-              r={PROGRESS_RING_RADIUS}
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={radius}
               stroke={color}
-              strokeWidth={PROGRESS_RING_STROKE_WIDTH}
-              strokeDasharray={`${PROGRESS_RING_CIRCUMFERENCE} ${PROGRESS_RING_CIRCUMFERENCE}`}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${circumference} ${circumference}`}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
               fill="transparent"
-              transform={`rotate(-90 ${PROGRESS_RING_SIZE / 2} ${
-                PROGRESS_RING_SIZE / 2
-              })`}
+              transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
             />
           </Svg>
         </Box>
-        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
+        <Box
+          twClassName={`${
+            compact ? 'h-8 w-8' : 'h-10 w-10'
+          } overflow-hidden rounded-full bg-default`}
+        >
           {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
@@ -905,6 +915,7 @@ const LiveStatus = React.memo(
         progress={progressRemaining}
         color={accentColor}
         trackColor={trackColor}
+        compact={compact}
       />
     );
 
@@ -1111,8 +1122,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const isCompact = isCarousel;
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigateToMarketDetails } = usePredictNavigation();
   const { openBuySheet } = usePredictPreviewSheet();
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
@@ -1354,9 +1364,15 @@ const PredictCryptoUpDownMarketCard: React.FC<
             >
               {cardTitle}
             </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              Resets every {resetDuration}
+            </Text>
           </Box>
 
-          <Box twClassName="w-full items-center gap-2">
+          <Box twClassName="w-full">
             <OutcomeButtons
               compact
               upToken={upToken}
@@ -1366,12 +1382,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
               marketStatus={selectedMarket.status as PredictMarketStatus}
               onBuyPress={handleBuyPress}
             />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Resets every {resetDuration}
-            </Text>
           </Box>
         </Box>
       </Pressable>

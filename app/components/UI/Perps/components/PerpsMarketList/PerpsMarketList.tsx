@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import Text, {
   TextVariant,
   TextColor,
@@ -46,9 +46,34 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   showBadge = true,
   contentContainerStyle,
   filterKey,
+  scrollResetKey,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const listRef = useRef<FlashListRef<PerpsMarketData>>(null);
+  // Reset scroll to the absolute top whenever the list context changes (the
+  // active category, and — via scrollResetKey — search toggling on/off) so the
+  // list header (e.g. the Recently Viewed rail, which sits above the first row)
+  // scrolls back into view rather than leaving the user mid-list. Skips the
+  // first render.
+  //
+  // offset 0 targets the very top (above the header); scrollToIndex would only
+  // reach the first row and push the header off-screen. This is reliable
+  // because maintainVisibleContentPosition is disabled below — otherwise its
+  // post-data-change re-anchor to the previously visible row would override
+  // the scroll.
+  const scrollResetToken = scrollResetKey ?? filterKey;
+  const hasMountedRef = useRef(false);
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    // Ref is null when the new filter has no rows (empty state rendered
+    // instead), so this safely no-ops in that case.
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [scrollResetToken]);
 
   const renderItem = useCallback(
     ({ item }: { item: PerpsMarketData }) => (
@@ -83,6 +108,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   return (
     <FlashList
+      ref={listRef}
       data={markets}
       extraData={filterKey}
       renderItem={renderItem}
@@ -91,6 +117,11 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
+      // Disabled so the scroll-to-top on filter change reliably reaches the
+      // very top (revealing the header); the market order comes from a static
+      // snapshot with per-row live-price updates, so there are no above-viewport
+      // insertions for it to protect against.
+      maintainVisibleContentPosition={{ disabled: true }}
       removeClippedSubviews
       showsVerticalScrollIndicator={false}
       testID={testID}

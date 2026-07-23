@@ -12,7 +12,7 @@ import {
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { isStablecoin } from '../../utils/token';
+import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
@@ -33,9 +33,9 @@ jest.mock(
   }),
 );
 
-jest.mock('../../utils/token', () => ({
-  ...jest.requireActual('../../utils/token'),
-  isStablecoin: jest.fn(),
+jest.mock('../../utils/relayFixedSpread', () => ({
+  ...jest.requireActual('../../utils/relayFixedSpread'),
+  isRouteToken: jest.fn(),
 }));
 
 jest.mock('../pay/useTransactionPayToken');
@@ -60,7 +60,7 @@ const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 const selectMetaMaskPayFlagsMock =
   selectMetaMaskPayFlags as unknown as jest.Mock;
 const selectDepositLimitsMock = selectDepositLimits as unknown as jest.Mock;
-const isStablecoinMock = isStablecoin as unknown as jest.Mock;
+const isRouteTokenMock = isRouteToken as unknown as jest.Mock;
 const selectAccountOverrideMock =
   selectAccountOverrideByTransactionId as unknown as jest.Mock;
 const getMoneyAccountDepositIntentMock = jest.mocked(
@@ -129,7 +129,7 @@ function setupMocks(
     },
   });
   selectDepositLimitsMock.mockReturnValue(depositLimits);
-  isStablecoinMock.mockReturnValue(stablecoin);
+  isRouteTokenMock.mockReturnValue(stablecoin);
   selectAccountOverrideMock.mockReturnValue(overrides.accountOverride);
   getMoneyAccountDepositIntentMock.mockReturnValue(
     depositIntent as ReturnType<typeof getMoneyAccountDepositIntent>,
