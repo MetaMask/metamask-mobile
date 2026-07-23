@@ -23,8 +23,10 @@ describe(RegressionWalletPlatform('E2E State Export'), () => {
 
         await CreateNewWallet();
 
-        commandQueueServer.requestStateExport();
-        const state = await commandQueueServer.getExportedState();
+        const state = await commandQueueServer.requestAndWaitForExportedState({
+          timeout: 10000,
+          maxAttempts: 3,
+        });
 
         if (!state.redux || typeof state.redux !== 'object') {
           throw new Error('Exported state missing redux key');

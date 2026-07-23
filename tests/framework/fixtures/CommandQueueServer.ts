@@ -192,6 +192,40 @@ class CommandQueueServer implements Resource {
     });
   }
 
+  async requestAndWaitForExportedState(
+    {
+      timeout = 10000,
+      pollInterval = 500,
+      maxAttempts = 2,
+    }: {
+      timeout?: number;
+      pollInterval?: number;
+      maxAttempts?: number;
+    } = {},
+  ): Promise<Record<string, unknown>> {
+    if (maxAttempts < 1) {
+      throw new Error('maxAttempts must be at least 1');
+    }
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      this.requestStateExport();
+
+      try {
+        return await this.getExportedState(timeout, pollInterval);
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+
+        logger.warn(
+          `requestAndWaitForExportedState attempt ${attempt}/${maxAttempts} timed out after ${timeout}ms; retrying export request`,
+        );
+      }
+    }
+
+    throw new Error('requestAndWaitForExportedState reached unreachable state');
+  }
+
   async getExportedState(
     timeout = 10000,
     pollInterval = 500,

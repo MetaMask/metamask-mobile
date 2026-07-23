@@ -32,8 +32,10 @@ const queueLiquidationCheckAtPrice = async (
 const waitForCommandQueueToProcess = async (
   commandQueueServer: CommandQueueServer,
 ) => {
-  commandQueueServer.requestStateExport();
-  await commandQueueServer.getExportedState();
+  await commandQueueServer.requestAndWaitForExportedState({
+    timeout: 10000,
+    maxAttempts: 3,
+  });
 };
 
 appiumTest.describe(SmokePerps('Perps - Short liquidation'), () => {
