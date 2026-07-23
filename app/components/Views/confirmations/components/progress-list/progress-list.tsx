@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection } from '../../../../UI/Box/box.types';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -38,6 +38,15 @@ export function ProgressList({
   const { styles } = useStyles(styleSheet, {});
   const childArray = React.Children.toArray(children).filter(Boolean);
 
+  const itemMeta = useMemo<ProgressListItemMeta>(
+    () => ({ variant, isLast: false }),
+    [variant],
+  );
+  const lastItemMeta = useMemo<ProgressListItemMeta>(
+    () => ({ variant, isLast: true }),
+    [variant],
+  );
+
   return (
     <Box style={styles.container}>
       {childArray.map((child, index) => {
@@ -45,7 +54,9 @@ export function ProgressList({
 
         return (
           <React.Fragment key={React.isValidElement(child) ? child.key : index}>
-            <ProgressListItemMetaContext.Provider value={{ variant, isLast }}>
+            <ProgressListItemMetaContext.Provider
+              value={isLast ? lastItemMeta : itemMeta}
+            >
               {child}
             </ProgressListItemMetaContext.Provider>
             {variant === 'status-icon' && showConnectors && !isLast && (
