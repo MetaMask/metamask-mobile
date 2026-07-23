@@ -45,6 +45,8 @@ export enum TokenDetailsSource {
   WatchlistFullscreenSearch = 'watchlist_fullscreen_search',
   /** Explore Trending Tokens — watchlist filter pill active */
   ExploreWatchlistFilter = 'explore_watchlist_filter',
+  /** Swap/Bridge token picker — watchlist filter pill active */
+  SwapWatchlistFilter = 'swap_watchlist_filter',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
