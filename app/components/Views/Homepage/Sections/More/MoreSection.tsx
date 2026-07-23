@@ -54,23 +54,29 @@ const MoreSection = () => {
   }, [createEventBuilder, navigation, trackEvent]);
 
   const handleContactSupport = useCallback(() => {
-    openSupportWithConsent((url) => {
-      navigation.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.SIMPLE,
-        params: {
-          url,
-          title: strings('app_settings.contact_support'),
-        },
-      });
-    }, METAMASK_SUPPORT_URL);
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
-        .addProperties({
-          action: 'Navigation Drawer',
-          name: 'Get Help',
-          location: ActionLocation.HOME,
-        })
-        .build(),
+    openSupportWithConsent(
+      (url) => {
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings('app_settings.contact_support'),
+          },
+        });
+      },
+      METAMASK_SUPPORT_URL,
+      // Defer tracking to when support actually opens (consent confirm/reject),
+      // not the mere tap that only shows the consent sheet.
+      () =>
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
+            .addProperties({
+              action: 'Navigation Drawer',
+              name: 'Get Help',
+              location: ActionLocation.HOME,
+            })
+            .build(),
+        ),
     );
   }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
