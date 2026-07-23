@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Added Monad to the Explore/Trending supported network list so Monad assets appear in token search results (#33614)
+
 ## [8.3.0]
 
 ### Added

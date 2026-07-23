@@ -89,8 +89,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
-  'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts',
-  'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.ts',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
