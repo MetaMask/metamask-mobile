@@ -86,7 +86,7 @@ describe('trace tagging', () => {
     overrides: Partial<MoneyAccountApiDataServiceTraceRequest> = {},
   ): MoneyAccountApiDataServiceTraceRequest => ({
     id: 'test-trace-id',
-    name: 'MoneyAccountApiDataService:fetchPositions',
+    name: 'Money Account API Fetch Positions',
     startTime: 1000,
     tags: { source: 'unit-test' },
     data: {},
@@ -126,7 +126,7 @@ describe('trace tagging', () => {
     expect(trace).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'test-trace-id',
-        name: 'MoneyAccountApiDataService:fetchPositions',
+        name: 'Money Account API Fetch Positions',
         startTime: 1000,
         op: TraceOperation.MoneyAccountDataFetch,
         tags: { source: 'unit-test' },
