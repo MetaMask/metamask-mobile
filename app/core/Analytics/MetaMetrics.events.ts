@@ -91,9 +91,9 @@ enum EVENT_NAME {
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
   TOKEN_DETAILS_CLOSED = 'Token Details Closed',
   TOKEN_DETAILS_SHARED = 'Token Details Shared',
-  WATCHLIST_TOKEN_ADDED = 'Watchlist Token Added',
-  WATCHLIST_TOKEN_REMOVED = 'Watchlist Token Removed',
-  WATCHLIST_PAGE_VIEWED = 'Watchlist Page Viewed',
+  WATCHLIST_TOKEN_ADDED = 'Token Watchlist Token Added',
+  WATCHLIST_TOKEN_REMOVED = 'Token Watchlist Token Removed',
+  WATCHLIST_PAGE_VIEWED = 'Token Watchlist Page Viewed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
   TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
