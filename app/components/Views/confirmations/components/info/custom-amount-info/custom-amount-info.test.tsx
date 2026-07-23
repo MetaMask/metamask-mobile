@@ -1,6 +1,7 @@
 import React, { act } from 'react';
 import { merge, noop } from 'lodash';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
+import Engine from '../../../../../../core/Engine';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   CustomAmountInfo,
@@ -109,6 +110,9 @@ jest.mock('../../../../../../core/Engine', () => ({
       },
       updateFiatPayment: jest.fn(),
     },
+    TransactionController: {
+      state: { transactions: [] },
+    },
   },
 }));
 jest.mock('../../PayAccountSelector', () => {
@@ -202,6 +206,14 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
 
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
+
+function setControllerTransactions(transactions: { id: string }[]) {
+  (
+    Engine.context.TransactionController as unknown as {
+      state: { transactions: { id: string }[] };
+    }
+  ).state = { transactions };
+}
 
 const mockShowToast = jest.fn();
 const mockToastRef = {
