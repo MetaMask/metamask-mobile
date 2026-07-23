@@ -1149,6 +1149,12 @@
         "title": "Couldn't load the feed",
         "retry": "Try again"
       },
+      "sub_header": {
+        "at_connector": "at",
+        "market_cap_suffix": "MC",
+        "size_at_price": "{{size}} at {{price}}",
+        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
+      },
       "no_data": "No data"
     },
     "onboarding": {
@@ -1492,6 +1498,18 @@
       "metamask_fee_tooltip": "MetaMask does not charge any fees for Hyperliquid transactions",
       "metamask_fee_tooltip_deposit": "MetaMask does not charge any fees for deposits to Hyperliquid",
       "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
+    },
+    "pro_order_form": {
+      "isolated": "Isolated",
+      "choose_order_type": "Choose order type",
+      "size_usd": "Size USD",
+      "size_percentage": "Order size percentage",
+      "toggle_size_unit": "Switch size denomination",
+      "available_balance_unavailable": "-- available",
+      "est_liquidation": "Est Liquidation",
+      "tpsl": "TP / SL",
+      "place_order": "Place order",
+      "close_keyboard": "Close keyboard"
     },
     "order": {
       "title": "New order",
@@ -10157,6 +10175,14 @@
       "title": "MetaMask Agent CLI link successful",
       "description": "Return to the CLI to continue."
     },
+    "push_nudge": {
+      "title": "Turn on notifications",
+      "description": "Get alerts for transactions from your CLI session.",
+      "turn_on_button": "Turn on",
+      "loading_title": "Turning on notifications",
+      "loading_description": "Give us a moment while we set things up.",
+      "enable_error": "Couldn't turn on notifications. Try again from Settings."
+    },
     "show_otp": {
       "title": "Enter this code",
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
@@ -10431,9 +10457,6 @@
       "top_traders": "Weekly Top Traders",
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "Trending",
-      "trending_perpetuals": "Trending perpetuals",
-      "trending_predictions": "Trending predictions",
       "watchlist": "Watchlist",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",

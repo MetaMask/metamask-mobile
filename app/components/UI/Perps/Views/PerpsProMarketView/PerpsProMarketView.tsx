@@ -5,7 +5,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type OrderType,
+} from '@metamask/perps-controller';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
@@ -13,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
 import type { PerpsStackParamList } from '../../types/navigation';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsProMarketHeader from './components/PerpsProMarketHeader';
@@ -46,6 +50,22 @@ const PerpsProMarketView = () => {
 
   const handleExpandOrderBook = useCallback(() => {
     setIsOrderBookCollapsed(false);
+  }, []);
+
+  const [orderType, setOrderType] = useState<OrderType>('limit');
+  const [isOrderTypeSheetVisible, setIsOrderTypeSheetVisible] = useState(false);
+
+  const handleOrderTypeButtonPress = useCallback(() => {
+    setIsOrderTypeSheetVisible(true);
+  }, []);
+
+  const handleOrderTypeSheetClose = useCallback(() => {
+    setIsOrderTypeSheetVisible(false);
+  }, []);
+
+  const handleOrderTypeSelect = useCallback((newOrderType: OrderType) => {
+    setOrderType(newOrderType);
+    setIsOrderTypeSheetVisible(false);
   }, []);
 
   if (!market?.symbol) {
@@ -88,6 +108,8 @@ const PerpsProMarketView = () => {
         contentContainerStyle={styles.scrollContent}
         testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
       >
         <PerpsProMarketSummary />
         <PerpsProChartPanel />
@@ -95,7 +117,12 @@ const PerpsProMarketView = () => {
         <PerpsProMarketLayout
           isOrderBookCollapsed={isOrderBookCollapsed}
           onExpandOrderBook={handleExpandOrderBook}
-          orderForm={<PerpsProOrderFormPanel />}
+          orderForm={
+            <PerpsProOrderFormPanel
+              orderType={orderType}
+              onOrderTypeButtonPress={handleOrderTypeButtonPress}
+            />
+          }
           orderBook={
             <PerpsProOrderBookPanel
               symbol={market.symbol}
@@ -107,6 +134,14 @@ const PerpsProMarketView = () => {
         <SectionDivider />
         <PerpsProPositionsPanel />
       </ScrollView>
+      <PerpsOrderTypeBottomSheetView
+        isVisible={isOrderTypeSheetVisible}
+        onClose={handleOrderTypeSheetClose}
+        onSelect={handleOrderTypeSelect}
+        currentOrderType={orderType}
+        title={strings('perps.pro_order_form.choose_order_type')}
+        showSelectedIcon
+      />
     </SafeAreaView>
   );
 };
