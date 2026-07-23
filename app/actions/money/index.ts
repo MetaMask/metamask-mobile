@@ -18,6 +18,17 @@ const LOG_PREFIX = '[upgradeMoneyAccount]';
 const SENTRY_FEATURE_TAG = 'money-account-upgrade';
 
 /**
+ * How many retried failures a single upgrade run reports to Sentry. The
+ * retry loop itself is unbounded — it runs until the screen blurs — so
+ * without a cap a persistent backend outage would emit one Sentry event per
+ * backoff interval for as long as the user stays on the screen. The first
+ * few failures carry all the diagnostic signal; later ones are logged
+ * locally but not reported. Failures that end the run are reported
+ * separately and are not subject to the cap.
+ */
+const MAX_REPORTED_RETRIED_FAILURES = 3;
+
+/**
  * Reports an upgrade failure to Sentry, tagged with the failing step when
  * the error carries one.
  *
@@ -50,7 +61,9 @@ interface InFlightUpgrade {
    * on focus; navigating between them can dispatch under the new screen's
    * signal while the old screen's run is still winding down. If this run ends
    * because it was aborted, the upgrade restarts under the takeover signal so
-   * the newly focused screen still gets its attempt.
+   * the newly focused screen still gets its attempt. A run that ends any
+   * other way drops the takeover: after a success a restart would be a
+   * no-op, and after a failure it would deterministically fail again.
    */
   takeoverSignal?: AbortSignal;
 }
@@ -87,6 +100,11 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   const entry: InFlightUpgrade = {};
   upgradesInFlight.set(address, entry);
   const startedAt = Date.now();
+  // Whether the run settled with the abort rejection — as opposed to
+  // succeeding, failing, or skipping while the signal happened to be
+  // aborted. Only a run that actually ended because of its abort hands
+  // over to a queued takeover signal.
+  let endedByAbort = false;
   whenMoneyAccountUpgradeReady()
     .then(
       async () => {
@@ -106,15 +124,25 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
           address,
           {
             signal,
-            // Failures that end the run are reported by the catch below;
-            // reporting retried ones here means every failure reaches
-            // Sentry exactly once, even when a later attempt succeeds.
+            // Failures that end the run are reported by the catch below.
+            // Retried failures are reported here so they reach Sentry even
+            // when a later attempt succeeds — but capped per run, so a
+            // persistent outage cannot flood Sentry from the unbounded
+            // retry loop. Beyond the cap they are only logged locally.
             onRetry: (error, attempt) => {
               Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
                 address,
                 attempt,
               });
-              reportUpgradeError(error, { attempt, willRetry: true });
+              if (attempt <= MAX_REPORTED_RETRIED_FAILURES) {
+                reportUpgradeError(error, {
+                  attempt,
+                  willRetry: true,
+                  ...(attempt === MAX_REPORTED_RETRIED_FAILURES
+                    ? { furtherRetryReportsSuppressed: true }
+                    : {}),
+                });
+              }
             },
           },
         );
@@ -146,6 +174,7 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
       // rejection itself rather than `signal.aborted`, so a genuine failure
       // that lands just after the user navigates away is still reported.
       if (isMoneyAccountUpgradeAbortedError(error)) {
+        endedByAbort = true;
         Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
         return;
       }
@@ -154,7 +183,7 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
     .finally(() => {
       upgradesInFlight.delete(address);
       const { takeoverSignal } = entry;
-      if (signal.aborted && takeoverSignal && !takeoverSignal.aborted) {
+      if (endedByAbort && takeoverSignal && !takeoverSignal.aborted) {
         Logger.log(LOG_PREFIX, 'restarting upgrade for takeover signal', {
           address,
         });

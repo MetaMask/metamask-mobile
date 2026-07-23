@@ -292,6 +292,47 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
   });
 
+  it('stops reporting retried failures to Sentry after the per-run cap', async () => {
+    jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+    try {
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+      const abortController = new AbortController();
+      mockUpgradeAccount.mockRejectedValue(retryableStepError());
+
+      dispatchUpgrade(abortController.signal);
+      await flushPromises();
+
+      // Attempts 2–4 fire after backoff waits of 10s, 20s, and 40s.
+      await jest.advanceTimersByTimeAsync(10_000);
+      await jest.advanceTimersByTimeAsync(20_000);
+      await jest.advanceTimersByTimeAsync(40_000);
+
+      // Four attempts have failed, but only the first three reach Sentry;
+      // the last reported one flags that later reports are suppressed.
+      const retryReports = mockLogError.mock.calls.filter(
+        ([, options]) => options?.context?.data?.willRetry,
+      );
+      expect(retryReports).toHaveLength(3);
+      expect(retryReports[2][1].context.data).toMatchObject({
+        attempt: 3,
+        furtherRetryReportsSuppressed: true,
+      });
+      // The fourth failure is still logged locally.
+      expect(mockLogLog).toHaveBeenCalledWith(
+        expect.stringContaining('upgradeMoneyAccount'),
+        'attempt failed; will retry',
+        { address: ADDRESS, attempt: 4 },
+      );
+
+      // End the pending backoff wait so its timer does not leak out of the
+      // test.
+      abortController.abort();
+      await flushPromises();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('allows a new upgrade after an aborted one settles', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     const abortController = new AbortController();
@@ -482,6 +523,42 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not restart under the takeover signal when the aborted run ends with a terminal failure', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const first = new AbortController();
+    const second = new AbortController();
+    let rejectFirst: (error: Error) => void = () => undefined;
+    mockUpgradeAccount.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectFirst = reject;
+        }),
+    );
+
+    dispatchUpgrade(first.signal);
+    await flushPromises();
+    // A second screen focuses while the first run is still in flight…
+    dispatchUpgrade(second.signal);
+
+    // …the first screen blurs, and the in-flight attempt then fails
+    // terminally. The run ended with the failure, not the abort: retrying
+    // is pointless by definition, so the takeover must not restart the run
+    // — that would re-execute the steps and report the same error twice.
+    first.abort();
+    rejectFirst(
+      new MoneyAccountUpgradeStepError(
+        'eip-7702-authorization',
+        new TerminalUpgradeError(
+          'account is delegated to a third-party implementation',
+        ),
+      ),
+    );
+    await flushPromises();
+
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+    expect(mockLogError).toHaveBeenCalledTimes(1);
   });
 
   it('does not restart when the first run settles without being aborted', async () => {
