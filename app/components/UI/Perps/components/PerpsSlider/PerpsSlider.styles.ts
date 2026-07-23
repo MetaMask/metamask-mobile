@@ -36,7 +36,9 @@ const styleSheet = (params: { theme: Theme; vars: PerpsSliderStyleVars }) => {
     },
     progress: {
       height: trackHeight,
-      backgroundColor: colors.icon.alternative,
+      backgroundColor: isCompact
+        ? colors.icon.default
+        : colors.icon.alternative,
       borderRadius: 20,
       position: 'absolute',
       left: 0,
@@ -45,7 +47,9 @@ const styleSheet = (params: { theme: Theme; vars: PerpsSliderStyleVars }) => {
     thumb: {
       width: thumbSize,
       height: thumbSize,
-      backgroundColor: colors.icon.defaultPressed,
+      backgroundColor: isCompact
+        ? colors.icon.default
+        : colors.icon.defaultPressed,
       borderRadius: thumbSize / 2,
       position: 'absolute',
       top: (trackHeight - thumbSize) / 2,

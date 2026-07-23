@@ -310,6 +310,7 @@ const PerpsProOrderForm = ({
             onChangeText={onSizeChange}
             testID={ids.SIZE_INPUT}
             placeholder="0.00"
+            placeholderColor="default"
             endAccessory={
               <ButtonIcon
                 iconName={IconName.SwapHorizontal}

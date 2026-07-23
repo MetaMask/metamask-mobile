@@ -5,6 +5,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Keyboard, Platform } from 'react-native';
 export const PERPS_PRO_INPUT_ACCESSORY_ID =
@@ -18,6 +19,7 @@ interface PerpsProCompactInputProps {
   endAccessory?: React.ReactNode;
   footer?: React.ReactNode;
   placeholder?: string;
+  placeholderColor?: 'default' | 'muted';
 }
 const PerpsProCompactInput = ({
   label,
@@ -28,7 +30,9 @@ const PerpsProCompactInput = ({
   endAccessory,
   footer,
   placeholder = '0',
+  placeholderColor = 'muted',
 }: PerpsProCompactInputProps) => {
+  const tw = useTailwind();
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? PERPS_PRO_INPUT_ACCESSORY_ID : undefined;
   const input = (
@@ -40,6 +44,7 @@ const PerpsProCompactInput = ({
       onSubmitEditing={Keyboard.dismiss}
       inputAccessoryViewID={inputAccessoryViewID}
       placeholder={placeholder}
+      placeholderTextColor={tw.color(`text-${placeholderColor}`)}
       textVariant={TextVariant.BodySm}
       isStateStylesDisabled
       twClassName="flex-1 border-0 bg-transparent p-0 font-medium"

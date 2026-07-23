@@ -96,7 +96,14 @@ describe('PerpsSlider', () => {
       });
 
       expect(styles.track).toMatchObject({ height: 4 });
-      expect(styles.thumb).toMatchObject({ width: 16, height: 16 });
+      expect(styles.progress).toMatchObject({
+        backgroundColor: mockTheme.colors.icon.default,
+      });
+      expect(styles.thumb).toMatchObject({
+        width: 16,
+        height: 16,
+        backgroundColor: mockTheme.colors.icon.default,
+      });
       expect(styles.sliderContainer).toMatchObject({ marginHorizontal: 0 });
     });
 
