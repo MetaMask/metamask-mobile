@@ -38,6 +38,11 @@ jest.mock('./instance-options/transaction-controller', () => ({
   getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
   setupTransactionControllerListeners: jest.fn(),
 }));
+jest.mock('./instance-options/seedless-onboarding-controller', () => ({
+  getSeedlessOnboardingControllerInstanceOptions: jest.fn(
+    () => 'seedless-options',
+  ),
+}));
 jest.mock('./messengers/transaction-controller-messenger', () => ({
   getTransactionControllerInitMessenger: jest.fn(() => 'tx-init-messenger'),
 }));
@@ -60,6 +65,7 @@ describe('initializeWallet', () => {
         keyringController: 'keyring-options',
         remoteFeatureFlagController: 'rffc-options',
         connectivityController: 'connectivity-options',
+        seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
         networkController: getNetworkControllerInstanceOptions(),
         transactionController: 'transaction-options',

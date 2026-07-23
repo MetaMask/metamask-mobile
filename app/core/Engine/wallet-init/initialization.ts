@@ -13,6 +13,7 @@ import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
+import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
 
 /**
@@ -35,7 +36,9 @@ export function initializeWallet({
     getTransactionControllerInitMessenger(messenger);
 
   const wallet: Wallet = new Wallet({
-    messenger,
+    // Mobile RootMessenger carries app-wide actions; Wallet only types its
+    // default-controller action set. Runtime parentage is the same messenger.
+    messenger: messenger as NonNullable<WalletOptions['messenger']>,
     state,
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
@@ -47,6 +50,8 @@ export function initializeWallet({
           messenger,
           state,
         }),
+      seedlessOnboardingController:
+        getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,
