@@ -8,6 +8,7 @@ const mockNavigate = jest.fn();
 const mockGetAccounts = jest.fn();
 const mockImportRemainingSecrets = jest.fn();
 const mockResetState = jest.fn();
+const mockProvisionFromMetadata = jest.fn();
 const mockCompleteExistingUserQrSyncImport = jest.fn();
 const mockNavigateToQrSyncImport = jest.fn();
 const mockShowAlreadySyncedSheet = jest.fn();
@@ -48,6 +49,10 @@ jest.mock('../Engine', () => ({
       importRemainingSecrets: (...args: unknown[]) =>
         mockImportRemainingSecrets(...args),
       resetState: () => mockResetState(),
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
     },
   },
 }));
@@ -113,6 +118,7 @@ describe('useQrSyncImportNavigation', () => {
     mockGetAccounts.mockResolvedValue([]);
     mockImportRemainingSecrets.mockResolvedValue(undefined);
     mockCompleteExistingUserQrSyncImport.mockResolvedValue(undefined);
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
   it('navigates to QR sync import for new users when secrets are ready', async () => {
@@ -244,6 +250,8 @@ describe('useQrSyncImportNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockResetState).not.toHaveBeenCalled();
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
   });

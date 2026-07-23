@@ -65,7 +65,7 @@
 
 ### Phase B deliverables
 
-- [x] `skipDiscovery` on `importNewSecretRecoveryPhrase` — manual Add SRP only; **QR does not use this**
+- [x] `skipDiscovery` on `importNewSecretRecoveryPhrase` — used by existing-user QR so Phase C owns layout/sync
 - [x] `QrSyncController.importRemainingSecrets` — orchestration (guards via `isQrSyncReadyForSecretImport`)
 - [x] `QrSyncProvisioningService.importSecretsToVault` — vault imports via messenger
 - [x] Metadata enrichment via `enrichPrimaryProvisioningEntry` / `finalizeSecretImport` / `enrichProvisioningEntry`
@@ -82,7 +82,7 @@
 - [x] User-storage reconciliation at end of Phase C (`syncWithUserStorage`, non-blocking)
 - [x] `OnboardingSuccess` branches to `provisionFromMetadata` vs `discoverAccounts`
 - [ ] App-launch resume for `provisioningStatus === 'secrets_imported'`
-- [ ] Post-onboarding Phase C trigger
+- [x] Post-onboarding Phase C trigger
 
 ---
 
@@ -380,13 +380,13 @@ See [Discovery / sync conflicts](#discovery--sync-conflicts) and [Known gaps](#k
 
 ## Discovery / sync conflicts
 
-| System               | Location                                     | Normal behaviour                                                 | QR behaviour                                                                         | Conflict                                      |
-| -------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------- |
-| Onboarding discovery | `OnboardingSuccess`                          | `discoverAccounts`                                               | `provisionFromMetadata`                                                              | Intentional replacement                       |
-| Unlock discovery     | `Authentication.postLoginAsyncOperations`    | `discoverAccounts` per entropy source                            | **Same** — still runs                                                                | **Gap** if Phase C pending                    |
-| Add SRP              | `importNewSecretRecoveryPhrase`              | Discovery + optional sync                                        | **Not used**                                                                         | Keep paths separate                           |
-| Cloud sync           | `syncWithUserStorage` / `useIdentityEffects` | `discoverAccounts` uses `syncWithUserStorageAtLeastOnce` on Done | Phase C calls `syncWithUserStorage` after layout (background); Phase B still no sync | Intentional — sync only after layout complete |
-| Tree init            | `newWalletAndRestore`                        | Group 0                                                          | Same                                                                                 | Phase C adds 1..N                             |
+| System               | Location                                     | Normal behaviour                                                 | QR behaviour                                                                          | Conflict                                      |
+| -------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Onboarding discovery | `OnboardingSuccess`                          | `discoverAccounts`                                               | `provisionFromMetadata`                                                               | Intentional replacement                       |
+| Unlock discovery     | `Authentication.postLoginAsyncOperations`    | `discoverAccounts` per entropy source                            | **Same** — still runs                                                                 | **Gap** if Phase C pending                    |
+| Add SRP              | `importNewSecretRecoveryPhrase`              | Discovery + optional sync                                        | Existing-user QR uses it with `skipDiscovery`; new-user QR uses `newWalletAndRestore` | Keep new-user path separate                   |
+| Cloud sync           | `syncWithUserStorage` / `useIdentityEffects` | `discoverAccounts` uses `syncWithUserStorageAtLeastOnce` on Done | Phase C calls `syncWithUserStorage` after layout (background); Phase B still no sync  | Intentional — sync only after layout complete |
+| Tree init            | `newWalletAndRestore`                        | Group 0                                                          | Same                                                                                  | Phase C adds 1..N                             |
 
 **First onboard (no kill):** `newWalletAndRestore` does not call `postLoginAsyncOperations`; user goes Import → OnboardingSuccess → Phase C on Done.
 
@@ -565,22 +565,22 @@ Resolve gap #1 before or instead of running `discoverAccounts` when `secrets_imp
 
 ## Implementation checklist
 
-| #   | Step                                               | Phase | Status       |
-| --- | -------------------------------------------------- | ----- | ------------ |
-| 1   | `skipDiscovery` on `importNewSecretRecoveryPhrase` | B     | Done         |
-| 2   | Controller provisioning mutations                  | B     | Done         |
-| 3   | Layered Phase B controller + service               | B     | Done         |
-| 4   | `Authentication.newWalletAndRestore` `isQrSync`    | B     | Done         |
-| 5   | `selectQrSyncNeedsProvisioning`                    | C     | Done         |
-| 6   | `completeProvisioning`                             | C     | Done         |
-| 7   | `provisionFromMetadata`                            | C     | Done         |
-| 8   | OnboardingSuccess branch                           | C     | Done         |
-| 9   | QR `resetState` back only                          | B     | Done         |
-| 10  | Phase B guards in `qr-sync-validation.ts`          | B     | Done         |
-| 11  | User-storage reconciliation in Phase C             | C     | Done         |
-| 12  | App-launch / unlock resume                         | C     | **Deferred** |
-| 13  | Post-onboarding QR UI + B/C                        | B/C   | **Deferred** |
-| 14  | Phase C failure recovery                           | C     | **Deferred** |
+| #   | Step                                               | Phase | Status                                        |
+| --- | -------------------------------------------------- | ----- | --------------------------------------------- |
+| 1   | `skipDiscovery` on `importNewSecretRecoveryPhrase` | B     | Done                                          |
+| 2   | Controller provisioning mutations                  | B     | Done                                          |
+| 3   | Layered Phase B controller + service               | B     | Done                                          |
+| 4   | `Authentication.newWalletAndRestore` `isQrSync`    | B     | Done                                          |
+| 5   | `selectQrSyncNeedsProvisioning`                    | C     | Done                                          |
+| 6   | `completeProvisioning`                             | C     | Done                                          |
+| 7   | `provisionFromMetadata`                            | C     | Done                                          |
+| 8   | OnboardingSuccess branch                           | C     | Done                                          |
+| 9   | QR `resetState` back only                          | B     | Done                                          |
+| 10  | Phase B guards in `qr-sync-validation.ts`          | B     | Done                                          |
+| 11  | User-storage reconciliation in Phase C             | C     | Done                                          |
+| 12  | App-launch / unlock resume                         | C     | **Deferred**                                  |
+| 13  | Post-onboarding QR UI + B/C                        | B/C   | Done (Phase C wired for existing-user import) |
+| 14  | Phase C failure recovery                           | C     | **Deferred**                                  |
 
 ---
 

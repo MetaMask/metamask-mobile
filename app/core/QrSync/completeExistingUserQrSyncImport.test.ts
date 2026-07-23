@@ -8,6 +8,9 @@ import {
 
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockResetState = jest.fn();
+const mockEnrichPrimaryProvisioningEntry = jest.fn();
+const mockImportRemainingSecrets = jest.fn();
+const mockProvisionFromMetadata = jest.fn();
 const mockNavigate = jest.fn();
 const mockShowAlreadySyncedSheet = jest.fn();
 const mockShowImportFailedSheet = jest.fn();
@@ -21,6 +24,14 @@ jest.mock('../Engine', () => ({
   context: {
     QrSyncController: {
       resetState: () => mockResetState(),
+      enrichPrimaryProvisioningEntry: (...args: unknown[]) =>
+        mockEnrichPrimaryProvisioningEntry(...args),
+      importRemainingSecrets: (...args: unknown[]) =>
+        mockImportRemainingSecrets(...args),
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
     },
   },
 }));
@@ -47,26 +58,47 @@ const mockNavigation = {
 
 const TEST_MNEMONIC =
   'test test test test test test test test test test test junk';
+const TEST_ENTROPY_SOURCE = 'entropy-source-id';
 
 describe('completeExistingUserQrSyncImport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockImportNewSecretRecoveryPhrase.mockResolvedValue({
       address: '0xabc',
-      discoveredAccountsCount: 1,
+      discoveredAccountsCount: 0,
+      entropySource: TEST_ENTROPY_SOURCE,
     });
+    mockImportRemainingSecrets.mockResolvedValue(undefined);
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
-  it('imports the mnemonic, resets QR sync, and navigates to the wallet home', async () => {
+  it('imports mnemonic, enriches metadata, runs Phase C, and navigates home', async () => {
     await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       TEST_MNEMONIC,
+      { shouldSelectAccount: true, skipDiscovery: true },
     );
-    expect(mockResetState).toHaveBeenCalledTimes(1);
+    expect(mockEnrichPrimaryProvisioningEntry).toHaveBeenCalledWith(
+      TEST_ENTROPY_SOURCE,
+    );
+    expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockResetState).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
+  });
+
+  it('reports Phase C failure without blocking navigation home', async () => {
+    mockProvisionFromMetadata.mockRejectedValueOnce(
+      new Error('provision failed'),
+    );
+
+    await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockResetState).not.toHaveBeenCalled();
   });
 
   it.each([...DUPLICATE_MNEMONIC_ERROR_MESSAGES])(
@@ -79,6 +111,8 @@ describe('completeExistingUserQrSyncImport', () => {
       await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
 
       expect(mockResetState).toHaveBeenCalledTimes(1);
+      expect(mockEnrichPrimaryProvisioningEntry).not.toHaveBeenCalled();
+      expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
       expect(mockShowAlreadySyncedSheet).toHaveBeenCalledWith(mockNavigation);
     },
@@ -106,6 +140,7 @@ describe('completeExistingUserQrSyncImport', () => {
     await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
 
     expect(mockResetState).toHaveBeenCalledTimes(1);
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockShowImportFailedSheet).toHaveBeenCalledWith(mockNavigation);
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
@@ -136,10 +171,12 @@ describe('completeExistingUserQrSyncImport', () => {
 
     resolveImport?.({
       address: '0xabc',
-      discoveredAccountsCount: 1,
+      discoveredAccountsCount: 0,
+      entropySource: TEST_ENTROPY_SOURCE,
     });
     await Promise.all([first, second]);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
   });
 });

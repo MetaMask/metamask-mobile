@@ -12,6 +12,7 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
+import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 
 export {
   DUPLICATE_MNEMONIC_ERROR_MESSAGES,
@@ -33,8 +34,21 @@ const runExistingUserQrSyncImport = async (
   try {
     // Do not race import against a timer — Multichain/keyring import cannot be
     // cancelled, and a timeout would leave late vault mutations after failure UI.
-    await importNewSecretRecoveryPhrase(mnemonic);
-    Engine.context.QrSyncController.resetState();
+    const { entropySource } = await importNewSecretRecoveryPhrase(mnemonic, {
+      shouldSelectAccount: true,
+      skipDiscovery: true,
+    });
+
+    Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
+      entropySource,
+    );
+    await Engine.context.QrSyncController.importRemainingSecrets();
+
+    // Phase C — non-blocking; completeProvisioning clears QR sync state.
+    startExistingUserQrMetadataProvisioning(
+      QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
+    );
+
     navigation.navigate(Routes.WALLET_VIEW);
   } catch (error) {
     Engine.context.QrSyncController.resetState();
@@ -56,7 +70,8 @@ const runExistingUserQrSyncImport = async (
 };
 
 /**
- * Completes existing-user QR sync by importing the primary mnemonic.
+ * Completes existing-user QR sync by importing the primary mnemonic, remaining
+ * secrets, and applying extension wallet/account metadata (Phase C).
  * Duplicate SRP is surfaced with SuccessErrorSheet and treated as
  * already-synced.
  */

@@ -22,6 +22,7 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
+import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 
 interface UseQrSyncImportNavigationOptions {
   enabled: boolean;
@@ -75,19 +76,27 @@ const finishExistingUserSyncWithoutMnemonic = async (
   const accountsAfter = await Engine.context.KeyringController.getAccounts();
   const addedNewAccounts = accountsAfter.length > accountsBefore.length;
 
-  Engine.context.QrSyncController.resetState();
-  navigation.navigate(Routes.WALLET_VIEW);
-
   // Thrown failures are real import errors. Unchanged account count after a
   // successful importRemainingSecrets call means the secrets were already here.
   if (importFailed && !addedNewAccounts) {
+    Engine.context.QrSyncController.resetState();
+    navigation.navigate(Routes.WALLET_VIEW);
     showImportFailedSheet(navigation);
     return;
   }
 
   if (!addedNewAccounts) {
+    Engine.context.QrSyncController.resetState();
+    navigation.navigate(Routes.WALLET_VIEW);
     showAlreadySyncedSheet(navigation);
+    return;
   }
+
+  // Phase C — non-blocking; completeProvisioning clears QR sync state.
+  startExistingUserQrMetadataProvisioning(
+    QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
+  );
+  navigation.navigate(Routes.WALLET_VIEW);
 };
 
 /**
