@@ -2,7 +2,7 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { type MoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
+import { type CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import BigNumber from 'bignumber.js';
 import { RootState } from '../../../../reducers';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
@@ -43,10 +43,12 @@ export function hasExistingMoneyBalance(state: RootState): boolean {
   }
 
   const balance =
-    ReactQueryService.queryClient.getQueryData<MoneyAccountBalanceResponse>([
-      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
-      primaryMoneyAccount.address,
-    ]);
+    ReactQueryService.queryClient.getQueryData<CanonicalMoneyAccountBalanceResponse>(
+      [
+        MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
+        primaryMoneyAccount.address,
+      ],
+    );
   if (!balance?.totalBalance) {
     return false;
   }
