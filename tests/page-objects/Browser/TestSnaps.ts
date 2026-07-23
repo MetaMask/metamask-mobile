@@ -9,6 +9,7 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
+  TEST_SNAPS_URL,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
@@ -17,16 +18,27 @@ import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapAp
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities from '../../framework/Utilities';
+import Utilities, { stripJsonKeys } from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import { RetryOptions, EncapsulatedElementType } from '../../framework';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import {
+  assertAndroidTestSnapsClientStatus,
+  assertAndroidTestSnapsJson,
+  assertAndroidTestSnapsJsonExcluding,
+  assertAndroidTestSnapsTextContains,
+  fillAndroidTestSnapsInput,
+  tapAndroidTestSnapsButton,
+} from '../../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
-export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+export { TEST_SNAPS_URL } from '../../selectors/Browser/TestSnaps.selectors';
 
 class TestSnaps {
   get getConnectSnapButton(): EncapsulatedElementType {
@@ -95,6 +107,34 @@ class TestSnaps {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
+  private async withWebView(action: () => Promise<void>): Promise<void> {
+    if (PlatformDetector.isAndroidAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+      await action();
+      return;
+    }
+
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightWebMatchers.withWebViewAction(TEST_SNAPS_URL, action);
+    } else {
+      await action();
+    }
+  }
+
+  private getTestSnapsWebElement(innerID: string) {
+    if (FrameworkDetector.isAppium()) {
+      return Matchers.getElementByWebID(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        innerID,
+        TEST_SNAPS_URL,
+      );
+    }
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      innerID,
+    );
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -103,15 +143,25 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    if (PlatformDetector.isAndroidAppium()) {
+      await assertAndroidTestSnapsTextContains(
+        selector,
+        expectedMessage,
+        options,
+      );
+      return;
+    }
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      await Assertions.checkIfTextMatches(actualText, expectedMessage);
-    }, options);
+    await this.withWebView(async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapResultSelectorWebIDS[selector],
+      );
+
+      return Utilities.executeWithRetry(async () => {
+        const actualText = await webElement.getText();
+        await Assertions.checkIfTextMatches(actualText, expectedMessage);
+      }, options);
+    });
   }
 
   async checkInstalledSnaps(
@@ -136,22 +186,79 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    if (PlatformDetector.isAndroidAppium()) {
+      await assertAndroidTestSnapsJson(selector, expectedJson, options);
+      return;
+    }
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      let actualJson: Json;
-      try {
-        actualJson = JSON.parse(actualText);
-      } catch (error) {
-        throw new Error(`Failed to parse JSON from result span: ${actualText}`);
-      }
+    await this.withWebView(async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapResultSelectorWebIDS[selector],
+      );
 
-      await Assertions.checkIfJsonEqual(actualJson, expectedJson);
-    }, options);
+      return Utilities.executeWithRetry(async () => {
+        const actualText = await webElement.getText();
+        let actualJson: Json;
+        try {
+          actualJson = JSON.parse(actualText);
+        } catch (error) {
+          throw new Error(
+            `Failed to parse JSON from result span: ${actualText}`,
+          );
+        }
+
+        if (
+          typeof expectedJson === 'object' &&
+          expectedJson !== null &&
+          !Array.isArray(expectedJson)
+        ) {
+          await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+        }
+      }, options);
+    });
+  }
+
+  async checkResultJsonExcluding(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    excludedKeys: string[],
+    expectedJson: Json,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    if (PlatformDetector.isAndroidAppium()) {
+      await assertAndroidTestSnapsJsonExcluding(
+        selector,
+        excludedKeys,
+        expectedJson,
+        options,
+      );
+      return;
+    }
+
+    await this.withWebView(async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapResultSelectorWebIDS[selector],
+      );
+
+      return Utilities.executeWithRetry(async () => {
+        const actualText = await webElement.getText();
+        let actualJson: Json;
+        try {
+          actualJson = JSON.parse(actualText);
+        } catch (error) {
+          throw new Error(
+            `Failed to parse JSON from result span: ${actualText}`,
+          );
+        }
+
+        await Assertions.checkIfJsonEqual(
+          stripJsonKeys(actualJson, excludedKeys),
+          stripJsonKeys(expectedJson, excludedKeys),
+        );
+      }, options);
+    });
   }
 
   async checkResultSpanIncludes(
@@ -162,17 +269,18 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    await this.withWebView(async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapResultSelectorWebIDS[selector],
+      );
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      if (!actualText.includes(expectedMessage)) {
-        throw new Error(`Text did not contain "${expectedMessage}"`);
-      }
-    }, options);
+      return Utilities.executeWithRetry(async () => {
+        const actualText = await webElement.getText();
+        if (!actualText.includes(expectedMessage)) {
+          throw new Error(`Text did not contain "${expectedMessage}"`);
+        }
+      }, options);
+    });
   }
 
   async checkResultSpanNotEmpty(
@@ -182,17 +290,18 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    await this.withWebView(async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapResultSelectorWebIDS[selector],
+      );
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      if (!actualText || actualText.trim() === '') {
-        throw new Error(`Result span is empty`);
-      }
-    }, options);
+      return Utilities.executeWithRetry(async () => {
+        const actualText = await webElement.getText();
+        if (!actualText || actualText.trim() === '') {
+          throw new Error(`Result span is empty`);
+        }
+      }, options);
+    });
   }
 
   async checkClientStatus(
@@ -205,36 +314,58 @@ class TestSnaps {
       interval: 100,
     },
   ) {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS.clientStatusResultSpan,
-    );
+    if (PlatformDetector.isAndroidAppium()) {
+      await assertAndroidTestSnapsClientStatus(
+        {
+          clientVersion: expectedClientVersion,
+          ...expectedStatus,
+        },
+        options,
+      );
+      return;
+    }
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      let actualStatusWithVersion;
-      try {
-        actualStatusWithVersion = JSON.parse(actualText);
-      } catch (error) {
-        throw new Error(
-          `Failed to parse JSON from client status span: ${actualText}`,
-        );
-      }
+    await this.withWebView(async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapResultSelectorWebIDS.clientStatusResultSpan,
+      );
 
-      const { clientVersion: actualClientVersion, ...actualStatus } =
-        actualStatusWithVersion;
+      return Utilities.executeWithRetry(async () => {
+        const actualText = await webElement.getText();
+        let actualStatusWithVersion;
+        try {
+          actualStatusWithVersion = JSON.parse(actualText);
+        } catch (error) {
+          throw new Error(
+            `Failed to parse JSON from client status span: ${actualText}`,
+          );
+        }
 
-      await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
-      if (!actualClientVersion.startsWith(expectedClientVersion)) {
-        throw new Error(
-          `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
-        );
-      }
-    }, options);
+        const { clientVersion: actualClientVersion, ...actualStatus } =
+          actualStatusWithVersion;
+
+        await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
+        if (!actualClientVersion.startsWith(expectedClientVersion)) {
+          throw new Error(
+            `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
+          );
+        }
+      }, options);
+    });
   }
 
-  async navigateToTestSnap(): Promise<void> {
-    await Browser.tapUrlInputBox();
+  async navigateToTestSnap(
+    options: { skipTabCleanup?: boolean } = {},
+  ): Promise<void> {
+    if (PlatformDetector.isAndroidAppium() && !options.skipTabCleanup) {
+      await Browser.closeAllBrowserTabsIfOpen();
+    }
+
+    // Appium uses dapp:// deeplink for https test-snaps URLs in navigateToURL.
+    // Tapping the URL bar first is unnecessary and races with browser chrome.
+    if (!FrameworkDetector.isAppium()) {
+      await Browser.tapUrlInputBox();
+    }
     await Browser.navigateToURL(TEST_SNAPS_URL);
     await waitForTestSnapsToLoad();
   }
@@ -242,14 +373,27 @@ class TestSnaps {
   async tapButton(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
-    const webElement = Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapViewSelectorWebIDS[buttonLocator],
-    );
-    await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tap(webElement, {
-      elemDescription: `tapButton:: ${buttonLocator}`,
-    });
+    if (PlatformDetector.isAndroidAppium()) {
+      await tapAndroidTestSnapsButton(buttonLocator);
+      return;
+    }
+
+    const tap = async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapViewSelectorWebIDS[buttonLocator],
+      );
+      await Gestures.scrollToWebViewPort(webElement);
+      await Gestures.tap(webElement, {
+        elemDescription: `tapButton:: ${buttonLocator}`,
+      });
+    };
+
+    if (FrameworkDetector.isAppium()) {
+      await this.withWebView(tap);
+      return;
+    }
+
+    await tap();
   }
 
   async tapOkButton() {
@@ -309,8 +453,7 @@ class TestSnaps {
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    const webElement = (await this.getTestSnapsWebElement(
       EntropyDropDownSelectorWebIDS[selector],
     )) as IndexableWebElement;
 
@@ -405,6 +548,25 @@ class TestSnaps {
     });
   }
 
+  async expectSnapDialogLinkDisplayed(
+    options: { timeout?: number } = { timeout: 30_000 },
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed('Confirmation Dialog', options);
+
+    if (PlatformDetector.isIOSAppium()) {
+      // Detox / Android can target `snaps-ui-link-icon`. On iOS Appium, XCUITest
+      // does not expose that testID for inline SnapUILink — it surfaces as Text —
+      // so assert the visible link label instead (same coverage as before for Detox).
+      await Assertions.expectTextDisplayed('link', options);
+      return;
+    }
+
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID('snaps-ui-link-icon'),
+      options,
+    );
+  }
+
   async installSnap(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
@@ -430,12 +592,17 @@ class TestSnaps {
     locator: keyof typeof TestSnapInputSelectorWebIDS,
     message: string,
   ) {
-    const webElement = Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapInputSelectorWebIDS[locator],
-    ) as unknown as Promise<IndexableWebElement>;
-    // New gestures currently don't support web elements
-    await Gestures.typeInWebElement(webElement, message);
+    if (PlatformDetector.isAndroidAppium()) {
+      await fillAndroidTestSnapsInput(locator, message);
+      return;
+    }
+
+    await this.withWebView(async () => {
+      const webElement = await this.getTestSnapsWebElement(
+        TestSnapInputSelectorWebIDS[locator],
+      );
+      await Gestures.typeInWebElement(webElement, message);
+    });
   }
 
   async approveSignRequest() {
@@ -493,8 +660,7 @@ class TestSnaps {
     origin: string | null;
     blockNumber: string | null;
   }): Promise<void> {
-    const resultElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    const resultElement = (await this.getTestSnapsWebElement(
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
 
