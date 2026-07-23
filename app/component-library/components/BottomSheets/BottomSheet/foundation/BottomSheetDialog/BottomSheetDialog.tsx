@@ -55,6 +55,7 @@ const BottomSheetDialog = forwardRef<
     {
       children,
       isFullscreen = false,
+      hasBottomBorder = false,
       isInteractable = true,
       keyboardAvoidingViewEnabled = true,
       onClose,
@@ -74,6 +75,7 @@ const BottomSheetDialog = forwardRef<
       screenBottomPadding,
       style,
       isFullscreen,
+      hasBottomBorder,
     });
     // X and Y values start on top left of the DIALOG
     // currentYOffset will be used to animate the Y position of the Dialog
