@@ -239,7 +239,9 @@
     "@metamask/assets-controllers@npm:^109.3.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.4.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.4.1": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
-    "@metamask/assets-controller@npm:^11.0.0": "patch:@metamask/assets-controller@npm%3A11.1.0#~/.yarn/patches/@metamask-assets-controller-npm-11.1.0-85f01e7461.patch"
+    "@metamask/assets-controller@npm:^11.0.0": "patch:@metamask/assets-controller@npm%3A11.1.0#~/.yarn/patches/@metamask-assets-controller-npm-11.1.0-85f01e7461.patch",
+    "@metamask/bridge-controller@npm:^77.5.0": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
+    "@metamask/bridge-controller@npm:^77.6.0": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
