@@ -100,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Monad assets not appearing in token search results by adding Monad to the Explore/Trending supported network list (#33614)
 - Fixed fingerprint and biometric unlock failing with a read-only isAuthenticating error after the React Native 0.83 upgrade (#33406)
 - Fixed vertical alignment of the Perps provider selector and Testnet tags on Perps home and the provider sheet (#33363)
 - Fixed raw token amounts shown in asset details activity list (#33211)
