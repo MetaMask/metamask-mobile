@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import I18n from '../../../../../../../locales/i18n';
@@ -31,7 +32,7 @@ export function TransactionSummaryLine({
   transactionMeta,
   txHash,
 }: TransactionSummaryLineProps) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const resolvedChainId = chainId ?? transactionMeta.chainId;

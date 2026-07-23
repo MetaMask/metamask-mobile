@@ -3,6 +3,7 @@ import { Hex } from '@metamask/utils';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import Avatar, {
   AvatarSize,
@@ -43,7 +44,7 @@ const SwitchAccountTypeModal = () => {
       >
     >();
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const selectedAccountAddress =
     Engine.context.AccountsController.getSelectedAccount()?.address;
   const address: Hex | undefined =

@@ -4,6 +4,7 @@ import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { strings } from '../../../../../../../locales/i18n';
 import Icon, {
@@ -38,7 +39,7 @@ import { styleSheet } from './amount.styles';
 import { InitSendLocation } from '../../../constants/send';
 
 export const Amount = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { header: renderAmountHeader } = useSendNavbar().Amount;
   const { location } = useParams<{ location?: string }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);

@@ -8,6 +8,7 @@ import { TransactionDetailDivider } from '../transaction-detail-divider/transact
 import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { TransactionDetailsPaidWithRow } from '../transaction-details-paid-with-row';
 import { TransactionDetailsSummary } from '../transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero';
@@ -44,7 +45,7 @@ export const SUMMARY_SECTION_TYPES = [
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { transactionMeta } = useTransactionDetails();
   const isMoneyContext = useIsMoneyAccountContext();
   const title = getTitle(transactionMeta, isMoneyContext);

@@ -18,6 +18,8 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
+import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
@@ -71,7 +73,6 @@ import type {
   PerpsOrderRouteParams,
   PerpsStackParamList,
 } from '../../components/UI/Perps/types/navigation';
-import type { ConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type {
   MoneyNavigationParamList,
   MoneyScreensStackParamList,
@@ -945,7 +946,7 @@ export type RootStackParamList = {
   AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
   ConfirmationRequestModal: undefined;
   ConfirmationSwitchAccountType: undefined;
-  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithModal: PayWithModalParams | undefined;
   ConfirmationPayWithBottomSheet:
     | { preferredPaymentToken?: SetPayTokenRequest }
     | undefined;
@@ -979,11 +980,13 @@ export type RootStackParamList = {
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
+  // FullScreenConfirmationParams covers confirmation entry points; Partial<PerpsOrderRouteParams>
+  // covers Perps deposit+order navigation that reuses the same root route key.
   RedesignedConfirmations:
-    | ConfirmationParams
+    | FullScreenConfirmationParams
     | Partial<PerpsOrderRouteParams>
     | undefined;
-  NoHeaderConfirmations: undefined;
+  NoHeaderConfirmations: FullScreenConfirmationParams | undefined;
 
   // Identity routes
   TurnOnBackupAndSync: undefined;

@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -10,7 +11,10 @@ import {
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isHardwareAccount } from '../../../../../util/address';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  navigateWithDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import {
   ConfirmationParams,
   PayWithOption,
@@ -42,7 +46,7 @@ export const GO_BACK_TYPES = [
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } =
     useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -173,9 +177,12 @@ export function useTransactionConfirm() {
             params: { screen: Routes.MONEY.HOME },
           });
         } else {
-          navigation.navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.PERPS_HOME,
-          });
+          // Cross-navigator jump into the Perps stack; PerpsHome's param list
+          // is owned/typed by the Perps feature.
+          navigateWithDetails(navigation, [
+            Routes.PERPS.ROOT,
+            { screen: Routes.PERPS.PERPS_HOME },
+          ]);
         }
       } else if (type === TransactionType.predictDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {

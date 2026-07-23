@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { Hex, isHexString } from '@metamask/utils';
 import { NetworkStatus } from '@metamask/network-controller';
 
@@ -17,7 +18,7 @@ export function useUnreliableNetworkAlert(): {
   navigateToEditNetwork: () => void;
 } {
   const { chainId } = useSendContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const networkControllerState = useSelector(selectNetworkControllerState);
 
   const { alert, rpcUrl } = useMemo(() => {

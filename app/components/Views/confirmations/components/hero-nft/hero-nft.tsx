@@ -1,5 +1,6 @@
 import { Nft } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,7 +28,7 @@ const NftImageAndNetworkBadge = ({
   chainId: string;
   nft?: Nft;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { networkName, networkImage } = useNetworkInfo(chainId);
 
