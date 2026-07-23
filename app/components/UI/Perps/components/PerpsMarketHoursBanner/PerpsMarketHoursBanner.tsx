@@ -4,10 +4,17 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
   Icon,
   IconName,
   IconSize,
   IconColor,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import type { PerpsMarketHoursBannerProps } from './PerpsMarketHoursBanner.types';
@@ -48,16 +55,25 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
             color={IconColor.IconDefault}
           />
         }
-        title={titleText}
+        title={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {titleText}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Info}
+              size={ButtonIconSize.Sm}
+              onPress={onInfoPress}
+              accessibilityLabel={titleText}
+              testID={`${testID}-info-button`}
+            />
+          </Box>
+        }
         description={subtitleText}
-        onClose={onInfoPress}
-        closeButtonProps={{
-          testID: `${testID}-info-button`,
-          accessibilityLabel: titleText,
-          // BannerBase sets Close then spreads props; Info overrides at runtime
-          // @ts-expect-error iconName is omitted from closeButtonProps typings
-          iconName: IconName.Info,
-        }}
         testID={testID}
       />
     </Box>

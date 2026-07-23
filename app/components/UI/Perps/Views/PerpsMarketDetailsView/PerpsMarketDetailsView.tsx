@@ -1740,16 +1740,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
-
-            {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
-            {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
-              <Box twClassName="px-4 mb-4">
-                <PerpsPriceDeviationWarning
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
-                />
-              </Box>
-            )}
           </View>
+
+          {/* Price Deviation Warning - outside chart section so px-4 isn't doubled with section padding */}
+          {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
+            <Box twClassName="px-4 mb-4">
+              <PerpsPriceDeviationWarning
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
+              />
+            </Box>
+          )}
 
           {/* Service Interruption Banner */}
           {isServiceInterruptionBannerEnabled && (
