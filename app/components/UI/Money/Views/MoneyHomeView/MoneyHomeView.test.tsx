@@ -471,7 +471,6 @@ describe('MoneyHomeView', () => {
       withdrawableMusd: undefined,
       isBalanceLoading: false,
       isBalanceFetchError: false,
-      isBalanceFetching: false,
       isBalanceUnavailable: false,
       lastKnownTotalFiatFormatted: undefined,
       refetchBalance: mockRefetchBalance,
@@ -487,6 +486,8 @@ describe('MoneyHomeView', () => {
           musdBalance: '1000000',
           vmusdValueInMusd: '2000000',
           totalBalance: '3000000',
+          source: 'api',
+          usedFallback: false,
         },
         isLoading: false,
       },
@@ -521,6 +522,10 @@ describe('MoneyHomeView', () => {
 
     mockRefetchBalance.mockReset();
     mockRefetchBalance.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders the main container', () => {
@@ -605,7 +610,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: true,
-        isBalanceFetching: false,
         isBalanceUnavailable: true,
         lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
@@ -736,7 +740,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         isBalanceLoading: true,
         isBalanceFetchError: true,
-        isBalanceFetching: false,
         lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyPercent: 5,
@@ -772,7 +775,6 @@ describe('MoneyHomeView', () => {
           totalFiatRaw: undefined,
           isBalanceLoading: false,
           isBalanceFetchError: false,
-          isBalanceFetching: false,
           refetchBalance: jest.fn(),
           apyPercent: 5,
           vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -813,7 +815,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -863,7 +864,6 @@ describe('MoneyHomeView', () => {
           totalFiatRaw: undefined,
           isBalanceLoading: false,
           isBalanceFetchError: false,
-          isBalanceFetching: false,
           isBalanceUnavailable: true,
           lastKnownTotalFiatFormatted: undefined,
           refetchBalance: jest.fn(),
@@ -933,7 +933,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -964,7 +963,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         isAggregatedBalanceLoading: false,
         isBalanceFetchError: true,
-        isBalanceFetching: false,
         isBalanceUnavailable: true,
         lastKnownTotalFiatFormatted,
         refetchBalance: jest.fn(),
@@ -1104,7 +1102,6 @@ describe('MoneyHomeView', () => {
         tokenTotal: undefined,
         isBalanceLoading: true,
         isBalanceFetchError: false,
-        isBalanceFetching: true,
         isBalanceUnavailable: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
@@ -1123,7 +1120,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1141,7 +1137,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1285,7 +1280,6 @@ describe('MoneyHomeView', () => {
       tokenTotal: new BigNumber(0),
       isBalanceLoading: false,
       isBalanceFetchError: false,
-      isBalanceFetching: false,
       refetchBalance: mockRefetchBalance,
       apyPercent: 5,
       vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -1377,7 +1371,6 @@ describe('MoneyHomeView', () => {
         tokenTotal: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -1715,7 +1708,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -2037,7 +2029,6 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         isBalanceLoading: true,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
@@ -2077,7 +2068,6 @@ describe('MoneyHomeView', () => {
         withdrawableMusd: undefined,
         isBalanceLoading: false,
         isBalanceFetchError: false,
-        isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyDecimal: 0.05,
         apyPercent: 5,

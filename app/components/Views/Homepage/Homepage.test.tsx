@@ -335,7 +335,6 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   default: (params: UseHomeViewedEventParamsSnapshot) =>
     (mockUseHomeViewedEvent as jest.Mock)(params),
   HomeSectionNames: {
-    CASH: 'cash',
     TOKENS: 'tokens',
     WATCHLIST: 'watchlist',
     TOP_TRADERS: 'top_traders',
@@ -752,53 +751,6 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
-    });
-
-    it('shifts watchlist index when Cash is enabled', () => {
-      jest
-        .requireMock('../../UI/Earn/selectors/featureFlags')
-        .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
-      mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
-      expect(callBySectionName('cash')?.sectionIndex).toBe(0);
-      expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
-      expect(callBySectionName('watchlist')?.sectionIndex).toBe(4);
-      expect(callBySectionName('defi')?.sectionIndex).toBe(5);
-
-      calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(6);
-      });
-    });
-  });
-
-  describe('section indices — Cash section enabled', () => {
-    beforeEach(() => {
-      jest
-        .requireMock('../../UI/Earn/selectors/featureFlags')
-        .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
-      mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
-    });
-
-    it('passes sectionIndex 0 to Cash and shifts others when Cash is enabled', () => {
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
-      expect(callBySectionName('cash')?.sectionIndex).toBe(0);
-      expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('nfts')).toBeUndefined();
-      expect(callBySectionName('cash')?.totalSectionsLoaded).toBe(5);
     });
   });
 

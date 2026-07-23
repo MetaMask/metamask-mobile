@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
-import { type MoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
+import { type CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   selectIsCardAuthenticated,
@@ -100,10 +100,12 @@ export const useMoneyAnalytics = ({
     // query cache at fire time instead of subscribing to it — a subscription
     // would re-render every consumer on each background poll.
     const balanceQueryState =
-      ReactQueryService.queryClient.getQueryState<MoneyAccountBalanceResponse>([
-        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
-        moneyAccountAddress as string,
-      ]);
+      ReactQueryService.queryClient.getQueryState<CanonicalMoneyAccountBalanceResponse>(
+        [
+          MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
+          moneyAccountAddress as string,
+        ],
+      );
 
     // An absent cache entry while a money account exists means the fetch just
     // hasn't been observed yet, so it must read as loading — mirroring the old

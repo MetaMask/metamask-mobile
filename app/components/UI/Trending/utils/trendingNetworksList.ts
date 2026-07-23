@@ -88,6 +88,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     }),
   },
   {
+    id: NetworkToCaipChainId.MONAD,
+    name: 'Monad',
+    caipChainId: NetworkToCaipChainId.MONAD,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.MONAD,
+    }),
+  },
+  {
     id: NetworkToCaipChainId.LINEA,
     name: 'Linea',
     caipChainId: NetworkToCaipChainId.LINEA,

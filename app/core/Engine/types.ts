@@ -323,6 +323,11 @@ import {
   MoneyAccountBalanceServiceEvents,
 } from '@metamask/money-account-balance-service';
 import {
+  MoneyAccountApiDataService,
+  type MoneyAccountApiDataServiceActions,
+  type MoneyAccountApiDataServiceEvents,
+} from '@metamask/money-account-api-data-service';
+import {
   GeolocationController,
   GeolocationControllerState,
   GeolocationControllerActions,
@@ -612,6 +617,7 @@ export type GlobalActions =
   | EarnControllerActions
   | MoneyAccountControllerActions
   | MoneyAccountBalanceServiceActions
+  | MoneyAccountApiDataServiceActions
   | GeolocationControllerActions
   | GeolocationApiServiceActions
   | PerpsControllerActions
@@ -711,6 +717,7 @@ export type GlobalEvents =
   | EarnControllerEvents
   | MoneyAccountControllerEvents
   | MoneyAccountBalanceServiceEvents
+  | MoneyAccountApiDataServiceEvents
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
@@ -853,6 +860,7 @@ export type MessengerClients = {
   EarnController: EarnController;
   MoneyAccountController: MoneyAccountController;
   MoneyAccountBalanceService: MoneyAccountBalanceService;
+  MoneyAccountApiDataService: MoneyAccountApiDataService;
   GeolocationController: GeolocationController;
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
@@ -1031,6 +1039,7 @@ export type MessengerClientsToInitialize =
   | 'EarnController'
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
+  | 'MoneyAccountApiDataService'
   | 'LoggingController'
   | 'AccountTreeController'
   | 'CurrencyRateController'
