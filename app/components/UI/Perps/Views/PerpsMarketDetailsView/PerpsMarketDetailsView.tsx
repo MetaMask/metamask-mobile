@@ -1743,22 +1743,30 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
             {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
             {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
-              <PerpsPriceDeviationWarning
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
-              />
+              <Box twClassName="px-4 mb-4">
+                <PerpsPriceDeviationWarning
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
+                />
+              </Box>
             )}
           </View>
 
           {/* Service Interruption Banner */}
-          <PerpsServiceInterruptionBanner
-            testID={
-              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
-            }
-          />
+          {isServiceInterruptionBannerEnabled && (
+            <Box twClassName="px-4 mb-4">
+              <PerpsServiceInterruptionBanner
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+                }
+              />
+            </Box>
+          )}
 
           {/* OI Cap Warning - Shows when market is at capacity */}
           {market?.symbol && isAtOICap && (
-            <PerpsOICapWarning symbol={market.symbol} variant="banner" />
+            <Box twClassName="px-4 mb-4">
+              <PerpsOICapWarning symbol={market.symbol} variant="banner" />
+            </Box>
           )}
 
           {/* Market Hours Banner - Hidden when OI cap warning is showing */}
@@ -1773,20 +1781,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Stop Loss Prompt Banner - Shows when position needs attention */}
           {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
           {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
-            <PerpsStopLossPromptBanner
-              variant={bannerVariant}
-              liquidationDistance={liquidationDistance ?? 0}
-              suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
-              suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
-              onSetStopLoss={handleSetStopLossFromBanner}
-              onAddMargin={handleAddMarginFromBanner}
-              isLoading={isSettingStopLoss}
-              isSuccess={isStopLossSuccess}
-              onFadeOutComplete={handleBannerFadeOutComplete}
-              testID={
-                PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
-              }
-            />
+            <Box twClassName="px-4 mb-4">
+              <PerpsStopLossPromptBanner
+                variant={bannerVariant}
+                liquidationDistance={liquidationDistance ?? 0}
+                suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
+                suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
+                onSetStopLoss={handleSetStopLossFromBanner}
+                onAddMargin={handleAddMarginFromBanner}
+                isLoading={isSettingStopLoss}
+                isSuccess={isStopLossSuccess}
+                onFadeOutComplete={handleBannerFadeOutComplete}
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
+                }
+              />
+            </Box>
           )}
 
           {shouldShowPerpsMarketInsightsSection ? (

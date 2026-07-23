@@ -91,12 +91,14 @@ describe('PerpsOICapWarning', () => {
     });
 
     it('should render banner variant when specified', () => {
-      const { UNSAFE_getByProps, UNSAFE_queryByProps } = render(
+      const { getByTestId, getByText } = render(
         <PerpsOICapWarning symbol="BTC" variant="banner" />,
       );
 
-      UNSAFE_getByProps({ variant: TextVariant.BodyMd });
-      expect(UNSAFE_queryByProps({ variant: TextVariant.BodySm })).toBeNull();
+      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(
+        getByText(strings('perps.order.validation.oi_cap_reached')),
+      ).toBeTruthy();
     });
 
     it('should render inline variant when specified', () => {

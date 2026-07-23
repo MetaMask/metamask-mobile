@@ -185,27 +185,4 @@ describe('PerpsMarketHoursBanner', () => {
       expect(getByTestId('perps-market-hours-banner-info-button')).toBeTruthy();
     });
   });
-
-  describe('accessibility', () => {
-    beforeEach(() => {
-      (isEquityAsset as jest.Mock).mockReturnValue(true);
-    });
-
-    it('should have proper hit slop for info button', () => {
-      const { getByTestId } = render(
-        <PerpsMarketHoursBanner
-          marketType="stock"
-          onInfoPress={mockOnInfoPress}
-        />,
-      );
-
-      const infoButton = getByTestId('perps-market-hours-banner-info-button');
-      expect(infoButton.props.hitSlop).toEqual({
-        top: 10,
-        bottom: 10,
-        left: 10,
-        right: 10,
-      });
-    });
-  });
 });

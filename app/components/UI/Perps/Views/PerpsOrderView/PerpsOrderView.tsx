@@ -20,6 +20,7 @@ import {
 } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
+  Box,
   Button as DSButton,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
@@ -2100,7 +2101,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* OI Cap Warning - Shows when market is at capacity */}
       {!isInputFocused && isAtOICap && (
-        <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
+        <Box twClassName="px-4 mb-4">
+          <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
+        </Box>
       )}
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
