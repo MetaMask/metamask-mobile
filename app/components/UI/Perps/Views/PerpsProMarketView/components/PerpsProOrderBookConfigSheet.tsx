@@ -136,18 +136,26 @@ const PerpsProOrderBookConfigSheet = ({
   testID = 'perps-pro-order-book-config-sheet',
 }: PerpsProOrderBookConfigSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const wasVisibleRef = useRef(false);
   const [draftCurrency, setDraftCurrency] =
     useState<OrderBookListCurrency>(currency);
   const [draftMetric, setDraftMetric] = useState<OrderBookListMetric>(metric);
   const [draftGrouping, setDraftGrouping] = useState<number | null>(grouping);
 
+  // Snapshot props into draft only when the sheet opens. Do not re-sync while
+  // open — live grouping/mid updates would wipe in-progress chip selections.
   useEffect(() => {
-    if (isVisible) {
-      setDraftCurrency(currency);
-      setDraftMetric(metric);
-      setDraftGrouping(grouping);
-      sheetRef.current?.onOpenBottomSheet();
+    const justOpened = isVisible && !wasVisibleRef.current;
+    wasVisibleRef.current = isVisible;
+
+    if (!justOpened) {
+      return;
     }
+
+    setDraftCurrency(currency);
+    setDraftMetric(metric);
+    setDraftGrouping(grouping);
+    sheetRef.current?.onOpenBottomSheet();
   }, [isVisible, currency, metric, grouping]);
 
   const handleClose = useCallback(() => {
