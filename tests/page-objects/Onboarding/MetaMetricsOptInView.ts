@@ -71,8 +71,8 @@ class MetaMetricsOptIn {
     );
   }
 
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(
+  get scrollViewIdentifier() {
+    return Matchers.scrollContainer(
       MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
     );
   }
