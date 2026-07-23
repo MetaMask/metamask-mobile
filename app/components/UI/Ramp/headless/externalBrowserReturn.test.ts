@@ -5,6 +5,7 @@ import {
   emitExternalCheckoutClosed,
   emitExternalOrderFailed,
   EXTERNAL_RETURN_TTL_MS,
+  findExternalReturnCorrelationForDeeplink,
   getExternalReturnCorrelation,
   recordExternalReturnCorrelation,
   type ExternalReturnCorrelation,
@@ -150,22 +151,94 @@ describe('externalBrowserReturn', () => {
     it('returns the recorded correlation until TTL expiry', () => {
       const correlation = buildCorrelation('session-1');
       recordExternalReturnCorrelation(correlation);
-      expect(getExternalReturnCorrelation()).toBe(correlation);
+      expect(getExternalReturnCorrelation('session-1')).toBe(correlation);
 
       recordExternalReturnCorrelation(
         buildCorrelation('session-1', {
           launchedAt: Date.now() - EXTERNAL_RETURN_TTL_MS - 1,
         }),
       );
-      expect(getExternalReturnCorrelation()).toBeNull();
+      expect(getExternalReturnCorrelation('session-1')).toBeNull();
     });
 
-    it('clear with a mismatched sessionId keeps the record', () => {
+    it('holds one record per session concurrently', () => {
+      const first = buildCorrelation('session-1', { orderId: 'order-a' });
+      const second = buildCorrelation('session-2', { orderId: 'order-b' });
+      recordExternalReturnCorrelation(first);
+      recordExternalReturnCorrelation(second);
+      expect(getExternalReturnCorrelation('session-1')).toBe(first);
+      expect(getExternalReturnCorrelation('session-2')).toBe(second);
+    });
+
+    it('clear with a mismatched sessionId keeps the record; undefined is a no-op', () => {
       recordExternalReturnCorrelation(buildCorrelation('session-1'));
       clearExternalReturnCorrelation('other-session');
-      expect(getExternalReturnCorrelation()).not.toBeNull();
+      expect(getExternalReturnCorrelation('session-1')).not.toBeNull();
+      clearExternalReturnCorrelation(undefined);
+      expect(getExternalReturnCorrelation('session-1')).not.toBeNull();
       clearExternalReturnCorrelation('session-1');
-      expect(getExternalReturnCorrelation()).toBeNull();
+      expect(getExternalReturnCorrelation('session-1')).toBeNull();
+    });
+  });
+
+  describe('findExternalReturnCorrelationForDeeplink', () => {
+    it('matches by normalized orderId even after the session is gone (E2)', () => {
+      const record = buildCorrelation('gone-session', {
+        orderId: '/providers/coinbase-m/orders/order-guid-1',
+      });
+      recordExternalReturnCorrelation(record);
+
+      expect(
+        findExternalReturnCorrelationForDeeplink({ orderId: 'order-guid-1' }),
+      ).toBe(record);
+    });
+
+    it('returns null for a named deeplink that matches no record (foreign return)', () => {
+      recordExternalReturnCorrelation(
+        buildCorrelation('session-1', { orderId: 'order-guid-1' }),
+      );
+
+      expect(
+        findExternalReturnCorrelationForDeeplink({
+          orderId: 'someone-elses-order',
+          providerCode: 'coinbase-m',
+        }),
+      ).toBeNull();
+    });
+
+    it('without an orderId, matches by provider only for a live session', () => {
+      const onOrderCreated = jest.fn();
+      const session = createSession(SESSION_PARAMS, {
+        onOrderCreated,
+        onClose: jest.fn(),
+        onError: jest.fn(),
+      });
+      const liveRecord = buildCorrelation(session.id, {
+        orderId: undefined,
+        onOrderCreated,
+      });
+      recordExternalReturnCorrelation(liveRecord);
+      recordExternalReturnCorrelation(
+        buildCorrelation('dead-session', { orderId: undefined }),
+      );
+
+      expect(
+        findExternalReturnCorrelationForDeeplink({
+          providerCode: 'coinbase-m',
+        }),
+      ).toBe(liveRecord);
+    });
+
+    it('without an orderId, a dead session record never matches', () => {
+      recordExternalReturnCorrelation(
+        buildCorrelation('dead-session', { orderId: undefined }),
+      );
+
+      expect(
+        findExternalReturnCorrelationForDeeplink({
+          providerCode: 'coinbase-m',
+        }),
+      ).toBeNull();
     });
   });
 
@@ -208,7 +281,7 @@ describe('externalBrowserReturn', () => {
       expect(onOrderCreated).toHaveBeenCalledWith(ORDER.providerOrderId);
       expect(onClose).toHaveBeenCalledWith({ reason: 'completed' });
       expect(onError).not.toHaveBeenCalled();
-      expect(getExternalReturnCorrelation()).toBeNull();
+      expect(getExternalReturnCorrelation(session.id)).toBeNull();
     });
 
     it('E2: completes via the retained callback when the session is gone, without onClose', async () => {
@@ -230,7 +303,7 @@ describe('externalBrowserReturn', () => {
       expect(retainedOnOrderCreated).toHaveBeenCalledWith(
         ORDER.providerOrderId,
       );
-      expect(getExternalReturnCorrelation()).toBeNull();
+      expect(getExternalReturnCorrelation('gone-session')).toBeNull();
     });
 
     it('returns null when neither a session nor a correlation exists', async () => {
@@ -278,7 +351,7 @@ describe('externalBrowserReturn', () => {
           returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-9',
         }),
       ).rejects.toThrow('lookup failed');
-      expect(getExternalReturnCorrelation()).not.toBeNull();
+      expect(getExternalReturnCorrelation('session-3')).not.toBeNull();
     });
 
     it('guards against concurrent double-completion for the same session', async () => {

@@ -358,8 +358,10 @@ export function useContinueWithQuote(
             if (!effectiveWallet) {
               // The return leg (callback resolution) is impossible without a
               // wallet address; fail fast instead of launching a browser
-              // whose success could never be resolved into an order.
-              throw tagHeadlessQuoteFailure(
+              // whose success could never be resolved into an order. Marked
+              // as already-reported so the outer catch rethrows it unchanged
+              // instead of double-reporting to Sentry.
+              const noWalletError = tagHeadlessQuoteFailure(
                 new Error(
                   reportRampsError(
                     new Error(
@@ -370,7 +372,9 @@ export function useContinueWithQuote(
                   ),
                 ),
                 true,
-              );
+              ) as Error & { rampsErrorReported?: boolean };
+              noWalletError.rampsErrorReported = true;
+              throw noWalletError;
             }
             // P2.M2/E2: correlate the deeplink return with this session. The
             // record retains `onOrderCreated` so a success return can
@@ -415,9 +419,12 @@ export function useContinueWithQuote(
             }
             if (headlessId) {
               // Headless: leave the session `continued` and the Host overlay
-              // mounted. Success arrives via the `metamask://on-ramp`
-              // deeplink (handleRampReturnUrl); abandonment is inferred by
-              // the existing dismissal machinery — no BuildQuote reset.
+              // mounted (touch-through). Success arrives via the
+              // `metamask://on-ramp` deeplink (handleRampReturnUrl); an
+              // abandoned session ends only via hardware back on the Host, a
+              // new startHeadlessBuy, consumer cancel(), or the 1-hour stale
+              // GC — and a paid-but-never-returned order still reconciles
+              // through the persisted Precreated stub + order polling.
               return;
             }
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
@@ -425,20 +432,28 @@ export function useContinueWithQuote(
           }
 
           try {
-            const result = await InAppBrowser.openAuth(
-              buyWidget.url,
-              redirectUrl,
-            );
+            let result: Awaited<ReturnType<typeof InAppBrowser.openAuth>>;
+            try {
+              result = await InAppBrowser.openAuth(buyWidget.url, redirectUrl);
+            } catch (openError) {
+              // The auth session failed to open/resolve: the session will end
+              // in onError (outer catch -> Host failSession), after which a
+              // late onOrderCreated must be impossible — drop the correlation.
+              clearExternalReturnCorrelation(headlessId);
+              throw openError;
+            }
 
             if (headlessId) {
               // P2.M1: resolve every openAuth outcome into a terminal
-              // session callback instead of resetting to BuildQuote.
-              const correlation = getExternalReturnCorrelation();
-              const ownCorrelation =
-                correlation?.sessionId === headlessId ? correlation : null;
+              // session callback instead of resetting to BuildQuote. Only
+              // the path that actually terminates the session may pop the
+              // overlay — a newer session may own it by now.
+              const ownCorrelation = getExternalReturnCorrelation(headlessId);
 
               if (result.type !== 'success' || !result.url) {
                 // User closed the browser sheet: a user exit, not an error.
+                // Once the auth session is closed no deeplink can follow, so
+                // the correlation is dead weight — drop it.
                 if (ownCorrelation) {
                   emitExternalCheckoutClosed(
                     ownCorrelation,
@@ -447,13 +462,16 @@ export function useContinueWithQuote(
                   );
                 }
                 clearExternalReturnCorrelation(headlessId);
+                const hadLiveSession = Boolean(getSession(headlessId));
                 closeSession(headlessId, { reason: 'user_dismissed' });
-                dismissHeadlessFlow(navigation);
+                if (hadLiveSession) {
+                  dismissHeadlessFlow(navigation);
+                }
                 return;
               }
 
               try {
-                await completeHeadlessExternalReturn({
+                const completedOrder = await completeHeadlessExternalReturn({
                   sessionId: headlessId,
                   providerCode,
                   walletAddress: effectiveWallet,
@@ -462,16 +480,20 @@ export function useContinueWithQuote(
                   rampSurface: headlessSession?.params.rampSurface,
                   region: userRegion?.regionCode ?? undefined,
                 });
+                if (completedOrder) {
+                  dismissHeadlessFlow(navigation);
+                }
+                // null: another path (deeplink) already completed this
+                // session and owns the teardown — do not double-dismiss.
               } catch (completionError) {
                 if (ownCorrelation) {
                   emitExternalOrderFailed(ownCorrelation, completionError);
                 }
                 clearExternalReturnCorrelation(headlessId);
-                failSession(headlessId, completionError, 'QUOTE_FAILED');
+                if (failSession(headlessId, completionError, 'QUOTE_FAILED')) {
+                  dismissHeadlessFlow(navigation);
+                }
               }
-              // Success and failure both end the session; pop the transparent
-              // HEADLESS_ENTRY modal so the caller's screen is interactive.
-              dismissHeadlessFlow(navigation);
               return;
             }
 
@@ -513,6 +535,10 @@ export function useContinueWithQuote(
           }),
         );
       } catch (error) {
+        if ((error as { rampsErrorReported?: boolean })?.rampsErrorReported) {
+          // Already reported (and user-facing) at the throw site.
+          throw error;
+        }
         throw tagHeadlessQuoteFailure(
           new Error(
             reportRampsError(

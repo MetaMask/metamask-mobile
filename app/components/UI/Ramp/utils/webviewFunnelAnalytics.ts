@@ -6,7 +6,9 @@ export type CloseSource =
   | 'callback_success'
   | 'callback_error'
   | 'http_error'
-  | 'background';
+  | 'background'
+  /** External-browser checkout: user closed the iOS auth sheet (P2.M7). */
+  | 'external_browser_cancel';
 
 export interface FunnelBaseProps {
   checkout_session_id: string;

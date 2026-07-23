@@ -17,7 +17,7 @@ jest.mock('../headless/externalBrowserReturn', () => ({
   clearExternalReturnCorrelation: jest.fn(),
   completeHeadlessExternalReturn: jest.fn(),
   emitExternalOrderFailed: jest.fn(),
-  getExternalReturnCorrelation: jest.fn(() => null),
+  findExternalReturnCorrelationForDeeplink: jest.fn(() => null),
 }));
 
 jest.mock('../headless/headlessEntryNavigation', () => ({
@@ -35,7 +35,7 @@ const mockExternalReturn = jest.requireMock(
   clearExternalReturnCorrelation: jest.Mock;
   completeHeadlessExternalReturn: jest.Mock;
   emitExternalOrderFailed: jest.Mock;
-  getExternalReturnCorrelation: jest.Mock;
+  findExternalReturnCorrelationForDeeplink: jest.Mock;
 };
 const mockDismissFromRoot = jest.requireMock(
   '../headless/headlessEntryNavigation',
@@ -129,7 +129,7 @@ describe('handleRampReturnUrl', () => {
 
   describe('headless external-browser return (P2.M2 / M3)', () => {
     beforeEach(() => {
-      mockExternalReturn.getExternalReturnCorrelation.mockReturnValue(
+      mockExternalReturn.findExternalReturnCorrelationForDeeplink.mockReturnValue(
         CORRELATION,
       );
       mockExternalReturn.completeHeadlessExternalReturn.mockResolvedValue({

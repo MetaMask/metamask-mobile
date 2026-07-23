@@ -23,6 +23,7 @@ import {
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
+import { clearExternalReturnCorrelation } from '../../headless/externalBrowserReturn';
 import {
   dismissHeadlessFlow,
   setHeadlessEntryCardTouchThrough,
@@ -105,6 +106,9 @@ function HeadlessHost() {
       if (!failSession(headlessSessionId, error, fallbackCode)) {
         return false;
       }
+      // The consumer got onError (terminal); a pending external-return
+      // correlation must not fire a later onOrderCreated for this session.
+      clearExternalReturnCorrelation(headlessSessionId);
       hasTerminatedHeadlessSessionRef.current = true;
       dismissHeadlessFlow(navigation);
       return true;

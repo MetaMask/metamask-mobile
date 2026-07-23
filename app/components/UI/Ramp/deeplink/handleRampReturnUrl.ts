@@ -5,7 +5,7 @@ import {
   clearExternalReturnCorrelation,
   completeHeadlessExternalReturn,
   emitExternalOrderFailed,
-  getExternalReturnCorrelation,
+  findExternalReturnCorrelationForDeeplink,
   type ExternalReturnCorrelation,
 } from '../headless/externalBrowserReturn';
 import { dismissHeadlessEntryFromRoot } from '../headless/headlessEntryNavigation';
@@ -37,11 +37,18 @@ export default function handleRampReturnUrl({
   try {
     const parsed = new URL(rampReturnPath, 'https://placeholder.local');
     const orderId = parsed.searchParams.get('orderId') ?? undefined;
+    const providerCodeFromPath =
+      parsed.pathname.match(/providers\/([^/?#]+)/u)?.[1];
 
-    const correlation = getExternalReturnCorrelation();
+    // Match the return to a pending headless launch by its ORDER ID (the
+    // GUID minted at widget creation rides both the precreated stub and the
+    // provider's return deeplink). A deeplink that matches no record — e.g.
+    // a non-headless UB1/UB2 external return — takes the legacy path below.
+    const correlation = findExternalReturnCorrelationForDeeplink({
+      orderId,
+      providerCode: providerCodeFromPath,
+    });
     if (correlation) {
-      const providerCodeFromPath =
-        parsed.pathname.match(/providers\/([^/?#]+)/u)?.[1];
       completeExternalReturnFromDeeplink({
         correlation,
         rampReturnPath,
@@ -107,8 +114,12 @@ async function completeExternalReturnFromDeeplink({
     }
     // The Android/system-browser leg leaves the transparent HEADLESS_ENTRY
     // overlay mounted while awaiting this return; pop it now that the
-    // session is complete so the consumer's screen is interactive.
-    dismissHeadlessEntryFromRoot(NavigationService.navigation);
+    // session is complete so the consumer's screen is interactive. The
+    // session-id check keeps a NEWER session's overlay untouched.
+    dismissHeadlessEntryFromRoot(
+      NavigationService.navigation,
+      correlation.sessionId,
+    );
   } catch (error) {
     Logger.error(error as Error, {
       message: 'handleRampReturnUrl: failed to resolve external browser return',
@@ -121,7 +132,10 @@ async function completeExternalReturnFromDeeplink({
       emitExternalOrderFailed(correlation, error);
       clearExternalReturnCorrelation(correlation.sessionId);
       failSession(correlation.sessionId, error, 'QUOTE_FAILED');
-      dismissHeadlessEntryFromRoot(NavigationService.navigation);
+      dismissHeadlessEntryFromRoot(
+        NavigationService.navigation,
+        correlation.sessionId,
+      );
       return;
     }
     // No live session and no recoverable success: fall back to the

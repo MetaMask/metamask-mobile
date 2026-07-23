@@ -11,6 +11,7 @@ import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
 
 import type { RampSurface } from '../types/depositAnalytics';
+import { extractOrderCode } from '../utils/extractOrderCode';
 import { buildBaseProps } from '../utils/webviewFunnelAnalytics';
 import { closeSession, getSession } from './sessionRegistry';
 import type { HeadlessBuyCallbacks } from './types';
@@ -34,17 +35,23 @@ export interface ExternalReturnAnalyticsContext {
 /**
  * Pending external-browser return correlation (P2.M2).
  *
- * Recorded at external-browser launch. The deeplink redirect
- * (`metamask://on-ramp/providers/{providerCode}`) carries the provider code
- * but no wallet address, chain id, or session id, so those are correlated
- * here. The registry holds the single active session, so a single slot is
- * enough; recording a new correlation replaces the previous one.
+ * Recorded at external-browser launch, keyed by session id, and matched back
+ * to incoming deeplinks primarily by ORDER ID — the same name-on-the-ticket
+ * scheme the non-headless flow already uses: the on-ramp backend mints a GUID
+ * order code at widget creation (`customId: guid` for Coinbase/PayPal), the
+ * widget response carries it as `buyWidget.orderId`, `addPrecreatedOrder`
+ * persists a stub under it, and the provider's return deeplink carries it as
+ * `?orderId=`. This record adds the one thing the stub cannot hold: which
+ * headless session (and consumer callback) the return belongs to.
  *
  * E2 (success-deeplink-wins): `onOrderCreated` is retained on the record so a
  * success deeplink can complete the order even after the session was
  * dismissed (focus-dismissal, `beforeRemove`) or GC'd. MM Pay's two-step
  * intent transaction is gated on `onOrderCreated`; dropping a late success
- * would lose the paid order's second leg.
+ * would lose the paid order's second leg. Retention past dismissal is only
+ * honored for records that carry an `orderId` (a named ticket): an orderless
+ * record is only matchable while its session is still live, so it can never
+ * hijack an unrelated return.
  */
 export interface ExternalReturnCorrelation {
   sessionId: string;
@@ -67,7 +74,7 @@ export interface ExternalReturnCorrelation {
  */
 export const EXTERNAL_RETURN_TTL_MS = 60 * 60 * 1000;
 
-let pendingCorrelation: ExternalReturnCorrelation | null = null;
+const pendingCorrelations = new Map<string, ExternalReturnCorrelation>();
 
 /**
  * Sessions currently running `completeHeadlessExternalReturn`. Guards the
@@ -77,46 +84,107 @@ let pendingCorrelation: ExternalReturnCorrelation | null = null;
  */
 const inFlightCompletions = new Set<string>();
 
+function gcExpiredCorrelations(now: number): void {
+  for (const [sessionId, record] of pendingCorrelations) {
+    if (now - record.launchedAt > EXTERNAL_RETURN_TTL_MS) {
+      pendingCorrelations.delete(sessionId);
+    }
+  }
+}
+
 export function recordExternalReturnCorrelation(
   correlation: ExternalReturnCorrelation,
 ): void {
-  pendingCorrelation = correlation;
+  gcExpiredCorrelations(Date.now());
+  pendingCorrelations.set(correlation.sessionId, correlation);
 }
 
 /**
- * Returns the pending correlation, dropping it when TTL-expired. Does NOT
- * consume it — completion consumes via `completeHeadlessExternalReturn`.
+ * Returns the pending correlation for a session, dropping it when
+ * TTL-expired. Does NOT consume it — completion consumes via
+ * `completeHeadlessExternalReturn`.
  */
-export function getExternalReturnCorrelation(): ExternalReturnCorrelation | null {
-  if (!pendingCorrelation) {
+export function getExternalReturnCorrelation(
+  sessionId: string | undefined,
+): ExternalReturnCorrelation | null {
+  if (!sessionId) {
     return null;
   }
-  if (Date.now() - pendingCorrelation.launchedAt > EXTERNAL_RETURN_TTL_MS) {
-    pendingCorrelation = null;
+  const record = pendingCorrelations.get(sessionId);
+  if (!record) {
     return null;
   }
-  return pendingCorrelation;
+  if (Date.now() - record.launchedAt > EXTERNAL_RETURN_TTL_MS) {
+    pendingCorrelations.delete(sessionId);
+    return null;
+  }
+  return record;
 }
 
 /**
- * Clears the pending correlation. When `sessionId` is given, only clears a
- * matching record so a stale caller cannot wipe a newer session's slot.
+ * Finds the correlation an incoming `metamask://on-ramp` return deeplink
+ * belongs to, or `null` when the deeplink is not ours (e.g. a non-headless
+ * UB1/UB2 external return) so the caller falls back to legacy routing.
  *
- * Intentionally NOT called on `user_dismissed` teardown: E2 requires the
- * correlation to survive dismissal so a slow-but-successful deeplink can
- * still complete the order. Call sites are: successful completion, hard
- * failure reported to the consumer (`onError` is terminal, a later
- * `onOrderCreated` would violate the single-terminal-callback contract),
- * and failure to open the external browser at all.
+ * Matching mirrors the non-headless convention (the deeplink's `orderId` IS
+ * the correlation key). A deeplink carrying an `orderId` matches the record
+ * whose recorded order id equals it (normalized via `extractOrderCode`);
+ * named matches are honored even after the session was dismissed or GC'd
+ * (E2), and a named deeplink that matches no record is NOT ours — never fall
+ * back to fuzzy matching. A deeplink without an `orderId` (provider stripped
+ * the query) matches by provider code, but only among records whose session
+ * is STILL LIVE and only when exactly one candidate matches: without a name
+ * on the ticket, a live session is the only safe claim to the return.
+ */
+export function findExternalReturnCorrelationForDeeplink({
+  orderId,
+  providerCode,
+}: {
+  orderId?: string;
+  providerCode?: string;
+}): ExternalReturnCorrelation | null {
+  gcExpiredCorrelations(Date.now());
+
+  if (orderId) {
+    const normalized = extractOrderCode(orderId);
+    for (const record of pendingCorrelations.values()) {
+      if (record.orderId && extractOrderCode(record.orderId) === normalized) {
+        return record;
+      }
+    }
+    return null;
+  }
+
+  const liveMatches: ExternalReturnCorrelation[] = [];
+  for (const record of pendingCorrelations.values()) {
+    if (providerCode && record.providerCode !== providerCode) {
+      continue;
+    }
+    if (getSession(record.sessionId)) {
+      liveMatches.push(record);
+    }
+  }
+  return liveMatches.length === 1 ? liveMatches[0] : null;
+}
+
+/**
+ * Clears a session's pending correlation. A call with `undefined` is a
+ * no-op — there is no legitimate "clear whatever is pending" caller, and
+ * non-headless code paths share call sites with headless ones.
+ *
+ * Intentionally NOT called on `user_dismissed` teardown: E2 requires a NAMED
+ * (orderId-carrying) correlation to survive dismissal so a slow-but-successful
+ * deeplink can still complete the order. Call sites are: successful
+ * completion, any teardown that reported `onError` to the consumer (a later
+ * `onOrderCreated` would violate the single-terminal-callback contract —
+ * covers browser-open failures and order-resolution failures), and the iOS
+ * `openAuth` cancel (once the auth session closes, no deeplink can follow).
  */
 export function clearExternalReturnCorrelation(sessionId?: string): void {
-  if (!pendingCorrelation) {
+  if (sessionId === undefined) {
     return;
   }
-  if (sessionId !== undefined && pendingCorrelation.sessionId !== sessionId) {
-    return;
-  }
-  pendingCorrelation = null;
+  pendingCorrelations.delete(sessionId);
 }
 
 export interface CompleteExternalReturnArgs {
@@ -160,8 +228,7 @@ export async function completeHeadlessExternalReturn(
     return null;
   }
 
-  const pending = getExternalReturnCorrelation();
-  const correlation = pending?.sessionId === sessionId ? pending : null;
+  const correlation = getExternalReturnCorrelation(sessionId);
   const session = getSession(sessionId);
   if (!correlation && !session) {
     // Nothing to complete: either a duplicate return after a completion
@@ -263,7 +330,7 @@ function extractOrderIdFromReturnUrl(returnUrl: string): string | undefined {
  */
 export function emitExternalCheckoutClosed(
   correlation: ExternalReturnCorrelation,
-  closeSource: 'external_browser_cancel' | 'external_browser_error',
+  closeSource: 'external_browser_cancel',
   callbackReached: boolean,
 ): void {
   analytics.trackEvent(
@@ -321,6 +388,6 @@ export function emitExternalOrderFailed(
  * Test-only helper. Resets module state between tests.
  */
 export function __resetExternalBrowserReturnForTests(): void {
-  pendingCorrelation = null;
+  pendingCorrelations.clear();
   inFlightCompletions.clear();
 }

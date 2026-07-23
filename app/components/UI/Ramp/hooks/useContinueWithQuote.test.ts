@@ -1066,6 +1066,50 @@ describe('useContinueWithQuote', () => {
       expect(mockDismissHeadlessFlow).toHaveBeenCalled();
     });
 
+    it('does not dismiss the overlay when completion was handled elsewhere (ownership gating)', async () => {
+      const { session, callbacks } = startHeadlessSession();
+      mockExternalReturn.completeHeadlessExternalReturn.mockResolvedValue(null);
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/moonpay?orderId=order-1',
+      });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx(session.id),
+      );
+
+      expect(error).toBeUndefined();
+      expect(mockDismissHeadlessFlow).not.toHaveBeenCalled();
+      expect(callbacks.onError).not.toHaveBeenCalled();
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+    });
+
+    it('clears the correlation and propagates a tagged error when openAuth itself rejects', async () => {
+      const { session } = startHeadlessSession();
+      mockInAppBrowser.openAuth.mockRejectedValue(
+        new Error('auth session failed'),
+      );
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx(session.id),
+      );
+
+      expect(error).toBeDefined();
+      expect(
+        (error as Error & { headlessBuyErrorCode?: string })
+          .headlessBuyErrorCode,
+      ).toBe('QUOTE_FAILED');
+      expect(
+        mockExternalReturn.clearExternalReturnCorrelation,
+      ).toHaveBeenCalledWith(session.id);
+    });
+
     it('tags widget-URL failures as QUOTE_FAILED only under a headless session (P2.M7)', async () => {
       const { session } = startHeadlessSession();
       mockGetBuyWidgetData.mockResolvedValue({ url: null });
