@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import ListItemMultiSelect from '../../../../../component-library/components/List/ListItemMultiSelect';
 import { Image } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -101,6 +101,39 @@ const SearchTokenResults = ({
     emptyStateDefiDark,
   );
 
+  const renderItem = useCallback(
+    ({ item }: { item: ImportAsset }) => {
+      const { address } = item || {};
+      const isOnSelected = selectedAsset.some(
+        (token) => token.address === address,
+      );
+      const isSelected = selectedAsset && isOnSelected;
+
+      // Check if token is already added
+      const isAlreadyAdded = alreadyAddedTokens?.has(address.toLowerCase());
+      const isDisabled = isAlreadyAdded;
+
+      return (
+        <ListItemMultiSelect
+          isSelected={isSelected || isAlreadyAdded}
+          isDisabled={isDisabled}
+          gap={20}
+          style={tw.style('flex-1 py-0')}
+          onPress={() => !isDisabled && handleSelectAsset(item)}
+          testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
+        >
+          <AddAssetTokenRow asset={item} networkName={networkName} />
+        </ListItemMultiSelect>
+      );
+    },
+    [selectedAsset, alreadyAddedTokens, networkName, handleSelectAsset],
+  );
+
+  const keyExtractor = useCallback(
+    (item: ImportAsset) => `token-search-row-${item.address.toLowerCase()}`,
+    [],
+  );
+
   // Show skeleton loaders when loading
   if (isLoading) {
     return (
@@ -136,32 +169,8 @@ const SearchTokenResults = ({
   return (
     <FlashList
       data={searchResults}
-      renderItem={({ item, index }) => {
-        const { address } = item || {};
-        const isOnSelected = selectedAsset.some(
-          (token) => token.address === address,
-        );
-        const isSelected = selectedAsset && isOnSelected;
-
-        // Check if token is already added
-        const isAlreadyAdded = alreadyAddedTokens?.has(address.toLowerCase());
-        const isDisabled = isAlreadyAdded;
-
-        return (
-          <ListItemMultiSelect
-            isSelected={isSelected || isAlreadyAdded}
-            isDisabled={isDisabled}
-            gap={20}
-            style={tw.style('flex-1 py-0')}
-            key={`search-result-${index}`}
-            onPress={() => !isDisabled && handleSelectAsset(item)}
-            testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
-          >
-            <AddAssetTokenRow asset={item} networkName={networkName} />
-          </ListItemMultiSelect>
-        );
-      }}
-      keyExtractor={(_, index) => `token-search-row-${index}`}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
     />
   );
 };
