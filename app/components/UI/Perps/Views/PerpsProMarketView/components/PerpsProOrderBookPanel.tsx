@@ -16,7 +16,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
@@ -310,6 +310,13 @@ const PerpsProOrderBookPanel = ({
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
     savedGrouping ?? null,
   );
+
+  // Local grouping must follow the active market. Without this, a prior
+  // market's selection can stick when its value still appears in the new
+  // options list and override that asset's saved/default grouping.
+  useEffect(() => {
+    setSelectedGrouping(savedGrouping ?? null);
+  }, [symbol, savedGrouping]);
 
   const handleCycleViewMode = useCallback(() => {
     setViewMode((current) => {

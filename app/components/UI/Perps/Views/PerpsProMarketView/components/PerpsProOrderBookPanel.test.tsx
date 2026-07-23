@@ -9,14 +9,15 @@ import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook'
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
 const mockSaveGrouping = jest.fn();
+const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
 
 jest.mock('../../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
 }));
 
 jest.mock('../../../hooks/usePerpsOrderBookGrouping', () => ({
-  usePerpsOrderBookGrouping: () => ({
-    savedGrouping: undefined,
+  usePerpsOrderBookGrouping: (symbol: string) => ({
+    savedGrouping: mockSavedGroupingBySymbol[symbol],
     saveGrouping: mockSaveGrouping,
   }),
 }));
@@ -66,6 +67,9 @@ describe('PerpsProOrderBookPanel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
+      delete mockSavedGroupingBySymbol[key];
+    });
     mockUsePerpsLiveOrderBook.mockImplementation(
       (params: { channel?: string }) => {
         if (params.channel === 'orderBookAggregated') {
@@ -227,5 +231,61 @@ describe('PerpsProOrderBookPanel', () => {
     fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
 
     expect(mockSaveGrouping).toHaveBeenCalledWith(100);
+  });
+
+  it('resets grouping to the new market preference when symbol changes', () => {
+    mockSavedGroupingBySymbol.ETH = 1;
+
+    const ethOrderBook: OrderBookData = {
+      ...mockOrderBook,
+      midPrice: '3000',
+      bids: [{ ...mockOrderBook.bids[0], price: '2990' }],
+      asks: [{ ...mockOrderBook.asks[0], price: '3010' }],
+      spread: '20',
+      spreadPercentage: '0.67',
+    };
+
+    const { getByTestId, rerender } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-grouping-100`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
+
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => {
+        if (params.channel === 'orderBookAggregated') {
+          return {
+            orderBook: ethOrderBook,
+            isLoading: false,
+            error: null,
+            connectionStatus: 'connected',
+            reconnect: mockReconnect,
+          };
+        }
+        return {
+          orderBook: ethOrderBook,
+          isLoading: false,
+          error: null,
+          connectionStatus: 'connected',
+          reconnect: mockReconnect,
+        };
+      },
+    );
+
+    rerender(<PerpsProOrderBookPanel symbol="ETH" marketPrice={3000} />);
+
+    const aggregatedCalls = mockUsePerpsLiveOrderBook.mock.calls.filter(
+      (call) => call[0].channel === 'orderBookAggregated',
+    );
+    const lastAggregatedCall = aggregatedCalls[aggregatedCalls.length - 1][0];
+
+    // ETH @ $3k with saved grouping 1 → nSigFigs 4. Stale BTC 100 would be 2.
+    expect(lastAggregatedCall).toMatchObject({
+      symbol: 'ETH',
+      nSigFigs: 4,
+    });
   });
 });
