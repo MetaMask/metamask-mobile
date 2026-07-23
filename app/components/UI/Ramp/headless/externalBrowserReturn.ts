@@ -12,6 +12,7 @@ import Logger from '../../../../util/Logger';
 
 import type { RampSurface } from '../types/depositAnalytics';
 import { extractOrderCode } from '../utils/extractOrderCode';
+import { buildHeadlessOrderFailedProps } from '../utils/headlessOrderFailedProps';
 import { buildBaseProps } from '../utils/webviewFunnelAnalytics';
 import { closeSession, getSession } from './sessionRegistry';
 import type { HeadlessBuyCallbacks } from './types';
@@ -419,19 +420,21 @@ export function emitExternalOrderFailed(
     AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.RAMPS_ORDER_FAILED,
     )
-      .addProperties({
-        ramp_type: 'HEADLESS',
-        ramp_surface: correlation.rampSurface,
-        amount_source: correlation.analytics.amountSource ?? 0,
-        amount_destination: correlation.analytics.amountDestination ?? 0,
-        payment_method_id: correlation.analytics.paymentMethodId ?? '',
-        region: correlation.region ?? '',
-        chain_id: correlation.analytics.chainId ?? '',
-        currency_destination: correlation.analytics.currencyDestination ?? '',
-        currency_source: correlation.analytics.currencySource ?? '',
-        error_message: error instanceof Error ? error.message : String(error),
-        is_authenticated: true,
-      })
+      .addProperties(
+        buildHeadlessOrderFailedProps({
+          rampSurface: correlation.rampSurface,
+          providerOrderId: correlation.orderId,
+          amountSource: correlation.analytics.amountSource ?? 0,
+          amountDestination: correlation.analytics.amountDestination ?? 0,
+          paymentMethodId: correlation.analytics.paymentMethodId ?? '',
+          region: correlation.region ?? '',
+          chainId: correlation.analytics.chainId ?? '',
+          currencyDestination: correlation.analytics.currencyDestination ?? '',
+          currencyDestinationSymbol: correlation.analytics.currencyDestination,
+          currencySource: correlation.analytics.currencySource ?? '',
+          errorMessage: error instanceof Error ? error.message : String(error),
+        }),
+      )
       .build(),
   );
 }
