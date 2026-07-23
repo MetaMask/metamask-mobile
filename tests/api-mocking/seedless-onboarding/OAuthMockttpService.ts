@@ -293,7 +293,7 @@ export class OAuthMockttpService {
           );
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -389,7 +389,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -461,7 +461,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
