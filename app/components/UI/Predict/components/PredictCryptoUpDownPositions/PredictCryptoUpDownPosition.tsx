@@ -10,11 +10,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  useIsFocused,
-  useNavigation,
-} from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -45,7 +42,6 @@ import {
   type PredictMarket,
   type PredictPosition,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { formatCents, formatPrice } from '../../utils/format';
 
 const AUTO_REFRESH_TIMEOUT = 5000;
@@ -62,8 +58,7 @@ const PredictCryptoUpDownPosition: React.FC<
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const isFocused = useIsFocused();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { onCashOut } = usePredictCashOut({
     market,

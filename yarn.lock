@@ -8287,10 +8287,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/browser-playground@npm:0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/browser-playground@npm:0.3.0"
-  checksum: 10/87eb5f9f623afea58dcf2eaeb46795ce595ecc3462b5976a4ab35d04c1eff0edde05ccaf52681fe1f02f840cf7d06b29ca6a71ce581cf1b2df2bc1b2e7acd28b
+"@metamask/browser-playground@npm:0.8.1":
+  version: 0.8.1
+  resolution: "@metamask/browser-playground@npm:0.8.1"
+  checksum: 10/9c8db15647bd630f72268e99bde0fccebfa0c3be46bd695fb37a87d8546ed8b66178b1102d3cfde490341720a5ecaa723f59460c00fbe364ca1a8de0d7036232
   languageName: node
   linkType: hard
 
@@ -8510,9 +8510,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.36.0":
-  version: 0.36.0
-  resolution: "@metamask/design-system-react-native@npm:0.36.0"
+"@metamask/design-system-react-native@npm:^0.37.0":
+  version: 0.37.0
+  resolution: "@metamask/design-system-react-native@npm:0.37.0"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.30.0"
     react-native-jazzicon: "npm:^0.1.2"
@@ -8527,7 +8527,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/22347d4047bc856c654a19ed2925eb037ba7c9bba96111ebe0b69137e735f9798416b8de845611493f4bee42e159bc0f5c3dcedfd67369904ebc6f64c5ffef44
+  checksum: 10/27df9fffb6a875329dc82cf124cdfe55d651291b56f659719e89093ca57c30324360d08b17fbbe95c8e094a1957a1f694a011218b18128850f7dbd6b35c4d57c
   languageName: node
   linkType: hard
 
@@ -9736,9 +9736,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^9.2.1":
-  version: 9.2.1
-  resolution: "@metamask/perps-controller@npm:9.2.1"
+"@metamask/perps-controller@npm:^9.3.0":
+  version: 9.3.0
+  resolution: "@metamask/perps-controller@npm:9.3.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9754,7 +9754,7 @@ __metadata:
   dependenciesMeta:
     "@myx-trade/sdk":
       optional: true
-  checksum: 10/ae7e68df8393a448a652d6ee6de4242ed386164483d4c21f516ffcaced382be506cc4dac41ce782c35c816a8ce3554a3d878e1dede05ddea6111751722079958
+  checksum: 10/cac91784905ca4f4ce83a47736820be4c039446ab42d2a9ea579aa117ddf1893f2f8ca694a5ea4559ee4082c326aa627d3c5a52d37a8e9e7b876a9e96297389e
   languageName: node
   linkType: hard
 
@@ -35865,7 +35865,7 @@ __metadata:
     "@metamask/bridge-controller": "npm:^77.6.0"
     "@metamask/bridge-status-controller": "npm:^74.3.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
-    "@metamask/browser-playground": "npm:0.3.0"
+    "@metamask/browser-playground": "npm:0.8.1"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.5.0"
     "@metamask/chomp-api-service": "npm:^3.1.0"
@@ -35877,7 +35877,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.36.0"
+    "@metamask/design-system-react-native": "npm:^0.37.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/earn-controller": "npm:^12.1.0"
@@ -35935,7 +35935,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^25.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^9.2.1"
+    "@metamask/perps-controller": "npm:^9.3.0"
     "@metamask/phishing-controller": "npm:^17.2.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
