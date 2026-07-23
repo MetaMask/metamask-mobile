@@ -23,6 +23,7 @@ import NavigationService from '../../../../core/NavigationService/NavigationServ
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { selectPrefilledAmountConfig } from '../../../../selectors/featureFlagController/confirmations';
 import { ensureError } from '../../../../util/errorUtils';
 import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
 import useMoneyToasts from './useMoneyToasts';
@@ -90,6 +91,9 @@ function isMoneyConfirmationActive(): boolean {
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const prefillConfig = useSelector((state) =>
+    selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
+  );
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
@@ -153,8 +157,13 @@ export function useMoneyAccountDeposit() {
         depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
       }
 
+      const usePrefillLoader =
+        prefillConfig.enabled || options?.intent === 'addMusd';
+
       const confirmationParams = {
-        loader: ConfirmationLoader.AdvancedCustomAmount,
+        loader: usePrefillLoader
+          ? ConfirmationLoader.PrefillCustomAmount
+          : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
       };
@@ -226,6 +235,7 @@ export function useMoneyAccountDeposit() {
       MoneyToastOptions.deposit,
       navigateToConfirmation,
       navigation,
+      prefillConfig.enabled,
       primaryMoneyAccount,
       showToast,
       vaultConfig,

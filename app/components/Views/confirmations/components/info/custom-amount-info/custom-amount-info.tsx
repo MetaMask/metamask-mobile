@@ -97,6 +97,7 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { InfoRowSkeleton } from '../../UI/info-row/info-row';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -507,6 +508,48 @@ export function CustomAmountInfoSkeleton() {
         <DepositKeyboardSkeleton />
       </Box>
     </Box>
+  );
+}
+
+export function PrefillCustomAmountInfoSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View style={styles.container} testID="prefill-custom-amount-info-skeleton">
+      <View style={styles.inputContainer}>
+        <CustomAmountSkeleton />
+        <Skeleton height={20} width={200} />
+      </View>
+      <View>
+        <View style={styles.skeletonRow}>
+          <Skeleton height={18} width={100} />
+          <View style={styles.skeletonRowRight}>
+            <Skeleton height={28} width={28} borderRadius={14} />
+            <Skeleton height={18} width={100} />
+          </View>
+        </View>
+        <View style={styles.skeletonRow}>
+          <Skeleton height={18} width={100} />
+          <View style={styles.skeletonRowRight}>
+            <Skeleton height={24} width={24} borderRadius={12} />
+            <Skeleton height={18} width={100} />
+          </View>
+        </View>
+        <View style={styles.skeletonRow}>
+          <Skeleton height={16} width={100} />
+          <Skeleton height={16} width={100} />
+        </View>
+        <View style={styles.skeletonRow}>
+          <Skeleton height={16} width={100} />
+          <Skeleton height={16} width={100} />
+        </View>
+        <View style={styles.skeletonRow}>
+          <Skeleton height={16} width={100} />
+          <Skeleton height={16} width={100} />
+        </View>
+        <Skeleton height={48} style={styles.buttonSkeleton} />
+      </View>
+    </View>
   );
 }
 
