@@ -38,7 +38,15 @@ import type {
 } from './PerpsProOrderForm.types';
 const ids = PerpsProOrderFormSelectorsIDs;
 const buttonIcon = (iconName: IconName, onPress?: () => void) =>
-  onPress ? { iconName, onPress } : undefined;
+  onPress ? { iconName, onPress, size: ButtonIconSize.Xs } : undefined;
+const summaryKeyTextProps = {
+  variant: TextVariant.BodyXs,
+  fontWeight: FontWeight.Regular,
+};
+const summaryValueTextProps = {
+  variant: TextVariant.BodyXs,
+  fontWeight: FontWeight.Medium,
+};
 interface SelectionRowProps {
   label: string;
   isSelected: boolean;
@@ -83,30 +91,31 @@ const SelectionRow = ({
     </ButtonBase>
   );
 };
-const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) => (
-  <Box twClassName="gap-2">
-    {notices.map((notice) =>
-      notice.variant === 'banner' ? (
-        <BannerAlert
-          key={notice.id}
-          severity={BannerAlertSeverity.Warning}
-          title={notice.title}
-          description={notice.message}
-          testID={`${ids.NOTICE}-${notice.id}`}
-        />
-      ) : (
-        <Text
-          key={notice.id}
-          variant={TextVariant.BodyXs}
-          color={TextColor.ErrorDefault}
-          testID={`${ids.NOTICE}-${notice.id}`}
-        >
-          {notice.message}
-        </Text>
-      ),
-    )}
-  </Box>
-);
+const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
+  notices.length > 0 ? (
+    <Box twClassName="gap-2">
+      {notices.map((notice) =>
+        notice.variant === 'banner' ? (
+          <BannerAlert
+            key={notice.id}
+            severity={BannerAlertSeverity.Warning}
+            title={notice.title}
+            description={notice.message}
+            testID={`${ids.NOTICE}-${notice.id}`}
+          />
+        ) : (
+          <Text
+            key={notice.id}
+            variant={TextVariant.BodyXs}
+            color={TextColor.ErrorDefault}
+            testID={`${ids.NOTICE}-${notice.id}`}
+          >
+            {notice.message}
+          </Text>
+        ),
+      )}
+    </Box>
+  ) : null;
 const OrderSummary = ({
   margin,
   liquidationPrice,
@@ -117,25 +126,31 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
 }: PerpsProOrderSummaryProps) => (
-  <Box twClassName="gap-2" testID={ids.SUMMARY}>
+  <Box twClassName="gap-1" testID={ids.SUMMARY}>
     <KeyValueRow
       keyLabel={strings('perps.order.margin')}
       value={margin}
+      keyTextProps={summaryKeyTextProps}
+      valueTextProps={summaryValueTextProps}
+      twClassName="h-5"
       testID={ids.SUMMARY_MARGIN}
     />
     <KeyValueRow
       keyLabel={strings('perps.order.liquidation_price')}
       value={liquidationPrice}
+      keyTextProps={summaryKeyTextProps}
+      valueTextProps={summaryValueTextProps}
+      twClassName="h-5"
       testID={ids.SUMMARY_LIQUIDATION}
     />
     {slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
         value={slippage}
-        valueEndButtonIconProps={buttonIcon(
-          IconName.ArrowRight,
-          onSlippagePress,
-        )}
+        valueEndButtonIconProps={buttonIcon(IconName.Edit, onSlippagePress)}
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={summaryValueTextProps}
+        twClassName="h-5"
         testID={ids.SUMMARY_SLIPPAGE}
       />
     ) : null}
@@ -151,6 +166,9 @@ const OrderSummary = ({
         />
       }
       keyEndButtonIconProps={buttonIcon(IconName.Info, onFeesInfoPress)}
+      keyTextProps={summaryKeyTextProps}
+      valueTextProps={summaryValueTextProps}
+      twClassName="h-5"
       testID={ids.SUMMARY_FEES}
     />
   </Box>
@@ -202,23 +220,39 @@ const PerpsProOrderForm = ({
           <FilterButton
             value="long"
             twClassName={isLong ? 'bg-success-muted' : ''}
-            textProps={isLong ? { color: TextColor.SuccessDefault } : undefined}
             testID={ids.DIRECTION_LONG}
           >
-            {strings('perps.market.long')}
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={
+                isLong ? TextColor.SuccessDefault : TextColor.TextAlternative
+              }
+            >
+              {strings('perps.market.long')}
+            </Text>
           </FilterButton>
           <FilterButton
             value="short"
             twClassName={!isLong ? 'bg-error-muted' : ''}
-            textProps={!isLong ? { color: TextColor.ErrorDefault } : undefined}
             testID={ids.DIRECTION_SHORT}
           >
-            {strings('perps.market.short')}
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={
+                isLong ? TextColor.TextAlternative : TextColor.ErrorDefault
+              }
+            >
+              {strings('perps.market.short')}
+            </Text>
           </FilterButton>
         </SegmentedControl>
         <Box twClassName="flex-row items-center justify-between">
           <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
-            <Text variant={TextVariant.BodySm}>{marginModeLabel}</Text>
+            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+              {marginModeLabel}
+            </Text>
           </Box>
           <ButtonBase
             size={ButtonBaseSize.Sm}
@@ -269,50 +303,52 @@ const PerpsProOrderForm = ({
             />
           ) : null}
         </Box>
-        <PerpsProCompactInput
-          label={strings('perps.pro_order_form.size_usd')}
-          value={size}
-          onChangeText={onSizeChange}
-          testID={ids.SIZE_INPUT}
-          placeholder="0.00"
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.SwapHorizontal}
-              size={ButtonIconSize.Xs}
-              onPress={onSizeUnitPress}
-              testID={ids.SIZE_UNIT_BUTTON}
-              accessibilityLabel={strings(
-                'perps.pro_order_form.toggle_size_unit',
-              )}
-            />
-          }
-          footer={
-            <PerpsSlider
-              value={balancePercentage}
-              onValueChange={onBalancePercentageChange}
-              minimumValue={0}
-              maximumValue={100}
-              showPercentageLabels={false}
-              showPercentageMarkers
-              variant="compact"
-            />
-          }
-        />
-        <Box twClassName="flex-row items-center gap-1">
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            testID={ids.AVAILABLE_BALANCE}
-          >
-            {availableBalance}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.AddCircle}
-            size={ButtonIconSize.Xs}
-            onPress={onAddFundsPress}
-            testID={ids.ADD_FUNDS_BUTTON}
-            accessibilityLabel={strings('perps.add_funds')}
+        <Box twClassName="gap-2">
+          <PerpsProCompactInput
+            label={strings('perps.pro_order_form.size_usd')}
+            value={size}
+            onChangeText={onSizeChange}
+            testID={ids.SIZE_INPUT}
+            placeholder="0.00"
+            endAccessory={
+              <ButtonIcon
+                iconName={IconName.SwapHorizontal}
+                size={ButtonIconSize.Xs}
+                onPress={onSizeUnitPress}
+                testID={ids.SIZE_UNIT_BUTTON}
+                accessibilityLabel={strings(
+                  'perps.pro_order_form.toggle_size_unit',
+                )}
+              />
+            }
+            footer={
+              <PerpsSlider
+                value={balancePercentage}
+                onValueChange={onBalancePercentageChange}
+                minimumValue={0}
+                maximumValue={100}
+                showPercentageLabels={false}
+                showPercentageMarkers
+                variant="compact"
+              />
+            }
           />
+          <Box twClassName="flex-row items-center gap-1">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              testID={ids.AVAILABLE_BALANCE}
+            >
+              {availableBalance}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.AddCircle}
+              size={ButtonIconSize.Xs}
+              onPress={onAddFundsPress}
+              testID={ids.ADD_FUNDS_BUTTON}
+              accessibilityLabel={strings('perps.add_funds')}
+            />
+          </Box>
         </Box>
         <SelectionRow
           label={strings('perps.order.reduce_only')}

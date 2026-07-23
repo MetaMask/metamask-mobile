@@ -63,6 +63,7 @@ const PerpsProOrderFormPanel = ({
         }}
         placeOrderLabel={strings('perps.pro_order_form.place_order')}
         placeOrderIntent={direction}
+        isPlaceOrderDisabled
         onPlaceOrderPress={() => undefined}
       />
     </Box>

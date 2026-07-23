@@ -111,6 +111,14 @@ describe('PerpsProMarketView', () => {
     );
   });
 
+  it('keeps the fixture Place Order action disabled until wiring lands', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).toBeDisabled();
+  });
+
   it('keeps the header fixed while the market summary scrolls', () => {
     const { getByTestId } = renderView();
 

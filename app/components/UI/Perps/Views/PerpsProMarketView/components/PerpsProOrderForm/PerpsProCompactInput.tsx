@@ -42,7 +42,7 @@ const PerpsProCompactInput = ({
       placeholder={placeholder}
       textVariant={TextVariant.BodySm}
       isStateStylesDisabled
-      twClassName="flex-1 border-0 bg-transparent p-0"
+      twClassName="flex-1 border-0 bg-transparent p-0 font-medium"
       testID={testID}
       accessibilityLabel={label}
     />

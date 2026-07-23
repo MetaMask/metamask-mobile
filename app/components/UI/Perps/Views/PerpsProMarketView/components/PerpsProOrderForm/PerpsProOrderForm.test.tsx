@@ -75,6 +75,9 @@ describe('PerpsProOrderForm', () => {
       'variant',
       'compact',
     );
+    expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
+    expect(screen.getByTestId(ids.SUMMARY)).toHaveStyle({ gap: 4 });
+    expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({ height: 20 });
   });
 
   it('reports direction and calls order type button press callback', () => {
