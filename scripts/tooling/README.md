@@ -114,6 +114,32 @@ sqlite3 ~/.tool-usage-collection/events.db \
   "SELECT tool_name, tool_type, event_type, agent_vendor, created_at FROM events ORDER BY created_at DESC LIMIT 20;"
 ```
 
+## Demo: pushing a metric to Prometheus
+
+`push-metrics-demo.ts` is a standalone example of how to remote-write the local
+usage data to a Prometheus Pushgateway, so you can explore it in Grafana. It is
+**not wired into the build** — it's a reference you can run by hand.
+
+```bash
+cp scripts/tooling/.env.example scripts/tooling/.env   # then fill in URL + creds
+yarn tsx scripts/tooling/push-metrics-demo.ts
+```
+
+It loads credentials from `scripts/tooling/.env` (gitignored), reads the CSV log,
+aggregates it per `(tool, tool_type, agent_vendor)`, and `POST`s the result in
+Prometheus text exposition format with basic auth to
+`<PUSHGATEWAY_URL>/metrics/job/<job>/instance/<hostname>`.
+
+Metrics emitted:
+
+| Metric | Type | Source |
+|---|---|---|
+| `metamask_devtools_invocations_total` | counter | count of `start` events |
+| `metamask_devtools_success_total` | counter | `end` events with `success=true` |
+| `metamask_devtools_failure_total` | counter | `end` events with `success=false` |
+| `metamask_devtools_duration_seconds_sum` | gauge | sum of `duration_ms / 1000` |
+| `metamask_devtools_duration_seconds_count` | gauge | count of timed events |
+
 ## Using dev-tooling-explorer
 
 [dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) is a local web UI for browsing the SQLite database written by the collection hooks. It lets you filter events by repo, tool, agent vendor, or date; view per-session history; explore usage charts; and prune or reset the database.
