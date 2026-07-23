@@ -11050,12 +11050,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tooling-insight@npm:@metamask-previews/tooling-insight@1.0.1-preview-ff3ce0f":
-  version: 1.0.1-preview-ff3ce0f
-  resolution: "@metamask-previews/tooling-insight@npm:1.0.1-preview-ff3ce0f"
+"@metamask/tooling-insight@npm:@metamask-previews/tooling-insight@1.0.1-preview-9dc6a8d":
+  version: 1.0.1-preview-9dc6a8d
+  resolution: "@metamask-previews/tooling-insight@npm:1.0.1-preview-9dc6a8d"
   bin:
     metamask-daily-anonymizer: ./dist/daily-anonymizer.mjs
-  checksum: 10/03375956775d6d6031ec199c7ab52c7a1948e1a2aff0c2d9a573e2b93141af08b0730342b93651116b4d7f641b8bb1ebd44bb8622b718197119ed7e00fdd1919
+  checksum: 10/b7a64a2411b0c7025c651eef8c5096428f47ba32d004bef57d2a3a2b4a83c136c35268fd3a6c739c04c8a8d96b9ab9b83066a441f63752efa8e2731f0667d870
   languageName: node
   linkType: hard
 
@@ -36413,7 +36413,7 @@ __metadata:
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/tooling-insight": "npm:@metamask-previews/tooling-insight@1.0.1-preview-ff3ce0f"
+    "@metamask/tooling-insight": "npm:@metamask-previews/tooling-insight@1.0.1-preview-9dc6a8d"
     "@metamask/transaction-controller": "npm:^69.0.0"
     "@metamask/transaction-pay-controller": "npm:^25.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.31.0"
