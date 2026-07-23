@@ -1,10 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import styleSheet from './PerpsOrderBookDepthChart.styles';
@@ -14,6 +10,11 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 export interface PerpsOrderBookDepthChartProps {
   /** Order book data from usePerpsLiveOrderBook hook */
@@ -135,13 +136,13 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
       <View style={styles.legendContainer}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, styles.bidDot]} />
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('perps.order_book.bids')}
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, styles.askDot]} />
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('perps.order_book.asks')}
           </Text>
         </View>
@@ -208,10 +209,10 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
 
       {/* Price labels - min and max only, no mid-price */}
       <View style={styles.labelContainer}>
-        <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {formatPrice(priceRange.min)}
         </Text>
-        <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {formatPrice(priceRange.max)}
         </Text>
       </View>

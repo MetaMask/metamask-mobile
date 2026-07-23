@@ -1,12 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, RefreshControl, ActivityIndicator } from 'react-native';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import {
   Box,
@@ -45,7 +40,7 @@ export const CAMPAIGN_PORTFOLIO_TEST_IDS = {
 
 const OndoCampaignPortfolioView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PortfolioRouteParams>>();
   const { campaignId } = route.params;
 
