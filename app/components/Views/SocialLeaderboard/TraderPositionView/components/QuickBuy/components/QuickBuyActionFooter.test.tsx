@@ -71,6 +71,7 @@ const baseContext = {
   features: { payWithSheet: true },
   setActiveScreen: jest.fn(),
   useKeyboard: false,
+  isKeypadOpen: false,
 };
 
 describe('QuickBuyActionFooter', () => {
@@ -126,5 +127,18 @@ describe('QuickBuyActionFooter', () => {
     });
     render(<QuickBuyActionFooter />);
     expect(screen.queryByTestId('quick-buy-slider')).toBeNull();
+  });
+
+  it('hides pay-with and confirm while the keypad is open on the treatment', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      useKeyboard: true,
+      isKeypadOpen: true,
+      features: { payWithSheet: true, quickAmountPills: true },
+    });
+    render(<QuickBuyActionFooter />);
+    expect(screen.queryByTestId('quick-buy-pay-with-button')).toBeNull();
+    expect(screen.queryByTestId('quick-buy-confirm-button')).toBeNull();
+    expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
   });
 });

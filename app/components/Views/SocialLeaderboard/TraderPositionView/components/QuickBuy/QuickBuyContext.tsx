@@ -64,8 +64,8 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     analyticsContext,
     useKeyboard,
   );
-  // Keypad starts open on the treatment so the user can type immediately.
-  const [isKeypadOpen, setIsKeypadOpen] = useState(useKeyboard);
+  // Keypad starts closed; the user opens it by tapping the amount headline.
+  const [isKeypadOpen, setIsKeypadOpen] = useState(false);
   const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
     controller;
 

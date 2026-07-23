@@ -37,18 +37,31 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the keypad placeholder and hides the slider on the treatment', () => {
+  it('renders the quick-amount pills skeleton for both variants', () => {
     render(<QuickBuyBottomSheetSkeleton useKeyboard />);
-    expect(screen.getByTestId('quick-buy-skeleton-keypad')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-skeleton-quick-amounts'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the keypad placeholder on the treatment (keypad closed by default)', () => {
+    render(<QuickBuyBottomSheetSkeleton useKeyboard />);
+    expect(
+      screen.queryByTestId('quick-buy-skeleton-keypad'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the slider placeholder on the treatment', () => {
+    render(<QuickBuyBottomSheetSkeleton useKeyboard />);
     expect(
       screen.queryByTestId('quick-buy-skeleton-slider'),
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the keypad placeholder on the control variant', () => {
+  it('renders the quick-amount pills skeleton on the control variant', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(
-      screen.queryByTestId('quick-buy-skeleton-keypad'),
-    ).not.toBeOnTheScreen();
+      screen.getByTestId('quick-buy-skeleton-quick-amounts'),
+    ).toBeOnTheScreen();
   });
 });

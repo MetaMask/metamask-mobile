@@ -102,15 +102,30 @@ jest.mock('./components/QuickBuyToolbar', () => {
 
 jest.mock('./components/QuickBuyAmountSection', () => {
   const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, Pressable } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactMock.createElement(
+    default: ({ onAmountAreaPress }: { onAmountAreaPress?: () => void }) => {
+      if (onAmountAreaPress) {
+        return ReactMock.createElement(
+          Pressable,
+          {
+            testID: 'quick-buy-amount-area-pressable',
+            onPress: onAmountAreaPress,
+          },
+          ReactMock.createElement(
+            Text,
+            { testID: 'mock-amount-section' },
+            'amount-section',
+          ),
+        );
+      }
+      return ReactMock.createElement(
         Text,
         { testID: 'mock-amount-section' },
         'amount-section',
-      ),
+      );
+    },
   };
 });
 
@@ -450,7 +465,7 @@ describe('QuickBuy.Root', () => {
       expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
     });
 
-    it('renders the keypad open by default on the keyboard treatment', () => {
+    it('does not render the keypad by default on the keyboard treatment', () => {
       mockUseKeyboard = true;
       setMockQuickBuyController({ isUnsupportedChain: false });
 
@@ -466,7 +481,29 @@ describe('QuickBuy.Root', () => {
         storedOnOpenCallback?.();
       });
 
+      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
+    });
+
+    it('opens the keypad when the amount headline is tapped on the treatment', () => {
+      mockUseKeyboard = true;
+      setMockQuickBuyController({ isUnsupportedChain: false });
+
+      renderWithProvider(
+        <QuickBuy.Root
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        />,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      fireEvent.press(screen.getByTestId('quick-buy-amount-area-pressable'));
+
       expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('quick-buy-keypad-done')).toBeOnTheScreen();
     });
 
     it('remounts input state when the keyboard A/B assignment flips to treatment', () => {
@@ -516,7 +553,7 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
+      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
       const lastCall = (useQuickBuyController as jest.Mock).mock.calls.at(-1);
       expect(lastCall?.[3]).toBe(true);
       expect(mockControllerState.getResult().fiatAmountLabel).toBe('$0.00');

@@ -55,7 +55,7 @@ const QuickBuyBottomSheetSkeleton: React.FC<
         <Skeleton width={96} height={16} style={tw.style('rounded-md')} />
       </Box>
 
-      {/* Footer area — mirrors QuickBuyActionFooter px-4 pb-4 */}
+      {/* Footer area — mirrors QuickBuyActionFooter px-4 pb-4 (keypad closed) */}
       <Box twClassName="px-4 pb-4">
         {/* Slider (control) — mirrors pt-2 pb-3 */}
         {useKeyboard ? null : (
@@ -68,6 +68,16 @@ const QuickBuyBottomSheetSkeleton: React.FC<
             />
           </Box>
         )}
+
+        {/* Quick-amount pills — shown for both variants when keypad is closed */}
+        <Box twClassName="pb-3">
+          <Skeleton
+            width="100%"
+            height={40}
+            style={tw.style('rounded-xl')}
+            testID="quick-buy-skeleton-quick-amounts"
+          />
+        </Box>
 
         {/* Pay with row */}
         <Box
@@ -95,29 +105,6 @@ const QuickBuyBottomSheetSkeleton: React.FC<
           testID="quick-buy-skeleton-confirm-button"
         />
       </Box>
-
-      {/* Keypad (treatment) — 4x3 grid placeholder below the CTA */}
-      {useKeyboard ? (
-        <Box twClassName="px-4 py-4 gap-3" testID="quick-buy-skeleton-keypad">
-          {[0, 1, 2, 3].map((row) => (
-            <Box
-              key={row}
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="gap-3"
-            >
-              {[0, 1, 2].map((col) => (
-                <Skeleton
-                  key={col}
-                  width="30%"
-                  height={48}
-                  style={tw.style('rounded-xl')}
-                />
-              ))}
-            </Box>
-          ))}
-        </Box>
-      ) : null}
     </Box>
   );
 };

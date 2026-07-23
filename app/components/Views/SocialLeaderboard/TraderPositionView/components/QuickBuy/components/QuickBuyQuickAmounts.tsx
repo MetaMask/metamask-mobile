@@ -1,11 +1,11 @@
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
-import Button, {
+import {
+  Box,
+  BoxFlexDirection,
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../../../../../component-library/components/Texts/Text';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
+import React, { useCallback } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { useQuickBuyContext } from '../useQuickBuyContext';
@@ -20,13 +20,22 @@ import {
  * 16px horizontal padding so all four labels fit on one row without clipping.
  */
 const QUICK_AMOUNT_PILL_PROPS = {
-  variant: ButtonVariants.Secondary,
+  variant: ButtonVariant.Secondary,
   size: ButtonSize.Md,
-  labelTextVariant: TextVariant.BodySMMedium,
 } as const;
 
-const QuickBuyQuickAmounts: React.FC = () => {
-  const tw = useTailwind();
+const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
+
+export interface QuickBuyQuickAmountsProps {
+  /** When true, appends a primary Done pill (keyboard-open row above the keypad). */
+  showDone?: boolean;
+  onDonePress?: () => void;
+}
+
+const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
+  showDone = false,
+  onDonePress,
+}) => {
   const { playImpact } = useHaptics();
   const {
     tradeMode,
@@ -37,17 +46,11 @@ const QuickBuyQuickAmounts: React.FC = () => {
     handleQuickAmountPress,
     handleSliderChange,
     handleSliderDragEnd,
-    useKeyboard,
-    setIsKeypadOpen,
   } = useQuickBuyContext();
 
   const handleSellPercentPress = useCallback(
     (percent: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
-      // Selecting a preset dismisses the keypad on the keyboard treatment.
-      if (useKeyboard) {
-        setIsKeypadOpen(false);
-      }
       if (!hasSourcePrice) {
         handleSliderChange(percent);
         return;
@@ -55,26 +58,29 @@ const QuickBuyQuickAmounts: React.FC = () => {
       handleSliderChange(percent);
       handleSliderDragEnd(percent);
     },
-    [
-      hasSourcePrice,
-      handleSliderChange,
-      handleSliderDragEnd,
-      playImpact,
-      useKeyboard,
-      setIsKeypadOpen,
-    ],
+    [hasSourcePrice, handleSliderChange, handleSliderDragEnd, playImpact],
   );
 
   const handleBuyAmountPress = useCallback(
     (value: number, presetTierUsd: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
-      if (useKeyboard) {
-        setIsKeypadOpen(false);
-      }
       handleQuickAmountPress(value, presetTierUsd);
     },
-    [handleQuickAmountPress, playImpact, useKeyboard, setIsKeypadOpen],
+    [handleQuickAmountPress, playImpact],
   );
+
+  const doneButton =
+    showDone && onDonePress ? (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Md}
+        onPress={onDonePress}
+        twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+        testID="quick-buy-keypad-done"
+      >
+        Done
+      </Button>
+    ) : null;
 
   if (tradeMode === 'sell') {
     return (
@@ -83,17 +89,17 @@ const QuickBuyQuickAmounts: React.FC = () => {
           <Button
             key={percent}
             {...QUICK_AMOUNT_PILL_PROPS}
-            label={
-              percent === 100
-                ? strings('social_leaderboard.quick_buy.max')
-                : `${percent}%`
-            }
             onPress={() => handleSellPercentPress(percent)}
             isDisabled={isSliderDisabled}
-            style={tw.style('min-w-0 flex-1 px-2')}
+            twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
             testID={`quick-buy-sell-pill-${percent}`}
-          />
+          >
+            {percent === 100
+              ? strings('social_leaderboard.quick_buy.max')
+              : `${percent}%`}
+          </Button>
         ))}
+        {doneButton}
       </Box>
     );
   }
@@ -109,15 +115,17 @@ const QuickBuyQuickAmounts: React.FC = () => {
         <Button
           key={option.presetTierUsd}
           {...QUICK_AMOUNT_PILL_PROPS}
-          label={option.label}
           onPress={() =>
             handleBuyAmountPress(option.value, option.presetTierUsd)
           }
           isDisabled={isSliderDisabled}
-          style={tw.style('min-w-0 flex-1 px-2')}
+          twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
           testID={`quick-buy-buy-pill-${option.presetTierUsd}`}
-        />
+        >
+          {option.label}
+        </Button>
       ))}
+      {doneButton}
     </Box>
   );
 };
