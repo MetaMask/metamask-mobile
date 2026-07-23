@@ -7,9 +7,6 @@ import {
 
 const mockTransakService = jest.fn().mockImplementation((opts) => opts);
 
-// Keep the real `RampsEnvironment`/`TransakEnvironment` enums (so environment
-// resolution mirrors production, since `getTransakEnvironment` now delegates to
-// the real `getRampsEnvironment`) and only stub the service class.
 jest.mock('@metamask/ramps-controller', () => {
   const actual = jest.requireActual('@metamask/ramps-controller');
   return {
@@ -26,9 +23,12 @@ describe('transak-service-init', () => {
   describe('getTransakEnvironment', () => {
     const originalEnv = process.env.METAMASK_ENVIRONMENT;
     const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+    const originalBuildsFlag =
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
 
     beforeEach(() => {
       delete process.env.RAMPS_ENVIRONMENT;
+      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
     });
 
     afterEach(() => {
@@ -38,9 +38,19 @@ describe('transak-service-init', () => {
       } else {
         delete process.env.RAMPS_ENVIRONMENT;
       }
+      if (originalBuildsFlag !== undefined) {
+        process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
+          originalBuildsFlag;
+      } else {
+        delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+      }
     });
 
-    describe('when RAMPS_ENVIRONMENT is set (builds.yml path)', () => {
+    describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is true (builds.yml path)', () => {
+      beforeEach(() => {
+        process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+      });
+
       it('returns Production when RAMPS_ENVIRONMENT is production', () => {
         process.env.RAMPS_ENVIRONMENT = 'production';
         expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
@@ -51,10 +61,16 @@ describe('transak-service-init', () => {
         expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
       });
 
-      it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
+      it('ignores METAMASK_ENVIRONMENT when RAMPS_ENVIRONMENT is set', () => {
         process.env.METAMASK_ENVIRONMENT = 'production';
         process.env.RAMPS_ENVIRONMENT = 'staging';
         expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
+      });
+
+      it('falls back to METAMASK_ENVIRONMENT when RAMPS_ENVIRONMENT is unset', () => {
+        process.env.METAMASK_ENVIRONMENT = 'production';
+        delete process.env.RAMPS_ENVIRONMENT;
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
       });
     });
 
@@ -78,6 +94,12 @@ describe('transak-service-init', () => {
       it('returns Staging for undefined environment', () => {
         delete process.env.METAMASK_ENVIRONMENT;
         expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
+      });
+
+      it('ignores RAMPS_ENVIRONMENT when builds flag is not set', () => {
+        process.env.METAMASK_ENVIRONMENT = 'production';
+        process.env.RAMPS_ENVIRONMENT = 'staging';
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
       });
     });
   });
