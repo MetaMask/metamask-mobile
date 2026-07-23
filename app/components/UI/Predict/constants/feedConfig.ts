@@ -87,12 +87,20 @@ const createLiveFilter = (
   },
 });
 
+const normalizeSportsChipQueryParams = (
+  queryParams?: string,
+): string | undefined => {
+  const normalized = queryParams?.trim().replace(/^\?/, '').trim();
+  return normalized || undefined;
+};
+
 const withSportsChipOverrides = (
   params: PredictMarketListParams,
   chip: PredictSportsFeedChipConfig,
 ): PredictMarketListParams => {
-  const resolvedParams: PredictMarketListParams = chip.queryParams
-    ? { queryParams: chip.queryParams }
+  const queryParams = normalizeSportsChipQueryParams(chip.queryParams);
+  const resolvedParams: PredictMarketListParams = queryParams
+    ? { queryParams }
     : { ...params };
 
   if (
@@ -154,7 +162,7 @@ const createTagFilter = (
   chip: PredictSportsFeedChipConfig,
 ): PredictFeedFilterConfig | undefined => {
   const tagSlug = chip.tagSlug ?? chip.id;
-  if (!tagSlug && !chip.queryParams) {
+  if (!tagSlug && !normalizeSportsChipQueryParams(chip.queryParams)) {
     return undefined;
   }
 

@@ -442,5 +442,32 @@ describe('usePredictFeedConfig', () => {
       ]);
       expect(result.current.activeFilterId).toBe('all');
     });
+
+    it('preserves non-sports selection when the sports config changes', () => {
+      mockUsePredictFilterOptions.mockReturnValue(
+        filterOptionsResult({
+          filterOptions: [createOption('elections')],
+        }),
+      );
+      let sportsFeedConfig = DEFAULT_PREDICT_SPORTS_FEED_FLAG;
+      mockUseSelector.mockImplementation(() => sportsFeedConfig);
+
+      const { result, rerender } = renderHook(() =>
+        usePredictFeedConfig('politics'),
+      );
+
+      act(() => {
+        result.current.setActiveFilterId('elections');
+      });
+      expect(result.current.activeFilterId).toBe('elections');
+
+      sportsFeedConfig = {
+        ...DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+        tabs: DEFAULT_PREDICT_SPORTS_FEED_FLAG.tabs.slice(0, 1),
+      };
+      rerender({});
+
+      expect(result.current.activeFilterId).toBe('elections');
+    });
   });
 });

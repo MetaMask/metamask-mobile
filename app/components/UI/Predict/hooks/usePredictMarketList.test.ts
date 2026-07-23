@@ -133,31 +133,25 @@ describe('usePredictMarketList', () => {
     expect(result.current.hasNextPage).toBe(false);
   });
 
-  it('auto-fetches the next page when the current page has no visible markets', async () => {
+  it('does not auto-fetch the next page when the current page has no visible markets', async () => {
     const { Wrapper } = createWrapper();
-    mockListMarkets
-      .mockResolvedValueOnce(createChildPage(['child-a'], 'cursor-1'))
-      .mockResolvedValueOnce(createPage(['parent-a'], null));
+    mockListMarkets.mockResolvedValueOnce(
+      createChildPage(['child-a'], 'cursor-1'),
+    );
 
     const { result } = renderHook(() => usePredictMarketList(), {
       wrapper: Wrapper,
     });
 
     await waitFor(() => {
-      expect(mockListMarkets).toHaveBeenCalledTimes(2);
+      expect(result.current.hasNextPage).toBe(true);
+    });
+    await act(async () => {
+      await Promise.resolve();
     });
 
-    expect(mockListMarkets).toHaveBeenNthCalledWith(1, {
-      afterCursor: null,
-    });
-    expect(mockListMarkets).toHaveBeenNthCalledWith(2, {
-      afterCursor: 'cursor-1',
-    });
-
-    await waitFor(() => {
-      expect(result.current.markets.map((m) => m.id)).toEqual(['parent-a']);
-    });
-    expect(result.current.hasNextPage).toBe(false);
+    expect(result.current.markets).toEqual([]);
+    expect(mockListMarkets).toHaveBeenCalledTimes(1);
   });
 
   it('dedupes markets by id across pages, keeping the first occurrence', async () => {

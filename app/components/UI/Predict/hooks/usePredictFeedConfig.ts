@@ -146,10 +146,12 @@ export const usePredictFeedConfig = (
 ): PredictFeedConfigResult => {
   const { initialTabId, initialFilterId } = options;
   const sportsFeedConfig = useSelector(selectPredictSportsFeedConfig);
+  const effectiveSportsFeedConfig =
+    feedId === 'sports' ? sportsFeedConfig : undefined;
 
   const config = useMemo(
-    () => resolvePredictFeedConfig(feedId, sportsFeedConfig),
-    [feedId, sportsFeedConfig],
+    () => resolvePredictFeedConfig(feedId, effectiveSportsFeedConfig),
+    [feedId, effectiveSportsFeedConfig],
   );
 
   const [activeTabId, setActiveTabIdState] = useState<string | undefined>(() =>
@@ -273,9 +275,9 @@ export const usePredictFeedConfig = (
         feedId,
         initialTabId,
         initialFilterId,
-        sportsFeedConfig,
+        sportsFeedConfig: effectiveSportsFeedConfig,
       }),
-    [feedId, initialTabId, initialFilterId, sportsFeedConfig],
+    [feedId, initialTabId, initialFilterId, effectiveSportsFeedConfig],
   );
   const previousSeedKeyRef = useRef(seedKey);
   useEffect(() => {
@@ -284,7 +286,10 @@ export const usePredictFeedConfig = (
     }
     previousSeedKeyRef.current = seedKey;
 
-    const nextConfig = resolvePredictFeedConfig(feedId, sportsFeedConfig);
+    const nextConfig = resolvePredictFeedConfig(
+      feedId,
+      effectiveSportsFeedConfig,
+    );
     const nextTabId = resolveInitialTabId(nextConfig, initialTabId);
     const nextTab = findTab(nextConfig, nextTabId);
 
@@ -296,7 +301,13 @@ export const usePredictFeedConfig = (
     )
       ? initialFilterId
       : undefined;
-  }, [seedKey, feedId, initialTabId, initialFilterId, sportsFeedConfig]);
+  }, [
+    seedKey,
+    feedId,
+    initialTabId,
+    initialFilterId,
+    effectiveSportsFeedConfig,
+  ]);
 
   // Honor a dynamic `initialFilterId` once dynamic filters settle. If the
   // target never appears (or the load fails), keep the current default.

@@ -117,6 +117,7 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedMarketList(activeFilter?.params ?? {}, {
     enabled: isReady,
     showLiveFirst: showSportsLiveFirst,
+    autoAdvanceEmptyPages: feedId === 'sports',
   });
 
   // Keep the latest tab/filter selection in a ref so the focus effect can read
