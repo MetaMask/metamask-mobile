@@ -4,6 +4,7 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
+import { authenticationControllerSelectors } from '@metamask/profile-sync-controller/auth';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
@@ -61,6 +62,18 @@ export const selectNeedsProfilePairing = createSelector(
   selectAuthenticationControllerState,
   (authenticationControllerState: AuthenticationState) =>
     authenticationControllerState.needsProfilePairing ?? true,
+);
+
+/**
+ * Returns the unified canonical profile ID from the cached SRP session.
+ *
+ * Prefer this over `getSessionProfile()` when only the identity string is
+ * needed — it reads persisted controller state synchronously and updates as
+ * `srpSessionData` changes (e.g. after sign-in or multi-SRP pairing).
+ */
+export const selectCanonicalProfileId = createSelector(
+  selectAuthenticationControllerState,
+  authenticationControllerSelectors.selectCanonicalProfileId,
 );
 
 // User Storage
