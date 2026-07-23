@@ -694,6 +694,7 @@
     "eslint-plugin-tailwindcss": "^3.18.2",
     "execa": "^8.0.1",
     "ganache": "^7.9.2",
+    "https-proxy-agent": "^7.0.6",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
