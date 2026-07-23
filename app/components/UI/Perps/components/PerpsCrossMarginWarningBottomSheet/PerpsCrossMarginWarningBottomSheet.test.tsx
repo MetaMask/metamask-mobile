@@ -129,38 +129,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   },
 }));
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-
-  const MockText = ({
-    children,
-    variant,
-    color: _color,
-    style,
-  }: {
-    children: React.ReactNode;
-    variant?: string;
-    color?: string;
-    style?: React.ComponentProps<typeof Text>['style'];
-  }) => (
-    <Text style={style} testID={`text-${variant || 'default'}`}>
-      {children}
-    </Text>
-  );
-
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMD: 'BodyMD',
-    },
-    TextColor: {
-      Alternative: 'Alternative',
-    },
-  };
-});
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
