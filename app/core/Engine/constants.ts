@@ -95,6 +95,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   'SamplePetnamesController:stateChange',
   ///: END:ONLY_INCLUDE_IF
+  'NetworkConnectionBannerController:stateChanged',
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',

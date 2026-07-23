@@ -8336,16 +8336,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/connectivity-controller@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/connectivity-controller@npm:0.2.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/messenger": "npm:^1.0.0"
-  checksum: 10/586c80931341375c713aa5a474725ec88174e6e885d5f75d23b6458b734ec0e912a8c47996bea94a82f9549c9598ba982ac99aaeccac1fd92002c35a38f5397f
-  languageName: node
-  linkType: hard
-
 "@metamask/connectivity-controller@npm:^0.3.0":
   version: 0.3.0
   resolution: "@metamask/connectivity-controller@npm:0.3.0"
@@ -9545,6 +9535,23 @@ __metadata:
     react-native: "*"
     react-native-nitro-modules: ^0.29.4
   checksum: 10/2dd16fe5e9511e453cd3b15b6066311471e41a9a58b82f898ae82fdd73c0684893fa4c92ae954b6f31fb1c811c918531fc93e81b5c2986fa8dec491e7a738e83
+  languageName: node
+  linkType: hard
+
+"@metamask/network-connection-banner-controller@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/network-connection-banner-controller@npm:0.1.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/client-controller": "npm:^1.0.1"
+    "@metamask/connectivity-controller": "npm:^0.3.0"
+    "@metamask/keyring-controller": "npm:^27.1.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/network-controller": "npm:^34.0.0"
+    "@metamask/network-enablement-controller": "npm:^5.4.1"
+    "@metamask/utils": "npm:^11.11.0"
+    reselect: "npm:^5.1.1"
+  checksum: 10/5cbdce70a3e7d6a1a95577071062120a160d118f1e2c9e55cb8f4ecf2b9c2b08078d830856d23c09e47e296e96a73211eef22d8bd6c5107afbc14b66a66b0b50
   languageName: node
   linkType: hard
 
@@ -32544,13 +32551,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip-regex@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "ip-regex@npm:5.0.0"
-  checksum: 10/4098b2df89c015f1484a5946e733ec126af8c1828719d90e09f04af23ce487e1a852670e4d3f51b0dc6dfbaf7d8bfab23fd7893ca60e69833da99b7b1ee3623b
-  languageName: node
-  linkType: hard
-
 "ipaddr.js@npm:1.9.1":
   version: 1.9.1
   resolution: "ipaddr.js@npm:1.9.1"
@@ -35909,6 +35909,7 @@ __metadata:
     "@metamask/multichain-network-controller": "npm:^3.1.0"
     "@metamask/multichain-transactions-controller": "npm:^7.1.0"
     "@metamask/native-utils": "npm:^0.8.0"
+    "@metamask/network-connection-banner-controller": "npm:^0.1.0"
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
     "@metamask/notification-services-controller": "npm:^26.0.0"
@@ -36145,7 +36146,6 @@ __metadata:
     https-browserify: "npm:0.0.1"
     humanize-duration: "npm:^3.27.2"
     husky: "npm:^9.1.7"
-    ip-regex: "npm:^5.0.0"
     is-url: "npm:^1.2.4"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
@@ -36175,7 +36175,6 @@ __metadata:
     prettier-2: "npm:prettier@^2.8.8"
     prompts: "npm:^2.4.2"
     prop-types: "npm:15.7.2"
-    psl: "npm:^1.15.0"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
     qs: "npm:6.15.2"
@@ -39757,7 +39756,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"psl@npm:^1.1.33, psl@npm:^1.15.0":
+"psl@npm:^1.1.33":
   version: 1.15.0
   resolution: "psl@npm:1.15.0"
   dependencies:

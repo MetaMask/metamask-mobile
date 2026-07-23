@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAppTheme } from '../../../util/theme';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import { strings } from '../../../../locales/i18n';
-import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
+import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
 import BannerBase from '../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { Theme } from '../../../util/theme/models';
 import Animated, {
@@ -67,13 +67,10 @@ const SpinningIcon = ({ twClassName, ...iconProps }: IconProps) => {
 
 const PrimaryMessage = ({
   primaryMessageKey,
-  networkConnectionBannerState,
+  network,
 }: {
   primaryMessageKey: string;
-  networkConnectionBannerState: Exclude<
-    NetworkConnectionBannerState,
-    { visible: false }
-  >;
+  network: FailedNetwork;
 }) => (
   <Text
     variant={TextVariant.BodyXs}
@@ -82,7 +79,7 @@ const PrimaryMessage = ({
     numberOfLines={2}
   >
     {strings(primaryMessageKey, {
-      networkName: networkConnectionBannerState.networkName,
+      networkName: network.name,
     })}
   </Text>
 );
@@ -187,10 +184,8 @@ const SwitchToInfuraButton = ({
 
 const getBannerContent = (
   theme: Theme,
-  networkConnectionBannerState: Exclude<
-    NetworkConnectionBannerState,
-    { visible: false }
-  >,
+  status: 'degraded' | 'unavailable',
+  network: FailedNetwork,
   updateRpc: () => void,
   switchToInfura: () => Promise<void>,
 ): {
@@ -200,19 +195,18 @@ const getBannerContent = (
   icon: BannerIcon;
 } => {
   // Check if we have an Infura endpoint available to switch to
-  const hasInfuraEndpoint =
-    networkConnectionBannerState.infuraNetworkClientId !== undefined;
+  const hasInfuraEndpoint = network.switchableInfuraNetworkClientId !== null;
 
-  if (networkConnectionBannerState.status === 'degraded') {
+  if (status === 'degraded') {
     const primaryMessage = (
       <PrimaryMessage
         primaryMessageKey="network_connection_banner.still_connecting_network"
-        networkConnectionBannerState={networkConnectionBannerState}
+        network={network}
       />
     );
 
     let secondaryMessage: React.ReactNode = null;
-    if (!networkConnectionBannerState.isInfuraEndpoint) {
+    if (!network.isInfuraEndpoint) {
       // For custom endpoints, show either "Switch to MetaMask default RPC" or "Update RPC"
       const buttonContent = hasInfuraEndpoint ? (
         <SwitchToInfuraButton
@@ -245,12 +239,12 @@ const getBannerContent = (
   const primaryMessage = (
     <PrimaryMessage
       primaryMessageKey="network_connection_banner.unable_to_connect_network"
-      networkConnectionBannerState={networkConnectionBannerState}
+      network={network}
     />
   );
 
   let secondaryMessageContent: React.ReactNode;
-  if (networkConnectionBannerState.isInfuraEndpoint) {
+  if (network.isInfuraEndpoint) {
     // Already on Infura, just show connectivity message
     secondaryMessageContent = strings(
       'network_connection_banner.check_network_connectivity',
@@ -306,30 +300,15 @@ const getBannerContent = (
 export const NetworkConnectionBanner = () => {
   const theme = useAppTheme();
   const tw = useTailwind();
-  const { networkConnectionBannerState, updateRpc, switchToInfura } =
+  const { status, network, updateRpc, switchToInfura } =
     useNetworkConnectionBanner();
 
-  const handleUpdateRpc = useCallback(() => {
-    if (networkConnectionBannerState.visible) {
-      updateRpc(
-        networkConnectionBannerState.rpcUrl,
-        networkConnectionBannerState.status,
-        networkConnectionBannerState.chainId,
-      );
-    }
-  }, [networkConnectionBannerState, updateRpc]);
-
-  if (!networkConnectionBannerState.visible) {
+  if ((status !== 'degraded' && status !== 'unavailable') || !network) {
     return null;
   }
 
   const { primaryMessage, secondaryMessage, backgroundColor, icon } =
-    getBannerContent(
-      theme,
-      networkConnectionBannerState,
-      handleUpdateRpc,
-      switchToInfura,
-    );
+    getBannerContent(theme, status, network, updateRpc, switchToInfura);
 
   return (
     <BannerBase

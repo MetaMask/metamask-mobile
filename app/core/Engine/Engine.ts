@@ -2,13 +2,11 @@
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AppState,
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-///: END:ONLY_INCLUDE_IF
 import {
   CodefiTokenPricesServiceV2,
   TokenListService,
@@ -171,6 +169,7 @@ import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-featu
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
+import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { configRegistryControllerInit } from './controllers/config-registry-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
@@ -231,13 +230,14 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   /**
    * The app state event listener.
-   * This is used to handle app state changes in snaps lifecycle hooks.
+   * Keeps ClientController's isUiOpen in sync and handles app state changes in
+   * snaps lifecycle hooks.
    */
   appStateListener: NativeEventSubscription;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
@@ -384,6 +384,8 @@ export class Engine {
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
+        NetworkConnectionBannerController:
+          networkConnectionBannerControllerInit,
         ConfigRegistryController: configRegistryControllerInit,
         ConfigRegistryApiService: configRegistryApiServiceInit,
         ProfileMetricsController: profileMetricsControllerInit,
@@ -448,6 +450,8 @@ export class Engine {
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );
+    const networkConnectionBannerController =
+      messengerClientsByName.NetworkConnectionBannerController;
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -578,6 +582,7 @@ export class Engine {
       AddressBookController: addressBookController,
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
+      NetworkConnectionBannerController: networkConnectionBannerController,
       ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
       ConfigRegistryApiService: messengerClientsByName.ConfigRegistryApiService,
       AssetsContractController: assetsContractController,
@@ -827,6 +832,15 @@ export class Engine {
       },
     );
 
+    ///: END:ONLY_INCLUDE_IF
+
+    // Seed ClientController with the current foreground state; the listener
+    // below only fires on changes and the app launches already active.
+    this.controllerMessenger.call(
+      'ClientController:setUiOpen',
+      AppState.currentState === 'active',
+    );
+
     this.appStateListener = AppState.addEventListener(
       'change',
       (state: AppStateStatus) => {
@@ -834,6 +848,16 @@ export class Engine {
           return;
         }
 
+        // Keep ClientController's isUiOpen in sync with the app being in the
+        // foreground, so controllers gating on it (e.g.
+        // NetworkConnectionBannerController) only run while a user is
+        // looking at the wallet.
+        this.controllerMessenger.call(
+          'ClientController:setUiOpen',
+          state === 'active',
+        );
+
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         const { isUnlocked } = this.controllerMessenger.call(
           'KeyringController:getState',
         );
@@ -856,9 +880,9 @@ export class Engine {
               });
           }
         }
+        ///: END:ONLY_INCLUDE_IF
       },
     );
-    ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
     this.handleVaultBackup();
@@ -1321,9 +1345,7 @@ export class Engine {
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.appStateListener?.remove();
-    ///: END:ONLY_INCLUDE_IF
 
     // Cleanup AppStateWebSocketManager
     this.appStateWebSocketManager.cleanup();
@@ -1468,6 +1490,7 @@ export default {
       CardController,
       ConfigRegistryController,
       ConnectivityController,
+      NetworkConnectionBannerController,
       CurrencyRateController,
       DeFiPositionsController,
       DelegationController,
@@ -1542,6 +1565,8 @@ export default {
       BridgeStatusController: BridgeStatusController.state,
       ConfigRegistryController: ConfigRegistryController.state,
       ConnectivityController: ConnectivityController.state,
+      NetworkConnectionBannerController:
+        NetworkConnectionBannerController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,
       DelegationController: DelegationController.state,

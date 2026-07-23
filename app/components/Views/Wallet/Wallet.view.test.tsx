@@ -9,6 +9,7 @@ import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import Wallet from './index';
 import React from 'react';
 
@@ -173,7 +174,7 @@ describeForPlatforms('Wallet', () => {
     return renderComponentViewScreen(
       Wallet as unknown as React.ComponentType,
       { name: Routes.WALLET_VIEW },
-      { state },
+      { state, routeMessenger: createMockRouteMessenger() },
     );
   };
 

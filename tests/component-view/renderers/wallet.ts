@@ -5,6 +5,7 @@ import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import Wallet from '../../../app/components/Views/Wallet';
+import { createMockRouteMessenger } from '../../../app/util/test/mock-route-messenger';
 import { initialStateWallet } from '../presets/wallet';
 
 interface RenderWalletViewOptions {
@@ -34,7 +35,7 @@ export function renderWalletView(
   return renderComponentViewScreen(
     Wallet as unknown as React.ComponentType,
     { name: Routes.WALLET_VIEW },
-    { state },
+    { state, routeMessenger: createMockRouteMessenger() },
   );
 }
 
@@ -57,6 +58,6 @@ export function renderWalletViewWithRoutes(
     Wallet as unknown as React.ComponentType,
     { name: Routes.WALLET_VIEW },
     extraRoutes,
-    { state },
+    { state, routeMessenger: createMockRouteMessenger() },
   );
 }
