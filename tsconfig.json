@@ -13,6 +13,7 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
+      "#app/*": ["./app/*"],
       "images/*": ["./app/images/*"],
       "@keystonehq/ur-decoder": [
         "app/declarations/@keystonehq/ur-decoder.d.ts"

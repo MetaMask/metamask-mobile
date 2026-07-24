@@ -612,6 +612,12 @@ module.exports = {
               ['builtin', 'external'],
               ['internal', 'parent', 'sibling', 'index'],
             ],
+            pathGroups: [
+              {
+                pattern: '#*/**',
+                group: 'internal',
+              },
+            ],
             alphabetize: { order: 'asc', caseInsensitive: true },
             'newlines-between': 'always',
           },

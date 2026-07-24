@@ -1,6 +1,8 @@
 # List things here that *are - 'used, that depcheck is wrong about'
 
 ignores:
+  # package.json subpath imports
+  - '#app'
   - '@metamask/browser-playground'
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
