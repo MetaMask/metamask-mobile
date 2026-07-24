@@ -1,24 +1,13 @@
-import Button from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
 import Icon from '../../../component-library/components/Icons/Icon';
-import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SmartTransactionStatus from '../../Views/transactions/SmartTransactionStatus/SmartTransactionStatus';
-import {
-  View,
-  Text as RNText,
-  ScrollView,
-  TouchableHighlight,
-} from 'react-native';
-import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
+import { View, ScrollView, TouchableHighlight } from 'react-native';
 import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
-import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
-import AddressElement from '../../../components/Views/confirmations/legacy/components/AddressElement';
 import { Box } from '../Box/Box';
 import { SnapUICard } from '../../Snaps/SnapUICard/SnapUICard';
 import { SnapUILink } from '../../Snaps/SnapUILink/SnapUILink';
 import { SnapUIInput } from '../../Snaps/SnapUIInput/SnapUIInput';
-import { SnapIcon } from '../../Snaps/SnapIcon/SnapIcon';
 import { SnapUIFooterButton } from '../../Snaps/SnapUIFooterButton/SnapUIFooterButton';
 import { ConfirmInfoRowValueDouble } from '../../../component-library/components-temp/Snaps/ConfirmInfoRowValueDouble/ConfirmInfoRowValueDouble';
 import { SnapUIIcon } from '../../Snaps/SnapUIIcon/SnapUIIcon';
@@ -42,23 +31,17 @@ import { SnapUIDateTimePicker } from '../../Snaps/SnapUIDateTimePicker/SnapUIDat
 import { SnapUICollapsibleSection } from '../../Snaps/SnapUICollapsibleSection/SnapUICollapsibleSection';
 
 export const safeComponentList = {
-  BottomSheetFooter,
-  Button,
   Icon,
   SheetHeader,
   SmartTransactionStatus,
   Text,
   View,
-  Checkbox,
   SnapUIImage,
   SnapUICard,
-  SnapAvatar,
   SnapUILink,
-  AddressElement,
   Box,
   SnapUIInput,
   SnapUIAddressInput,
-  SnapIcon,
   SnapUIIcon,
   SnapUIFooterButton,
   ConfirmInfoRowValueDouble,
@@ -75,7 +58,6 @@ export const safeComponentList = {
   SnapUIInfoRow,
   SnapUIAccountSelector,
   SnapUIDateTimePicker,
-  RNText,
   ScrollView,
   SnapUITooltip,
   Skeleton,
