@@ -554,15 +554,6 @@ export class ConnectionRegistry {
   }
 
   /**
-   * Proactively refreshes all active connections. This is the primary mechanism
-   * for preventing stale/zombie connections after the app was put in the background.
-   *
-   * Reconnections are processed sequentially so a user with N active sessions
-   * does not trigger N concurrent relay handshakes on every foreground event.
-   * A single failure is logged and does not stop subsequent connections from
-   * being processed.
-   */
-  /**
    * Marks the start of a new incoming connect so background resume/reconnect
    * work defers to it. Must be paired with {@link endNewConnect}.
    */
@@ -589,14 +580,33 @@ export class ConnectionRegistry {
    * Resolves immediately when no new connect is in flight, otherwise waits
    * until the in-flight connect(s) finish. Used to keep cold-start resume and
    * foreground reconnect off the critical path of a fresh incoming connect.
+   *
+   * Re-checks the count in a loop: the wake-up from {@link endNewConnect}
+   * lands on a later microtask, so another connect may have already begun by
+   * the time a waiter resumes. Without the loop, background work could slip
+   * through and run alongside that new in-flight connect.
+   *
+   * Note the barrier only gates loop *iterations* — a resume/reconnect that
+   * has already started is never preempted mid-operation (an in-flight relay
+   * handshake cannot be cancelled).
    */
   private async waitForConnectIdle(): Promise<void> {
-    if (this.activeConnectCount === 0) return;
-    await new Promise<void>((resolve) => {
-      this.connectIdleResolvers.push(resolve);
-    });
+    while (this.activeConnectCount > 0) {
+      await new Promise<void>((resolve) => {
+        this.connectIdleResolvers.push(resolve);
+      });
+    }
   }
 
+  /**
+   * Proactively refreshes all active connections. This is the primary mechanism
+   * for preventing stale/zombie connections after the app was put in the background.
+   *
+   * Reconnections are processed sequentially so a user with N active sessions
+   * does not trigger N concurrent relay handshakes on every foreground event.
+   * A single failure is logged and does not stop subsequent connections from
+   * being processed.
+   */
   private async reconnectAll(): Promise<void> {
     const connections = Array.from(this.connections.values());
 
@@ -604,6 +614,14 @@ export class ConnectionRegistry {
       // Defer reconnecting an existing connection while a new connect is being
       // established, so background reconnect traffic doesn't contend with it.
       await this.waitForConnectIdle();
+
+      // The connection may have been disconnected/evicted while we were
+      // deferring (e.g. the in-flight connect triggered capacity eviction),
+      // so skip anything no longer in the registry.
+      if (!this.connections.has(conn.id)) {
+        continue;
+      }
+
       try {
         await conn.client.reconnect();
         logger.debug('Connection reconnected:', conn.id);

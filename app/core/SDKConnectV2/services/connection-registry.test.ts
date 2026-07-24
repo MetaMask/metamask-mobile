@@ -1954,6 +1954,160 @@ describe('ConnectionRegistry', () => {
       expect(mockExisting.resume).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps deferring when a second connect begins as the first one ends', async () => {
+      mockStore.list.mockResolvedValue([
+        createPersistedConnection('existing-1'),
+      ]);
+      const mockExisting = createMockConnection('existing-1');
+      const connectDeferredA = makeDeferred();
+      const connectDeferredB = makeDeferred();
+      const mockNewA = createMockConnection('new-a', {
+        connect: jest.fn(() => connectDeferredA.promise),
+      });
+      const mockNewB = createMockConnection('new-b', {
+        connect: jest.fn(() => connectDeferredB.promise),
+      });
+
+      (Connection.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValueOnce(mockExisting)
+        .mockResolvedValueOnce(mockNewA)
+        .mockResolvedValueOnce(mockNewB);
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await tick();
+      mockExisting.client.reconnect.mockClear();
+
+      // Connect A in flight; reconnect parks at the barrier.
+      const connectPromiseA = registry.handleConnectDeeplink(validDeeplink);
+      await tick();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const reconnectPromise = (registry as any).reconnectAll();
+      await tick();
+      expect(mockExisting.client.reconnect).not.toHaveBeenCalled();
+
+      // Connect B starts while A is still in flight (distinct deeplink URL).
+      const secondDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify({
+          ...mockConnectionRequest,
+          sessionRequest: {
+            ...mockConnectionRequest.sessionRequest,
+            id: '99999999-8888-7777-6666-555555555555',
+          },
+        }),
+      )}`;
+      const connectPromiseB = registry.handleConnectDeeplink(secondDeeplink);
+      await tick();
+
+      // A finishes, but B is still in flight: the waiter must re-check and
+      // keep deferring rather than proceeding on A's wake-up.
+      connectDeferredA.resolve(undefined);
+      await connectPromiseA;
+      await tick();
+      expect(mockExisting.client.reconnect).not.toHaveBeenCalled();
+
+      // Only once B also finishes does the deferred reconnect run.
+      connectDeferredB.resolve(undefined);
+      await connectPromiseB;
+      await tick();
+      expect(mockExisting.client.reconnect).toHaveBeenCalledTimes(1);
+      await reconnectPromise;
+    });
+
+    it('releases the barrier when the in-flight connect fails', async () => {
+      mockStore.list.mockResolvedValue([
+        createPersistedConnection('existing-1'),
+      ]);
+      const mockExisting = createMockConnection('existing-1');
+      let rejectConnect!: (error: Error) => void;
+      const connectPromiseInner = new Promise<void>((_resolve, reject) => {
+        rejectConnect = reject;
+      });
+      const mockNew = createMockConnection('new-1', {
+        connect: jest.fn(() => connectPromiseInner),
+        disconnect: jest.fn().mockResolvedValue(undefined),
+      });
+
+      (Connection.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValueOnce(mockExisting)
+        .mockResolvedValueOnce(mockNew);
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await tick();
+      mockExisting.client.reconnect.mockClear();
+
+      const connectPromise = registry.handleConnectDeeplink(validDeeplink);
+      await tick();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const reconnectPromise = (registry as any).reconnectAll();
+      await tick();
+      expect(mockExisting.client.reconnect).not.toHaveBeenCalled();
+
+      // The handshake fails; handleConnectDeeplink's finally must still
+      // release the barrier so background work is not deferred forever.
+      rejectConnect(new Error('handshake failed'));
+      await connectPromise; // handleConnectDeeplink catches internally
+      await tick();
+      expect(mockExisting.client.reconnect).toHaveBeenCalledTimes(1);
+      await reconnectPromise;
+    });
+
+    it('skips reconnecting a connection that was removed while deferred', async () => {
+      mockStore.list.mockResolvedValue([
+        createPersistedConnection('existing-1'),
+      ]);
+      const mockExisting = createMockConnection('existing-1');
+      const connectDeferred = makeDeferred();
+      const mockNew = createMockConnection('new-1', {
+        connect: jest.fn(() => connectDeferred.promise),
+      });
+
+      (Connection.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValueOnce(mockExisting)
+        .mockResolvedValueOnce(mockNew);
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await tick();
+      mockExisting.client.reconnect.mockClear();
+
+      const connectPromise = registry.handleConnectDeeplink(validDeeplink);
+      await tick();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const reconnectPromise = (registry as any).reconnectAll();
+      await tick();
+
+      // While reconnect is deferred, the existing connection is disconnected
+      // (e.g. user disconnect or capacity eviction).
+      await registry.disconnect('existing-1');
+
+      connectDeferred.resolve(undefined);
+      await connectPromise;
+      await tick();
+
+      // The stale snapshot entry must be skipped, not reconnected.
+      expect(mockExisting.client.reconnect).not.toHaveBeenCalled();
+      await reconnectPromise;
+    });
+
     it('does not defer when no connect is in flight', async () => {
       mockStore.list.mockResolvedValue([
         createPersistedConnection('existing-1'),
