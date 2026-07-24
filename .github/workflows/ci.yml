@@ -1485,17 +1485,21 @@ jobs:
     if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
     permissions:
       contents: read
+      checks: write
       id-token: write
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-workflow.yml
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
       platform: ios
-      test_suite_tag: 'FixtureValidation'
+      test_suite_tag: FixtureValidation
       split_number: 1
       total_splits: 1
+      test-timeout-minutes: 60
       build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
+      metamask_environment: 'e2e'
+      # Appium iOS is pinned to Cirrus (current), same as appium-smoke-tests-ios.
+      runner_provider: current
     secrets: inherit
 
   report-fixture-validation:
@@ -1517,14 +1521,14 @@ jobs:
         continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
-          name: test-e2e-main-validate-e2e-fixtures-junit-results
+          name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
       - name: Download fixture validation results (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: test-e2e-main-validate-e2e-fixtures-junit-results
+          name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
 
       - name: Report results

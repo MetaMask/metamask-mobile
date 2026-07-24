@@ -23,6 +23,9 @@ import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
 import ReduxService from '../../../redux';
 import { resetCardState } from '../../../redux/slices/card';
+import { ImmersveProvider } from './providers/ImmersveProvider';
+import type { ImmersveService } from './services/ImmersveService';
+import type { ImmersveProviderConfig } from './services/immersve-config';
 
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
@@ -70,19 +73,22 @@ const mockOnboardingStore = CardOnboardingStore as jest.Mocked<
 >;
 const mockDispatch = ReduxService.store.dispatch as jest.Mock;
 
-/** Drain microtasks until `predicate` is true (or throw). Prefer this over a
- * fixed N×`Promise.resolve()` barrier — that under-drains under load. */
+/** Drain the event loop until `predicate` is true (or throw).
+ * Uses `setImmediate` so each iteration yields a macrotask — a fixed
+ * N×`Promise.resolve()` microtask barrier under-drains under load. */
 async function waitForCondition(
   predicate: () => boolean,
-  iterations = 50,
+  timeoutMs = 1000,
 ): Promise<void> {
-  for (let i = 0; i < iterations; i++) {
-    if (predicate()) {
-      return;
+  const deadline = Date.now() + timeoutMs;
+  while (!predicate()) {
+    if (Date.now() > deadline) {
+      throw new Error('waitForCondition predicate never became true');
     }
-    await Promise.resolve();
+    await new Promise<void>((resolve) => {
+      setImmediate(resolve);
+    });
   }
-  throw new Error('waitForCondition predicate never became true');
 }
 
 function buildMessenger() {
@@ -269,6 +275,7 @@ describe('CardController', () => {
 
     expect(controller.state).toStrictEqual({
       selectedCountry: 'US',
+      selectedCardProgramId: null,
       activeProviderId: 'baanx',
       isAuthenticated: true,
       lastUnauthenticatedReason: null,
@@ -344,8 +351,10 @@ describe('CardController — setSelectedCountry', () => {
 
   it('routes an enabled Immersve country to the immersve provider', () => {
     const controller = build({
-      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
-      cardFeature: { immersveCountries: ['GB'] },
+      cardFeature: {
+        immersve: { enabled: true },
+        immersveCountries: ['GB'],
+      },
     });
 
     controller.setSelectedCountry('GB');
@@ -356,8 +365,10 @@ describe('CardController — setSelectedCountry', () => {
 
   it('keeps the default provider when the kill-switch is off', () => {
     const controller = build({
-      immersveOnboardingEnabled: { enabled: false, minimumVersion: '0.0.1' },
-      cardFeature: { immersveCountries: ['GB'] },
+      cardFeature: {
+        immersve: { enabled: false },
+        immersveCountries: ['GB'],
+      },
     });
 
     controller.setSelectedCountry('GB');
@@ -368,13 +379,36 @@ describe('CardController — setSelectedCountry', () => {
 
   it('keeps the default provider for a non-Immersve country', () => {
     const controller = build({
-      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
-      cardFeature: { immersveCountries: ['GB'] },
+      cardFeature: {
+        immersve: { enabled: true },
+        immersveCountries: ['GB'],
+      },
     });
 
     controller.setSelectedCountry('FR');
 
     expect(controller.state.activeProviderId).toBe('baanx');
+  });
+});
+
+describe('CardController — setSelectedCardProgramId', () => {
+  it('updates selectedCardProgramId in state', () => {
+    const messenger = buildMockMessenger();
+    const controller = new CardController({
+      messenger,
+      providers: {
+        baanx: buildMockProvider({ id: 'baanx' }),
+        immersve: buildMockProvider({ id: 'immersve' }),
+      },
+    });
+
+    expect(controller.state.selectedCardProgramId).toBeNull();
+
+    controller.setSelectedCardProgramId('program-alpha');
+    expect(controller.state.selectedCardProgramId).toBe('program-alpha');
+
+    controller.setSelectedCardProgramId(null);
+    expect(controller.state.selectedCardProgramId).toBeNull();
   });
 });
 
@@ -850,6 +884,31 @@ describe('CardController — auth methods', () => {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
       const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(result).toStrictEqual({
+        isAuthenticated: true,
+        location: 'international',
+      });
+      expect(controller.state.isAuthenticated).toBe(true);
+    });
+
+    it('stays authenticated when selected EVM account differs from tokens.accountAddress', async () => {
+      const immersveTokens: CardAuthTokens = {
+        ...mockTokenSet,
+        accountAddress: '0xloginaccount',
+        cardholderAccountId: 'cardholder-1',
+      };
+      const provider = buildMockProvider({ id: 'immersve' });
+      mockTokenStore.get.mockResolvedValue(immersveTokens);
+      provider.validateTokens.mockReturnValue('valid');
+      const messenger = buildMessengerWithEvmAccount('0xotheraccount');
+      const controller = new CardController({
+        messenger,
+        providers: { immersve: provider },
+        state: { activeProviderId: 'immersve', isAuthenticated: true },
+      });
 
       const result = await controller.validateAndRefreshSession();
 
@@ -2757,13 +2816,17 @@ describe('CardController — data pass-throughs', () => {
 
     async function waitFor(
       predicate: () => boolean,
-      iterations = 50,
+      timeoutMs = 1000,
     ): Promise<void> {
-      for (let i = 0; i < iterations; i++) {
-        if (predicate()) return;
-        await Promise.resolve();
+      const deadline = Date.now() + timeoutMs;
+      while (!predicate()) {
+        if (Date.now() > deadline) {
+          throw new Error('waitFor predicate never became true');
+        }
+        await new Promise<void>((resolve) => {
+          setImmediate(resolve);
+        });
       }
-      throw new Error('waitFor predicate never became true');
     }
 
     const mockGenerateSiwe = jest
@@ -3258,7 +3321,7 @@ describe('CardController — data pass-throughs', () => {
         // Let the async prefix run up to where `approveFunding` is awaited.
         await waitFor(() => handle.addTransactionBatchCalls.length > 0);
         handle.emitConfirmed();
-        await waitFor(() => controller.isLinkageInProgress() === true, 100);
+        await waitFor(() => controller.isLinkageInProgress() === true);
 
         expect(controller.isLinkageInProgress()).toBe(true);
         expect(controller.state.moneyAccountCardLinkInProgress).toBe(true);
@@ -3584,6 +3647,42 @@ describe('CardController — data pass-throughs', () => {
       expect(provider.getCardHomeData).not.toHaveBeenCalled();
       expect(result).toStrictEqual(onChainData);
     });
+
+    it('falls back to baanx getOnChainAssets when active provider lacks it', async () => {
+      const onChainData: CardHomeData = {
+        primaryFundingAsset: mockAsset,
+        fundingAssets: [mockAsset],
+        availableFundingAssets: [mockAsset],
+        card: null,
+        account: null,
+        alerts: [],
+        actions: [{ type: 'add_funds', enabled: true }],
+        delegationSettings: null,
+      };
+      const immersve = buildMockProvider({
+        id: 'immersve',
+        getOnChainAssets: undefined,
+      });
+      const baanx = buildMockProvider({ id: 'baanx' });
+      (baanx.getOnChainAssets as jest.Mock).mockResolvedValue(onChainData);
+      mockTokenStore.get.mockResolvedValue(null);
+
+      const messenger = buildMessengerWithEvmAccount();
+      const controller = new CardController({
+        messenger,
+        providers: { immersve, baanx },
+        state: {
+          activeProviderId: 'immersve',
+          isAuthenticated: false,
+        },
+      });
+
+      const result = await controller.getCardHomeData('0xabc');
+
+      expect(baanx.getOnChainAssets).toHaveBeenCalledWith('0xabc');
+      expect(immersve.getCardHomeData).not.toHaveBeenCalled();
+      expect(result).toStrictEqual(onChainData);
+    });
   });
 });
 
@@ -3616,6 +3715,51 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
 
     expect(getFundingSources).toHaveBeenCalledWith(mockTokenSet);
     expect(result).toStrictEqual([{ id: 'fs-1' }]);
+  });
+
+  it('getResumeCardInfo delegates to the immersve provider with valid tokens', async () => {
+    const immersve = new ImmersveProvider({
+      service: {
+        get: jest.fn(),
+        post: jest.fn(),
+        patch: jest.fn(),
+      } as unknown as ImmersveService,
+      config: {
+        apiKey: 'test-key',
+        baseUrl: 'https://api.test.immersve.com',
+        clientApplicationId: 'client-app-1',
+        appUrl: 'https://app.immersve.com',
+      } satisfies ImmersveProviderConfig,
+    });
+    const getResumeCardInfo = jest
+      .spyOn(immersve, 'getResumeCardInfo')
+      .mockResolvedValue({
+        cardProgramId: 'program-1',
+        fundingSourceIds: ['fs-1'],
+      });
+
+    const baanx = buildMockProvider({ id: 'baanx' });
+    baanx.validateTokens.mockReturnValue('valid');
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    const controller = new CardController({
+      messenger: buildMessenger(),
+      providers: { baanx, immersve },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    const result = await controller.getResumeCardInfo();
+
+    expect(getResumeCardInfo).toHaveBeenCalledWith(mockTokenSet);
+    expect(result).toStrictEqual({
+      cardProgramId: 'program-1',
+      fundingSourceIds: ['fs-1'],
+    });
+  });
+
+  it('getResumeCardInfo returns null when immersve provider is not registered', async () => {
+    const { controller } = withValidSession();
+
+    await expect(controller.getResumeCardInfo()).resolves.toBeNull();
   });
 
   it('getSpendingPrerequisites forwards fundingSourceId + params with tokens', async () => {

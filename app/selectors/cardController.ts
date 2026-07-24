@@ -87,6 +87,13 @@ export const selectCardSelectedCountry = createSelector(
     cardState?.selectedCountry ?? null,
 );
 
+/** Temporary: Immersve cardProgramId chosen on SignUp for internal testing. */
+export const selectCardSelectedCardProgramId = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    cardState?.selectedCardProgramId ?? null,
+);
+
 export const selectCardActiveProviderId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
