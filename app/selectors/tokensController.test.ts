@@ -5,6 +5,7 @@ import {
   selectTokensByAddress,
   selectTokensLength,
   selectIgnoreTokens,
+  selectAllTokens,
   selectAllTokensFlat,
   selectTokensByChainIdAndAddress,
   selectTokensByChainIdAndWalletAddress,
@@ -223,6 +224,9 @@ describe('TokensController Selectors', () => {
     });
 
     it('returns a stable reference when called twice with the same state', () => {
+      selectAllTokens.clearCache();
+      selectAllTokensFlat.clearCache();
+
       const first = selectAllTokensFlat(mockRootState);
       const second = selectAllTokensFlat(mockRootState);
 
@@ -230,6 +234,9 @@ describe('TokensController Selectors', () => {
     });
 
     it('returns a stable reference across equal-content states', () => {
+      selectAllTokens.clearCache();
+      selectAllTokensFlat.clearCache();
+
       const equalContentState = {
         ...mockRootState,
         engine: {
@@ -265,6 +272,9 @@ describe('TokensController Selectors', () => {
     });
 
     it('returns a stable empty-array reference for empty tokens', () => {
+      selectAllTokens.clearCache();
+      selectAllTokensFlat.clearCache();
+
       const emptyStateA = {
         ...mockRootState,
         engine: {
