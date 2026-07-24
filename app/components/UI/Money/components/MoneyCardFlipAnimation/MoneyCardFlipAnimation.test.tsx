@@ -2,7 +2,7 @@ import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import MoneyCardFlipAnimation from './MoneyCardFlipAnimation';
 import { MoneyCardFlipAnimationTestIds } from './MoneyCardFlipAnimation.testIds';
-import { useReduceMotion } from '../../hooks/useReduceMotion';
+import { useReduceMotionState } from '../../hooks/useReduceMotion';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
@@ -39,10 +39,10 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../hooks/useReduceMotion', () => ({
-  useReduceMotion: jest.fn(),
+  useReduceMotionState: jest.fn(),
 }));
 
-const mockUseReduceMotion = useReduceMotion as jest.Mock;
+const mockUseReduceMotionState = useReduceMotionState as jest.Mock;
 
 describe('MoneyCardFlipAnimation', () => {
   beforeEach(() => {
@@ -50,7 +50,7 @@ describe('MoneyCardFlipAnimation', () => {
     mockOnErrorRef.current = undefined;
     mockRiveProps.current = undefined;
     mockUseSelector.mockReturnValue(true);
-    mockUseReduceMotion.mockReturnValue(false);
+    mockUseReduceMotionState.mockReturnValue(false);
   });
 
   it('renders the Rive animation when the flag is on and reduce motion is off', () => {
@@ -74,7 +74,7 @@ describe('MoneyCardFlipAnimation', () => {
   });
 
   it('reserves the space without rendering content while the variant is unknown and animations are off', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
 
     const { queryByTestId, getByTestId } = render(<MoneyCardFlipAnimation />);
 
@@ -85,6 +85,36 @@ describe('MoneyCardFlipAnimation', () => {
     expect(
       queryByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
     ).toBeNull();
+  });
+
+  it('holds the static image while reduce motion is unresolved so the flip never flashes', () => {
+    mockUseReduceMotionState.mockReturnValue(null);
+
+    const { queryByTestId, getByTestId } = render(
+      <MoneyCardFlipAnimation isMetalCard={false} />,
+    );
+
+    expect(
+      getByTestId(MoneyCardFlipAnimationTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
+    expect(
+      queryByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
+    ).toBeNull();
+  });
+
+  it('renders the static image immediately when the flag is off and reduce motion is unresolved', () => {
+    mockUseSelector.mockReturnValue(false);
+    mockUseReduceMotionState.mockReturnValue(null);
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyCardFlipAnimation isMetalCard={false} />,
+    );
+
+    expect(
+      getByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
   });
 
   it('renders the metal artboard with the flip timeline for a metal card', () => {
@@ -119,7 +149,7 @@ describe('MoneyCardFlipAnimation', () => {
   });
 
   it('renders the static image when reduce motion is enabled', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(
       <MoneyCardFlipAnimation isMetalCard={false} />,
@@ -145,7 +175,7 @@ describe('MoneyCardFlipAnimation', () => {
   });
 
   it('uses the metal card image as static fallback for a metal card', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
 
     const { getByTestId } = render(<MoneyCardFlipAnimation isMetalCard />);
 
@@ -155,7 +185,7 @@ describe('MoneyCardFlipAnimation', () => {
   });
 
   it('uses the regular card image as static fallback for a virtual card', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
 
     const { getByTestId } = render(
       <MoneyCardFlipAnimation isMetalCard={false} />,

@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardFlipAnimationEnabledFlag } from '../../selectors/featureFlags';
-import { useReduceMotion } from '../../hooks/useReduceMotion';
+import { useReduceMotionState } from '../../hooks/useReduceMotion';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.2.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
@@ -56,11 +56,16 @@ const MoneyCardFlipAnimation = ({
   testID,
 }: MoneyCardFlipAnimationProps) => {
   const flagEnabled = useSelector(selectMoneyCardFlipAnimationEnabledFlag);
-  const reduceMotion = useReduceMotion();
+  const reduceMotionState = useReduceMotionState();
   const [hasRiveError, setHasRiveError] = useState(false);
 
+  const reduceMotion = reduceMotionState ?? true;
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
   const variantKnown = isMetalCard !== undefined;
+  // Hold rendering while reduce-motion is unresolved so the first paint never
+  // flashes the static image before swapping to the Rive flip.
+  const reduceMotionPending =
+    flagEnabled && !hasRiveError && reduceMotionState === null;
 
   const entranceOpacity = useSharedValue(ENTRANCE_INITIAL_OPACITY);
   const entranceTranslateY = useSharedValue(ENTRANCE_TRANSLATE_Y);
@@ -83,7 +88,7 @@ const MoneyCardFlipAnimation = ({
   }, []);
 
   let content: React.ReactNode;
-  if (!variantKnown) {
+  if (!variantKnown || reduceMotionPending) {
     content = animate ? null : <Box style={styles.placeholder} />;
   } else if (animate) {
     content = (
