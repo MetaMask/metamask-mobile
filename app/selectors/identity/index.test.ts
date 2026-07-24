@@ -16,21 +16,6 @@ describe('Notification Selectors', () => {
         AuthenticationController: {
           isSignedIn: true,
           needsProfilePairing: false,
-          srpSessionData: {
-            'entropy-1': {
-              profile: {
-                profileId: 'per-srp-profile-id',
-                canonicalProfileId: 'canonical-profile-id',
-                identifierId: 'id',
-                metaMetricsId: 'mm-id',
-              },
-              token: {
-                accessToken: 'token',
-                expiresIn: 3600,
-                obtainedAt: 1,
-              },
-            },
-          },
         },
         UserStorageController: {
           isBackupAndSyncEnabled: true,
@@ -76,22 +61,34 @@ describe('Notification Selectors', () => {
     );
   });
 
-  it('selectCanonicalProfileId returns the canonical profile ID', () => {
-    expect(selectCanonicalProfileId(mockState)).toBe('canonical-profile-id');
-  });
-
-  it('selectCanonicalProfileId returns undefined when session data is missing', () => {
-    const stateWithoutSession = {
+  it('selectCanonicalProfileId returns the canonical id from the first session profile', () => {
+    const stateWithSession = {
       engine: {
         backgroundState: {
           AuthenticationController: {
             isSignedIn: true,
+            srpSessionData: {
+              entropySourceId1: {
+                profile: {
+                  identifierId: 'identifierId',
+                  profileId: 'profileId',
+                  canonicalProfileId: 'canonicalProfileId',
+                  metaMetricsId: 'metaMetricsId',
+                },
+              },
+            },
           },
         },
       },
     } as unknown as RootState;
 
-    expect(selectCanonicalProfileId(stateWithoutSession)).toBeUndefined();
+    expect(selectCanonicalProfileId(stateWithSession)).toBe(
+      'canonicalProfileId',
+    );
+  });
+
+  it('selectCanonicalProfileId returns undefined when there is no session profile', () => {
+    expect(selectCanonicalProfileId(mockState)).toBeUndefined();
   });
 
   it('selectNeedsProfilePairing returns the persisted value when present', () => {
