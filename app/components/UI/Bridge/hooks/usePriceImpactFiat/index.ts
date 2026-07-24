@@ -17,8 +17,8 @@ export const usePriceImpactFiat = (
 
   if (!activeQuote) return undefined;
 
-  const diff = activeQuote.priceImpact?.valueInCurrency;
-  if (!diff) return undefined;
+  const priceImpact = activeQuote.priceImpact?.valueInCurrency;
+  if (!priceImpact) return undefined;
 
-  return formatCurrency(diff, currentCurrency);
+  return formatCurrency(priceImpact, currentCurrency);
 };

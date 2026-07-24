@@ -210,12 +210,19 @@ const mockGetMaybeHexChainId = jest.fn(
 );
 
 describe('useBatchSellQuoteData', () => {
+  // @ts-expect-error - jest.SpyInstance is a valid type
   let selectShouldUseSmartTransactionSpy = jest.SpyInstance;
+  // @ts-expect-error - jest.SpyInstance is a valid type
   let selectBatchSellDestTokenSpy = jest.SpyInstance;
+  // @ts-expect-error - jest.SpyInstance is a valid type
   let selectBatchSellQuotesSpy = jest.SpyInstance;
+  // @ts-expect-error - jest.SpyInstance is not a valid type
   let selectBatchSellTradesSpy = jest.SpyInstance;
+  // @ts-expect-error - jest.SpyInstance is not a valid type
   let selectBridgeFeatureFlagsSpy = jest.SpyInstance;
+  // @ts-expect-error - jest.SpyInstance is not a valid type
   let selectBatchSellSourceTokensSpy = jest.SpyInstance;
+  // @ts-expect-error - jest.SpyInstance is not a valid type
   let selectBatchSellSourceTokenAmountsSpy = jest.SpyInstance;
   beforeEach(() => {
     jest.clearAllMocks();
@@ -661,7 +668,6 @@ describe('useBatchSellQuoteData', () => {
   it('falls back to the default warning threshold when the flag is absent', () => {
     selectBridgeFeatureFlagsSpy.mockReturnValue({
       ...mockBridgeFeatureFlags,
-      // @ts-expect-error - mocking an invalid payload
       priceImpactThreshold: {},
     });
     selectBatchSellQuotesSpy.mockReturnValue({
