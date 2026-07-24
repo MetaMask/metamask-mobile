@@ -627,22 +627,22 @@ export function PrefillCustomAmountInfoSkeleton() {
             <Skeleton height={18} width={100} />
           </View>
         </View>
-        <View style={styles.skeletonRow}>
+        <View style={styles.skeletonInfoRow}>
           <Skeleton height={18} width={100} />
           <View style={styles.skeletonRowRight}>
             <Skeleton height={24} width={24} twClassName="rounded-full" />
             <Skeleton height={18} width={100} />
           </View>
         </View>
-        <View style={styles.skeletonRow}>
+        <View style={styles.skeletonInfoRow}>
           <Skeleton height={16} width={100} />
           <Skeleton height={16} width={100} />
         </View>
-        <View style={styles.skeletonRow}>
+        <View style={styles.skeletonInfoRow}>
           <Skeleton height={16} width={100} />
           <Skeleton height={16} width={100} />
         </View>
-        <View style={styles.skeletonRow}>
+        <View style={styles.skeletonInfoRow}>
           <Skeleton height={16} width={100} />
           <Skeleton height={16} width={100} />
         </View>
