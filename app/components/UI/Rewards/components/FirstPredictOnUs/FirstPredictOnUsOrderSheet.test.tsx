@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -155,6 +155,10 @@ describe('FirstPredictOnUsOrderSheet', () => {
     });
   });
 
+  afterEach(() => {
+    mockRouteParams = defaultRouteParams;
+  });
+
   it('requests order preview for the fixed sponsored amount', () => {
     renderWithParams();
 
@@ -248,7 +252,9 @@ describe('FirstPredictOnUsOrderSheet', () => {
     mockSubmitOrder.mockResolvedValueOnce(undefined);
     const { getByTestId } = renderWithParams();
 
-    fireEvent.press(getByTestId('first-predict-on-us-order-confirm'));
+    await act(async () => {
+      fireEvent.press(getByTestId('first-predict-on-us-order-confirm'));
+    });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.FIRST_PREDICTION_ON_US_ORDER,

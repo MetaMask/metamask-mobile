@@ -102,6 +102,10 @@ describe('FirstPredictOnUsSplashScreen', () => {
     } as never);
   });
 
+  afterEach(() => {
+    mockRouteParams = defaultRouteParams;
+  });
+
   it('renders resolved CMS splash copy from route params', () => {
     const { getByText } = renderWithParams();
 
