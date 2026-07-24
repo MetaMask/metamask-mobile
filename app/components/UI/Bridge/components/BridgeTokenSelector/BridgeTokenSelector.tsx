@@ -93,8 +93,6 @@ import {
   TokenSelectorBalanceLayoutConfig,
   TokenSelectorBalanceLayoutVariant,
 } from '../TokenSelectorItem.abTestConfig';
-import { BatchSellAssetPickerBanner } from './BatchSellAssetPickerBanner';
-import { useBatchSellAssetPickerBanner } from './useBatchSellAssetPickerBanner';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -231,14 +229,6 @@ export const BridgeTokenSelector: React.FC = () => {
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
-  const {
-    dismiss: dismissBatchSellBanner,
-    handlePress: handleBatchSellBannerPress,
-    shouldShow: shouldShowBatchSellBanner,
-  } = useBatchSellAssetPickerBanner({
-    isSearchActive: isValidSearch,
-    pickerType: route.params?.type,
-  });
   const { variant: balanceLayoutConfig } = useABTest(
     TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
@@ -855,23 +845,6 @@ export const BridgeTokenSelector: React.FC = () => {
     return <SkeletonItem />;
   }, [isLoadingMore]);
 
-  const renderListHeader = useCallback(() => {
-    if (!shouldShowBatchSellBanner) {
-      return null;
-    }
-
-    return (
-      <BatchSellAssetPickerBanner
-        onDismiss={dismissBatchSellBanner}
-        onPress={handleBatchSellBannerPress}
-      />
-    );
-  }, [
-    dismissBatchSellBanner,
-    handleBatchSellBannerPress,
-    shouldShowBatchSellBanner,
-  ]);
-
   // Capture FlatList height for auto-load logic
   const handleFlatListLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -965,7 +938,6 @@ export const BridgeTokenSelector: React.FC = () => {
           onScroll={handleScroll}
           scrollEventThrottle={16}
           ListFooterComponent={renderFooter}
-          ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderEmptyState}
           onLayout={handleFlatListLayout}
           maintainVisibleContentPosition={{ disabled: true }}
