@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StorageWrapper from '../../../../../../../store/storage-wrapper';
 import {
   getBuyQuickAmounts,
@@ -108,6 +108,9 @@ export function useQuickBuyQuickAmountPreferences({
   const [preferences, setPreferences] =
     useState<QuickBuyQuickAmountPreferences | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasStoredPreferences, setHasStoredPreferences] = useState(false);
+  const usdToCurrentCurrencyRateRef = useRef(usdToCurrentCurrencyRate);
+  usdToCurrentCurrencyRateRef.current = usdToCurrentCurrencyRate;
 
   const defaultPreferences = useMemo(
     () =>
@@ -139,8 +142,15 @@ export function useQuickBuyQuickAmountPreferences({
         )
       ) {
         setPreferences(stored);
+        setHasStoredPreferences(true);
       } else {
-        setPreferences(defaultPreferences);
+        setPreferences(
+          buildDefaultQuickAmountPreferences(
+            normalizedCurrency,
+            usdToCurrentCurrencyRateRef.current,
+          ),
+        );
+        setHasStoredPreferences(false);
       }
       setIsLoaded(true);
     };
@@ -148,7 +158,13 @@ export function useQuickBuyQuickAmountPreferences({
     setIsLoaded(false);
     loadPreferences().catch(() => {
       if (!cancelled) {
-        setPreferences(defaultPreferences);
+        setPreferences(
+          buildDefaultQuickAmountPreferences(
+            normalizedCurrency,
+            usdToCurrentCurrencyRateRef.current,
+          ),
+        );
+        setHasStoredPreferences(false);
         setIsLoaded(true);
       }
     });
@@ -156,7 +172,15 @@ export function useQuickBuyQuickAmountPreferences({
     return () => {
       cancelled = true;
     };
-  }, [defaultPreferences, normalizedCurrency]);
+  }, [normalizedCurrency]);
+
+  useEffect(() => {
+    if (!isLoaded || hasStoredPreferences) {
+      return;
+    }
+
+    setPreferences(defaultPreferences);
+  }, [defaultPreferences, hasStoredPreferences, isLoaded]);
 
   const savePreferences = useCallback(
     async (next: Omit<QuickBuyQuickAmountPreferences, 'currency'>) => {
@@ -171,6 +195,7 @@ export function useQuickBuyQuickAmountPreferences({
         JSON.stringify(payload),
       );
       setPreferences(payload);
+      setHasStoredPreferences(true);
     },
     [normalizedCurrency],
   );

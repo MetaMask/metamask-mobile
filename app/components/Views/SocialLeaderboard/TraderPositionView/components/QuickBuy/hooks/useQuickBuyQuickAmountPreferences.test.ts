@@ -133,6 +133,67 @@ describe('useQuickBuyQuickAmountPreferences', () => {
     expect(result.current.sellPercentages).toEqual([25, 50, 75, 100]);
   });
 
+  it('does not reset isLoaded when only the conversion rate changes', async () => {
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+      JSON.stringify({
+        currency: 'USD',
+        buyAmounts: [5, 35, 50, 99],
+        sellPercentages: [10, 20, 30, 40],
+      }),
+    );
+
+    const { result, rerender } = renderHook(
+      ({ rate }: { rate: number | undefined }) =>
+        useQuickBuyQuickAmountPreferences({
+          currentCurrency: 'USD',
+          usdToCurrentCurrencyRate: rate,
+        }),
+      {
+        initialProps: { rate: 1 },
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.buyAmounts).toEqual([5, 35, 50, 99]);
+    });
+
+    rerender({ rate: 1.05 });
+
+    expect(result.current.isLoaded).toBe(true);
+    expect(result.current.buyAmounts).toEqual([5, 35, 50, 99]);
+    expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates default pill amounts when the conversion rate changes', async () => {
+    const { result, rerender } = renderHook(
+      ({ rate }: { rate: number | undefined }) =>
+        useQuickBuyQuickAmountPreferences({
+          currentCurrency: 'EUR',
+          usdToCurrentCurrencyRate: rate,
+        }),
+      {
+        initialProps: { rate: 0.5 },
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+      expect(result.current.buyAmounts).toEqual(
+        buildDefaultQuickAmountPreferences('EUR', 0.5).buyAmounts,
+      );
+    });
+
+    rerender({ rate: 0.92 });
+
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+      expect(result.current.buyAmounts).toEqual(
+        buildDefaultQuickAmountPreferences('EUR', 0.92).buyAmounts,
+      );
+    });
+    expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
+  });
+
   it('persists updated preferences', async () => {
     const { result } = renderHook(() =>
       useQuickBuyQuickAmountPreferences({
