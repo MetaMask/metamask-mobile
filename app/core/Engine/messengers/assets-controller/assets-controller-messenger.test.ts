@@ -20,6 +20,7 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'SnapController:getRunnableSnaps',
   'PermissionController:getPermissions',
   'PhishingController:bulkScanTokens',
+  'RemoteFeatureFlagController:getState',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
@@ -41,6 +42,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
   'AccountActivityService:balanceUpdated',
+  'RemoteFeatureFlagController:stateChange',
 ] as const;
 
 const getRootMessenger = () =>

@@ -38,6 +38,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'TransactionController:unapprovedTransactionAdded',
   // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
+  'RemoteFeatureFlagController:stateChange',
 ] as const;
 
 /**
@@ -75,6 +76,7 @@ export function getAssetsControllerMessenger(
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',
       'PhishingController:bulkScanTokens',
+      'RemoteFeatureFlagController:getState',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,
