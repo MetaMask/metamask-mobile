@@ -35,13 +35,13 @@ const content: FirstPredictOnUsDto = {
 
 const markets = [{ id: '30615', outcomes: [] } as unknown as PredictMarket];
 
-let mockRouteParams:
-  | {
-      content: FirstPredictOnUsDto;
-      markets: PredictMarket[];
-      successFlow?: ONBOARDING_SUCCESS_FLOW;
-    }
-  | undefined = { content, markets };
+interface SplashRouteParams {
+  content: FirstPredictOnUsDto;
+  markets: PredictMarket[];
+  successFlow?: ONBOARDING_SUCCESS_FLOW;
+}
+
+let mockRouteParams: SplashRouteParams | undefined = { content, markets };
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -86,9 +86,16 @@ const expectedSuccessReset = {
 };
 
 describe('FirstPredictOnUsSplashScreen', () => {
+  const defaultRouteParams: SplashRouteParams = { content, markets };
+
+  const renderWithParams = (...args: [] | [SplashRouteParams | undefined]) => {
+    mockRouteParams = args.length === 0 ? defaultRouteParams : args[0];
+    return render(<FirstPredictOnUsSplashScreen />);
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { content, markets };
+    mockRouteParams = defaultRouteParams;
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -96,7 +103,7 @@ describe('FirstPredictOnUsSplashScreen', () => {
   });
 
   it('renders resolved CMS splash copy from route params', () => {
-    const { getByText } = render(<FirstPredictOnUsSplashScreen />);
+    const { getByText } = renderWithParams();
 
     expect(
       getByText(content.localizedText['splashSheet.skip']),
@@ -113,7 +120,7 @@ describe('FirstPredictOnUsSplashScreen', () => {
   });
 
   it('tracks the viewed event on mount', () => {
-    render(<FirstPredictOnUsSplashScreen />);
+    renderWithParams();
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.FIRST_PREDICTION_ON_US_VIEWED,
@@ -122,7 +129,7 @@ describe('FirstPredictOnUsSplashScreen', () => {
   });
 
   it('tracks skip and resets to OnboardingSuccess', () => {
-    const { getByTestId } = render(<FirstPredictOnUsSplashScreen />);
+    const { getByTestId } = renderWithParams();
 
     fireEvent.press(getByTestId('first-predict-on-us-splash-skip'));
 
@@ -133,13 +140,11 @@ describe('FirstPredictOnUsSplashScreen', () => {
   });
 
   it('uses the successFlow route param when resetting to OnboardingSuccess', () => {
-    mockRouteParams = {
+    const { getByTestId } = renderWithParams({
       content,
       markets,
       successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-    };
-
-    const { getByTestId } = render(<FirstPredictOnUsSplashScreen />);
+    });
 
     fireEvent.press(getByTestId('first-predict-on-us-splash-skip'));
 
@@ -147,9 +152,7 @@ describe('FirstPredictOnUsSplashScreen', () => {
   });
 
   it('resets forward to OnboardingSuccess when route params are missing', () => {
-    mockRouteParams = undefined;
-
-    const { queryByTestId } = render(<FirstPredictOnUsSplashScreen />);
+    const { queryByTestId } = renderWithParams(undefined);
 
     expect(queryByTestId('first-predict-on-us-splash-skip')).toBeNull();
     expect(mockReset).toHaveBeenCalledWith(expectedSuccessReset);

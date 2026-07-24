@@ -49,15 +49,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const mockGoBack = jest.fn();
-let mockRouteParams:
-  | {
-      confirmLabel: string;
-      selectedOrder: FirstPredictOnUsSelectedOrder;
-      tradeDescriptionTemplate: string;
-      tradePlacedLabel: string;
-      usdAmount: number;
-    }
-  | undefined;
+interface OrderSheetRouteParams {
+  confirmLabel: string;
+  selectedOrder: FirstPredictOnUsSelectedOrder;
+  tradeDescriptionTemplate: string;
+  tradePlacedLabel: string;
+  usdAmount: number;
+}
+let mockRouteParams: OrderSheetRouteParams | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -102,15 +101,24 @@ describe('FirstPredictOnUsOrderSheet', () => {
     outcomeToken: { id: 'token-yes', title: 'Yes', price: 0.37 },
   };
 
+  const defaultRouteParams: OrderSheetRouteParams = {
+    confirmLabel: 'Confirm',
+    selectedOrder,
+    tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
+    tradePlacedLabel: 'Trade placed',
+    usdAmount: 5,
+  };
+
+  const renderWithParams = (
+    ...args: [] | [OrderSheetRouteParams | undefined]
+  ) => {
+    mockRouteParams = args.length === 0 ? defaultRouteParams : args[0];
+    return render(<FirstPredictOnUsOrderSheet />);
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = {
-      confirmLabel: 'Confirm',
-      selectedOrder,
-      tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
-      tradePlacedLabel: 'Trade placed',
-      usdAmount: 5,
-    };
+    mockRouteParams = defaultRouteParams;
     mockAddProperties.mockReturnValue({ build: mockBuild });
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -143,7 +151,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
   });
 
   it('requests order preview for the fixed sponsored amount', () => {
-    render(<FirstPredictOnUsOrderSheet />);
+    renderWithParams();
 
     expect(usePredictOrderPreview).toHaveBeenCalledWith({
       marketId: 'market-1',
@@ -155,7 +163,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
   });
 
   it('renders fixed amount and existing Predict terms copy', () => {
-    const { getByTestId, getByText } = render(<FirstPredictOnUsOrderSheet />);
+    const { getByTestId, getByText } = renderWithParams();
 
     expect(getByTestId('first-predict-on-us-order-title')).toHaveTextContent(
       'France Stage of Elimination',
@@ -180,7 +188,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
       error: null,
     });
 
-    const { getByTestId, queryByText } = render(<FirstPredictOnUsOrderSheet />);
+    const { getByTestId, queryByText } = renderWithParams();
 
     expect(getByTestId('first-predict-on-us-order-to-win')).toBeOnTheScreen();
     expect(getByTestId('mock-skeleton')).toBeOnTheScreen();
@@ -188,7 +196,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
   });
 
   it('opens Polymarket terms when Learn more is pressed', () => {
-    const { getByText } = render(<FirstPredictOnUsOrderSheet />);
+    const { getByText } = renderWithParams();
 
     fireEvent.press(getByText(strings('predict.consent_sheet.learn_more')));
 
@@ -196,7 +204,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
   });
 
   it('closes when the close icon is pressed', () => {
-    const { getByTestId } = render(<FirstPredictOnUsOrderSheet />);
+    const { getByTestId } = renderWithParams();
 
     fireEvent.press(getByTestId('first-predict-on-us-order-close'));
 
@@ -216,15 +224,10 @@ describe('FirstPredictOnUsOrderSheet', () => {
       outcomeToken: { id: 'token-yes', title: 'Spain', price: 0.37 },
     };
 
-    mockRouteParams = {
-      confirmLabel: 'Confirm',
+    const { getByText, getByTestId } = renderWithParams({
+      ...defaultRouteParams,
       selectedOrder: twoTokenOrder,
-      tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
-      tradePlacedLabel: 'Trade placed',
-      usdAmount: 5,
-    };
-
-    const { getByText, getByTestId } = render(<FirstPredictOnUsOrderSheet />);
+    });
 
     expect(getByText('Spain')).toBeOnTheScreen();
     expect(getByText('England')).toBeOnTheScreen();
@@ -238,7 +241,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
 
   it('tracks confirmed order and submits on confirm', async () => {
     mockSubmitOrder.mockResolvedValueOnce(undefined);
-    const { getByTestId } = render(<FirstPredictOnUsOrderSheet />);
+    const { getByTestId } = renderWithParams();
 
     fireEvent.press(getByTestId('first-predict-on-us-order-confirm'));
 
@@ -259,14 +262,12 @@ describe('FirstPredictOnUsOrderSheet', () => {
         tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
         tradePlacedLabel: 'Trade placed',
       });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders nothing when route params are missing', () => {
-    mockRouteParams = undefined;
-
-    const { queryByTestId } = render(<FirstPredictOnUsOrderSheet />);
+    const { queryByTestId } = renderWithParams(undefined);
 
     expect(queryByTestId('first-predict-on-us-order-sheet')).toBeNull();
     expect(mockTrackEvent).not.toHaveBeenCalled();
