@@ -10,6 +10,7 @@ import {
   ButtonSize,
   Text,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
@@ -48,8 +49,8 @@ const ImmersveKYCModal: React.FC = () => {
   const [status, setStatus] = useState<WebViewStatus>('loading');
   const [retryKey, setRetryKey] = useState(0);
 
-  // Immersve page's X → redirect closes the modal and re-polls the opener so it
-  // can route forward (completed) or prompt to reopen (bailed).
+  // Any close (header back, or the Immersve page's X → redirect) re-polls the
+  // opener so it can route forward (completed) or prompt to reopen (bailed).
   const closeModal = useCallback(() => {
     onCloseCallback?.();
     navigation.goBack();
@@ -84,6 +85,11 @@ const ImmersveKYCModal: React.FC = () => {
       ]}
       testID="immersve-kyc-container"
     >
+      <HeaderStandard
+        onBack={closeModal}
+        backButtonProps={{ testID: 'immersve-kyc-back-button' }}
+        twClassName="bg-background-default"
+      />
       {status === 'error' ? (
         <View
           style={tw.style('flex-1 justify-center items-center p-6 gap-4')}
