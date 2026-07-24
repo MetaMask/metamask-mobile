@@ -9,7 +9,6 @@ import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -42,7 +41,6 @@ import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse'
 import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 import {
   CustomNetworkItem,
@@ -64,8 +62,6 @@ const CustomNetworkSelector = ({
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
-  const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -168,7 +164,6 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
-            style={tw.style(surfaceClass)}
           >
             {(!isTestNet(chainId) || showFiatOnTestnets) && (
               <AccountGroupBalancePerChain caipChainId={caipChainId} />
@@ -185,8 +180,6 @@ const CustomNetworkSelector = ({
       createAvatarProps,
       selectedChainIdCaip,
       showFiatOnTestnets,
-      surfaceClass,
-      tw,
     ],
   );
 
