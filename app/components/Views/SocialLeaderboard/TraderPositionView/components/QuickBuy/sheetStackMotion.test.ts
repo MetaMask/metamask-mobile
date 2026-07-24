@@ -1,4 +1,7 @@
 import {
+  OVERLAY_CLOSE_DURATION,
+  OVERLAY_OPEN_DURATION,
+  OVERLAY_OPEN_EASING,
   SHEET_STACK_CONTENT_EASING,
   SHEET_STACK_HEIGHT_DURATION,
   SHEET_STACK_HEIGHT_EASING,
@@ -25,5 +28,14 @@ describe('sheetStackMotion', () => {
     expect(SHEET_STACK_CONTENT_EASING).toEqual([0.16, 1, 0.3, 1]);
     expect(SHEET_STACK_PUSH_EASING).toEqual(SHEET_STACK_CONTENT_EASING);
     expect(SHEET_STACK_HEIGHT_EASING).toEqual(SHEET_STACK_CONTENT_EASING);
+  });
+
+  it('matches installed BottomSheetDialog open (Fast) and DS close', () => {
+    expect(OVERLAY_OPEN_DURATION).toBe(150);
+    expect(OVERLAY_CLOSE_DURATION).toBe(200);
+  });
+
+  it('uses the content ease curve for backdrop open', () => {
+    expect(OVERLAY_OPEN_EASING).toEqual(SHEET_STACK_CONTENT_EASING);
   });
 });

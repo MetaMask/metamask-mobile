@@ -37,6 +37,8 @@ jest.mock('../../../analytics', () => {
 let storedOnOpenCallback: (() => void) | undefined;
 const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
+const mockOnCloseOverlay = jest.fn((cb?: () => void) => cb?.());
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactMock = jest.requireActual('react');
@@ -49,15 +51,18 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           onClose,
+          onOpen,
         }: {
           children: unknown;
           onClose?: () => void;
+          onOpen?: () => void;
         },
         ref: unknown,
       ) => {
+        storedOnOpenCallback = onOpen;
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
-            storedOnOpenCallback = cb;
+          onOpenDialog: (cb?: () => void) => {
+            cb?.();
           },
           onCloseDialog: mockOnCloseDialog,
         }));
@@ -65,6 +70,39 @@ jest.mock('@metamask/design-system-react-native', () => {
           View,
           { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
           children,
+        );
+      },
+    ),
+  };
+});
+
+jest.mock('./QuickBuyBottomSheetOverlay', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View, Pressable: PressableMock } = jest.requireActual('react-native');
+  return {
+    QuickBuyBottomSheetOverlay: ReactMock.forwardRef(
+      (
+        {
+          onPress,
+          testID,
+        }: {
+          onPress?: () => void;
+          testID?: string;
+        },
+        ref: unknown,
+      ) => {
+        ReactMock.useImperativeHandle(ref, () => ({
+          onCloseOverlay: mockOnCloseOverlay,
+        }));
+        return ReactMock.createElement(
+          View,
+          { testID: testID ?? 'quick-buy-overlay' },
+          onPress
+            ? ReactMock.createElement(PressableMock, {
+                testID: 'quick-buy-overlay-press',
+                onPress,
+              })
+            : null,
         );
       },
     ),
@@ -347,6 +385,7 @@ describe('QuickBuyRoot', () => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
     mockOnCloseDialog.mockImplementation((cb?: () => void) => cb?.());
+    mockOnCloseOverlay.mockImplementation((cb?: () => void) => cb?.());
     (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
@@ -373,6 +412,37 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
+  });
+
+  it('renders the backdrop overlay behind the sheet', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('quick-buy-sheet-host')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-overlay')).toBeOnTheScreen();
+  });
+
+  it('fades the overlay and closes the dialog when the backdrop is pressed', () => {
+    const onClose = jest.fn();
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('quick-buy-overlay-press'));
+
+    expect(mockOnCloseOverlay).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseDialog).toHaveBeenCalledWith(onClose);
   });
 
   it('fires SOCIAL_QUICK_BUY_SHEET_VIEWED when the sheet opens with a source', () => {

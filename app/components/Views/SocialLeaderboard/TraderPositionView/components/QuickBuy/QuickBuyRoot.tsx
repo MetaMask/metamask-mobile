@@ -22,7 +22,10 @@ import {
 import { useSocialLeaderboardAnalytics } from '../../../analytics';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
-import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
+import {
+  QuickBuyBottomSheetOverlay,
+  type QuickBuyBottomSheetOverlayRef,
+} from './QuickBuyBottomSheetOverlay';
 import { QuickBuyProvider } from './QuickBuyContext';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
@@ -76,7 +79,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
-  const [isContentReady, setIsContentReady] = useState(false);
+  const overlayRef = useRef<QuickBuyBottomSheetOverlayRef>(null);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
   // Keep the last pushed screen mounted through the pop animation so the
   // outgoing detail stays visible while it slides off.
@@ -96,6 +99,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
 
   const {
     isPushed,
+    isHeightReady,
     requestPush,
     pop,
     snapToPushed,
@@ -139,13 +143,6 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
         analyticsContext.traderTradeType ?? QuickBuyEventValues.TRADE_TYPE.BUY,
     });
   }, [analyticsContext, target.tokenSymbol, track]);
-
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenDialog(() => {
-      setIsContentReady(true);
-      trackSheetViewed();
-    });
-  }, [trackSheetViewed]);
 
   // Drive in-sheet stack push/pop from activeScreen. Skip while the whole
   // sheet is dismissing so content doesn't also slide horizontally.
@@ -194,8 +191,10 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // Animate the sheet down (then run the parent's onClose) and flag the content
   // as closing so it doesn't slide horizontally on the way out. Falls back to a
   // direct onClose when the imperative handle isn't available.
+  // Fade the backdrop in parallel with dismiss (DS onCloseStart → overlay fade).
   const requestClose = useCallback(() => {
     setIsClosing(true);
+    overlayRef.current?.onCloseOverlay();
     const sheet = bottomSheetRef.current;
     if (sheet?.onCloseDialog) {
       sheet.onCloseDialog(onClose);
@@ -212,26 +211,38 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // in-sheet stack is for the real amount ↔ payWith / quoteDetails flow.
   const useCustomChildren = children !== undefined && children !== null;
 
+  // Host fills the window like DS BottomSheet so the backdrop can cover the
+  // chart behind the dialog. Backdrop / sheet Y stay put during in-sheet stack.
+  //
+  // Content mounts immediately (no post-open skeleton swap). Until the amount
+  // root is measured, keep it in document flow so BottomSheetDialog opens at
+  // the real height; absolute + heightStyle only after measure (stack push).
   return (
-    <BottomSheetDialog
-      ref={bottomSheetRef}
-      onClose={onClose}
-      twClassName={`${surfaceClass} rounded-t-[40px]`}
-    >
-      {/* Temporary override: DS BottomSheetDialog ships h-1 (4px); cover with a
-          thicker pill to match design until the DS default is updated.
-          Keep this wrapper transparent — a full-bleed surface bg here clips
-          against large top radii and leaves a gap at the corners. */}
-      <Box
-        twClassName="-mt-3 items-center pt-2 pb-2"
-        pointerEvents="none"
-        testID="quick-buy-drag-handle"
+    <Box twClassName="absolute inset-0" testID="quick-buy-sheet-host">
+      <QuickBuyBottomSheetOverlay
+        ref={overlayRef}
+        onPress={requestClose}
+        testID="quick-buy-overlay"
+      />
+      <BottomSheetDialog
+        ref={bottomSheetRef}
+        onOpen={trackSheetViewed}
+        onClose={onClose}
+        twClassName={`${surfaceClass} rounded-t-[40px]`}
       >
-        {/* Mask the thin DS handle only under the pill */}
-        <Box twClassName={`absolute h-3 w-12 rounded-full ${surfaceClass}`} />
-        <Box twClassName="h-[6px] w-10 rounded-full bg-border-muted" />
-      </Box>
-      {isContentReady ? (
+        {/* Temporary override: DS BottomSheetDialog ships h-1 (4px); cover with a
+            thicker pill to match design until the DS default is updated.
+            Keep this wrapper transparent — a full-bleed surface bg here clips
+            against large top radii and leaves a gap at the corners. */}
+        <Box
+          twClassName="-mt-3 items-center pt-2 pb-2"
+          pointerEvents="none"
+          testID="quick-buy-drag-handle"
+        >
+          {/* Mask the thin DS handle only under the pill */}
+          <Box twClassName={`absolute h-3 w-12 rounded-full ${surfaceClass}`} />
+          <Box twClassName="h-[6px] w-10 rounded-full bg-border-muted" />
+        </Box>
         <QuickBuyProvider
           key={variantName}
           target={target}
@@ -248,14 +259,19 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
             <Animated.View
               testID="quick-buy-content-container"
               onLayout={onStackLayout}
-              style={[tw.style('w-full overflow-hidden'), heightStyle]}
+              style={[
+                tw.style('w-full overflow-hidden'),
+                isHeightReady ? heightStyle : undefined,
+              ]}
             >
               <Animated.View
                 testID="quick-buy-stack-root"
                 onLayout={onRootLayout}
                 pointerEvents={isPushed ? 'none' : 'auto'}
                 style={[
-                  tw.style('absolute left-0 right-0 top-0'),
+                  isHeightReady
+                    ? tw.style('absolute left-0 right-0 top-0')
+                    : tw.style('w-full'),
                   rootScreenStyle,
                 ]}
               >
@@ -275,16 +291,16 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
                     detailScreenStyle,
                   ]}
                 >
-                  <Box twClassName="flex-1">{renderScreen(renderedDetail)}</Box>
+                  <Box twClassName="flex-1">
+                    {renderScreen(renderedDetail)}
+                  </Box>
                 </Animated.View>
               )}
             </Animated.View>
           )}
         </QuickBuyProvider>
-      ) : (
-        <QuickBuyBottomSheetSkeleton useKeyboard={useKeyboard} />
-      )}
-    </BottomSheetDialog>
+      </BottomSheetDialog>
+    </Box>
   );
 };
 

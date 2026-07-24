@@ -1,6 +1,7 @@
 /**
- * In-sheet stack motion tokens — mirrored from design-system BottomSheetDialog
- * (replit/bottom-sheet / PR #1411) for Quick Buy only until the package ships them.
+ * Sheet / stack / backdrop motion tokens — mirrored from design-system
+ * BottomSheetDialog + BottomSheetOverlay (replit/bottom-sheet / PR #1411)
+ * for Quick Buy only until the package ships them.
  *
  * Springs are only for interactive settle (open, snap-back).
  * Surface exits and content nav use tweens on the two iOS curves.
@@ -10,6 +11,23 @@
  * Content / surface ease — easeOutExpo-style: [0.16, 1, 0.3, 1].
  */
 export const SHEET_STACK_CONTENT_EASING = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * Backdrop open duration in ms — match installed BottomSheetDialog open
+ * (`AnimationDuration.Fast` = 150). Keeps scrim and sheet Y in sync; bump
+ * with the DS sheet when PR #1411 ships a longer open.
+ */
+export const OVERLAY_OPEN_DURATION = 150;
+
+/**
+ * Backdrop open curve — same content ease as in-sheet nav.
+ */
+export const OVERLAY_OPEN_EASING = SHEET_STACK_CONTENT_EASING;
+
+/**
+ * Backdrop close duration in ms (0.2s).
+ */
+export const OVERLAY_CLOSE_DURATION = 200;
 
 /**
  * In-sheet stack push / pop duration in ms (0.45s).
