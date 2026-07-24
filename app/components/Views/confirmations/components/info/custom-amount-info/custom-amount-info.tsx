@@ -111,6 +111,21 @@ type QuoteHandoff =
       quotesLastUpdated: number;
     };
 
+function getLatestQuotesLastUpdated(
+  controllerQuotesLastUpdated: number | undefined,
+  reduxQuotesLastUpdated: number | undefined,
+) {
+  if (controllerQuotesLastUpdated === undefined) {
+    return reduxQuotesLastUpdated;
+  }
+
+  if (reduxQuotesLastUpdated === undefined) {
+    return controllerQuotesLastUpdated;
+  }
+
+  return Math.max(controllerQuotesLastUpdated, reduxQuotesLastUpdated);
+}
+
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
   children?: ReactNode;
@@ -324,13 +339,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             ]
           : undefined;
         const controllerQuotesLastUpdated = transactionData?.quotesLastUpdated;
-        const reduxQuotesLastUpdated = quotesLastUpdatedRef.current;
-        const latestQuotesLastUpdated =
-          controllerQuotesLastUpdated === undefined
-            ? reduxQuotesLastUpdated
-            : reduxQuotesLastUpdated === undefined
-              ? controllerQuotesLastUpdated
-              : Math.max(controllerQuotesLastUpdated, reduxQuotesLastUpdated);
+        const latestQuotesLastUpdated = getLatestQuotesLastUpdated(
+          controllerQuotesLastUpdated,
+          quotesLastUpdatedRef.current,
+        );
 
         if (transactionData?.isLoading) {
           setQuoteHandoff({
@@ -522,7 +534,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             </>
           )}
           {isResultReady && (
-            <Box
+            <View
               pointerEvents={showLoadingReview ? 'none' : 'auto'}
               testID={CustomAmountInfoTestIds.REVIEW_ROWS}
             >
@@ -545,7 +557,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 />
               )}
               <PercentageRow />
-            </Box>
+            </View>
           )}
           {footerText && (
             <Text
