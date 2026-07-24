@@ -210,7 +210,7 @@ const mockGetMaybeHexChainId = jest.fn(
   (chainId?: string) => chainId as `0x${string}` | undefined,
 );
 
-describe.only('useBatchSellQuoteData', () => {
+describe('useBatchSellQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
