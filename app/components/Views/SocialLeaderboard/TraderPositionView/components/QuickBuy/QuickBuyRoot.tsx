@@ -116,7 +116,6 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const navigateToScreen = useCallback(
     (next: QuickBuyScreen) => {
       setHasNavigated(true);
-      setLockedHeight(null);
       setActiveScreen((current) => {
         directionSV.value =
           SCREEN_DEPTH[next] >= SCREEN_DEPTH[current] ? 1 : -1;
@@ -161,6 +160,8 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
+      // Capture the first (amount) screen height once so every sub-screen shares
+      // it and doesn't collapse to its own (often short) content height.
       if (lockedHeight !== null) {
         return;
       }
@@ -179,6 +180,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     activeScreen === 'amount' ||
     activeScreen === 'editQuickAmounts' ||
     activeScreen === 'priceImpactConfirm';
+
+  // The amount and edit-quick-amounts screens stay dynamic so they can grow and
+  // shrink with the slider/footer or keypad. Every other screen uses the locked
+  // height so sub-screens like Pay with don't collapse to their own short height.
+  const isDynamicHeightScreen =
+    activeScreen === 'amount' || activeScreen === 'editQuickAmounts';
+  const shouldLockHeight = lockedHeight !== null && !isDynamicHeightScreen;
 
   return (
     <BottomSheetDialog
@@ -199,7 +207,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
             testID="quick-buy-content-container"
             onLayout={handleContentLayout}
             style={
-              lockedHeight !== null
+              shouldLockHeight && lockedHeight !== null
                 ? {
                     // Scroll-only screens reclaim the bottom safe-area inset
                     // that BottomSheetDialog adds, so they sit flush to the
@@ -217,7 +225,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
               key={activeScreen}
               entering={hasNavigated ? entering : undefined}
               exiting={isClosing ? undefined : exiting}
-              style={lockedHeight !== null ? tw.style('flex-1') : undefined}
+              style={shouldLockHeight ? tw.style('flex-1') : undefined}
             >
               {renderActiveScreen(activeScreen, children)}
             </Animated.View>

@@ -277,6 +277,31 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
   }) as Position;
 
 describe('QuickBuyRoot', () => {
+  const NavigationProbe = () => {
+    const { activeScreen, setActiveScreen } = useQuickBuyContext();
+    return (
+      <>
+        <Text testID="active-screen">{activeScreen}</Text>
+        <Pressable
+          testID="nav-payWith"
+          onPress={() => setActiveScreen('payWith')}
+        />
+        <Pressable
+          testID="nav-quoteDetails"
+          onPress={() => setActiveScreen('quoteDetails')}
+        />
+        <Pressable
+          testID="nav-editQuickAmounts"
+          onPress={() => setActiveScreen('editQuickAmounts')}
+        />
+        <Pressable
+          testID="nav-amount"
+          onPress={() => setActiveScreen('amount')}
+        />
+      </>
+    );
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
@@ -461,7 +486,7 @@ describe('QuickBuyRoot', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('applies the measured locked height after the first layout', () => {
+  it('captures the baseline height on the amount screen without locking it', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -479,6 +504,35 @@ describe('QuickBuyRoot', () => {
       fireEvent(container, 'layout', {
         nativeEvent: { layout: { height: 480 } },
       });
+    });
+
+    expect(StyleSheet.flatten(container.props.style)?.height).toBeUndefined();
+  });
+
+  it('locks height on sub-screens using the amount-screen baseline', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      >
+        <NavigationProbe />
+      </QuickBuyRoot>,
+    );
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    const container = screen.getByTestId('quick-buy-content-container');
+    act(() => {
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 480 } },
+      });
+    });
+
+    act(() => {
+      fireEvent.press(screen.getByTestId('nav-payWith'));
     });
 
     expect(StyleSheet.flatten(container.props.style)).toMatchObject({
@@ -486,14 +540,16 @@ describe('QuickBuyRoot', () => {
     });
   });
 
-  it('keeps the initial locked height when a later layout reports a different height', () => {
+  it('keeps the initial locked height when a later layout reports a different height on a sub-screen', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
-      />,
+      >
+        <NavigationProbe />
+      </QuickBuyRoot>,
     );
     act(() => {
       storedOnOpenCallback?.();
@@ -504,6 +560,9 @@ describe('QuickBuyRoot', () => {
       fireEvent(container, 'layout', {
         nativeEvent: { layout: { height: 480 } },
       });
+    });
+    act(() => {
+      fireEvent.press(screen.getByTestId('nav-payWith'));
     });
     act(() => {
       fireEvent(container, 'layout', {
@@ -580,27 +639,6 @@ describe('QuickBuyRoot', () => {
   });
 
   describe('screen navigation', () => {
-    const NavigationProbe = () => {
-      const { activeScreen, setActiveScreen } = useQuickBuyContext();
-      return (
-        <>
-          <Text testID="active-screen">{activeScreen}</Text>
-          <Pressable
-            testID="nav-payWith"
-            onPress={() => setActiveScreen('payWith')}
-          />
-          <Pressable
-            testID="nav-quoteDetails"
-            onPress={() => setActiveScreen('quoteDetails')}
-          />
-          <Pressable
-            testID="nav-amount"
-            onPress={() => setActiveScreen('amount')}
-          />
-        </>
-      );
-    };
-
     const renderWithNavigation = () => {
       renderWithProvider(
         <QuickBuyRoot
@@ -659,6 +697,26 @@ describe('QuickBuyRoot', () => {
       expect(screen.getByTestId('active-screen')).toHaveTextContent(
         'quoteDetails',
       );
+    });
+
+    it('keeps the locked height when navigating to editQuickAmounts', () => {
+      renderWithNavigation();
+
+      const container = screen.getByTestId('quick-buy-content-container');
+      act(() => {
+        fireEvent(container, 'layout', {
+          nativeEvent: { layout: { height: 480 } },
+        });
+      });
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-editQuickAmounts'));
+      });
+
+      expect(screen.getByTestId('active-screen')).toHaveTextContent(
+        'editQuickAmounts',
+      );
+      expect(StyleSheet.flatten(container.props.style)?.height).toBeUndefined();
     });
   });
 });

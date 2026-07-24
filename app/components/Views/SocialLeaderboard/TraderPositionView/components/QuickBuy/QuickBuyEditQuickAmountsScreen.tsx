@@ -4,9 +4,10 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import KeypadComponent from '../../../../../Base/Keypad';
+import CollapsibleReveal from './components/CollapsibleReveal';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyEditAmountRow from './components/QuickBuyEditAmountRow';
 import { useQuickBuyEditAmountsForm } from './hooks/useQuickBuyEditAmountsForm';
@@ -35,6 +36,16 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
     handleConfirm,
   } = useQuickBuyEditAmountsForm(buyQuickAmounts, sellQuickPercentages);
 
+  const isKeypadOpen = Boolean(focusedField);
+
+  // Defer keypad mount until first open so the sheet open animation stays smooth.
+  const [hasOpenedKeypadOnce, setHasOpenedKeypadOnce] = useState(false);
+  useEffect(() => {
+    if (isKeypadOpen) {
+      setHasOpenedKeypadOnce(true);
+    }
+  }, [isKeypadOpen]);
+
   const handleBack = useCallback(
     () => setActiveScreen('amount'),
     [setActiveScreen],
@@ -55,14 +66,14 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
   const keypadDecimals = focusedField?.kind === 'sell' ? 0 : undefined;
 
   return (
-    <Box twClassName="flex-1">
+    <Box>
       <QuickBuySubScreenHeader
         title={strings('social_leaderboard.quick_buy.edit_quick_amounts_title')}
         onBack={handleBack}
         onClose={onClose}
       />
 
-      <Box twClassName="flex-1 gap-2 px-4">
+      <Box twClassName="gap-2 px-4">
         <QuickBuyEditAmountRow
           label={strings(
             'social_leaderboard.quick_buy.edit_quick_amounts_set_buy',
@@ -86,28 +97,37 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
           currentCurrency={currentCurrency}
           onFieldPress={(index) => handleFieldPress('sell', index)}
         />
-
-        <Box twClassName="pt-1 pb-2">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonBaseSize.Lg}
-            isFullWidth
-            isDisabled={!isValid}
-            onPress={handleSave}
-            testID="quick-buy-edit-amounts-confirm"
-          >
-            {strings('social_leaderboard.quick_buy.edit_quick_amounts_confirm')}
-          </Button>
-        </Box>
       </Box>
 
-      {focusedField ? (
-        <KeypadComponent
-          value={focusedValue}
-          onChange={handleKeypadChange}
-          currency={keypadCurrency}
-          decimals={keypadDecimals}
-        />
+      <Box twClassName="px-4 pt-1 pb-2">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonBaseSize.Lg}
+          isFullWidth
+          isDisabled={!isValid}
+          onPress={handleSave}
+          testID="quick-buy-edit-amounts-confirm"
+        >
+          {strings('social_leaderboard.quick_buy.edit_quick_amounts_confirm')}
+        </Button>
+      </Box>
+
+      {hasOpenedKeypadOnce || isKeypadOpen ? (
+        <CollapsibleReveal
+          expanded={isKeypadOpen}
+          snapExpandedOnMount={false}
+          unmountWhenCollapsed={false}
+          testID="quick-buy-edit-amounts-keypad-reveal"
+        >
+          <Box twClassName="px-4 pb-4" testID="quick-buy-edit-amounts-keypad">
+            <KeypadComponent
+              value={focusedValue}
+              onChange={handleKeypadChange}
+              currency={keypadCurrency}
+              decimals={keypadDecimals}
+            />
+          </Box>
+        </CollapsibleReveal>
       ) : null}
     </Box>
   );

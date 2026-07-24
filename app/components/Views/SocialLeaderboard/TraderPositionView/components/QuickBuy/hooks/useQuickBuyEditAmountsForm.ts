@@ -63,7 +63,11 @@ export function useQuickBuyEditAmountsForm(
 
   const handleFieldPress = useCallback(
     (kind: 'buy' | 'sell', index: number) => {
-      setFocusedField({ kind, index });
+      setFocusedField((current) =>
+        current?.kind === kind && current.index === index
+          ? null
+          : { kind, index },
+      );
     },
     [],
   );

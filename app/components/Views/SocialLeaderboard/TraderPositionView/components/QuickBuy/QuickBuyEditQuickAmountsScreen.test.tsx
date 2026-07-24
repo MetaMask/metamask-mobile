@@ -72,6 +72,21 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
     ).not.toBeDisabled();
   });
 
+  it('keeps the amount rows visible while the keypad is open', () => {
+    render(<QuickBuyEditQuickAmountsScreen />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-edit-buy-field-0'));
+
+    expect(screen.getByTestId('quick-buy-edit-buy-field-0')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-edit-sell-field-0')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-edit-amounts-keypad'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-edit-amounts-confirm'),
+    ).toBeOnTheScreen();
+  });
+
   it('saves preferences and returns to the amount screen on confirm', async () => {
     render(<QuickBuyEditQuickAmountsScreen />);
 
