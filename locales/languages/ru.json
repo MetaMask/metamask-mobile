@@ -1606,7 +1606,6 @@
       },
       "payment_token": "Платежный токен",
       "select_payment_token": "Выберите платежный токен",
-      "select_token": "Выбрать токен",
       "no_payment_tokens": "Нет доступных платежных токенов",
       "swap": "Swap",
       "swap_submitted": "Своп отправлен",

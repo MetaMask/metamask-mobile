@@ -1606,7 +1606,6 @@
       },
       "payment_token": "Token thanh toán",
       "select_payment_token": "Chọn token thanh toán",
-      "select_token": "Chọn token",
       "no_payment_tokens": "Không có token thanh toán khả dụng",
       "swap": "Swap",
       "swap_submitted": "Đã gửi giao dịch hoán đổi",

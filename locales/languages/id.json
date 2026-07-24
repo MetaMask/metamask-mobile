@@ -1606,7 +1606,6 @@
       },
       "payment_token": "Token pembayaran",
       "select_payment_token": "Pilih token pembayaran",
-      "select_token": "Pilih token",
       "no_payment_tokens": "Token pembayaran tidak tersedia",
       "swap": "Swap",
       "swap_submitted": "Swap Dikirim",

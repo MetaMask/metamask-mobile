@@ -1606,7 +1606,6 @@
       },
       "payment_token": "Ödeme tokeni",
       "select_payment_token": "Ödeme tokeni seç",
-      "select_token": "Token seç",
       "no_payment_tokens": "Ödeme tokeni yok",
       "swap": "Swap",
       "swap_submitted": "Takas Gönderildi",

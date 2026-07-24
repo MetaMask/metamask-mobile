@@ -1606,7 +1606,6 @@
       },
       "payment_token": "決済トークン",
       "select_payment_token": "決済トークンの選択",
-      "select_token": "トークンを選択",
       "no_payment_tokens": "使用可能な決済トークンがありません",
       "swap": "Swap",
       "swap_submitted": "スワップの送信完了",

@@ -1631,8 +1631,8 @@
         }
       },
       "payment_token": "Payment token",
-      "select_payment_token": "Select payment token",
       "select_token": "Select token",
+      "select_payment_token": "Select payment token",
       "no_payment_tokens": "No payment tokens available",
       "swap": "Swap",
       "swap_submitted": "Swap Submitted",
@@ -8027,6 +8027,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_payment_method": "Select payment method",
       "select_token": "Select token",
       "from": "From",
       "to": "To",
