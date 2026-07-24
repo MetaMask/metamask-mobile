@@ -4,6 +4,7 @@ import {
   selectTransactionPayTotalsByTransactionId,
   selectIsTransactionPayLoadingByTransactionId,
   selectTransactionPayQuotesByTransactionId,
+  selectTransactionPayQuotesLastUpdatedByTransactionId,
   selectTransactionPayTokensByTransactionId,
   selectTransactionPaymentTokenByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
@@ -137,6 +138,22 @@ describe('transactionPayController selectors', () => {
       );
 
       expect(result).toStrictEqual(quotes);
+    });
+  });
+
+  describe('selectTransactionPayQuotesLastUpdatedByTransactionId', () => {
+    it('returns the quote update timestamp from transaction data', () => {
+      const quotesLastUpdated = 123;
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: { quotesLastUpdated },
+      });
+
+      const result = selectTransactionPayQuotesLastUpdatedByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(quotesLastUpdated);
     });
   });
 

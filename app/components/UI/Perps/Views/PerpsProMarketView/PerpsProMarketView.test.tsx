@@ -1,16 +1,20 @@
 import React from 'react';
-import { within } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsProMarketViewSelectorsIDs,
+  PerpsProOrderFormSelectorsIDs,
+  PerpsOrderTypeBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 
 interface MockRouteParams {
-  market?: { symbol: string };
+  market?: { symbol: string; price?: string };
 }
 
 let mockRouteParams: MockRouteParams | undefined = {
-  market: { symbol: 'BTC' },
+  market: { symbol: 'BTC', price: '$90,000.00' },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -21,6 +25,23 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
+  usePerpsLiveOrderBook: jest.fn(() => ({
+    orderBook: null,
+    isLoading: true,
+    error: null,
+    connectionStatus: 'connecting',
+    reconnect: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
+  usePerpsOrderBookGrouping: jest.fn(() => ({
+    savedGrouping: undefined,
+    saveGrouping: jest.fn(),
+  })),
+}));
+
 const renderView = () =>
   renderWithProvider(<PerpsProMarketView />, {
     state: { engine: { backgroundState } },
@@ -28,7 +49,7 @@ const renderView = () =>
 
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
-    mockRouteParams = { market: { symbol: 'BTC' } };
+    mockRouteParams = { market: { symbol: 'BTC', price: '$90,000.00' } };
   });
 
   it.each([
@@ -85,11 +106,124 @@ describe('PerpsProMarketView', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).toBeOnTheScreen();
     expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL),
     ).toBeOnTheScreen();
+  });
+
+  it('dismisses the native keyboard interactively without swallowing taps', () => {
+    const { getByTestId } = renderView();
+
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW)).toHaveProp(
+      'keyboardDismissMode',
+      'interactive',
+    );
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW)).toHaveProp(
+      'keyboardShouldPersistTaps',
+      'handled',
+    );
+  });
+
+  it('keeps the fixture Place Order action disabled until wiring lands', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('opens the order type sheet from the form', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('updates the form to Market and closes the order type sheet', () => {
+    const { getByTestId, queryByTestId } = renderView();
+    fireEvent.press(
+      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
+    );
+
+    fireEvent.press(
+      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+    );
+
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
+    ).toHaveTextContent('Market');
+    expect(
+      queryByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('restores the limit price input when Limit is selected', () => {
+    const { getByTestId, queryByTestId } = renderView();
+    fireEvent.press(
+      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
+    );
+    fireEvent.press(
+      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+    );
+    fireEvent.press(
+      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
+    );
+
+    fireEvent.press(
+      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+    );
+
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('closes the order type sheet without changing the current selection', () => {
+    const { getByTestId, queryByTestId } = renderView();
+    fireEvent.press(
+      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
+    );
+
+    fireEvent.press(
+      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
+    ).toHaveTextContent('Limit');
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the Pro summary and available balance copy from Figma', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.SUMMARY_LIQUIDATION),
+    ).toHaveTextContent(/Est Liquidation/);
+    expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.AVAILABLE_BALANCE),
+    ).toHaveTextContent('-- available');
   });
 
   it('keeps the header fixed while the market summary scrolls', () => {
@@ -137,5 +271,31 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
     ).toHaveStyle({ height: 344 });
+  });
+
+  it('collapses the order book so the order form fills the trading area', () => {
+    const { getByTestId, queryByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
+    );
+
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
+    ).toBeOnTheScreen();
   });
 });

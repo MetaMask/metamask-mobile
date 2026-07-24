@@ -11,7 +11,7 @@ export const RESULTS = {
 };
 export const PERMISSIONS = {
   IOS: {
-    BLUETOOTH_PERIPHERAL: 'ios.permission.BLUETOOTH_PERIPHERAL',
+    BLUETOOTH: 'ios.permission.BLUETOOTH',
   },
   ANDROID: {
     ACCESS_FINE_LOCATION: 'android.permission.ACCESS_FINE_LOCATION',
