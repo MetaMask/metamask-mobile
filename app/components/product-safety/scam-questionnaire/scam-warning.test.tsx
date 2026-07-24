@@ -43,7 +43,6 @@ describe('ScamWarning', () => {
 
   afterEach(() => {
     jest.useRealTimers();
-    jest.restoreAllMocks();
   });
 
   it('calls onStop when "Stop this payment" is tapped', () => {
