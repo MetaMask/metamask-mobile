@@ -1,11 +1,31 @@
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import React, { type ReactNode } from 'react';
 import { StyleSheet } from 'react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 
 interface PerpsProMarketLayoutProps {
   orderForm: ReactNode;
   orderBook: ReactNode;
+  /**
+   * When true, the order-book column and divider are hidden so the order form
+   * expands to full width. An expand control restores the book.
+   *
+   * Collapse unmounts the order-book panel (subscriptions disconnect). On
+   * expand, session-only UI state in that panel — list currency, metric, and
+   * view mode — resets to defaults. Price grouping is unchanged because it is
+   * persisted per market separately from this layout.
+   */
+  isOrderBookCollapsed?: boolean;
+  onExpandOrderBook?: () => void;
 }
 
 const PRO_TRADING_AREA_MIN_HEIGHT = 682;
@@ -37,10 +57,17 @@ const styles = StyleSheet.create({
  * the order book occupies the fixed-width right column. Configurable panel
  * positioning is deferred until the rearrangeable-layout feature consumes the
  * controller preferences.
+ *
+ * When the book is collapsed, `{orderBook}` is not rendered so the panel
+ * unmounts and live order-book sockets disconnect. That remount-on-expand
+ * path intentionally drops session-only book preferences (currency, metric,
+ * view mode); persisted grouping survives via `usePerpsOrderBookGrouping`.
  */
 const PerpsProMarketLayout = ({
   orderForm,
   orderBook,
+  isOrderBookCollapsed = false,
+  onExpandOrderBook,
 }: PerpsProMarketLayoutProps) => (
   <Box
     testID={PerpsProMarketViewSelectorsIDs.LAYOUT}
@@ -52,21 +79,45 @@ const PerpsProMarketLayout = ({
       testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
       style={styles.orderFormColumn}
     >
+      {isOrderBookCollapsed ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.End}
+          twClassName="pt-2"
+        >
+          <ButtonIcon
+            iconName={IconName.Expand}
+            accessibilityLabel={strings('perps.order_book.expand')}
+            size={ButtonIconSize.Md}
+            onPress={onExpandOrderBook}
+            testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON}
+          />
+        </Box>
+      ) : null}
       {orderForm}
     </Box>
-    <Box
-      testID={PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER}
-      twClassName="items-center"
-      style={styles.dividerColumn}
-    >
-      <Box twClassName="flex-1 bg-border-muted" style={styles.dividerLine} />
-    </Box>
-    <Box
-      testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
-      style={styles.orderBookColumn}
-    >
-      {orderBook}
-    </Box>
+    {/* Omit the column while collapsed: unmount disconnects subscriptions. */}
+    {!isOrderBookCollapsed ? (
+      <>
+        <Box
+          testID={PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER}
+          twClassName="items-center"
+          style={styles.dividerColumn}
+        >
+          <Box
+            twClassName="flex-1 bg-border-muted"
+            style={styles.dividerLine}
+          />
+        </Box>
+        <Box
+          testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
+          style={styles.orderBookColumn}
+        >
+          {orderBook}
+        </Box>
+      </>
+    ) : null}
   </Box>
 );
 

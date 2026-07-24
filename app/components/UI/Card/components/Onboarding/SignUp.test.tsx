@@ -103,6 +103,7 @@ const mockSetSelectedCountry = jest.fn();
 const mockSetSelectedCardProgramId = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
+const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
 const mockPatchContactDetails = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
@@ -116,6 +117,7 @@ jest.mock('../../../../../core/Engine', () => ({
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
+      getResumeCardInfo: (...args: unknown[]) => mockGetResumeCardInfo(...args),
       getSpendingPrerequisites: (...args: unknown[]) =>
         mockGetSpendingPrerequisites(...args),
       patchContactDetails: (...args: unknown[]) =>
@@ -124,9 +126,8 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Post-SIWE routing is unit-tested in useImmersveOnboardingRouter.test.ts;
-// here we assert SignUp resolves the funding source + prerequisites and hands
-// the derived action to the router.
+// Resume/routing details are covered in useImmersveResumeOnboarding.test.ts;
+// here we assert SignUp wires continue → resume → router.
 const mockRouteImmersve = jest.fn();
 jest.mock('../../hooks/useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRouteImmersve,
@@ -285,6 +286,7 @@ describe('SignUp Component', () => {
     (cardFlagSelectors.selectCardFeatureFlag as jest.Mock).mockReturnValue(
       actualCardFlagSelectors.defaultCardFeatureFlag,
     );
+    mockGetResumeCardInfo.mockResolvedValue(null);
     store = createTestStore();
   });
 
