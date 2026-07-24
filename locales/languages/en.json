@@ -1631,8 +1631,8 @@
         }
       },
       "payment_token": "Payment token",
-      "select_token": "Select token",
       "select_payment_token": "Select payment token",
+      "select_token": "Select token",
       "no_payment_tokens": "No payment tokens available",
       "swap": "Swap",
       "swap_submitted": "Swap Submitted",

@@ -1606,6 +1606,7 @@
       },
       "payment_token": "결제 토큰",
       "select_payment_token": "결제 토큰 선택",
+      "select_token": "토큰 선택",
       "no_payment_tokens": "사용 가능한 결제 토큰 없음",
       "swap": "Swap",
       "swap_submitted": "스왑 제출 완료",

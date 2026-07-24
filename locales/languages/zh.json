@@ -1606,6 +1606,7 @@
       },
       "payment_token": "支付代币",
       "select_payment_token": "选择支付代币",
+      "select_token": "选择代币",
       "no_payment_tokens": "无可用支付代币",
       "swap": "Swap",
       "swap_submitted": "兑换已提交",

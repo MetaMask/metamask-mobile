@@ -1606,6 +1606,7 @@
       },
       "payment_token": "Token de pagamento",
       "select_payment_token": "Selecionar token de pagamento",
+      "select_token": "Selecionar token",
       "no_payment_tokens": "Nenhum token de pagamento disponível",
       "swap": "Swap",
       "swap_submitted": "Swap enviada",

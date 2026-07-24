@@ -1606,6 +1606,7 @@
       },
       "payment_token": "Token na pambayad",
       "select_payment_token": "Pumili ng token na pambayad",
+      "select_token": "Pumili ng token",
       "no_payment_tokens": "Walang available na mga token na pambayad",
       "swap": "Swap",
       "swap_submitted": "Naisumite ang Swap",
