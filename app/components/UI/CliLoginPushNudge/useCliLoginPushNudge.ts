@@ -1,5 +1,7 @@
 import { useCallback, useContext, useEffect, useRef } from 'react';
-import { AppState, Platform } from 'react-native';
+// PermissionsAndroid usage below is gated behind `Platform.OS === 'android'`.
+// eslint-disable-next-line react-native/split-platform-components
+import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { ToastContext } from '../../../component-library/components/Toast';
 import {
   ToastVariants,
@@ -12,11 +14,10 @@ import { useEnableNotifications } from '../../../util/notifications/hooks/useNot
 import NotificationService, {
   isPushPermissionGranted,
   isPushPermissionPromptable,
-  requestPushPermissions,
 } from '../../../util/notifications/services/NotificationService';
 
-/** Below this threshold, Android likely skipped the OS dialog (permanent deny). */
-const ANDROID_OS_DIALOG_MIN_ELAPSED_MS = 800;
+/** Android API level (13) that introduced the POST_NOTIFICATIONS runtime permission. */
+const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
 const NUDGE_LABELS = () => [
   { label: strings('sdk_connect_v2.push_nudge.title'), isBold: true },
@@ -39,8 +40,8 @@ const ERROR_LABELS = () => [
  * device notification settings and retries once the app returns to foreground.
  *
  * Android: Notifee reports DENIED for both "never asked" and "permanently
- * denied", so we request OS permission first and treat a fast denial (no dialog)
- * as a signal to open device notification settings.
+ * denied", so we use PermissionsAndroid.request(POST_NOTIFICATIONS) and
+ * treat NEVER_ASK_AGAIN as the signal to open device notification settings.
  */
 export function useCliLoginPushNudge(): {
   showNudge: () => boolean;
@@ -177,27 +178,35 @@ export function useCliLoginPushNudge(): {
 
       if (Platform.OS === 'android') {
         showLoadingToast();
-        const requestStartedAt = Date.now();
-        const osGranted = await requestPushPermissions();
-        const requestElapsedMs = Date.now() - requestStartedAt;
-
-        if (!isCurrent()) {
+        // Android 13+ requires the POST_NOTIFICATIONS runtime permission. The
+        // request resolves to NEVER_ASK_AGAIN once the user has permanently
+        // denied it, which is the authoritative signal that the OS dialog can
+        // no longer be shown.
+        if (Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
+          const result = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          );
+          if (!isCurrent()) {
+            return;
+          }
+          if (result === PermissionsAndroid.RESULTS.GRANTED) {
+            await runEnableFlow(isCurrent);
+            return;
+          }
+          if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+            openSettingsAndScheduleRetry(isCurrent);
+            return;
+          }
+          // RESULTS.DENIED: the OS dialog was shown and dismissed.
+          if (isCurrent()) {
+            toastRef?.current?.closeToast();
+          }
           return;
         }
 
-        if (osGranted) {
-          await runEnableFlow(isCurrent);
-          return;
-        }
-
-        if (requestElapsedMs < ANDROID_OS_DIALOG_MIN_ELAPSED_MS) {
-          openSettingsAndScheduleRetry(isCurrent);
-          return;
-        }
-
-        if (isCurrent()) {
-          toastRef?.current?.closeToast();
-        }
+        // Android < 13 has no runtime dialog; when notifications are not
+        // already granted they can only be enabled from system settings.
+        openSettingsAndScheduleRetry(isCurrent);
         return;
       }
 
