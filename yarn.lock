@@ -9917,19 +9917,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@17.0.0-preview-40d5fb1e2":
-  version: 17.0.0-preview-40d5fb1e2
-  resolution: "@metamask-previews/ramps-controller@npm:17.0.0-preview-40d5fb1e2"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/profile-sync-controller": "npm:^28.3.0"
-    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/a996d35979ef239aba94cc3d1763ac03b78f6e26919f9d523c262474d7d188210faabf4825fb137554fd22a6d5b1fa1105c5cf4c120d98ef43bfcd4b05e13ce5
-  languageName: node
-  linkType: hard
-
 "@metamask/ramps-controller@npm:^17.0.0":
   version: 17.0.0
   resolution: "@metamask/ramps-controller@npm:17.0.0"
@@ -9940,6 +9927,19 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
   checksum: 10/45980e93d79bf72c00edc44e2cd075a738c44a1c0b3dd695a7bce688f7954f80f28988b56c7a5774b1747e335b66c16f6a7d36833030bf116cefafc7b2e5f223
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@npm:^17.2.0":
+  version: 17.2.0
+  resolution: "@metamask/ramps-controller@npm:17.2.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/profile-sync-controller": "npm:^28.3.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+  checksum: 10/9fb8e922c2620354386e1d2a84ee6f074abda6b22a6f58594cb71a7d5c66d89e5e003b3164731b90f2e83601aeed05a22a8ccf404a1d3916d7aa87f0a8b10d49
   languageName: node
   linkType: hard
 
@@ -35983,7 +35983,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^17.0.0"
+    "@metamask/ramps-controller": "npm:^17.2.0"
     "@metamask/react-data-query": "npm:^0.2.2"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
