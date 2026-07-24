@@ -273,6 +273,9 @@ async function connectToChannel({
         );
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+          params: {
+            dappName: originatorInfo?.title,
+          },
         });
       }
     }
