@@ -9,7 +9,6 @@ import {
   type HardwareWalletsSwapsEvent,
 } from '../HardwareWalletsSwaps.state';
 import { createBatchTrackingStrategy } from './batch-tracking-strategy';
-import { createSequentialTrackingStrategy } from './sequential-tracking-strategy';
 import {
   NO_ACTION,
   type SignedEventClassifier,
@@ -268,36 +267,5 @@ describe('createBatchTrackingStrategy', () => {
       );
       expect(result).not.toBe(NO_ACTION);
     });
-  });
-});
-
-describe('createSequentialTrackingStrategy', () => {
-  it('accepts all events (no batch locking)', () => {
-    const strategy = createSequentialTrackingStrategy(bridgeConfig);
-    const result1 = strategy.processStatusUpdated(
-      mockMeta({ id: 'tx-1', batchId: 'batch-A' }),
-      classifyAccept,
-    );
-    const result2 = strategy.processStatusUpdated(
-      mockMeta({ id: 'tx-2', batchId: 'batch-B' }),
-      classifyAccept,
-    );
-    expect(result1).not.toBe(NO_ACTION);
-    expect(result2).not.toBe(NO_ACTION);
-  });
-
-  it('checkRetryGeneration clears tracked tx ids', () => {
-    const strategy = createSequentialTrackingStrategy(bridgeConfig);
-    strategy.processStatusUpdated(mockMeta({ id: 'tx-1' }), classifyAccept);
-    expect(strategy.getTrackedTxIds().size).toBe(1);
-    strategy.checkRetryGeneration(1);
-    expect(strategy.getTrackedTxIds().size).toBe(0);
-  });
-
-  it('reset clears all state', () => {
-    const strategy = createSequentialTrackingStrategy(bridgeConfig);
-    strategy.processStatusUpdated(mockMeta({ id: 'tx-1' }), classifyAccept);
-    strategy.reset();
-    expect(strategy.getTrackedTxIds().size).toBe(0);
   });
 });
