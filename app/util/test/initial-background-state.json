@@ -729,6 +729,7 @@
   },
   "CardController": {
     "selectedCountry": null,
+    "selectedCardProgramId": null,
     "activeProviderId": "baanx",
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
@@ -844,6 +845,7 @@
     "vipDashboard": {},
     "vipPerpsFees": {},
     "vipRefereeDashboard": {},
+    "vipTransactions": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -942,5 +944,7 @@
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
-  "MoneyAccountUpgradeController": {}
+  "MoneyAccountUpgradeController": {
+    "upgradedAccounts": {}
+  }
 }

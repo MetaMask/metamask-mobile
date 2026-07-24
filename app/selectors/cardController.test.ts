@@ -1,6 +1,7 @@
 import { RootState } from '../reducers';
 import {
   selectCardSelectedCountry,
+  selectCardSelectedCardProgramId,
   selectCardActiveProviderId,
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -120,6 +121,7 @@ const createMockRootState = (
       backgroundState: {
         CardController: {
           selectedCountry: null,
+          selectedCardProgramId: null,
           activeProviderId: null,
           isAuthenticated: false,
           cardholderAccounts: [],
@@ -180,6 +182,22 @@ describe('CardController selectors', () => {
       const state = createMockRootState({ selectedCountry: 'US' });
 
       expect(selectCardSelectedCountry(state)).toBe('US');
+    });
+  });
+
+  describe('selectCardSelectedCardProgramId', () => {
+    it('returns null when no card program is selected', () => {
+      const state = createMockRootState();
+
+      expect(selectCardSelectedCardProgramId(state)).toBeNull();
+    });
+
+    it('returns the selected card program id', () => {
+      const state = createMockRootState({
+        selectedCardProgramId: 'program-alpha',
+      });
+
+      expect(selectCardSelectedCardProgramId(state)).toBe('program-alpha');
     });
   });
 

@@ -4336,6 +4336,12 @@
     "web_site": "Visit our website",
     "contact_us": "Contact us"
   },
+  "support_consent": {
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "confirm": "Confirm",
+    "reject": "Don't share"
+  },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",
     "private_key_title": "Show private key",
@@ -8826,7 +8832,8 @@
         "country_not_available": "Card sign-up isn't available in your country yet.",
         "account_label": "Account",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_exists_toast": "You already have a card account."
+        "account_exists_toast": "You already have a card account.",
+        "card_program_label": "Card program (testing)"
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -9080,6 +9087,11 @@
         "kyc_pending": {
           "title": "Verification in progress",
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+        },
+        "pending_verification": {
+          "title": "Finish setting up your card",
+          "description": "You have pending verification steps to complete before your card can be enabled.",
+          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {
@@ -9502,6 +9514,17 @@
       "swaps_volume_info_label": "Swaps volume information",
       "swaps_volume_info_title": "Swaps volume",
       "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
+    },
+    "vip_transactions": {
+      "select_type": "Select type",
+      "type_perps": "Perps",
+      "type_swap": "Swaps",
+      "swap_title": "Swap",
+      "perps_title": "Perps",
+      "error_title": "Failed to load transactions",
+      "error_description": "Something went wrong while loading your transactions. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",

@@ -21,6 +21,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Card being provisioned',
       'card.card_home.messages.card_provisioning.description':
         'Your card is being automatically provisioned. This may take a few moments.',
+      'card.card_home.warnings.pending_verification.title':
+        'Finish setting up your card',
+      'card.card_home.warnings.pending_verification.description':
+        'You have pending verification steps to complete before your card can be enabled.',
+      'card.card_home.warnings.pending_verification.confirm_button_label':
+        'Continue verification',
       'card.card_spending_limit.dismiss': 'Dismiss',
       'card.card_authentication.auth_prompt_info':
         'Log in to your card account to access this feature.',
@@ -204,6 +210,28 @@ describe('CardMessageBox', () => {
       ));
 
       expect(getByTestId('card-message-box')).toBeOnTheScreen();
+    });
+  });
+
+  describe('PendingVerification warning', () => {
+    it('renders title, description, and continue CTA', () => {
+      const { getByText, getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.PendingVerification}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      expect(getByText('Finish setting up your card')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'You have pending verification steps to complete before your card can be enabled.',
+        ),
+      ).toBeOnTheScreen();
+      expect(getByText('Continue verification')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 

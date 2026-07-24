@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   FontWeight,
@@ -78,7 +79,7 @@ function getStepSubtextColor(status: ActivityDetailsStepStatus): TextColor {
 }
 
 function useOpenExplorer(link: ActivityExplorerLink | undefined) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   return React.useCallback(() => {
     if (!link) {
