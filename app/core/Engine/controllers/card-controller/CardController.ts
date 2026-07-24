@@ -78,6 +78,10 @@ import {
   deriveCountryProviderMap,
   getProviderForCountry,
 } from './provider-map';
+import {
+  ImmersveProvider,
+  type CardResumeInfo,
+} from './providers/ImmersveProvider';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -1135,6 +1139,14 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => getFundingSources(tokens));
+  }
+
+  async getResumeCardInfo(): Promise<CardResumeInfo | null> {
+    const provider = this.providers.immersve;
+    if (!(provider instanceof ImmersveProvider)) {
+      return null;
+    }
+    return this.#withAuthRetry((tokens) => provider.getResumeCardInfo(tokens));
   }
 
   async getSpendingPrerequisites(
