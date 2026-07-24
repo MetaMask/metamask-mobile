@@ -1,7 +1,9 @@
+import type { Json } from '@metamask/utils';
 import {
   selectExtendedSportsMarketsLeagues,
   selectPredictBottomSheetEnabledFlag,
   selectPredictEnabledFlag,
+  selectPredictFeedBannerConfig,
   selectPredictFakOrdersEnabledFlag,
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictFeatureFlags,
@@ -34,9 +36,14 @@ import {
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
 import {
+  DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../../constants/feedBanner';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -2115,6 +2122,67 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictFeaturedCarouselEnabledFlag(state);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictFeedBannerConfig', () => {
+    const validFlag = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      id: 'predict-message-1',
+      title: 'Predict update',
+      description: 'Scheduled maintenance begins soon.',
+      position: PredictFeedBannerPosition.AfterBalance,
+      severity: PredictFeedBannerSeverity.Info,
+      dismissible: true,
+    };
+    const createState = (predictFeedBanner: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictFeedBanner },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns a valid enabled banner config', () => {
+      const result = selectPredictFeedBannerConfig(createState(validFlag));
+
+      expect(result).toStrictEqual(validFlag);
+    });
+
+    it('unwraps a threshold flag value', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ name: 'treatment', value: validFlag }),
+      );
+
+      expect(result).toStrictEqual(validFlag);
+    });
+
+    it('returns the disabled default when the flag is disabled', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, enabled: false }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+
+    it('returns the disabled default for malformed content', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, title: '' }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+
+    it('returns the disabled default when the version requirement is not met', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, minimumVersion: '99.0.0' }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
     });
   });
 });

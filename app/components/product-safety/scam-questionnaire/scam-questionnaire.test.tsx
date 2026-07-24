@@ -4,6 +4,10 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import { ScamQuestionnaire } from './scam-questionnaire';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import {
+  confirmSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
 
 const mockTrackStarted = jest.fn();
 const mockTrackQuestionAnswered = jest.fn();
@@ -25,6 +29,11 @@ jest.mock('./useScamQuestionnaireMetrics', () => ({
     trackWarningContactSupport: mockTrackWarningContactSupport,
     trackWarningProceeded: mockTrackWarningProceeded,
   }),
+}));
+
+jest.mock('../../../util/support', () => ({
+  confirmSupportConsent: jest.fn(),
+  rejectSupportConsent: jest.fn(),
 }));
 
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
@@ -70,6 +79,10 @@ const answerOneRedFlag = (
 describe('ScamQuestionnaire', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('fires the "started" analytics event on first render', () => {
@@ -149,13 +162,33 @@ describe('ScamQuestionnaire', () => {
     expect(mockTrackWarningStopped).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the support URL and tracks the support event when "Contact support" is tapped', () => {
+  it('shows the standalone consent modal when "Contact support" is tapped, tracking only when support actually opens', () => {
     const { getByTestId } = setup();
     answerOneRedFlag(getByTestId);
 
     fireEvent.press(getByTestId('scam-warning-contact-support'));
 
-    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+    // The consent modal renders above the questionnaire's full-screen modal;
+    // merely showing it must not open support or fire the tracker.
+    expect(getByTestId('standalone-support-consent-modal').props.visible).toBe(
+      true,
+    );
+    expect(confirmSupportConsent).not.toHaveBeenCalled();
+    expect(mockTrackWarningContactSupport).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId('standalone-support-consent-confirm-button'));
+
+    expect(confirmSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+      expect.any(Function),
+    );
+    // Tracking is deferred to the callback the call site hands the consent
+    // flow (fired once support actually opens).
+    expect(mockTrackWarningContactSupport).not.toHaveBeenCalled();
+
+    const onOpenSupport = jest.mocked(confirmSupportConsent).mock.calls[0][2];
+    onOpenSupport?.();
     expect(mockTrackWarningContactSupport).toHaveBeenCalledTimes(1);
   });
 
