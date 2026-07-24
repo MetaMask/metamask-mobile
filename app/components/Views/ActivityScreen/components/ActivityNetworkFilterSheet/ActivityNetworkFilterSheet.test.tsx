@@ -20,8 +20,8 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails:
-    (root: string, screen: string) => (params?: unknown) =>
-      [root, { screen, params }] as const,
+    (root: string, routeName: string) => (params?: unknown) =>
+      [root, { screen: routeName, params }] as const,
   useParams: () => ({
     selectedNetwork: null,
     onNetworkSelect: mockOnNetworkSelect,
@@ -43,11 +43,11 @@ jest.mock('../../hooks/useNetworkFilterOptions', () => ({
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const ReactNative = jest.requireActual('react-native');
-    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
     return {
       __esModule: true,
-      default: React.forwardRef(
+      default: ReactActual.forwardRef(
         (
           {
             children,
@@ -62,10 +62,10 @@ jest.mock(
           },
           ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
         ) => {
-          React.useEffect(() => {
+          ReactActual.useEffect(() => {
             onOpen?.();
           }, [onOpen]);
-          React.useImperativeHandle(ref, () => ({
+          ReactActual.useImperativeHandle(ref, () => ({
             onCloseBottomSheet: (callback?: () => void) => {
               mockOnCloseBottomSheet(callback);
               mockGoBack();
@@ -73,9 +73,7 @@ jest.mock(
               callback?.();
             },
           }));
-          return (
-            <ReactNative.View testID={testID}>{children}</ReactNative.View>
-          );
+          return <View testID={testID}>{children}</View>;
         },
       ),
     };
@@ -83,7 +81,7 @@ jest.mock(
 );
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const ReactNative = jest.requireActual('react-native');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     HeaderStandard: ({
       title,
@@ -92,16 +90,16 @@ jest.mock('@metamask/design-system-react-native', () => {
       title?: string;
       onClose?: () => void;
     }) => (
-      <ReactNative.View>
-        <ReactNative.Text>{title}</ReactNative.Text>
-        <ReactNative.TouchableOpacity testID="close-button" onPress={onClose} />
-      </ReactNative.View>
+      <View>
+        <Text>{title}</Text>
+        <TouchableOpacity testID="close-button" onPress={onClose} />
+      </View>
     ),
   };
 });
 
 jest.mock('../../../../../component-library/components/Cells/Cell', () => {
-  const ReactNative = jest.requireActual('react-native');
+  const { Text, TouchableOpacity } = jest.requireActual('react-native');
   const CellVariant = { Select: 'Select' };
   const Cell = ({
     title,
@@ -114,31 +112,21 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
     testID?: string;
     children?: React.ReactNode;
   }) => (
-    <ReactNative.TouchableOpacity
-      testID={testID ?? `cell-${title}`}
-      onPress={onPress}
-    >
-      <ReactNative.Text>{title}</ReactNative.Text>
+    <TouchableOpacity testID={testID ?? `cell-${title}`} onPress={onPress}>
+      <Text>{title}</Text>
       {children}
-    </ReactNative.TouchableOpacity>
+    </TouchableOpacity>
   );
   Cell.CellVariant = CellVariant;
-  return {
-    __esModule: true,
-    default: Cell,
-    CellVariant,
-  };
+  return { __esModule: true, default: Cell, CellVariant };
 });
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const ReactNative = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <ReactNative.View />,
-    IconName: { Check: 'Check', Global: 'Global' },
-    IconSize: { Md: 'Md' },
-  };
-});
+jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
+  __esModule: true,
+  default: () => null,
+  IconName: { Check: 'Check', Global: 'Global' },
+  IconSize: { Md: 'Md' },
+}));
 
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Sm: 'Sm' },
@@ -163,18 +151,14 @@ describe('ActivityNetworkFilterSheet', () => {
 
   it('calls onNetworkSelect then closes the sheet', () => {
     render(<ActivityNetworkFilterSheet />);
-
     fireEvent.press(screen.getByText('Linea'));
-
     expect(mockOnNetworkSelect).toHaveBeenCalledWith(['eip155:59144']);
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
   });
 
   it('calls onNetworkSelect with null for All networks', () => {
     render(<ActivityNetworkFilterSheet />);
-
     fireEvent.press(screen.getByText('All networks'));
-
     expect(mockOnNetworkSelect).toHaveBeenCalledWith(null);
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
   });
@@ -190,10 +174,7 @@ describe('ActivityNetworkFilterSheet', () => {
       Routes.MODAL.ROOT_MODAL_FLOW,
       {
         screen: Routes.SHEET.ACTIVITY_NETWORK_FILTER,
-        params: {
-          selectedNetwork: null,
-          onNetworkSelect,
-        },
+        params: { selectedNetwork: null, onNetworkSelect },
       },
     ]);
   });

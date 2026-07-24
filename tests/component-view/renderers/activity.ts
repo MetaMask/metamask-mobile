@@ -140,106 +140,88 @@ function buildActivityState(options: {
   return builder.build();
 }
 
-/**
- * Renders ActivityScreen with a RootModalFlow that hosts the Activity filter
- * sheets — matching production navigation so chip presses open sheets above
- * the screen (and cover the tab bar in the money-account-off case).
- */
-export function renderActivityScreenView(
-  options: RenderActivityScreenViewOptions = {},
+function ActivityFilterRootModalFlow() {
+  const ModalStack = createNativeStackNavigator();
+  return React.createElement(
+    ModalStack.Navigator,
+    { screenOptions: { headerShown: false } },
+    React.createElement(ModalStack.Screen, {
+      name: Routes.SHEET.ACTIVITY_TYPE_FILTER,
+      component: ActivityTypeFilterSheet,
+    }),
+    React.createElement(ModalStack.Screen, {
+      name: Routes.SHEET.ACTIVITY_PERPS_FILTER,
+      component: PerpsActivityFilterSheet,
+    }),
+    React.createElement(ModalStack.Screen, {
+      name: Routes.SHEET.ACTIVITY_NETWORK_FILTER,
+      component: ActivityNetworkFilterSheet,
+    }),
+  );
+}
+
+/** ActivityScreen + RootModalFlow for Type/Perps/Network filter sheets. */
+function renderActivityScreenWithFilterModals(
+  options: RenderActivityScreenViewOptions & {
+    extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
+  },
 ): ReturnType<typeof renderWithProvider> {
   const state = buildActivityState(options);
   const RootStack = createNativeStackNavigator();
-  const ModalStack = createNativeStackNavigator();
+  const DefaultRouteProbe =
+    (routeName: string): React.FC =>
+    () =>
+      React.createElement(
+        Text,
+        { testID: getRouteProbeTestId(routeName) },
+        routeName,
+      );
 
-  const RootModalFlow = () => (
-    <ModalStack.Navigator screenOptions={{ headerShown: false }}>
-      <ModalStack.Screen
-        name={Routes.SHEET.ACTIVITY_TYPE_FILTER}
-        component={ActivityTypeFilterSheet}
-      />
-      <ModalStack.Screen
-        name={Routes.SHEET.ACTIVITY_PERPS_FILTER}
-        component={PerpsActivityFilterSheet}
-      />
-      <ModalStack.Screen
-        name={Routes.SHEET.ACTIVITY_NETWORK_FILTER}
-        component={ActivityNetworkFilterSheet}
-      />
-    </ModalStack.Navigator>
+  const screens = [
+    React.createElement(RootStack.Screen, {
+      key: Routes.TRANSACTIONS_VIEW,
+      name: Routes.TRANSACTIONS_VIEW,
+      component: ActivityScreenWithProviders,
+      initialParams: options.params,
+    }),
+    React.createElement(RootStack.Screen, {
+      key: Routes.MODAL.ROOT_MODAL_FLOW,
+      name: Routes.MODAL.ROOT_MODAL_FLOW,
+      component: ActivityFilterRootModalFlow,
+    }),
+    ...(options.extraRoutes ?? []).map(({ name, Component: Extra }) =>
+      React.createElement(RootStack.Screen, {
+        key: name,
+        name,
+        component: Extra ?? DefaultRouteProbe(name),
+      }),
+    ),
+  ];
+
+  return renderWithProvider(
+    React.createElement(
+      QueryClientProvider,
+      { client: createQueryClient() },
+      React.createElement(
+        RootStack.Navigator,
+        { screenOptions: { headerShown: false } },
+        ...screens,
+      ),
+    ),
+    { state },
   );
+}
 
-  const stackTree = (
-    <QueryClientProvider client={createQueryClient()}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen
-          name={Routes.TRANSACTIONS_VIEW}
-          component={ActivityScreenWithProviders}
-          initialParams={options.params}
-        />
-        <RootStack.Screen
-          name={Routes.MODAL.ROOT_MODAL_FLOW}
-          component={RootModalFlow}
-        />
-      </RootStack.Navigator>
-    </QueryClientProvider>
-  );
-
-  return renderWithProvider(stackTree, { state });
+export function renderActivityScreenView(
+  options: RenderActivityScreenViewOptions = {},
+): ReturnType<typeof renderWithProvider> {
+  return renderActivityScreenWithFilterModals(options);
 }
 
 export function renderActivityScreenViewWithRoutes(
   options: RenderActivityScreenViewWithRoutesOptions,
 ): ReturnType<typeof renderWithProvider> {
-  const state = buildActivityState(options);
-  const RootStack = createNativeStackNavigator();
-  const ModalStack = createNativeStackNavigator();
-
-  const DefaultRouteProbe =
-    (routeName: string): React.FC =>
-    () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
-
-  const RootModalFlow = () => (
-    <ModalStack.Navigator screenOptions={{ headerShown: false }}>
-      <ModalStack.Screen
-        name={Routes.SHEET.ACTIVITY_TYPE_FILTER}
-        component={ActivityTypeFilterSheet}
-      />
-      <ModalStack.Screen
-        name={Routes.SHEET.ACTIVITY_PERPS_FILTER}
-        component={PerpsActivityFilterSheet}
-      />
-      <ModalStack.Screen
-        name={Routes.SHEET.ACTIVITY_NETWORK_FILTER}
-        component={ActivityNetworkFilterSheet}
-      />
-    </ModalStack.Navigator>
-  );
-
-  const stackTree = (
-    <QueryClientProvider client={createQueryClient()}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen
-          name={Routes.TRANSACTIONS_VIEW}
-          component={ActivityScreenWithProviders}
-          initialParams={options.params}
-        />
-        <RootStack.Screen
-          name={Routes.MODAL.ROOT_MODAL_FLOW}
-          component={RootModalFlow}
-        />
-        {options.extraRoutes.map(({ name, Component: Extra }) => (
-          <RootStack.Screen
-            key={name}
-            name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
-          />
-        ))}
-      </RootStack.Navigator>
-    </QueryClientProvider>
-  );
-
-  return renderWithProvider(stackTree, { state });
+  return renderActivityScreenWithFilterModals(options);
 }
 
 export function renderActivityListView(

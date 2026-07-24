@@ -41,20 +41,9 @@ export const createActivityNetworkFilterNavDetails =
     Routes.SHEET.ACTIVITY_NETWORK_FILTER,
   );
 
-const styles = StyleSheet.create({
-  optionsList: {
-    paddingBottom: 16,
-  },
-});
+const styles = StyleSheet.create({ optionsList: { paddingBottom: 16 } });
 
-/**
- * Activity network filter hosted on `ROOT_MODAL_FLOW` so it covers the tab bar
- * when Activity is a tab (money account off). Selection is written back via a
- * non-serializable `onNetworkSelect` callback (OptionsSheet pattern).
- *
- * Reuses the Trending network-sheet list UI; kept as a separate screen so
- * Trending's in-tab sheet is unchanged.
- */
+/** ROOT_MODAL_FLOW network filter; writes via onNetworkSelect. */
 const ActivityNetworkFilterSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { selectedNetwork: initialSelectedNetwork, onNetworkSelect } =
@@ -64,8 +53,7 @@ const ActivityNetworkFilterSheet: React.FC = () => {
   const [selectedNetwork, setSelectedNetwork] = useState<
     CaipChainId[] | null | NetworkOption
   >(initialSelectedNetwork ?? NetworkOption.AllNetworks);
-  // ROOT_MODAL_FLOW uses animation: 'none' — defer overlay presses until open
-  // so the chip tap that opened us cannot immediately dismiss the sheet.
+  // Defer overlay presses until open (ROOT_MODAL_FLOW has animation: 'none').
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -73,10 +61,6 @@ const ActivityNetworkFilterSheet: React.FC = () => {
       setSelectedNetwork(initialSelectedNetwork);
     }
   }, [initialSelectedNetwork]);
-
-  const handleSheetClose = useCallback(() => {
-    // Backdrop / swipe dismiss: `shouldNavigateBack` pops the modal route.
-  }, []);
 
   const handleSheetOpen = useCallback(() => {
     setIsReady(true);
@@ -92,13 +76,9 @@ const ActivityNetworkFilterSheet: React.FC = () => {
           ? null
           : [(network as ProcessedNetwork).caipChainId];
 
-      if (chainIds === null) {
-        setSelectedNetwork(NetworkOption.AllNetworks);
-      } else {
-        setSelectedNetwork(chainIds);
-      }
-
-      // OptionsSheet pattern: callback first, then close (goBack).
+      setSelectedNetwork(
+        chainIds === null ? NetworkOption.AllNetworks : chainIds,
+      );
       onNetworkSelect(chainIds);
       sheetRef.current?.onCloseBottomSheet();
     },
@@ -109,23 +89,16 @@ const ActivityNetworkFilterSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const isNetworkSelected = (network: ProcessedNetwork) => {
-    if (isAllNetworksSelected) {
-      return false;
-    }
-    return (
-      Array.isArray(selectedNetwork) &&
-      selectedNetwork.includes(network.caipChainId)
-    );
-  };
+  const isNetworkSelected = (network: ProcessedNetwork) =>
+    !isAllNetworksSelected &&
+    Array.isArray(selectedNetwork) &&
+    selectedNetwork.includes(network.caipChainId);
 
   return (
     <BottomSheet
       ref={sheetRef}
-      onClose={handleSheetClose}
+      onClose={() => undefined}
       onOpen={handleSheetOpen}
-      // Overlay/swipe gated by isReady (press-through guard). shouldNavigateBack
-      // stays true so select-then-close always pops the modal.
       isInteractable={isReady}
       shouldNavigateBack
       testID={ActivityScreenSelectorsIDs.NETWORK_FILTER_SHEET}
