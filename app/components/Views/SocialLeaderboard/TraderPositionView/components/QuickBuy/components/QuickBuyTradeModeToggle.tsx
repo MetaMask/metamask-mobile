@@ -6,7 +6,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { brandColor } from '@metamask/design-tokens';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
@@ -15,7 +14,6 @@ import {
 } from 'react-native';
 import Animated, {
   interpolate,
-  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -38,8 +36,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    // Matches the buttons' rounded-lg (8px) so the fill tucks neatly behind them.
-    borderRadius: 8,
+    // Matches the buttons' 99px radius so the fill tucks neatly behind them.
+    borderRadius: 99,
   },
 });
 
@@ -54,8 +52,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
 }) => {
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
-  const buyColor = colors.success.default;
-  const sellColor = brandColor.orange400;
+  const activeColor = colors.icon.default;
 
   const slideProgress = useSharedValue(tradeMode === 'sell' ? 1 : 0);
   const buyWidthSV = useSharedValue(0);
@@ -103,14 +100,10 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
     return {
       left: buyXSV.value,
       width,
-      backgroundColor: interpolateColor(
-        progress,
-        [0, 1],
-        [buyColor, sellColor],
-      ),
+      backgroundColor: activeColor,
       transform: [{ translateX: progress * buyWidthSV.value }],
     };
-  }, [buyColor, sellColor]);
+  }, [activeColor]);
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
@@ -118,16 +111,16 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
     return (
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="border border-muted rounded-xl p-1"
+        twClassName="bg-muted rounded-[99px] p-1"
         testID={testID}
       >
         <Box
-          twClassName="rounded-lg px-4 py-1"
-          style={{ backgroundColor: buyColor }}
+          twClassName="rounded-[99px] px-4 py-1"
+          style={{ backgroundColor: activeColor }}
         >
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
+            fontWeight={FontWeight.Bold}
             color={TextColor.PrimaryInverse}
           >
             {strings('social_leaderboard.quick_buy.buy_label')}
@@ -140,7 +133,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="border border-muted rounded-xl p-1"
+      twClassName="bg-muted rounded-[99px] p-1"
       testID={testID}
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
@@ -160,12 +153,10 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
           accessibilityState={{ selected: tradeMode === 'buy' }}
           testID="quick-buy-trade-mode-buy"
         >
-          <Box twClassName="rounded-lg px-4 py-1">
+          <Box twClassName="rounded-[99px] px-4 py-1">
             <Text
               variant={TextVariant.BodyMd}
-              fontWeight={
-                tradeMode === 'buy' ? FontWeight.Medium : FontWeight.Regular
-              }
+              fontWeight={FontWeight.Bold}
               color={
                 tradeMode === 'buy'
                   ? TextColor.PrimaryInverse
@@ -193,13 +184,11 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
           testID="quick-buy-trade-mode-sell"
         >
           <Box
-            twClassName={`rounded-lg px-4 py-1 ${!hasSellableBalance ? 'opacity-40' : ''}`}
+            twClassName={`rounded-[99px] px-4 py-1 ${!hasSellableBalance ? 'opacity-40' : ''}`}
           >
             <Text
               variant={TextVariant.BodyMd}
-              fontWeight={
-                tradeMode === 'sell' ? FontWeight.Medium : FontWeight.Regular
-              }
+              fontWeight={FontWeight.Bold}
               color={
                 tradeMode === 'sell'
                   ? TextColor.PrimaryInverse

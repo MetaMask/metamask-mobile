@@ -4,6 +4,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -18,13 +20,18 @@ import {
  * Shared pill chrome.
  * ButtonSize.Md (40px) matches the Figma height; px-2 overrides the default
  * 16px horizontal padding so all four labels fit on one row without clipping.
+ * Label is BodySm Medium (Md buttons default to BodyMd).
  */
 const QUICK_AMOUNT_PILL_PROPS = {
   variant: ButtonVariant.Secondary,
   size: ButtonSize.Md,
+  textProps: {
+    variant: TextVariant.BodySm,
+    fontWeight: FontWeight.Medium,
+  },
 } as const;
 
-const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
+const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 rounded-[99px] px-2';
 
 export interface QuickBuyQuickAmountsProps {
   /** When true, appends a primary Done pill (keyboard-open row above the keypad). */
@@ -74,6 +81,7 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Md}
+        textProps={QUICK_AMOUNT_PILL_PROPS.textProps}
         onPress={onDonePress}
         twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
         testID="quick-buy-keypad-done"

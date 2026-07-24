@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Position } from '@metamask/social-controllers';
@@ -49,20 +49,13 @@ jest.mock('../../../../../../hooks/useABTest', () => ({
   }),
 }));
 
-// Captures the onOpenDialog callback registered by QuickBuyRootInner.
-// Call storedOnOpenCallback() inside act() after render to simulate the sheet
-// finishing its open animation and make isContentReady become true.
-let storedOnOpenCallback: (() => void) | undefined;
-
 // Render children directly so inner component content is visible
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
+jest.mock('./QuickBuyBottomSheetDialog', () => {
   const ReactMock = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
   return {
-    ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    QuickBuyBottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
@@ -74,8 +67,8 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
-            storedOnOpenCallback = cb;
+          onOpenDialog: (cb?: () => void) => {
+            cb?.();
           },
           onCloseDialog: (cb?: () => void) => cb?.(),
         }));
@@ -177,20 +170,6 @@ jest.mock('./QuickBuyBanners', () => {
     __esModule: true,
     default: () =>
       ReactMock.createElement(Text, { testID: 'mock-banners' }, 'banners'),
-  };
-});
-
-jest.mock('./QuickBuyBottomSheetSkeleton', () => {
-  const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactMock.createElement(
-        Text,
-        { testID: 'mock-skeleton' },
-        'quick-buy-content-loading',
-      ),
   };
 });
 
@@ -322,7 +301,6 @@ const setMockQuickBuyController = (
 describe('QuickBuy.Root', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    storedOnOpenCallback = undefined;
     mockUseKeyboard = false;
     setMockQuickBuyController();
     (useQuickBuySetup as jest.Mock).mockReturnValue({
@@ -368,7 +346,7 @@ describe('QuickBuy.Root', () => {
   });
 
   describe('inner sheet', () => {
-    it('renders the toolbar after deferred content becomes ready', () => {
+    it('renders amount content as soon as the sheet mounts', () => {
       renderWithProvider(
         <QuickBuy.Root
           isVisible
@@ -380,26 +358,8 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
       expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
-    });
-
-    it('renders the skeleton body before deferred content becomes ready', () => {
-      renderWithProvider(
-        <QuickBuy.Root
-          isVisible
-          target={positionToQuickBuyTarget(createPosition())}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          onClose={jest.fn()}
-        />,
-      );
-
-      expect(screen.getByTestId('mock-skeleton')).toBeOnTheScreen();
-      expect(screen.queryByTestId('mock-toolbar')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('mock-amount-section')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     });
 
     it('shows an unsupported chain message instead of the buy flow', () => {
@@ -413,9 +373,6 @@ describe('QuickBuy.Root', () => {
           onClose={jest.fn()}
         />,
       );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
 
       expect(
         screen.getByText('social_leaderboard.quick_buy.unsupported_chain'),
@@ -438,10 +395,6 @@ describe('QuickBuy.Root', () => {
           onClose={jest.fn()}
         />,
       );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
       expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
       expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     });
@@ -458,10 +411,6 @@ describe('QuickBuy.Root', () => {
           onClose={jest.fn()}
         />,
       );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
       expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
     });
 
@@ -477,10 +426,6 @@ describe('QuickBuy.Root', () => {
           onClose={jest.fn()}
         />,
       );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
       expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
     });
 
@@ -496,10 +441,6 @@ describe('QuickBuy.Root', () => {
           onClose={jest.fn()}
         />,
       );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
       fireEvent.press(screen.getByTestId('quick-buy-amount-area-pressable'));
 
       expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
@@ -534,10 +475,6 @@ describe('QuickBuy.Root', () => {
           onClose={jest.fn()}
         />,
       );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
       expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
       expect((useQuickBuyController as jest.Mock).mock.calls[0]?.[3]).toBe(
         false,
@@ -572,10 +509,6 @@ describe('QuickBuy.Root', () => {
           onClose={jest.fn()}
         />,
       );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
       fireEvent.press(screen.getByTestId('quick-buy-confirm-button'));
 
       expect(handleConfirm).toHaveBeenCalledTimes(1);

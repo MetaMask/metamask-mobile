@@ -77,7 +77,11 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
 
       {!hasQuoteDetails ? (
         <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
             {strings(
               hasValidAmount
                 ? 'social_leaderboard.quick_buy.quote_details_empty_no_quote'
