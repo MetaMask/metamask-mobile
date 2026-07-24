@@ -305,14 +305,28 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     scheduleAutoDismiss(visibilityDuration);
   };
 
+  const ensureAutoDismissAfterIncompleteSwipe = () => {
+    if (hasNoTimeoutRef.current || isDismissing.value) {
+      return;
+    }
+
+    // Entrance was interrupted before auto-dismiss started — start a full timer
+    // now (from onEnd) rather than from spring-back completion. showToast clears
+    // visibleAtRef on replace; a queued spring-back resume must not treat that
+    // as an interrupted entrance and schedule dismiss on the new toast.
+    if (visibleAtRef.current === null && animationStartedRef.current) {
+      beginAutoDismiss();
+    }
+  };
+
   const resumeAutoDismissAfterSwipe = () => {
     if (hasNoTimeoutRef.current || isDismissing.value) {
       return;
     }
 
-    // Entrance was interrupted before auto-dismiss started — start a full timer.
+    // null means the toast was replaced/reset, or ensure already could not start
+    // a timer (e.g. mid-replace). Do not begin a new auto-dismiss here.
     if (visibleAtRef.current === null) {
-      beginAutoDismiss();
       return;
     }
 
@@ -399,14 +413,23 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToastRef = useRef(closeToast);
+  const ensureAutoDismissAfterIncompleteSwipeRef = useRef(
+    ensureAutoDismissAfterIncompleteSwipe,
+  );
   const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
   const clearScheduledAutoDismissRef = useRef(clearScheduledAutoDismiss);
   closeToastRef.current = closeToast;
+  ensureAutoDismissAfterIncompleteSwipeRef.current =
+    ensureAutoDismissAfterIncompleteSwipe;
   resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
   clearScheduledAutoDismissRef.current = clearScheduledAutoDismiss;
 
   const dismissToastFromSwipe = () => {
     closeToastRef.current();
+  };
+
+  const ensureAutoDismissFromSwipe = () => {
+    ensureAutoDismissAfterIncompleteSwipeRef.current();
   };
 
   const resumeAutoDismissFromSwipe = () => {
@@ -464,6 +487,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             runOnJS(dismissToastFromSwipe)();
             return;
           }
+
+          // Start (or keep) auto-dismiss before spring-back so a later toast
+          // replace cannot be dismissed by a stale spring completion.
+          runOnJS(ensureAutoDismissFromSwipe)();
 
           translateYProgress.value = withSpring(
             visibleTranslateY.value,

@@ -938,6 +938,47 @@ describe('Toast', () => {
       expect(screen.queryByText('Entrance swipe toast')).toBeNull();
     });
 
+    it('ignores stale spring-back resume after toast is replaced', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const timedOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Timed swipe toast' }],
+        hasNoTimeout: false,
+      };
+      const persistentOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Persistent after swipe' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, timedOptions);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+      });
+
+      await act(async () => {
+        toastRef.current?.showToast(persistentOptions);
+        // Simulate a spring-back resume that lands after showToast cleared the
+        // previous toast (visibleAtRef is null during the replace gap).
+        mockPanGestureHandlers.onStart?.();
+        mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
+        mockPanGestureHandlers.onEnd?.({
+          translationY: -10,
+          velocityY: -100,
+        });
+        jest.advanceTimersByTime(100);
+      });
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.advanceTimersByTime(visibilityDuration);
+      });
+
+      expect(screen.queryByText('Timed swipe toast')).toBeNull();
+      expect(screen.getByText('Persistent after swipe')).toBeOnTheScreen();
+    });
+
     it('does not restore toast when panned after closeToast starts dismissing', async () => {
       const view = render(<Toast ref={toastRef} />);
       const options: ToastOptions = {
