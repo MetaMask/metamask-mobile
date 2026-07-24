@@ -4,6 +4,21 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { BridgeToken } from '../../types';
 import { useBatchSellQuoteData } from '.';
+import {
+  formatAddressToAssetId,
+  type QuoteMetadata,
+  type QuoteResponseV1,
+  type QuoteResponse,
+  type selectBatchSellQuotes,
+  type selectBatchSellTrades,
+  type selectBridgeFeatureFlags,
+} from '@metamask/bridge-controller';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as smartTransactionsController from '../../../../../selectors/smartTransactionsController';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as bridgeUtils from '../../../../../util/bridge';
 
 jest.mock('../useBatchSellQuoteRequest', () => ({
   getBatchSellAtomicSourceAmount: jest.fn(
@@ -75,7 +90,7 @@ const usdtToken: BridgeToken = {
 function buildMockRecommendedQuote(
   sourceToken: BridgeToken,
   amount: string,
-  valueInCurrency: string | null,
+  valueInCurrency: string | undefined,
   destinationToken: BridgeToken = usdcToken,
   priceData?: { priceImpact?: string },
   quoteId = `${sourceToken.symbol}-${destinationToken.symbol}-${amount}`,
@@ -83,32 +98,41 @@ function buildMockRecommendedQuote(
     gasIncluded: boolean;
     gasIncluded7702: boolean;
     gasSponsored: boolean;
-    quoteBpsFee: number | string | null;
+    quoteBpsFee: number | undefined;
   }> = {},
-) {
+): QuoteResponseV1 & QuoteMetadata {
   const { quoteBpsFee = 87.5, ...remainingQuoteOverrides } = quoteOverrides;
 
   return {
     quoteId,
     quote: {
       requestId: quoteId,
-      srcAsset: { address: sourceToken.address },
+      srcAsset: {
+        ...sourceToken,
+        assetId: formatAddressToAssetId(
+          sourceToken.address,
+          sourceToken.chainId,
+        ) as CaipAssetType,
+      } as never,
       srcChainId: Number(sourceToken.chainId),
       destAsset: {
-        address: destinationToken.address,
-        symbol: destinationToken.symbol,
-      },
+        ...destinationToken,
+        assetId: formatAddressToAssetId(
+          destinationToken.address,
+          destinationToken.chainId,
+        ) as CaipAssetType,
+      } as never,
       destChainId: Number(destinationToken.chainId),
-      feeData: { metabridge: { quoteBpsFee } },
+      feeData: {
+        metabridge: { quoteBpsFee, amount: '0', asset: usdcToken as never },
+      },
       ...(priceData ? { priceData } : {}),
       ...remainingQuoteOverrides,
-    },
+    } as unknown as QuoteResponseV1['quote'],
     toTokenAmount: { amount, valueInCurrency },
     minToTokenAmount: { amount, valueInCurrency },
-  };
+  } as QuoteResponseV1 & QuoteMetadata;
 }
-
-type MockRecommendedQuote = ReturnType<typeof buildMockRecommendedQuote>;
 
 const ethNetworkFeeAsset = {
   symbol: 'ETH',
@@ -129,83 +153,47 @@ const usdcNetworkFeeAsset = {
   decimals: 6,
 };
 
-let mockShouldUseSmartTransaction = false;
-let mockSelectedTokens: BridgeToken[] = [ethToken, uniToken];
-let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
-let mockBatchSellSourceTokenAmounts: Partial<
-  Record<CaipAssetType, string | undefined>
-> = {
-  [ethAssetId]: '1',
-  [uniAssetId]: '2',
-};
-let mockBatchSellQuotes: {
-  recommendedQuotes: (MockRecommendedQuote | null)[];
-  totalReceived: { amount: string; valueInCurrency: string | null };
-  minimumReceived: { amount: string; valueInCurrency: string | null };
-  isLoading: boolean;
-  quotesLastFetchedMs?: number;
-  isQuoteGoingToRefresh: boolean;
-} = {
+const mockBatchSellQuotes: ReturnType<typeof selectBatchSellQuotes> = {
   recommendedQuotes: [
     buildMockRecommendedQuote(ethToken, '123', '123.45'),
     buildMockRecommendedQuote(uniToken, '77', '77.89'),
   ],
-  totalReceived: { amount: '200', valueInCurrency: '201.34' },
-  minimumReceived: { amount: '190', valueInCurrency: '191.23' },
+  totalReceived: { amount: '200', valueInCurrency: '201.34', usd: '0' },
+  minimumReceived: { amount: '190', valueInCurrency: '191.23', usd: '0' },
   isLoading: false,
   isQuoteGoingToRefresh: true,
+  quotesLastFetchedMs: Date.now(),
+  quoteFetchError: null,
+  quotesRefreshCount: 0,
+  quotesInitialLoadTimeMs: 0,
 };
-let mockBatchSellTrades: {
-  totalNetworkFee:
-    | {
-        amount: string;
-        valueInCurrency: string | null;
-        asset: typeof ethNetworkFeeAsset;
-      }
-    | undefined;
-  isBatchSellTradeAvailable: boolean;
-  isLoading: boolean;
-} = {
+
+const mockBatchSellTrades: ReturnType<typeof selectBatchSellTrades> = {
   totalNetworkFee: {
     amount: '1.2',
     valueInCurrency: '1.25',
+    usd: undefined,
     asset: ethNetworkFeeAsset,
   },
   isBatchSellTradeAvailable: true,
   isLoading: false,
 };
-let mockBridgeFeatureFlags: {
-  chains: Record<string, { refreshRate?: number }>;
-  refreshRate: number;
-  priceImpactThreshold?: { warning?: number };
-} = {
+
+const mockBridgeFeatureFlags: ReturnType<typeof selectBridgeFeatureFlags> = {
   chains: {},
   refreshRate: 30000,
-  priceImpactThreshold: { warning: 0.05 },
+  priceImpactThreshold: { warning: 0.05 } as never,
+  maxRefreshCount: 3,
+  support: true,
+  minimumVersion: '1.0.0',
 };
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
-  selectBatchSellQuotes: jest.fn(() => mockBatchSellQuotes),
-  selectBatchSellSlippages: jest.fn(() => ({})),
-  selectBatchSellSourceTokenAmounts: jest.fn(
-    () => mockBatchSellSourceTokenAmounts,
-  ),
-  selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
-  selectBatchSellTrades: jest.fn(() => mockBatchSellTrades),
-  selectBridgeFeatureFlags: jest.fn(() => mockBridgeFeatureFlags),
-}));
-
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
-}));
-
-jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn(() => mockShouldUseSmartTransaction),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -216,59 +204,71 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
-jest.mock('../../../../../util/bridge', () => ({
-  getMaybeHexChainId: jest.fn(
-    (chainId?: string): string | undefined => chainId,
-  ),
-}));
+const mockSelectShouldUseSmartTransaction = jest.fn(() => false);
 
-const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
-  jest.requireMock('../../../../../selectors/smartTransactionsController');
-const { getMaybeHexChainId: mockGetMaybeHexChainId } = jest.requireMock(
-  '../../../../../util/bridge',
+const mockGetMaybeHexChainId = jest.fn(
+  (chainId?: string) => chainId as `0x${string}` | undefined,
 );
 
-describe('useBatchSellQuoteData', () => {
+describe.only('useBatchSellQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShouldUseSmartTransaction = false;
-    mockSelectedTokens = [ethToken, uniToken];
-    mockSelectedDestinationToken = usdcToken;
-    mockBatchSellSourceTokenAmounts = {
-      [ethAssetId]: '1',
-      [uniAssetId]: '2',
-    };
-    mockBatchSellQuotes = {
+    jest
+      .spyOn(bridgeUtils, 'getMaybeHexChainId')
+      .mockImplementation(mockGetMaybeHexChainId);
+    jest
+      .spyOn(smartTransactionsController, 'selectShouldUseSmartTransaction')
+      .mockImplementation(mockSelectShouldUseSmartTransaction);
+
+    jest
+      .spyOn(bridgeSlice, 'selectBatchSellDestToken')
+      .mockReturnValue(usdcToken);
+    jest
+      .spyOn(bridgeSlice, 'selectBatchSellSourceTokens')
+      .mockReturnValue([ethToken, uniToken]);
+    jest
+      .spyOn(bridgeSlice, 'selectBatchSellSourceTokenAmounts')
+      .mockReturnValue({
+        [ethAssetId]: '1',
+        [uniAssetId]: '2',
+      });
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       recommendedQuotes: [
         buildMockRecommendedQuote(ethToken, '123', '123.45'),
         buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
-      totalReceived: { amount: '200', valueInCurrency: '201.34' },
-      minimumReceived: { amount: '190', valueInCurrency: '191.23' },
+      totalReceived: { amount: '200', valueInCurrency: '201.34', usd: '0' },
+      minimumReceived: { amount: '190', valueInCurrency: '191.23', usd: '0' },
       isLoading: false,
       isQuoteGoingToRefresh: true,
-    };
-    mockBatchSellTrades = {
+      quotesLastFetchedMs: Date.now(),
+      quoteFetchError: null,
+      quotesRefreshCount: 0,
+      quotesInitialLoadTimeMs: 0,
+    });
+    jest.spyOn(bridgeSlice, 'selectBatchSellTrades').mockReturnValue({
       totalNetworkFee: {
         amount: '1.2',
         valueInCurrency: '1.25',
+        usd: undefined,
         asset: ethNetworkFeeAsset,
       },
       isBatchSellTradeAvailable: true,
       isLoading: false,
-    };
-    mockBridgeFeatureFlags = {
-      chains: {},
-      refreshRate: 30000,
-      priceImpactThreshold: { warning: 0.05 },
-    };
+    });
+    jest.spyOn(bridgeSlice, 'selectBatchSellSlippages').mockReturnValue({});
+    jest
+      .spyOn(bridgeSlice, 'selectBridgeFeatureFlags')
+      .mockReturnValue(mockBridgeFeatureFlags);
   });
 
   it('reports no quotes when all source amounts are zero even if stale quotes exist', () => {
-    mockBatchSellSourceTokenAmounts = {
-      [ethAssetId]: '0',
-      [uniAssetId]: '0',
-    };
+    jest
+      .spyOn(bridgeSlice, 'selectBatchSellSourceTokenAmounts')
+      .mockReturnValue({
+        [ethAssetId]: '0',
+        [uniAssetId]: '0',
+      });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -340,7 +340,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('does not mark Batch Sell quote data as gasless when the network fee is the native gas token', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(
@@ -362,7 +362,7 @@ describe('useBatchSellQuoteData', () => {
           { gasIncluded: false, gasIncluded7702: true },
         ),
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -370,14 +370,15 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('marks Batch Sell quote data as gasless when the network fee is not the native gas token', () => {
-    mockBatchSellTrades = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellTrades').mockReturnValue({
       ...mockBatchSellTrades,
       totalNetworkFee: {
         amount: '1.2',
         valueInCurrency: '1.25',
+        usd: '0',
         asset: usdcNetworkFeeAsset,
       },
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -385,11 +386,11 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('returns the Batch Sell trades loading state', () => {
-    mockBatchSellTrades = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellTrades').mockReturnValue({
       ...mockBatchSellTrades,
       isBatchSellTradeAvailable: false,
       isLoading: true,
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -399,15 +400,15 @@ describe('useBatchSellQuoteData', () => {
   it('does not need a new quote when the quote is expired but going to refresh', () => {
     const now = 60000;
     const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
-    mockBridgeFeatureFlags = {
+    jest.spyOn(bridgeSlice, 'selectBridgeFeatureFlags').mockReturnValue({
       ...mockBridgeFeatureFlags,
       refreshRate: 30000,
-    };
-    mockBatchSellQuotes = {
+    });
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       quotesLastFetchedMs: 1,
       isQuoteGoingToRefresh: true,
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -419,15 +420,15 @@ describe('useBatchSellQuoteData', () => {
   it('needs a new quote when the quote is expired and no longer refreshing', () => {
     const now = 60000;
     const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
-    mockBridgeFeatureFlags = {
+    jest.spyOn(bridgeSlice, 'selectBridgeFeatureFlags').mockReturnValue({
       ...mockBridgeFeatureFlags,
       refreshRate: 30000,
-    };
-    mockBatchSellQuotes = {
+    });
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       quotesLastFetchedMs: 1,
       isQuoteGoingToRefresh: false,
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -439,7 +440,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('derives the MetaMask fee from the quoteBpsFee on quote data', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(
@@ -461,7 +462,7 @@ describe('useBatchSellQuoteData', () => {
           { quoteBpsFee: 125 },
         ),
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -469,7 +470,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('does not expose a MetaMask fee when quoteBpsFee is zero', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(
@@ -482,7 +483,7 @@ describe('useBatchSellQuoteData', () => {
           { quoteBpsFee: 0 },
         ),
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -496,10 +497,10 @@ describe('useBatchSellQuoteData', () => {
       Engine.context.BridgeController.updateBatchSellTrades,
     ).toHaveBeenCalledTimes(1);
 
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [...mockBatchSellQuotes.recommendedQuotes],
-    };
+    });
 
     rerender({});
 
@@ -512,7 +513,7 @@ describe('useBatchSellQuoteData', () => {
     const { rerender } = renderHook(() => useBatchSellQuoteData());
 
     const [firstQuote, secondQuote] = mockBatchSellQuotes.recommendedQuotes;
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         firstQuote
@@ -523,7 +524,7 @@ describe('useBatchSellQuoteData', () => {
           : firstQuote,
         secondQuote,
       ],
-    };
+    });
 
     rerender({});
 
@@ -533,7 +534,9 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('passes isSmartTransaction=false to updateBatchSellTrades when STX is disabled', () => {
-    mockShouldUseSmartTransaction = false;
+    jest
+      .spyOn(smartTransactionsController, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(false);
 
     renderHook(() => useBatchSellQuoteData());
 
@@ -543,7 +546,9 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('passes isSmartTransaction=true to updateBatchSellTrades when STX is enabled', () => {
-    mockShouldUseSmartTransaction = true;
+    jest
+      .spyOn(smartTransactionsController, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(true);
 
     renderHook(() => useBatchSellQuoteData());
 
@@ -553,22 +558,23 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('falls back to destination token amounts when display currency values are unavailable', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        buildMockRecommendedQuote(ethToken, '123', null),
-        buildMockRecommendedQuote(uniToken, '77', null),
+        buildMockRecommendedQuote(ethToken, '123', undefined),
+        buildMockRecommendedQuote(uniToken, '77', undefined),
       ],
-      totalReceived: { amount: '200', valueInCurrency: '0' },
-    };
-    mockBatchSellTrades = {
+      totalReceived: { amount: '200', valueInCurrency: '0', usd: '0' },
+    });
+    jest.spyOn(bridgeSlice, 'selectBatchSellTrades').mockReturnValue({
       ...mockBatchSellTrades,
       totalNetworkFee: {
         amount: '1.2',
         valueInCurrency: '',
+        usd: undefined,
         asset: ethNetworkFeeAsset,
       },
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -588,11 +594,11 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('does not fall back to the destination token symbol when trade fee is unavailable', () => {
-    mockBatchSellTrades = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellTrades').mockReturnValue({
       totalNetworkFee: undefined,
       isBatchSellTradeAvailable: false,
       isLoading: false,
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -604,7 +610,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('marks quote rows below the warning threshold as safe', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(ethToken, '123', '123.45', usdcToken, {
@@ -612,7 +618,7 @@ describe('useBatchSellQuoteData', () => {
         }),
         buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -625,7 +631,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('marks quote rows at the warning threshold as high price impact', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(ethToken, '123', '123.45', usdcToken, {
@@ -633,7 +639,7 @@ describe('useBatchSellQuoteData', () => {
         }),
         buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -646,11 +652,12 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('falls back to the default warning threshold when the flag is absent', () => {
-    mockBridgeFeatureFlags = {
+    jest.spyOn(bridgeSlice, 'selectBridgeFeatureFlags').mockReturnValue({
       ...mockBridgeFeatureFlags,
+      // @ts-expect-error - mocking an invalid payload
       priceImpactThreshold: {},
-    };
-    mockBatchSellQuotes = {
+    });
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(ethToken, '123', '123.45', usdcToken, {
@@ -658,7 +665,7 @@ describe('useBatchSellQuoteData', () => {
         }),
         buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -666,13 +673,13 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('matches recommended quotes by source asset id instead of array index', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(uniToken, '77', '77.89'),
         buildMockRecommendedQuote(ethToken, '123', '123.45'),
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -693,16 +700,18 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('hides stale quotes when their destination does not match the selected stablecoin', () => {
-    mockSelectedDestinationToken = usdcToken;
-    mockBatchSellQuotes = {
+    jest
+      .spyOn(bridgeSlice, 'selectBatchSellDestToken')
+      .mockReturnValue(usdcToken);
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        buildMockRecommendedQuote(ethToken, '123', null, usdtToken),
+        buildMockRecommendedQuote(ethToken, '123', undefined, usdtToken),
         buildMockRecommendedQuote(uniToken, '77', '77.89', usdtToken),
       ],
-      totalReceived: { amount: '200', valueInCurrency: '201.34' },
-      minimumReceived: { amount: '190', valueInCurrency: '191.23' },
-    };
+      totalReceived: { amount: '200', valueInCurrency: '201.34', usd: '0' },
+      minimumReceived: { amount: '190', valueInCurrency: '191.23', usd: '0' },
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -730,13 +739,13 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('marks rows without recommended quotes as unavailable after loading', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [
         buildMockRecommendedQuote(ethToken, '123', '123.45'),
         null,
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -759,14 +768,14 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('shows streamed row data and progressive totals while other rows are loading', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       isLoading: true,
       recommendedQuotes: [
         buildMockRecommendedQuote(ethToken, '123', '123.45'),
         null,
       ],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -798,10 +807,10 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('clears pending rows when every selected token has a quote while still loading', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       isLoading: true,
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -820,10 +829,10 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.totalReceived.formatted).toBe('200 USDC');
 
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       isLoading: true,
-    };
+    });
 
     rerender({});
 
@@ -837,13 +846,14 @@ describe('useBatchSellQuoteData', () => {
       }),
     );
 
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
+      isLoading: true,
       recommendedQuotes: [
         buildMockRecommendedQuote(ethToken, '125', '125.45'),
         null,
       ],
-    };
+    });
 
     rerender({});
 
@@ -865,13 +875,13 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('keeps the batch loading before initial quote results arrive', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [],
-      totalReceived: { amount: '0', valueInCurrency: null },
-      minimumReceived: { amount: '0', valueInCurrency: null },
-      isLoading: false,
-    };
+      totalReceived: { amount: '0', valueInCurrency: '0', usd: '0' },
+      minimumReceived: { amount: '0', valueInCurrency: '0', usd: '0' },
+      isLoading: true,
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -890,10 +900,11 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('keeps the batch loading when quote results do not match selected tokens', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
+      isLoading: true,
       recommendedQuotes: [buildMockRecommendedQuote(ethToken, '123', '123.45')],
-    };
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
@@ -911,7 +922,9 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
-    mockSelectedTokens = [{ ...ethToken, chainId: '0x1' as Hex }];
+    jest
+      .spyOn(bridgeSlice, 'selectBatchSellSourceTokens')
+      .mockReturnValue([{ ...ethToken, chainId: '0x1' as Hex }]);
 
     renderHook(() => useBatchSellQuoteData());
 
@@ -923,7 +936,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
-    mockSelectedTokens = [];
+    jest.spyOn(bridgeSlice, 'selectBatchSellSourceTokens').mockReturnValue([]);
 
     renderHook(() => useBatchSellQuoteData());
 
@@ -935,12 +948,12 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('marks the quote set unavailable when no rows have quotes', () => {
-    mockBatchSellQuotes = {
+    jest.spyOn(bridgeSlice, 'selectBatchSellQuotes').mockReturnValue({
       ...mockBatchSellQuotes,
       recommendedQuotes: [null, null],
-      totalReceived: { amount: '0', valueInCurrency: null },
-      minimumReceived: { amount: '0', valueInCurrency: null },
-    };
+      totalReceived: { amount: '0', valueInCurrency: '0', usd: '0' },
+      minimumReceived: { amount: '0', valueInCurrency: '0', usd: '0' },
+    });
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 

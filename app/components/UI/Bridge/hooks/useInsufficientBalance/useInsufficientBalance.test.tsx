@@ -8,14 +8,10 @@ import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { initialState } from '../../_mocks_/initialState';
-
-// Mock the selectBridgeQuotes selector
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockQuotes: any = null;
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectBridgeQuotes: jest.fn(() => mockQuotes),
-}));
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+import { type DeepPartial } from '@metamask/bridge-controller';
+import { merge } from 'lodash';
 
 // Mock selectMinSolBalance
 jest.mock('../../../../../selectors/bridgeController', () => ({
@@ -23,9 +19,26 @@ jest.mock('../../../../../selectors/bridgeController', () => ({
 }));
 
 // Helper to create a mock store with proper state structure
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createMockStore = (quotes: any): Store => {
-  mockQuotes = quotes;
+const createMockStore = (
+  quotes: DeepPartial<ReturnType<typeof bridgeSlice.selectBridgeQuotes>>,
+): Store => {
+  jest.spyOn(bridgeSlice, 'selectBridgeQuotes').mockImplementationOnce(() =>
+    merge(
+      {},
+      {
+        recommendedQuote: null,
+        sortedQuotes: [],
+        activeQuote: null,
+        quotesLastFetchedMs: 0,
+        isLoading: false,
+        quoteFetchError: null,
+        quotesRefreshCount: 0,
+        isQuoteGoingToRefresh: false,
+        quotesInitialLoadTimeMs: 0,
+      },
+      quotes,
+    ),
+  );
   const rootReducer = (state = initialState) => state;
   return createStore(rootReducer, initialState);
 };
@@ -68,8 +81,8 @@ const createQuote = ({
   }) as QuoteWithGas;
 
 describe('useIsInsufficientBalance', () => {
-  afterEach(() => {
-    mockQuotes = null;
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('ERC-20 Tokens', () => {
@@ -543,7 +556,7 @@ describe('useIsInsufficientBalance', () => {
     });
 
     it('still checks balance when no quote is available', () => {
-      const store = createMockStore(null);
+      const store = createMockStore({});
 
       const { result } = renderHook(
         () =>

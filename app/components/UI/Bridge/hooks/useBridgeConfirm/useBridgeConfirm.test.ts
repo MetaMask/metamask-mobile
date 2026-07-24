@@ -294,6 +294,10 @@ describe('useBridgeConfirm', () => {
       mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('logs the error', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderHook();
