@@ -238,7 +238,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         value={feesValue}
       />
 
-      <SectionDivider marginVertical={1} />
+      <SectionDivider marginVertical={1} twClassName="mx-4" />
 
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
