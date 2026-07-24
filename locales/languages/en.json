@@ -1524,7 +1524,10 @@
         "liq_price": "Liq. price",
         "funding": "Funding",
         "isolated": "Isolated",
-        "cross": "Cross"
+        "cross": "Cross",
+        "close": "Close",
+        "reverse": "Reverse",
+        "share": "Share"
       }
     },
     "order": {

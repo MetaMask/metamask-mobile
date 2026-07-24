@@ -3,7 +3,11 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
+  IconName,
   Tag,
   TagSeverity,
   Text,
@@ -34,6 +38,8 @@ interface PerpsProPositionCardProps {
   /** Test ID for the card container. */
   testID?: string;
 }
+
+const ACTION_BUTTON_CLASS_NAME = 'flex-1 border-muted bg-background-default';
 
 interface KeyValueItemProps {
   label: string;
@@ -251,6 +257,38 @@ const PerpsProPositionCard = ({
             />
           </Box>
         </Box>
+      </Box>
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2 px-4"
+      >
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          isDanger
+          startIconName={IconName.Close}
+          twClassName={ACTION_BUTTON_CLASS_NAME}
+        >
+          {strings('perps.pro_positions_panel.card.close')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          startIconName={IconName.Refresh}
+          twClassName={ACTION_BUTTON_CLASS_NAME}
+        >
+          {strings('perps.pro_positions_panel.card.reverse')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          startIconName={IconName.Share}
+          twClassName={ACTION_BUTTON_CLASS_NAME}
+        >
+          {strings('perps.pro_positions_panel.card.share')}
+        </Button>
       </Box>
     </Box>
   );
