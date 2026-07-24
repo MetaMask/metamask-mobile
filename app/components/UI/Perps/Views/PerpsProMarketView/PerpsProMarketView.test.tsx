@@ -2,6 +2,11 @@ import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
 import { Box, ButtonBase } from '@metamask/design-system-react-native';
 import { CandlePeriod } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -13,6 +18,8 @@ import {
 
 interface MockRouteParams {
   market?: { symbol: string; price?: string };
+  source?: string;
+  source_section?: string;
 }
 
 interface MockChartPanelProps {
@@ -33,6 +40,9 @@ let mockRouteParams: MockRouteParams | undefined = {
   market: { symbol: 'BTC', price: '$90,000.00' },
 };
 const mockTrack = jest.fn();
+const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
+  track: mockTrack,
+}));
 
 const mockPerpsProChartPanel = jest.fn(
   ({ symbol, onMorePress }: MockChartPanelProps) => (
@@ -91,7 +101,8 @@ jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: mockTrack }),
+  usePerpsEventTracking: (options?: unknown) =>
+    mockUsePerpsEventTracking(options),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -160,6 +171,24 @@ describe('PerpsProMarketView', () => {
       'edges',
       ['top', 'bottom', 'left', 'right'],
     );
+  });
+
+  it('tracks an attributed Pro market screen view', () => {
+    renderView();
+
+    expect(mockUsePerpsEventTracking).toHaveBeenCalledWith({
+      eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      resetKey: expect.stringMatching(/^BTC:/),
+      conditions: [true],
+      properties: expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+        [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: expect.any(String),
+        [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+      }),
+    });
   });
 
   it('renders every top-level scaffold slot', () => {

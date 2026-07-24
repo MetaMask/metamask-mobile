@@ -20,7 +20,7 @@ interface PerpsCandlestickChartIntervalSelectorProps {
 const PerpsCandlestickChartIntervalSelector: React.FC<
   PerpsCandlestickChartIntervalSelectorProps
 > = ({ selectedInterval, onIntervalChange, testID, style }) => {
-  const { styles } = useStyles(selectorStyleSheet, {});
+  const { styles } = useStyles(selectorStyleSheet);
 
   return (
     <ScrollView

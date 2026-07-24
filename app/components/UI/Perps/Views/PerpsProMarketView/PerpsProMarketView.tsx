@@ -10,7 +10,10 @@ import {
   getPerpsDisplaySymbol,
   type OrderType,
 } from '@metamask/perps-controller';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
@@ -18,10 +21,12 @@ import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -52,6 +57,8 @@ const PerpsProMarketView = () => {
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const market = route.params?.market;
+  const source = route.params?.source;
+  const sourceSection = route.params?.source_section;
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
 
   const handleCollapseOrderBook = useCallback(() => {
@@ -99,6 +106,28 @@ const PerpsProMarketView = () => {
     () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
     [effectiveChartLibrary],
   );
+
+  const screenViewedProperties = useMemo(
+    () => ({
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+      [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      ...chartAnalyticsProperties,
+      ...(sourceSection && {
+        [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: sourceSection,
+      }),
+    }),
+    [chartAnalyticsProperties, market?.symbol, source, sourceSection],
+  );
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    resetKey: `${market?.symbol || ''}:${effectiveChartLibrary}`,
+    conditions: [Boolean(market?.symbol)],
+    properties: screenViewedProperties,
+  });
 
   const handleAdvancedChartError = useCallback(() => {
     setEffectiveChartLibrary(PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT);
