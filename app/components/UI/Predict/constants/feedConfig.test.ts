@@ -134,6 +134,20 @@ describe('feedConfig', () => {
     ).toBe('predict.feed.filters.fights');
   });
 
+  it('includes ITF in the default tennis filters', () => {
+    const tennisTab = PREDICT_FEED_REGISTRY.sports.tabs.find(
+      (tab) => tab.id === 'tennis',
+    );
+
+    expect(tennisTab?.filters.static.map((filter) => filter.id)).toEqual([
+      'games',
+      'props',
+      'atp',
+      'wta',
+      'itf',
+    ]);
+  });
+
   it('uses static sports filters from the configured sports feed', () => {
     const [allTab, soccerTab] = PREDICT_FEED_REGISTRY.sports.tabs;
 

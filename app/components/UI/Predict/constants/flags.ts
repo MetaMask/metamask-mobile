@@ -233,6 +233,7 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
       chips: [
         createSportsFeedChip('atp', 'atp'),
         createSportsFeedChip('wta', 'wta'),
+        createSportsFeedChip('itf', 'itf'),
       ],
     }),
     createSportsFeedTab({
