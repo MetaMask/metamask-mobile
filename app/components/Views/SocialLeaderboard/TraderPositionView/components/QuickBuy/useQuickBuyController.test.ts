@@ -1,4 +1,11 @@
-import { ChainId } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  mergeQuoteMetadata,
+  toQuoteResponseV2,
+  type DeepPartial,
+  type QuoteMetadata,
+  type QuoteResponseV1,
+} from '@metamask/bridge-controller';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { act, renderHook } from '@testing-library/react-native';
@@ -347,29 +354,35 @@ const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
   }) as BridgeToken;
 
 const createActiveQuote = (
-  overrides: Record<string, unknown> = {},
+  overrides: DeepPartial<QuoteResponseV1> = {},
+  metadata: DeepPartial<QuoteMetadata> = {},
 ): EnrichedQuickBuyQuote =>
-  ({
-    ...overrides,
-    quote: {
-      srcTokenAmount: '10000000000000000',
-      ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+  mergeQuoteMetadata(
+    toQuoteResponseV2({
+      ...overrides,
+      quote: {
+        srcTokenAmount: '10000000000000000',
+        ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+      },
+    }),
+    {
+      ...metadata,
+      // The full wallet deduction (routing amount + src-token fees), in decimal
+      // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
+      // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
+      // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
+      // quotes).
+      sentAmount: {
+        amount: '0.01',
+        ...((metadata.sentAmount as Record<string, unknown> | undefined) ?? {}),
+      },
+      totalNetworkFee: {
+        amount: '0.0001',
+        ...((metadata.totalNetworkFee as Record<string, unknown> | undefined) ??
+          {}),
+      },
     },
-    // The full wallet deduction (routing amount + src-token fees), in decimal
-    // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
-    // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
-    // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
-    // quotes).
-    sentAmount: {
-      amount: '0.01',
-      ...((overrides.sentAmount as Record<string, unknown> | undefined) ?? {}),
-    },
-    totalNetworkFee: {
-      amount: '0.0001',
-      ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
-        {}),
-    },
-  }) as EnrichedQuickBuyQuote;
+  );
 
 const setupDefaultMocks = () => {
   (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -1075,14 +1088,18 @@ describe('useQuickBuyController', () => {
     });
 
     it('returns the insufficient-funds label when BTC network fee is unavailable', () => {
-      const activeQuote = createActiveQuote({
-        quote: {
-          srcChainId: ChainId.BTC,
+      const activeQuote = createActiveQuote(
+        {
+          quote: {
+            srcChainId: ChainId.BTC,
+          },
         },
-        totalNetworkFee: {
-          amount: '0',
+        {
+          totalNetworkFee: {
+            amount: '0',
+          },
         },
-      });
+      );
 
       (useQuickBuyQuotes as jest.Mock).mockReturnValue({
         activeQuote,
@@ -1378,10 +1395,12 @@ describe('useQuickBuyController', () => {
       // bridge deducts the fee from the routing amount, so quote.srcTokenAmount
       // comes back smaller than requested (0.009 here). sentAmount adds the fee
       // back, reconstructing the requested 0.01 — that is what must be matched.
-      quoteState.activeQuote = createActiveQuote({
-        quote: { srcTokenAmount: '9000000000000000' },
-        sentAmount: { amount: '0.01' },
-      });
+      quoteState.activeQuote = createActiveQuote(
+        {
+          quote: { srcTokenAmount: '9000000000000000' },
+        },
+        { sentAmount: { amount: '0.01' } },
+      );
       rerender(props);
       rerender(props);
 

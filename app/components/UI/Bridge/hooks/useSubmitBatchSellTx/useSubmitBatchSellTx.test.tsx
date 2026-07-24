@@ -13,7 +13,7 @@ import {
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useSubmitBatchSellTx } from '.';
 
-type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+type BridgeQuoteResponse = QuoteResponse;
 
 let mockSubmitBatchSell: jest.Mock<
   Promise<TransactionMeta>,

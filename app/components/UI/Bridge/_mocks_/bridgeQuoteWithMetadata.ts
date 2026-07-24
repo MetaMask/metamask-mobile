@@ -1,10 +1,13 @@
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import {
+  mergeQuoteMetadata,
+  QuoteMetadata,
+  QuoteResponse,
+} from '@metamask/bridge-controller';
 import mockQuotes from './mock-quotes-sol-sol';
 
-const mockQuote = mockQuotes[0] as unknown as QuoteResponse;
+const mockQuote = mockQuotes[0];
 
-export const mockQuoteWithMetadata: QuoteResponse & QuoteMetadata = {
-  ...mockQuote,
+const quoteMetadata: QuoteMetadata = {
   adjustedReturn: { usd: undefined, valueInCurrency: undefined },
   cost: { usd: undefined, valueInCurrency: undefined },
   gasFee: {
@@ -24,3 +27,6 @@ export const mockQuoteWithMetadata: QuoteResponse & QuoteMetadata = {
     valueInCurrency: undefined,
   },
 };
+
+export const mockQuoteWithMetadata: QuoteResponse & QuoteMetadata =
+  mergeQuoteMetadata(mockQuote, quoteMetadata);

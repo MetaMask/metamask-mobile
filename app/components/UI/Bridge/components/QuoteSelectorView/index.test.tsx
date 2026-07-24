@@ -3,6 +3,11 @@ import { render } from '@testing-library/react-native';
 import { QuoteSelectorView } from './index';
 import { strings } from '../../../../../../locales/i18n';
 import { BigNumber } from 'ethers';
+import {
+  mergeQuoteMetadata,
+  toQuoteResponseV2,
+  validateQuoteResponseV1,
+} from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -109,13 +114,24 @@ jest.mock('./QuoteList', () => ({
 }));
 
 describe('QuoteSelectorView', () => {
-  const mockQuote = {
+  const mockQuoteResponse = {
+    estimatedProcessingTimeInSeconds: 60,
+    trade: {
+      chainId: 1,
+      data: '0x153145',
+      from: '0x1234',
+      to: '0x5678',
+      value: '0x0',
+      gasLimit: 1000000,
+    },
     quote: {
       requestId: 'quote-1',
       srcChainId: 1,
       destChainId: 137,
       srcTokenAmount: '1000000000000000000',
       destTokenAmount: '1000000',
+      minDestTokenAmount: '1000000',
+      bridgeId: 'lifi',
       srcAsset: {
         chainId: 1,
         address: '0x0000000000000000000000000000000000000000',
@@ -123,6 +139,7 @@ describe('QuoteSelectorView', () => {
         name: 'Ethereum',
         decimals: 18,
         icon: '',
+        assetId: 'eip155:1/slip44:60',
       },
       destAsset: {
         chainId: 137,
@@ -131,6 +148,7 @@ describe('QuoteSelectorView', () => {
         name: 'USD Coin',
         decimals: 6,
         icon: '',
+        assetId: 'eip155:137/slip44:966',
       },
       feeData: {
         metabridge: {
@@ -142,6 +160,7 @@ describe('QuoteSelectorView', () => {
             name: 'Ethereum',
             decimals: 18,
             icon: '',
+            assetId: 'eip155:1/slip44:60',
           },
         },
       },
@@ -149,6 +168,8 @@ describe('QuoteSelectorView', () => {
       steps: [],
       refuel: undefined,
     },
+  };
+  const metadata = {
     sentAmount: {
       amount: '1',
       usd: '9999',
@@ -165,6 +186,10 @@ describe('QuoteSelectorView', () => {
       valueInCurrency: '1980',
     },
   };
+  const mockQuote = mergeQuoteMetadata(
+    toQuoteResponseV2(mockQuoteResponse),
+    metadata,
+  );
 
   const mockLatestBalance = {
     displayBalance: '1000',

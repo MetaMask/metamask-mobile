@@ -16,8 +16,9 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import {
   RequestStatus,
-  isNonEvmChainId,
   formatChainIdToCaip,
+  formatAddressToCaipReference,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
@@ -35,6 +36,7 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
+import { parseCaipAssetType } from '@metamask/utils';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -139,16 +141,19 @@ export const useBridgeQuoteData = ({
   const isQuoteSourceTokenMatch = useMemo(() => {
     if (!activeQuote || !sourceToken) return false;
 
-    const { srcAsset, srcChainId } = activeQuote.quote;
+    const {
+      src: { asset: srcAsset },
+    } = activeQuote.quote;
+
+    const srcChainId = activeQuote.chainId;
 
     const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
-      ? (srcAsset.assetId ?? srcAsset.address)
-      : srcAsset.address;
+      ? srcAsset.assetId
+      : formatAddressToCaipReference(srcAsset.assetId);
 
     const selectedSourceAddress = sourceToken.address;
     return (
-      formatChainIdToCaip(srcChainId) ===
-        formatChainIdToCaip(sourceToken.chainId) &&
+      srcChainId === formatChainIdToCaip(sourceToken.chainId) &&
       areAddressesEqual(quoteSourceAddress, selectedSourceAddress)
     );
   }, [activeQuote, sourceToken]);
@@ -159,7 +164,10 @@ export const useBridgeQuoteData = ({
     (quote: (typeof allQuotes)[number] | undefined | null): boolean => {
       if (!quote || !destToken) return false;
 
-      const { destAsset, destChainId } = quote.quote;
+      const {
+        dest: { asset: destAsset },
+      } = quote.quote;
+      const destChainId = parseCaipAssetType(destAsset.assetId).chainId;
 
       // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
       // or zero address for native tokens, while destToken.address uses CAIP format
@@ -167,13 +175,12 @@ export const useBridgeQuoteData = ({
       // Use destAsset.assetId (CAIP format) for comparison.
       // For EVM chains, use the original address comparison.
       const quoteDestAddress = isNonEvmChainId(destToken.chainId)
-        ? (destAsset.assetId ?? destAsset.address)
-        : destAsset.address;
+        ? destAsset.assetId
+        : formatAddressToCaipReference(destAsset.assetId);
 
       const selectedDestAddress = destToken.address;
       return (
-        formatChainIdToCaip(destChainId) ===
-          formatChainIdToCaip(destToken.chainId) &&
+        destChainId === formatChainIdToCaip(destToken.chainId) &&
         areAddressesEqual(quoteDestAddress, selectedDestAddress)
       );
     },
@@ -202,10 +209,7 @@ export const useBridgeQuoteData = ({
 
   const destTokenAmount =
     activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
-      ? fromTokenMinimalUnit(
-          activeQuote.quote.destTokenAmount,
-          destToken.decimals,
-        )
+      ? fromTokenMinimalUnit(activeQuote.quote.dest.amount, destToken.decimals)
       : undefined;
 
   const quoteRate =
@@ -376,43 +380,24 @@ export const useBridgeQuoteData = ({
     }
   }, [manuallySelectedQuote, dispatch]);
 
-  const isActiveQuoteForCurrentTokenPair =
-    isQuoteSourceTokenMatch && isQuoteDestTokenMatch;
+  const returnValue = {
+    bestQuote,
+    quoteFetchError,
+    activeQuote,
+    quotesLoadingStatus,
+    destTokenAmount,
+    isLoading,
+    formattedQuoteData,
+    isNoQuotesAvailable,
+    willRefresh,
+    isExpired,
+    blockaidError,
+    shouldShowPriceImpactWarning,
+    validQuotes,
+    needsNewQuote,
+    isActiveQuoteForCurrentTokenPair:
+      isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
+  };
 
-  return useMemo(
-    () => ({
-      bestQuote,
-      quoteFetchError,
-      activeQuote,
-      quotesLoadingStatus,
-      destTokenAmount,
-      isLoading,
-      formattedQuoteData,
-      isNoQuotesAvailable,
-      willRefresh,
-      isExpired,
-      blockaidError,
-      shouldShowPriceImpactWarning,
-      validQuotes,
-      needsNewQuote,
-      isActiveQuoteForCurrentTokenPair,
-    }),
-    [
-      bestQuote,
-      quoteFetchError,
-      activeQuote,
-      quotesLoadingStatus,
-      destTokenAmount,
-      isLoading,
-      formattedQuoteData,
-      isNoQuotesAvailable,
-      willRefresh,
-      isExpired,
-      blockaidError,
-      shouldShowPriceImpactWarning,
-      validQuotes,
-      needsNewQuote,
-      isActiveQuoteForCurrentTokenPair,
-    ],
-  );
+  return returnValue;
 };

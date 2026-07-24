@@ -49,13 +49,10 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
           currentCurrency,
         ),
         receiveAmount: destToken
-          ? fromTokenMinimalUnit(
-              quote.quote.destTokenAmount,
-              destToken.decimals,
-            )
+          ? fromTokenMinimalUnit(quote.quote.dest.amount, destToken.decimals)
           : undefined,
         provider: {
-          name: startCase(quote.quote.bridges[0]),
+          name: startCase(quote.quote.protocols[0]),
         },
         quoteRequestId: quote.quote.requestId,
         onPress: (requestId: string) => {

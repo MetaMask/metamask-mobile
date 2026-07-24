@@ -5,7 +5,9 @@ import {
   FeatureId,
   SortOrder,
   UnifiedSwapBridgeEventName,
-  type Quote,
+  toQuoteResponseV2,
+  validateQuoteResponseV1,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { BigNumber } from 'ethers';
 import { useSelector } from 'react-redux';
@@ -71,11 +73,13 @@ jest.mock('@metamask/bridge-controller', () => ({
   getNativeAssetForChainId: jest.fn((chainId: string) => ({
     symbol: chainId === '0x1' ? 'ETH' : 'MATIC',
   })),
-  formatProviderLabel: jest.fn((quote: Quote) => quote.bridges[0]),
+  formatProviderLabel: jest.fn(
+    (quote: QuoteResponse['quote']) => quote.protocols[0],
+  ),
 }));
 
 describe('useTrackAllQuotesSortedEvent', () => {
-  const mockQuote = {
+  const mockQuoteV1 = {
     requestId: 'test-request-id',
     srcChainId: 1,
     destChainId: 137,
@@ -122,7 +126,9 @@ describe('useTrackAllQuotesSortedEvent', () => {
       priceImpact: '0.05',
     },
     gasIncluded: false,
-  } as unknown as Quote;
+  };
+  validateQuoteResponseV1(mockQuoteV1);
+  const mockQuote = toQuoteResponseV2(mockQuoteV1).quote;
 
   const mockLatestBalance = {
     displayBalance: '10',
@@ -282,7 +288,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithoutPriceData = {
         ...mockQuote,
         priceData: undefined,
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -301,7 +307,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithoutPriceImpact = {
         ...mockQuote,
         priceData: {},
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -320,9 +326,9 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithStringPriceImpact = {
         ...mockQuote,
         priceData: {
-          priceImpact: '0.123',
+          priceImpact: { amount: '0.123' },
         },
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -343,7 +349,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithGasIncluded = {
         ...mockQuote,
         gasIncluded: true,
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -362,7 +368,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithGasIncluded7702 = {
         ...mockQuote,
         gasIncluded7702: true,
-      } as unknown as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),

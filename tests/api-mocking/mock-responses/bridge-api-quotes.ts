@@ -1,4 +1,15 @@
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import {
+  toQuoteResponseV2,
+  validateQuoteResponseV1,
+} from '@metamask/bridge-controller';
+
+const toValidatedQuoteResponse = (quoteResponse: unknown) => {
+  if (!validateQuoteResponseV1(quoteResponse)) {
+    throw new Error('Invalid bridge quote response mock');
+  }
+
+  return toQuoteResponseV2(quoteResponse);
+};
 
 export const DummyQuotesNoApproval = {
   OP_0_005_ETH_TO_ARB: [
@@ -482,7 +493,7 @@ export const DummyQuotesNoApproval = {
       },
       estimatedProcessingTimeInSeconds: 51,
     },
-  ],
+  ].map(toValidatedQuoteResponse),
 };
 
 export const DummyQuotesWithApproval = {
@@ -1009,10 +1020,10 @@ export const DummyQuotesWithApproval = {
       },
       estimatedProcessingTimeInSeconds: 1002,
     },
-  ],
+  ].map(toValidatedQuoteResponse),
 };
 
-export const DummyQuoteMetadata: QuoteMetadata = {
+export const DummyQuoteMetadata = {
   sentAmount: {
     amount: '0.005',
     valueInCurrency: '9.8128810694176015',

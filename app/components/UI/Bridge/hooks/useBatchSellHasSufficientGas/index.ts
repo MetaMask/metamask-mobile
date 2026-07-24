@@ -1,15 +1,16 @@
-import {
-  formatChainIdToCaip,
-  formatChainIdToHex,
-  isNonEvmChainId,
-} from '@metamask/bridge-controller';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import { Hex, CaipChainId, parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 
 import { isNumberValue } from '../../../../../util/number/bigint';
 import { useLatestBalance } from '../useLatestBalance';
 import type { useBatchSellQuoteData } from '../useBatchSellQuoteData';
+import {
+  formatAddressToCaipReference,
+  formatChainIdToHex,
+  isNonEvmChainId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 
 type BatchSellNetworkFee = ReturnType<
   typeof useBatchSellQuoteData
@@ -28,7 +29,9 @@ export const useBatchSellHasSufficientGas = ({
   networkFee,
 }: Props): boolean | null => {
   const networkFeeAsset = networkFee.asset;
-  const networkFeeChainId = networkFeeAsset?.chainId;
+  const networkFeeChainId = networkFeeAsset?.assetId
+    ? parseCaipAssetType(networkFeeAsset?.assetId)?.chainId
+    : undefined;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
   if (networkFeeChainId) {
@@ -38,7 +41,9 @@ export const useBatchSellHasSufficientGas = ({
   }
 
   const feeTokenBalance = useLatestBalance({
-    address: networkFeeAsset?.address,
+    address: networkFeeAsset
+      ? formatAddressToCaipReference(networkFeeAsset.assetId)
+      : undefined,
     chainId: hexOrCaipChainId,
     decimals: networkFeeAsset?.decimals,
   });

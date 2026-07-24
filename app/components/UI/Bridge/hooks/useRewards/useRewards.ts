@@ -14,7 +14,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { formatChainIdToCaip, sumAmounts } from '@metamask/bridge-controller';
 import {
   toCaipAccountId,
   parseCaipChainId,
@@ -211,33 +211,35 @@ export const useRewards = ({
       }
 
       // Convert source amount to atomic unit
-      const atomicSourceAmount = activeQuote.quote.srcTokenAmount;
+      const atomicSourceAmount = activeQuote.quote.src.amount;
 
       // Get destination amount from quote
-      const atomicDestAmount = activeQuote.quote.destTokenAmount;
+      const atomicDestAmount = activeQuote.quote.dest.amount;
 
       // Prepare source asset
       const srcAsset: EstimateAssetDto = {
-        id: activeQuote.quote.srcAsset.assetId,
+        id: activeQuote.quote.src.asset.assetId,
         amount: atomicSourceAmount,
       };
 
       // Prepare destination asset
       const destAsset: EstimateAssetDto = {
-        id: activeQuote.quote.destAsset.assetId,
+        id: activeQuote.quote.dest.asset.assetId,
         amount: atomicDestAmount,
       };
 
+      const metabridgeFee = sumAmounts(activeQuote.quote.feeData?.metabridge);
+
       // Prepare fee asset (using MetaMask fee from quote data)
       const feeAsset: EstimateAssetDto = {
-        id: activeQuote.quote.feeData.metabridge.asset.assetId,
-        amount: activeQuote.quote.feeData.metabridge.amount || '0',
+        id: activeQuote.quote.feeData?.metabridge?.[0]?.asset?.assetId,
+        amount: metabridgeFee?.normalizedAmount || '0',
       };
 
       const usdPricePerToken = getUsdPricePerToken(
-        activeQuote.quote.priceData?.totalFeeAmountUsd || '0',
+        metabridgeFee?.usd || '0',
         feeAsset.amount,
-        activeQuote.quote.feeData.metabridge.asset.decimals,
+        metabridgeFee?.asset?.decimals || 0,
       );
 
       const feeAssetWithUsdPrice: EstimateAssetDto = {

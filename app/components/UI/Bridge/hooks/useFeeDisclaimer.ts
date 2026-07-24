@@ -22,15 +22,16 @@ export const useFeeDisclaimer = ({
 }: {
   activeQuote?: QuoteResponse | null;
 }) => {
-  const baseBpsFee = activeQuote?.quote.feeData.metabridge?.baseBpsFee;
+  const baseBpsFee = activeQuote?.quote.feeData?.metabridge?.[0]?.baseBpsFee;
   const baseFeePercentage = !isNullOrUndefined(baseBpsFee)
     ? baseBpsFee / 100
     : BRIDGE_MM_FEE_RATE;
-  const quoteBpsFee = activeQuote?.quote.feeData.metabridge?.quoteBpsFee;
+  const quoteBpsFee = activeQuote?.quote.feeData?.metabridge?.[0]?.quoteBpsFee;
   const feePercentage = !isNullOrUndefined(quoteBpsFee)
     ? quoteBpsFee / 100
     : BRIDGE_MM_FEE_RATE;
-  const discountType = activeQuote?.quote.feeData.metabridge?.discountType;
+  const discountType =
+    activeQuote?.quote.feeData?.metabridge?.[0]?.discountType;
   const hasDiscountType =
     !isNullOrUndefined(discountType) && discountType !== '';
 
@@ -81,7 +82,7 @@ export const useFeeDisclaimer = ({
     }
 
     return strings('bridge.no_mm_fee_disclaimer', {
-      destTokenSymbol: activeQuote.quote.destAsset.symbol,
+      destTokenSymbol: activeQuote.quote.dest.asset.symbol,
     });
   }, [isDiscounted, hasFee, activeQuote, feePercentage]);
 

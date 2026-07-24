@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 
-export const usePriceImpactViewData = (priceImpact?: string) => {
+export const usePriceImpactViewData = (priceImpact?: string | null) => {
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
   const priceImpactViewData = useMemo(

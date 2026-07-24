@@ -6,10 +6,7 @@
   "cucumberautocomplete.steps": ["wdio/step-definitions/**/*.js"],
   "cucumberautocomplete.syncfeatures": "wdio/to/features/*.feature",
   "cucumberautocomplete.strictGherkinCompletion": true,
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "javascript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.importModuleSpecifier": "relative",
-
+  "js/ts.preferences.importModuleSpecifier": "relative",
   // Tailwind CSS configuration
   "tailwindCSS.includeLanguages": {
     "javascript": "javascript",
@@ -29,5 +26,14 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.inlayHints.enabled": "on"
+  "editor.inlayHints.enabled": "on",
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.preferences.preferTypeOnlyAutoImports": true,
+  "js/ts.tsserver.experimental.useBundledNode": false,
+  "js/ts.implicitProjectConfig.module": "ESNext",
+  "js/ts.hover.maximumLength": 1000,
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.tsserver.maxMemory": 4026,
+  "js/ts.tsserver.node.path": "/Users/micaelaestabillo/.nvm/versions/node/v24.16.0/bin/node",
+  "js/ts.tsserver.tracing.enabled": true
 }
