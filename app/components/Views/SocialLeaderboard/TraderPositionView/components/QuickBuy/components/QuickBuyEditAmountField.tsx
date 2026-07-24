@@ -9,7 +9,10 @@ import React from 'react';
 import { Pressable } from 'react-native';
 import { getCurrencySymbol } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { strings } from '../../../../../../../../locales/i18n';
-import type { QuickBuyEditFieldError } from '../utils/validateQuickBuyEditAmounts';
+import type { QuickBuyEditFieldError ,
+  getBuyAmountMaxValid,
+  type QuickBuyEditValidationContext,
+} from '../utils/validateQuickBuyEditAmounts';
 
 interface QuickBuyEditAmountFieldProps {
   displayValue: string;
@@ -57,6 +60,7 @@ const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
 
 export function getQuickBuyEditFieldErrorMessage(
   error: QuickBuyEditFieldError | null,
+  validationContext?: QuickBuyEditValidationContext,
 ): string | null {
   if (!error) {
     return null;
@@ -67,11 +71,18 @@ export function getQuickBuyEditFieldErrorMessage(
       return strings(
         'social_leaderboard.quick_buy.edit_quick_amounts_buy_above_zero',
       );
-    case 'buy_below_max':
+    case 'buy_below_max': {
+      const maxValid = validationContext
+        ? getBuyAmountMaxValid(
+            validationContext.currency,
+            validationContext.usdToCurrentCurrencyRate,
+          )
+        : 9_999;
       return strings(
         'social_leaderboard.quick_buy.edit_quick_amounts_buy_below_max',
-        { max: '10,000' },
+        { max: maxValid.toLocaleString('en-US') },
       );
+    }
     case 'sell_above_zero':
       return strings(
         'social_leaderboard.quick_buy.edit_quick_amounts_sell_above_zero',

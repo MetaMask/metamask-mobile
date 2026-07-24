@@ -6,6 +6,11 @@ import type {
 } from '../utils/quickBuyQuickAmounts';
 import { useQuickBuyEditAmountsForm } from './useQuickBuyEditAmountsForm';
 
+const usdValidationContext = {
+  currency: 'USD',
+  usdToCurrentCurrencyRate: 1,
+} as const;
+
 describe('useQuickBuyEditAmountsForm', () => {
   it('resyncs form values when preferences finish loading', () => {
     const loadingBuy: QuickBuyAmountTuple = [0, 0, 0, 0];
@@ -27,6 +32,7 @@ describe('useQuickBuyEditAmountsForm', () => {
           buyAmounts,
           sellPercentages,
           isPreferencesLoaded,
+          usdValidationContext,
         ),
       {
         initialProps: {
@@ -58,7 +64,12 @@ describe('useQuickBuyEditAmountsForm', () => {
 
     const { result, rerender } = renderHook(
       ({ buyAmounts }: { buyAmounts: QuickBuyAmountTuple }) =>
-        useQuickBuyEditAmountsForm(buyAmounts, sell, true),
+        useQuickBuyEditAmountsForm(
+          buyAmounts,
+          sell,
+          true,
+          usdValidationContext,
+        ),
       {
         initialProps: { buyAmounts: initialBuy },
       },
@@ -71,6 +82,20 @@ describe('useQuickBuyEditAmountsForm', () => {
     expect(result.current.buyValues).toEqual(['15', '60', '120', '300']);
   });
 
+  it('accepts JPY default quick amounts', () => {
+    const jpyBuy: QuickBuyAmountTuple = [1500, 7500, 15000, 50000];
+    const sell: QuickBuySellPercentTuple = [25, 50, 75, 100];
+
+    const { result } = renderHook(() =>
+      useQuickBuyEditAmountsForm(jpyBuy, sell, true, {
+        currency: 'JPY',
+        usdToCurrentCurrencyRate: 150,
+      }),
+    );
+
+    expect(result.current.isValid).toBe(true);
+  });
+
   it('does not resync form values after the user edits via the keypad', () => {
     const initialBuy: QuickBuyAmountTuple = [10, 50, 100, 250];
     const updatedBuy: QuickBuyAmountTuple = [15, 60, 120, 300];
@@ -78,7 +103,12 @@ describe('useQuickBuyEditAmountsForm', () => {
 
     const { result, rerender } = renderHook(
       ({ buyAmounts }: { buyAmounts: QuickBuyAmountTuple }) =>
-        useQuickBuyEditAmountsForm(buyAmounts, sell, true),
+        useQuickBuyEditAmountsForm(
+          buyAmounts,
+          sell,
+          true,
+          usdValidationContext,
+        ),
       {
         initialProps: { buyAmounts: initialBuy },
       },

@@ -1,4 +1,7 @@
+import { getBuyQuickAmounts } from './quickBuyQuickAmounts';
 import {
+  BUY_AMOUNT_MAX_VALID_USD,
+  getBuyAmountMaxValid,
   validateQuickBuyEditAmounts,
   validateQuickBuyEditField,
 } from './validateQuickBuyEditAmounts';
@@ -8,6 +11,7 @@ describe('validateQuickBuyEditAmounts', () => {
     const result = validateQuickBuyEditAmounts(
       [10, 50, 100, 250],
       [25, 50, 75, 100],
+      { currency: 'USD', usdToCurrentCurrencyRate: 1 },
     );
 
     expect(result.isValid).toBe(true);
@@ -15,14 +19,63 @@ describe('validateQuickBuyEditAmounts', () => {
     expect(result.sellErrors).toEqual([null, null, null, null]);
   });
 
+  it('accepts converted JPY default quick-buy tiers', () => {
+    const jpyDefaults = getBuyQuickAmounts('JPY', 150).map(
+      (option) => option.value,
+    );
+
+    const result = validateQuickBuyEditAmounts(jpyDefaults, [25, 50, 75, 100], {
+      currency: 'JPY',
+      usdToCurrentCurrencyRate: 150,
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(jpyDefaults).toContain(15_000);
+    expect(jpyDefaults).toContain(50_000);
+  });
+
   it('rejects buy amounts at or below zero', () => {
     expect(validateQuickBuyEditField('buy', 0)).toBe('buy_above_zero');
     expect(validateQuickBuyEditField('buy', -1)).toBe('buy_above_zero');
   });
 
-  it('rejects buy amounts at or above the max', () => {
-    expect(validateQuickBuyEditField('buy', 10_000)).toBe('buy_below_max');
-    expect(validateQuickBuyEditField('buy', 9_999_999)).toBe('buy_below_max');
+  it('rejects USD buy amounts above the USD max', () => {
+    expect(
+      validateQuickBuyEditField('buy', BUY_AMOUNT_MAX_VALID_USD + 1, {
+        currency: 'USD',
+        usdToCurrentCurrencyRate: 1,
+      }),
+    ).toBe('buy_below_max');
+    expect(
+      validateQuickBuyEditField('buy', 9_999_999, {
+        currency: 'USD',
+        usdToCurrentCurrencyRate: 1,
+      }),
+    ).toBe('buy_below_max');
+    expect(
+      validateQuickBuyEditField('buy', BUY_AMOUNT_MAX_VALID_USD, {
+        currency: 'USD',
+        usdToCurrentCurrencyRate: 1,
+      }),
+    ).toBeNull();
+  });
+
+  it('scales the buy max for non-USD currencies', () => {
+    const jpyMax = getBuyAmountMaxValid('JPY', 150);
+
+    expect(jpyMax).toBeGreaterThan(50_000);
+    expect(
+      validateQuickBuyEditField('buy', 50_000, {
+        currency: 'JPY',
+        usdToCurrentCurrencyRate: 150,
+      }),
+    ).toBeNull();
+    expect(
+      validateQuickBuyEditField('buy', jpyMax + 1, {
+        currency: 'JPY',
+        usdToCurrentCurrencyRate: 150,
+      }),
+    ).toBe('buy_below_max');
   });
 
   it('rejects sell percentages at or below zero', () => {

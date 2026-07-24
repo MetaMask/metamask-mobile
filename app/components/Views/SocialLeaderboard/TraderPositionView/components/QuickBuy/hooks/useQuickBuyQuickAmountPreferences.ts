@@ -36,8 +36,13 @@ function isAmountTuple(value: unknown): value is QuickBuyAmountTuple {
 function isStoredQuickAmountPreferencesValid(
   buyAmounts: QuickBuyAmountTuple,
   sellPercentages: QuickBuySellPercentTuple,
+  currency: string,
+  usdToCurrentCurrencyRate: number | undefined,
 ): boolean {
-  return validateQuickBuyEditAmounts(buyAmounts, sellPercentages).isValid;
+  return validateQuickBuyEditAmounts(buyAmounts, sellPercentages, {
+    currency,
+    usdToCurrentCurrencyRate,
+  }).isValid;
 }
 
 function parseStoredPreferences(
@@ -139,6 +144,8 @@ export function useQuickBuyQuickAmountPreferences({
         isStoredQuickAmountPreferencesValid(
           stored.buyAmounts,
           stored.sellPercentages,
+          normalizedCurrency,
+          usdToCurrentCurrencyRateRef.current,
         )
       ) {
         setPreferences(stored);

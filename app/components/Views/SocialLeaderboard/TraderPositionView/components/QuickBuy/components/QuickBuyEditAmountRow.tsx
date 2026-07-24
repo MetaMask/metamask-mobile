@@ -6,7 +6,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useMemo } from 'react';
-import type { QuickBuyEditFieldError } from '../utils/validateQuickBuyEditAmounts';
+import type {
+  QuickBuyEditFieldError,
+  QuickBuyEditValidationContext,
+} from '../utils/validateQuickBuyEditAmounts';
 import QuickBuyEditAmountField, {
   formatBuyEditDisplayValue,
   formatSellEditDisplayValue,
@@ -25,6 +28,7 @@ interface QuickBuyEditAmountRowProps {
   errors: (QuickBuyEditFieldError | null)[];
   focusedField: QuickBuyEditFocusedField;
   currentCurrency: string;
+  validationContext: QuickBuyEditValidationContext;
   onFieldPress: (index: number) => void;
 }
 
@@ -35,6 +39,7 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
   errors,
   focusedField,
   currentCurrency,
+  validationContext,
   onFieldPress,
 }) => {
   const rowErrorMessage = useMemo(() => {
@@ -42,8 +47,11 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
     if (errorIndex === -1) {
       return null;
     }
-    return getQuickBuyEditFieldErrorMessage(errors[errorIndex]);
-  }, [errors]);
+    return getQuickBuyEditFieldErrorMessage(
+      errors[errorIndex],
+      validationContext,
+    );
+  }, [errors, validationContext]);
 
   return (
     <Box twClassName="gap-2 py-1">

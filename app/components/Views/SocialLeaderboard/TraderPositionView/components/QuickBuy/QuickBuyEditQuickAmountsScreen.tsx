@@ -4,7 +4,7 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import KeypadComponent from '../../../../../Base/Keypad';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
@@ -15,6 +15,7 @@ import { useQuickBuyContext } from './useQuickBuyContext';
 const QuickBuyEditQuickAmountsScreen: React.FC = () => {
   const {
     currentCurrency,
+    usdToCurrentCurrencyRate,
     buyQuickAmounts,
     sellQuickPercentages,
     isQuickAmountPreferencesLoaded,
@@ -22,6 +23,14 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
     setActiveScreen,
     onClose,
   } = useQuickBuyContext();
+
+  const validationContext = useMemo(
+    () => ({
+      currency: currentCurrency,
+      usdToCurrentCurrencyRate,
+    }),
+    [currentCurrency, usdToCurrentCurrencyRate],
+  );
 
   const {
     buyValues,
@@ -38,6 +47,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
     buyQuickAmounts,
     sellQuickPercentages,
     isQuickAmountPreferencesLoaded,
+    validationContext,
   );
 
   const handleBack = useCallback(
@@ -77,6 +87,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
           errors={buyErrors}
           focusedField={focusedField}
           currentCurrency={currentCurrency}
+          validationContext={validationContext}
           onFieldPress={(index) => handleFieldPress('buy', index)}
         />
 
@@ -90,6 +101,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
             errors={sellErrors}
             focusedField={focusedField}
             currentCurrency={currentCurrency}
+            validationContext={validationContext}
             onFieldPress={(index) => handleFieldPress('sell', index)}
           />
         </Box>

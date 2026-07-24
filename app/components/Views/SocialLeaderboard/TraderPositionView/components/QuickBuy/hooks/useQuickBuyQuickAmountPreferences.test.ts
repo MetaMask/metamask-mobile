@@ -194,6 +194,29 @@ describe('useQuickBuyQuickAmountPreferences', () => {
     expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
   });
 
+  it('accepts stored JPY quick amounts that exceed the USD cap', async () => {
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+      JSON.stringify({
+        currency: 'JPY',
+        buyAmounts: [1500, 7500, 15000, 50000],
+        sellPercentages: [25, 50, 75, 100],
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useQuickBuyQuickAmountPreferences({
+        currentCurrency: 'JPY',
+        usdToCurrentCurrencyRate: 150,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
+    expect(result.current.buyAmounts).toEqual([1500, 7500, 15000, 50000]);
+  });
+
   it('persists updated preferences', async () => {
     const { result } = renderHook(() =>
       useQuickBuyQuickAmountPreferences({

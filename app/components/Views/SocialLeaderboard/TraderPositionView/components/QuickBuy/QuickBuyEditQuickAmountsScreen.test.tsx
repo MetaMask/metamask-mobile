@@ -48,6 +48,7 @@ const setActiveScreen = jest.fn();
 
 const baseContext = {
   currentCurrency: 'USD',
+  usdToCurrentCurrencyRate: 1,
   buyQuickAmounts: [10, 50, 100, 250] as [number, number, number, number],
   sellQuickPercentages: [25, 50, 75, 100] as [number, number, number, number],
   isQuickAmountPreferencesLoaded: true,

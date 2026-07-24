@@ -7,6 +7,7 @@ import type {
 import {
   validateQuickBuyEditAmounts,
   type QuickBuyEditFieldError,
+  type QuickBuyEditValidationContext,
 } from '../utils/validateQuickBuyEditAmounts';
 import type { QuickBuyEditFocusedField } from '../components/QuickBuyEditAmountRow';
 
@@ -39,6 +40,7 @@ export function useQuickBuyEditAmountsForm(
   initialBuyAmounts: QuickBuyAmountTuple,
   initialSellPercentages: QuickBuySellPercentTuple,
   isPreferencesLoaded: boolean,
+  validationContext: QuickBuyEditValidationContext,
 ) {
   const [buyValues, setBuyValues] = useState(() =>
     toEditableStrings(initialBuyAmounts),
@@ -76,8 +78,9 @@ export function useQuickBuyEditAmountsForm(
       validateQuickBuyEditAmounts(
         toAmountTuple(buyValues),
         toSellTuple(sellValues),
+        validationContext,
       ),
-    [buyValues, sellValues],
+    [buyValues, sellValues, validationContext],
   );
 
   const focusedValue = useMemo(
