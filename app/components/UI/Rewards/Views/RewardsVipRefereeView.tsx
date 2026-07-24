@@ -159,10 +159,11 @@ const RewardsVipRefereeViewContent: React.FC = () => {
       METAMASK_SUPPORT_URL,
     );
 
-    openSupportWithConsent(openWebview, vipSupportUrl);
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
-    );
+    openSupportWithConsent(openWebview, vipSupportUrl, () => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+    });
   }, [
     accountAddress,
     createEventBuilder,

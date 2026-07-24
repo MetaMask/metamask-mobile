@@ -550,7 +550,12 @@ describe('RewardsVipRefereeView', () => {
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
       expectedUrl,
+      expect.any(Function),
     );
+
+    const [, , onOpenSupport] = mockOpenSupportWithConsent.mock.calls[0];
+    onOpenSupport?.();
+
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
     );
