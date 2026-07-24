@@ -25,6 +25,7 @@ import {
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -60,7 +61,7 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
 const SecurityTrustScreen: React.FC = () => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const insets = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useAnalytics();

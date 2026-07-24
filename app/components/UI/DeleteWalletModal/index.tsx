@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, InteractionManager, UIManager } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Icon, {
   IconName,
   IconSize,
@@ -43,7 +44,7 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 }
 
 const DeleteWalletModal: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { colors } = useTheme();
   const { isEnabled } = useAnalytics();

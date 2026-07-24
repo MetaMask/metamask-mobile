@@ -88,6 +88,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -199,6 +200,7 @@ import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
@@ -342,7 +344,8 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
-  const { navigate } = useNavigation();
+  const appNavigation = useNavigation<AppNavigationProp>();
+  const { navigate } = appNavigation;
   const walletRef = useRef(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
@@ -487,8 +490,9 @@ const Wallet = ({
   /** Navigation-only receive for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
   const onReceiveWithoutTracking = useCallback(() => {
     if (selectedAccountGroupId) {
-      navigate(
-        ...createAddressListNavigationDetails({
+      navigateWithDetails(
+        appNavigation,
+        createAddressListNavigationDetails({
           groupId: selectedAccountGroupId as AccountGroupId,
           title: `${strings(
             'multichain_accounts.address_list.receiving_address',
@@ -501,7 +505,7 @@ const Wallet = ({
         new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
       );
     }
-  }, [navigate, selectedAccountGroupId]);
+  }, [appNavigation, selectedAccountGroupId]);
 
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {

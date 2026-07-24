@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -35,7 +36,7 @@ import { NetworkManagementItem } from './NetworksManagementView.types';
 import AdditionalNetworkItem from './components/AdditionalNetworkItem';
 
 const NetworksManagementView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { addPopularNetwork } = useAddPopularNetwork();
 

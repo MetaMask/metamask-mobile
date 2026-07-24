@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Fuse from 'fuse.js';
 import styleSheet from './styles';
 import { useStyles } from '../../../component-library/hooks';
@@ -199,7 +200,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
   styles,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );

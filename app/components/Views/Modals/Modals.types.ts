@@ -16,6 +16,9 @@ export interface ModalConfirmationParams {
   description?: string;
   onConfirm?: () => void;
   onCancel?: () => void;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  isDanger?: boolean;
 }
 
 /** Modal mandatory parameters */

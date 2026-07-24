@@ -238,11 +238,21 @@ import type {
   MaxInputModalParams,
   GasImpactModalParams,
 } from '../../components/UI/Earn/Earn.types';
-import type { EarnTokenListViewRouteParams } from '../../components/UI/Earn/components/EarnTokenList';
 import type {
   EarnModalsNavigationParamList,
   EarnScreensStackParamList,
 } from '../../components/UI/Earn/types/navigation';
+
+/** Earn token list sheet params (WalletActions / StakeModals). */
+interface EarnTokenListParams {
+  tokenFilter: {
+    includeReceiptTokens: boolean;
+    includeNativeTokens?: boolean;
+    includeStakingTokens?: boolean;
+    includeLendingTokens?: boolean;
+  };
+  onItemPressScreen: string;
+}
 
 // Modal params
 import type {
@@ -276,6 +286,33 @@ export interface NestedNavigationParams {
   screen?: string;
   params?: object;
   [key: string]: unknown;
+}
+
+/** Add bookmark screen params (nested under AddBookmarkView). */
+interface AddBookmarkParams {
+  title: string;
+  url: string;
+  onAddBookmark: (params: { name: string; url: string }) => Promise<void>;
+}
+
+interface AddBookmarkViewParamList {
+  AddBookmark: AddBookmarkParams;
+}
+
+interface OnboardingSuccessFlowParamList {
+  OnboardingSuccess: undefined;
+  DefaultSettings: undefined;
+  GeneralSettings: undefined;
+  AssetsSettings: undefined;
+  SecuritySettings: undefined;
+}
+
+interface StakeModalsNavigationParamList {
+  LearnMore: LearnMoreModalParams | undefined;
+  TrxLearnMore: undefined;
+  MaxInput: MaxInputModalParams;
+  GasImpact: GasImpactModalParams;
+  EarnTokenList: EarnTokenListParams | undefined;
 }
 
 /** Onboarding social-login screens share AccountStatus params plus trace context. */
@@ -439,6 +476,7 @@ export type RootStackParamList = {
   WalletView: undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
+  AddBookmarkView: NavigatorScreenParams<AddBookmarkViewParamList> | undefined;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   DeprecatedNetworkDetails: undefined;
 
@@ -542,7 +580,7 @@ export type RootStackParamList = {
   // Hardware wallet routes
   ConnectHardwareWalletFlow: undefined;
   SelectHardwareWallet: undefined;
-  ConnectQRHardwareFlow: undefined;
+  ConnectQRHardwareFlow: { hideMarketingContent?: boolean } | undefined;
   ConnectLedgerFlow: undefined;
   LedgerConnect: undefined;
   LedgerMessageSignModal: LedgerMessageSignModalParams | undefined;
@@ -644,7 +682,9 @@ export type RootStackParamList = {
 
   // Onboarding routes
   OnboardingRootNav: undefined;
-  OnboardingSuccessFlow: undefined;
+  OnboardingSuccessFlow:
+    | NavigatorScreenParams<OnboardingSuccessFlowParamList>
+    | undefined;
   OnboardingSuccess: undefined;
   DefaultSettings: undefined;
   GeneralSettings: undefined;
@@ -780,6 +820,7 @@ export type RootStackParamList = {
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
+  WatchlistFullView: undefined;
 
   // Money routes — `MoneyScreens`/`MoneyModals`/`MoneyConfirmations` are nested
   // navigators; their screens are enumerated in `MoneyNavigationParamList`.
@@ -957,6 +998,9 @@ export type RootStackParamList = {
   NotificationsDetails: NotificationDetailsParams | undefined;
 
   // Staking routes
+  StakeModals:
+    | NavigatorScreenParams<StakeModalsNavigationParamList>
+    | undefined;
   Stake: StakeParams | undefined;
   StakeConfirmation: StakeConfirmationParams | undefined;
   Unstake: UnstakeParams | undefined;
@@ -967,7 +1011,7 @@ export type RootStackParamList = {
   TrxLearnMore: undefined;
   MaxInput: MaxInputModalParams;
   GasImpact: GasImpactModalParams;
-  EarnTokenList: EarnTokenListViewRouteParams | undefined;
+  EarnTokenList: EarnTokenListParams | undefined;
 
   // Earn routes
   EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;

@@ -4,6 +4,7 @@ import { HeaderStandard, Text } from '@metamask/design-system-react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from '@tommasini/react-native-scrollable-tab-view';
@@ -79,7 +80,7 @@ const NetworkManager = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
   const initialTabIndexRef = useRef<number | null>(null);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder, identify } = useAnalytics();

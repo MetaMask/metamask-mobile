@@ -9,6 +9,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
@@ -75,7 +76,7 @@ interface AccountStatusProps {
 
 const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { width: windowWidth } = useWindowDimensions();
   const route =
     useRoute<

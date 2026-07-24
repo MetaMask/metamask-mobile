@@ -13,6 +13,7 @@ import {
   RouteProp,
   ParamListBase,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
 
 export interface SupportConsentSheetParams {
@@ -26,7 +27,7 @@ export interface SupportConsentSheetParams {
  * (see extension PR #44482).
  */
 const SupportConsentSheet = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const { onConfirm, onReject } =
     (route.params as SupportConsentSheetParams) || {};

@@ -10,6 +10,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SuccessErrorSheetParams } from './interface';
 
 import {
@@ -47,7 +48,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
 
   const { colors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleClose = () => {
     if (onClose) {

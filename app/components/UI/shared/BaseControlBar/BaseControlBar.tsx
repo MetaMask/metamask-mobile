@@ -2,6 +2,7 @@ import React, { useCallback, ReactNode, useMemo, useEffect } from 'react';
 import { View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SolScope } from '@metamask/keyring-api';
 import {
   AvatarNetwork,
@@ -17,6 +18,7 @@ import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { createTokensBottomSheetNavDetails } from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
@@ -75,7 +77,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   style,
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Shared selectors
   const networkName = useSelector(selectNetworkName);
@@ -127,11 +129,11 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
-    navigation.navigate(...createNetworkManagerNavDetails({}));
+    navigateWithDetails(navigation, createNetworkManagerNavDetails({}));
   }, [navigation]);
 
   const defaultShowSortControls = useCallback(() => {
-    navigation.navigate(...createTokensBottomSheetNavDetails({}));
+    navigateWithDetails(navigation, createTokensBottomSheetNavDetails({}));
   }, [navigation]);
 
   // Use custom handlers if provided, otherwise use defaults
