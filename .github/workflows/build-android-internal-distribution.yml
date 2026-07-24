@@ -1,0 +1,174 @@
+##############################################################################################
+#
+# Build Android for internal distribution
+#
+# Produces a signed Android production APK via Build Mobile App (build.yml) for **internal**
+# teammate distribution only (not store / external release). Renames the APK from the sanitized
+# source branch and uploads it as a GitHub Actions artifact for a Runway Build Distro bucket
+# rule to auto-pull. Job summary links the public bucket and tells testers what to look for.
+#
+# Required repo variable:
+#   RUNWAY_INTERNAL_ANDROID_PUBLIC_BUCKET_URL - public access link for the internal Android bucket
+#
+##############################################################################################
+name: Build Android for internal distribution
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
+      runner_provider:
+        description: Runner provider for this run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
+    outputs:
+      built_commit_sha:
+        description: 'Resolved commit SHA after build succeeded'
+        value: ${{ jobs.build.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.build.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.build.outputs.android_version_code }}
+      apk_artifact_name:
+        description: 'GitHub Actions artifact name for the branch-named APK'
+        value: ${{ jobs.publish-apk.outputs.apk_artifact_name }}
+      apk_file_name:
+        description: 'APK filename inside the branch-named artifact'
+        value: ${{ jobs.publish-apk.outputs.apk_file_name }}
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+jobs:
+  build:
+    name: Build Android (main-prod)
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-prod
+      platform: android
+      source_branch: ${{ inputs.source_branch }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  publish-apk:
+    name: Publish branch-named APK
+    needs: [build]
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    outputs:
+      apk_artifact_name: ${{ steps.rename.outputs.apk_artifact_name }}
+      apk_file_name: ${{ steps.rename.outputs.apk_file_name }}
+    steps:
+      - name: Download main-prod APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-main-prod
+          path: artifacts/android-apk
+
+      - name: Rename APK from source branch
+        id: rename
+        env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
+        run: |
+          set -euo pipefail
+
+          APK=$(find artifacts/android-apk -name '*.apk' -type f | head -1)
+          if [ -z "$APK" ]; then
+            echo "::error::No .apk found in android-apk-main-prod artifact"
+            exit 1
+          fi
+
+          # Sanitize branch/tag/SHA for artifact + filename use
+          # e.g. feature/foo → feature-foo, refs/heads/main → refs-heads-main
+          SAFE_BRANCH=$(printf '%s' "$SOURCE_BRANCH" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's#[^a-z0-9._-]+#-#g; s/^-+//; s/-+$//; s/--+/-/g')
+          if [ -z "$SAFE_BRANCH" ]; then
+            echo "::error::Could not derive a safe name from source_branch='$SOURCE_BRANCH'"
+            exit 1
+          fi
+
+          APK_ARTIFACT_NAME="android-apk-${SAFE_BRANCH}"
+          APK_FILE_NAME="MetaMask-${SAFE_BRANCH}.apk"
+          mkdir -p publish
+          cp "$APK" "publish/${APK_FILE_NAME}"
+
+          {
+            echo "apk_artifact_name=${APK_ARTIFACT_NAME}"
+            echo "apk_file_name=${APK_FILE_NAME}"
+            echo "safe_branch=${SAFE_BRANCH}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Prepared ${APK_FILE_NAME}"
+
+      - name: Upload branch-named APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.rename.outputs.apk_artifact_name }}
+          path: publish/${{ steps.rename.outputs.apk_file_name }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Write install instructions to summary
+        env:
+          DEVELOPMENT_BUCKET_URL: ${{ vars.RUNWAY_INTERNAL_ANDROID_PUBLIC_BUCKET_URL }}
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
+          APK_FILE_NAME: ${{ steps.rename.outputs.apk_file_name }}
+          APK_ARTIFACT_NAME: ${{ steps.rename.outputs.apk_artifact_name }}
+          COMMIT_SHA: ${{ needs.build.outputs.built_commit_sha }}
+          SEMVER: ${{ needs.build.outputs.semantic_version }}
+          ANDROID_VERSION_CODE: ${{ needs.build.outputs.android_version_code }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Get this build from Runway's Android Development bucket"
+            echo ""
+            if [ -n "${DEVELOPMENT_BUCKET_URL}" ]; then
+              echo "1. Open the development bucket: [${DEVELOPMENT_BUCKET_URL}](${DEVELOPMENT_BUCKET_URL})"
+            else
+              echo "1. Open the Android **Development bucket** in Runway."
+              echo "   _(Set repo variable \`RUNWAY_INTERNAL_ANDROID_PUBLIC_BUCKET_URL\` to show the direct link here.)_"
+            fi
+            echo ""
+            echo "2. Find the build by **GitHub run number** \`${RUN_NUMBER}\`."
+            echo ""
+            echo "You can also match:"
+            echo "   - **APK file name:** \`${APK_FILE_NAME}\`"
+            echo "   - **Version:** \`${SEMVER}\` (versionCode \`${ANDROID_VERSION_CODE}\`)"
+            echo ""
+            echo "The bucket rule may take a few minutes after this workflow finishes to pull the artifact."
+            echo ""
+            echo "### Build details"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Source** | \`${SOURCE_BRANCH}\` |"
+            echo "| **GitHub run number** | \`${RUN_NUMBER}\` |"
+            echo "| **GHA artifact** | \`${APK_ARTIFACT_NAME}\` |"
+            echo "| **APK file** | \`${APK_FILE_NAME}\` |"
+            echo "| **CI run** | ${RUN_URL} |"
+          } >> "$GITHUB_STEP_SUMMARY"
