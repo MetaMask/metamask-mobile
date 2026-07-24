@@ -22,6 +22,7 @@ import styleSheet from './MoneyMoreSheet.styles';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   BOTTOM_SHEET_NAMES,
@@ -45,6 +46,7 @@ const MoneyMoreSheet = () => {
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
   });
+  const { openSupportWithConsent } = useSupportConsent();
 
   useMountEffect(trackBottomSheetViewed);
 
@@ -85,9 +87,17 @@ const MoneyMoreSheet = () => {
     });
 
     closeAndNavigate(() => {
-      openInAppBrowser(navigation, METAMASK_SUPPORT_URL);
+      openSupportWithConsent(
+        (url) => openInAppBrowser(navigation, url),
+        METAMASK_SUPPORT_URL,
+      );
     });
-  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
+  }, [
+    closeAndNavigate,
+    navigation,
+    trackSurfaceClicked,
+    openSupportWithConsent,
+  ]);
 
   const options: MenuOption[] = [
     {
