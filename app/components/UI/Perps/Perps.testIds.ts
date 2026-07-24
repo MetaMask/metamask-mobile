@@ -462,6 +462,10 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_FORM_PANEL: 'perps-pro-market-order-form-panel',
   ORDER_BOOK_PANEL: 'perps-pro-market-order-book-panel',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
+  POSITIONS_PANEL_TABS: 'perps-pro-market-positions-panel-tabs',
+  POSITIONS_PANEL_TAB_POSITIONS:
+    'perps-pro-market-positions-panel-tab-positions',
+  POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
 };
 
 export const PerpsProOrderFormSelectorsIDs = {
