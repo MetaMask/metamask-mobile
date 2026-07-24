@@ -81,22 +81,22 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
           kind="buy"
           values={buyValues}
           errors={buyErrors}
-          focusedField={focusedField}
           currentCurrency={currentCurrency}
           onFieldPress={(index) => handleFieldPress('buy', index)}
         />
 
-        <QuickBuyEditAmountRow
-          label={strings(
-            'social_leaderboard.quick_buy.edit_quick_amounts_set_sell',
-          )}
-          kind="sell"
-          values={sellValues}
-          errors={sellErrors}
-          focusedField={focusedField}
-          currentCurrency={currentCurrency}
-          onFieldPress={(index) => handleFieldPress('sell', index)}
-        />
+        <Box twClassName="pb-3">
+          <QuickBuyEditAmountRow
+            label={strings(
+              'social_leaderboard.quick_buy.edit_quick_amounts_set_sell',
+            )}
+            kind="sell"
+            values={sellValues}
+            errors={sellErrors}
+            currentCurrency={currentCurrency}
+            onFieldPress={(index) => handleFieldPress('sell', index)}
+          />
+        </Box>
       </Box>
 
       <Box twClassName="px-4 pt-1 pb-2">
@@ -119,7 +119,10 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
           unmountWhenCollapsed={false}
           testID="quick-buy-edit-amounts-keypad-reveal"
         >
-          <Box twClassName="px-4 pb-4" testID="quick-buy-edit-amounts-keypad">
+          <Box
+            twClassName="px-4 pt-3 pb-4"
+            testID="quick-buy-edit-amounts-keypad"
+          >
             <KeypadComponent
               value={focusedValue}
               onChange={handleKeypadChange}

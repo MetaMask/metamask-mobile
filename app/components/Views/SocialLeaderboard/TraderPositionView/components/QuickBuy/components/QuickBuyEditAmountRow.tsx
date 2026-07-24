@@ -23,7 +23,6 @@ interface QuickBuyEditAmountRowProps {
   kind: 'buy' | 'sell';
   values: string[];
   errors: (QuickBuyEditFieldError | null)[];
-  focusedField: QuickBuyEditFocusedField;
   currentCurrency: string;
   onFieldPress: (index: number) => void;
 }
@@ -33,14 +32,16 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
   kind,
   values,
   errors,
-  focusedField,
   currentCurrency,
   onFieldPress,
 }) => {
-  const rowErrorIndex = useMemo(
-    () => errors.findIndex((error) => error !== null),
-    [errors],
-  );
+  const rowErrorMessage = useMemo(() => {
+    const errorIndex = errors.findIndex((error) => error !== null);
+    if (errorIndex === -1) {
+      return null;
+    }
+    return getQuickBuyEditFieldErrorMessage(errors[errorIndex]);
+  }, [errors]);
 
   return (
     <Box twClassName="gap-2 py-1">
@@ -49,10 +50,7 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
       </Text>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
         {values.map((value, index) => {
-          const isFocused =
-            focusedField?.kind === kind && focusedField.index === index;
           const errorKey = errors[index];
-          const errorMessage = getQuickBuyEditFieldErrorMessage(errorKey);
           const displayValue =
             kind === 'buy'
               ? formatBuyEditDisplayValue(value, currentCurrency)
@@ -62,16 +60,22 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
             <QuickBuyEditAmountField
               key={`${kind}-${index}`}
               displayValue={displayValue}
-              isFocused={isFocused}
               isError={errorKey !== null}
-              errorMessage={errorMessage}
-              showRowError={rowErrorIndex === index}
               testID={`quick-buy-edit-${kind}-field-${index}`}
               onPress={() => onFieldPress(index)}
             />
           );
         })}
       </Box>
+      {rowErrorMessage ? (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          testID={`quick-buy-edit-${kind}-row-error`}
+        >
+          {rowErrorMessage}
+        </Text>
+      ) : null}
     </Box>
   );
 };

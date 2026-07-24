@@ -87,6 +87,21 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders row-level validation errors at full width below the pills', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      buyQuickAmounts: [0, 50, 100, 250],
+    });
+
+    render(<QuickBuyEditQuickAmountsScreen />);
+
+    expect(
+      screen.getByTestId('quick-buy-edit-buy-row-error'),
+    ).toHaveTextContent(
+      'social_leaderboard.quick_buy.edit_quick_amounts_buy_above_zero',
+    );
+  });
+
   it('saves preferences and returns to the amount screen on confirm', async () => {
     render(<QuickBuyEditQuickAmountsScreen />);
 

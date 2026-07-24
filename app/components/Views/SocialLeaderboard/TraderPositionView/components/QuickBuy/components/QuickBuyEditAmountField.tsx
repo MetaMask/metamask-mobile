@@ -13,20 +13,14 @@ import type { QuickBuyEditFieldError } from '../utils/validateQuickBuyEditAmount
 
 interface QuickBuyEditAmountFieldProps {
   displayValue: string;
-  isFocused: boolean;
   isError: boolean;
-  errorMessage?: string | null;
-  showRowError?: boolean;
   testID?: string;
   onPress: () => void;
 }
 
 const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
   displayValue,
-  isFocused,
   isError,
-  errorMessage,
-  showRowError = false,
   testID,
   onPress,
 }) => {
@@ -51,15 +45,6 @@ const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
           </Text>
         </Box>
       </Pressable>
-      {showRowError && errorMessage ? (
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.ErrorDefault}
-          twClassName="mt-1"
-        >
-          {errorMessage}
-        </Text>
-      ) : null}
     </Box>
   );
 };
