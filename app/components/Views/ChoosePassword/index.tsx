@@ -544,10 +544,6 @@ const ChoosePassword = () => {
       }
 
       const accountType = reduxAccountType;
-      // Clear the fox/ActivityIndicator loader before leaving this screen so it
-      // does not flash under the survey or during reset to First Predict On Us /
-      // OnboardingSuccess.
-      setLoading(false);
       if (shouldShowQuestionnaire) {
         navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
           onComplete: onContinueNavigation,
