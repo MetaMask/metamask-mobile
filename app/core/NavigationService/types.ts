@@ -655,6 +655,8 @@ export type RootStackParamList = {
           outcome: unknown;
           outcomeToken: unknown;
         };
+        tradeDescriptionTemplate: string;
+        tradePlacedLabel: string;
         usdAmount: number;
       }
     | undefined;

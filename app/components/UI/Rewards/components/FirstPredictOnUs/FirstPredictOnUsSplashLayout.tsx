@@ -3,12 +3,12 @@ import { Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
 import type { FirstPredictOnUsDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import RewardsThemeImageComponent from '../ThemeImageComponent/RewardsThemeImageComponent';
 import FirstPredictOnUsLegalFooter from './FirstPredictOnUsLegalFooter';
@@ -37,13 +37,15 @@ const FirstPredictOnUsSplashLayout: React.FC<
       : DEFAULT_HERO_HEIGHT;
 
   const skipText =
-    content.localizedText[FIRST_PREDICT_ON_US_CMS_KEYS.splashSkip] ??
-    strings('rewards.first_predict_on_us.splash.skip');
+    content.localizedText[FIRST_PREDICT_ON_US_CMS_KEYS.splashSkip] ?? '';
   const description =
     content.localizedText[FIRST_PREDICT_ON_US_CMS_KEYS.splashDescription] ?? '';
   const confirmLabel =
-    content.localizedText[FIRST_PREDICT_ON_US_CMS_KEYS.tradeConfirm] ??
-    strings('rewards.first_predict_on_us.trade_confirm.confirm');
+    content.localizedText[FIRST_PREDICT_ON_US_CMS_KEYS.tradeConfirm] ?? '';
+  const tradePlacedLabel =
+    content.localizedText[FIRST_PREDICT_ON_US_CMS_KEYS.tradePlaced] ?? '';
+  const tradeDescriptionTemplate =
+    content.localizedText[FIRST_PREDICT_ON_US_CMS_KEYS.tradeDescription] ?? '';
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
@@ -61,7 +63,11 @@ const FirstPredictOnUsSplashLayout: React.FC<
               onPress={onSkip}
               hitSlop={12}
             >
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              <Text
+                variant={TextVariant.BodyLg}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
                 {skipText}
               </Text>
             </Pressable>
@@ -88,6 +94,8 @@ const FirstPredictOnUsSplashLayout: React.FC<
             <FirstPredictOnUsMarketsCarousel
               confirmLabel={confirmLabel}
               markets={markets}
+              tradeDescriptionTemplate={tradeDescriptionTemplate}
+              tradePlacedLabel={tradePlacedLabel}
               usdAmount={content.usdAmount}
             />
           </Box>

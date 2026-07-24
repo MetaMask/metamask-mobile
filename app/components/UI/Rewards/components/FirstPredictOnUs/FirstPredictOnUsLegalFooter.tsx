@@ -35,7 +35,7 @@ const FirstPredictOnUsLegalFooter: React.FC<
     >
       {regionText ? (
         <Text
-          variant={TextVariant.BodyXs}
+          variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
           twClassName="text-center"
         >
@@ -43,14 +43,16 @@ const FirstPredictOnUsLegalFooter: React.FC<
           {termsText ? ' ' : ''}
         </Text>
       ) : null}
-      <Text
-        testID="first-predict-on-us-splash-terms-link"
-        variant={TextVariant.BodyXs}
-        twClassName="text-primary-default"
-        onPress={termsUrl ? openTerms : undefined}
-      >
-        {termsText}
-      </Text>
+      {termsText ? (
+        <Text
+          testID="first-predict-on-us-splash-terms-link"
+          variant={TextVariant.BodySm}
+          twClassName="text-primary-default"
+          onPress={termsUrl ? openTerms : undefined}
+        >
+          {termsText}
+        </Text>
+      ) : null}
     </Box>
   );
 };
