@@ -1,18 +1,12 @@
 import '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
+import mockQuotes from '../../_mocks_/mock-quotes-sol-sol';
 import { createBridgeTestState } from '../../testUtils';
-import {
-  isQuoteExpired,
-  getQuoteRefreshRate,
-  shouldRefreshQuote,
-} from '../../utils/quoteUtils';
-import {
-  RequestStatus,
-  type QuoteResponse,
-  selectBridgeQuotes,
-  selectBridgeFeatureFlags,
-} from '@metamask/bridge-controller';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as quoteUtils from '../../utils/quoteUtils';
+import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as bridgeController from '@metamask/bridge-controller';
 import AppConstants from '../../../../../core/AppConstants';
 import { useBridgeQuoteData } from '.';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
@@ -27,29 +21,19 @@ import {
   setSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
 
-jest.mock('../../utils/quoteUtils', () => ({
-  isQuoteExpired: jest.fn(),
-  getQuoteRefreshRate: jest.fn(),
-  shouldRefreshQuote: jest.fn(),
-}));
-
-// Mock the bridge-controller module
-jest.mock('@metamask/bridge-controller', () => {
-  const actual = jest.requireActual('@metamask/bridge-controller');
-  return {
-    ...actual,
-    selectBridgeQuotes: jest.fn(),
-    selectBridgeFeatureFlags: jest.fn().mockImplementation(() => ({
-      minimumVersion: '7.58.0',
-      priceImpactThreshold: {
-        gasless: 0.4,
-        normal: 0.19,
-        warning: 0.05,
-        error: 0.25,
-      },
-    })),
-  };
-});
+const defaultSelectBridgeQuotesResults: ReturnType<
+  typeof bridgeController.selectBridgeQuotes
+> = {
+  recommendedQuote: mockQuoteWithMetadata,
+  sortedQuotes: [mockQuoteWithMetadata],
+  activeQuote: mockQuoteWithMetadata,
+  quotesLastFetchedMs: Date.now(),
+  isLoading: false,
+  quoteFetchError: null,
+  quotesRefreshCount: 0,
+  isQuoteGoingToRefresh: false,
+  quotesInitialLoadTimeMs: 0,
+};
 
 // Mock useValidateBridgeTx hook
 const mockValidateBridgeTx = jest.fn();
@@ -89,17 +73,50 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
 }));
 
 describe('useBridgeQuoteData', () => {
+  let isQuoteExpired: jest.SpyInstance;
+  let getQuoteRefreshRate: jest.SpyInstance;
+  let shouldRefreshQuote: jest.SpyInstance;
+  let selectBridgeQuotes: jest.SpyInstance;
+  let selectBridgeFeatureFlags: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+
     selectControllerFields.clearCache();
     selectControllerFields.memoizedResultFunc.clearCache();
     selectAppBridgeQuotes.clearCache();
     selectAppBridgeQuotes.memoizedResultFunc.clearCache();
     selectAppBridgeFeatureFlags.clearCache();
     selectAppBridgeFeatureFlags.memoizedResultFunc.clearCache();
-    (isQuoteExpired as jest.Mock).mockReturnValue(false);
-    (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
-    (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+
+    selectBridgeFeatureFlags = jest
+      .spyOn(bridgeController, 'selectBridgeFeatureFlags')
+      .mockImplementation(() => ({
+        minimumVersion: '7.58.0',
+        priceImpactThreshold: {
+          gasless: 0.4,
+          normal: 0.19,
+          warning: 0.05,
+          error: 0.25,
+        },
+        refreshRate: 5000,
+        maxRefreshCount: 10,
+        support: true,
+        chains: {},
+      }));
+    selectBridgeQuotes = jest
+      .spyOn(bridgeController, 'selectBridgeQuotes')
+      .mockImplementation(jest.fn());
+    isQuoteExpired = jest
+      .spyOn(quoteUtils, 'isQuoteExpired')
+      .mockReturnValue(false);
+    getQuoteRefreshRate = jest
+      .spyOn(quoteUtils, 'getQuoteRefreshRate')
+      .mockReturnValue(5000);
+    shouldRefreshQuote = jest
+      .spyOn(quoteUtils, 'shouldRefreshQuote')
+      .mockReturnValue(false);
     mockUseIsInsufficientBalance.mockReturnValue(false);
     mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
   });
@@ -110,9 +127,9 @@ describe('useBridgeQuoteData', () => {
 
   it('returns quote data when quotes are available', () => {
     // Set up mock for this specific test
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
-      alternativeQuotes: [],
     }));
 
     const bridgeControllerOverrides = {
@@ -169,7 +186,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
-      validQuotes: [],
+      validQuotes: [mockQuoteWithMetadata],
       isActiveQuoteForCurrentTokenPair: true,
     });
   });
@@ -182,20 +199,21 @@ describe('useBridgeQuoteData', () => {
     'returns shouldShowPriceImpactWarning=false when priceImpact does not meet warning threshold regardless of gasIncluded=%s and gasIncluded7702=%s',
     (gasIncluded, gasIncluded7702, shouldShowPriceImpactWarning) => {
       // Set up mock for this specific test
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(
-        () => ({
-          recommendedQuote: {
-            ...mockQuoteWithMetadata,
-            quote: {
-              ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: '0.04' },
-              gasIncluded,
-              gasIncluded7702,
-            },
-          },
-          alternativeQuotes: [],
-        }),
-      );
+      const quote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          priceData: { priceImpact: '0.04' },
+          gasIncluded,
+          gasIncluded7702,
+        },
+      };
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        activeQuote: quote,
+        sortedQuotes: [quote],
+        recommendedQuote: quote,
+      }));
 
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -221,15 +239,18 @@ describe('useBridgeQuoteData', () => {
   );
 
   it('returns shouldShowPriceImpactWarning=true when priceImpact meets the warning threshold', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(() => ({
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        quote: {
-          ...mockQuoteWithMetadata.quote,
-          priceData: { priceImpact: '0.05' },
-        },
+    const quote = {
+      ...mockQuoteWithMetadata,
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+        priceData: { priceImpact: '0.05' },
       },
-      alternativeQuotes: [],
+    };
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
+      recommendedQuote: quote,
+      activeQuote: quote,
+      sortedQuotes: [quote],
     }));
 
     const testState = createBridgeTestState({
@@ -248,19 +269,18 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('falls back to AppConstants warning threshold when feature flags warning is absent', () => {
-    (selectBridgeFeatureFlags as unknown as jest.Mock).mockImplementationOnce(
-      () => ({
-        minimumVersion: '7.58.0',
-        priceImpactThreshold: {
-          gasless: 0.4,
-          normal: 0.19,
-          // warning absent — should fall back to AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD
-          error: 0.25,
-        },
-      }),
-    );
+    selectBridgeFeatureFlags.mockImplementation(() => ({
+      minimumVersion: '7.58.0',
+      priceImpactThreshold: {
+        gasless: 0.4,
+        normal: 0.19,
+        // warning absent — should fall back to AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD
+        error: 0.25,
+      },
+    }));
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
         quote: {
@@ -272,7 +292,6 @@ describe('useBridgeQuoteData', () => {
           },
         },
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({
@@ -292,9 +311,9 @@ describe('useBridgeQuoteData', () => {
 
   it('returns empty state when no quotes exist', () => {
     // Set up mock for this specific test
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: null,
-      alternativeQuotes: [],
     }));
 
     const bridgeControllerOverrides = {
@@ -333,9 +352,9 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('isNoQuotesAvailable is false when quoteStreamComplete is null', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: null,
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({
@@ -356,9 +375,9 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('isNoQuotesAvailable is false when quoteStreamComplete.hasQuotes is true', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: null,
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({
@@ -380,9 +399,9 @@ describe('useBridgeQuoteData', () => {
 
   it('returns undefined destTokenAmount when quote destAsset does not match selected destToken', () => {
     // Set up mock with a quote for a different destination token (ETH) than what's selected (USDC)
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata, // This quote is for Solana USDC
-      alternativeQuotes: [],
     }));
 
     const bridgeControllerOverrides = {
@@ -421,9 +440,9 @@ describe('useBridgeQuoteData', () => {
     // Regression guard: after changing the destination token, the bridge controller
     // keeps the old quote in state until the first new quote arrives. The confirm
     // button must stay disabled during this window.
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata, // quote is for Solana USDC
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({
@@ -451,9 +470,9 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('isActiveQuoteForCurrentTokenPair is true when active quote matches both selected tokens', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({
@@ -490,12 +509,16 @@ describe('useBridgeQuoteData', () => {
 
   it('handles expired quotes correctly', () => {
     // Set up mock for this specific test
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
-      alternativeQuotes: [],
+      quotesRefreshCount: 1,
+      isQuoteGoingToRefresh: false,
+      quotesInitialLoadTimeMs: 0,
+      quotesLastFetchedMs: Date.now() - 10000000000,
     }));
 
-    (isQuoteExpired as jest.Mock).mockReturnValue(true);
+    isQuoteExpired.mockReturnValueOnce(true);
 
     const bridgeControllerOverrides = {
       quotes: mockQuotes as unknown as QuoteResponse[],
@@ -546,9 +569,9 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
     };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: undefined,
-      alternativeQuotes: [],
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
+      recommendedQuote: null,
     }));
 
     const testState = createBridgeTestState({
@@ -560,8 +583,8 @@ describe('useBridgeQuoteData', () => {
     });
 
     expect(result.current).toEqual({
-      activeQuote: undefined,
-      bestQuote: undefined,
+      activeQuote: null,
+      bestQuote: null,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
       isLoading: true,
@@ -585,9 +608,9 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: error,
     };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: null,
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({
@@ -618,9 +641,9 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('returns undefined when activeQuote is undefined', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: undefined,
-      alternativeQuotes: [],
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
+      recommendedQuote: null,
     }));
 
     const testState = createBridgeTestState({});
@@ -633,12 +656,12 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('returns "-" when totalNetworkFee is missing', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
-        totalNetworkFee: null,
+        totalNetworkFee: undefined,
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({});
@@ -651,14 +674,14 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('returns "-" when totalNetworkFee amount is missing', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
         totalNetworkFee: {
           valueInCurrency: '10',
         },
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({});
@@ -671,14 +694,14 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('returns "-" when totalNetworkFee valueInCurrency is missing', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
         totalNetworkFee: {
           amount: '0.01',
         },
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({});
@@ -691,7 +714,8 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('formats network fee with fiat formatter for normal values', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
         totalNetworkFee: {
@@ -699,7 +723,6 @@ describe('useBridgeQuoteData', () => {
           valueInCurrency: '10',
         },
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({});
@@ -712,7 +735,8 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('formats network fee as "<$0.01" when value is less than 0.01', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
         totalNetworkFee: {
@@ -720,7 +744,6 @@ describe('useBridgeQuoteData', () => {
           valueInCurrency: '0.005',
         },
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({});
@@ -733,7 +756,8 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('formats network fee normally when value is exactly 0.01', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
         totalNetworkFee: {
@@ -741,7 +765,6 @@ describe('useBridgeQuoteData', () => {
           valueInCurrency: '0.01',
         },
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({});
@@ -754,7 +777,8 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('formats network fee normally when value is 0', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
         totalNetworkFee: {
@@ -762,7 +786,6 @@ describe('useBridgeQuoteData', () => {
           valueInCurrency: '0',
         },
       },
-      alternativeQuotes: [],
     }));
 
     const testState = createBridgeTestState({});
@@ -779,9 +802,9 @@ describe('useBridgeQuoteData', () => {
   it('handles validation errors gracefully', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuote,
-      alternativeQuotes: [],
     }));
 
     mockValidateBridgeTx.mockRejectedValue(new Error('Network error'));
@@ -798,9 +821,9 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('calculates quote rate correctly when sourceAmount is zero', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
-      alternativeQuotes: [],
     }));
 
     const bridgeReducerOverrides = {
@@ -819,9 +842,9 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('formats slippage as "Auto" when slippage is undefined', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
-      alternativeQuotes: [],
     }));
 
     const bridgeReducerOverrides = {
@@ -840,9 +863,9 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('works with latestSourceAtomicBalance parameter', () => {
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
-      alternativeQuotes: [],
     }));
 
     const latestBalance = BigNumber.from('1000000000000000000');
@@ -874,9 +897,9 @@ describe('useBridgeQuoteData', () => {
   it('executes validation for Solana swaps and handles success', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuote,
-      alternativeQuotes: [],
     }));
 
     mockValidateBridgeTx.mockResolvedValue({
@@ -920,9 +943,9 @@ describe('useBridgeQuoteData', () => {
   it('executes validation for Solana to EVM bridges and handles error', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuote,
-      alternativeQuotes: [],
     }));
 
     mockValidateBridgeTx.mockResolvedValue({
@@ -970,9 +993,9 @@ describe('useBridgeQuoteData', () => {
   it('handles validation error without error_details message', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuote,
-      alternativeQuotes: [],
     }));
 
     mockValidateBridgeTx.mockResolvedValue({
@@ -1016,9 +1039,9 @@ describe('useBridgeQuoteData', () => {
   it('handles validation exception in catch block', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuote,
-      alternativeQuotes: [],
     }));
 
     mockValidateBridgeTx.mockRejectedValue(new Error('Network timeout'));
@@ -1073,9 +1096,9 @@ describe('useBridgeQuoteData', () => {
     };
     let recommendedQuote = firstMockQuote;
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote,
-      alternativeQuotes: [],
     }));
 
     mockValidateBridgeTx
@@ -1139,9 +1162,9 @@ describe('useBridgeQuoteData', () => {
       },
     };
 
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+    selectBridgeQuotes.mockImplementation(() => ({
+      ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithGasIncluded,
-      alternativeQuotes: [],
     }));
 
     const bridgeReducerOverrides = {
@@ -1204,15 +1227,17 @@ describe('useBridgeQuoteData', () => {
           destAsset: {
             ...mockQuoteWithMetadata.quote.destAsset,
             address: '0x0000000000000000000000000000000000000000',
-            assetId: '0x0000000000000000000000000000000000000000',
+            assetId:
+              bridgeController.getNativeAssetForChainId(1151111081099710)
+                .assetId,
           },
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuote1,
         sortedQuotes: [mockQuote1, mockQuote2],
-        alternativeQuotes: [],
       }));
 
       const bridgeReducerOverrides = {
@@ -1238,14 +1263,14 @@ describe('useBridgeQuoteData', () => {
     });
 
     it('returns empty validQuotes array when quotes are expired and not refreshing', () => {
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
         sortedQuotes: [mockQuoteWithMetadata],
-        alternativeQuotes: [],
       }));
 
-      (isQuoteExpired as jest.Mock).mockReturnValue(true);
-      (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+      isQuoteExpired.mockReturnValueOnce(true);
+      shouldRefreshQuote.mockReturnValueOnce(false);
 
       const testState = createBridgeTestState({});
 
@@ -1258,13 +1283,13 @@ describe('useBridgeQuoteData', () => {
     });
 
     it('returns empty validQuotes when isSubmittingTx is true', () => {
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
         sortedQuotes: [mockQuoteWithMetadata],
-        alternativeQuotes: [],
       }));
 
-      (isQuoteExpired as jest.Mock).mockReturnValue(true);
+      isQuoteExpired.mockReturnValueOnce(true);
 
       const bridgeReducerOverrides = {
         isSubmittingTx: true,
@@ -1296,9 +1321,9 @@ describe('useBridgeQuoteData', () => {
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithDifferentSource,
-        alternativeQuotes: [],
       }));
 
       const bridgeReducerOverrides = {
@@ -1336,15 +1361,18 @@ describe('useBridgeQuoteData', () => {
           srcAsset: {
             address: '11111111111111111111111111111112',
             assetId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112',
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112' as const,
             decimals: 9,
+            symbol: 'SOL',
+            chainId: bridgeController.ChainId.SOLANA,
+            name: 'SOL',
           },
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithSolanaSource,
-        alternativeQuotes: [],
       }));
 
       const bridgeReducerOverrides = {
@@ -1384,9 +1412,9 @@ describe('useBridgeQuoteData', () => {
         estimatedProcessingTimeInSeconds: 0.5,
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithFastTime,
-        alternativeQuotes: [],
       }));
 
       const testState = createBridgeTestState({});
@@ -1406,9 +1434,9 @@ describe('useBridgeQuoteData', () => {
         estimatedProcessingTimeInSeconds: 30,
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWith30Seconds,
-        alternativeQuotes: [],
       }));
 
       const testState = createBridgeTestState({});
@@ -1428,9 +1456,9 @@ describe('useBridgeQuoteData', () => {
         estimatedProcessingTimeInSeconds: 120,
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWith120Seconds,
-        alternativeQuotes: [],
       }));
 
       const testState = createBridgeTestState({});
@@ -1448,9 +1476,9 @@ describe('useBridgeQuoteData', () => {
         estimatedProcessingTimeInSeconds: 90,
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWith90Seconds,
-        alternativeQuotes: [],
       }));
 
       const testState = createBridgeTestState({});
@@ -1474,9 +1502,9 @@ describe('useBridgeQuoteData', () => {
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithHighRate,
-        alternativeQuotes: [],
       }));
 
       const bridgeReducerOverrides = {
@@ -1518,9 +1546,9 @@ describe('useBridgeQuoteData', () => {
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithLowRate,
-        alternativeQuotes: [],
       }));
 
       const bridgeReducerOverrides = {
@@ -1567,9 +1595,9 @@ describe('useBridgeQuoteData', () => {
       };
 
       // Start with first quote
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuote1,
-        alternativeQuotes: [],
       }));
 
       let abortCallCount = 0;
@@ -1614,9 +1642,9 @@ describe('useBridgeQuoteData', () => {
       });
 
       // Change to second quote
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuote2,
-        alternativeQuotes: [],
       }));
 
       // Re-render with new quote
@@ -1642,9 +1670,9 @@ describe('useBridgeQuoteData', () => {
   // Test abort controller cleanup
   describe('abort controller cleanup', () => {
     it('cleans up abort controller on unmount', () => {
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
-        alternativeQuotes: [],
       }));
 
       const testState = createBridgeTestState({});
@@ -1677,10 +1705,10 @@ describe('useBridgeQuoteData', () => {
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote,
         sortedQuotes: [recommendedQuote, manuallySelectedQuote],
-        alternativeQuotes: [],
       }));
 
       const bridgeReducerOverrides = {
@@ -1702,10 +1730,10 @@ describe('useBridgeQuoteData', () => {
     it('falls back to bestQuote when selectedQuoteRequestId does not match any sortedQuote', () => {
       const recommendedQuote = { ...mockQuoteWithMetadata };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote,
         sortedQuotes: [recommendedQuote],
-        alternativeQuotes: [],
       }));
 
       const bridgeReducerOverrides = {
@@ -1725,10 +1753,10 @@ describe('useBridgeQuoteData', () => {
     });
 
     it('dispatches setSelectedQuoteRequestId(undefined) when manuallySelectedQuote is undefined', async () => {
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
         sortedQuotes: [],
-        alternativeQuotes: [],
       }));
 
       // selectedQuoteRequestId is set but sortedQuotes is empty so manuallySelectedQuote will be undefined
@@ -1770,14 +1798,14 @@ describe('useBridgeQuoteData', () => {
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote,
         sortedQuotes: [recommendedQuote, manuallySelectedQuote],
-        alternativeQuotes: [],
       }));
 
-      (isQuoteExpired as jest.Mock).mockReturnValue(true);
-      (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+      isQuoteExpired.mockReturnValueOnce(true);
+      shouldRefreshQuote.mockReturnValueOnce(false);
 
       const bridgeReducerOverrides = {
         selectedQuoteRequestId: 'selected-quote-id',
@@ -1815,14 +1843,14 @@ describe('useBridgeQuoteData', () => {
         },
       };
 
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote,
         sortedQuotes: [recommendedQuote, manuallySelectedQuote],
-        alternativeQuotes: [],
       }));
 
-      (isQuoteExpired as jest.Mock).mockReturnValue(true);
-      (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+      isQuoteExpired.mockReturnValueOnce(true);
+      shouldRefreshQuote.mockReturnValue(false);
 
       const bridgeReducerOverrides = {
         selectedQuoteRequestId: 'selected-quote-id',
@@ -1844,13 +1872,16 @@ describe('useBridgeQuoteData', () => {
 
   // Test willRefresh scenarios
   describe('willRefresh behavior', () => {
-    it('sets willRefresh to true when conditions are met', () => {
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-        recommendedQuote: mockQuoteWithMetadata,
-        alternativeQuotes: [],
-      }));
+    beforeEach(() => {
+      shouldRefreshQuote.mockReturnValueOnce(true);
+    });
 
-      (shouldRefreshQuote as jest.Mock).mockReturnValue(true);
+    it('sets willRefresh to true when conditions are met', () => {
+      isQuoteExpired.mockReturnValueOnce(false);
+      selectBridgeQuotes.mockImplementationOnce(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
 
       const testState = createBridgeTestState({});
 
@@ -1862,13 +1893,11 @@ describe('useBridgeQuoteData', () => {
     });
 
     it('shows activeQuote when expired but willRefresh is true', () => {
-      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      isQuoteExpired.mockReturnValueOnce(true);
+      selectBridgeQuotes.mockImplementationOnce(() => ({
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
-        alternativeQuotes: [],
       }));
-
-      (isQuoteExpired as jest.Mock).mockReturnValue(true);
-      (shouldRefreshQuote as jest.Mock).mockReturnValue(true);
 
       const testState = createBridgeTestState({});
 
@@ -1876,21 +1905,19 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
       expect(result.current.isExpired).toBe(true);
       expect(result.current.willRefresh).toBe(true);
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
     });
   });
 
   describe('memoization', () => {
     it('keeps the same return object reference when inputs do not change', () => {
       const bridgeQuotes = {
+        ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
-        alternativeQuotes: [],
       };
-      (selectBridgeQuotes as unknown as jest.Mock).mockReturnValue(
-        bridgeQuotes,
-      );
+      selectBridgeQuotes.mockReturnValue(bridgeQuotes);
 
       const testState = createBridgeTestState({});
 

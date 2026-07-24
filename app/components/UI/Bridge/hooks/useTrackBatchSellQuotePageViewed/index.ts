@@ -30,7 +30,7 @@ interface BatchSellQuotePageMetricPropertiesParams {
 }
 
 function getQuoteSourceUsdAmount(quote: BatchSellQuote) {
-  const usdAmount = Number(quote.sentAmount.usd);
+  const usdAmount = Number(quote.sentAmount?.usd);
 
   return Number.isFinite(usdAmount) ? usdAmount : 0;
 }

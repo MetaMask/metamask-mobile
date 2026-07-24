@@ -17,11 +17,8 @@ export const usePriceImpactFiat = (
 
   if (!activeQuote) return undefined;
 
-  const sourceFiat = activeQuote.sentAmount?.valueInCurrency;
-  const destFiat = activeQuote.toTokenAmount?.valueInCurrency;
+  const diff = activeQuote.priceImpact?.valueInCurrency;
+  if (!diff) return undefined;
 
-  if (sourceFiat == null || destFiat == null) return undefined;
-
-  const diff = Math.abs(Number(sourceFiat) - Number(destFiat));
   return formatCurrency(diff, currentCurrency);
 };

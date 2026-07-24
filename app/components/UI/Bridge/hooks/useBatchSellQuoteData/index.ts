@@ -492,12 +492,12 @@ export function useBatchSellQuoteData({
             tokenSymbol,
             slippage: getSlippageDisplayValue(slippage),
             receivedAmount: formatTokenAmountWithSymbol(
-              recommendedQuote?.toTokenAmount.amount,
+              recommendedQuote?.toTokenAmount?.amount,
               quoteDestinationTokenSymbol,
             ),
             receivedAmountFiat: formatQuoteDisplayValue({
-              amount: recommendedQuote?.toTokenAmount.amount,
-              valueInCurrency: recommendedQuote?.toTokenAmount.valueInCurrency,
+              amount: recommendedQuote?.toTokenAmount?.amount,
+              valueInCurrency: recommendedQuote?.toTokenAmount?.valueInCurrency,
               symbol: quoteDestinationTokenSymbol,
               currency: currentCurrency,
             }),

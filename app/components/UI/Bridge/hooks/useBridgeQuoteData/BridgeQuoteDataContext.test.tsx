@@ -2,10 +2,6 @@ import React from 'react';
 import { waitFor } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import { SolScope } from '@metamask/keyring-api';
-import {
-  selectBridgeQuotes,
-  selectBridgeFeatureFlags,
-} from '@metamask/bridge-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   BridgeQuoteDataProvider,
@@ -13,38 +9,14 @@ import {
 } from './BridgeQuoteDataContext';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import {
-  getQuoteRefreshRate,
-  isQuoteExpired,
-  shouldRefreshQuote,
-} from '../../utils/quoteUtils';
-
-jest.mock('../../utils/quoteUtils', () => ({
-  isQuoteExpired: jest.fn(),
-  getQuoteRefreshRate: jest.fn(),
-  shouldRefreshQuote: jest.fn(),
-}));
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as quoteUtils from '../../utils/quoteUtils';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as bridgeController from '@metamask/bridge-controller';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
 }));
-
-jest.mock('@metamask/bridge-controller', () => {
-  const actual = jest.requireActual('@metamask/bridge-controller');
-  return {
-    ...actual,
-    selectBridgeQuotes: jest.fn(),
-    selectBridgeFeatureFlags: jest.fn().mockImplementation(() => ({
-      minimumVersion: '7.58.0',
-      priceImpactThreshold: {
-        gasless: 0.4,
-        normal: 0.19,
-        warning: 0.05,
-        error: 0.25,
-      },
-    })),
-  };
-});
 
 const mockValidateBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
@@ -87,17 +59,27 @@ function Consumer() {
 describe('BridgeQuoteDataContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (isQuoteExpired as jest.Mock).mockReturnValue(false);
-    (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
-    (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+    jest.spyOn(quoteUtils, 'isQuoteExpired').mockImplementation(jest.fn());
+    jest.spyOn(quoteUtils, 'getQuoteRefreshRate').mockImplementation(jest.fn());
+    jest.spyOn(quoteUtils, 'shouldRefreshQuote').mockImplementation(jest.fn());
     mockUseIsInsufficientBalance.mockReturnValue(false);
     mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: mockQuoteWithMetadata,
-      sortedQuotes: [mockQuoteWithMetadata],
-    }));
-    (selectBridgeFeatureFlags as unknown as jest.Mock).mockImplementation(
-      () => ({
+    jest
+      .spyOn(bridgeController, 'selectBridgeQuotes')
+      .mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: [mockQuoteWithMetadata],
+        activeQuote: mockQuoteWithMetadata,
+        quotesLastFetchedMs: 1_700_000_000_000,
+        isLoading: false,
+        quoteFetchError: null,
+        quotesRefreshCount: 0,
+        isQuoteGoingToRefresh: false,
+        quotesInitialLoadTimeMs: 0,
+      }));
+    jest
+      .spyOn(bridgeController, 'selectBridgeFeatureFlags')
+      .mockImplementation(() => ({
         minimumVersion: '7.58.0',
         priceImpactThreshold: {
           gasless: 0.4,
@@ -105,8 +87,11 @@ describe('BridgeQuoteDataContext', () => {
           warning: 0.05,
           error: 0.25,
         },
-      }),
-    );
+        support: true,
+        chains: {},
+        refreshRate: 5000,
+        maxRefreshCount: 10,
+      }));
   });
 
   afterEach(() => {

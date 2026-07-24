@@ -43,7 +43,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
             isGaslessQuote(quote.quote)
               ? (quote.includedTxFees?.valueInCurrency ?? '0')
               : (quote.totalNetworkFee?.valueInCurrency ??
-                  quote.gasFee?.effective?.valueInCurrency ??
+                  quote.gasFee?.total?.valueInCurrency ??
                   '0'),
           ),
           currentCurrency,

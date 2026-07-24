@@ -306,8 +306,8 @@ describe('formatNetworkFee', () => {
     });
   });
 
-  describe('non-gasless quotes — gasFee.effective fallback path', () => {
-    it('returns formatted fiat from gasFee.effective when totalNetworkFee is missing', () => {
+  describe('non-gasless quotes — gasFee.total fallback path', () => {
+    it('returns formatted fiat from gasFee.total when totalNetworkFee is missing', () => {
       mockIsNumberValue.mockImplementation(
         (value) => value === '0.005' || value === '8.00',
       );
@@ -315,7 +315,7 @@ describe('formatNetworkFee', () => {
 
       const quote = {
         gasFee: {
-          effective: {
+          total: {
             amount: '0.005',
             valueInCurrency: '8.00',
           },
@@ -328,11 +328,11 @@ describe('formatNetworkFee', () => {
       expect(result).toBe('$8.00');
     });
 
-    it('returns formatted fiat from gasFee.effective when totalNetworkFee values are invalid', () => {
+    it('returns formatted fiat from gasFee.total when totalNetworkFee values are invalid', () => {
       mockIsNumberValue
         .mockReturnValueOnce(false) // totalNetworkFee.amount invalid
-        .mockReturnValueOnce(true) // gasFee.effective.amount
-        .mockReturnValueOnce(true); // gasFee.effective.valueInCurrency
+        .mockReturnValueOnce(true) // gasFee.total.amount
+        .mockReturnValueOnce(true); // gasFee.total.valueInCurrency
       mockFormatFiat.mockReturnValue('$3.50');
 
       const quote = {
@@ -341,7 +341,7 @@ describe('formatNetworkFee', () => {
           valueInCurrency: '10.00',
         },
         gasFee: {
-          effective: {
+          total: {
             amount: '0.002',
             valueInCurrency: '3.50',
           },
@@ -354,10 +354,10 @@ describe('formatNetworkFee', () => {
       expect(result).toBe('$3.50');
     });
 
-    it('returns "-" when gasFee.effective.valueInCurrency is null', () => {
+    it('returns "-" when gasFee.total.valueInCurrency is null', () => {
       const quote = {
         gasFee: {
-          effective: {
+          total: {
             amount: '0.002',
             valueInCurrency: null,
           },
@@ -370,10 +370,10 @@ describe('formatNetworkFee', () => {
       expect(mockFormatFiat).not.toHaveBeenCalled();
     });
 
-    it('returns "-" when gasFee.effective.amount is null', () => {
+    it('returns "-" when gasFee.total.amount is null', () => {
       const quote = {
         gasFee: {
-          effective: {
+          total: {
             amount: null,
             valueInCurrency: '8.00',
           },
@@ -386,12 +386,12 @@ describe('formatNetworkFee', () => {
       expect(mockFormatFiat).not.toHaveBeenCalled();
     });
 
-    it('returns "-" when gasFee.effective has invalid number values', () => {
+    it('returns "-" when gasFee.total has invalid number values', () => {
       mockIsNumberValue.mockReturnValue(false);
 
       const quote = {
         gasFee: {
-          effective: {
+          total: {
             amount: 'bad',
             valueInCurrency: 'bad',
           },
@@ -404,7 +404,7 @@ describe('formatNetworkFee', () => {
       expect(mockFormatFiat).not.toHaveBeenCalled();
     });
 
-    it('returns "-" when neither totalNetworkFee nor gasFee.effective is available', () => {
+    it('returns "-" when neither totalNetworkFee nor gasFee.total is available', () => {
       const quote = {} as QuoteResponse & QuoteMetadata;
 
       const result = formatNetworkFee('USD', quote);
