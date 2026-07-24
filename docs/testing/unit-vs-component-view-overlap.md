@@ -4,6 +4,18 @@ Prefer **component view** (`*.view.test.tsx`) for screen behavior driven by Redu
 
 Agent playbook (inventory → classify → migrate → metrics → Jira/canvas report): Cursor skill **`test-layer-overlap-audit`**.
 
+## Reason → best layer (required)
+
+For every `it(...)`, decide from **why the test exists**, not from which file it currently lives in:
+
+| Test reason                                                                        | Best layer | If it is in the wrong file                                          |
+| ---------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------- |
+| UI / visibility / press / navigation / disabled controls / empty states from Redux | **CV**     | **MIGRATE** to `*.view.test.tsx`, then delete the shallow unit `it` |
+| Pure function, selector, reducer, util                                             | **Unit**   | KEEP                                                                |
+| Already covered by CV                                                              | —          | **DELETE** unit duplicate                                           |
+
+**Hard rule:** do not leave screen UI tests in unit files and “fix” them with more mocks — move them to CV.
+
 ## Quick rules
 
 1. If `ComponentName.view.test.tsx` exists (or should), put user-visible screen scenarios there.
@@ -26,11 +38,13 @@ PY
 
 ## Classify each unit `it(...)`
 
-| Decision    | Meaning                                      |
-| ----------- | -------------------------------------------- |
-| **DELETE**  | Same user-visible behavior already in CV     |
-| **MIGRATE** | Add CV first, then delete unit               |
-| **KEEP**    | Pure logic / edge case CV cannot own cheaply |
+Write: **reason → best layer → decision**.
+
+| Decision    | Meaning                                                                                   |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| **DELETE**  | Same user-visible behavior already in CV                                                  |
+| **MIGRATE** | Screen/UI behavior in the wrong layer or missing from CV — add CV first, then delete unit |
+| **KEEP**    | Pure logic / edge case CV cannot own cheaply                                              |
 
 ## Related
 
