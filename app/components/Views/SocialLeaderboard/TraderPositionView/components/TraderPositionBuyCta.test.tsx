@@ -146,6 +146,13 @@ describe('TraderPositionBuyCta', () => {
     );
   });
 
+  it('labels the spot position action as Trade', () => {
+    const { getByText, queryByText } = renderCta();
+
+    expect(getByText('Trade')).toBeOnTheScreen();
+    expect(queryByText('Buy')).toBeNull();
+  });
+
   describe('control variant', () => {
     beforeEach(() => setVariant(false));
 

@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Image } from 'expo-image';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -20,10 +21,7 @@ import type {
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
-import type {
-  PredictEntryPoint,
-  PredictNavigationParamList,
-} from '../../types/navigation';
+import type { PredictEntryPoint } from '../../types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const PREDICT_WORLD_CUP_HUB_ANALYTICS_TAB = {
@@ -106,8 +104,7 @@ const PredictWorldCupWinnerModule: React.FC<
   transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);

@@ -283,6 +283,7 @@ describe('useMoneyAccountDeposit', () => {
         amount: BigInt(0),
         chainId: MOCK_VAULT_CONFIG.chainId,
         boringVault: MOCK_VAULT_CONFIG.boringVault,
+        initialiseWithoutData: true,
       }),
     );
 

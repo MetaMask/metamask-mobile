@@ -78,7 +78,7 @@ export const _clearPositionCache = (): void => {
  * const { position, hasFundsInPerps, isLoading } = usePerpsPositionForAsset('ETH');
  *
  * if (position) {
- *   return <PerpsPositionCard position={position} onPress={handleNavigate} />;
+ *   return <PerpsPositionCard position={position} />;
  * } else if (hasFundsInPerps) {
  *   return <PerpsDiscoveryBanner ... />;
  * }

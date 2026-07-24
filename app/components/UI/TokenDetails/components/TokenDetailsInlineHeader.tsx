@@ -4,12 +4,17 @@ import React, { useMemo, type ReactNode } from 'react';
 import {
   Box,
   BoxFlexDirection,
+  BoxAlignItems,
   ButtonIcon,
   ButtonIconSize,
   HeaderSubpage,
   IconName,
   IconColor,
   IconSize,
+  Text,
+  TextVariant,
+  FontWeight,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Badge, {
@@ -158,20 +163,33 @@ export const TokenDetailsInlineHeader = ({
     );
   }, [starButton, onSharePress, onPriceAlertPress]);
 
-  const descriptionEndAccessory = useMemo(() => {
+  const inlineDescription = useMemo(() => {
     if (!contractAddress) {
       return undefined;
     }
 
     return (
-      <ButtonIcon
-        iconName={IconName.Copy}
-        size={ButtonIconSize.Xs}
-        onPress={handleCopyContractAddress}
-        iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-        testID="copy-contract-address-button"
-        accessibilityLabel={strings('token.contract_address')}
-      />
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
+          {formatAddress(contractAddress, 'short')}
+        </Text>
+        <ButtonIcon
+          iconName={IconName.Copy}
+          size={ButtonIconSize.Xs}
+          onPress={handleCopyContractAddress}
+          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+          testID="copy-contract-address-button"
+          accessibilityLabel={strings('token.contract_address')}
+        />
+      </Box>
     );
   }, [contractAddress, handleCopyContractAddress]);
 
@@ -207,10 +225,7 @@ export const TokenDetailsInlineHeader = ({
       }
       title={token.ticker || token.symbol}
       titleEndAccessory={titleEndAccessory}
-      description={
-        contractAddress ? formatAddress(contractAddress, 'short') : undefined
-      }
-      descriptionEndAccessory={descriptionEndAccessory}
+      description={inlineDescription}
     />
   );
 };

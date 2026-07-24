@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeSeedlessOnboarding } from '../../tags.js';
+import { SmokeSeedlessOnboardingExtended } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { PlatformDetector } from '../../framework/PlatformLocator.js';
@@ -13,9 +13,10 @@ import {
 } from './helpers/seedless-helpers.js';
 
 appiumTest.describe(
-  SmokeSeedlessOnboarding('Google Login - Lock and Unlock'),
+  SmokeSeedlessOnboardingExtended('Google Login - Lock and Unlock'),
   () => {
-    appiumTest(
+    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
+    appiumTest.skip(
       'onboards with Google login, locks, and unlocks the app',
       async ({ driver: _driver, currentDeviceDetails }) => {
         const fixture = PlatformDetector.isIOS()

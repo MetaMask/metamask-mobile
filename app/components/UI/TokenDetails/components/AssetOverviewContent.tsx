@@ -38,7 +38,7 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
+import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
@@ -122,7 +122,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
     } as ViewStyle,
     perpsPositionCardContainer: {
-      paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
     marketClosedActionButtonContainer: {
@@ -684,12 +683,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
-              <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
+              <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
                 {strings('asset_overview.perps_position')}
               </Text>
-              <PerpsPositionCard
+              <PerpsCard
                 position={perpsPosition}
-                compact
                 onPress={handlePerpsDiscoveryPress}
                 testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
               />

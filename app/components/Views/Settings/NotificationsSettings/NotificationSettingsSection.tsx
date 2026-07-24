@@ -30,6 +30,10 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/noti
 import Routes from '../../../../constants/navigation/Routes';
 import { useWalletActivityAccountSelection } from './AccountsList.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { NotificationChannel } from '../../../../core/Analytics/events/channels';
+import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import Logger from '../../../../util/Logger';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
@@ -38,7 +42,29 @@ interface SectionContentProps {
   styles: NotificationSettingsStyles;
 }
 
+const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
+  {
+    walletActivity: 'wallet_activity',
+    perps: 'perps',
+    agenticCli: 'agentic_cli',
+    socialAI: 'social_ai',
+    marketing: 'marketing',
+    priceAlerts: 'price_alerts',
+  };
+
+const CHANNEL_BY_KEY: Record<
+  NotificationPreferenceChannelKey,
+  NotificationChannel
+> = {
+  pushNotificationsEnabled: NotificationChannel.PUSH,
+  inAppNotificationsEnabled: NotificationChannel.IN_APP,
+};
+
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
+  const { preferences, updatePreferencesSection } =
+    useNotificationStoragePreferences();
   const {
     accountProps,
     notificationAccountListProps,
@@ -47,6 +73,39 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     isUpdatingAllAccounts,
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
+
+  // Toggling all accounts flips both wallet-activity channels in one section
+  // update so they don't race on the shared (stale) preferences snapshot.
+  const handleToggleAllAccounts = useCallback(async () => {
+    const nextEnabled = !hasEnabledAccount;
+
+    await toggleAllAccounts();
+
+    if (preferences) {
+      await updatePreferencesSection('walletActivity', {
+        ...preferences.walletActivity,
+        pushNotificationsEnabled: nextEnabled,
+        inAppNotificationsEnabled: nextEnabled,
+      });
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: SETTINGS_TYPE_BY_SECTION.walletActivity,
+          notification_channel: NotificationChannel.ALL,
+          enabled: nextEnabled,
+        })
+        .build(),
+    );
+  }, [
+    hasEnabledAccount,
+    toggleAllAccounts,
+    preferences,
+    updatePreferencesSection,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return (
     <>
@@ -62,7 +121,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
           </Text>
           {hasNotificationAccounts ? (
             <TouchableOpacity
-              onPress={toggleAllAccounts}
+              onPress={handleToggleAllAccounts}
               disabled={isUpdatingAllAccounts}
               accessibilityRole="button"
               style={styles.selectAllButton}
@@ -154,6 +213,8 @@ const NotificationSettingsSection = ({
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const { type, title, description } = route.params;
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
 
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -171,6 +232,21 @@ const NotificationSettingsSection = ({
   });
   const sectionPrefs = preferences?.[type];
   const SectionContent = SECTION_CONTENT_BY_TYPE[type];
+
+  const trackChannelUpdate = useCallback(
+    (channel: NotificationChannel, enabled: boolean) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+          .addProperties({
+            settings_type: SETTINGS_TYPE_BY_SECTION[type],
+            notification_channel: channel,
+            enabled,
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, type],
+  );
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -203,23 +279,27 @@ const NotificationSettingsSection = ({
         [channel]: nextValue,
       }));
 
-      updateSectionChannel(type, channel, nextValue).catch(() => {
-        Logger.error(
-          new Error('Failed to update notification section channel'),
-          {
-            message: 'NotificationSettingsSection: update channel failed',
-            type,
-            channel,
-            nextValue,
-          },
-        );
+      updateSectionChannel(type, channel, nextValue)
+        .then(() => {
+          trackChannelUpdate(CHANNEL_BY_KEY[channel], nextValue);
+        })
+        .catch(() => {
+          Logger.error(
+            new Error('Failed to update notification section channel'),
+            {
+              message: 'NotificationSettingsSection: update channel failed',
+              type,
+              channel,
+              nextValue,
+            },
+          );
 
-        if (channelGenerationsRef.current[channel] === generation) {
-          clearPendingChannelToggle(channel);
-        }
-      });
+          if (channelGenerationsRef.current[channel] === generation) {
+            clearPendingChannelToggle(channel);
+          }
+        });
     },
-    [clearPendingChannelToggle, type, updateSectionChannel],
+    [clearPendingChannelToggle, trackChannelUpdate, type, updateSectionChannel],
   );
 
   useEffect(() => {

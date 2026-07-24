@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image, Linking, ScrollView, useWindowDimensions } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -77,7 +75,7 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
   const { height: windowHeight } = useWindowDimensions();
   const heroHeight = windowHeight * HERO_HEIGHT_RATIO;
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   useTrackRewardsPageView({
@@ -88,7 +86,10 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
   useEffect(() => {
     if (!isLoading && hasOutcomeLoaded && winningCode === null) {
       if (fallbackRoute) {
-        navigation.navigate(fallbackRoute.route, fallbackRoute.params);
+        navigateWithDetails(navigation, [
+          fallbackRoute.route,
+          fallbackRoute.params,
+        ]);
         return;
       }
       navigation.goBack();

@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -68,7 +70,7 @@ export interface UsePerpsHomeActionsReturn {
 export const usePerpsHomeActions = (
   options?: UsePerpsHomeActionsOptions,
 ): UsePerpsHomeActionsReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isEligible = useSelector(selectPerpsEligibility);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { depositWithConfirmation } = usePerpsTrading();

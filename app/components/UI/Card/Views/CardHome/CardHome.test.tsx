@@ -100,6 +100,7 @@ import {
   selectCardUserLocation,
   selectCardHomeDataStatus,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -295,6 +296,17 @@ interface RegistrationSettingsHookReturn {
 jest.mock('../../hooks/useCardHomeData', () => ({
   __esModule: true,
   useCardHomeData: jest.fn(),
+}));
+
+const mockResumePendingAction = jest.fn();
+let mockImmersvePendingAction: { type: string } | null = null;
+jest.mock('./hooks/useImmersveCardProvisioning', () => ({
+  useImmersveCardProvisioning: () => ({
+    isProvisioning: false,
+    isReconciling: false,
+    pendingAction: mockImmersvePendingAction,
+    resumePendingAction: mockResumePendingAction,
+  }),
 }));
 
 jest.mock('../../hooks/useCreditBalance', () => ({
@@ -786,6 +798,7 @@ function setupMockSelectors(
       address: string;
       decimals: number;
     } | null;
+    activeProviderId: string;
   }>,
 ) {
   const defaults = {
@@ -802,6 +815,7 @@ function setupMockSelectors(
     cardHomeDataStatus: 'success' as const,
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
+    activeProviderId: 'baanx',
   };
 
   const config = { ...defaults, ...overrides };
@@ -818,6 +832,7 @@ function setupMockSelectors(
     if (selector === selectCardLastUnauthenticatedReason)
       return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
+    if (selector === selectCardActiveProviderId) return config.activeProviderId;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
     if (selector === selectPrimaryMoneyAccount)
       return config.primaryMoneyAccount;
@@ -1132,6 +1147,8 @@ function render() {
 
 describe('CardHome Component', () => {
   beforeEach(() => {
+    mockImmersvePendingAction = null;
+    mockResumePendingAction.mockClear();
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -1897,6 +1914,49 @@ describe('CardHome Component', () => {
         `mailto:${CARD_SUPPORT_EMAIL}`,
       );
     });
+  });
+
+  it('uses the Immersve terms URL for the Immersve provider', () => {
+    setupMockSelectors({ activeProviderId: 'immersve' });
+
+    render();
+
+    expect(mockUseNavigateToCardPage).toHaveBeenCalledWith(
+      expect.any(Object),
+      'https://immersve.com/terms-and-conditions/uk/general-terms-of-use',
+    );
+  });
+
+  it('opens the Immersve support email for the Immersve provider', async () => {
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'mailto:support@metamask.io',
+      );
+    });
+  });
+
+  it('shows the pending verification warning and continues from the CTA', () => {
+    mockImmersvePendingAction = { type: 'kyc' };
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('confirm-button'));
+    expect(mockResumePendingAction).toHaveBeenCalledTimes(1);
   });
 
   it('displays correct priority token information', async () => {

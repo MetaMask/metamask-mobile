@@ -12,7 +12,6 @@ import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -104,7 +103,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
 
   const { preferences } = useNotificationStoragePreferences();
 
@@ -208,26 +206,20 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
-            {isPriceAlertsEnabled && (
-              <NotificationRow
-                title={strings(
-                  'app_settings.notifications_opts.price_alerts_title',
-                )}
-                status={getStatusText(preferences?.priceAlerts)}
-                iconName={IconName.Notification}
-                onPress={() =>
-                  navigateToSection(
-                    'priceAlerts',
-                    strings(
-                      'app_settings.notifications_opts.price_alerts_title',
-                    ),
-                    strings(
-                      'app_settings.notifications_opts.price_alerts_desc',
-                    ),
-                  )
-                }
-              />
-            )}
+            <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.price_alerts_title',
+              )}
+              status={getStatusText(preferences?.priceAlerts)}
+              iconName={IconName.Notification}
+              onPress={() =>
+                navigateToSection(
+                  'priceAlerts',
+                  strings('app_settings.notifications_opts.price_alerts_title'),
+                  strings('app_settings.notifications_opts.price_alerts_desc'),
+                )
+              }
+            />
           </>
         )}
       </ScrollView>

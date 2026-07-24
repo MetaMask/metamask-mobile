@@ -6,6 +6,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -74,7 +75,7 @@ export function resetPredictThePitchCampaignDetailsSessionAutoNavigationForTests
 
 const PredictThePitchCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<

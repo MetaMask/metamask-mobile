@@ -1,13 +1,14 @@
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import ScreenView from '../../../../Base/ScreenView';
 import { createStyles } from './PerpsLoader.styles';
 import { PerpsLoaderSelectorsIDs } from '../../Perps.testIds';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface PerpsLoaderProps {
   message?: string;
@@ -36,8 +37,8 @@ const PerpsLoader: React.FC<PerpsLoaderProps> = ({
         testID={PerpsLoaderSelectorsIDs.SPINNER}
       />
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Muted}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextMuted}
         style={styles.loadingText}
         testID={PerpsLoaderSelectorsIDs.TEXT}
       >

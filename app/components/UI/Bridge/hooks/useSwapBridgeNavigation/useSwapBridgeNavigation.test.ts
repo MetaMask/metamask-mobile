@@ -1435,9 +1435,9 @@ describe('useSwapBridgeNavigation', () => {
     it('passes transactionActiveAbTests in bridge route params when caller provides them', () => {
       const abTests = [
         {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+          key: 'testAbFlag',
+          value: 'treatment',
+          key_value_pair: 'testAbFlag=treatment',
         },
       ];
 
