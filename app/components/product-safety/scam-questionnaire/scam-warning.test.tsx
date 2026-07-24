@@ -10,8 +10,6 @@ import {
   rejectSupportConsent,
 } from '../../../util/support';
 
-jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
-
 jest.mock('../../../util/support', () => ({
   confirmSupportConsent: jest.fn(),
   rejectSupportConsent: jest.fn(),
@@ -41,13 +39,12 @@ describe('ScamWarning', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    // Recreate the spy per test so state never leaks across tests/files.
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
   });
 
   afterEach(() => {
     jest.useRealTimers();
-  });
-
-  afterAll(() => {
     jest.restoreAllMocks();
   });
 
