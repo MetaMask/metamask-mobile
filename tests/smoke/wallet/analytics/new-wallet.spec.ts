@@ -8,9 +8,6 @@ import {
   newWalletWithMetricsOptInExpectations,
   newWalletMetricsOptOutExpectations,
 } from '../../../helpers/analytics/expectations/new-wallet.analytics';
-import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { Mockttp } from 'mockttp';
 import { E2E_WALLET_SETUP_ATTRIBUTION_FIELDS } from '../../../helpers/analytics/walletSetupAttributionE2eConstants';
 import { withStrictWalletSetupAttributionMatch } from '../../../helpers/analytics/withStrictWalletSetupAttributionMatch';
 
@@ -24,12 +21,6 @@ describe(SmokeWalletPlatform('Analytics during new wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeaturePredictGtmOnboardingModalDisabled(),
-          );
-        },
         analyticsExpectations: newWalletWithMetricsOptInExpectations,
       },
       async () => {
@@ -46,12 +37,6 @@ describe(SmokeWalletPlatform('Analytics during new wallet flow'), () => {
           .withWalletSetupAttributionForE2e(E2E_WALLET_SETUP_ATTRIBUTION_FIELDS)
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeaturePredictGtmOnboardingModalDisabled(),
-          );
-        },
         analyticsExpectations: withStrictWalletSetupAttributionMatch(
           newWalletWithMetricsOptInExpectations,
         ),

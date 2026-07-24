@@ -122,7 +122,6 @@ export const PredictEventValues = {
     MAIN_TRADE_BUTTON: 'main_trade_button',
     HOMESCREEN_PILL: 'homescreen_pill',
     REWARDS: 'rewards',
-    GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
     TRENDING_SEARCH: 'trending_search',
     TRENDING: 'trending',
@@ -249,10 +248,3 @@ export const PredictShareStatus = {
 
 export type PredictShareStatusValue =
   (typeof PredictShareStatus)[keyof typeof PredictShareStatus];
-
-/**
- * GTM Modal constants for analytics tracking
- */
-export const PREDICT_GTM_WHATS_NEW_MODAL = 'predict-gtm-whats-new-modal';
-export const PREDICT_GTM_MODAL_ENGAGE = 'engage';
-export const PREDICT_GTM_MODAL_DECLINE = 'decline';

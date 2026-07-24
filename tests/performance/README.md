@@ -563,16 +563,6 @@ import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
 await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1);
 ```
 
-### `dismisspredictionsModalPlaywright()`
-
-Dismiss the Predictions modal:
-
-```typescript
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
-
-await dismisspredictionsModalPlaywright();
-```
-
 ### `selectAccountByDevice(deviceName)`
 
 Select the account mapped to the current device for parallel testing:

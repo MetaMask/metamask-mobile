@@ -6,7 +6,6 @@ import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictFeatureFlags,
   selectPredictFeeCollectionFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
   selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
@@ -1098,54 +1097,6 @@ describe('Predict Feature Flag Selectors', () => {
       const resultB = selectPredictFeatureFlags(stateB);
 
       expect(resultB).toBe(resultA);
-    });
-  });
-
-  describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
-    it('returns version-gated flag value when remote flag is set', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const stateWithRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result =
-        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteFlag);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when env var not set and no remote flag', () => {
-      delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-      const stateWithoutRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictGtmOnboardingModalEnabledFlag(
-        stateWithoutRemoteFlag,
-      );
-
-      expect(result).toBe(false);
     });
   });
 

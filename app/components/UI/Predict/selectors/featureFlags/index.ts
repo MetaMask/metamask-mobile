@@ -35,19 +35,6 @@ export const selectPredictEnabledFlag = createSelector(
   },
 );
 
-export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
-    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-      remoteFeatureFlags?.predictGtmOnboardingModalEnabled,
-    );
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-  },
-);
-
 /**
  * Variant options for the Predict home featured section
  */

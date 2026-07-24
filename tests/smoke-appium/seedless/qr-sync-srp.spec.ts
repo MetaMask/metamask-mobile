@@ -4,10 +4,7 @@ import { SmokeSeedlessOnboarding } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import {
-  remoteFeatureMultichainAccountsAccountDetails,
-  remoteFeaturePredictGtmOnboardingModalDisabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks.js';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
@@ -25,7 +22,6 @@ const DEFAULT_ACCOUNT_NAME = 'Account 1';
 const enableAddDeviceSyncFlag = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureMultichainAccountsAccountDetails(),
-    ...remoteFeaturePredictGtmOnboardingModalDisabled(),
     addDeviceSyncEnabled: true,
   });
 };

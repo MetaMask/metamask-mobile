@@ -3,7 +3,6 @@
     "@MetaMask:OptinMetaMetricsUISeen": "true",
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
-    "@MetaMask:predictGTMModalShown": "true",
     "@MetaMask:solanaFeatureModalShownV2": "true"
   },
   "state": {

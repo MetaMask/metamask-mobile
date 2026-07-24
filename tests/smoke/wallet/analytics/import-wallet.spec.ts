@@ -6,10 +6,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import {
-  remoteFeatureMultichainAccountsAccountDetails,
-  remoteFeaturePredictGtmOnboardingModalDisabled,
-} from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   createLogger,
   countProxiedRequestsMatching,
@@ -47,7 +44,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureMultichainAccountsAccountDetails(),
-            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
           });
         },
         analyticsExpectations: importWalletWithMetricsOptInExpectations,
@@ -104,7 +100,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureMultichainAccountsAccountDetails(),
-            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
           });
         },
         analyticsExpectations: withStrictWalletSetupAttributionMatch(
@@ -130,7 +125,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureMultichainAccountsAccountDetails(),
-            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
           });
         },
         analyticsExpectations: importWalletMetricsOptOutExpectations,

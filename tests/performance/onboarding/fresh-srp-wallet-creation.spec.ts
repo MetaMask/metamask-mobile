@@ -8,7 +8,6 @@ import {
 } from '../../framework';
 import { OnboardingInterestQuestionnaireTestIds } from '../../../app/components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.testIds';
 import { NewUserSheetSelectorsIDs } from '../../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
-import { PREDICT_GTM_MODAL_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictGTMModal/PredictGTMModal.testIds';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import TimerHelper, {
@@ -22,7 +21,6 @@ import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWall
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PushNotificationOnboardingView from '../../page-objects/Notifications/PushNotificationOnboardingView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import {
   Performance,
   PerformanceOnboarding,
@@ -35,7 +33,6 @@ import {
 const POST_ONBOARDING_DESTINATIONS = [
   'interest-questionnaire',
   'push-notification',
-  'predict-modal',
   'wallet',
 ] as const;
 
@@ -56,7 +53,6 @@ const POST_ONBOARDING_DESTINATION_LABELS: Record<
 > = {
   'interest-questionnaire': 'onboarding interest questionnaire',
   'push-notification': 'push notification sheet',
-  'predict-modal': 'Predict onboarding sheet',
   wallet: 'usable wallet',
 };
 
@@ -64,7 +60,6 @@ const POST_ONBOARDING_SOURCE_LABELS: Record<PostOnboardingSource, string> = {
   metametrics: '"Agree" on MetaMetrics',
   'interest-questionnaire': '"Skip" on the onboarding interest questionnaire',
   'push-notification': '"Not now" on the push notification sheet',
-  'predict-modal': '"Not now" on the Predict onboarding sheet',
 };
 
 const waitForPostOnboardingDestination = async (
@@ -87,11 +82,6 @@ const waitForPostOnboardingDestination = async (
       marker: NewUserSheetSelectorsIDs.TITLE,
       getElement: () =>
         asPlaywrightElement(PushNotificationOnboardingView.title),
-    },
-    {
-      destination: 'predict-modal',
-      marker: PREDICT_GTM_MODAL_TEST_IDS.NOT_NOW_BUTTON,
-      getElement: () => asPlaywrightElement(PredictModalView.notNowButton),
     },
     {
       // Wait on the tab-bar Wallet button (matches import-wallet.spec.ts) so
@@ -182,9 +172,6 @@ const dismissPostOnboardingDestination = async (
       break;
     case 'push-notification':
       await PushNotificationOnboardingView.tapNotNowButton();
-      break;
-    case 'predict-modal':
-      await PredictModalView.tapNotNowButton();
       break;
   }
 };
