@@ -23,47 +23,6 @@ export const METAMASK_DEEPLINK_HOSTS: readonly string[] = [
   ),
 ];
 
-const MWP_PREFIX = `${PROTOCOLS.METAMASK}://${ACTIONS.CONNECT}/mwp`;
-
-/**
- * Restricts remotely configured destinations to MetaMask-owned deeplinks.
- * Wallet Protocol links are excluded because they bypass normal source checks.
- */
-export const isAllowedMetaMaskDeeplink = (
-  uri: unknown,
-  allowedActions?: readonly string[],
-): uri is string => {
-  if (
-    typeof uri !== 'string' ||
-    uri.length === 0 ||
-    uri.startsWith(MWP_PREFIX)
-  ) {
-    return false;
-  }
-
-  try {
-    const parsed = new URL(uri);
-
-    const isAllowedProtocol =
-      parsed.protocol === `${PROTOCOLS.METAMASK}:` ||
-      (parsed.protocol === `${PROTOCOLS.HTTPS}:` &&
-        METAMASK_DEEPLINK_HOSTS.includes(parsed.hostname));
-
-    if (!isAllowedProtocol) {
-      return false;
-    }
-
-    const action =
-      parsed.protocol === `${PROTOCOLS.METAMASK}:`
-        ? parsed.hostname
-        : (parsed.pathname.split('/').filter(Boolean)[0] ?? '');
-
-    return !allowedActions || allowedActions.includes(action);
-  } catch {
-    return false;
-  }
-};
-
 export const METAMASK_SDK_DEEPLINK_ACTIONS = [
   ACTIONS.ANDROID_SDK,
   ACTIONS.CONNECT,

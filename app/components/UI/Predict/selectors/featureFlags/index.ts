@@ -25,8 +25,7 @@ import {
   PredictFeedBannerSchema,
   PredictFeedCarouselSchema,
 } from '../../schemas';
-import { isAllowedMetaMaskDeeplink } from '../../../../../core/DeeplinkManager/util/deeplinks';
-import { ACTIONS } from '../../../../../constants/deeplinks';
+import { isAllowedPredictDeeplink } from '../../utils/isAllowedPredictDeeplink';
 
 /**
  * Selector for Predict trading feature enablement
@@ -284,10 +283,7 @@ export const selectPredictFeedCarouselConfig = createSelector(
     const title = parsedFlag.title.trim();
     const deeplink = parsedFlag.deeplink?.trim() || undefined;
 
-    if (
-      !title ||
-      (deeplink && !isAllowedMetaMaskDeeplink(deeplink, [ACTIONS.PREDICT]))
-    ) {
+    if (!title || (deeplink && !isAllowedPredictDeeplink(deeplink))) {
       return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
     }
 
