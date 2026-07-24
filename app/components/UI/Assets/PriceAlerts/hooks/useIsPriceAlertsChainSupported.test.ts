@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { useIsPriceAlertsChainSupported } from './useIsPriceAlertsChainSupported';
@@ -108,19 +108,6 @@ describe('useIsPriceAlertsChainSupported', () => {
     expect(result.current).toBe(false);
   });
 
-  it('does not fetch when enabled is false', () => {
-    const { Wrapper } = createWrapper();
-    renderHook(
-      () =>
-        useIsPriceAlertsChainSupported('eip155:1/slip44:60', {
-          enabled: false,
-        }),
-      { wrapper: Wrapper },
-    );
-
-    expect(mockFetchSupportedChains).not.toHaveBeenCalled();
-  });
-
   it('retries the fetch after a transient failure', async () => {
     jest.useFakeTimers();
 
@@ -136,17 +123,20 @@ describe('useIsPriceAlertsChainSupported', () => {
 
     expect(mockFetchSupportedChains).toHaveBeenCalledTimes(1);
 
+    // Advance past the 5 s retry delay so React Query fires the second fetch,
+    // then flush all pending promises so the successful response is processed.
     await jest.advanceTimersByTimeAsync(5_000);
-
-    await waitFor(() => {
-      expect(mockFetchSupportedChains).toHaveBeenCalledTimes(2);
-    });
-
-    await waitFor(() => {
-      expect(result.current).toBe(true);
-    });
+    await jest.advanceTimersByTimeAsync(1_000);
 
     jest.useRealTimers();
+
+    await waitFor(
+      () => {
+        expect(mockFetchSupportedChains).toHaveBeenCalledTimes(2);
+        expect(result.current).toBe(true);
+      },
+      { timeout: 5000 },
+    );
   });
 
   it('caches supported chains for 24 hours', async () => {

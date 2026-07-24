@@ -61,7 +61,6 @@ import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 
@@ -205,7 +204,6 @@ const TokenDetails: React.FC<{
     }
   }, [token.caipAssetId, token.address, token.chainId]);
 
-  const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
   const shareUrl = useMemo(
     () =>
       caip19AssetId
@@ -239,10 +237,8 @@ const TokenDetails: React.FC<{
     trackEvent,
   ]);
 
-  const isPriceAlertsChainSupported = useIsPriceAlertsChainSupported(
-    caip19AssetId,
-    { enabled: isPriceAlertsFeatureEnabled },
-  );
+  const isPriceAlertsChainSupported =
+    useIsPriceAlertsChainSupported(caip19AssetId);
 
   const {
     securityData,
@@ -283,7 +279,7 @@ const TokenDetails: React.FC<{
   } = useTokenPrice({ token });
 
   const currentPriceUsd = useMemo(() => {
-    if (!isPriceAlertsFeatureEnabled || !Number.isFinite(currentPrice)) {
+    if (!Number.isFinite(currentPrice)) {
       return null;
     }
     return (
@@ -295,7 +291,6 @@ const TokenDetails: React.FC<{
       }) ?? null
     );
   }, [
-    isPriceAlertsFeatureEnabled,
     currentPrice,
     token.chainId,
     networkConfigurationsByChainId,
@@ -445,7 +440,6 @@ const TokenDetails: React.FC<{
           />
         }
         onPriceAlertPress={
-          isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&
           (currentPriceUsd ?? 0) > 0 &&
           caip19AssetId
