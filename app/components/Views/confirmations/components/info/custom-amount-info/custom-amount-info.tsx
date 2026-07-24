@@ -111,6 +111,21 @@ type QuoteHandoff =
       quotesLastUpdated: number;
     };
 
+function getLatestQuotesLastUpdated(
+  controllerQuotesLastUpdated: number | undefined,
+  reduxQuotesLastUpdated: number | undefined,
+) {
+  if (controllerQuotesLastUpdated === undefined) {
+    return reduxQuotesLastUpdated;
+  }
+
+  if (reduxQuotesLastUpdated === undefined) {
+    return controllerQuotesLastUpdated;
+  }
+
+  return Math.max(controllerQuotesLastUpdated, reduxQuotesLastUpdated);
+}
+
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
   children?: ReactNode;
@@ -216,6 +231,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isKeyboardVisibleRef = useRef(isKeyboardVisible);
     isKeyboardVisibleRef.current = isKeyboardVisible;
     const [isAmountUpdating, setIsAmountUpdating] = useState(false);
+    const [hasCommittedAmount, setHasCommittedAmount] = useState(false);
     const [quoteHandoff, setQuoteHandoff] = useState<QuoteHandoff>();
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
@@ -258,12 +274,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
     quotesLastUpdatedRef.current = quotesLastUpdated;
     const isQuotesLoading = useIsTransactionPayLoading();
-    const showLoadingReview = isAmountUpdating || isQuotesLoading;
+    const hasSourceAmount = useTransactionPayHasSourceAmount();
+    const showLoadingReview =
+      isAmountUpdating || (isQuotesLoading && hasCommittedAmount);
     const isResultReady =
       showLoadingReview ||
       isTransactionResultReady ||
       (isAddMusdIntent && !isKeyboardVisible);
-    const hasSourceAmount = useTransactionPayHasSourceAmount();
     const { alerts } = useAlerts();
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
@@ -303,6 +320,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
       try {
         await updateTokenAmount();
+        setHasCommittedAmount(true);
         if (selectedFiatPaymentMethodId && transactionId) {
           Engine.context.TransactionPayController.updateFiatPayment({
             transactionId,
@@ -321,13 +339,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             ]
           : undefined;
         const controllerQuotesLastUpdated = transactionData?.quotesLastUpdated;
-        const reduxQuotesLastUpdated = quotesLastUpdatedRef.current;
-        const latestQuotesLastUpdated =
-          controllerQuotesLastUpdated === undefined
-            ? reduxQuotesLastUpdated
-            : reduxQuotesLastUpdated === undefined
-              ? controllerQuotesLastUpdated
-              : Math.max(controllerQuotesLastUpdated, reduxQuotesLastUpdated);
+        const latestQuotesLastUpdated = getLatestQuotesLastUpdated(
+          controllerQuotesLastUpdated,
+          quotesLastUpdatedRef.current,
+        );
 
         if (transactionData?.isLoading) {
           setQuoteHandoff({
@@ -361,6 +376,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           ),
         );
         setIsKeyboardVisible(true);
+        setHasCommittedAmount(false);
         setQuoteHandoff(undefined);
         setIsAmountUpdating(false);
         // Keep keyboard visible so the user can retry; do not advance the flow.
@@ -518,7 +534,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             </>
           )}
           {isResultReady && (
-            <Box
+            <View
               pointerEvents={showLoadingReview ? 'none' : 'auto'}
               testID={CustomAmountInfoTestIds.REVIEW_ROWS}
             >
@@ -541,7 +557,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 />
               )}
               <PercentageRow />
-            </Box>
+            </View>
           )}
           {footerText && (
             <Text
