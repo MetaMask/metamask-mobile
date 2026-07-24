@@ -31,6 +31,8 @@ import PredictCategoriesSection from './components/PredictCategoriesSection';
 import PredictPopularTodaySection from './components/PredictPopularTodaySection';
 import PredictTrendingSection from './components/PredictTrendingSection';
 import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -168,8 +170,14 @@ const PredictHome: React.FC = () => {
           </Box>
 
           <Box twClassName="gap-6">
+            <PredictFeedBanner
+              position={PredictFeedBannerPosition.BeforePortfolio}
+            />
             <PredictPortfolioModule
               onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            />
+            <PredictFeedBanner
+              position={PredictFeedBannerPosition.AfterPortfolio}
             />
             <Box
               testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
@@ -177,6 +185,9 @@ const PredictHome: React.FC = () => {
             >
               <PredictLiveNowSection />
             </Box>
+            <PredictFeedBanner
+              position={PredictFeedBannerPosition.AfterLiveNow}
+            />
             <Box
               testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
               onLayout={registerSection(
@@ -185,6 +196,9 @@ const PredictHome: React.FC = () => {
             >
               <PredictCategoriesSection />
             </Box>
+            <PredictFeedBanner
+              position={PredictFeedBannerPosition.AfterCategories}
+            />
             <Box
               testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
               onLayout={registerSection(
@@ -193,12 +207,18 @@ const PredictHome: React.FC = () => {
             >
               <PredictPopularTodaySection />
             </Box>
+            <PredictFeedBanner
+              position={PredictFeedBannerPosition.AfterPopularToday}
+            />
             <Box
               testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
               onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
             >
               <PredictTrendingSection />
             </Box>
+            <PredictFeedBanner
+              position={PredictFeedBannerPosition.AfterTrending}
+            />
           </Box>
         </Animated.ScrollView>
 
