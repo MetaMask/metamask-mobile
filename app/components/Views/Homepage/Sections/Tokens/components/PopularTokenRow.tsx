@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -146,7 +147,7 @@ const formatPercentageChange = (
  */
 const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
   const { trackBuyButtonClicked } = useRampsButtonClickedEvent();
   const currentCurrency = useSelector(selectCurrentCurrency);

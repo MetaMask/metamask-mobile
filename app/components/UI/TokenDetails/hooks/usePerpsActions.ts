@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   usePerpsMarketForAsset,
   type UsePerpsMarketForAssetResult,
@@ -47,7 +48,7 @@ export const usePerpsActions = ({
   fromTokenDetails,
   transactionActiveAbTests,
 }: UsePerpsActionsParams): UsePerpsActionsResult => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { hasPerpsMarket, marketData, isLoading, error } =
     usePerpsMarketForAsset(symbol);

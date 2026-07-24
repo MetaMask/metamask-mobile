@@ -5,6 +5,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   ButtonSize,
   ButtonVariants,
@@ -34,7 +35,7 @@ const ConfirmAddAsset = () => {
   }>();
 
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isImporting, setIsImporting] = useState(false);
 
   /**

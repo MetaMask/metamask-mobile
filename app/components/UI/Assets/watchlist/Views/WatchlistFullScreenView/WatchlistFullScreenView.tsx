@@ -4,6 +4,7 @@ import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import ReorderableList from 'react-native-reorderable-list';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   Button,
   ButtonIcon,
@@ -43,7 +44,7 @@ interface WatchlistFullViewRouteParams {
 
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const routeParams = route.params as WatchlistFullViewRouteParams | undefined;
   const { data, isLoading } = useTokenWatchlistQuery();

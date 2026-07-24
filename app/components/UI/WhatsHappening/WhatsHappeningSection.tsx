@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -86,7 +87,7 @@ const WhatsHappeningSection = forwardRef<
 >(({ source, onHeaderPress, feed, tabName, sectionName }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('whats_happening.title');

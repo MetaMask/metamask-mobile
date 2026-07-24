@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
@@ -9,6 +10,7 @@ import {
 } from '../NotificationPreferences/hooks/tradingSignalsChannels';
 import { playErrorNotification } from '../../../../util/haptics';
 import { createTradingSignalsSetupNavigationDetails } from '../components/TradingSignalsSetupBottomSheet';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 
 /** Action deferred until the setup sheet closes with channels enabled. */
 type PendingAction = () => void | Promise<void>;
@@ -43,7 +45,7 @@ export interface UseOpenTradingSignalsSetupResult {
  */
 export const useOpenTradingSignalsSetup =
   (): UseOpenTradingSignalsSetupResult => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const {
       preferences,
       hasNotificationPreferences,
@@ -71,8 +73,9 @@ export const useOpenTradingSignalsSetup =
     const navigateToSetupSheet = useCallback(
       (pendingAction?: PendingAction) => {
         playErrorNotification().catch(() => undefined);
-        navigation.navigate(
-          ...createTradingSignalsSetupNavigationDetails({
+        navigateWithDetails(
+          navigation,
+          createTradingSignalsSetupNavigationDetails({
             onSetupComplete: pendingAction,
           }),
         );

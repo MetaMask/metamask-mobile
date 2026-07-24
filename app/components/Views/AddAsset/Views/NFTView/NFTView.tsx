@@ -12,6 +12,7 @@ import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
@@ -37,7 +38,7 @@ const NFTView = ({
   openNetworkSelector,
   networkConfigurations,
 }: NFTViewProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const goToSecuritySettings = () => {

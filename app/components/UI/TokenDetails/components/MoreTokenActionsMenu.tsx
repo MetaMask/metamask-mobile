@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -60,7 +61,7 @@ interface ActionConfig {
 const MoreTokenActionsMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<MoreTokenActionsMenuRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const {
     hasPerpsMarket,
