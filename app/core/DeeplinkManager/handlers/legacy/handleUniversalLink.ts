@@ -767,7 +767,9 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.TOP_TRADERS: {
-      handleSocialLeaderboardUrl();
+      handleSocialLeaderboardUrl({
+        actionPath: actionBasedRampPath,
+      });
       break;
     }
     case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {
