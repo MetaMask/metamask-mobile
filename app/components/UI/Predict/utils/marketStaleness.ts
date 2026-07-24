@@ -11,11 +11,15 @@ export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.99;
 export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.01;
 export const PREDICT_MIN_STALENESS_PENALTY = 0.1;
 export const PREDICT_LAST_HOUR_TIME_PENALTY = 0.5;
+export const PREDICT_MIN_GAME_OUTCOME_VOLUME = 1000;
 
 const HOUR_IN_MS = 60 * 60 * 1000;
+const MONEYLINE_MARKET_TYPE = 'moneyline';
+const PREDICT_GAMES_TAG = 'games';
 
 export interface PredictMarketStalenessOptions {
   now?: Date | number;
+  filterGames?: boolean;
 }
 
 const getNowMs = (options?: PredictMarketStalenessOptions): number => {
@@ -53,8 +57,24 @@ export const isPredictOutcomeDead = (outcome: PredictOutcome): boolean => {
   );
 };
 
+const getOutcomeVolume = (outcome: PredictOutcome): number => {
+  const volume: number | string = outcome.volume;
+  return typeof volume === 'string' ? parseFloat(volume) : volume;
+};
+
+const hasSufficientOutcomeVolume = (outcome: PredictOutcome): boolean => {
+  const volume = getOutcomeVolume(outcome);
+  return Number.isFinite(volume) && volume >= PREDICT_MIN_GAME_OUTCOME_VOLUME;
+};
+
 const isPredictOutcomeDisplayable = (outcome: PredictOutcome): boolean =>
   outcome.status === PredictMarketStatus.OPEN && !isPredictOutcomeDead(outcome);
+
+const isPredictGameOutcomeDisplayable = (outcome: PredictOutcome): boolean =>
+  isPredictOutcomeDisplayable(outcome) && hasSufficientOutcomeVolume(outcome);
+
+const isMoneylineOutcome = (outcome: PredictOutcome): boolean =>
+  outcome.sportsMarketType?.toLowerCase() === MONEYLINE_MARKET_TYPE;
 
 const filterOutcomeGroup = (
   group: PredictOutcomeGroup,
@@ -102,7 +122,19 @@ export const filterVisibleMarketOutcomes = (
 const isDailyMarket = (market: PredictMarket): boolean =>
   market.recurrence === Recurrence.DAILY;
 
-const isGameMarket = (market: PredictMarket): boolean => Boolean(market.game);
+const isGameMarket = (market: PredictMarket): boolean =>
+  Boolean(market.game) || market.tags.includes(PREDICT_GAMES_TAG);
+
+const hasVisibleGameOutcomes = (market: PredictMarket): boolean => {
+  const outcomes = market.outcomes.filter(isPredictGameOutcomeDisplayable);
+  const moneylineOutcomes = market.outcomes.filter(isMoneylineOutcome);
+
+  return (
+    outcomes.length > 0 &&
+    (moneylineOutcomes.length === 0 ||
+      moneylineOutcomes.some(isPredictGameOutcomeDisplayable))
+  );
+};
 
 /**
  * Whether the underlying game has finished. For game markets this is the
@@ -237,6 +269,10 @@ export const getVisiblePredictMarket = (
   }
 
   if (isGameMarket(market)) {
+    if (options?.filterGames && !hasVisibleGameOutcomes(market)) {
+      return null;
+    }
+
     return market;
   }
 

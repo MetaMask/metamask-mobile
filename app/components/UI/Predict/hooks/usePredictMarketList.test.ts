@@ -5,6 +5,7 @@ import { usePredictMarketList } from './usePredictMarketList';
 import { createChildPage, createPage } from '../testUtils/marketList';
 
 const mockListMarkets = jest.fn();
+const mockGetVisiblePredictMarkets = jest.fn((markets: unknown) => markets);
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
@@ -22,7 +23,8 @@ jest.mock('../../../../util/Logger', () => ({
 // tests; here we make it an identity so we can assert the hook's flatten +
 // cross-page dedupe behaviour deterministically.
 jest.mock('../utils/marketStaleness', () => ({
-  getVisiblePredictMarkets: (markets: unknown) => markets,
+  getVisiblePredictMarkets: (...args: unknown[]) =>
+    mockGetVisiblePredictMarkets(...args),
 }));
 
 const createWrapper = () => {
@@ -82,6 +84,22 @@ describe('usePredictMarketList', () => {
     expect(result.current.hasNextPage).toBe(false);
   });
 
+  it('leaves game filtering disabled by default', async () => {
+    const { Wrapper } = createWrapper();
+    mockListMarkets.mockResolvedValueOnce(createPage(['a']));
+
+    renderHook(() => usePredictMarketList(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(mockGetVisiblePredictMarkets).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ id: 'a' })]),
+        { filterGames: false },
+      );
+    });
+  });
+
   it('does not fetch when disabled', async () => {
     const { Wrapper } = createWrapper();
 
@@ -131,6 +149,40 @@ describe('usePredictMarketList', () => {
       ]);
     });
     expect(result.current.hasNextPage).toBe(false);
+  });
+
+  it('enables game filtering for each page when requested', async () => {
+    const { Wrapper } = createWrapper();
+    mockListMarkets
+      .mockResolvedValueOnce(createPage(['a'], 'cursor-1'))
+      .mockResolvedValueOnce(createPage(['b'], null));
+
+    const { result } = renderHook(
+      () => usePredictMarketList({}, { filterGames: true }),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    await waitFor(() => {
+      expect(result.current.markets.map((m) => m.id)).toEqual(['a', 'b']);
+    });
+    expect(mockGetVisiblePredictMarkets).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: 'a' })]),
+      { filterGames: true },
+    );
+    expect(mockGetVisiblePredictMarkets).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: 'b' })]),
+      { filterGames: true },
+    );
   });
 
   it('does not auto-fetch the next page when the current page has no visible markets', async () => {
