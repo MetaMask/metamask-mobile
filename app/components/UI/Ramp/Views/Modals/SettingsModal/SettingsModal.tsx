@@ -170,7 +170,7 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: ComponentLibraryIconName.CheckBold,
+        iconName: ComponentLibraryIconName.Confirmation,
         // Toast still renders component-library Icon; use its IconColor enum, not DS tokens.
         iconColor: ComponentLibraryIconColor.Success,
         hasNoTimeout: false,
