@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   type ScrollViewProps,
   Switch,
@@ -102,21 +102,28 @@ const NetworkSelectorList = ({
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  const isNoSearchResults = (networkIdentifier: string) => {
-    if (!searchString || !networkIdentifier) {
-      return false;
-    }
+  const isNoSearchResults = useCallback(
+    (networkIdentifier: string) => {
+      if (!searchString || !networkIdentifier) {
+        return false;
+      }
 
-    if (
-      networkIdentifier === 'mainnet' ||
-      networkIdentifier === 'linea-mainnet'
-    ) {
-      const network = Networks[networkIdentifier] as unknown as ExtendedNetwork;
-      return !network.name?.toLowerCase().includes(searchString.toLowerCase());
-    }
+      if (
+        networkIdentifier === 'mainnet' ||
+        networkIdentifier === 'linea-mainnet'
+      ) {
+        const network = Networks[
+          networkIdentifier
+        ] as unknown as ExtendedNetwork;
+        return !network.name
+          ?.toLowerCase()
+          .includes(searchString.toLowerCase());
+      }
 
-    return !networkIdentifier.includes(searchString);
-  };
+      return !networkIdentifier.includes(searchString);
+    },
+    [searchString],
+  );
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
@@ -126,8 +133,6 @@ const NetworkSelectorList = ({
         networkConfiguration.defaultRpcEndpointIndex
       ].url;
     const name = networkConfiguration?.name ?? mainnetName;
-
-    if (isRedesignEnabled && isNoSearchResults('mainnet')) return null;
 
     if (!isRedesignEnabled) {
       return (
@@ -187,8 +192,6 @@ const NetworkSelectorList = ({
       ].url;
     const name = networkConfiguration?.name ?? networkName;
 
-    if (isRedesignEnabled && isNoSearchResults('linea-mainnet')) return null;
-
     if (!isRedesignEnabled) {
       return (
         <Cell
@@ -247,8 +250,6 @@ const NetworkSelectorList = ({
     const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
     const name =
       nickname || rpcEndpoints[defaultRpcEndpointIndex].name || rpcUrl;
-
-    if (isRedesignEnabled && isNoSearchResults(name)) return null;
 
     const image = getNetworkImageSource({ chainId: chainId.toString() });
     const isSelected = isEvmSelected && chainId === selectedChainId;
@@ -355,8 +356,6 @@ const NetworkSelectorList = ({
         networkConfiguration.defaultRpcEndpointIndex
       ].url;
 
-    if (isRedesignEnabled && isNoSearchResults(name)) return null;
-
     if (!isRedesignEnabled) {
       return (
         <Cell
@@ -460,11 +459,17 @@ const NetworkSelectorList = ({
       });
     }
 
-    items.push({ type: 'mainnet', key: 'mainnet' });
-    items.push({ type: 'lineaMainnet', key: 'linea-mainnet' });
+    if (!isRedesignEnabled || !isNoSearchResults('mainnet')) {
+      items.push({ type: 'mainnet', key: 'mainnet' });
+    }
+
+    if (!isRedesignEnabled || !isNoSearchResults('linea-mainnet')) {
+      items.push({ type: 'lineaMainnet', key: 'linea-mainnet' });
+    }
 
     Object.values(networkConfigurations).forEach((networkConfiguration) => {
-      const { chainId } = networkConfiguration;
+      const { chainId, defaultRpcEndpointIndex, name, rpcEndpoints } =
+        networkConfiguration;
       if (
         isNonEvmChainId(chainId) ||
         isTestNet(chainId) ||
@@ -472,6 +477,14 @@ const NetworkSelectorList = ({
         chainId === CHAIN_IDS.LINEA_MAINNET ||
         chainId === CHAIN_IDS.GOERLI
       ) {
+        return;
+      }
+
+      const rpcNetworkName =
+        name ||
+        rpcEndpoints[defaultRpcEndpointIndex].name ||
+        rpcEndpoints[defaultRpcEndpointIndex].url;
+      if (isRedesignEnabled && isNoSearchResults(rpcNetworkName)) {
         return;
       }
 
@@ -514,6 +527,17 @@ const NetworkSelectorList = ({
     if (!isSendFlow && showTestNetworks) {
       const networkTypes = getAllNetworks() as unknown as InfuraNetworkType[];
       networkTypes.slice(3).forEach((networkType) => {
+        const typedNetworks = Networks as unknown as Record<
+          string,
+          infuraNetwork
+        >;
+        if (
+          isRedesignEnabled &&
+          isNoSearchResults(typedNetworks[networkType].name)
+        ) {
+          return;
+        }
+
         items.push({
           type: 'otherNetwork',
           key: `other-network-${networkType}`,
@@ -542,6 +566,7 @@ const NetworkSelectorList = ({
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmNetworkConfigurations,
     ///: END:ONLY_INCLUDE_IF
+    isNoSearchResults,
     searchString,
     showTestNetworks,
   ]);

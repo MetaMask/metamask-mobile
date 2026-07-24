@@ -393,6 +393,37 @@ describe('Network Selector', () => {
     });
   });
 
+  it('omits non-matching network rows from virtualized search data', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByPlaceholderText, UNSAFE_getByType } =
+      renderComponent(initialState);
+
+    fireEvent.changeText(getByPlaceholderText('Search'), 'Polygon');
+
+    const list = UNSAFE_getByType(FlatList);
+    const listItems = list.props.data as {
+      type: string;
+      networkConfiguration?: { name: string };
+    }[];
+    const rpcNetworkItems = listItems.filter(
+      (item) => item.type === 'rpcNetwork',
+    );
+
+    expect(listItems).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'mainnet' }),
+        expect.objectContaining({ type: 'lineaMainnet' }),
+      ]),
+    );
+    expect(rpcNetworkItems).toEqual([
+      expect.objectContaining({
+        networkConfiguration: expect.objectContaining({
+          name: 'Polygon Mainnet',
+        }),
+      }),
+    ]);
+  });
+
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     renderComponent(initialState);
