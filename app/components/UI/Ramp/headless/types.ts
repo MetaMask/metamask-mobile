@@ -37,8 +37,6 @@ export interface HeadlessGetQuotesParams {
   forceRefresh?: boolean;
   /** Override the default redirect URL injected into provider quotes. */
   redirectUrl?: string;
-  /** Product surface requesting quotes. Used for analytics tagging only. */
-  rampSurface?: RampSurface;
 }
 
 /**
