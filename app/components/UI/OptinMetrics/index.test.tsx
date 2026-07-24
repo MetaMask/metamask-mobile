@@ -10,6 +10,7 @@ import { AccountType } from '../../../constants/onboarding';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -103,6 +104,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../selectors/qrSyncController', () => ({
+  ...jest.requireActual('../../../selectors/qrSyncController'),
+  selectQrSyncNeedsProvisioning: jest.fn(),
+}));
+
 jest.doMock('react-native', () => {
   const originalRN = jest.requireActual('react-native');
   return {
@@ -116,6 +122,7 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(false);
     mockAppStateEventProcessor.pendingDeeplink = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({

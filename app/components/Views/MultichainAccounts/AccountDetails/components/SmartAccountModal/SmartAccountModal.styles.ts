@@ -12,9 +12,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    header: {
-      margin: 16,
-    },
     container: {
       flex: 1,
       backgroundColor: colors.background.default,

@@ -1,24 +1,33 @@
 import { useNavigation } from '@react-navigation/native';
-import { type Dispatch, type SetStateAction, useEffect } from 'react';
+import {
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction,
+  useEffect,
+} from 'react';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
 
 const useMMPayNavigation = (
   isKeyboardVisible: boolean,
   setIsKeyboardVisible: Dispatch<SetStateAction<boolean>>,
+  keyboardEverShown?: MutableRefObject<boolean>,
+  skipBackToKeyboard = false,
 ) => {
   const navigation = useNavigation();
   const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
 
   useEffect(() => {
     const showKeyboard = () => setIsKeyboardVisible(true);
+    const neverShown = keyboardEverShown && !keyboardEverShown.current;
 
-    mmPayRequestInProgressNavHandler.current = isKeyboardVisible
-      ? false
-      : showKeyboard;
-    navigation.setOptions({ gestureEnabled: isKeyboardVisible });
+    const allowBack = isKeyboardVisible || skipBackToKeyboard || neverShown;
+    mmPayRequestInProgressNavHandler.current = allowBack ? false : showKeyboard;
+    navigation.setOptions({
+      gestureEnabled: !!allowBack,
+    });
 
-    if (isKeyboardVisible) {
+    if (isKeyboardVisible || neverShown) {
       return () => {
         mmPayRequestInProgressNavHandler.current = false;
       };
@@ -41,6 +50,8 @@ const useMMPayNavigation = (
     isKeyboardVisible,
     navigation,
     setIsKeyboardVisible,
+    keyboardEverShown,
+    skipBackToKeyboard,
   ]);
 };
 

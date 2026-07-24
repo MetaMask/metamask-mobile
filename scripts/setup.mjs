@@ -1,16 +1,18 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import fs from 'fs';
-import { $ } from 'execa';
+import { $ as runScript } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
 
 const IS_CI = process.env.CI;
 const IS_OSX = process.platform === 'darwin';
+
 // iOS builds are enabled by default on macOS only but can be enabled or disabled explicitly
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
 let BUILD_ANDROID = true
 let INSTALL_PODS;
+let VERBOSE = IS_CI;
 // GitHub CI pipeline flag - defaults to false
 let GITHUB_CI = false;
 const args = process.argv.slice(2) || [];
@@ -37,6 +39,9 @@ for (const arg of args) {
     case '--build-on-github-ci':
       GITHUB_CI = true;
       continue;
+    case '--verbose':
+      VERBOSE = true;
+      continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
   }
@@ -47,6 +52,7 @@ if (INSTALL_PODS === undefined) {
 if (INSTALL_PODS && !BUILD_IOS) {
   throw new Error('Cannot install pods if iOS setup has been skipped');
 }
+const $  = runScript(VERBOSE ? {stdio: 'inherit'} : undefined);
 
 const rendererOptions = {
   collapseErrors: false,
@@ -125,19 +131,7 @@ const setupIosTask = {
       {
         title: 'Install bundler gem',
         task: async (_, task) => {
-          if (GITHUB_CI) {
-            // In GitHub CI, we still need bundler for self-hosted runners
-            try {
-              await $`gem install bundler -v 2.5.8`;
-            } catch (error) {
-              // If bundler is already installed, continue
-              if (!error.stderr?.includes('already installed')) {
-                throw error;
-              }
-            }
-          } else {
-            await $`gem install bundler -v 2.5.8`;
-          }
+          await $`gem install bundler -v 2.5.8`;
         },
       },
       {
@@ -384,6 +378,7 @@ const concurrentTasks = {
 const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
   exitOnError: true,
+  renderer: VERBOSE ? 'verbose' : 'default',
   rendererOptions,
 });
 

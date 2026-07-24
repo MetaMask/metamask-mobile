@@ -122,6 +122,7 @@ export const GET_QUOTE_ETH_USDC_RESPONSE = [
       bridges: ['kyberswap'],
       protocols: ['kyberswap'],
       steps: [],
+      slippage: 2,
       priceData: {
         totalFromAmountUsd: '4496.87',
         totalToAmountUsd: '4456.264231788599',

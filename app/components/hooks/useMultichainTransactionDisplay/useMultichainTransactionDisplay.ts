@@ -7,6 +7,10 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { isTransactionIncomplete } from '../../../util/transactions';
+import {
+  resolveAssetActivationActivityTitle,
+  CustomTransactionTypeLabel,
+} from '../../../util/activity-adapters/trustline';
 
 interface Asset {
   unit: string;
@@ -39,7 +43,7 @@ export interface MultichainTransactionDisplayData {
   baseFee?: AggregatedMovementDisplayData;
   priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
-  isUnlimitedApproval: boolean;
+  isUnlimitedApproval?: boolean;
 }
 
 // Mirrors EVM TOKEN_VALUE_UNLIMITED_THRESHOLD: amounts above 10^15 are treated as unlimited.
@@ -111,10 +115,34 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Unknown]: strings('transactions.interaction'),
   };
 
+  let title = isRedeposit
+    ? strings('transactions.redeposit')
+    : typeToTitle[transaction.type];
+
+  // align with keyring transaction mapping
+  const typeLabel = transaction.details?.typeLabel;
+  if (
+    transaction.type === TransactionType.TokenApprove &&
+    typeLabel === CustomTransactionTypeLabel.TrustlineApprove
+  ) {
+    title = resolveAssetActivationActivityTitle(
+      transaction.status,
+      from?.unit,
+      true,
+    );
+  } else if (
+    transaction.type === TransactionType.TokenDisapprove &&
+    typeLabel === CustomTransactionTypeLabel.TrustlineDisapprove
+  ) {
+    title = resolveAssetActivationActivityTitle(
+      transaction.status,
+      from?.unit,
+      false,
+    );
+  }
+
   return {
-    title: isRedeposit
-      ? strings('transactions.redeposit')
-      : typeToTitle[transaction.type],
+    title,
     from,
     to,
     baseFee,

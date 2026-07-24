@@ -380,6 +380,9 @@ export const initialStateTokenList = (
             pendingApprovals: {},
             pendingApprovalCount: 0,
           },
+          MoneyAccountController: {
+            moneyAccounts: {},
+          },
           EarnController: {
             lastUpdated: 0,
             pooled_staking: { isEligible: false },

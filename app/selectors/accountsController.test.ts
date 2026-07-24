@@ -736,9 +736,14 @@ describe('selectSelectedInternalAccountId', () => {
     const internalAccount = arrangeAccount();
     const state = getStateWithAccount(internalAccount);
     const result1 = selectSelectedInternalAccountId(state);
+    const recomputationsAfterFirstCall =
+      selectSelectedInternalAccountId.recomputations();
     const result2 = selectSelectedInternalAccountId(state);
     expect(result1).toBe(result2);
-    expect(selectSelectedInternalAccountId.recomputations()).toBe(1);
+    // A subsequent call with the same state must not trigger a recomputation.
+    expect(selectSelectedInternalAccountId.recomputations()).toBe(
+      recomputationsAfterFirstCall,
+    );
   });
 });
 

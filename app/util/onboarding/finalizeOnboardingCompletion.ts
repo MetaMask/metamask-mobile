@@ -10,6 +10,13 @@ import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../analytic
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from '../analytics/walletSetupCompletedAttribution';
 import { analytics } from '../analytics/analytics';
 import Logger from '../Logger';
+import { QrSyncSyncFlows } from '../../core/QrSync/constants';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../core/QrSync/qrSyncTelemetry';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
 export interface FinalizeOnboardingCompletionParams {
@@ -19,6 +26,7 @@ export interface FinalizeOnboardingCompletionParams {
   walletSetupAttributionProps: WalletSetupCompletedAttributionAnalyticsPayload;
   dispatch: Dispatch<AnyAction>;
   discoverAccountsLogContext?: string;
+  needsQrProvisioning?: boolean;
 }
 
 /**
@@ -39,6 +47,7 @@ export function finalizeOnboardingCompletion({
   walletSetupAttributionProps,
   dispatch,
   discoverAccountsLogContext = 'finalizeOnboardingCompletion',
+  needsQrProvisioning = false,
 }: FinalizeOnboardingCompletionParams): void {
   if (!successFlow) {
     return;
@@ -69,7 +78,18 @@ export function finalizeOnboardingCompletion({
     );
 
     const keyrings = Engine.context.KeyringController.state.keyrings;
-    if (keyrings?.length > 0) {
+    if (needsQrProvisioning) {
+      Engine.context.QrSyncProvisioningService.provisionFromMetadata().catch(
+        (error: unknown) => {
+          reportQrSyncFailure(error, {
+            surface: QrSyncSurfaces.IMPORT,
+            operation: QrSyncOperations.PROVISION_FROM_METADATA,
+            source: QrSyncTelemetrySources.FINALIZE_ONBOARDING,
+            syncFlow: QrSyncSyncFlows.NEW_USER,
+          });
+        },
+      );
+    } else if (keyrings?.length > 0) {
       discoverAccounts(keyrings[0].metadata.id).catch((error: unknown) => {
         Logger.error(
           error as Error,

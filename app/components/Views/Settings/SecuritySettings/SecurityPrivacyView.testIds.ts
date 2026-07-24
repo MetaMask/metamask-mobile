@@ -14,6 +14,8 @@ export const SecurityPrivacyViewSelectorsIDs = {
   CLEAR_PRIVACY_DATA_BUTTON: 'clear-privacy-data-button',
   PROTECT_YOUR_WALLET: 'protect-your-wallet',
   DELETE_WALLET_BUTTON: 'security-settings-delete-wallet-buttons',
+  TOP_TRADERS_SECTION: 'top-traders-section',
+  SHOW_ACCOUNT_ON_LEADERBOARD_TOGGLE: 'show-account-on-leaderboard-toggle',
 };
 
 export const SecurityPrivacyViewSelectorsText = {

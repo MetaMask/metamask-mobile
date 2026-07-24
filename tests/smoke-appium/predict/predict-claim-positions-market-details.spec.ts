@@ -4,6 +4,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
+import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
@@ -90,6 +91,8 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
                 'Claim button on market details should not be visible',
             },
           );
+          // Top claim toast covers the market-details back control until dismissed.
+          await ToastModal.waitForToastToDismiss();
           await PredictDetailsPage.tapBackButton();
 
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));

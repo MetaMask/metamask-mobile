@@ -10,9 +10,11 @@ import {
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
 } from '../../QrSync/controller-types';
+import { registerE2EQrSyncDeepLinkHandler } from '../../QrSync/e2eBridgeQrSync';
 import { KeyManager } from '../../SDKConnectV2/services/key-manager';
 import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 import { store } from '../../../store';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 /**
  * Initializes the QR sync controller with any previously hydrated state.
@@ -37,6 +39,27 @@ export const qrSyncControllerInit: MessengerClientInitFunction<
     relayUrl: RELAY_URL,
     getIsOnboardingCompleted: () => selectCompletedOnboarding(store.getState()),
   });
+
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:importRemainingSecrets',
+    controller.importRemainingSecrets.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:enrichProvisioningEntry',
+    controller.enrichProvisioningEntry.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:markProvisioningFailed',
+    controller.markProvisioningFailed.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:completeProvisioning',
+    controller.completeProvisioning.bind(controller),
+  );
+
+  if (hasTestOverrides) {
+    registerE2EQrSyncDeepLinkHandler(() => controller);
+  }
 
   return { controller };
 };

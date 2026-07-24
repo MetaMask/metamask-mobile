@@ -14,6 +14,9 @@ const multichainWalletsUrl = `https://user-storage.api.cx.metamask.io/api/v1/use
 
 const multichainGroupsUrl = `https://user-storage.api.cx.metamask.io/api/v1/userstorage/${USER_STORAGE_GROUPS_FEATURE_KEY}`;
 
+const assetsWatchlistUrl =
+  'https://user-storage.api.cx.metamask.io/api/v1/preferences/assets-watchlist';
+
 const notificationPreferencesUrl =
   'https://user-storage.api.cx.metamask.io/api/v1/preferences/notifications';
 
@@ -80,6 +83,11 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
       responseCode: 200,
       response: [],
     },
+    {
+      urlEndpoint: assetsWatchlistUrl,
+      responseCode: 200,
+      response: { assets: [], version: 1 },
+    },
   ],
   PUT: [
     {
@@ -128,6 +136,11 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
     },
     {
       urlEndpoint: multichainGroupsUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint: assetsWatchlistUrl,
       responseCode: 200,
       response: 'OK',
     },

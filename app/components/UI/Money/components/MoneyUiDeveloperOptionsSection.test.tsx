@@ -2,7 +2,10 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { MoneyUiDeveloperOptionsSection } from './MoneyUiDeveloperOptionsSection';
 import { UserActionType } from '../../../../actions/user/types';
-import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
+import {
+  selectMoneyEarnBannerDismissedTokens,
+  selectMoneyOnboardingSeen,
+} from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 
@@ -49,6 +52,7 @@ interface SelectorMockOptions {
   isOnboardingEnabled?: boolean;
   /** Pass `null` to simulate no money account being available. */
   moneyAccount?: { address: string } | null;
+  earnBannerDismissedTokens?: Record<string, boolean>;
 }
 
 /**
@@ -67,11 +71,15 @@ function setupSelectorMocks(options: SelectorMockOptions = {}) {
       ? undefined
       : (options.moneyAccount ?? { address: MOCK_ADDRESS });
 
+  const earnBannerDismissedTokens = options.earnBannerDismissedTokens ?? {};
+
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectMoneyOnboardingSeen) return hasSeenMoneyOnboarding;
     if (selector === selectMoneyOnboardingStepperAnimationEnabled)
       return isOnboardingEnabled;
     if (selector === selectPrimaryMoneyAccount) return moneyAccount;
+    if (selector === selectMoneyEarnBannerDismissedTokens)
+      return earnBannerDismissedTokens;
     return undefined;
   });
 }
@@ -140,6 +148,34 @@ describe('MoneyUiDeveloperOptionsSection', () => {
         expect.objectContaining({
           type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
           payload: { seen: false },
+        }),
+      );
+    });
+  });
+
+  describe('Earn banner dismissals', () => {
+    it('displays the dismissed banner count', () => {
+      setupSelectorMocks({
+        earnBannerDismissedTokens: { '0x1-0xabc': true, '0xe708-0xdef': true },
+      });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(getByText('Earn banners dismissed: 2')).toBeOnTheScreen();
+    });
+
+    it('dispatches clearMoneyEarnBannerDismissedTokens when the clear button is pressed', () => {
+      setupSelectorMocks({
+        earnBannerDismissedTokens: { '0x1-0xabc': true },
+      });
+
+      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.press(getByText('Clear Earn banner dismissals'));
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS,
         }),
       );
     });

@@ -1,4 +1,4 @@
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -30,14 +30,20 @@ import useCardPinToken from '../../../hooks/useCardPinToken';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
-import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import type {
+  CardHomeData,
+  CardProviderCapabilities,
+  CardSensitiveDetails,
+} from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingTokenWithBalance } from '../../../types';
+import ClipboardManager from '../../../../../../core/ClipboardManager';
 
 interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
   primaryToken: CardFundingTokenWithBalance | null;
   isFrozen: boolean;
   cardTermsAndConditionsUrl: string;
+  capabilities: CardProviderCapabilities | null;
 }
 
 export function useCardHomeActions({
@@ -45,6 +51,7 @@ export function useCardHomeActions({
   primaryToken,
   isFrozen,
   cardTermsAndConditionsUrl,
+  capabilities,
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation<AppNavigationProp>();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
@@ -161,6 +168,33 @@ export function useCardHomeActions({
 
   // --- Card details ---
 
+  const [cardSensitiveDetails, setCardSensitiveDetails] =
+    useState<CardSensitiveDetails | null>(null);
+  const [isSensitiveDetailsLoading, setIsSensitiveDetailsLoading] =
+    useState(false);
+
+  const clearCardSensitiveDetails = useCallback(() => {
+    setCardSensitiveDetails(null);
+  }, []);
+
+  useEffect(() => () => setCardSensitiveDetails(null), []);
+
+  const copyCardDetail = useCallback(
+    (value: string) => {
+      ClipboardManager.setString(value);
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.card_home.card_details.copied') },
+        ],
+        iconName: IconName.Copy,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    [toastRef, theme],
+  );
+
   const showCardDetailsErrorToast = useCallback(() => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
@@ -199,11 +233,58 @@ export function useCardHomeActions({
     createEventBuilder,
   ]);
 
+  const fetchAndShowSensitiveDetails = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VIEW_CARD_DETAILS_BUTTON,
+          card_type: data?.card?.type,
+        })
+        .build(),
+    );
+    setIsSensitiveDetailsLoading(true);
+    try {
+      const details =
+        await Engine.context.CardController.getCardSensitiveDetails();
+      setCardSensitiveDetails(details);
+    } catch {
+      showCardDetailsErrorToast();
+    } finally {
+      setIsSensitiveDetailsLoading(false);
+    }
+  }, [
+    showCardDetailsErrorToast,
+    data?.card?.type,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   const viewCardDetailsAction = useCallback(async () => {
     if (!isAuthenticated) {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
+
+    if (capabilities?.supportsSensitiveDetailsView) {
+      if (isSensitiveDetailsLoading) return;
+      if (cardSensitiveDetails) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({ action: CardActions.HIDE_CARD_DETAILS_BUTTON })
+            .build(),
+        );
+        clearCardSensitiveDetails();
+        return;
+      }
+      await withBiometricAuth({
+        reauthenticate,
+        navigation,
+        toastRef,
+        onSuccess: () => fetchAndShowSensitiveDetails(),
+      });
+      return;
+    }
+
     if (isCardDetailsLoading || isCardDetailsImageLoading) return;
     if (cardDetailsImageUrl) {
       trackEvent(
@@ -222,6 +303,11 @@ export function useCardHomeActions({
     });
   }, [
     isAuthenticated,
+    capabilities?.supportsSensitiveDetailsView,
+    isSensitiveDetailsLoading,
+    cardSensitiveDetails,
+    clearCardSensitiveDetails,
+    fetchAndShowSensitiveDetails,
     isCardDetailsLoading,
     isCardDetailsImageLoading,
     cardDetailsImageUrl,
@@ -487,6 +573,10 @@ export function useCardHomeActions({
     onCardDetailsImageLoad,
     cardDetailsImageUrl,
     onCardDetailsImageError,
+    cardSensitiveDetails,
+    isSensitiveDetailsLoading,
+    clearCardSensitiveDetails,
+    copyCardDetail,
     viewCardDetailsAction,
     isPinLoading,
     viewPinAction,

@@ -1,9 +1,13 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useMoneyNavigation } from './useMoneyNavigation';
+import {
+  useMoneyNavigation,
+  useMoneyOnboardingNavigation,
+} from './useMoneyNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 
 const mockNavigate = jest.fn();
 
@@ -95,5 +99,50 @@ describe('useMoneyNavigation', () => {
         params: { screen: Routes.MONEY.HOME },
       });
     });
+  });
+});
+
+describe('useMoneyOnboardingNavigation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Object.assign(NavigationService.navigation, { navigate: mockNavigate });
+    setupSelectorMocks();
+  });
+
+  it('redirects to onboarding with post-onboarding deposit params', () => {
+    const params = {
+      postOnboardingRedirect: {
+        type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        preferredPaymentToken: {
+          address: '0xabc' as const,
+          chainId: '0x1' as const,
+        },
+      },
+    };
+    const { result } = renderHook(() => useMoneyOnboardingNavigation());
+
+    const redirected = result.current.redirectToOnboardingIfNeeded(params);
+
+    expect(redirected).toBe(true);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, params);
+  });
+
+  it.each([
+    [
+      'onboarding was seen',
+      { hasSeenOnboarding: true, isOnboardingEnabled: true },
+    ],
+    [
+      'onboarding flag is disabled',
+      { hasSeenOnboarding: false, isOnboardingEnabled: false },
+    ],
+  ])('returns false when %s', (_description, selectorOptions) => {
+    setupSelectorMocks(selectorOptions);
+    const { result } = renderHook(() => useMoneyOnboardingNavigation());
+
+    const redirected = result.current.redirectToOnboardingIfNeeded();
+
+    expect(redirected).toBe(false);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

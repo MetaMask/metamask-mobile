@@ -1,10 +1,12 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import MoneySectionHeader from '../MoneySectionHeader';
 import type { MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
@@ -21,6 +23,8 @@ interface MoneyActivityListProps {
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
   onItemPress?: (transaction: TransactionMeta) => void;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyActivityList = ({
@@ -30,7 +34,12 @@ const MoneyActivityList = ({
   onViewAllPress,
   onHeaderPress,
   onItemPress,
+  privacyMode = false,
 }: MoneyActivityListProps) => {
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
+
   if (!items.length) {
     return null;
   }
@@ -51,7 +60,8 @@ const MoneyActivityList = ({
           key={item.id}
           item={item}
           moneyAddress={moneyAddress}
-          onPress={onItemPress}
+          onPress={activityDetailsEnabled ? onItemPress : undefined}
+          privacyMode={privacyMode}
         />
       ))}
       {hasMoreItems && onViewAllPress && (

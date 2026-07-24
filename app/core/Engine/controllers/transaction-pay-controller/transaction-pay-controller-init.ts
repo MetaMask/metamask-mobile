@@ -21,8 +21,8 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
   try {
     const transactionPayController = new TransactionPayController({
       getAmountData,
-      getDelegationTransaction: ({ transaction }) =>
-        getDelegationTransaction(initMessenger, transaction),
+      getDelegationTransaction: ({ transaction, isSubsidized }) =>
+        getDelegationTransaction(initMessenger, transaction, isSubsidized),
       fiatOptions: getTransactionPayFiatTestOptions(),
       getPaymentOverrideData: (paymentOverrideRequest) =>
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),

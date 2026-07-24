@@ -10,6 +10,8 @@ export interface MoneyActivityRowProps {
   /** Press handler for on-chain rows; Accounts-API rows handle their own. */
   onPress?: (transaction: TransactionMeta) => void;
   showNetworkBadge?: boolean;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyActivityRow = ({
@@ -17,12 +19,14 @@ const MoneyActivityRow = ({
   moneyAddress,
   onPress,
   showNetworkBadge,
+  privacyMode,
 }: MoneyActivityRowProps) => {
   if (item.kind === 'accountsApi') {
     return (
       <AccountsApiActivityItem
         activity={item.tx}
         showNetworkBadge={showNetworkBadge}
+        privacyMode={privacyMode}
       />
     );
   }
@@ -32,8 +36,9 @@ const MoneyActivityRow = ({
       moneyAddress={moneyAddress}
       onPress={onPress}
       showNetworkBadge={showNetworkBadge}
+      privacyMode={privacyMode}
     />
   );
 };
 
-export default MoneyActivityRow;
+export default React.memo(MoneyActivityRow);

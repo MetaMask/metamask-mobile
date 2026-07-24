@@ -4,6 +4,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -14,7 +16,7 @@ import PerpsAdjustMarginActionSheet, {
   type AdjustMarginAction,
 } from '../../components/PerpsAdjustMarginActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
@@ -31,7 +33,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   position: positionProp,
   onClose: onExternalClose,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>
@@ -43,6 +45,14 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { navigateToAdjustMargin } = usePerpsNavigation();
+
+  const handleClose = useCallback(() => {
+    if (externalSheetRef) {
+      onExternalClose?.();
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, externalSheetRef, onExternalClose]);
 
   const handleActionSelect = useCallback(
     (action: AdjustMarginAction) => {
@@ -76,29 +86,17 @@ const PerpsSelectAdjustMarginActionView: React.FC<
       }
 
       // Close bottom sheet AFTER navigation is triggered
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
+      sheetRef.current?.onCloseBottomSheet(handleClose);
     },
     [
       position,
       sheetRef,
-      onExternalClose,
+      handleClose,
       navigateToAdjustMargin,
       trackEvent,
       createEventBuilder,
     ],
   );
-
-  const handleClose = useCallback(() => {
-    if (externalSheetRef) {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
-    } else {
-      navigation.goBack();
-    }
-  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
   return (
     <PerpsAdjustMarginActionSheet

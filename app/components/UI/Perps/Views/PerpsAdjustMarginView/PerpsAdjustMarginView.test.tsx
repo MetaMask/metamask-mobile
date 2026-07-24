@@ -41,6 +41,11 @@ jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
 }));
 
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: {
@@ -135,6 +140,7 @@ jest.mock('../../components/PerpsSlider', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     __esModule: true,
     Button: ({
       label,

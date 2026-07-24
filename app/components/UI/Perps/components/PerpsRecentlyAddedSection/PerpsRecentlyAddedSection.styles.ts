@@ -9,25 +9,29 @@ const styleSheet = (params: { theme: Theme }) => {
     scrollContent: {
       paddingHorizontal: 16,
       paddingBottom: 4,
+      paddingTop: 8,
       gap: 12,
     },
     tile: {
       width: 128,
       borderRadius: 12,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.muted,
       padding: 12,
-      gap: 8,
     },
     logoRow: {
+      marginBottom: 12,
+    },
+    name: {
+      marginBottom: 4,
+    },
+    priceRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      gap: 6,
     },
     timeLabel: {
       flexShrink: 1,
-    },
-    priceRow: {
-      gap: 2,
+      marginTop: 10,
     },
   });
 };

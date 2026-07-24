@@ -10,6 +10,8 @@ export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
   'increaseSpendingCap',
   'revokeSpendingCap',
+  'assetActivation',
+  'assetDeactivation',
 ]);
 
 const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;
@@ -26,6 +28,82 @@ export function isSpendingCapWithAmount(item: ActivityListItem): boolean {
   return Boolean(token?.amount || token?.isUnlimitedApproval);
 }
 
+/**
+ * True when fee.amount is a non-zero integer (decimal or hex). Empty / invalid
+ * strings are treated as no amount.
+ */
+function hasNonZeroFeeAmount(amount: string | undefined): boolean {
+  if (!amount) {
+    return false;
+  }
+  try {
+    return BigInt(amount) > 0n;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when the item has a gas-token fee (ERC-20 gas payment) with a non-zero
+ * amount. Used to prefer local Activity rows over confirmed API copies that
+ * only have a native network fee (TMCU-1064).
+ */
+export function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
+  if (!('fees' in item.data) || !item.data.fees?.length) {
+    return false;
+  }
+  return item.data.fees.some(
+    (fee) => fee.type === 'gasToken' && hasNonZeroFeeAmount(fee.amount),
+  );
+}
+
+/**
+ * Whether a local Activity row should win over a same-hash API/confirmed copy.
+ * Shared by the Activity list dedup and Activity Details resolution so the
+ * gas-token / spending-cap / out-categorize rules stay aligned (TMCU-1064).
+ *
+ * Gas-token preference requires matching types so a degraded local
+ * `contractInteraction` cannot permanently beat a richer API `send`/`swap`.
+ */
+export function shouldPreferLocalActivityItem(
+  localItem: ActivityListItem,
+  apiItem: ActivityListItem,
+): boolean {
+  const localOutCategorizesApi =
+    apiItem.type !== localItem.type &&
+    localItem.type !== 'contractInteraction' &&
+    localItem.type !== 'swapIncomplete';
+
+  const localHasRicherSpendingCap =
+    apiItem.type === localItem.type &&
+    isSpendingCapWithAmount(localItem) &&
+    !isSpendingCapWithAmount(apiItem);
+
+  const localHasGasTokenFee =
+    apiItem.type === localItem.type &&
+    isGasTokenFeeWithAmount(localItem) &&
+    !isGasTokenFeeWithAmount(apiItem);
+
+  return (
+    localOutCategorizesApi || localHasRicherSpendingCap || localHasGasTokenFee
+  );
+}
+
+/**
+ * Picks local vs API Activity for Details (and list-aligned resolution).
+ */
+export function preferLocalOrApiActivityItem(
+  localItem: ActivityListItem,
+  apiItem: ActivityListItem | undefined,
+): ActivityListItem {
+  if (!apiItem) {
+    return localItem;
+  }
+  return shouldPreferLocalActivityItem(localItem, apiItem)
+    ? localItem
+    : apiItem;
+}
+
 export type ActivityListFilter =
   | { assetId: CaipAssetType }
   | { networks: string[] };
@@ -37,6 +115,19 @@ export type GroupedActivityListItem =
 
 export function shouldShowPlusSign(activityType: ActivityListItem['type']) {
   return !hidePlusSignActivityTypes.has(activityType);
+}
+
+/**
+ * A send/receive that failed or was cancelled moved no tokens, so its transfer
+ * amount (surfaced from the attempted/original transaction) is misleading. The
+ * row, the details amount header, and the details total all suppress it via this
+ * predicate so they stay consistent.
+ */
+export function isFailedOrCancelledTransfer(item: ActivityListItem): boolean {
+  return (
+    (item.status === 'failed' || item.status === 'cancelled') &&
+    (item.type === 'send' || item.type === 'receive')
+  );
 }
 
 export const isSameLocalDay = (date: Date, otherDate: Date) =>
@@ -90,6 +181,26 @@ export const getActivityValue = (item: ActivityListItem) => {
 
   return undefined;
 };
+
+export function enrichTokenFromApi(
+  token: TokenAmount | undefined,
+  dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
+): TokenAmount | undefined {
+  if (!token?.assetId) {
+    return token;
+  }
+  const listToken = dataByAssetId[token.assetId.toLowerCase()];
+  if (!listToken) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken.symbol;
+  const decimals = token.decimals ?? listToken.decimals;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+  };
+}
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;

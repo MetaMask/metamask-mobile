@@ -2,14 +2,14 @@ import AppConstants from '../../../../core/AppConstants';
 
 /**
  * Returns the Baanx API base URL for the given MetaMask environment.
- * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses process.env.BAANX_API_URL (set by builds.yml).
- * Otherwise (legacy .js.env / E2E), uses AppConstants.BAANX_API_URL per env.
+ * When process.env.BAANX_API_URL is set (set by builds.yml), uses it directly.
+ * Otherwise (e.g. Jest, environments without builds.yml), uses AppConstants.BAANX_API_URL per env.
  */
 export const getDefaultBaanxApiBaseUrlForMetaMaskEnv = (
   metaMaskEnv: string | undefined,
 ): string => {
-  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
-    return process.env.BAANX_API_URL as string;
+  if (process.env.BAANX_API_URL) {
+    return process.env.BAANX_API_URL;
   }
   switch (metaMaskEnv) {
     case 'e2e':

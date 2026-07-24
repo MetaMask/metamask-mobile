@@ -9,6 +9,7 @@ import React, {
 import { ListRenderItem, View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetRef,
@@ -19,7 +20,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import styleSheet from './SearchableSelectorBottomSheet.styles';
 
 export interface SearchableSelectorBottomSheetProps<T> {
@@ -57,11 +57,10 @@ function SearchableSelectorBottomSheet<T>({
   closeButtonProps,
 }: Readonly<SearchableSelectorBottomSheetProps<T>>) {
   const listRef = useRef<FlatList<T>>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
-  const surfaceClass = useElevatedSurface();
 
   const data = useMemo(
     () => getResults(searchString),
@@ -97,11 +96,7 @@ function SearchableSelectorBottomSheet<T>({
   );
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

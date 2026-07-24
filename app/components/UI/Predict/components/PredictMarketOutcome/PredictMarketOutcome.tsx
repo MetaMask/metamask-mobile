@@ -7,9 +7,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { memo } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -26,10 +28,7 @@ import {
   PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import {
   formatCents,
@@ -60,8 +59,7 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
@@ -127,7 +125,7 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
             <Image
               source={{ uri: getImageUrl() }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <Box twClassName="w-full h-full bg-muted" />

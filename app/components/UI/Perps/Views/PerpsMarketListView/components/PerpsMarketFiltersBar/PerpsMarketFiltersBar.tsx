@@ -1,15 +1,16 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../../locales/i18n';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
 import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategoryBadges';
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 /**
  * PerpsMarketFiltersBar Component
@@ -17,6 +18,10 @@ import styleSheet from './PerpsMarketFiltersBar.styles';
  * Two-row filter bar for the markets list:
  * - Row 1: Category badges (Crypto, Stocks, Commodities, Forex)
  * - Row 2: Sort dropdown (volume, price change, funding rate, etc.)
+ *
+ * Both rows render by default; pass `showCategoryRow={false}` or
+ * `showSortRow={false}` to render just one row (e.g. so a caller can
+ * place other content — like a rail — between the two rows).
  *
  * @example
  * ```tsx
@@ -37,6 +42,8 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   showWatchlistBadge,
   isWatchlistSelected,
   onWatchlistToggle,
+  showCategoryRow = true,
+  showSortRow = true,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -44,21 +51,23 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   return (
     <View style={styles.container} testID={testID}>
       {/* Row 1: Category Badges (+ optional watchlist star badge) */}
-      <PerpsMarketCategoryBadges
-        selectedCategory={marketTypeFilter}
-        onCategorySelect={onCategorySelect}
-        showWatchlistBadge={showWatchlistBadge}
-        isWatchlistSelected={isWatchlistSelected}
-        onWatchlistToggle={onWatchlistToggle}
-        testID={testID ? `${testID}-categories` : undefined}
-      />
+      {showCategoryRow && (
+        <PerpsMarketCategoryBadges
+          selectedCategory={marketTypeFilter}
+          onCategorySelect={onCategorySelect}
+          showWatchlistBadge={showWatchlistBadge}
+          isWatchlistSelected={isWatchlistSelected}
+          onWatchlistToggle={onWatchlistToggle}
+          testID={testID ? `${testID}-categories` : undefined}
+        />
+      )}
 
       {/* Row 2: Market count (left) + Sort dropdown (right) — hidden when watchlist filter is active */}
-      {!isWatchlistSelected && (
+      {showSortRow && !isWatchlistSelected && (
         <View style={styles.sortRow}>
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
             testID={testID ? `${testID}-market-count` : undefined}
           >
             {marketCount === 1

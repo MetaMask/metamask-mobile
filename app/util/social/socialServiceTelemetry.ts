@@ -13,6 +13,7 @@ export const SOCIAL_SENTRY_FEATURE = 'social' as const;
  */
 export type SocialSurface =
   | 'top_traders'
+  | 'trader_feed'
   | 'quick_buy'
   | 'trader_profile'
   | 'trader_position'
@@ -25,6 +26,7 @@ export type SocialSurface =
  */
 export type SocialEndpoint =
   | 'leaderboard'
+  | 'feed'
   | 'following'
   | 'open_positions'
   | 'closed_positions'

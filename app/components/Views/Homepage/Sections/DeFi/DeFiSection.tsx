@@ -5,7 +5,7 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -28,6 +28,7 @@ import Engine from '../../../../../core/Engine';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useThrottledFocusEffect } from '../../../../hooks/useThrottledFocusEffect';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -85,15 +86,15 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const navigation = useNavigation();
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
 
-    useFocusEffect(
+    // TODO(ASSETS-3658): Replace with a proper polling mechanism in DeFiPositionsController.
+    useThrottledFocusEffect(
       useCallback(() => {
-        if (!isDeFiEnabled) {
-          return;
-        }
+        if (!isDeFiEnabled) return;
         Engine.context.DeFiPositionsController?._executePoll()?.catch(
           () => undefined,
         );
       }, [isDeFiEnabled]),
+      300_000, // 5 minutes
     );
     const privacyMode = useSelector(selectPrivacyMode);
     const title = strings('homepage.sections.defi');

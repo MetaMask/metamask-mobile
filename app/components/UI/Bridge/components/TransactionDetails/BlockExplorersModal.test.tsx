@@ -16,7 +16,33 @@ jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
   trackBlockExplorerLinkClicked: jest.fn(),
 }));
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+
 const mockNavigate = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
+  callback?.();
+});
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: forwardRef(
+        (
+          { children }: { children: React.ReactNode },
+          ref: React.Ref<unknown>,
+        ) => {
+          useImperativeHandle(ref, () => ({
+            onCloseBottomSheet: mockOnCloseBottomSheet,
+          }));
+          return <View testID="bottom-sheet">{children}</View>;
+        },
+      ),
+    };
+  },
+);
 
 const mockTx = {
   id: 'test-tx-id',
@@ -54,6 +80,9 @@ jest.mock('@react-navigation/native', () => {
 describe('BlockExplorersModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
+      callback?.();
+    });
   });
 
   const mockState = {
@@ -150,6 +179,7 @@ describe('BlockExplorersModal', () => {
     const [srcExplorerButton] = getAllByText('Etherscan');
     fireEvent.press(srcExplorerButton);
 
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: expect.objectContaining({
@@ -178,6 +208,7 @@ describe('BlockExplorersModal', () => {
     const destExplorerButton = getByText('Optimistic');
     fireEvent.press(destExplorerButton);
 
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: expect.objectContaining({

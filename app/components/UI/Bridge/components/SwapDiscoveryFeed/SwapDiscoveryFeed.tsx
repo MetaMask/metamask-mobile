@@ -33,7 +33,7 @@ import {
 import { SwapDiscoveryFeedTestIds } from './SwapDiscoveryFeed.testIds';
 
 const HOT_TOKENS_TIME_OPTION = TimeOption.OneHour;
-const HOT_TOKENS_ROW_COUNT = 3;
+const HOT_TOKENS_ROW_COUNT = 2;
 const HOT_TOKENS_MAX_PILLS = 18;
 
 interface FeedSlice {
@@ -225,7 +225,7 @@ const SwapDiscoveryFeedContent: React.FC = () => {
 
   return (
     <Box twClassName="px-1" testID={SwapDiscoveryFeedTestIds.ROOT}>
-      <ExploreSectionList sections={sections} />
+      <ExploreSectionList sections={sections} includeDividers={false} />
     </Box>
   );
 };

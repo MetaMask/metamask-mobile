@@ -68,6 +68,10 @@ function getDepositAnalyticsPayload(
 
   const baseAnalyticsData = {
     ramp_type: 'DEPOSIT' as const,
+    // TRAM-3696: join key back to the provider order. Never emit empty string.
+    ...((order.providerOrderId || fiatOrder.id) && {
+      provider_order_id: order.providerOrderId || fiatOrder.id,
+    }),
     amount_source: Number(order.fiatAmount),
     amount_destination: Number(fiatOrder.cryptoAmount),
     exchange_rate: Number(order.exchangeRate),

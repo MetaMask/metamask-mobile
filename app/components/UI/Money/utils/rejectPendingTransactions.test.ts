@@ -10,6 +10,7 @@ import Logger from '../../../../util/Logger';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     ApprovalController: { rejectRequest: jest.fn() },
+    TransactionController: { state: { transactions: [] } },
   },
 }));
 
@@ -24,18 +25,25 @@ const mockRejectRequest = jest.mocked(
 const tx = (id: string, status: TransactionStatus): TransactionMeta =>
   ({ id, status }) as TransactionMeta;
 
+const setTransactions = (transactions: TransactionMeta[]) => {
+  Engine.context.TransactionController.state.transactions = transactions;
+};
+
 describe('rejectPendingTransactions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setTransactions([]);
   });
 
   it('rejects only unapproved transactions', () => {
-    rejectPendingTransactions([
+    setTransactions([
       tx('a', TransactionStatus.unapproved),
       tx('b', TransactionStatus.confirmed),
       tx('c', TransactionStatus.submitted),
       tx('d', TransactionStatus.unapproved),
     ]);
+
+    rejectPendingTransactions();
 
     expect(mockRejectRequest).toHaveBeenCalledTimes(2);
     expect(mockRejectRequest).toHaveBeenCalledWith(
@@ -49,7 +57,9 @@ describe('rejectPendingTransactions', () => {
   });
 
   it('does nothing when there are no unapproved transactions', () => {
-    rejectPendingTransactions([tx('a', TransactionStatus.confirmed)]);
+    setTransactions([tx('a', TransactionStatus.confirmed)]);
+
+    rejectPendingTransactions();
 
     expect(mockRejectRequest).not.toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
@@ -61,10 +71,12 @@ describe('rejectPendingTransactions', () => {
       throw error;
     });
 
-    rejectPendingTransactions([
+    setTransactions([
       tx('a', TransactionStatus.unapproved),
       tx('b', TransactionStatus.unapproved),
     ]);
+
+    rejectPendingTransactions();
 
     expect(Logger.error).toHaveBeenCalledWith(
       error,

@@ -3,68 +3,51 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsDisclaimerBottomSheet from './MarketInsightsDisclaimerBottomSheet';
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactLib = jest.requireActual('react');
-    const { View: MockView } = jest.requireActual('react-native');
+const mockOnCloseBottomSheet = jest.fn();
 
-    return {
-      __esModule: true,
-      default: ReactLib.forwardRef(
-        (
-          {
-            children,
-            onClose: onCloseProp,
-          }: { children: React.ReactNode; onClose?: () => void },
-          ref: React.Ref<{
-            onOpenBottomSheet: () => void;
-            onCloseBottomSheet: () => void;
-          }>,
-        ) => {
-          ReactLib.useImperativeHandle(ref, () => ({
-            onOpenBottomSheet: jest.fn(),
-            onCloseBottomSheet: jest.fn().mockImplementation(() => {
-              onCloseProp?.();
-            }),
-          }));
-          return <MockView testID="mock-bottom-sheet">{children}</MockView>;
-        },
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View: MockView, Text: MockText } =
-      jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: ({
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
         children,
         onClose,
       }: {
         children: React.ReactNode;
         onClose?: () => void;
-      }) => (
-        <MockView testID="mock-bottom-sheet-header">
-          <MockText>{children}</MockText>
-          {onClose && (
-            <MockView
-              testID="mock-bottom-sheet-header-close"
-              onPress={onClose}
-            />
-          )}
-        </MockView>
-      ),
-    };
-  },
-);
+      },
+      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: () => {
+          mockOnCloseBottomSheet();
+          onClose?.();
+        },
+        onOpenBottomSheet: jest.fn(),
+      }));
+
+      return ReactActual.createElement(
+        View,
+        { testID: 'mock-bottom-sheet', onClose },
+        children,
+      );
+    },
+  );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 describe('MarketInsightsDisclaimerBottomSheet', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('calls onClose when the Got it button is pressed', () => {
     const onClose = jest.fn();
 
@@ -74,6 +57,7 @@ describe('MarketInsightsDisclaimerBottomSheet', () => {
 
     fireEvent.press(getByText('Got it'));
 
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

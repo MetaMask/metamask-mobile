@@ -1,8 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { type OrderType } from '@metamask/perps-controller';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
 
 interface PerpsSelectOrderTypeViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -21,7 +23,7 @@ const PerpsSelectOrderTypeView: React.FC<PerpsSelectOrderTypeViewProps> = ({
   onSelect,
   onClose: onExternalClose,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
 

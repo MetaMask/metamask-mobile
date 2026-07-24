@@ -10,6 +10,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -56,6 +58,8 @@ interface MoneyPotentialEarningsProps {
    * Typically navigates to the Earn-on-your-crypto info bottom sheet.
    */
   onInfoPress?: () => void;
+  /** Whether each token's balance/projected values should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyPotentialEarnings = ({
@@ -67,6 +71,7 @@ const MoneyPotentialEarnings = ({
   onViewAllPress,
   onHeaderPress,
   onInfoPress,
+  privacyMode = false,
 }: MoneyPotentialEarningsProps) => {
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
@@ -131,20 +136,30 @@ const MoneyPotentialEarnings = ({
           >
             {`${strings(
               'money.potential_earnings.description_with_amounts_prefix',
-              {
-                total: moneyFormatFiat(
-                  new BigNumber(totalAssetsFiat),
-                  currency,
-                ),
-              },
             )} `}
-            <Text
+            <SensitiveText
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              testID={MoneyPotentialEarningsTestIds.TOTAL}
+            >
+              {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
+            </SensitiveText>
+            {` ${strings(
+              'money.potential_earnings.description_with_amounts_middle',
+            )} `}
+            <SensitiveText
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={MoneyPotentialEarningsTestIds.PROJECTED}
             >
               {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
-            </Text>
+            </SensitiveText>
             {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',
             )}`}
@@ -171,6 +186,7 @@ const MoneyPotentialEarnings = ({
             apyDecimal={apyDecimal}
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
+            privacyMode={privacyMode}
           />
         ))}
 

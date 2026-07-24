@@ -29,9 +29,9 @@ describe('feedConfig', () => {
       'crypto',
       'live',
       'trending',
-      'popular-today',
     ]);
     expect(isPredictFeedId('world-cup')).toBe(false);
+    expect(isPredictFeedId('popular-today')).toBe(false);
   });
 
   it.each(PREDICT_FEED_IDS)('resolves known feed id %s', (feedId) => {
@@ -95,9 +95,7 @@ describe('feedConfig', () => {
   });
 
   it('represents hidden-tab feeds with exactly one tab', () => {
-    (
-      ['politics', 'crypto', 'live', 'trending', 'popular-today'] as const
-    ).forEach((feedId) => {
+    (['politics', 'crypto', 'live', 'trending'] as const).forEach((feedId) => {
       expect(PREDICT_FEED_REGISTRY[feedId].tabs).toHaveLength(1);
     });
   });
@@ -128,9 +126,6 @@ describe('feedConfig', () => {
   });
 
   it('resolves the dynamic filter config for a feed from the registry', () => {
-    expect(resolvePredictFeedDynamicFilterConfig('popular-today')).toBe(
-      PREDICT_FEED_REGISTRY['popular-today'].tabs[0].filters.dynamic,
-    );
     expect(resolvePredictFeedDynamicFilterConfig('trending')).toBe(
       PREDICT_FEED_REGISTRY.trending.tabs[0].filters.dynamic,
     );

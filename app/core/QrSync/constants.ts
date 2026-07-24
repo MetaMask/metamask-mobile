@@ -30,6 +30,30 @@ export const QrSyncPhases = {
   FAILED: 'failed',
 } as const;
 
+/** Distinguishes new-user vs existing-user QR sync receive paths. */
+export const QrSyncSyncFlows = {
+  NEW_USER: 'new_user',
+  EXISTING_USER: 'existing_user',
+} as const;
+
+export type QrSyncSyncFlow =
+  (typeof QrSyncSyncFlows)[keyof typeof QrSyncSyncFlows];
+
+/**
+ * Persisted provisioning pipeline status for QR sync vault import.
+ *
+ * - awaiting_password — secrets held in memory until the user sets a password
+ * - secrets_imported — vault import done; metadata layout (QrSync Phase C) pending
+ * - completed — provisioning finished; metadata cleared
+ * - failed — Phase C failed; metadata retained for potential retry
+ */
+export const QrSyncProvisioningStatuses = {
+  AWAITING_PASSWORD: 'awaiting_password', // NOSONAR - this is not password. False positive.
+  SECRETS_IMPORTED: 'secrets_imported',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+} as const;
+
 export const QrSyncActionTypes = {
   /**
    * Init Sync Session
@@ -99,4 +123,12 @@ export const QrSyncActionTypes = {
    * @type {string}
    */
   SYNC_ERROR: 'sync-error',
+} as const;
+
+/**
+ * Secret entry `type` values in the `sync-ready` payload and mobile controller state.
+ */
+export const QrSyncSecretTypes = {
+  MNEMONIC: 'Mnemonic',
+  PRIVATE_KEY: 'PrivateKey',
 } as const;

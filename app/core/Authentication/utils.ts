@@ -191,10 +191,10 @@ export const getAuthType = ({
 };
 
 /**
- * Gets a human-readable label based on the authentication and supported biometric types.
+ * Gets the i18n key for the authentication label based on supported biometric types.
  *
- * iOS: "Remember Me" | "Face ID" | "Touch ID" | "Device Passcode" | "Password"
- * Android: "Remember Me" | "Device Authentication" | "Password"
+ * iOS: remember_me | face_id | touch_id | device_passcode | device_authentication | password
+ * Android: remember_me | device_authentication | password
  *
  * @param params.supportedBiometricTypes - The supported biometric types
  * @param params.allowLoginWithRememberMe - Legacy - Whether the user has enabled remember me
@@ -202,7 +202,7 @@ export const getAuthType = ({
  * @param params.legacyUserChosePasscode - Legacy - Whether the user has chosen passcode
  * @param params.isBiometricsAvailable - Whether the device has biometrics available
  * @param params.passcodeAvailable - Whether the device has passcode available
- * @returns The human-readable label for the authentication type
+ * @returns The i18n key for the authentication type label
  */
 export const getAuthLabel = ({
   supportedBiometricTypes,
@@ -220,7 +220,7 @@ export const getAuthLabel = ({
   passcodeAvailable: boolean;
 }): string => {
   if (allowLoginWithRememberMe) {
-    return 'Remember Me';
+    return 'authentication.labels.remember_me';
   }
   if (legacyUserChoseBiometrics) {
     // Show explicit authentication type for legacy biometrics
@@ -228,24 +228,26 @@ export const getAuthLabel = ({
       if (
         supportedBiometricTypes.includes(AuthenticationType.FACIAL_RECOGNITION)
       ) {
-        return 'Face ID';
+        return 'authentication.labels.face_id';
       }
       if (supportedBiometricTypes.includes(AuthenticationType.FINGERPRINT)) {
-        return 'Touch ID';
+        return 'authentication.labels.touch_id';
       }
     }
-    return 'Device Authentication';
+    return 'authentication.labels.device_authentication';
   }
   if (legacyUserChosePasscode) {
     // Show explicit authentication type for legacy passcode
-    return Platform.OS === 'ios' ? 'Device Passcode' : 'Device Authentication';
+    return Platform.OS === 'ios'
+      ? 'authentication.labels.device_passcode'
+      : 'authentication.labels.device_authentication';
   }
   if (isBiometricsAvailable || passcodeAvailable) {
     // Modernized authentication access allows for both biometrics and passcode
-    // Here we return the generic "Device Authentication" label since the system will handle access control to use
-    return 'Device Authentication';
+    // Here we return the generic device authentication label since the system will handle access control
+    return 'authentication.labels.device_authentication';
   }
-  return 'Password';
+  return 'login.password';
 };
 
 /**

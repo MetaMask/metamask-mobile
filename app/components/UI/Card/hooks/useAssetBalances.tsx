@@ -2,6 +2,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo, useCallback } from 'react';
 import { Hex } from '@metamask/utils';
+import BigNumber from 'bignumber.js';
+import { type ExchangeRateResponse } from '@metamask/money-account-balance-service';
+import { useQuery } from '@metamask/react-data-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../Money/queryKeys';
 import { FundingStatus, CardFundingToken } from '../types';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
@@ -22,9 +27,12 @@ import {
 } from '../../../../selectors/assets/assets-migration';
 import { CARD_CHAIN_IDS } from '../constants';
 import { balanceToFiatNumber } from '../../../../util/number/bigint';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
-import { toChecksumAddress } from '../../../../util/address';
+import { MUSD_DECIMALS } from '../../Earn/constants/musd';
+
+// Poll the vault exchange rate on the same cadence the Money tab refreshes the
+// account balance (which embeds a fresh vmUSD→mUSD value), so the Card's
+// "Avail. balance" tracks the Money balance instead of holding a stale rate.
+const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 30 * 1000; // 30 seconds
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
@@ -187,28 +195,37 @@ export const useAssetBalances = (
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const musdFiatRate = useMemo<number | undefined>(() => {
-    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
-    if (!musdAddress) {
+  // The Money account funding token is vmUSD — a yield-bearing Veda vault share
+  // whose on-chain balance is denominated in shares, not mUSD. Its mUSD value is
+  // `shares × exchangeRate`, so we fetch the vault exchange rate to convert it,
+  // matching how the Money account balance is derived. Only fetched when a Money
+  // account entry is present to avoid an unnecessary RPC read.
+  const hasMoneyAccountEntry = useMemo(
+    () => tokens.some((token) => token?.isMoneyAccountEntry),
+    [tokens],
+  );
+
+  const exchangeRateQuery = useQuery({
+    queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_EXCHANGE_RATE],
+    enabled: hasMoneyAccountEntry,
+    refetchInterval: EXCHANGE_RATE_REFETCH_INTERVAL_MS,
+  }) as UseQueryResult<ExchangeRateResponse>;
+
+  // Human-readable mUSD-per-vmUSD-share rate (e.g. 1.0002). The raw rate is a
+  // uint256 scaled to mUSD decimals, so a value of 1_000_000 means 1.0.
+  const vmusdToMusdRate = useMemo<number | undefined>(() => {
+    const rawRate = exchangeRateQuery.data?.rate;
+    if (!rawRate) {
       return undefined;
     }
-
-    const checksumAddress = toChecksumAddress(musdAddress) as Hex;
-    const nativeCurrency = networkConfigs?.[CHAIN_IDS.MAINNET]?.nativeCurrency;
-    const conversionRate = nativeCurrency
-      ? currencyRates?.[nativeCurrency]?.conversionRate
+    const parsed = new BigNumber(rawRate).shiftedBy(-MUSD_DECIMALS);
+    // A non-positive or non-finite rate (e.g. a raw "0") is treated as
+    // unavailable so we fall back to the 1:1 share↔mUSD conversion rather than
+    // zeroing out the balance.
+    return parsed.isFinite() && parsed.isGreaterThan(0)
+      ? parsed.toNumber()
       : undefined;
-
-    const priceInNativeCurrency =
-      marketData?.[CHAIN_IDS.MAINNET]?.[checksumAddress]?.price ??
-      marketData?.[CHAIN_IDS.MAINNET]?.[musdAddress]?.price;
-
-    if (!conversionRate || priceInNativeCurrency === undefined) {
-      return undefined;
-    }
-
-    return priceInNativeCurrency * conversionRate;
-  }, [marketData, currencyRates, networkConfigs]);
+  }, [exchangeRateQuery.data]);
 
   // Helper: Determine which balance to use based on token state
   const determineBalanceToUse = useCallback(
@@ -398,6 +415,25 @@ export const useAssetBalances = (
           rates.conversionRate,
           rates.marketData.price,
         );
+      }
+
+      // Must run before the filteredToken/walletAsset paths: without market
+      // data those report "$0.00" for a real balance, so a USD-pegged token
+      // falls back to 1 token = 1 USD instead.
+      if (_token.assumeUsdParity) {
+        const parityBalance = parseFloat(balanceToUse.replace(',', '.'));
+        if (!isNaN(parityBalance)) {
+          const balanceFiat = formatWithThreshold(
+            parityBalance,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: 'USD',
+            },
+          );
+          return { balanceFiat, rawFiatNumber: parityBalance };
+        }
       }
 
       // Use pre-calculated fiat from filtered token
@@ -714,13 +750,22 @@ export const useAssetBalances = (
 
       if (token.isMoneyAccountEntry) {
         const safeBalance = Number.isNaN(rawTokenBalance) ? 0 : rawTokenBalance;
-        const convertedFiat =
-          musdFiatRate !== undefined ? safeBalance * musdFiatRate : safeBalance;
-        balanceFiat = formatWithThreshold(convertedFiat, 0.01, I18n.locale, {
+        // vmUSD is a Veda vault share, so convert it to its mUSD value via the
+        // vault exchange rate (falling back to 1:1 when the rate is unavailable).
+        // mUSD is a USD-pegged stablecoin, so the mUSD amount IS the dollar
+        // value — we render it as USD 1:1 rather than through live market data,
+        // exactly as the Money account balance does (`moneyFormatUsd`). This
+        // keeps the Card "Avail. balance" identical to the Money balance for the
+        // same vmUSD position.
+        const musdBalance =
+          vmusdToMusdRate !== undefined
+            ? safeBalance * vmusdToMusdRate
+            : safeBalance;
+        balanceFiat = formatWithThreshold(musdBalance, 0.01, I18n.locale, {
           style: 'currency',
-          currency: currentCurrency?.toUpperCase() || 'USD',
+          currency: 'USD',
         });
-        rawFiatNumber = convertedFiat;
+        rawFiatNumber = musdBalance;
       }
 
       // Build asset object
@@ -750,8 +795,7 @@ export const useAssetBalances = (
     calculateSolanaFiat,
     calculateEvmFiat,
     buildAssetObject,
-    currentCurrency,
-    musdFiatRate,
+    vmusdToMusdRate,
   ]);
 
   return balancesMap;

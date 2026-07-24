@@ -49,7 +49,10 @@ describe('usePredictTrendingSection', () => {
       expect.objectContaining({
         order: 'volume24hr',
         status: 'open',
-        limit: TRENDING_DISPLAY_LIMIT,
+        // Fetch limit is intentionally larger than the display cap so the
+        // section fills after filtering; keep it decoupled from
+        // TRENDING_DISPLAY_LIMIT.
+        limit: 10,
       }),
     );
   });

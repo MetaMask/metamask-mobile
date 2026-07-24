@@ -18,53 +18,6 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      header: {},
-      activityItem: {},
-      leftSection: {},
-      iconContainer: {},
-      activityInfo: {},
-      activityType: {},
-      activityAmount: {},
-      rightSection: {},
-      emptyText: {},
-    },
-  }),
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactLib = jest.requireActual('react');
-  const { Text: ReactNativeText } = jest.requireActual('react-native');
-
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    [key: string]: unknown;
-  }) => ReactLib.createElement(ReactNativeText, props, children);
-
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingSM: 'HeadingSM',
-      BodyMD: 'BodyMD',
-      BodyMDMedium: 'BodyMDMedium',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Success: 'Success',
-      Error: 'Error',
-    },
-  };
-});
-
 jest.mock('../PerpsTokenLogo', () => {
   const { View: RNView, Text: RNText } = jest.requireActual('react-native');
   return function MockPerpsTokenLogo({

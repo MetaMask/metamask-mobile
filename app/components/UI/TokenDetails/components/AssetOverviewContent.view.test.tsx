@@ -134,6 +134,9 @@ function buildTokenDetailsMarketInsightsState(
             pooled_staking: { isEligible: false },
             lending: { positions: [], markets: [] },
           },
+          MoneyAccountController: {
+            moneyAccounts: {},
+          },
         },
       },
     },

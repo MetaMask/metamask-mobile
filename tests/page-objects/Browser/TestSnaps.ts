@@ -468,9 +468,12 @@ class TestSnaps {
       timeout: 15_000,
     });
     await this.blurActiveWebViewInput();
+    await Utilities.waitForElementToStopMoving(this.confirmSignatureButton, {
+      stableCount: 2,
+      timeout: 5_000,
+    });
     await Gestures.tap(this.confirmSignatureButton, {
       elemDescription: 'confirm snap signature',
-      checkStability: true,
     });
   }
 

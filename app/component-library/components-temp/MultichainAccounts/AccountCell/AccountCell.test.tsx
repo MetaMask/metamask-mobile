@@ -285,6 +285,7 @@ describe('AccountCell', () => {
 
     // Verify all expected test IDs are present
     expect(getByTestId(AccountCellIds.CONTAINER)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.SELECT)).toBeTruthy();
     expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
     expect(getByTestId(AccountCellIds.ADDRESS)).toBeTruthy();
     expect(getByTestId(AccountCellIds.BALANCE)).toBeTruthy();

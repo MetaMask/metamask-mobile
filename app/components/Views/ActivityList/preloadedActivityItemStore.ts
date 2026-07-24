@@ -1,12 +1,13 @@
 import type { ActivityListItem } from '../../../util/activity-adapters';
 
 /**
- * Transient hand-off for provider-backed Activity rows (Perps / Predict) that
- * can't be re-resolved by hash. The row is stashed before navigating and only
- * its unique key rides in the navigation params, so params stay serializable.
- * A per-navigation key (not chainId+hash) means a later open of the same tx
- * can't pick up a stale row. Not persisted — a cold start falls back to normal
- * resolution.
+ * Transient hand-off for Activity rows that may not re-resolve cleanly by hash
+ * alone: provider-backed rows (Perps / Predict) and local EVM rows (STX/gasless
+ * hash flips while `TransactionMeta.id` is stable). The row is stashed before
+ * navigating and only its unique key rides in the navigation params, so params
+ * stay serializable. A per-navigation key (not chainId+hash) means a later open
+ * of the same tx can't pick up a stale row. Not persisted — a cold start falls
+ * back to normal resolution.
  */
 
 // Cap the cache so it can't grow unbounded over a session.

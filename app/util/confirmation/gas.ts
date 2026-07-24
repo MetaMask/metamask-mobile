@@ -12,7 +12,7 @@ import {
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import { decGWEIToHexWEI } from '../conversions';
-import { addHexPrefix } from '../number';
+import { addHexPrefix } from '../number/bigint';
 
 export type GasFeeEstimatesInput =
   | GasFeeEstimates

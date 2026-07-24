@@ -9,6 +9,7 @@ export class CardApiError extends Error {
   readonly statusCode: number;
   readonly path: string;
   readonly responseBody: string;
+  readonly errorCode?: string;
 
   constructor(statusCode: number, path: string, responseBody: string) {
     super(`Card API error ${statusCode} on ${path}`);
@@ -16,6 +17,16 @@ export class CardApiError extends Error {
     this.statusCode = statusCode;
     this.path = path;
     this.responseBody = responseBody;
+    this.errorCode = parseErrorCode(responseBody);
+  }
+}
+
+function parseErrorCode(body: string): string | undefined {
+  try {
+    const code = (JSON.parse(body) as { errorCode?: unknown }).errorCode;
+    return typeof code === 'string' ? code : undefined;
+  } catch {
+    return undefined;
   }
 }
 

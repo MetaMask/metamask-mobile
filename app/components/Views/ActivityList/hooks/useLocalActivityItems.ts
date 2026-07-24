@@ -11,7 +11,10 @@ import {
 } from '@metamask/transaction-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Hex } from '@metamask/utils';
-import { selectLocalTransactions } from '../../../../selectors/transactionController';
+import {
+  selectLocalTransactions,
+  selectReplacedLocalTransactions,
+} from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
@@ -98,27 +101,57 @@ function getTransactionGroupKey(tx: TransactionMeta): string {
   return `${chainId}:${from}:${tx.id}`;
 }
 
+type GroupMember = TransactionMeta & { isSmartTransaction?: boolean };
+
+const byTimeAscending = (a: GroupMember, b: GroupMember) =>
+  (a.time ?? 0) - (b.time ?? 0);
+
 function buildTransactionGroups(
-  transactions: (TransactionMeta & { isSmartTransaction?: boolean })[],
+  transactions: GroupMember[],
+  replacedTransactions: TransactionMeta[] = [],
 ): TransactionGroup[] {
   const groupsByKey = new Map<
     string,
-    (TransactionMeta & { isSmartTransaction?: boolean })[]
+    { representatives: GroupMember[]; replaced: GroupMember[] }
   >();
 
   for (const tx of transactions) {
     const key = getTransactionGroupKey(tx);
-    const group = groupsByKey.get(key) ?? [];
-    group.push(tx);
-    groupsByKey.set(key, group);
+    const entry = groupsByKey.get(key) ?? { representatives: [], replaced: [] };
+    entry.representatives.push(tx);
+    groupsByKey.set(key, entry);
   }
 
-  return [...groupsByKey.values()].map((groupTransactions) => {
-    const sorted = [...groupTransactions].sort(
-      (a, b) => (a.time ?? 0) - (b.time ?? 0),
-    );
+  // Merge replaced (speed-up/cancel) originals into their nonce group so the
+  // earliest attempt can drive the group's type/amount. Only merge into groups
+  // that already exist — a replaced tx with no surviving representative must not
+  // create a new row (it would duplicate the row shown for its replacement).
+  // Representatives (non-replaced) and replaced txs are disjoint by construction,
+  // so no id-dedupe is needed here.
+  for (const tx of replacedTransactions) {
+    groupsByKey.get(getTransactionGroupKey(tx))?.replaced.push(tx);
+  }
+
+  return [...groupsByKey.values()].map(({ representatives, replaced }) => {
+    const sortedRepresentatives = [...representatives].sort(byTimeAscending);
+    // Put replaced attempts before representatives so an equal-`time` original
+    // still wins the earliest slot (the surviving replacement must never be
+    // treated as the original). Only build the merged list when there's
+    // something to merge — the common (no-replacement) group reuses the single
+    // representatives sort.
+    const sorted = replaced.length
+      ? [...replaced, ...sortedRepresentatives].sort(byTimeAscending)
+      : sortedRepresentatives;
+
+    // Earliest attempt (usually the pre-replacement original) drives the type
+    // and amount. The status, by contrast, must come from the surviving
+    // (non-replaced) attempt: a replaced original can be *newer* than the winner
+    // — e.g. the first-broadcast tx confirmed and the higher-gas speed-up was
+    // dropped — so picking the latest attempt overall would show the dropped
+    // replacement's "failed" status for a transfer that actually succeeded.
     const initialTransaction = sorted[0];
-    const primaryTransaction = sorted[sorted.length - 1];
+    const primaryTransaction =
+      sortedRepresentatives[sortedRepresentatives.length - 1];
     const nonce = initialTransaction.txParams?.nonce;
 
     return {
@@ -243,6 +276,7 @@ function getSwapTokenEnrichment(
 export function useLocalActivityItems(): ActivityListItem[] {
   // Outgoing / user-initiated txs only — excludes incoming spam from TransactionController.
   const localTransactions = useSelector(selectLocalTransactions);
+  const replacedTransactions = useSelector(selectReplacedLocalTransactions);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -264,7 +298,10 @@ export function useLocalActivityItems(): ActivityListItem[] {
   return useMemo(() => {
     const items: ActivityListItem[] = [];
     const accountAddress = groupEvmAccount?.address?.toLowerCase();
-    const groupedTransactions = buildTransactionGroups(transactionMetaList);
+    const groupedTransactions = buildTransactionGroups(
+      transactionMetaList,
+      replacedTransactions,
+    );
 
     for (const baseGroup of groupedTransactions) {
       const { primaryTransaction: tx } = baseGroup;
@@ -332,6 +369,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
     return items;
   }, [
     transactionMetaList,
+    replacedTransactions,
     bridgeHistory,
     networkConfigurations,
     allTokens,

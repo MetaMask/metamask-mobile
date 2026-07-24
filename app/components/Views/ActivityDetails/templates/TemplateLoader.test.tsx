@@ -72,7 +72,7 @@ jest.mock('./RampDetails', () => {
   };
 });
 
-const rampItem = (type: 'buy' | 'deposit'): ActivityListItem =>
+const rampItem = (type: 'buy' | 'sell'): ActivityListItem =>
   ({
     type,
     chainId: 'eip155:1',
@@ -487,14 +487,6 @@ describe('TemplateLoader', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW),
     ).toBeOnTheScreen();
-  });
-
-  it('routes a ramp deposit to RampDetails (not the staking DepositDetails)', () => {
-    const { getByTestId } = renderWithProvider(
-      <TemplateLoader item={rampItem('deposit')} />,
-    );
-
-    expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
   });
 
   it('routes a ramp buy to RampDetails', () => {

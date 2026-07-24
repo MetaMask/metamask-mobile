@@ -15,7 +15,11 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { getNetworkBadgeSource } from '../../../Trending/components/TrendingTokenRowItem/utils';
+import {
+  getCaipChainIdFromAssetId,
+  getNetworkBadgeSource,
+} from '../../../Trending/components/TrendingTokenRowItem/utils';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
 import { strings } from '../../../../../../locales/i18n';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
@@ -30,6 +34,10 @@ interface PostTradeSuggestionPillProps {
   networkBadgeImageSource?: ImageSourcePropType;
   onPress: (token: TrendingAsset) => void;
 }
+
+const ETHEREUM_NETWORK_BADGE_SOURCE = getNetworkBadgeSource(
+  NetworkToCaipChainId.ETHEREUM,
+);
 
 const PostTradeSuggestionPill = React.memo(
   ({
@@ -99,23 +107,30 @@ export const PostTradeTokenSuggestions = ({
     destToken,
     enabled: shouldShowSuggestions,
   });
-  const networkBadgeImageSource = useMemo(
+  const destinationNetworkBadgeSource = useMemo(
     () =>
       destToken?.chainId
         ? getNetworkBadgeSource(formatChainIdToCaip(destToken.chainId))
         : undefined,
     [destToken?.chainId],
   );
-
   const renderItem = useCallback(
-    (token: TrendingAsset) => (
-      <PostTradeSuggestionPill
-        token={token}
-        networkBadgeImageSource={networkBadgeImageSource}
-        onPress={onTokenPress}
-      />
-    ),
-    [networkBadgeImageSource, onTokenPress],
+    (token: TrendingAsset) => {
+      const networkBadgeImageSource =
+        getCaipChainIdFromAssetId(token.assetId) ===
+        NetworkToCaipChainId.ETHEREUM
+          ? ETHEREUM_NETWORK_BADGE_SOURCE
+          : destinationNetworkBadgeSource;
+
+      return (
+        <PostTradeSuggestionPill
+          token={token}
+          networkBadgeImageSource={networkBadgeImageSource}
+          onPress={onTokenPress}
+        />
+      );
+    },
+    [destinationNetworkBadgeSource, onTokenPress],
   );
 
   if (!shouldShowSuggestions || (!isLoading && tokens.length === 0)) {

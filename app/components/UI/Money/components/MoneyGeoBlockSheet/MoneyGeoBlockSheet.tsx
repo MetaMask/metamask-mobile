@@ -11,7 +11,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { MoneyGeoBlockSheetTestIds } from './MoneyGeoBlockSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -22,8 +21,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const MoneyGeoBlockSheet = () => {
   const navigation = useNavigation();
-
-  const surfaceClass = useElevatedSurface();
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -53,7 +50,6 @@ const MoneyGeoBlockSheet = () => {
     <BottomSheet
       ref={bottomSheetRef}
       testID={MoneyGeoBlockSheetTestIds.SHEET}
-      twClassName={surfaceClass}
       onClose={handleClose}
     >
       <BottomSheetHeader

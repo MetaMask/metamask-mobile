@@ -95,6 +95,12 @@ export const createStyles = (
     listItemAmountIncoming: {
       color: colors.success.default,
     } as TextStyle,
+    listItemAmountLoss: {
+      color: colors.error.default,
+    } as TextStyle,
+    listItemAmountMuted: {
+      color: colors.text.muted,
+    } as TextStyle,
     listItemSecondaryAmount: {
       ...typography.sBodySM,
       fontFamily: getFontFamily(TextVariant.BodySM),
@@ -124,6 +130,15 @@ export const createStyles = (
       alignItems: 'center',
       marginTop: 0,
     },
+    subtitleRowSpaced: {
+      marginTop: 4,
+    },
+    subtitleAccountAvatar: {
+      marginRight: 4,
+    },
+    subtitleAccountName: {
+      flexShrink: 1,
+    } as TextStyle,
     subtitleLeadingIcon: {
       height: 16,
       justifyContent: 'center',

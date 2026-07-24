@@ -74,6 +74,10 @@ export interface PerpsTransaction {
     size: string;
     limitPrice: string;
     filled: string;
+    side?: 'buy' | 'sell';
+    reduceOnly?: boolean;
+    isTrigger?: boolean;
+    detailedOrderType?: string;
   };
   // For funding: funding info
   fundingAmount?: {

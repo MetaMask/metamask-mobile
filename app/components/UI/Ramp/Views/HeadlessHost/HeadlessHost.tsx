@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -71,7 +72,7 @@ export const createHeadlessHostNavDetails =
   createNavigationDetails<HeadlessHostParams>(Routes.RAMP.HEADLESS_HOST);
 
 function HeadlessHost() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { headlessSessionId, nativeFlowError, suppressFocusDismissal } =

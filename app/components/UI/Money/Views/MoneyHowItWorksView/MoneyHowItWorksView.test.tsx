@@ -15,6 +15,7 @@ import {
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockTrackScreenViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -24,6 +25,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 }));
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
@@ -36,7 +38,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
@@ -192,7 +194,7 @@ describe('MoneyHowItWorksView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the Card fees breakdown when the fees FAQ link is pressed', () => {
+  it('opens the Card fees breakdown in the in-app browser when the fees FAQ link is pressed', () => {
     const openURLSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
@@ -202,7 +204,15 @@ describe('MoneyHowItWorksView', () => {
     fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_ITEM(4)));
     fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_LINK));
 
-    expect(openURLSpy).toHaveBeenCalledWith(AppConstants.CARD.CARD_FEES_URL);
+    expect(openURLSpy).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: AppConstants.CARD.CARD_FEES_URL,
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
   });
 
   it('tracks a button click when the fees FAQ link is pressed', () => {

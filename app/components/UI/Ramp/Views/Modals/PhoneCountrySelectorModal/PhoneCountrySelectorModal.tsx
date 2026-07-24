@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { ListRenderItem, View } from 'react-native';
+import { ListRenderItem } from 'react-native';
 import Fuse from 'fuse.js';
 import {
   BottomSheetRef,
@@ -10,10 +10,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Country } from '@metamask/ramps-controller';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../component-library/components/List/ListItemColumn';
-import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
@@ -21,7 +17,6 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import SearchableSelectorBottomSheet from '../../../components/SearchableSelectorBottomSheet';
-import styleSheet from './PhoneCountrySelectorModal.styles';
 
 const MAX_COUNTRY_RESULTS = 20;
 
@@ -47,7 +42,6 @@ function PhoneCountrySelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { countries, selectedCountry, onCountrySelect } =
     useParams<PhoneCountrySelectorModalParams>();
-  const { styles } = useStyles(styleSheet, {});
 
   const countriesWithPhoneData = useMemo(
     () => countries.filter((country) => country.phone),
@@ -103,39 +97,28 @@ function PhoneCountrySelectorModal() {
         onPress={() => handleCountryPress(item)}
         accessibilityRole="button"
         accessible
-      >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.region}>
-            {item.flag ? (
-              <View style={styles.emoji}>
-                <Text
-                  variant={TextVariant.BodyLg}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {item.flag}
-                </Text>
-              </View>
-            ) : null}
-            <View>
-              <Text
-                variant={TextVariant.BodyLg}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {item.name}
-              </Text>
-              {item.phone?.prefix ? (
-                <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-                  {item.phone.prefix}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-        </ListItemColumn>
-      </ListItemSelect>
+        startAccessory={
+          item.flag ? (
+            <Text
+              variant={TextVariant.BodyLg}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
+              {item.flag}
+            </Text>
+          ) : undefined
+        }
+        title={item.name}
+        titleProps={{ variant: TextVariant.BodyLg }}
+        description={item.phone?.prefix}
+        descriptionProps={{
+          variant: TextVariant.BodyMd,
+          fontWeight: FontWeight.Regular,
+          color: TextColor.TextMuted,
+        }}
+      />
     ),
-    [handleCountryPress, selectedCountry?.isoCode, styles.emoji, styles.region],
+    [handleCountryPress, selectedCountry?.isoCode],
   );
 
   return (

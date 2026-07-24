@@ -13,13 +13,13 @@ import { RootMessenger } from '../../types';
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   // core#9388: RPC balance refresh on account-group switch / tree updates
   'AccountTreeController:selectedAccountGroupChange',
-  'AccountTreeController:stateChanged',
+  // core#9478: use exported :stateChange (not local :stateChanged aliases)
+  'AccountTreeController:stateChange',
   // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
-  'NetworkEnablementController:stateChanged',
-  // StakedBalanceDataSource
+  // StakedBalanceDataSource also listens to this
   'NetworkEnablementController:stateChange',
   // UI + keyring lifecycle (RpcDataSource only runs when UI open + unlocked)
-  'ClientController:stateChanged',
+  'ClientController:stateChange',
   'KeyringController:lock',
   'KeyringController:unlock',
   // Network picker (EVM selected network switch)
@@ -50,7 +50,6 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
 export function getAssetsControllerMessenger(
   rootMessenger: RootMessenger<
     MessengerActions<AssetsControllerMessenger>,
-    // @ts-expect-error assets-controller v10 AllowedEvents include stateChanged events not yet on GlobalEvents
     MessengerEvents<AssetsControllerMessenger>
   >,
 ): AssetsControllerMessenger {

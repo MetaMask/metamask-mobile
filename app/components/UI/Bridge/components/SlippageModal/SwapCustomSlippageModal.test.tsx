@@ -6,7 +6,7 @@ import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisa
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import {
   selectSlippage,
-  setSlippage,
+  setSlippageUserOverride,
 } from '../../../../../core/redux/slices/bridge';
 import { SwapCustomSlippageModal } from './SwapCustomSlippageModal';
 
@@ -112,6 +112,6 @@ describe('SwapCustomSlippageModal', () => {
       destChainId: '0x89',
     });
     fireEvent.press(getByText('Confirm'));
-    expect(mockDispatch).toHaveBeenCalledWith(setSlippage('2'));
+    expect(mockDispatch).toHaveBeenCalledWith(setSlippageUserOverride('2'));
   });
 });

@@ -11,10 +11,31 @@ import type { TransactionGroup } from './adapters/transaction-group';
 import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PredictActivity } from '../../components/UI/Predict/types';
+import type { RampsOrder } from '@metamask/ramps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
 export type Status = 'pending' | 'success' | 'failed' | 'cancelled';
+
+/**
+ * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
+ * The single source the `ActivityKind` union, the Perps "Order" sub-filter, and
+ * the icon/details dispatch all derive from, so a new kind is wired in once.
+ */
+export const PERPS_ORDER_KINDS = [
+  'marketShort',
+  'stopMarketCloseShort',
+  'marketCloseShort',
+  'limitShort',
+  'limitCloseShort',
+  'marketLong',
+  'stopMarketCloseLong',
+  'marketCloseLong',
+  'limitLong',
+  'limitCloseLong',
+] as const;
+
+export type PerpsOrderKind = (typeof PERPS_ORDER_KINDS)[number];
 
 export type ActivityKind =
   | 'receive'
@@ -61,12 +82,21 @@ export type ActivityKind =
   | 'perpsReceivedFundingFees'
   | 'perpsCloseShortTakeProfit'
   | 'perpsCloseLongTakeProfit'
-  | 'marketShort'
-  | 'stopMarketCloseShort'
-  | 'marketCloseShort'
-  | 'limitShort'
-  | 'limitCloseShort'
+  | 'assetActivation'
+  | 'assetDeactivation'
+  | PerpsOrderKind
   | 'nftMint';
+
+const PERPS_ORDER_KIND_SET: ReadonlySet<string> = new Set(PERPS_ORDER_KINDS);
+
+/**
+ * Whether a kind is a perps order row. Type guard so callers can narrow the
+ * union — e.g. keeping the icon/details switches exhaustive after an early
+ * return.
+ */
+export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
+  return PERPS_ORDER_KIND_SET.has(kind);
+}
 
 export interface TokenAmount {
   amount?: string;
@@ -105,7 +135,7 @@ interface ActivityData<Type extends ActivityKind, Data> {
     | { type: 'localTransaction'; data: TransactionGroup }
     | { type: 'perpsTransaction'; data: PerpsTransaction }
     | { type: 'predictActivity'; data: PredictActivity }
-    | { type: 'rampOrder'; data: FiatOrder };
+    | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
   data: Data;
 }
 
@@ -193,6 +223,15 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
+      'assetActivation' | 'assetDeactivation',
+      {
+        from?: string;
+        to?: string;
+        token?: TokenAmount;
+        fees?: ActivityFee[];
+      }
+    >
+  | ActivityData<
       | 'sell'
       | 'contractDeployment'
       | 'smartAccountUpgrade'
@@ -215,11 +254,7 @@ export type ActivityListItem =
       | 'perpsReceivedFundingFees'
       | 'perpsCloseShortTakeProfit'
       | 'perpsCloseLongTakeProfit'
-      | 'marketShort'
-      | 'stopMarketCloseShort'
-      | 'marketCloseShort'
-      | 'limitShort'
-      | 'limitCloseShort',
+      | PerpsOrderKind,
       {
         from?: string;
         to?: string;

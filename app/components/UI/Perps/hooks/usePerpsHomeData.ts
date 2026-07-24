@@ -27,7 +27,8 @@ import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
 import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
-import { isWithinLast30Days } from '../utils/time';
+import { isRecentlyListed } from '../utils/time';
+import { useNowOnScreenFocus } from './useNowOnScreenFocus';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -93,7 +94,8 @@ export const usePerpsHomeData = ({
     usePerpsLiveOrders({
       throttleMs: 1000,
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
-      hideReduceOnly: true, // Hide all reduce-only orders from home screen
+      // Reduce-only orders (e.g. limit closes) are shown so they appear in the
+      // "Your orders" section, matching the portfolio "Perpetuals" section.
     });
 
   // Fetch fills via WebSocket for recent activity (instant updates, already cached)
@@ -255,14 +257,16 @@ export const usePerpsHomeData = ({
 
   // Markets listed within the last 30 days, sorted newest first (largest listedAt first).
   // Markets without a listedAt timestamp are excluded entirely.
+  // `now` comes from useNowOnScreenFocus (rather than Date.now() read directly
+  // here) so this stays correct if the home screen remains mounted across the
+  // 30-day boundary — it's refreshed on focus instead of via a continuous timer.
+  const now = useNowOnScreenFocus();
   const recentlyAddedMarkets = useMemo(
     () =>
       allMarkets
-        .filter(
-          (m) => m.listedAt !== undefined && isWithinLast30Days(m.listedAt),
-        )
+        .filter((m) => isRecentlyListed(m.listedAt, now))
         .sort((a, b) => (b.listedAt as number) - (a.listedAt as number)),
-    [allMarkets],
+    [allMarkets, now],
   );
 
   // Refresh markets data (WebSocket data auto-updates, only markets need manual refresh)

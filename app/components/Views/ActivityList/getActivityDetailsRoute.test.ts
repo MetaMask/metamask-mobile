@@ -25,38 +25,64 @@ describe('getActivityDetailsRoute', () => {
     });
   });
 
-  it('returns null when the row has no hash (e.g. a pending local tx)', () => {
+  it('returns null when the row has no hash and no local meta id', () => {
     expect(getActivityDetailsRoute(baseItem({ hash: undefined }))).toBeNull();
   });
 
-  it('routes a pending EVM local tx to ActivityDetails (its pending banner wires speed-up/cancel)', () => {
+  it('routes a pending EVM local tx by stable meta id and stashes a preload', () => {
     const pendingItem = baseItem({
       status: 'pending',
       raw: {
         type: 'localTransaction',
-        data: { primaryTransaction: { type: 'simpleSend' } },
+        data: {
+          primaryTransaction: { id: 'meta-pending-1', type: 'simpleSend' },
+        },
       },
     } as unknown as Partial<ActivityListItem>);
 
-    expect(getActivityDetailsRoute(pendingItem)).toEqual({
+    const route = getActivityDetailsRoute(pendingItem);
+
+    expect(route).toEqual({
       chainId: 'eip155:1',
-      txIdentifier: '0xabc',
+      txIdentifier: 'meta-pending-1',
+      preloadKey: expect.any(String),
     });
+    expect(getPreloadedActivityItem(route?.preloadKey)).toBe(pendingItem);
   });
 
-  it('routes a confirmed local tx to ActivityDetails', () => {
+  it('routes a confirmed local tx by stable meta id and stashes a preload', () => {
     const confirmedItem = baseItem({
       status: 'success',
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: { id: 'meta-confirmed-1', type: 'simpleSend' },
+        },
+      },
+    } as unknown as Partial<ActivityListItem>);
+
+    const route = getActivityDetailsRoute(confirmedItem);
+
+    expect(route).toEqual({
+      chainId: 'eip155:1',
+      txIdentifier: 'meta-confirmed-1',
+      preloadKey: expect.any(String),
+    });
+    expect(getPreloadedActivityItem(route?.preloadKey)).toBe(confirmedItem);
+  });
+
+  it('falls back to hash when a local tx has no meta id', () => {
+    const localWithoutId = baseItem({
       raw: {
         type: 'localTransaction',
         data: { primaryTransaction: { type: 'simpleSend' } },
       },
     } as unknown as Partial<ActivityListItem>);
 
-    expect(getActivityDetailsRoute(confirmedItem)).toEqual({
-      chainId: 'eip155:1',
-      txIdentifier: '0xabc',
-    });
+    const route = getActivityDetailsRoute(localWithoutId);
+
+    expect(route?.txIdentifier).toBe('0xabc');
+    expect(route?.preloadKey).toBeDefined();
   });
 
   it('returns null for a bridge local transaction (keeps its dedicated screen)', () => {
@@ -72,7 +98,7 @@ describe('getActivityDetailsRoute', () => {
     expect(getActivityDetailsRoute(bridgeItem)).toBeNull();
   });
 
-  it('does not stash a preload key for plain EVM/non-EVM rows', () => {
+  it('does not stash a preload key for plain API EVM rows', () => {
     const route = getActivityDetailsRoute(baseItem());
     expect(route?.preloadKey).toBeUndefined();
   });

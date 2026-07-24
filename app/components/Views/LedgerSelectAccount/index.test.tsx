@@ -24,6 +24,7 @@ import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSele
 import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { strings } from '../../../../locales/i18n';
 
 const mockedGoBack = jest.fn();
 const mockedNavDispatch = jest.fn();
@@ -215,7 +216,9 @@ describe('LedgerSelectAccount', () => {
       mockEnsureDeviceReady.mockReturnValue(new Promise(() => undefined));
       const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
-      expect(queryByText('Looking for your device')).toBeOnTheScreen();
+      expect(
+        queryByText(strings('ledger.looking_for_device')),
+      ).toBeOnTheScreen();
     });
 
     it('sets target wallet type to Ledger on mount', async () => {

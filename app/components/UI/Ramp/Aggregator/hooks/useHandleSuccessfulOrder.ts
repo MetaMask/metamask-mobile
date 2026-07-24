@@ -1,6 +1,7 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -18,7 +19,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useAggregatorOrderNetworkName } from './useAggregatorOrderNetworkName';
 
 function useHandleSuccessfulOrder() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const trackEvent = useAnalytics();

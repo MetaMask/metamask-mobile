@@ -8,6 +8,8 @@ import {
   type Infer,
 } from '@metamask/superstruct';
 import {
+  ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
@@ -159,6 +161,13 @@ export class WebSocketManager {
 
   private appStateSubscription: { remove: () => void } | null = null;
 
+  // Single source of connection-status fan-out. Subscribers receive the current
+  // status on subscribe and thereafter only on real transitions, so N mounted
+  // hooks share one push instead of each running a 1s poll timer.
+  private connectionStatusSubscribers: Set<ConnectionStatusCallback> =
+    new Set();
+  private lastConnectionStatus: ConnectionStatus | null = null;
+
   private constructor() {
     this.setupAppStateListener();
   }
@@ -260,10 +269,12 @@ export class WebSocketManager {
       this.sportsWs.onopen = () => {
         this.sportsReconnectAttempts = 0;
         this.startSportsPing();
+        this.emitConnectionStatusIfChanged();
       };
 
       this.sportsWs.onclose = () => {
         this.stopSportsPing();
+        this.emitConnectionStatusIfChanged();
         this.scheduleSportsReconnect();
       };
 
@@ -421,6 +432,7 @@ export class WebSocketManager {
         this.sportsWs.close();
       }
       this.sportsWs = null;
+      this.emitConnectionStatusIfChanged();
     }
   }
 
@@ -788,7 +800,7 @@ export class WebSocketManager {
 
   private ensureMarketConnection(tokenIds: string[]): void {
     if (this.marketWs?.readyState === WebSocket.OPEN) {
-      this.sendMarketSubscribe(tokenIds);
+      this.sendMarketSubscriptionUpdate(tokenIds);
       return;
     }
     if (this.marketWs?.readyState === WebSocket.CONNECTING) {
@@ -809,11 +821,13 @@ export class WebSocketManager {
         this.startMarketPing();
         this.startMarketHeartbeat();
         this.resubscribeAllMarkets();
+        this.emitConnectionStatusIfChanged();
       };
 
       this.marketWs.onclose = () => {
         this.stopMarketPing();
         this.stopMarketHeartbeat();
+        this.emitConnectionStatusIfChanged();
         this.scheduleMarketReconnect();
       };
 
@@ -961,7 +975,7 @@ export class WebSocketManager {
     this.scheduleOrderbookEmit(data.asset_id);
   }
 
-  private sendMarketSubscribe(tokenIds: string[]): void {
+  private sendInitialMarketSubscription(tokenIds: string[]): void {
     if (this.marketWs?.readyState !== WebSocket.OPEN) {
       return;
     }
@@ -969,6 +983,19 @@ export class WebSocketManager {
     this.marketWs.send(
       JSON.stringify({
         type: 'market',
+        assets_ids: tokenIds,
+      }),
+    );
+  }
+
+  private sendMarketSubscriptionUpdate(tokenIds: string[]): void {
+    if (this.marketWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    this.marketWs.send(
+      JSON.stringify({
+        operation: 'subscribe',
         assets_ids: tokenIds,
       }),
     );
@@ -1008,7 +1035,7 @@ export class WebSocketManager {
     });
 
     if (allTokenIds.size > 0) {
-      this.sendMarketSubscribe(Array.from(allTokenIds));
+      this.sendInitialMarketSubscription(Array.from(allTokenIds));
     }
   }
 
@@ -1106,6 +1133,7 @@ export class WebSocketManager {
         this.marketWs.close();
       }
       this.marketWs = null;
+      this.emitConnectionStatusIfChanged();
     }
   }
 
@@ -1153,11 +1181,13 @@ export class WebSocketManager {
         this.startRtdsPing();
         this.startRtdsHeartbeat();
         this.resubscribeAllRtds();
+        this.emitConnectionStatusIfChanged();
       };
 
       this.rtdsWs.onclose = () => {
         this.stopRtdsPing();
         this.stopRtdsHeartbeat();
+        this.emitConnectionStatusIfChanged();
         this.scheduleRtdsReconnect();
       };
 
@@ -1481,6 +1511,7 @@ export class WebSocketManager {
         this.rtdsWs.close();
       }
       this.rtdsWs = null;
+      this.emitConnectionStatusIfChanged();
     }
   }
 
@@ -1533,6 +1564,50 @@ export class WebSocketManager {
       this.appStateSubscription.remove();
       this.appStateSubscription = null;
     }
+  }
+
+  /**
+   * Subscribe to WebSocket connection-status changes. The callback is invoked
+   * immediately with the current status, then only when a channel actually
+   * transitions (see {@link emitConnectionStatusIfChanged}).
+   *
+   * @param callback - Receives the full {@link ConnectionStatus} on each change.
+   * @returns Unsubscribe function.
+   */
+  subscribeToConnectionStatus(callback: ConnectionStatusCallback): () => void {
+    this.connectionStatusSubscribers.add(callback);
+    const { sportsConnected, marketConnected, rtdsConnected } =
+      this.getConnectionStatus();
+    callback({ sportsConnected, marketConnected, rtdsConnected });
+    return () => {
+      this.connectionStatusSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Fan out connection status only when the derived booleans changed. Called
+   * from every socket open/close and cleanup so reconnect churn does not spam
+   * subscribers.
+   */
+  private emitConnectionStatusIfChanged(): void {
+    const { sportsConnected, marketConnected, rtdsConnected } =
+      this.getConnectionStatus();
+    const previous = this.lastConnectionStatus;
+    if (
+      previous &&
+      previous.sportsConnected === sportsConnected &&
+      previous.marketConnected === marketConnected &&
+      previous.rtdsConnected === rtdsConnected
+    ) {
+      return;
+    }
+    const status: ConnectionStatus = {
+      sportsConnected,
+      marketConnected,
+      rtdsConnected,
+    };
+    this.lastConnectionStatus = status;
+    this.connectionStatusSubscribers.forEach((callback) => callback(status));
   }
 
   getConnectionStatus(): {

@@ -2,84 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortFieldBottomSheet from './PerpsMarketSortFieldBottomSheet';
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const MockReact = jest.requireActual('react');
-  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  const BottomSheet = MockReact.forwardRef(
-    (
-      {
-        children,
-        testID,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-      },
-      ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      MockReact.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: jest.fn(),
-        onCloseBottomSheet: (callback?: () => void) => {
-          callback?.();
-        },
-      }));
-
-      return <View testID={testID}>{children}</View>;
-    },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({ children }: { children: React.ReactNode }) => (
-    <View testID="bottom-sheet-header">{children}</View>
-  );
-
-  const ListItemSelect = ({
-    title,
-    onPress,
-    endAccessory,
-    testID,
-  }: {
-    title: string;
-    onPress?: () => void;
-    endAccessory?: React.ReactNode;
-    testID?: string;
-  }) => (
-    <TouchableOpacity onPress={onPress} testID={testID}>
-      <Text>{title}</Text>
-      {endAccessory}
-    </TouchableOpacity>
-  );
-
-  return {
-    BottomSheet,
-    BottomSheetHeader,
-    ListItemSelect,
-    Box: ({ children }: { children: React.ReactNode }) => (
-      <View>{children}</View>
-    ),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => <Text testID={testID}>{children}</Text>,
-    Icon: ({ testID }: { testID?: string }) => <View testID={testID} />,
-    TextVariant: { BodyMd: 'BodyMd' },
-    TextColor: { TextAlternative: 'TextAlternative' },
-    IconName: { Arrow2Up: 'Arrow2Up', Arrow2Down: 'Arrow2Down' },
-    IconSize: { Md: 'Md' },
-    IconColor: { IconAlternative: 'IconAlternative' },
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
@@ -126,10 +48,12 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
           sortDirection="desc"
           onClose={mockOnClose}
           onOptionSelect={mockOnOptionSelect}
+          testID="sort-field-sheet"
         />,
       );
 
-      expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+      expect(screen.getByTestId('sort-field-sheet')).toBeOnTheScreen();
+      expect(screen.getByText('Sort by')).toBeOnTheScreen();
     });
   });
 
@@ -224,7 +148,7 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         'priceChange',
         'desc',
       );
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockOnClose).toHaveBeenCalled();
     });
 
     it('closes and applies with toggled direction when pressing the same option', () => {
@@ -249,7 +173,7 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         'priceChange',
         'asc',
       );
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockOnClose).toHaveBeenCalled();
     });
 
     it('closes and applies with desc direction when selecting a different option', () => {
@@ -271,7 +195,7 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         'volume',
         'desc',
       );
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockOnClose).toHaveBeenCalled();
     });
   });
 

@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   useWindowDimensions,
   NativeSyntheticEvent,
@@ -68,7 +69,7 @@ const ItemSeparator = ({ width }: { width: number }) => (
 );
 
 const ChooseYourCard = () => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const { width: screenWidth } = useWindowDimensions();

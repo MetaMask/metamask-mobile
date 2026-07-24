@@ -47,10 +47,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 describe('VipSwapsVolumeInfoSheet', () => {
   it('renders the daily-refresh title and description', () => {
     const { getByTestId } = render(

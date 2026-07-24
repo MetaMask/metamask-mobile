@@ -6,8 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useMoneyFirstTimeDepositTracker } from './useMoneyFirstTimeDepositTracker';
 import { store } from '../../../../store';
-import { selectMoneyFirstTimeDepositAnimationEnabledFlag } from '../selectors/featureFlags';
-import { hasPriorMoneyDeposit } from '../utils/firstTimeDeposit';
+import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 
@@ -21,20 +20,8 @@ jest.mock('../../../../store', () => ({
   store: { getState: jest.fn() },
 }));
 
-jest.mock('../selectors/featureFlags', () => ({
-  selectMoneyFirstTimeDepositAnimationEnabledFlag: jest.fn(),
-}));
-
 jest.mock('../utils/firstTimeDeposit', () => ({
-  hasPriorMoneyDeposit: jest.fn(),
-}));
-
-jest.mock('../utils/moneyTransactionGuards', () => ({
-  isMoneyDepositTx: jest.fn(
-    (tx: { type: string; nestedTransactions?: { type: string }[] }) =>
-      tx.type === 'moneyAccountDeposit' ||
-      tx.nestedTransactions?.some((n) => n.type === 'moneyAccountDeposit'),
-  ),
+  shouldShowMoneyFirstTimeDepositAnimation: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -44,9 +31,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const mockedFlagSelector =
-  selectMoneyFirstTimeDepositAnimationEnabledFlag as unknown as jest.Mock;
-const mockedHasPrior = hasPriorMoneyDeposit as jest.Mock;
+const mockedShouldShow = shouldShowMoneyFirstTimeDepositAnimation as jest.Mock;
 const mockedGetState = store.getState as jest.Mock;
 const mockedSubscribe = Engine.controllerMessenger.subscribe as jest.Mock;
 const mockedUnsubscribe = Engine.controllerMessenger.unsubscribe as jest.Mock;
@@ -71,8 +56,7 @@ describe('useMoneyFirstTimeDepositTracker', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetState.mockReturnValue({});
-    mockedFlagSelector.mockReturnValue(true);
-    mockedHasPrior.mockReturnValue(false);
+    mockedShouldShow.mockReturnValue(true);
   });
 
   it('subscribes to TransactionController:transactionConfirmed on mount', () => {
@@ -110,34 +94,12 @@ describe('useMoneyFirstTimeDepositTracker', () => {
       );
     });
 
+    expect(mockedShouldShow).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('does not navigate when tx is not a money deposit', () => {
-    renderHook(() => useMoneyFirstTimeDepositTracker());
-    const callback = captureSubscribedCallback();
-
-    act(() => {
-      callback(makeTx('tx-1', TransactionType.contractInteraction));
-    });
-
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('does not navigate when feature flag is disabled', () => {
-    mockedFlagSelector.mockReturnValue(false);
-    renderHook(() => useMoneyFirstTimeDepositTracker());
-    const callback = captureSubscribedCallback();
-
-    act(() => {
-      callback(makeTx('tx-1', TransactionType.moneyAccountDeposit));
-    });
-
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('does not navigate when prior money deposit exists', () => {
-    mockedHasPrior.mockReturnValue(true);
+  it('does not navigate when the animation predicate rejects the tx', () => {
+    mockedShouldShow.mockReturnValue(false);
     renderHook(() => useMoneyFirstTimeDepositTracker());
     const callback = captureSubscribedCallback();
 
@@ -160,42 +122,17 @@ describe('useMoneyFirstTimeDepositTracker', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.FIRST_TIME_DEPOSIT);
   });
 
-  it('navigates directly to first-time deposit for eligible nested batch deposit', () => {
+  it('passes current state and tx to the animation predicate', () => {
+    const state = { marker: true };
+    mockedGetState.mockReturnValue(state);
     renderHook(() => useMoneyFirstTimeDepositTracker());
     const callback = captureSubscribedCallback();
-
-    const batchTx = {
-      ...makeTx('batch-1', TransactionType.batch),
-      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
-    } as unknown as TransactionMeta;
+    const tx = makeTx('tx-42', TransactionType.moneyAccountDeposit);
 
     act(() => {
-      callback(batchTx);
+      callback(tx);
     });
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.FIRST_TIME_DEPOSIT);
-  });
-
-  it('passes current tx id to hasPriorMoneyDeposit', () => {
-    renderHook(() => useMoneyFirstTimeDepositTracker());
-    const callback = captureSubscribedCallback();
-
-    act(() => {
-      callback(makeTx('tx-42', TransactionType.moneyAccountDeposit));
-    });
-
-    expect(mockedHasPrior).toHaveBeenCalledWith(expect.anything(), 'tx-42');
-  });
-
-  it('reads state imperatively via store.getState', () => {
-    renderHook(() => useMoneyFirstTimeDepositTracker());
-    const callback = captureSubscribedCallback();
-
-    act(() => {
-      callback(makeTx('tx-1', TransactionType.moneyAccountDeposit));
-    });
-
-    expect(mockedGetState).toHaveBeenCalledTimes(1);
+    expect(mockedShouldShow).toHaveBeenCalledWith(state, tx);
   });
 });

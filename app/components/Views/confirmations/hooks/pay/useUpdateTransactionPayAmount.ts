@@ -114,7 +114,7 @@ export function useUpdateTransactionPayAmount() {
         return;
       }
 
-      updateTokenAmount(amountHuman);
+      await updateTokenAmount(amountHuman);
     },
     [
       transactionMeta,
@@ -148,6 +148,7 @@ function syncMoneyAccountDepositRequiredAssets(
     updateTransaction(
       {
         ...transactionMeta,
+        txParams: { ...transactionMeta.txParams },
         requiredAssets: [{ ...existing[0], amount }, ...existing.slice(1)],
       },
       'Money Account deposit: sync requiredAssets amount',

@@ -101,25 +101,27 @@ const withdrawalTx: PerpsTransaction = {
 };
 
 const orderTx = (
-  title: string,
-  text: PerpsOrderTransactionStatus,
-  statusType: PerpsOrderTransactionStatusType,
-  orderType: 'limit' | 'market' = 'market',
+  order: Partial<NonNullable<PerpsTransaction['order']>> = {},
+  overrides: Partial<PerpsTransaction> = {},
 ): PerpsTransaction => ({
   ...base,
   id: 'order-1',
-  title,
+  title: 'Order',
   type: 'order',
   category: 'limit_order',
   order: {
-    text,
-    statusType,
-    type: orderType,
+    text: PerpsOrderTransactionStatus.Filled,
+    statusType: PerpsOrderTransactionStatusType.Filled,
+    type: 'market',
     size: '10.23',
     limitPrice: '92023',
-    filled:
-      statusType === PerpsOrderTransactionStatusType.Filled ? '100%' : '0%',
+    filled: '100%',
+    side: 'sell',
+    reduceOnly: false,
+    isTrigger: false,
+    ...order,
   },
+  ...overrides,
 });
 
 // `token` lives only on some ActivityListItem arms, so narrow via `'token' in`
@@ -337,22 +339,13 @@ describe('mapPerpsTransaction', () => {
   });
 
   describe('orders', () => {
-    it.each([
-      ['Market short', 'marketShort'],
-      ['Market close short', 'marketCloseShort'],
-      ['Stop market close short', 'stopMarketCloseShort'],
-    ] as const)('maps %s filled order → %s', (title, expectedType) => {
-      const transaction = orderTx(
-        title,
-        PerpsOrderTransactionStatus.Filled,
-        PerpsOrderTransactionStatusType.Filled,
-      );
+    it('maps a filled short market order → marketShort (success + position leg)', () => {
       const result = mapPerpsTransaction({
-        transaction,
+        transaction: orderTx({ side: 'sell', type: 'market' }),
         chainId: ARBITRUM,
       });
 
-      expect(result?.type).toBe(expectedType);
+      expect(result?.type).toBe('marketShort');
       expect(result?.status).toBe('success');
       expect(result?.hash).toBe('order-1');
       expect(tokenOf(result)).toEqual({
@@ -365,25 +358,25 @@ describe('mapPerpsTransaction', () => {
 
     it('maps canceled historical orders as cancelled Activity rows', () => {
       const result = mapPerpsTransaction({
-        transaction: orderTx(
-          'Take profit close short',
-          PerpsOrderTransactionStatus.Canceled,
-          PerpsOrderTransactionStatusType.Canceled,
-        ),
+        transaction: orderTx({
+          side: 'sell',
+          text: PerpsOrderTransactionStatus.Canceled,
+          statusType: PerpsOrderTransactionStatusType.Canceled,
+        }),
         chainId: ARBITRUM,
       });
 
-      expect(result?.type).toBe('marketCloseShort');
+      expect(result?.type).toBe('marketShort');
       expect(result?.status).toBe('cancelled');
     });
 
     it('maps rejected historical orders as failed Activity rows', () => {
       const result = mapPerpsTransaction({
-        transaction: orderTx(
-          'Market short',
-          PerpsOrderTransactionStatus.Rejected,
-          PerpsOrderTransactionStatusType.Canceled,
-        ),
+        transaction: orderTx({
+          side: 'sell',
+          text: PerpsOrderTransactionStatus.Rejected,
+          statusType: PerpsOrderTransactionStatusType.Canceled,
+        }),
         chainId: ARBITRUM,
       });
 
@@ -393,58 +386,29 @@ describe('mapPerpsTransaction', () => {
 
     it('returns null for pending/open orders', () => {
       const result = mapPerpsTransaction({
-        transaction: orderTx(
-          'Market short',
-          PerpsOrderTransactionStatus.Open,
-          PerpsOrderTransactionStatusType.Pending,
-        ),
+        transaction: orderTx({
+          side: 'sell',
+          text: PerpsOrderTransactionStatus.Open,
+          statusType: PerpsOrderTransactionStatusType.Pending,
+        }),
         chainId: ARBITRUM,
       });
 
       expect(result).toBeNull();
     });
 
-    it.each([
-      ['Limit short', 'limitShort'],
-      ['Limit close short', 'limitCloseShort'],
-    ] as const)(
-      'maps %s (limit order) to %s, not a market kind',
-      (title, expectedType) => {
-        const result = mapPerpsTransaction({
-          transaction: orderTx(
-            title,
-            PerpsOrderTransactionStatus.Filled,
-            PerpsOrderTransactionStatusType.Filled,
-            'limit',
-          ),
-          chainId: ARBITRUM,
-        });
-
-        expect(result?.type).toBe(expectedType);
-      },
-    );
-
-    it('keeps stop orders on their dedicated kind regardless of order type', () => {
+    it('returns null when the order has no structured side (skip, not misclassify)', () => {
       const result = mapPerpsTransaction({
-        transaction: orderTx(
-          'Stop market close short',
-          PerpsOrderTransactionStatus.Filled,
-          PerpsOrderTransactionStatusType.Filled,
-          'limit',
-        ),
+        transaction: orderTx({ side: undefined }),
         chainId: ARBITRUM,
       });
 
-      expect(result?.type).toBe('stopMarketCloseShort');
+      expect(result).toBeNull();
     });
 
     it('includes the position size (asset units) in sourceToken for the row subtitle', () => {
       const result = mapPerpsTransaction({
-        transaction: orderTx(
-          'Market short',
-          PerpsOrderTransactionStatus.Filled,
-          PerpsOrderTransactionStatusType.Filled,
-        ),
+        transaction: orderTx({ side: 'sell' }),
         chainId: ARBITRUM,
       });
 
@@ -462,23 +426,17 @@ describe('mapPerpsTransaction', () => {
 
     it('reads the size from the subtitle even when the order has no limit price', () => {
       const result = mapPerpsTransaction({
-        transaction: {
-          ...base,
-          id: 'order-no-price',
-          subtitle: '5 BTC',
-          asset: 'BTC',
-          title: 'Market short',
-          type: 'order',
-          category: 'limit_order',
-          order: {
+        transaction: orderTx(
+          {
+            side: 'sell',
             text: PerpsOrderTransactionStatus.Canceled,
             statusType: PerpsOrderTransactionStatusType.Canceled,
-            type: 'market',
             size: '0',
             limitPrice: '0',
             filled: '0%',
           },
-        },
+          { id: 'order-no-price', subtitle: '5 BTC', asset: 'BTC' },
+        ),
         chainId: ARBITRUM,
       });
 
@@ -495,23 +453,10 @@ describe('mapPerpsTransaction', () => {
 
     it('omits the size leg when the subtitle does not start with a number', () => {
       const result = mapPerpsTransaction({
-        transaction: {
-          ...base,
-          id: 'order-bad-subtitle',
-          subtitle: 'Limit short',
-          asset: 'ETH',
-          title: 'Market short',
-          type: 'order',
-          category: 'limit_order',
-          order: {
-            text: PerpsOrderTransactionStatus.Filled,
-            statusType: PerpsOrderTransactionStatusType.Filled,
-            type: 'market',
-            size: '10',
-            limitPrice: '5',
-            filled: '100%',
-          },
-        },
+        transaction: orderTx(
+          { side: 'sell', size: '10', limitPrice: '5' },
+          { id: 'order-bad-subtitle', subtitle: 'Limit short', asset: 'ETH' },
+        ),
         chainId: ARBITRUM,
       });
 
@@ -546,6 +491,7 @@ describe('mapPerpsTransaction', () => {
     };
 
     it.each([
+      // Short side (direction derived from side + reduceOnly, not the title).
       [
         'Limit short (open)',
         { orderType: 'limit', side: 'sell' },
@@ -565,6 +511,93 @@ describe('mapPerpsTransaction', () => {
         'Market close short',
         { orderType: 'market', side: 'buy', reduceOnly: true },
         'marketCloseShort',
+      ],
+      // Long side (TMCU-1070: previously dropped entirely).
+      ['Limit long (open)', { orderType: 'limit', side: 'buy' }, 'limitLong'],
+      [
+        'Limit close long',
+        { orderType: 'limit', side: 'sell', reduceOnly: true },
+        'limitCloseLong',
+      ],
+      [
+        'Market long (open)',
+        { orderType: 'market', side: 'buy' },
+        'marketLong',
+      ],
+      [
+        'Market close long',
+        { orderType: 'market', side: 'sell', reduceOnly: true },
+        'marketCloseLong',
+      ],
+      [
+        'Stop market close short',
+        {
+          orderType: 'market',
+          side: 'buy',
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        },
+        'stopMarketCloseShort',
+      ],
+      [
+        'Stop market close long',
+        {
+          orderType: 'market',
+          side: 'sell',
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        },
+        'stopMarketCloseLong',
+      ],
+      [
+        'Stop loss close long (MYX)',
+        {
+          orderType: 'market',
+          side: 'sell',
+          isTrigger: true,
+          detailedOrderType: 'Stop Loss',
+        },
+        'stopMarketCloseLong',
+      ],
+      [
+        'Stop limit close short',
+        {
+          orderType: 'limit',
+          side: 'buy',
+          isTrigger: true,
+          detailedOrderType: 'Stop Limit',
+        },
+        'limitCloseShort',
+      ],
+      [
+        'Stop limit close long',
+        {
+          orderType: 'limit',
+          side: 'sell',
+          isTrigger: true,
+          detailedOrderType: 'Stop Limit',
+        },
+        'limitCloseLong',
+      ],
+      [
+        'Take profit market close long',
+        {
+          orderType: 'market',
+          side: 'sell',
+          isTrigger: true,
+          detailedOrderType: 'Take Profit Market',
+        },
+        'marketCloseLong',
+      ],
+      [
+        'Take profit limit close short',
+        {
+          orderType: 'limit',
+          side: 'buy',
+          isTrigger: true,
+          detailedOrderType: 'Take Profit Limit',
+        },
+        'limitCloseShort',
       ],
     ] as const)(
       'maps a real %s order to the matching Activity kind',

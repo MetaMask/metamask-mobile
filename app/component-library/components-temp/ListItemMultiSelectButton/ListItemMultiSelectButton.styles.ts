@@ -49,7 +49,6 @@ const styleSheet = (params: {
     },
     container: Object.assign(
       {
-        backgroundColor: theme.colors.background.default,
         flexDirection: 'row',
         alignItems: 'center',
         opacity: isDisabled ? 0.5 : 1,

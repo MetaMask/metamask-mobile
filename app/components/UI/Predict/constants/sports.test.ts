@@ -1,12 +1,9 @@
 import {
   MONEYLINE_MARKET_TYPES,
   filterSupportedLeagues,
-  getMatchingSportTeam,
-  getNegRiskMoneylineTeamLogo,
-  getPrimaryMoneylineOutcomes,
-  hasNegRiskMoneylineGroupItem,
   isMoneylineLikeMarketType,
-  resolveNegRiskMoneylineShortTitles,
+  isTeamToAdvanceMarketType,
+  shouldShowRegTimeTag,
 } from './sports';
 import type { PredictMarketGame } from '../types';
 
@@ -176,111 +173,37 @@ describe('filterSupportedLeagues', () => {
   });
 });
 
-describe('getPrimaryMoneylineOutcomes', () => {
-  it('keeps only main moneyline outcomes when extended sports markets are present', () => {
-    const moneylineOutcome = { id: 'moneyline', sportsMarketType: 'moneyline' };
-    const spreadOutcome = { id: 'spread', sportsMarketType: 'spreads' };
-    const halftimeOutcome = {
-      id: 'halftime',
-      sportsMarketType: 'soccer_halftime_result',
-    };
-
-    const result = getPrimaryMoneylineOutcomes([
-      spreadOutcome,
-      moneylineOutcome,
-      halftimeOutcome,
-    ]);
-
-    expect(result).toEqual([moneylineOutcome]);
-  });
-
-  it('falls back to all outcomes when no main moneyline type is present', () => {
-    const outcomes = [
-      { id: 'legacy-away', sportsMarketType: undefined },
-      { id: 'legacy-draw', sportsMarketType: undefined },
-      { id: 'legacy-home', sportsMarketType: undefined },
-    ];
-
-    expect(getPrimaryMoneylineOutcomes(outcomes)).toBe(outcomes);
+describe('isTeamToAdvanceMarketType', () => {
+  it('detects team-to-advance market types case-insensitively', () => {
+    expect(isTeamToAdvanceMarketType('soccer_team_to_advance')).toBe(true);
+    expect(isTeamToAdvanceMarketType('SOCCER_TEAM_TO_ADVANCE')).toBe(true);
+    expect(isTeamToAdvanceMarketType('moneyline')).toBe(false);
+    expect(isTeamToAdvanceMarketType()).toBe(false);
   });
 });
 
-describe('sports moneyline helpers', () => {
-  it('detects neg-risk moneyline markets with group item titles', () => {
+describe('shouldShowRegTimeTag', () => {
+  it('shows Reg time only for World Cup regular-time markets', () => {
     expect(
-      hasNegRiskMoneylineGroupItem({
-        negRisk: true,
+      shouldShowRegTimeTag({
+        game,
         sportsMarketType: 'moneyline',
-        groupItemTitle: 'Korea Republic',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
       }),
     ).toBe(true);
     expect(
-      hasNegRiskMoneylineGroupItem({
-        negRisk: true,
-        sportsMarketType: 'spreads',
-        groupItemTitle: 'Korea Republic',
+      shouldShowRegTimeTag({
+        game,
+        sportsMarketType: 'soccer_team_to_advance',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
       }),
     ).toBe(false);
-  });
-
-  it('matches sport teams by name, alias, or abbreviation', () => {
-    expect(getMatchingSportTeam('south korea', game)).toBe(game.homeTeam);
-    expect(getMatchingSportTeam('CZE', game)).toBe(game.awayTeam);
-  });
-
-  it('resolves neg-risk moneyline short titles for team and draw outcomes', () => {
     expect(
-      resolveNegRiskMoneylineShortTitles(
-        {
-          negRisk: true,
-          sportsMarketType: 'moneyline',
-          groupItemTitle: 'Korea Republic',
-        },
-        game,
-      ),
-    ).toEqual({ yesShort: 'KOR', noShort: 'CZE' });
-    expect(
-      resolveNegRiskMoneylineShortTitles(
-        {
-          negRisk: true,
-          sportsMarketType: 'moneyline',
-          groupItemTitle: 'Draw',
-        },
-        game,
-      ),
-    ).toEqual({ yesShort: 'Draw' });
-  });
-
-  it('uses team logos only for neg-risk moneyline team outcomes', () => {
-    expect(
-      getNegRiskMoneylineTeamLogo(
-        {
-          negRisk: true,
-          sportsMarketType: 'moneyline',
-          groupItemTitle: 'Korea Republic',
-        },
-        game,
-      ),
-    ).toBe('https://example.com/korea.png');
-    expect(
-      getNegRiskMoneylineTeamLogo(
-        {
-          negRisk: true,
-          sportsMarketType: 'moneyline',
-          groupItemTitle: 'Draw',
-        },
-        game,
-      ),
-    ).toBeUndefined();
-    expect(
-      getNegRiskMoneylineTeamLogo(
-        {
-          negRisk: true,
-          sportsMarketType: 'spreads',
-          groupItemTitle: 'Korea Republic',
-        },
-        game,
-      ),
-    ).toBeUndefined();
+      shouldShowRegTimeTag({
+        game: { ...game, league: 'ucl' },
+        sportsMarketType: 'moneyline',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      }),
+    ).toBe(false);
   });
 });

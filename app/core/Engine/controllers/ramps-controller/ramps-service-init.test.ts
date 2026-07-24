@@ -27,22 +27,14 @@ jest.mock('@metamask/ramps-controller', () => {
 
 describe('getRampsEnvironment', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
-  const originalBuildsEnabled =
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
   const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
 
   beforeEach(() => {
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+    delete process.env.RAMPS_ENVIRONMENT;
   });
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
-    if (originalBuildsEnabled !== undefined) {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
-        originalBuildsEnabled;
-    } else {
-      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
-    }
     if (originalRampsEnvironment !== undefined) {
       process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
     } else {
@@ -50,23 +42,24 @@ describe('getRampsEnvironment', () => {
     }
   });
 
-  describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (builds.yml path)', () => {
-    beforeEach(() => {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
-    });
-
+  describe('when RAMPS_ENVIRONMENT is set (builds.yml path)', () => {
     it('returns Production when RAMPS_ENVIRONMENT is production', () => {
       process.env.RAMPS_ENVIRONMENT = 'production';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
     });
 
-    it('returns Staging when RAMPS_ENVIRONMENT is not set', () => {
-      delete process.env.RAMPS_ENVIRONMENT;
+    it('returns Development when RAMPS_ENVIRONMENT is development', () => {
+      process.env.RAMPS_ENVIRONMENT = 'development';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Development);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is staging', () => {
+      process.env.RAMPS_ENVIRONMENT = 'staging';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
     });
 
-    it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
-      process.env.RAMPS_ENVIRONMENT = 'staging';
+    it('returns Staging when RAMPS_ENVIRONMENT is an unknown value', () => {
+      process.env.RAMPS_ENVIRONMENT = 'not-a-real-env';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
     });
 
@@ -94,12 +87,14 @@ describe('getRampsEnvironment', () => {
     });
   });
 
-  describe('Staging Environment', () => {
-    it('returns Staging for dev environment', () => {
+  describe('Development Environment', () => {
+    it('returns Development for dev environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Development);
     });
+  });
 
+  describe('Staging Environment', () => {
     it('returns Staging for exp environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'exp';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
@@ -154,13 +149,11 @@ describe('rampsServiceInit', () => {
   >;
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalOS = Platform.OS;
-  const originalBuildsEnabled =
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
   const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+    delete process.env.RAMPS_ENVIRONMENT;
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -172,12 +165,6 @@ describe('rampsServiceInit', () => {
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
     Platform.OS = originalOS;
-    if (originalBuildsEnabled !== undefined) {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
-        originalBuildsEnabled;
-    } else {
-      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
-    }
     if (originalRampsEnvironment !== undefined) {
       process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
     } else {
@@ -256,13 +243,13 @@ describe('rampsServiceInit', () => {
       );
     });
 
-    it('passes Staging environment for dev environment', () => {
+    it('passes Development environment for dev environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          environment: RampsEnvironment.Staging,
+          environment: RampsEnvironment.Development,
         }),
       );
     });
@@ -290,9 +277,8 @@ describe('rampsServiceInit', () => {
     });
   });
 
-  describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (builds.yml path)', () => {
+  describe('when RAMPS_ENVIRONMENT is set (builds.yml path)', () => {
     beforeEach(() => {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
       delete process.env.E2E;
     });
 
@@ -307,18 +293,18 @@ describe('rampsServiceInit', () => {
       );
     });
 
-    it('passes Staging environment when RAMPS_ENVIRONMENT is not set', () => {
-      delete process.env.RAMPS_ENVIRONMENT;
+    it('passes Development environment when RAMPS_ENVIRONMENT is development', () => {
+      process.env.RAMPS_ENVIRONMENT = 'development';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          environment: RampsEnvironment.Staging,
+          environment: RampsEnvironment.Development,
         }),
       );
     });
 
-    it('passes Staging environment when RAMPS_ENVIRONMENT is not production', () => {
+    it('passes Staging environment when RAMPS_ENVIRONMENT is staging', () => {
       process.env.RAMPS_ENVIRONMENT = 'staging';
       rampsServiceInit(initRequestMock);
 
@@ -398,14 +384,14 @@ describe('rampsServiceInit', () => {
       });
     });
 
-    it('passes correct environment and context for Android in staging', () => {
+    it('passes correct environment and context for Android in development', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
       Platform.OS = 'android';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith({
         messenger: initRequestMock.controllerMessenger,
-        environment: RampsEnvironment.Staging,
+        environment: RampsEnvironment.Development,
         context: 'mobile-android',
         fetch,
       });

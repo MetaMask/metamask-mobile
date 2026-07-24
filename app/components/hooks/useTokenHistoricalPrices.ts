@@ -32,10 +32,10 @@ const EXPECTED_DURATION_MS: Record<TimePeriod, number | null> = {
 /**
  * Minimum fraction of the requested time period that the returned data must
  * cover. Below this threshold we show the "no data" overlay instead of
- * rendering a misleading chart.  0.95 = data must span at least 95% of the
- * expected duration (e.g. ~22.8 h for a 1D request).
+ * rendering a misleading chart. 0.20 = data must span at least 20% of the
+ * expected duration (e.g. ~5 h for a 1D request).
  */
-const MIN_COVERAGE_RATIO = 0.95;
+const MIN_COVERAGE_RATIO = 0.2;
 
 /**
  * Returns true when the historical-prices data covers less than

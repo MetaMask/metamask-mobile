@@ -1,6 +1,8 @@
 export const PREDICT_BALANCE_TEST_IDS = {
   SKELETON: 'predict-balance-card-skeleton',
   CARD: 'predict-balance-card',
+  ERROR: 'predict-balance-card-error',
+  RETRY_BUTTON: 'predict-balance-retry-button',
   POSITIONS_BUTTON: 'predict-balance-positions-button',
   WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
   WITHDRAW_UNAVAILABLE_SHEET: 'predict-withdraw-unavailable-sheet',

@@ -5,6 +5,8 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
@@ -47,10 +49,11 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsTPSLView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
 
   // Extract params from navigation route
@@ -394,11 +397,13 @@ const PerpsTPSLView: React.FC = () => {
       // Use appropriate source based on context:
       // - POSITION_SCREEN when editing TP/SL on an existing position
       // - TRADE_SCREEN when setting TP/SL for a new order
+      const riskSource = isEditingExistingPosition
+        ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+        : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN;
       const trackingData = {
         direction: actualDirection,
-        source: isEditingExistingPosition
-          ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
-          : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+        source: riskSource,
+        ...toPerpsEntryAttribution({ source: riskSource }),
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
         takeProfitPercentage: formattedTakeProfitPercentage
           ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))

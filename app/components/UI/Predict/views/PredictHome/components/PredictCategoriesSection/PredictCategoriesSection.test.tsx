@@ -17,6 +17,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockTrackCategoryClicked = jest.fn();
+const mockTrackHomeSectionInteraction = jest.fn();
 
 jest.mock('../../../../../../../core/Engine', () => ({
   __esModule: true,
@@ -26,6 +27,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
         trackCategoryClicked: (
           ...args: Parameters<typeof mockTrackCategoryClicked>
         ) => mockTrackCategoryClicked(...args),
+        trackHomeSectionInteraction: (
+          ...args: Parameters<typeof mockTrackHomeSectionInteraction>
+        ) => mockTrackHomeSectionInteraction(...args),
       },
     },
   },
@@ -104,6 +108,12 @@ describe('PredictCategoriesSection', () => {
       });
 
       expect(mockTrackCategoryClicked).toHaveBeenCalledWith({
+        categoryName: category.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+      expect(mockTrackHomeSectionInteraction).toHaveBeenCalledWith({
+        sectionId: PredictEventValues.SECTION_ID.CATEGORIES,
+        actionType: PredictEventValues.ACTION_TYPE.CLICKED,
         categoryName: category.id,
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       });

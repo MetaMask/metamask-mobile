@@ -29,6 +29,9 @@ import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDev
 import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
 import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -43,6 +46,9 @@ const DeveloperOptions = () => {
     selectIsMusdConversionFlowEnabledFlag,
   );
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isSocialLeaderboardEnabled = useSelector(
+    selectSocialLeaderboardEnabled,
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -89,6 +95,9 @@ const DeveloperOptions = () => {
         <CardDeveloperOptionsSection />
         <IdentityDeveloperOptionsSection />
         <NotificationsDeveloperOptionsSection />
+        {isSocialLeaderboardEnabled && (
+          <SocialLeaderboardDeveloperOptionsSection />
+        )}
         <HapticsDeveloperOptionsSection />
       </ScrollView>
     </SafeAreaView>

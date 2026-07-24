@@ -67,6 +67,14 @@ export const PredictEventProperties = {
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
 
+  // Redesigned home + generic feed IA (PRED-834)
+  FEED_ID: 'feed_id',
+  TAB_ID: 'tab_id',
+  FILTER_ID: 'filter_id',
+  SECTION_ID: 'section_id',
+  IS_DYNAMIC_FILTER: 'is_dynamic_filter',
+  TRACKING_MODE: 'tracking_mode',
+
   // Payment token (buy-with-any-token flow only)
   PAYMENT_TOKEN_ADDRESS: 'payment_token_address',
   PAYMENT_TOKEN_SYMBOL: 'payment_token_symbol',
@@ -174,6 +182,13 @@ export const PredictEventValues = {
   ACTION_TYPE: {
     VIEWED: 'viewed',
     CLICKED: 'clicked',
+    SEE_ALL: 'see_all',
+  },
+  SECTION_ID: {
+    LIVE_NOW: 'live_now',
+    CATEGORIES: 'categories',
+    POPULAR_TODAY: 'popular_today',
+    TRENDING: 'trending',
   },
   BANNER_TYPE: {
     WORLD_CUP: 'world_cup',

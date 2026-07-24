@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import {
   FontWeight,
@@ -44,9 +45,10 @@ import {
 } from '../components/ActivityDetailsPerps.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsOrderFees } from '../../../UI/Perps/hooks';
+import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
 
 function useTradeAgain(asset: string | undefined) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const market = useMemo<Partial<PerpsMarketData> | undefined>(
     () => (asset ? { symbol: asset, name: asset } : undefined),
     [asset],
@@ -60,7 +62,7 @@ function useTradeAgain(asset: string | undefined) {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
-        market,
+        market: market as PerpsMarketData,
         source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
       },
     });
@@ -68,21 +70,30 @@ function useTradeAgain(asset: string | undefined) {
 }
 
 function useOpenPerpsHome() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   return useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: {},
     });
   }, [navigation]);
 }
 
-function StatusAndDateRows({ item }: { item: PerpsActivityListItem }) {
+function StatusAndDateRows({
+  item,
+  statusLabel,
+}: {
+  item: PerpsActivityListItem;
+  statusLabel?: string;
+}) {
   return (
     <>
       <ActivityDetailRow
         label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={item.status} />}
+        value={
+          <ActivityDetailsStatus status={item.status} label={statusLabel} />
+        }
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
       <ActivityDetailRow
@@ -193,7 +204,10 @@ function OrderDetails({
       }
       metadata={
         <ActivityDetailSection>
-          <StatusAndDateRows item={item} />
+          <StatusAndDateRows
+            item={item}
+            statusLabel={resolvePerpsOrderStatusLabel(item.status)}
+          />
           <ActivityDetailRow
             label={strings('perps.transactions.order.size')}
             value={order?.size ? getPerpsPriceValue(order.size) : undefined}

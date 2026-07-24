@@ -46,6 +46,36 @@ describe('mapRampOrder', () => {
     });
   });
 
+  it('keeps human-readable cryptoAmount without token decimals', () => {
+    const order = {
+      ...baseOrder,
+      cryptoAmount: '30',
+      data: {
+        cryptoCurrency: {
+          symbol: 'mUSD',
+          decimals: 6,
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        },
+      },
+    } as FiatOrder;
+
+    expect(mapRampOrder({ order })).toMatchObject({
+      data: {
+        token: {
+          amount: '30',
+          symbol: 'mUSD',
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          direction: 'in',
+        },
+      },
+    });
+    expect(mapRampOrder({ order })?.data).toEqual(
+      expect.objectContaining({
+        token: expect.not.objectContaining({ decimals: expect.anything() }),
+      }),
+    );
+  });
+
   it('maps a sell order to sell using sellTxHash and outgoing token', () => {
     const order = {
       ...baseOrder,
@@ -70,14 +100,14 @@ describe('mapRampOrder', () => {
     });
   });
 
-  it('maps deposit orders to deposit', () => {
+  it('maps deposit orders to buy', () => {
     const order = {
       ...baseOrder,
       orderType: DepositOrderType.Deposit,
     };
 
     expect(mapRampOrder({ order })).toMatchObject({
-      type: 'deposit',
+      type: 'buy',
       data: { token: { direction: 'in' } },
     });
   });
@@ -111,5 +141,27 @@ describe('mapRampOrder', () => {
     expect(
       mapRampOrder({ order: { ...baseOrder, network: 'not-a-chain' } }),
     ).toBeNull();
+  });
+
+  it('maps orders with a non-EVM CAIP-2 network', () => {
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+    expect(
+      mapRampOrder({
+        order: { ...baseOrder, network: solanaChainId, cryptocurrency: 'SOL' },
+      }),
+    ).toMatchObject({
+      type: 'buy',
+      chainId: solanaChainId,
+    });
+  });
+
+  it('maps orders with an eip155 CAIP-2 network', () => {
+    expect(
+      mapRampOrder({ order: { ...baseOrder, network: 'eip155:137' } }),
+    ).toMatchObject({
+      type: 'buy',
+      chainId: 'eip155:137',
+    });
   });
 });

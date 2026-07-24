@@ -28,9 +28,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -47,7 +44,13 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
-import TraderPositionQuickBuy from './components/QuickBuy';
+import TraderPositionBuyCta from './components/TraderPositionBuyCta';
+import {
+  narrowQuickBuyOriginalEntryPoint,
+  resolveQuickBuyOriginalEntryPointFromPositionSource,
+  type QuickBuyOriginalEntryPoint,
+  type QuickBuySheetSource,
+} from './components/QuickBuy/analytics';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
@@ -113,13 +116,13 @@ const TraderPositionView = () => {
     position: positionParam,
     positionId,
     source: sourceParam,
+    originalEntryPoint: originalEntryPointParam,
     isClosed: isClosedParam,
     notificationSubtype,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ctaClickedRef = useRef(false);
 
@@ -231,12 +234,12 @@ const TraderPositionView = () => {
     toastRef,
   ]);
 
-  // Narrow the open-ended nav source into the QuickBuySheetSource schema enum.
-  // `deep_link` collapses to `profile_position` (its canonical host).
-  const quickBuySource: 'notification' | 'profile_position' | 'leaderboard' =
-    sourceParam === 'notification' || sourceParam === 'leaderboard'
-      ? sourceParam
-      : 'profile_position';
+  // Quick Buy `source` is always the trade screen; upstream journey attribution
+  // is carried separately on `original_entry_point`.
+  const quickBuySource: QuickBuySheetSource = 'profile_position';
+  const quickBuyOriginalEntryPoint: QuickBuyOriginalEntryPoint | undefined =
+    narrowQuickBuyOriginalEntryPoint(originalEntryPointParam) ??
+    resolveQuickBuyOriginalEntryPointFromPositionSource(sourceParam);
 
   // Narrow into FollowTradingTokenSource. `profile_position` from a row-tap
   // maps to `trader_profile` (the upstream surface in the schema).
@@ -315,19 +318,13 @@ const TraderPositionView = () => {
     [followTradingTokenContext, track],
   );
 
-  const handleBuyPress = useCallback(() => {
-    if (!displayPosition) return;
-    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
-    // Success/error notification haptics fire later in useQuickBuyBottomSheet.
-    playImpact(ImpactMoment.PrimaryCTA);
-    setIsQuickBuyVisible(true);
+  // Fires the CTA-clicked event and marks the CTA as clicked (so the
+  // "dismissed" cleanup is suppressed) for both A/B variants. The variant-
+  // specific navigation (QuickBuy vs swaps) lives in TraderPositionBuyCta.
+  const handleBuyCtaClicked = useCallback(() => {
     ctaClickedRef.current = true;
     trackFollowTradingCtaClicked(SocialLeaderboardEventValues.CTA_TYPE.BUY);
-  }, [displayPosition, trackFollowTradingCtaClicked]);
-
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
+  }, [trackFollowTradingCtaClicked]);
 
   const handleChartIndexChange = useCallback((_index: number) => {
     // Legacy (perp) chart scrub: price readout not wired for the SVG chart.
@@ -803,34 +800,19 @@ const TraderPositionView = () => {
               testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
             />
           ) : (
-            <>
-              <Box twClassName="px-4 py-3">
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  isFullWidth
-                  onPress={handleBuyPress}
-                  testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-                >
-                  {strings('social_leaderboard.trader_position.buy')}
-                </Button>
-              </Box>
-
-              <TraderPositionQuickBuy
-                isVisible={isQuickBuyVisible}
-                position={displayPosition ?? null}
-                onClose={handleQuickBuyClose}
-                traderAddress={traderAddress}
-                marketCap={
-                  typeof marketCap === 'number' ? marketCap : undefined
-                }
-                tokenPriceFiat={
-                  typeof currentPrice === 'number' ? currentPrice : undefined
-                }
-                source={quickBuySource}
-                isTraderPositionClosed={isClosed}
-              />
-            </>
+            <TraderPositionBuyCta
+              position={displayPosition ?? null}
+              traderAddress={traderAddress}
+              marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+              tokenPriceFiat={
+                typeof currentPrice === 'number' ? currentPrice : undefined
+              }
+              source={quickBuySource}
+              originalEntryPoint={quickBuyOriginalEntryPoint}
+              isTraderPositionClosed={isClosed}
+              onBuyCtaClicked={handleBuyCtaClicked}
+              buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+            />
           )}
         </>
       )}

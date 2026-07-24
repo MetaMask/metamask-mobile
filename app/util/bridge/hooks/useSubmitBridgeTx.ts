@@ -124,7 +124,7 @@ export default function useSubmitBridgeTx() {
     quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
-    /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
+    /** Route-carried A/B assignments merged at submit time. */
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   }) => {
     if (!walletAddress) {

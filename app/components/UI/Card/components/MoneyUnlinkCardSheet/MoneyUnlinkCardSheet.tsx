@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -18,14 +19,14 @@ import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinka
 import { CardEntryPoint } from '../../util/metrics';
 import { MoneyUnlinkCardSheetTestIds } from './MoneyUnlinkCardSheet.testIds';
 
-interface MoneyUnlinkCardSheetRouteParams {
+export interface MoneyUnlinkCardSheetRouteParams {
   fundingSource?: string;
   entrypoint?: CardEntryPoint | string;
 }
 
 const MoneyUnlinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const surfaceClass = useElevatedSurface();
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();

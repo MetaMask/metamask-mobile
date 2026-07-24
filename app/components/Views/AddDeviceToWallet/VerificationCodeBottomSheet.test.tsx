@@ -7,6 +7,7 @@ import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncControl
 import VerificationCodeBottomSheet from './VerificationCodeBottomSheet';
 
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -14,6 +15,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
     }),
   };
 });
@@ -23,12 +25,35 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
 
-  const MockBottomSheet = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(
-      View,
-      { testID: 'verification-bottom-sheet' },
-      children,
-    );
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        goBack,
+      }: {
+        children: React.ReactNode;
+        goBack?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+        onOpenBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (callback?: () => void) => {
+          goBack?.();
+          callback?.();
+        },
+        onOpenBottomSheet: jest.fn(),
+      }));
+
+      return ReactActual.createElement(
+        View,
+        { testID: 'verification-bottom-sheet', onTouchEnd: goBack },
+        children,
+      );
+    },
+  );
 
   const MockBottomSheetHeader = ({ children }: { children: React.ReactNode }) =>
     ReactActual.createElement(
@@ -66,6 +91,7 @@ const renderComponent = (
 describe('VerificationCodeBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
   });
 
   describe('rendering', () => {
@@ -104,6 +130,21 @@ describe('VerificationCodeBottomSheet', () => {
       await waitFor(() => {
         expect(mockGoBack).toHaveBeenCalled();
       });
+    });
+
+    it('does not call goBack when navigation cannot go back', async () => {
+      mockCanGoBack.mockReturnValue(false);
+
+      renderComponent({
+        phase: QrSyncPhases.AWAITING_SYNC_READY,
+        otp: null,
+      });
+
+      await waitFor(() => {
+        expect(mockCanGoBack).toHaveBeenCalled();
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 });

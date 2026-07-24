@@ -3,6 +3,7 @@ import { HeaderStandard } from '@metamask/design-system-react-native';
 import { BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Animated, {
   Extrapolate,
   interpolate,
@@ -48,6 +49,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
@@ -74,7 +76,7 @@ export const createQuotesNavDetails = createNavigationDetails<QuotesParams>(
 );
 
 function Quotes() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const trackEvent = useAnalytics();
   const params = useParams<QuotesParams>();
 
@@ -369,8 +371,9 @@ function Quotes() {
           const { url, orderId: customOrderId } =
             await buyAction.createWidget(callbackBaseUrl);
 
-          navigation.navigate(
-            ...createCheckoutNavDetails({
+          navigateWithDetails(
+            navigation,
+            createCheckoutNavDetails({
               url,
               provider,
               customOrderId,
@@ -491,8 +494,9 @@ function Quotes() {
         ) {
           const { url, orderId: customOrderId } =
             await buyAction.createWidget(callbackBaseUrl);
-          navigation.navigate(
-            ...createCheckoutNavDetails({
+          navigateWithDetails(
+            navigation,
+            createCheckoutNavDetails({
               provider: quote.provider,
               url,
               customOrderId,

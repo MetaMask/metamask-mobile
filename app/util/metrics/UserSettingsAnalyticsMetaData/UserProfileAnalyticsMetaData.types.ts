@@ -29,6 +29,7 @@ export enum UserProfileProperty {
   REWARD_ENABLED_ACCOUNTS_COUNT = 'reward_enabled_accounts_count',
   CREATED_POLYMARKET_ACCOUNT_VIA_MM = 'created_polymarket_account_via_mm',
   ACCOUNT_TYPE = 'account_type',
+  INSTALL_DATE_MOBILE = 'InstallDateMobile',
 }
 
 export interface UserProfileMetaData {
