@@ -108,6 +108,7 @@ import {
   selectQrSyncPrimaryMnemonic,
 } from '../../../selectors/qrSyncController';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -525,11 +526,19 @@ const ImportFromSecretRecoveryPhrase = ({
     track(MetaMetricsEvents.WALLET_IMPORTED, {
       biometrics_enabled: Boolean(biometryType),
     });
-    track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-      wallet_setup_type: 'import',
-      new_wallet: false,
-      account_type: AccountType.Imported,
-      ...walletSetupCompletedAttributionProps,
+    // Deferred (not awaited) so navigation isn't blocked on the balance
+    // fetch; fetchImportedWalletFundingAmountRange never rejects and
+    // resolves undefined (prop omitted) on fetch failure or timeout.
+    fetchImportedWalletFundingAmountRange().then((fundingAmountRange) => {
+      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        wallet_setup_type: 'import',
+        new_wallet: false,
+        account_type: AccountType.Imported,
+        ...(fundingAmountRange
+          ? { funding_amount_range: fundingAmountRange }
+          : {}),
+        ...walletSetupCompletedAttributionProps,
+      });
     });
 
     fetchAccountsWithActivity();
