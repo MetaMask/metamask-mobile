@@ -40,8 +40,6 @@ import {
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
 
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
@@ -68,7 +66,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
   const { styles } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
@@ -229,7 +226,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             isFullscreen
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
-            twClassName={surfaceClass}
           >
             <HeaderStandard
               title={selectorTitle}

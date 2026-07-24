@@ -14,7 +14,6 @@ import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymen
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = 'pay-with-bottom-sheet';
 
@@ -23,7 +22,6 @@ export function PayWithBottomSheet() {
   const navigation = useNavigation();
   const { sections } = usePayWithSections();
   const transactionMeta = useTransactionMetadataRequest();
-  const surfaceClass = useElevatedSurface();
   useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const title = isWithdraw
@@ -44,7 +42,6 @@ export function PayWithBottomSheet() {
       goBack={handleGoBack}
       testID={PAY_WITH_BOTTOM_SHEET_TEST_ID}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>{title}</Text>
