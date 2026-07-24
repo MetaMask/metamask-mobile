@@ -46,6 +46,7 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
   setOndoCampaignActivity,
+  setVipTransactions,
   setOndoCampaignDeposits,
   setOndoCampaignDepositsLoading,
   setOndoCampaignDepositsError,
@@ -98,6 +99,7 @@ import {
   PredictThePitchPositionsDto,
   PredictThePitchPrizePoolDto,
   VipDashboardState,
+  VipTransactionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -2119,6 +2121,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
         ondoCampaignActivity: {},
+        vipTransactions: {},
         ondoCampaignDeposits: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
@@ -2253,6 +2256,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
         ondoCampaignActivity: {},
+        vipTransactions: {},
         ondoCampaignDeposits: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
@@ -4891,6 +4895,7 @@ describe('setVipDashboard', () => {
     localizedText: {
       periodTitle: 'Jun 1 - Jun 30',
       memberIdTitle: 'Member ID',
+      transactionsTitle: 'Transactions',
       swapsFeeTitle: 'Swaps fee',
       perpsFeeTitle: 'Perps fee',
       nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -6124,6 +6129,58 @@ describe('setOndoCampaignActivity', () => {
     const state = rewardsReducer(initialState, action);
 
     expect(state.ondoCampaignActivity['sub-1:campaign-1']).toBeNull();
+  });
+});
+
+describe('setVipTransactions', () => {
+  const mockTransactions: VipTransactionDto[] = [
+    {
+      id: 'transaction-1',
+      type: 'SWAP',
+      timestamp: '2026-07-22T12:00:00.000Z',
+      feeUsd: '1.25',
+      volumeUsd: '250.00',
+      swap: {
+        quoteId: 'quote-1',
+        srcChainId: '1',
+        destChainId: '59144',
+      },
+    },
+  ];
+
+  it('sets transactions by subscription and transaction type', () => {
+    const action = setVipTransactions({
+      subscriptionId: 'sub-1',
+      type: 'SWAP',
+      transactions: mockTransactions,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.vipTransactions['sub-1:SWAP']).toEqual(mockTransactions);
+  });
+
+  it('stores null for a loaded transaction type with no result', () => {
+    const action = setVipTransactions({
+      subscriptionId: 'sub-1',
+      type: 'PERPS',
+      transactions: null,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.vipTransactions['sub-1:PERPS']).toBeNull();
+  });
+
+  it('clears transactions when rewards state resets', () => {
+    const stateWithTransactions: RewardsState = {
+      ...initialState,
+      vipTransactions: { 'sub-1:SWAP': mockTransactions },
+    };
+
+    const state = rewardsReducer(stateWithTransactions, resetRewardsState());
+
+    expect(state.vipTransactions).toEqual({});
   });
 });
 

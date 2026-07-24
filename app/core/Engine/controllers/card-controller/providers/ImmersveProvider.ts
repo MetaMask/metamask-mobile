@@ -44,7 +44,8 @@ const IMMERSVE_LOCATION = 'international';
 const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
 const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
-const IMMERSVE_SPENDABLE_AMOUNT = 999999999;
+// Same ceiling as BAANX_MAX_LIMIT — Immersve does not treat this as a hard cap.
+const IMMERSVE_SPENDABLE_AMOUNT = 2199023255551;
 
 const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
 
