@@ -1,22 +1,14 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Card,
-  FontWeight,
-  Icon,
-  IconColor,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   IconName,
-  IconSize,
-  Text,
+  ListItem,
   TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
@@ -38,24 +30,7 @@ import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
-import { useStyles } from '../../../../../component-library/hooks';
-import type { Theme } from '@metamask/design-tokens';
 import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
-
-const styleSheet = ({ theme }: { theme: Theme }) =>
-  StyleSheet.create({
-    addButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: theme.colors.background.defaultPressed,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    name: {
-      flexShrink: 1,
-    },
-  });
 
 const PerpsMarketRowItem = ({
   market,
@@ -71,8 +46,6 @@ const PerpsMarketRowItem = ({
     symbols: [market.symbol],
     throttleMs: 3000, // 3 seconds for list view
   });
-
-  const { styles } = useStyles(styleSheet, {});
 
   const showFullAssetNames = useSelector(selectPerpsShowFullAssetNamesFlag);
 
@@ -202,153 +175,63 @@ const PerpsMarketRowItem = ({
     [showFullAssetNames, displayMarket.name, displayMarket.symbol],
   );
 
+  const description = showTickerSuffix
+    ? `${getPerpsDisplaySymbol(displayMarket.symbol)} \u00B7 ${displayText}`
+    : displayText;
+
   return (
-    <Card
+    <ListItem
+      isInteractive
       onPress={handlePress}
       testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
-      touchableOpacityProps={{ activeOpacity: 0.7 }}
-      twClassName={`flex-row justify-between items-center border-0 rounded-none bg-transparent px-0 ${compact ? 'py-2' : 'py-3'}`}
-    >
-      {/* Left section: Icon + token info */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 mr-2"
-      >
-        <Box marginRight={4}>
-          <PerpsTokenLogo
-            symbol={displayMarket.symbol}
-            size={iconSize}
-            recyclingKey={displayMarket.symbol}
-            testID={getPerpsMarketRowItemSelector.tokenLogo(
-              displayMarket.symbol,
-            )}
+      avatar={
+        <PerpsTokenLogo
+          symbol={displayMarket.symbol}
+          size={iconSize}
+          recyclingKey={displayMarket.symbol}
+          testID={getPerpsMarketRowItemSelector.tokenLogo(displayMarket.symbol)}
+        />
+      }
+      title={assetLabel}
+      titleProps={{
+        testID: getPerpsMarketRowItemSelector.assetLabel(displayMarket.symbol),
+        numberOfLines: 1,
+      }}
+      titleEndAccessory={
+        <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+      }
+      description={description}
+      descriptionEndAccessory={
+        showBadge && badgeType ? (
+          <PerpsBadge
+            type={badgeType}
+            testID={getPerpsMarketRowItemSelector.badge(displayMarket.symbol)}
           />
-        </Box>
-
-        <Box twClassName="flex-1">
-          {/* Asset label + leverage */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              style={styles.name}
-              testID={getPerpsMarketRowItemSelector.assetLabel(
-                displayMarket.symbol,
-              )}
-            >
-              {assetLabel}
-            </Text>
-            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
-          </Box>
-
-          {/* Metric row */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-            twClassName="mt-0.5"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
-              {showTickerSuffix && (
-                <>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                    testID={getPerpsMarketRowItemSelector.tickerSuffix(
-                      market.symbol,
-                    )}
-                  >
-                    {getPerpsDisplaySymbol(displayMarket.symbol)}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                  >
-                    {'\u00B7'}
-                  </Text>
-                </>
-              )}
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-              >
-                {displayText}
-              </Text>
-            </Box>
-            {showBadge && badgeType && (
-              <PerpsBadge
-                type={badgeType}
-                testID={getPerpsMarketRowItemSelector.badge(
-                  displayMarket.symbol,
-                )}
-              />
-            )}
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Right section: Price + 24h change + optional add button */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.End}
-        gap={2}
-      >
-        <Box alignItems={BoxAlignItems.End} gap={1}>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-          >
-            {displayMarket.price}
-          </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            color={
-              isPositiveChange
-                ? TextColor.SuccessDefault
-                : TextColor.ErrorDefault
-            }
-          >
-            {displayMarket.change24hPercent}
-          </Text>
-        </Box>
-
-        {onAddPress && (
-          <TouchableOpacity
+        ) : undefined
+      }
+      value={displayMarket.price}
+      subvalue={displayMarket.change24hPercent}
+      subvalueProps={{
+        color: isPositiveChange
+          ? TextColor.SuccessDefault
+          : TextColor.ErrorDefault,
+      }}
+      endAccessory={
+        onAddPress ? (
+          <ButtonIcon
+            iconName={IconName.Add}
+            size={ButtonIconSize.Md}
+            variant={ButtonIconVariant.Filled}
             onPress={() => onAddPress(displayMarket)}
             testID={getPerpsMarketRowItemSelector.addButton(
               displayMarket.symbol,
             )}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            activeOpacity={0.6}
-          >
-            <View style={styles.addButton}>
-              <Icon
-                name={IconName.Add}
-                size={IconSize.Md}
-                color={IconColor.IconDefault}
-              />
-            </View>
-          </TouchableOpacity>
-        )}
-      </Box>
-    </Card>
+          />
+        ) : undefined
+      }
+      accessoryGap={onAddPress ? 3 : undefined}
+      twClassName={compact ? 'py-2 min-h-0' : undefined}
+    />
   );
 };
 

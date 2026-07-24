@@ -109,7 +109,6 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
   HomeSectionNames: {
-    CASH: 'cash',
     TOKENS: 'tokens',
     WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
@@ -498,7 +497,9 @@ describe('TopTradersSection', () => {
     });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Retry'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Retry'));
+    });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });

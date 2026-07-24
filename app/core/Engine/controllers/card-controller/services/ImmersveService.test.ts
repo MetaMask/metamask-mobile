@@ -11,10 +11,11 @@ const mockRequest = jest.fn();
 beforeEach(() => {
   jest.clearAllMocks();
   mockCreate.mockReturnValue({ request: mockRequest });
+  mockRequest.mockResolvedValue({ data: { result: 'ok' }, status: 200 });
 });
 
-const createService = () =>
-  new ImmersveService({ baseUrl: 'https://api.test.immersve.com' });
+const createService = (baseUrl = 'https://api.test.immersve.com') =>
+  new ImmersveService({ getBaseUrl: () => baseUrl });
 
 const TOKEN_SET = {
   accessToken: 'access-token',
@@ -24,21 +25,41 @@ const TOKEN_SET = {
 
 describe('ImmersveService', () => {
   describe('constructor', () => {
-    it('creates axios instance with baseURL and default headers', () => {
-      createService();
+    it('does not bake a baseURL into the axios instance', () => {
+      createService('https://a.example');
 
-      expect(mockCreate).toHaveBeenCalledWith({
-        baseURL: 'https://api.test.immersve.com',
-        timeout: 15_000,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      });
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timeout: 15_000,
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        }),
+      );
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.not.objectContaining({ baseURL: expect.anything() }),
+      );
     });
   });
 
   describe('get', () => {
+    it('resolves baseURL from the thunk on each request', async () => {
+      let base = 'https://first.example';
+      const service = new ImmersveService({ getBaseUrl: () => base });
+
+      await service.get('/v1/test');
+      expect(mockRequest).toHaveBeenLastCalledWith(
+        expect.objectContaining({ baseURL: 'https://first.example' }),
+      );
+
+      base = 'https://second.example';
+      await service.get('/v1/test');
+      expect(mockRequest).toHaveBeenLastCalledWith(
+        expect.objectContaining({ baseURL: 'https://second.example' }),
+      );
+    });
+
     it('sends GET request and returns response data', async () => {
       mockRequest.mockResolvedValue({ data: { ok: true }, status: 200 });
       const service = createService();
@@ -48,6 +69,7 @@ describe('ImmersveService', () => {
       expect(result).toStrictEqual({ ok: true });
       expect(mockRequest).toHaveBeenCalledWith(
         expect.objectContaining({
+          baseURL: 'https://api.test.immersve.com',
           url: '/api/accounts',
           method: 'GET',
           timeout: 15_000,

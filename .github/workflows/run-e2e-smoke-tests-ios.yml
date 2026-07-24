@@ -42,24 +42,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  stake-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeStake')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: stake-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeStake'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   perps-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokePerps')
     strategy:
@@ -191,7 +173,7 @@ jobs:
     name: Report iOS Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
-    # an Appium-only tag like SmokeAccounts / SmokeSwap). Non-empty tags still trigger this workflow.
+    # an Appium-only tag like SmokeAccounts / SmokeSwap / SmokeStake). Non-empty tags still trigger this workflow.
     if: >-
       ${{
         !cancelled() &&
@@ -202,7 +184,6 @@ jobs:
       }}
     needs:
       - confirmations-ios-smoke
-      - stake-ios-smoke
       - perps-ios-smoke
       - wallet-platform-ios-smoke
       - network-abstraction-ios-smoke

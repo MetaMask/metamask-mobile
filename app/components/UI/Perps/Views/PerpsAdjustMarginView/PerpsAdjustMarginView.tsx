@@ -2,15 +2,16 @@ import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -54,7 +55,7 @@ interface AdjustMarginRouteParams {
 }
 
 const PerpsAdjustMarginView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: AdjustMarginRouteParams }, 'params'>>();
   const { position: routePosition, mode } = route.params || {};
@@ -241,7 +242,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.errors.position_not_found')}
           </Text>
         </View>
@@ -277,7 +278,7 @@ const PerpsAdjustMarginView: React.FC = () => {
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Md}
         />
-        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
+        <Text variant={TextVariant.HeadingMd} style={styles.headerTitle}>
           {title}
         </Text>
         <View style={styles.headerSpacer} />
@@ -314,10 +315,13 @@ const PerpsAdjustMarginView: React.FC = () => {
         <View style={styles.infoSection}>
           {/* First row: Current margin */}
           <View style={styles.infoRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.adjust_margin.margin_in_position')}
             </Text>
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMd}>
               {formatPerpsFiat(currentMargin, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
@@ -326,13 +330,16 @@ const PerpsAdjustMarginView: React.FC = () => {
 
           {/* Second row: Margin available to add/remove */}
           <View style={styles.infoRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {isAddMode
                 ? strings('perps.adjust_margin.margin_available_to_add')
                 : strings('perps.adjust_margin.margin_available_to_remove')}
             </Text>
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodyMd}
               testID={PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE}
             >
               {formatPerpsFiat(flooredMaxAmount, {
@@ -344,7 +351,10 @@ const PerpsAdjustMarginView: React.FC = () => {
           {/* Third row: Liquidation price with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.adjust_margin.liquidation_price')}
               </Text>
               <TouchableOpacity
@@ -361,8 +371,8 @@ const PerpsAdjustMarginView: React.FC = () => {
             {showTransition ? (
               <View style={styles.changeContainer}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {formatPerpsFiat(currentLiquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
@@ -374,7 +384,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   color={colors.icon.alternative}
                 />
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMd}
                   testID={
                     PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE
                   }
@@ -386,7 +396,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               </View>
             ) : (
               <Text
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodyMd}
                 testID={
                   PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE
                 }
@@ -401,7 +411,10 @@ const PerpsAdjustMarginView: React.FC = () => {
           {/* Fourth row: Liquidation distance with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.adjust_margin.liquidation_distance')}
               </Text>
               <TouchableOpacity
@@ -418,8 +431,8 @@ const PerpsAdjustMarginView: React.FC = () => {
             {showTransition ? (
               <View style={styles.changeContainer}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {formatLiquidationDistance(
                     currentLiquidationDistance,
@@ -432,7 +445,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   color={colors.icon.alternative}
                 />
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMd}
                   testID={
                     PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
                   }
@@ -445,7 +458,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               </View>
             ) : (
               <Text
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodyMd}
                 testID={
                   PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
                 }

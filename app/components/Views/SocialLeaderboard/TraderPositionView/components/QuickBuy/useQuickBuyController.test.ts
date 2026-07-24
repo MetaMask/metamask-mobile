@@ -11,6 +11,7 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
+  selectIsSlippageUserOverride,
   selectIsSubmittingTx,
   selectSlippage,
 } from '../../../../../../core/redux/slices/bridge';
@@ -216,6 +217,7 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   })),
   selectIsSubmittingTx: jest.fn(),
   selectDestAddress: jest.fn(),
+  selectIsSlippageUserOverride: jest.fn(),
   selectSlippage: jest.fn(),
   selectIsEvmNonEvmBridge: jest.fn(),
   selectIsNonEvmNonEvmBridge: jest.fn(),
@@ -382,6 +384,7 @@ const setupDefaultMocks = () => {
     '0xWALLET',
   );
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
+  (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(true);
   (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
   (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);

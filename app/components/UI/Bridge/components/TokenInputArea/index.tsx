@@ -41,6 +41,7 @@ import OldButton, {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
@@ -121,6 +122,9 @@ const createStyles = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+      alignSelf: 'flex-start',
+      paddingVertical: 4,
+      paddingHorizontal: 4,
     },
     currencyContainer: {
       flex: 1,
@@ -248,7 +252,7 @@ export const TokenInputArea = forwardRef<
       isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const tokenSelectorType =
       tokenType === TokenInputAreaType.Source || isSourceToken
         ? TokenSelectorType.Source

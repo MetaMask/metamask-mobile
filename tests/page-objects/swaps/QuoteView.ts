@@ -113,6 +113,10 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
+  get moreNetworksButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('network-pills-more-button');
+  }
+
   get networkFeeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }

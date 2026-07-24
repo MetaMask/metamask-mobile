@@ -6,13 +6,19 @@ import {
 import type { Hex } from '@metamask/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
+  activityFiatLineNeedsMarketRates,
   buildMoneyActivityFiatLine,
   convertSelectedFiatToUsd,
   getFiatToUsdConversionRate,
+  getTokenToEthPrice,
   getUsdToFiatConversionRate,
 } from './moneyActivityFiat';
 import { getMusdDisplayAmountFromTransactionMeta } from '../constants/activityStyles';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+
+const activityStyles = jest.requireActual<
+  typeof import('../constants/activityStyles')
+>('../constants/activityStyles');
 
 const MOCK_CHAIN_ID = CHAIN_IDS.MONAD as Hex;
 /** Non-mUSD ERC-20 address for tests that need a token without mUSD fallback. */
@@ -209,9 +215,223 @@ describe('moneyActivityFiat', () => {
     });
   });
 
+  describe('activityFiatLineNeedsMarketRates', () => {
+    it('returns false for an mUSD-like transfer (fiat line uses the 1:1 peg)', () => {
+      const tx = makeIncomingTx('1000000000');
+
+      expect(activityFiatLineNeedsMarketRates(tx)).toBe(false);
+    });
+
+    it('returns false when transferInformation is absent (fiat line is empty before touching rates)', () => {
+      const tx = makeIncomingTx('1000000000', {
+        transferInformation: undefined,
+      });
+
+      expect(activityFiatLineNeedsMarketRates(tx)).toBe(false);
+    });
+
+    it('returns false for a non-mUSD token (no money-account transfer meta resolves)', () => {
+      const tx = makeIncomingTx('1000000000', {
+        transferInformation: {
+          amount: '1000000000',
+          decimals: 6,
+          symbol: 'OTHER',
+          contractAddress: OTHER_TOKEN_CONTRACT,
+        },
+      });
+
+      expect(activityFiatLineNeedsMarketRates(tx)).toBe(false);
+    });
+
+    // resolveMusdTransferMeta currently only resolves mUSD-on-Monad transfers,
+    // so a resolved non-mUSD meta cannot be produced from real TransactionMeta
+    // input. Stubbing the resolver pins the predicate's contract with
+    // buildMoneyActivityFiatLine's market-rate branch for when the resolver is
+    // ever extended to other tokens.
+    describe('with the resolver stubbed to a non-mUSD transfer meta', () => {
+      const nonMusdMeta = {
+        amount: '1000000000',
+        decimals: 6,
+        symbol: 'OTHER',
+        contractAddress: OTHER_TOKEN_CONTRACT,
+      };
+      let resolveSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        resolveSpy = jest
+          .spyOn(activityStyles, 'resolveMusdTransferMeta')
+          .mockReturnValue(nonMusdMeta);
+      });
+
+      afterEach(() => {
+        resolveSpy.mockRestore();
+      });
+
+      it('returns true for a non-mUSD transfer with resolved meta', () => {
+        const tx = makeIncomingTx('1000000000');
+
+        expect(activityFiatLineNeedsMarketRates(tx)).toBe(true);
+      });
+
+      it('buildMoneyActivityFiatLine converts the amount token → USD via market rates', () => {
+        const tx = makeIncomingTx('1000000000');
+
+        // 1000 tokens × (1/2500 token→ETH) × 2500 (ETH→USD) = $1,000; using
+        // conversionRate (2300) instead would give €920 — proving USD is used.
+        const line = buildMoneyActivityFiatLine(
+          tx,
+          mockRatesEur,
+          mockMarketOther,
+        );
+
+        expect(line).toBe('+$1,000.00');
+      });
+
+      it('buildMoneyActivityFiatLine returns empty when the token price is missing', () => {
+        const tx = makeIncomingTx('1000000000');
+
+        const line = buildMoneyActivityFiatLine(tx, mockRatesEur, {});
+
+        expect(line).toBe('');
+      });
+
+      it('buildMoneyActivityFiatLine returns empty when the tx has no chainId', () => {
+        const tx = makeIncomingTx('1000000000', { chainId: undefined });
+
+        const line = buildMoneyActivityFiatLine(tx, mockRates, mockMarketOther);
+
+        expect(line).toBe('');
+      });
+
+      it('buildMoneyActivityFiatLine returns empty when the meta lacks a checksummable contract address', () => {
+        resolveSpy.mockReturnValue({
+          ...nonMusdMeta,
+          contractAddress: '',
+        });
+        const tx = makeIncomingTx('1000000000');
+
+        const line = buildMoneyActivityFiatLine(tx, mockRates, mockMarketOther);
+
+        expect(line).toBe('');
+      });
+    });
+
+    it('mirrors buildMoneyActivityFiatLine: whenever it returns false, the fiat line is rate-independent', () => {
+      const txs = [
+        makeIncomingTx('1000000000'),
+        makeIncomingTx('1000000000', { transferInformation: undefined }),
+        makeIncomingTx('1000000000', {
+          transferInformation: {
+            amount: '1000000000',
+            decimals: 6,
+            symbol: 'OTHER',
+            contractAddress: OTHER_TOKEN_CONTRACT,
+          },
+        }),
+      ];
+
+      for (const tx of txs) {
+        expect(activityFiatLineNeedsMarketRates(tx)).toBe(false);
+        const withRates = buildMoneyActivityFiatLine(
+          tx,
+          mockRates,
+          mockMarketUsd,
+        );
+        const withoutRates = buildMoneyActivityFiatLine(tx, undefined, {});
+        expect(withoutRates).toBe(withRates);
+      }
+    });
+  });
+
+  describe('getTokenToEthPrice', () => {
+    it('returns the price via direct chainId and checksummed address keys', () => {
+      const price = getTokenToEthPrice(
+        mockMarketOther,
+        MOCK_CHAIN_ID,
+        OTHER_TOKEN_CONTRACT,
+      );
+
+      expect(price).toBeCloseTo(1 / 2500);
+    });
+
+    it('falls back to a case-insensitive chainId key', () => {
+      const upperChainData = {
+        [MOCK_CHAIN_ID.toUpperCase()]: {
+          [checksumOtherToken]: { price: 0.5 },
+        },
+      };
+
+      const price = getTokenToEthPrice(
+        upperChainData,
+        MOCK_CHAIN_ID,
+        OTHER_TOKEN_CONTRACT,
+      );
+
+      expect(price).toBe(0.5);
+    });
+
+    it('falls back to a case-insensitive address key when the checksum key is absent', () => {
+      const lowercaseAddressData = {
+        [MOCK_CHAIN_ID]: {
+          [OTHER_TOKEN_CONTRACT.toLowerCase()]: { price: 0.25 },
+        },
+      };
+
+      const price = getTokenToEthPrice(
+        lowercaseAddressData,
+        MOCK_CHAIN_ID,
+        OTHER_TOKEN_CONTRACT,
+      );
+
+      expect(price).toBe(0.25);
+    });
+
+    it('returns undefined when tokenMarketData is missing', () => {
+      expect(
+        getTokenToEthPrice(undefined, MOCK_CHAIN_ID, OTHER_TOKEN_CONTRACT),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when the chain has no market data', () => {
+      expect(
+        getTokenToEthPrice({}, MOCK_CHAIN_ID, OTHER_TOKEN_CONTRACT),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when the token has no market data entry', () => {
+      expect(
+        getTokenToEthPrice(mockMarketUsd, MOCK_CHAIN_ID, OTHER_TOKEN_CONTRACT),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when the entry has no price', () => {
+      const noPriceData = {
+        [MOCK_CHAIN_ID]: {
+          [checksumOtherToken]: {},
+        },
+      };
+
+      expect(
+        getTokenToEthPrice(noPriceData, MOCK_CHAIN_ID, OTHER_TOKEN_CONTRACT),
+      ).toBeUndefined();
+    });
+  });
+
   describe('getUsdToFiatConversionRate', () => {
     it('returns 1 when the selected currency is USD (matching ETH rates)', () => {
       expect(getUsdToFiatConversionRate(mockRates)).toBe(1);
+    });
+
+    it('returns undefined when no entry has both conversion rates', () => {
+      const invalidRates = {
+        ETH: {
+          conversionRate: 0,
+          usdConversionRate: 0,
+          conversionDate: null as number | null,
+        },
+      };
+
+      expect(getUsdToFiatConversionRate(invalidRates)).toBeUndefined();
     });
 
     it('returns the USD→preferred rate as (currency per ETH) ÷ (USD per ETH)', () => {

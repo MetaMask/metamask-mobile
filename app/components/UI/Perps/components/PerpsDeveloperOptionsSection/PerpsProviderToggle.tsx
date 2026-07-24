@@ -4,10 +4,6 @@ import {
 } from '../../../../../component-library/components/Icons/Icon';
 import React, { useState, useContext, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { View, Switch, ActivityIndicator, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -18,6 +14,11 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { usePerpsNetworkConfig } from '../../hooks';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import { PerpsProviderToggleSelectorsIDs } from '../../Perps.testIds';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 const PerpsProviderToggleStyles = () =>
   StyleSheet.create({
@@ -81,7 +82,7 @@ const PerpsProviderToggleContent = () => {
       style={styles.container}
       testID={PerpsProviderToggleSelectorsIDs.ROOT}
     >
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+      <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
         {strings('perps.developer_options.provider_mode_toggle')}
       </Text>
       <Switch
@@ -97,7 +98,7 @@ const PerpsProviderToggleContent = () => {
           testID={PerpsProviderToggleSelectorsIDs.LOADING_INDICATOR}
         />
       ) : (
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
           {currentProvider}
         </Text>
       )}

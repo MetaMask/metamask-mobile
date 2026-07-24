@@ -25,7 +25,7 @@ import {
   useListNotifications,
   useMarkNotificationAsRead,
 } from '../../../../util/notifications/hooks/useNotifications';
-import onChainAnalyticProperties from '../../../../util/notifications/methods/notification-analytics';
+import { notificationAnalyticsProperties } from '../../../../util/notifications/methods/notification-analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -83,11 +83,7 @@ export function useNotificationOnClick(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
           .addProperties({
-            notification_id: item.id,
-            notification_type: item.type,
-            previously_read: item.isRead,
-            ...onChainAnalyticProperties(item),
-            data: item, // data blob for feature teams to analyse their notification shapes
+            ...notificationAnalyticsProperties(item),
           })
           .build(),
       );

@@ -1,5 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { CaipChainId, Hex, isCaipAssetType } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  isCaipAssetType,
+} from '@metamask/utils';
 import {
   AccountGroupAssets,
   Asset,
@@ -13,6 +18,7 @@ import {
   useHandleOnSwap,
 } from './useTokenAtomicActions';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
+import { getCaipAssetIdForToken } from '../../Tokens/util/getCaipAssetIdForToken';
 import { TokenI } from '../../Tokens/types';
 import { SecurityDataType } from '../../Bridge/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -177,6 +183,7 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 }));
 
 jest.mock('../../Bridge/utils/tokenUtils', () => ({
+  ...jest.requireActual('../../Bridge/utils/tokenUtils'),
   getDefaultDestToken: jest.fn(),
   getNativeSourceToken: jest.fn(),
 }));
@@ -188,6 +195,10 @@ jest.mock('../../Bridge/utils/getSwapDestToken', () => ({
 jest.mock('@metamask/utils', () => ({
   ...jest.requireActual('@metamask/utils'),
   isCaipAssetType: jest.fn(),
+}));
+
+jest.mock('../../Tokens/util/getCaipAssetIdForToken', () => ({
+  getCaipAssetIdForToken: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger');
@@ -207,6 +218,10 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockIsCaipAssetType = jest.mocked(isCaipAssetType);
+const mockGetCaipAssetIdForToken = jest.mocked(getCaipAssetIdForToken);
+const actualGetCaipAssetIdForToken = jest.requireActual(
+  '../../Tokens/util/getCaipAssetIdForToken',
+).getCaipAssetIdForToken as typeof getCaipAssetIdForToken;
 const mockSelectEvmChainId = jest.mocked(selectEvmChainId);
 const mockSelectSelectedInternalAccount = jest.mocked(
   selectSelectedInternalAccount,
@@ -495,6 +510,7 @@ describe('useTokenAtomicActions - computeBuySourceToken', () => {
 describe('useTokenAtomicActions - useHandleOnBuy', () => {
   beforeEach(() => {
     mockIsCaipAssetType.mockReturnValue(false);
+    mockGetCaipAssetIdForToken.mockImplementation(actualGetCaipAssetIdForToken);
   });
 
   /**
@@ -512,7 +528,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
   it('calls goToBuy with parsed assetId and tracks ACTION_BUTTON_CLICKED', async () => {
     const { result } = await renderOnBuy();
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
     expect(mockGoToBuy).toHaveBeenCalledWith(
@@ -538,7 +556,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy({ token: caipToken });
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledWith(
       { assetId: caipAddress },
@@ -546,10 +566,59 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
     );
   });
 
+  it('uses getCaipAssetIdForToken so Polygon native POL gets slip44 CAIP for goToBuy', async () => {
+    const polToken = {
+      ...defaultToken,
+      address: '0x0000000000000000000000000000000000001010',
+      symbol: 'POL',
+      chainId: '0x89',
+      isNative: true,
+    } as TokenI;
+
+    const { result } = await renderOnBuy({ token: polToken });
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      { assetId: 'eip155:137/slip44:966' },
+      { buyFlowOrigin: 'tokenInfo' },
+    );
+  });
+
+  it('prefers explicit caipAssetId on the token when present', async () => {
+    const caipAssetId = 'eip155:137/slip44:966' as CaipAssetType;
+    mockIsCaipAssetType.mockImplementation(
+      (value: unknown) => value === caipAssetId,
+    );
+    const polToken = {
+      ...defaultToken,
+      address: '0x0000000000000000000000000000000000001010',
+      symbol: 'POL',
+      chainId: '0x89',
+      isNative: true,
+      caipAssetId,
+    };
+
+    const { result } = await renderOnBuy({ token: polToken });
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      { assetId: caipAssetId },
+      { buyFlowOrigin: 'tokenInfo' },
+    );
+  });
+
   it('includes asset_symbol and ramp analytics in RAMPS_BUTTON_CLICKED event', async () => {
     const { result } = await renderOnBuy();
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
       location: 'TokenDetails',
@@ -566,8 +635,8 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy();
 
-    await waitFor(() => {
-      result.current();
+    await waitFor(async () => {
+      await result.current();
       assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
         is_authenticated: false,
       });

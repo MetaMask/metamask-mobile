@@ -29,12 +29,12 @@ test.describe(`${System} ${PerformanceSwaps}`, () => {
       await WalletView.tapWalletSwapButton();
 
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+        await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(QuoteView.amountInput),
         );
       });
 
-      await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
+      await QuoteView.selectNetworkAndTokenTo('BNB', 'USDC');
       await QuoteView.enterSourceTokenAmount('0.1');
 
       const timer2 = new TimerHelper(

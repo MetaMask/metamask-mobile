@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import {
@@ -57,7 +59,7 @@ export const usePerpsCloseAllPositions = (
   positions: Position[] | null,
   options?: UsePerpsCloseAllPositionsOptions,
 ): UsePerpsCloseAllPositionsReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 

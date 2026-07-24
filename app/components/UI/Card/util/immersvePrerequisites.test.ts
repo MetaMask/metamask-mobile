@@ -74,6 +74,34 @@ describe('deriveNextImmersveAction', () => {
     expect(deriveNextImmersveAction([kycUrl, funding])).toStrictEqual({
       type: 'kyc',
       url: 'https://verify.immersve.com',
+      ctaHint: undefined,
+    });
+  });
+
+  it.each([
+    'KYC_NOT_COMPLETED',
+    'KYC_INFORMATION_NEEDED',
+    'KYC_EXPIRING',
+  ] as const)('carries the %s ctaHint on the kyc action', (ctaHint) => {
+    expect(deriveNextImmersveAction([{ ...kycUrl, ctaHint }])).toStrictEqual({
+      type: 'kyc',
+      url: 'https://verify.immersve.com',
+      ctaHint,
+    });
+  });
+
+  it('reads ctaHint from params when not on the entry', () => {
+    expect(
+      deriveNextImmersveAction([
+        {
+          ...kycUrl,
+          params: { ...kycUrl.params, ctaHint: 'KYC_INFORMATION_NEEDED' },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'kyc',
+      url: 'https://verify.immersve.com',
+      ctaHint: 'KYC_INFORMATION_NEEDED',
     });
   });
 

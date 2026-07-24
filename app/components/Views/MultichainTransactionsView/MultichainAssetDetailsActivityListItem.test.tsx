@@ -129,6 +129,25 @@ describe('MultichainAssetDetailsActivityListItem', () => {
     );
   });
 
+  it('does not override the row title, so it uses the shared redesign copy', () => {
+    const { ActivityListItemRow } = jest.requireMock(
+      '../../UI/ActivityListItemRow/ActivityListItemRow',
+    );
+    const navigation = createNavigation();
+    const transaction = createTransaction();
+
+    render(
+      <MultichainAssetDetailsActivityListItem
+        transaction={transaction}
+        index={0}
+        chainId={SolScope.Mainnet}
+        navigation={navigation}
+      />,
+    );
+
+    expect(ActivityListItemRow.mock.calls[0][0]).not.toHaveProperty('title');
+  });
+
   it('opens multichain details when transaction has import insertion point', () => {
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });

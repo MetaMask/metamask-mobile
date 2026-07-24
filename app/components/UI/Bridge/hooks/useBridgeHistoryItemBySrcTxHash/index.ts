@@ -4,6 +4,26 @@ import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useMemo } from 'react';
 
 /**
+ * Looks up a bridge history item by source tx hash (case-insensitive)
+ */
+export const findBridgeHistoryItemBySrcTxHash = (
+  bridgeHistoryItemsBySrcTxHash: Record<string, BridgeHistoryItem>,
+  hash?: string,
+): BridgeHistoryItem | undefined => {
+  if (!hash) {
+    return undefined;
+  }
+
+  const normalizedHash = hash.toLowerCase();
+  return (
+    bridgeHistoryItemsBySrcTxHash[hash] ??
+    Object.entries(bridgeHistoryItemsBySrcTxHash).find(
+      ([key]) => key.toLowerCase() === normalizedHash,
+    )?.[1]
+  );
+};
+
+/**
  * This hook is used to get the bridge history item by source transaction hash.
  * It is used to get the bridge history item for the non EVM transactions.
  */

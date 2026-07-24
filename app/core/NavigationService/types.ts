@@ -68,8 +68,10 @@ import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/Q
 // Perps navigation params
 import type {
   PerpsNavigationParamList,
+  PerpsOrderRouteParams,
   PerpsStackParamList,
 } from '../../components/UI/Perps/types/navigation';
+import type { ConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type {
   MoneyNavigationParamList,
   MoneyScreensStackParamList,
@@ -78,6 +80,7 @@ import type {
 } from '../../components/UI/Money/types/navigation';
 import type {
   CardModalsNavigationParamList,
+  CardOnboardingStackParamList,
   CardRootParamList,
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
@@ -624,12 +627,20 @@ export type RootStackParamList = {
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal: undefined;
-  RewardsClaimBottomSheetModal: undefined;
-  RewardOptInAccountGroupModal: undefined;
+  RewardsBottomSheetModal:
+    | RewardsNavigationParamList['RewardsBottomSheetModal']
+    | undefined;
+  RewardsClaimBottomSheetModal:
+    | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
+    | undefined;
+  RewardOptInAccountGroupModal:
+    | RewardsNavigationParamList['RewardOptInAccountGroupModal']
+    | undefined;
   RewardsReferralBottomSheetModal: undefined;
   OTAUpdatesModal: undefined;
-  EndOfSeasonClaimBottomSheet: undefined;
+  EndOfSeasonClaimBottomSheet:
+    | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
+    | undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -968,7 +979,10 @@ export type RootStackParamList = {
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
-  RedesignedConfirmations: undefined;
+  RedesignedConfirmations:
+    | ConfirmationParams
+    | Partial<PerpsOrderRouteParams>
+    | undefined;
   NoHeaderConfirmations: undefined;
 
   // Identity routes
@@ -1014,17 +1028,17 @@ export type RootStackParamList = {
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
   OrderCompleted: CardScreensStackParamList['OrderCompleted'];
   CardOnboarding: CardScreensStackParamList['CardOnboarding'];
-  CardOnboardingSignUp: undefined;
-  CardOnboardingConfirmEmail: undefined;
-  CardOnboardingSetPhoneNumber: undefined;
-  CardOnboardingConfirmPhoneNumber: undefined;
-  CardOnboardingVerifyIdentity: undefined;
-  CardOnboardingVerifyingVeriffKYC: undefined;
-  CardOnboardingPersonalDetails: undefined;
-  CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingComplete: undefined;
-  CardOnboardingKYCFailed: undefined;
-  CardOnboardingKYCPending: undefined;
+  CardOnboardingSignUp: CardOnboardingStackParamList['CardOnboardingSignUp'];
+  CardOnboardingConfirmEmail: CardOnboardingStackParamList['CardOnboardingConfirmEmail'];
+  CardOnboardingSetPhoneNumber: CardOnboardingStackParamList['CardOnboardingSetPhoneNumber'];
+  CardOnboardingConfirmPhoneNumber: CardOnboardingStackParamList['CardOnboardingConfirmPhoneNumber'];
+  CardOnboardingVerifyIdentity: CardOnboardingStackParamList['CardOnboardingVerifyIdentity'];
+  CardOnboardingVerifyingVeriffKYC: CardOnboardingStackParamList['CardOnboardingVerifyingVeriffKYC'];
+  CardOnboardingPersonalDetails: CardOnboardingStackParamList['CardOnboardingPersonalDetails'];
+  CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
+  CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
+  CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
+  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
   CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
   CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
@@ -1103,9 +1117,14 @@ export type AppNavigationProp = Omit<
 };
 
 /**
- * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`).
+ * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`,
+ * native-stack events like `transitionEnd`).
  * Mirrors {@link AppNavigationProp}'s `getState()` override, which accounts for
  * `getState()` potentially returning undefined when the navigator is not mounted.
+ *
+ * Note: still keyed to the loose global `RootParamList` during Phase 4. Prefer
+ * {@link AppNavigationProp} for strict route/param checking unless you need
+ * stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
   NativeStackNavigationProp<ReactNavigation.RootParamList>,

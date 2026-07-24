@@ -1053,6 +1053,30 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.value).toBe(51500);
     });
 
+    it('reuses merged chart data when inputs are unchanged', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const { result, rerender } = renderHook(
+        () => useCryptoUpDownChartData(market),
+        { wrapper: Wrapper },
+      );
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51500,
+          timestamp: 210,
+        });
+      });
+      const mergedChartData = result.current.data;
+
+      rerender({});
+
+      expect(result.current.data).toBe(mergedChartData);
+    });
+
     it('falls back to the target price at event start when history is unavailable', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();

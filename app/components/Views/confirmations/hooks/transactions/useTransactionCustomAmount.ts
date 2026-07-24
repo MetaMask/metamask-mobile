@@ -76,6 +76,7 @@ export function useTransactionCustomAmount({
   const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
   const hasPrefilled = useRef(false);
   const depositMaxHumanRef = useRef<string | null>(null);
+  const userHasEditedRef = useRef(false);
   // Dispatching the metric per keystroke triggers a store-wide selector sweep;
   // only dispatch when the input type actually changes.
   const lastAmountInputTypeRef = useRef<string | null>(null);
@@ -113,6 +114,7 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     depositMaxHumanRef.current = null;
+    userHasEditedRef.current = false;
   }, [payToken?.address, payToken?.chainId]);
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -121,6 +123,13 @@ export function useTransactionCustomAmount({
 
   const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
   useEffect(() => {
+    // Skip if the user has manually typed on the keypad — a transient
+    // hasPrefilled toggle (from tokenKey changes) must not overwrite
+    // their input. The ref resets when the pay token genuinely changes.
+    if (userHasEditedRef.current) {
+      prevHasPrefilled.current = depositPrefill.hasPrefilled;
+      return;
+    }
     if (depositPrefill.hasPrefilled) {
       setAmountFiat(depositPrefill.prefillAmount ?? '0');
     } else if (prevHasPrefilled.current) {
@@ -230,6 +239,7 @@ export function useTransactionCustomAmount({
       }
 
       depositMaxHumanRef.current = null;
+      userHasEditedRef.current = true;
 
       if (lastAmountInputTypeRef.current !== 'manual') {
         lastAmountInputTypeRef.current = 'manual';

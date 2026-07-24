@@ -4,9 +4,15 @@ import { CardNetwork, CardNetworkInfo } from './types';
 import { CaipChainId } from '@metamask/utils';
 
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+const infuraProjectId =
+  !InfuraKey || InfuraKey === 'null' || InfuraKey === 'undefined'
+    ? ''
+    : InfuraKey;
+export const LINEA_PUBLIC_RPC_URL = 'https://rpc.linea.build';
 
-export const LINEA_MAINNET_RPC_URL = `https://linea-mainnet.infura.io/v3/${infuraProjectId}`;
+export const LINEA_MAINNET_RPC_URL = infuraProjectId
+  ? `https://linea-mainnet.infura.io/v3/${infuraProjectId}`
+  : LINEA_PUBLIC_RPC_URL;
 export const BASE_MAINNET_RPC_URL = `https://base-mainnet.infura.io/v3/${infuraProjectId}`;
 export const MONAD_MAINNET_RPC_URL = `https://monad-mainnet.infura.io/v3/${infuraProjectId}`;
 export const BASE_SEPOLIA_RPC_URL = `https://base-sepolia.infura.io/v3/${infuraProjectId}`;
@@ -41,6 +47,9 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'monad',
 ];
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
+export const IMMERSVE_SUPPORT_EMAIL = 'support@metamask.io';
+export const IMMERSVE_TERMS_URL =
+  'https://immersve.com/terms-and-conditions/uk/general-terms-of-use';
 export const HUBSPOT_WAITLIST_URL =
   'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
 // Fixed sentinel Immersve redirects the user to when they exit the hosted KYC

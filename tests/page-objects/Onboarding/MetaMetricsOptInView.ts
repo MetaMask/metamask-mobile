@@ -25,11 +25,11 @@ class MetaMetricsOptIn {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
         ),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
           {
             exact: true,
           },

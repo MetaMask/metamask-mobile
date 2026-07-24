@@ -6,7 +6,6 @@ import {
   BoxJustifyContent,
   BoxAlignItems,
   Icon,
-  IconColor,
   IconName,
   IconSize,
   Text,
@@ -151,7 +150,7 @@ const CardImageSection = ({
                 <Icon
                   name={IconName.Copy}
                   size={IconSize.Md}
-                  color={IconColor.IconDefault}
+                  twClassName="text-black"
                 />
               </Pressable>
             </Box>

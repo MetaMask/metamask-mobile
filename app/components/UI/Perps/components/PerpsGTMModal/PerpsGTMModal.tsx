@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,9 +11,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -29,13 +28,18 @@ import {
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
 import {
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import {
   createFontScaleHandler,
   hasNonLatinCharacters,
 } from '../../utils/textUtils';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const theme = useTheme();
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -115,13 +119,13 @@ const PerpsGTMModal = () => {
       <View style={styles.headerContainer}>
         <Text
           style={styles.title}
-          variant={TextVariant.HeadingLG}
+          variant={TextVariant.HeadingLg}
           onLayout={handleTitleLayout}
         >
           {titleText}
         </Text>
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           style={styles.titleDescription}
           onLayout={handleSubtitleLayout}
         >
@@ -145,7 +149,8 @@ const PerpsGTMModal = () => {
           activeOpacity={0.6}
           label={
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               style={styles.tryNowButtonText}
             >
               {strings('perps.gtm_content.try_now')}
@@ -162,7 +167,8 @@ const PerpsGTMModal = () => {
           activeOpacity={0.6}
           label={
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               style={styles.notNowButtonText}
             >
               {strings('perps.gtm_content.not_now')}
