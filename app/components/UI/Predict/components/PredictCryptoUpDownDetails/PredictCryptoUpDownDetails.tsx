@@ -348,6 +348,15 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     [market.series],
   );
 
+  // Stable reference so the memoized TimeSlotPicker doesn't re-render on
+  // every live price tick of this screen.
+  const handleMarketSelected = useCallback(
+    (nextMarket: PredictMarket) => {
+      setSelectedMarket(attachSeries(nextMarket));
+    },
+    [attachSeries],
+  );
+
   const getNextSelectedMarket = useCallback(
     (currentMarket: PredictMarketWithSeries): PredictMarketWithSeries => {
       if (!currentSeriesMarkets?.length) {
@@ -523,7 +532,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <TimeSlotPicker
           markets={visibleSlotMarkets}
           selectedMarketId={selectedMarket.id}
-          onMarketSelected={(m) => setSelectedMarket(attachSeries(m))}
+          onMarketSelected={handleMarketSelected}
         />
 
         <Box
