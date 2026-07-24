@@ -476,7 +476,10 @@ export default class ChromeCdpHelpers {
       const reconstructed = this.pickMetaMaskConnectUrl(pageUrls.reconstructed);
       if (reconstructed) {
         reconstructedSeenAt ??= Date.now();
-        if (Date.now() - reconstructedSeenAt >= RECONSTRUCTED_DEEPLINK_GRACE_MS) {
+        if (
+          Date.now() - reconstructedSeenAt >=
+          RECONSTRUCTED_DEEPLINK_GRACE_MS
+        ) {
           return reconstructed;
         }
       }
