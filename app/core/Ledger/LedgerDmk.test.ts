@@ -104,6 +104,7 @@ describe('LedgerDmk', () => {
     mockBridge.getAppNameAndVersion.mockResolvedValue({
       appName: 'appName',
     });
+    mockBridge.updateSessionId.mockResolvedValue(true);
 
     jest.spyOn(ledgerKeyring, 'setDeviceId').mockImplementation();
 
@@ -178,6 +179,7 @@ describe('LedgerDmk', () => {
       const abortController = new AbortController();
       mockBridge.updateSessionId.mockImplementationOnce(async () => {
         abortController.abort();
+        return true;
       });
 
       const resultPromise = connectLedgerDmkHardware(
@@ -229,6 +231,31 @@ describe('LedgerDmk', () => {
       await expect(
         connectLedgerDmkHardware(mockSessionId, 'bar'),
       ).rejects.toThrow('Expected LedgerKeyring');
+    });
+
+    it('throws when the bridge lacks updateSessionId and skips app metadata request', async () => {
+      const updateSessionId = mockBridge.updateSessionId;
+      delete (mockBridge as { updateSessionId?: unknown }).updateSessionId;
+
+      await expect(
+        connectLedgerDmkHardware(mockSessionId, 'bar'),
+      ).rejects.toThrow(
+        'Ledger bridge does not support DMK session binding (missing updateSessionId)',
+      );
+
+      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
+
+      mockBridge.updateSessionId = updateSessionId;
+    });
+
+    it('throws when updateSessionId fails to bind the session and skips app metadata request', async () => {
+      mockBridge.updateSessionId.mockResolvedValueOnce(false);
+
+      await expect(
+        connectLedgerDmkHardware(mockSessionId, 'bar'),
+      ).rejects.toThrow('Failed to bind DMK session to Ledger bridge');
+
+      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
     });
   });
 

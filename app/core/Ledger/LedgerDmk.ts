@@ -4,10 +4,11 @@ import { withLedgerKeyring } from './Ledger';
 
 /**
  * The subset of bridge methods used by {@link connectLedgerDmkHardware}.
- * `LedgerDmkBridge` satisfies this shape via optional `updateSessionId`.
+ * Requires `updateSessionId` — without it the DMK session cannot be bound to
+ * the keyring bridge, and app-metadata / signing calls would run unbound.
  */
 interface LedgerDmkSessionBridge {
-  updateSessionId?: (sessionId: string) => Promise<boolean>;
+  updateSessionId: (sessionId: string) => Promise<boolean>;
   getAppNameAndVersion: () => Promise<{ appName: string; version: string }>;
 }
 
@@ -69,9 +70,17 @@ export const connectLedgerDmkHardware = async (
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setDeviceId(deviceId);
-    const ledgerBridge = keyring.bridge as unknown as LedgerDmkSessionBridge;
-    await ledgerBridge.updateSessionId?.(sessionId);
-    return ledgerBridge;
+    const ledgerBridge = keyring.bridge as Partial<LedgerDmkSessionBridge>;
+    if (typeof ledgerBridge.updateSessionId !== 'function') {
+      throw new Error(
+        'Ledger bridge does not support DMK session binding (missing updateSessionId)',
+      );
+    }
+    const sessionBound = await ledgerBridge.updateSessionId(sessionId);
+    if (!sessionBound) {
+      throw new Error('Failed to bind DMK session to Ledger bridge');
+    }
+    return ledgerBridge as LedgerDmkSessionBridge;
   });
 
   // Keep the BLE exchange outside the KeyringController mutex.
