@@ -56,10 +56,13 @@ export function usePerpsTrendingCarouselData({
     [watchlistMarkets],
   );
 
-  return {
-    markets,
-    marketsLoading,
-    allCarouselMarkets,
-    watchlistSymbolSet,
-  };
+  return useMemo(
+    () => ({
+      markets,
+      marketsLoading,
+      allCarouselMarkets,
+      watchlistSymbolSet,
+    }),
+    [markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet],
+  );
 }
