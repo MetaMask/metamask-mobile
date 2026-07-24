@@ -520,7 +520,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             // TODO PS: respect avatar global configs
             // should receive avatar type as props
             type={accountAvatarType}
-            size={AvatarSize.Md}
+            size={AvatarSize.Sm}
           />
         );
       }
