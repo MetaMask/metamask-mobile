@@ -2,21 +2,20 @@ import React, { useCallback, useState } from 'react';
 import {
   Image,
   ImageStyle,
-  PixelRatio,
   StyleProp,
   StyleSheet,
   ViewStyle,
 } from 'react-native';
 import Rive, { Fit, RNRiveError } from 'rive-react-native';
 import { createProjectLogger } from '@metamask/utils';
-import CardEducationAnimation from '../../../../../animations/onboarding_card_education_v2.riv';
+import CardEducationAnimation from '../../../../../animations/onboarding_card_education_v3.riv';
 import StackedCardsImage from '../../../../../images/stacked-cards.png';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 
 const log = createProjectLogger('card-education-animation');
 
 // -- Rive names ------------------------------------------------------------
-// These MUST match the names authored in onboarding_card_education_v2.riv.
+// These MUST match the names authored in onboarding_card_education_v3.riv.
 // If the Rive designer renames any of these, update the constants here.
 //
 // The cards entrance is played as a raw timeline: the asset ships no
@@ -57,8 +56,7 @@ const CardWelcomeCardsAnimation = ({
         artboardName={RIVE_ARTBOARD_CARDS}
         animationName={RIVE_CARDS_IN_ANIMATION}
         autoplay
-        fit={Fit.Layout}
-        layoutScaleFactor={PixelRatio.get()}
+        fit={Fit.Contain}
         style={riveStyle}
         onError={handleError}
         testID={testID ?? CardWelcomeSelectors.CARDS_ANIMATION}
