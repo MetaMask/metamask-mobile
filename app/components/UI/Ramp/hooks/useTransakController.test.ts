@@ -88,7 +88,14 @@ const getRampsController = () => Engine.context.RampsController;
 
 describe('useTransakController', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // resetAllMocks (unlike clearAllMocks) also removes per-test return values
+    // set via mockResolvedValue/mockRejectedValue, so they can't leak across
+    // tests. It also wipes defaults set in jest.mock factories, so re-establish
+    // them here.
+    jest.resetAllMocks();
+    (getRampsController().transakLogout as jest.Mock).mockResolvedValue(
+      undefined,
+    );
   });
 
   describe('return value structure', () => {
