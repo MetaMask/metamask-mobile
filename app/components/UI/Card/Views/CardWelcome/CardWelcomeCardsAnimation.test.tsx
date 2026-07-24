@@ -14,7 +14,7 @@ import {
 jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
 jest.mock(
-  '../../../../../animations/onboarding_card_education_v2.riv',
+  '../../../../../animations/onboarding_card_education_v3.riv',
   () => 1,
   { virtual: true },
 );
