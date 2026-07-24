@@ -1513,7 +1513,9 @@
     },
     "pro_positions_panel": {
       "positions": "Positions",
+      "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
+      "orders_with_count": "Orders ({{count}})",
       "ticker_only": "{{ticker}} only",
       "positions_empty": "Your open positions will appear here.",
       "orders_empty": "Your open orders will appear here.",

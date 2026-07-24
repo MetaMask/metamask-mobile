@@ -6,6 +6,7 @@ import TabsBar from '../../../../../../component-library/components-temp/Tabs/Ta
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import {
   usePerpsLiveAccount,
+  usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
 import {
@@ -40,18 +41,35 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     throttleMs: 1000,
     useLivePnl: true,
   });
+  const { orders } = usePerpsLiveOrders({ throttleMs: 1000 });
   const { account } = usePerpsLiveAccount({ throttleMs: 1000 });
+
+  const openPositionsCount = positions.length;
+  const positionsTabLabel =
+    openPositionsCount > 0
+      ? strings('perps.pro_positions_panel.positions_with_count', {
+          count: openPositionsCount,
+        })
+      : strings('perps.pro_positions_panel.positions');
+
+  const openOrdersCount = orders.length;
+  const ordersTabLabel =
+    openOrdersCount > 0
+      ? strings('perps.pro_positions_panel.orders_with_count', {
+          count: openOrdersCount,
+        })
+      : strings('perps.pro_positions_panel.orders');
 
   const tabs: TabItem[] = [
     {
       key: 'positions',
-      label: strings('perps.pro_positions_panel.positions'),
+      label: positionsTabLabel,
       content: null,
       testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
     },
     {
       key: 'orders',
-      label: strings('perps.pro_positions_panel.orders'),
+      label: ordersTabLabel,
       content: null,
       testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
     },
