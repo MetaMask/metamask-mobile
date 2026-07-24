@@ -5,14 +5,16 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import { ScamWarning } from './scam-warning';
 import { PROCEED_DELAY_SECONDS } from './scam-questionnaire.constants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import {
+  confirmSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
 
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
-const mockOpenSupportWithConsent = jest.fn();
-jest.mock('../../hooks/useSupportConsent', () => ({
-  useSupportConsent: () => ({
-    openSupportWithConsent: mockOpenSupportWithConsent,
-  }),
+jest.mock('../../../util/support', () => ({
+  confirmSupportConsent: jest.fn(),
+  rejectSupportConsent: jest.fn(),
 }));
 
 const setup = () => {
@@ -45,31 +47,79 @@ describe('ScamWarning', () => {
     jest.useRealTimers();
   });
 
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   it('calls onStop when "Stop this payment" is tapped', () => {
     const { getByTestId, onStop } = setup();
     fireEvent.press(getByTestId('scam-warning-stop'));
     expect(onStop).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the support consent flow with the tracker as callback when "Contact support" is tapped', () => {
-    const { getByTestId, onContactSupport } = setup();
+  it('shows the standalone consent modal above the questionnaire when "Contact support" is tapped', () => {
+    const { getByTestId, queryByTestId, onContactSupport } = setup();
+
+    expect(queryByTestId('standalone-support-consent-modal')).toBeNull();
+
     fireEvent.press(getByTestId('scam-warning-contact-support'));
 
-    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+    expect(getByTestId('standalone-support-consent-modal')).toBeOnTheScreen();
+    // Merely showing the consent modal must not open support or fire the
+    // tracker; both are deferred to the consent choice.
+    expect(confirmSupportConsent).not.toHaveBeenCalled();
+    expect(rejectSupportConsent).not.toHaveBeenCalled();
+    expect(onContactSupport).not.toHaveBeenCalled();
+  });
+
+  it('confirms consent with the tracker as callback and hides the modal', () => {
+    const { getByTestId, queryByTestId, onContactSupport } = setup();
+    fireEvent.press(getByTestId('scam-warning-contact-support'));
+
+    fireEvent.press(getByTestId('standalone-support-consent-confirm-button'));
+
+    expect(confirmSupportConsent).toHaveBeenCalledWith(
       expect.any(Function),
       METAMASK_SUPPORT_URL,
-      expect.any(Function),
+      onContactSupport,
     );
-    // Tracking is deferred to when support actually opens, so a mere press
-    // (which only shows the consent sheet) must not fire the tracker.
-    expect(onContactSupport).not.toHaveBeenCalled();
+    expect(queryByTestId('standalone-support-consent-modal')).toBeNull();
+  });
+
+  it('rejects consent with the tracker as callback and hides the modal', () => {
+    const { getByTestId, queryByTestId, onContactSupport } = setup();
+    fireEvent.press(getByTestId('scam-warning-contact-support'));
+
+    fireEvent.press(getByTestId('standalone-support-consent-reject-button'));
+
+    expect(rejectSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+      onContactSupport,
+    );
+    expect(queryByTestId('standalone-support-consent-modal')).toBeNull();
+  });
+
+  it('dismisses the consent modal without opening support', () => {
+    const { getByTestId, queryByTestId } = setup();
+    fireEvent.press(getByTestId('scam-warning-contact-support'));
+
+    fireEvent(
+      getByTestId('standalone-support-consent-modal'),
+      'onRequestClose',
+    );
+
+    expect(queryByTestId('standalone-support-consent-modal')).toBeNull();
+    expect(confirmSupportConsent).not.toHaveBeenCalled();
+    expect(rejectSupportConsent).not.toHaveBeenCalled();
   });
 
   it('opens the support URL when the consent flow invokes the opener', () => {
     const { getByTestId } = setup();
     fireEvent.press(getByTestId('scam-warning-contact-support'));
+    fireEvent.press(getByTestId('standalone-support-consent-confirm-button'));
 
-    const open = mockOpenSupportWithConsent.mock.calls[0][0];
+    const open = jest.mocked(confirmSupportConsent).mock.calls[0][0];
     open(METAMASK_SUPPORT_URL);
     expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
   });
