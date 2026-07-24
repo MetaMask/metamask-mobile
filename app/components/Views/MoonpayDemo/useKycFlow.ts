@@ -163,7 +163,10 @@ const useKycFlow = () => {
   }, [phase, statusMessage, controllerError, pushDebug]);
 
   // ---- Derived values ----
-  const disclaimersLoaded = disclaimers.length > 0 || disclaimersError !== null;
+  // Only "loaded" when disclaimers actually came back; a fetch error must keep
+  // the terms CTA disabled so users can't accept an empty disclaimer list and
+  // then fail session creation.
+  const disclaimersLoaded = disclaimers.length > 0;
 
   const kycResult: KycRequiredResult | null =
     phase === 'done'
@@ -224,14 +227,30 @@ const useKycFlow = () => {
     [pushDebug],
   );
 
-  const handleFrameMessage = useCallback(async (msg: FrameBridgeMessage) => {
-    const { reply } = await Engine.context.KycController.handleFrameMessage({
-      message: msg.message,
-    });
-    if (reply) {
-      msg.reply(reply);
-    }
-  }, []);
+  const handleFrameMessage = useCallback(
+    async (msg: FrameBridgeMessage) => {
+      // The transport (`MoonpayFrame`) invokes this synchronously without
+      // awaiting or catching, so a controller rejection would otherwise become
+      // an unhandled promise rejection and stall the frame handshake silently.
+      // Catch it here and surface it through the same UI error channel as the
+      // frame transport errors.
+      try {
+        const { reply } = await Engine.context.KycController.handleFrameMessage(
+          {
+            message: msg.message,
+          },
+        );
+        if (reply) {
+          msg.reply(reply);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        pushDebug('Frame message error', { error: message }, 'error');
+        setFrameError(`Frame message error: ${message}`);
+      }
+    },
+    [pushDebug],
+  );
 
   const handleCheckFrameError = useCallback(
     (err: string) => {
