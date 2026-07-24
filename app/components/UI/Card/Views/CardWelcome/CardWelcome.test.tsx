@@ -20,6 +20,12 @@ jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
   },
 }));
 
+const mockUseCardEducationAnimationState = jest.fn();
+
+jest.mock('./useCardEducationAnimationState', () => ({
+  useCardEducationAnimationState: () => mockUseCardEducationAnimationState(),
+}));
+
 // Mocks
 type TransitionEndHandler = (event?: { data?: { closing?: boolean } }) => void;
 
@@ -84,6 +90,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
+jest.mock(
+  '../../../../../animations/onboarding_card_education_v2.riv',
+  () => 1,
+  { virtual: true },
+);
+
 jest.mock('../../../../../util/theme', () => {
   const actual = jest.requireActual('../../../../../util/theme');
   return {
@@ -116,6 +128,7 @@ describe('CardWelcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
+    mockUseCardEducationAnimationState.mockReturnValue('static');
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockAddListener.mockClear();
@@ -195,6 +208,72 @@ describe('CardWelcome', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('Cards animation states', () => {
+    beforeEach(() => {
+      store = createTestStore({ cardholderAccounts: [] });
+    });
+
+    it("renders neither the Rive animation nor the static image while 'pending'", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('pending');
+
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+      expect(queryByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeNull();
+    });
+
+    it("renders the Rive animation when the state is 'animate'", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(getByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeTruthy();
+      expect(queryByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeNull();
+    });
+
+    it("renders the static image when the state is 'static'", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('static');
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
+      expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+    });
+
+    it('renders the title and description in every animation state', () => {
+      (['pending', 'animate', 'static'] as const).forEach((state) => {
+        mockUseCardEducationAnimationState.mockReturnValue(state);
+
+        const { getByTestId, unmount } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        expect(
+          getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
+        ).toBeTruthy();
+        expect(
+          getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
+        ).toBeTruthy();
+
+        unmount();
+      });
     });
   });
 

@@ -1,16 +1,25 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect } from 'react';
-import { Image, StatusBar, View, useWindowDimensions } from 'react-native';
+import { StatusBar, View, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../../locales/i18n';
-import StackedCardsImage from '../../../../../images/stacked-cards.png';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import createStyles, { GRADIENT_COLORS } from './CardWelcome.styles';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
+import CardWelcomeCardsAnimation, {
+  CARDS_IN_DURATION_MS,
+} from './CardWelcomeCardsAnimation';
+import { useCardEducationAnimationState } from './useCardEducationAnimationState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -40,6 +49,9 @@ interface StatusBarNavigation {
   getParent: () => StatusBarNavigation | undefined;
 }
 
+const TEXT_REVEAL_DURATION_MS = 300;
+const TEXT_REVEAL_TRANSLATE_Y = 10;
+
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
@@ -49,6 +61,33 @@ const CardWelcome = () => {
   const theme = useTheme();
   const dimensions = useWindowDimensions();
   const styles = createStyles(theme, dimensions);
+  const animationState = useCardEducationAnimationState();
+
+  const textOpacity = useSharedValue(0);
+  const textTranslateY = useSharedValue(TEXT_REVEAL_TRANSLATE_Y);
+  const textRevealStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value,
+    transform: [{ translateY: textTranslateY.value }],
+  }));
+
+  useEffect(() => {
+    if (animationState === 'pending') {
+      return;
+    }
+    if (animationState === 'animate') {
+      textOpacity.value = withDelay(
+        CARDS_IN_DURATION_MS,
+        withTiming(1, { duration: TEXT_REVEAL_DURATION_MS }),
+      );
+      textTranslateY.value = withDelay(
+        CARDS_IN_DURATION_MS,
+        withTiming(0, { duration: TEXT_REVEAL_DURATION_MS }),
+      );
+      return;
+    }
+    textOpacity.value = 1;
+    textTranslateY.value = 0;
+  }, [animationState, textOpacity, textTranslateY]);
 
   useEffect(() => {
     trackEvent(
@@ -142,30 +181,32 @@ const CardWelcome = () => {
     >
       {/* Header Section */}
       <SafeAreaView style={styles.headerContainer} edges={['top']}>
-        <Text
-          style={styles.title}
-          variant={TextVariant.HeadingLg}
-          testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
-        >
-          {strings('card.card_onboarding.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          style={styles.titleDescription}
-          testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
-        >
-          {strings('card.card_onboarding.description')}
-        </Text>
+        <Animated.View style={textRevealStyle}>
+          <Text
+            style={styles.title}
+            variant={TextVariant.HeadingLg}
+            testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
+          >
+            {strings('card.card_onboarding.title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            style={styles.titleDescription}
+            testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
+          >
+            {strings('card.card_onboarding.description')}
+          </Text>
+        </Animated.View>
       </SafeAreaView>
 
       {/* Image Section - Positioned absolutely to extend behind footer */}
       <View style={styles.imageContainer}>
-        <Image
-          source={StackedCardsImage}
-          style={styles.image}
-          resizeMode="contain"
-          testID={CardWelcomeSelectors.CARD_IMAGE}
-        />
+        {animationState !== 'pending' && (
+          <CardWelcomeCardsAnimation
+            animate={animationState === 'animate'}
+            style={styles.image}
+          />
+        )}
       </View>
 
       {/* Footer Section - Positioned absolutely at bottom */}
