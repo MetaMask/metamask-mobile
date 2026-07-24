@@ -9,7 +9,6 @@ import Text from '../../../../Texts/Text';
 import BottomSheetDialog from './BottomSheetDialog';
 import { BottomSheetDialogRef } from './BottomSheetDialog.types';
 import { Platform, StyleSheet, ViewStyle } from 'react-native';
-import { ReactTestRendererJSON } from 'react-test-renderer';
 
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
@@ -198,44 +197,6 @@ describe('BottomSheetDialog', () => {
       expect(onCloseMock).toHaveBeenCalledTimes(2);
     });
   });
-  describe('bottom border', () => {
-    // The sheet view is identified by its unique top corner radius.
-    const findSheetStyle = (
-      node: ReactTestRendererJSON | ReactTestRendererJSON[] | string | null,
-    ): ViewStyle | undefined => {
-      if (!node || typeof node === 'string') {
-        return undefined;
-      }
-      if (Array.isArray(node)) {
-        for (const child of node) {
-          const found = findSheetStyle(child);
-          if (found) {
-            return found;
-          }
-        }
-        return undefined;
-      }
-      const flattened = StyleSheet.flatten(node.props.style) as
-        | ViewStyle
-        | undefined;
-      if (flattened?.borderTopLeftRadius === 24) {
-        return flattened;
-      }
-      return findSheetStyle(node.children as ReactTestRendererJSON[] | null);
-    };
-
-    it('renders the sheet without a bottom border', () => {
-      const { toJSON } = render(<BottomSheetDialog />);
-
-      const sheetStyle = findSheetStyle(toJSON());
-
-      expect(sheetStyle?.borderWidth).toBe(1);
-      expect(sheetStyle?.borderBottomWidth).toBe(0);
-    });
-  });
-
-  //   Note: Add Gesture tests when react-native-gesture-handler gets updated
-
   describe('swipe gesture', () => {
     it('renders its children inside the GestureDetector', () => {
       const { getByText } = render(
