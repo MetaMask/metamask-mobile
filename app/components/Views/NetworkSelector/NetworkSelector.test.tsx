@@ -2,6 +2,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fireEvent, waitFor, screen } from '@testing-library/react-native';
+import { FlatList } from 'react-native';
+import type { FlashListProps } from '@shopify/flash-list';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -14,6 +16,32 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
+
+jest.mock('@shopify/flash-list', () => {
+  const ReactMock = jest.requireActual<typeof import('react')>('react');
+  const { FlatList: MockFlashList } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    FlashList: ReactMock.forwardRef(
+      (
+        {
+          renderScrollComponent: _renderScrollComponent,
+          ...props
+        }: FlashListProps<unknown>,
+        ref: React.ForwardedRef<FlatList<unknown>>,
+      ) => {
+        const mockProps = {
+          ...props,
+          initialNumToRender: props.data?.length,
+          ref,
+        } as unknown as React.ComponentPropsWithRef<typeof MockFlashList>;
+
+        return ReactMock.createElement(MockFlashList, mockProps);
+      },
+    ),
+  };
+});
 
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: jest.fn().mockReturnValue({
@@ -332,6 +360,34 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Network Selector', () => {
+  it('renders heterogeneous network sections through a virtualized list', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { UNSAFE_getByType } = renderComponent(initialState);
+
+    const list = UNSAFE_getByType(FlatList);
+    const itemTypes = list.props.data.map(
+      (item: { type: string }) => item.type,
+    );
+
+    expect(itemTypes).toEqual(
+      expect.arrayContaining([
+        'enabledNetworksHeader',
+        'mainnet',
+        'lineaMainnet',
+        'rpcNetwork',
+        'popularNetworksHeader',
+        'additionalNetworks',
+        'testNetworksSwitch',
+      ]),
+    );
+    expect(list.props.getItemType(list.props.data[0])).toBe(
+      'enabledNetworksHeader',
+    );
+    expect(list.props.maintainVisibleContentPosition).toEqual({
+      disabled: true,
+    });
+  });
+
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     renderComponent(initialState);
