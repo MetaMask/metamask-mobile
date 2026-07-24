@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -10,12 +9,13 @@ import {
   TextColor,
   TextVariant,
   Button,
-  BoxBackgroundColor,
-  TextField,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
-import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -44,36 +44,40 @@ import {
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 
-const Points = ({
-  number,
+const Step = ({
+  iconName,
+  title,
   children,
 }: {
-  number: number;
+  iconName: IconName;
+  title: string;
   children: React.ReactNode;
 }) => (
-  <Box twClassName="flex-row items-center gap-2">
-    <Box
-      backgroundColor={BoxBackgroundColor.BackgroundSection}
-      twClassName="w-8 h-8 rounded-full items-center justify-center"
-    >
+  <Box twClassName="flex-row items-start gap-4">
+    <Icon
+      name={iconName}
+      size={IconSize.Lg}
+      color={IconColor.IconAlternative}
+      twClassName="mt-0.5"
+    />
+    <Box twClassName="flex-1 gap-0.5">
       <Text
         variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        fontWeight={FontWeight.Bold}
         color={TextColor.TextDefault}
       >
-        {number}
+        {title}
+      </Text>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {children}
       </Text>
     </Box>
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-      {children}
-    </Text>
   </Box>
 );
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
   const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
@@ -147,24 +151,6 @@ const AddDeviceToWallet = () => {
     });
   }, [navigation, onScanSuccess, isSessionActive]);
 
-  const handleManualQrSubmit = useCallback(async () => {
-    if (!manualQrPayload.trim()) {
-      return;
-    }
-
-    await submitQrPayload(manualQrPayload);
-  }, [manualQrPayload, submitQrPayload]);
-
-  const triggerManualQrSubmit = useCallback(() => {
-    handleManualQrSubmit().catch((submitError: unknown) => {
-      reportQrSyncFailure(submitError, {
-        surface: QrSyncSurfaces.SCANNER,
-        operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
-        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
-      });
-    });
-  }, [handleManualQrSubmit]);
-
   if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
@@ -173,11 +159,6 @@ const AddDeviceToWallet = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
-        <Image
-          source={addDeviceToWalletImage}
-          style={tw.style('w-[130px] h-[130px] mx-auto')}
-        />
-
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
@@ -186,11 +167,17 @@ const AddDeviceToWallet = () => {
           {strings('app_settings.add_device.add_device_to_wallet')}
         </Text>
 
-        <Box twClassName="flex-col gap-4 mt-2">
-          <Points number={1}>
-            {strings('app_settings.add_device.points.one')}
-          </Points>
-          <Points number={2}>
+        <Box twClassName="flex-col gap-6 mt-2">
+          <Step
+            iconName={IconName.Monitor}
+            title={strings('app_settings.add_device.points.one_title')}
+          >
+            {strings('app_settings.add_device.points.one_desc')}
+          </Step>
+          <Step
+            iconName={IconName.Setting}
+            title={strings('app_settings.add_device.points.two_title')}
+          >
             {strings('app_settings.add_device.points.two')}{' '}
             <Text
               variant={TextVariant.BodyMd}
@@ -207,18 +194,26 @@ const AddDeviceToWallet = () => {
             >
               {strings('app_settings.add_device.points.two_bold_two')}
             </Text>
-          </Points>
-          <Points number={3}>
-            {strings('app_settings.add_device.points.three')}
-          </Points>
-          <Points number={4}>
-            {strings('app_settings.add_device.points.four')}
-          </Points>
+          </Step>
+          <Step
+            iconName={IconName.ScanBarcode}
+            title={strings('app_settings.add_device.points.three_title')}
+          >
+            {strings('app_settings.add_device.points.three_desc')}
+          </Step>
+          <Step
+            iconName={IconName.Key}
+            title={strings('app_settings.add_device.points.four_title')}
+          >
+            {strings('app_settings.add_device.points.four_desc')}
+          </Step>
         </Box>
 
         <Box twClassName="mt-auto gap-4">
           <Button
             twClassName="w-full"
+            startIconName={IconName.ScanBarcode}
+            startIconProps={{ twClassName: 'mr-1' }}
             onPress={openQRScanner}
             isDisabled={isBusy}
             isLoading={isBusy}
@@ -230,47 +225,6 @@ const AddDeviceToWallet = () => {
             <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
               {error.message}
             </Text>
-          ) : null}
-
-          {__DEV__ ? (
-            <Box
-              backgroundColor={BoxBackgroundColor.BackgroundSection}
-              twClassName="rounded-xl p-4 gap-3"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
-              >
-                Enter QR data manually
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                Paste the QR code payload here when testing on an emulator.
-              </Text>
-              <TextField
-                value={manualQrPayload}
-                onChangeText={setManualQrPayload}
-                placeholder="Paste QR payload"
-                isDisabled={isBusy}
-                inputProps={{
-                  autoCapitalize: 'none',
-                  autoCorrect: false,
-                  onSubmitEditing: triggerManualQrSubmit,
-                  returnKeyType: 'done',
-                }}
-              />
-              <Button
-                twClassName="w-full"
-                onPress={triggerManualQrSubmit}
-                isDisabled={!manualQrPayload.trim() || isBusy}
-                isLoading={isBusy}
-              >
-                Submit QR data
-              </Button>
-            </Box>
           ) : null}
         </Box>
       </Box>
