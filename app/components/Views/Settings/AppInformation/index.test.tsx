@@ -89,6 +89,10 @@ describe('AppInformation', () => {
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders correctly with snapshot', async () => {
     const { getByText } = renderScreen(
       AppInformation,

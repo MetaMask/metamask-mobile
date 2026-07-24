@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import AccountsMenu from './AccountsMenu';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
@@ -707,7 +707,9 @@ describe('AccountsMenu', () => {
         // Get the onPress callback from the OK button
         const alertCall = mockAlert.mock.calls[0];
         const okButton = alertCall[2][1]; // Second button in the array
-        await okButton.onPress();
+        await act(async () => {
+          await okButton.onPress();
+        });
 
         expect(Authentication.lockApp).toHaveBeenCalledWith({
           reset: false,
@@ -728,7 +730,9 @@ describe('AccountsMenu', () => {
         // Get the onPress callback from the OK button and execute it
         const alertCall = mockAlert.mock.calls[0];
         const okButton = alertCall[2][1]; // Second button in the array
-        await okButton.onPress();
+        await act(async () => {
+          await okButton.onPress();
+        });
 
         // Now analytics be tracked (user confirmed)
         expect(mockCreateEventBuilder).toHaveBeenCalledWith('Logout');
