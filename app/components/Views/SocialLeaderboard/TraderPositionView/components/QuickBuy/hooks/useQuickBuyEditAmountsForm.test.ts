@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { Keys } from '../../../../../../Base/Keypad';
 import type {
   QuickBuyAmountTuple,
   QuickBuySellPercentTuple,
@@ -84,7 +85,11 @@ describe('useQuickBuyEditAmountsForm', () => {
     );
 
     act(() => {
-      result.current.handleKeypadChange({ value: '12' });
+      result.current.handleKeypadChange({
+        value: '12',
+        valueAsNumber: 12,
+        pressedKey: Keys.Digit2,
+      });
     });
 
     rerender({ buyAmounts: updatedBuy });
