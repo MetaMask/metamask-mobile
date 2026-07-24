@@ -625,7 +625,9 @@ const PerpsHomeView = ({
       SUPPORT_CONFIG.Url,
       () => {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+          ).build(),
         );
       },
     );
