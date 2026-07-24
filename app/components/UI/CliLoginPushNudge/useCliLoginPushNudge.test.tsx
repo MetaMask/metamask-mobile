@@ -274,7 +274,7 @@ describe('useCliLoginPushNudge', () => {
   });
 
   describe('android 13+', () => {
-    let requestMock: jest.Mock;
+    let requestMock: jest.SpyInstance;
 
     beforeEach(() => {
       Platform.OS = 'android';
