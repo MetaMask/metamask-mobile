@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import type {
   QuickBuyAmountTuple,
   QuickBuySellPercentTuple,
@@ -48,5 +48,48 @@ describe('useQuickBuyEditAmountsForm', () => {
     expect(result.current.buyValues).toEqual(['10', '50', '100', '250']);
     expect(result.current.sellValues).toEqual(['25', '50', '75', '100']);
     expect(result.current.isValid).toBe(true);
+  });
+
+  it('resyncs form values when context defaults change before the user edits', () => {
+    const initialBuy: QuickBuyAmountTuple = [10, 50, 100, 250];
+    const updatedBuy: QuickBuyAmountTuple = [15, 60, 120, 300];
+    const sell: QuickBuySellPercentTuple = [25, 50, 75, 100];
+
+    const { result, rerender } = renderHook(
+      ({ buyAmounts }: { buyAmounts: QuickBuyAmountTuple }) =>
+        useQuickBuyEditAmountsForm(buyAmounts, sell, true),
+      {
+        initialProps: { buyAmounts: initialBuy },
+      },
+    );
+
+    expect(result.current.buyValues).toEqual(['10', '50', '100', '250']);
+
+    rerender({ buyAmounts: updatedBuy });
+
+    expect(result.current.buyValues).toEqual(['15', '60', '120', '300']);
+  });
+
+  it('does not resync form values after the user edits via the keypad', () => {
+    const initialBuy: QuickBuyAmountTuple = [10, 50, 100, 250];
+    const updatedBuy: QuickBuyAmountTuple = [15, 60, 120, 300];
+    const sell: QuickBuySellPercentTuple = [25, 50, 75, 100];
+
+    const { result, rerender } = renderHook(
+      ({ buyAmounts }: { buyAmounts: QuickBuyAmountTuple }) =>
+        useQuickBuyEditAmountsForm(buyAmounts, sell, true),
+      {
+        initialProps: { buyAmounts: initialBuy },
+      },
+    );
+
+    act(() => {
+      result.current.handleKeypadChange({ value: '12' });
+    });
+
+    rerender({ buyAmounts: updatedBuy });
+
+    expect(result.current.buyValues[0]).toBe('12');
+    expect(result.current.buyValues[1]).toBe('50');
   });
 });

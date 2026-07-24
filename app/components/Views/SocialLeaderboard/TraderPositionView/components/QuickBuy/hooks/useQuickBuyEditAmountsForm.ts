@@ -50,6 +50,7 @@ export function useQuickBuyEditAmountsForm(
     Exclude<QuickBuyEditFocusedField, null>
   >(DEFAULT_FOCUSED_FIELD);
   const wasPreferencesLoadedRef = useRef(isPreferencesLoaded);
+  const hasUserEditedRef = useRef(false);
 
   useEffect(() => {
     if (!isPreferencesLoaded) {
@@ -60,12 +61,14 @@ export function useQuickBuyEditAmountsForm(
     const justLoaded = !wasPreferencesLoadedRef.current;
     wasPreferencesLoadedRef.current = true;
 
-    if (!justLoaded) {
-      return;
+    if (justLoaded) {
+      hasUserEditedRef.current = false;
     }
 
-    setBuyValues(toEditableStrings(initialBuyAmounts));
-    setSellValues(toEditableStrings(initialSellPercentages));
+    if (justLoaded || !hasUserEditedRef.current) {
+      setBuyValues(toEditableStrings(initialBuyAmounts));
+      setSellValues(toEditableStrings(initialSellPercentages));
+    }
   }, [initialBuyAmounts, initialSellPercentages, isPreferencesLoaded]);
 
   const validation = useMemo(
@@ -94,6 +97,8 @@ export function useQuickBuyEditAmountsForm(
 
   const updateFocusedValue = useCallback(
     (nextValue: string) => {
+      hasUserEditedRef.current = true;
+
       if (focusedField.kind === 'buy') {
         setBuyValues((current) =>
           current.map((value, index) =>
