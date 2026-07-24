@@ -5,6 +5,7 @@
 
 import { DAPP_SCANNING_MOCKS } from './dapp-scanning.ts';
 import { PRICE_API_MOCKS } from './price-apis.ts';
+import { PRICE_ALERTS_API_MOCKS } from './price-alerts-api.ts';
 import { WEB_3_AUTH_MOCKS } from './web-3-auth.ts';
 import { DEFI_ADAPTERS_MOCKS } from './defi-adapter.ts';
 import { TOKEN_API_MOCKS } from './token-apis.ts';
@@ -44,6 +45,7 @@ export const DEFAULT_MOCKS = {
     ...(authMocks.GET || []),
     ...(DAPP_SCANNING_MOCKS.GET || []),
     ...(PRICE_API_MOCKS.GET || []),
+    ...(PRICE_ALERTS_API_MOCKS.GET || []),
     ...(WEB_3_AUTH_MOCKS.GET || []),
     ...(SWAP_API_MOCKS.GET || []),
     ...(STAKING_MOCKS.GET || []),
