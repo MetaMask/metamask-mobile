@@ -1,4 +1,13 @@
-import { type OrderBookLevel } from '@metamask/perps-controller';
+import {
+  type OrderBookData,
+  type OrderBookLevel,
+} from '@metamask/perps-controller';
+import {
+  formatPerpsFiat,
+  formatPositionSize,
+  formatLargeNumber,
+  PRICE_RANGES_UNIVERSAL,
+} from './formatUtils';
 
 /**
  * Maximum API levels to request from Hyperliquid L2Book API.
@@ -15,6 +24,30 @@ export const MAX_ORDER_BOOK_LEVELS = 20;
  * contradictory depth signals to the API.
  */
 export const FAST_ORDER_BOOK_LEVELS = 5;
+
+/**
+ * Levels requested from (and rendered for) the server-aggregated order-book
+ * stream on the dedicated AggregatedOrderBookConnection. The connection always
+ * runs Hyperliquid's fast mode (≤5 levels per side); this depth matches the
+ * Extension ladder display budget.
+ */
+export const ORDER_BOOK_AGGREGATED_LEVELS = 20;
+
+/** Currency the metric column is denominated in. */
+export type OrderBookListCurrency = 'base' | 'usd';
+
+/** Metric shown in the value column: per-level size or cumulative total. */
+export type OrderBookListMetric = 'size' | 'total';
+
+/** Compact-notation thresholds for USD amounts. */
+const USD_COMPACT_MILLIONS_THRESHOLD = 1_000_000;
+const USD_COMPACT_THOUSANDS_THRESHOLD = 10_000;
+
+/** Decimal places kept when rendering the spread as a percentage. */
+const SPREAD_PERCENT_DECIMALS = 3;
+
+/** Shown when a value has not loaded / cannot be parsed. */
+const ORDER_BOOK_FALLBACK_DISPLAY = '—';
 
 /**
  * Parameters for Hyperliquid L2Book API aggregation.
@@ -190,4 +223,119 @@ export function aggregateOrderBookLevels(
       totalNotional: cumulativeNotional.toFixed(2),
     };
   });
+}
+
+/**
+ * Apply price grouping to an order book, returning trimmed bid/ask ladders and
+ * a recomputed `maxTotal` used to scale the depth bars.
+ *
+ * When `grouping` is null (e.g. the stream is already server-aggregated), levels
+ * are only trimmed — no client-side re-bucketing.
+ */
+export function groupOrderBook(
+  orderBook: OrderBookData,
+  grouping: number | null,
+  maxLevels: number = ORDER_BOOK_AGGREGATED_LEVELS,
+): { bids: OrderBookLevel[]; asks: OrderBookLevel[]; maxTotal: number } {
+  const bids = grouping
+    ? aggregateOrderBookLevels(orderBook.bids, grouping, 'bid')
+    : orderBook.bids;
+  const asks = grouping
+    ? aggregateOrderBookLevels(orderBook.asks, grouping, 'ask')
+    : orderBook.asks;
+
+  const trimmedBids = bids.slice(0, maxLevels);
+  const trimmedAsks = asks.slice(0, maxLevels);
+
+  const maxTotal = [...trimmedBids, ...trimmedAsks].reduce((max, level) => {
+    const total = Number.parseFloat(level.total);
+    return Number.isFinite(total) && total > max ? total : max;
+  }, 0);
+
+  return { bids: trimmedBids, asks: trimmedAsks, maxTotal };
+}
+
+/**
+ * Depth-bar width (0-100) for a level relative to the deepest level.
+ */
+export function getDepthWidth(level: OrderBookLevel, maxTotal: number): number {
+  if (!Number.isFinite(maxTotal) || maxTotal <= 0) {
+    return 0;
+  }
+  const total = Number.parseFloat(level.total);
+  if (!Number.isFinite(total)) {
+    return 0;
+  }
+  return Math.min((total / maxTotal) * 100, 100);
+}
+
+function formatUsd(value: number): string {
+  if (!Number.isFinite(value)) {
+    return ORDER_BOOK_FALLBACK_DISPLAY;
+  }
+  if (value >= USD_COMPACT_MILLIONS_THRESHOLD) {
+    return `$${formatLargeNumber(value, { decimals: 1 })}`;
+  }
+  if (value >= USD_COMPACT_THOUSANDS_THRESHOLD) {
+    return `$${formatLargeNumber(value, { decimals: 0 })}`;
+  }
+  return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
+}
+
+function formatBase(value: number, szDecimals?: number): string {
+  if (!Number.isFinite(value)) {
+    return ORDER_BOOK_FALLBACK_DISPLAY;
+  }
+  return formatPositionSize(value, szDecimals);
+}
+
+/**
+ * Format the value shown in the metric column based on currency + metric.
+ */
+export function formatColumnValue(
+  level: OrderBookLevel,
+  currency: OrderBookListCurrency,
+  metric: OrderBookListMetric,
+  szDecimals?: number,
+): string {
+  if (currency === 'usd') {
+    const raw = metric === 'total' ? level.totalNotional : level.notional;
+    return formatUsd(Number.parseFloat(raw));
+  }
+  const raw = metric === 'total' ? level.total : level.size;
+  return formatBase(Number.parseFloat(raw), szDecimals);
+}
+
+/**
+ * Format the bid/ask spread as a percentage string (e.g. "0.003%").
+ */
+export function formatSpreadPercent(spreadPercentage: number): string {
+  if (!Number.isFinite(spreadPercentage)) {
+    return ORDER_BOOK_FALLBACK_DISPLAY;
+  }
+  const rounded = Number(spreadPercentage.toFixed(SPREAD_PERCENT_DECIMALS));
+  return `${rounded}%`;
+}
+
+/**
+ * Compute the buy/sell depth ratio from the deepest displayed level on each side.
+ */
+export function getDepthRatio(
+  bids: OrderBookLevel[],
+  asks: OrderBookLevel[],
+): { buyPercent: number; sellPercent: number } | null {
+  const bidDepth = bids.length
+    ? Number.parseFloat(bids[bids.length - 1].total)
+    : 0;
+  const askDepth = asks.length
+    ? Number.parseFloat(asks[asks.length - 1].total)
+    : 0;
+  const safeBidDepth = Number.isFinite(bidDepth) ? bidDepth : 0;
+  const safeAskDepth = Number.isFinite(askDepth) ? askDepth : 0;
+  const totalDepth = safeBidDepth + safeAskDepth;
+  if (totalDepth <= 0) {
+    return null;
+  }
+  const buyPercent = Math.round((safeBidDepth / totalDepth) * 100);
+  return { buyPercent, sellPercent: 100 - buyPercent };
 }

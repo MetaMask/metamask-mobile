@@ -10,7 +10,7 @@ import {
   type OrderType,
 } from '@metamask/perps-controller';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -31,16 +31,26 @@ import { createStyles } from './PerpsProMarketView.styles';
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
  *
- * Scaffold only: lays out the full Pro trading screen (header, chart, stats
- * bar, two-column order form / order book, and positions/orders section) as
- * placeholder containers matching Figma node 10041:12979. Each panel can be
- * populated by its owning capability without changing the top-level layout.
+ * Lays out the full Pro trading screen (header, chart, stats bar, two-column
+ * order form / order book, and positions/orders section). The order book
+ * column is live: raw mid/spread on the shared controller socket plus a
+ * server-aggregated ladder on a dedicated AggregatedOrderBookConnection
+ * (same dual-stream approach as Extension).
  */
 const PerpsProMarketView = () => {
   const { styles } = useStyles(createStyles, {});
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const market = route.params?.market;
+  const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+
+  const handleCollapseOrderBook = useCallback(() => {
+    setIsOrderBookCollapsed(true);
+  }, []);
+
+  const handleExpandOrderBook = useCallback(() => {
+    setIsOrderBookCollapsed(false);
+  }, []);
 
   const [orderType, setOrderType] = useState<OrderType>('limit');
   const [isOrderTypeSheetVisible, setIsOrderTypeSheetVisible] = useState(false);
@@ -77,6 +87,14 @@ const PerpsProMarketView = () => {
   }
 
   const symbol = getPerpsDisplaySymbol(market.symbol);
+  const marketPrice = (() => {
+    if (!market.price) {
+      return undefined;
+    }
+    const cleaned = market.price.replace(/[$,]/g, '');
+    const parsed = Number.parseFloat(cleaned);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  })();
 
   return (
     <SafeAreaView
@@ -97,13 +115,21 @@ const PerpsProMarketView = () => {
         <PerpsProChartPanel />
         <PerpsProStatsBar />
         <PerpsProMarketLayout
+          isOrderBookCollapsed={isOrderBookCollapsed}
+          onExpandOrderBook={handleExpandOrderBook}
           orderForm={
             <PerpsProOrderFormPanel
               orderType={orderType}
               onOrderTypeButtonPress={handleOrderTypeButtonPress}
             />
           }
-          orderBook={<PerpsProOrderBookPanel />}
+          orderBook={
+            <PerpsProOrderBookPanel
+              symbol={market.symbol}
+              marketPrice={marketPrice}
+              onCollapse={handleCollapseOrderBook}
+            />
+          }
         />
         <SectionDivider />
         <PerpsProPositionsPanel />

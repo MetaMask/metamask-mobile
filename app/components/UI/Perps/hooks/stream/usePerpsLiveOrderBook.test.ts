@@ -3,6 +3,17 @@ import { usePerpsLiveOrderBook } from './usePerpsLiveOrderBook';
 import Engine from '../../../../../core/Engine';
 import { type OrderBookData } from '@metamask/perps-controller';
 
+const mockAggregatedSubscribe = jest.fn();
+const mockAggregatedClose = jest.fn();
+
+jest.mock('../../services/aggregatedOrderBookConnection', () => ({
+  getAggregatedOrderBookConnection: () => ({
+    subscribe: mockAggregatedSubscribe,
+    close: mockAggregatedClose,
+  }),
+  resetAggregatedOrderBookConnectionForTesting: jest.fn(),
+}));
+
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -62,6 +73,8 @@ describe('usePerpsLiveOrderBook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockAggregatedSubscribe.mockReset();
+    mockAggregatedClose.mockReset();
   });
 
   afterEach(() => {
@@ -872,6 +885,89 @@ describe('usePerpsLiveOrderBook', () => {
 
       expect(result.current.orderBook).toEqual(emptyOrderBook);
       expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  describe('orderBookAggregated channel', () => {
+    it('subscribes via AggregatedOrderBookConnection when channel is aggregated', () => {
+      const mockUnsubscribe = jest.fn();
+      mockAggregatedSubscribe.mockReturnValue(mockUnsubscribe);
+
+      renderHook(() =>
+        usePerpsLiveOrderBook({
+          symbol: 'BTC',
+          channel: 'orderBookAggregated',
+          nSigFigs: 4,
+          levels: 20,
+        }),
+      );
+
+      expect(mockSubscribeToOrderBook).not.toHaveBeenCalled();
+      expect(mockAggregatedSubscribe).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          nSigFigs: 4,
+          levels: 20,
+          callback: expect.any(Function),
+          onStatusChange: expect.any(Function),
+        }),
+      );
+    });
+
+    it('reports connectionStatus from the aggregated stream', () => {
+      let onStatusChange:
+        | ((status: 'connecting' | 'connected' | 'error') => void)
+        | undefined;
+      mockAggregatedSubscribe.mockImplementation(
+        (params: {
+          onStatusChange?: (
+            status: 'connecting' | 'connected' | 'error',
+          ) => void;
+        }) => {
+          onStatusChange = params.onStatusChange;
+          return jest.fn();
+        },
+      );
+
+      const { result } = renderHook(() =>
+        usePerpsLiveOrderBook({
+          symbol: 'ETH',
+          channel: 'orderBookAggregated',
+          nSigFigs: 5,
+        }),
+      );
+
+      expect(result.current.connectionStatus).toBe('connecting');
+
+      act(() => {
+        onStatusChange?.('connected');
+      });
+      expect(result.current.connectionStatus).toBe('connected');
+
+      act(() => {
+        onStatusChange?.('error');
+      });
+      expect(result.current.connectionStatus).toBe('error');
+    });
+
+    it('reconnect bumps the subscription after a connection error', () => {
+      mockAggregatedSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() =>
+        usePerpsLiveOrderBook({
+          symbol: 'BTC',
+          channel: 'orderBookAggregated',
+          nSigFigs: 5,
+        }),
+      );
+
+      expect(mockAggregatedSubscribe).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        result.current.reconnect();
+      });
+
+      expect(mockAggregatedSubscribe).toHaveBeenCalledTimes(2);
     });
   });
 });
