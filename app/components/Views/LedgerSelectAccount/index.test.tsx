@@ -451,7 +451,7 @@ describe('LedgerSelectAccount', () => {
     ) => {
       const checkboxes = result.getAllByRole('checkbox');
       await act(async () => {
-        fireEvent(checkboxes[0], 'valueChange', true);
+        fireEvent.press(checkboxes[0]);
       });
       await act(async () => {
         fireEvent.press(result.getByText('Unlock'));
@@ -599,7 +599,7 @@ describe('LedgerSelectAccount', () => {
     ) => {
       const checkboxes = result.getAllByRole('checkbox');
       await act(async () => {
-        fireEvent(checkboxes[0], 'valueChange', true);
+        fireEvent.press(checkboxes[0]);
       });
       await act(async () => {
         fireEvent.press(result.getByText('Unlock'));

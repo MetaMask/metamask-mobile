@@ -35,23 +35,6 @@ declare module '*.png' {
   export default content;
 }
 
-declare module '@react-native-community/checkbox' {
-  import { CheckBoxProps } from '@react-native-community/checkbox';
-
-  const CheckBox: ComponentType<CheckBoxProps>;
-
-  /**
-   * @deprecated The `<CheckBox />` component has been deprecated in favor of `<Checkbox>` from `@metamask/design-system-react-native`.
-   *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Checkbox/README.md | Checkbox component}
-   *
-   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
-   *
-   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/6882 | Tracking issue}
-   */
-  export default CheckBox;
-}
-
 declare module 'react-native-vector-icons/Ionicons' {
   import { IconProps } from 'react-native-vector-icons/Ionicons';
 
