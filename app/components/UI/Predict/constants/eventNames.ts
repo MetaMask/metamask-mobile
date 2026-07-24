@@ -169,7 +169,6 @@ export const PredictEventValues = {
     WITHDRAW: 'withdraw',
   },
   PREDICT_SCREEN: {
-    WORLD_CUP: 'world_cup',
     PREDICT_POSITIONS_SCREEN: 'predict_positions_screen',
   },
   PREDICT_COMPONENT: {
@@ -191,7 +190,6 @@ export const PredictEventValues = {
     TRENDING: 'trending',
   },
   BANNER_TYPE: {
-    WORLD_CUP: 'world_cup',
     PREDICT_THE_PITCH: 'predict_the_pitch',
   },
   SEARCH_INTERACTION: {

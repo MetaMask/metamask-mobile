@@ -152,7 +152,6 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
-  selectPredictWorldCupScreenEnabledFlag: jest.fn(() => true),
   selectPredictUpDownEnabledFlag: jest.fn(() => true),
 }));
 
@@ -808,6 +807,39 @@ describe('PredictionsSection', () => {
           cta_name: 'browse_category',
           category_name: 'world_cup',
           active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
+        },
+      });
+    });
+
+    it('navigates the World Cup summary row to the sports market list', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('homepage-predict-discovery-mens-wc-row'),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        screen.getByTestId('homepage-predict-discovery-mens-wc-row'),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          tab: 'sports',
+          transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
         },
       });
     });

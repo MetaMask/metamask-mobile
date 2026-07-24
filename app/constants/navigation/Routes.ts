@@ -417,7 +417,6 @@ const Routes = {
     MARKET_DETAILS: 'PredictMarketDetails',
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
-    WORLD_CUP: 'PredictWorldCup',
     FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',

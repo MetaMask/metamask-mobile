@@ -383,8 +383,8 @@ describe('PredictMarketSingle', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle
         market={mockMarket}
-        predictFeedTab="world-cup"
-        predictScreen="world_cup"
+        predictFeedTab="sports"
+        predictScreen="predict_positions_screen"
       />,
       { state: initialState },
     );
@@ -396,8 +396,8 @@ describe('PredictMarketSingle', () => {
       params: {
         marketId: mockMarket.id,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        predictFeedTab: 'world-cup',
-        predictScreen: 'world_cup',
+        predictFeedTab: 'sports',
+        predictScreen: 'predict_positions_screen',
         title: mockMarket.title,
         image: mockMarket.image,
       },

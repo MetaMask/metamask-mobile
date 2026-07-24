@@ -68,7 +68,6 @@ import PredictWithdrawUnavailableSheet, {
 } from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
-import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictPortfolioEnabledFlag,
@@ -218,7 +217,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
             <FeaturedCarousel />
           </Box>
         )}
-        <PredictWorldCupMainFeedBanner variant="compact" />
       </Animated.View>
       <View
         ref={tabBarRef}

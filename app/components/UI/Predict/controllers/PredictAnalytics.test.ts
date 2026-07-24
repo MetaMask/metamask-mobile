@@ -265,8 +265,8 @@ describe('PredictAnalytics', () => {
         analyticsProperties: {
           marketId: 'test',
           entryPoint: 'predict_feed',
-          predictFeedTab: 'world-cup',
-          predictScreen: 'world_cup',
+          predictFeedTab: 'sports',
+          predictScreen: 'predict_positions_screen',
         },
       });
 
@@ -274,8 +274,8 @@ describe('PredictAnalytics', () => {
 
       expect(event.properties).toMatchObject({
         entry_point: 'predict_feed',
-        predict_feed_tab: 'world-cup',
-        predict_screen: 'world_cup',
+        predict_feed_tab: 'sports',
+        predict_screen: 'predict_positions_screen',
       });
     });
 
@@ -469,8 +469,8 @@ describe('PredictAnalytics', () => {
         marketId: 'm1',
         marketTitle: 'Market title',
         entryPoint: 'predict_feed',
-        predictFeedTab: 'world-cup',
-        predictScreen: 'world_cup',
+        predictFeedTab: 'sports',
+        predictScreen: 'predict_positions_screen',
         marketDetailsViewed: 'about',
       });
 
@@ -478,8 +478,8 @@ describe('PredictAnalytics', () => {
 
       expect(event.properties).toMatchObject({
         entry_point: 'predict_feed',
-        predict_feed_tab: 'world-cup',
-        predict_screen: 'world_cup',
+        predict_feed_tab: 'sports',
+        predict_screen: 'predict_positions_screen',
       });
     });
 
@@ -745,7 +745,7 @@ describe('PredictAnalytics', () => {
     it('tracks banner viewed action with action type and banner type', () => {
       predictAnalytics.trackBannerAction({
         actionType: 'viewed',
-        bannerType: 'world_cup',
+        bannerType: 'predict_the_pitch',
       });
 
       const event = getTrackedEvent();
@@ -753,14 +753,14 @@ describe('PredictAnalytics', () => {
       expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
       expect(event.properties).toMatchObject({
         action_type: 'viewed',
-        banner_type: 'world_cup',
+        banner_type: 'predict_the_pitch',
       });
     });
 
     it('tracks banner clicked action with action type and banner type', () => {
       predictAnalytics.trackBannerAction({
         actionType: 'clicked',
-        bannerType: 'world_cup',
+        bannerType: 'predict_the_pitch',
       });
 
       const event = getTrackedEvent();
@@ -768,7 +768,7 @@ describe('PredictAnalytics', () => {
       expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
       expect(event.properties).toMatchObject({
         action_type: 'clicked',
-        banner_type: 'world_cup',
+        banner_type: 'predict_the_pitch',
       });
     });
 

@@ -212,12 +212,12 @@ describe('parseAnalyticsProperties', () => {
         market,
         outcomeToken,
         'predict_feed',
-        'world-cup',
-        'world_cup',
+        'sports',
+        'predict_positions_screen',
       );
 
-      expect(result.predictFeedTab).toBe('world-cup');
-      expect(result.predictScreen).toBe('world_cup');
+      expect(result.predictFeedTab).toBe('sports');
+      expect(result.predictScreen).toBe('predict_positions_screen');
     });
 
     it('includes only predictFeedTab when screen is omitted', () => {
