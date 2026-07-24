@@ -106,7 +106,7 @@ const PerpsProMarketView = () => {
           orderBook={<PerpsProOrderBookPanel />}
         />
         <SectionDivider />
-        <PerpsProPositionsPanel />
+        <PerpsProPositionsPanel symbol={symbol} />
       </ScrollView>
       <PerpsOrderTypeBottomSheetView
         isVisible={isOrderTypeSheetVisible}

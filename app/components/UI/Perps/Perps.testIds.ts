@@ -466,6 +466,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_POSITIONS:
     'perps-pro-market-positions-panel-tab-positions',
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
+  POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
   POSITIONS_LIST: 'perps-pro-market-positions-list',
   POSITION_ROW: 'perps-pro-market-position-row',
 };
