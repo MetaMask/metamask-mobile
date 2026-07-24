@@ -109,6 +109,30 @@ describe('useQuickBuyQuickAmountPreferences', () => {
     });
   });
 
+  it('resets to defaults when stored preferences fail validation', async () => {
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+      JSON.stringify({
+        currency: 'USD',
+        buyAmounts: [50_000, 50, 100, 250],
+        sellPercentages: [25, 50, 75, 100],
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useQuickBuyQuickAmountPreferences({
+        currentCurrency: 'USD',
+        usdToCurrentCurrencyRate: 1,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
+    expect(result.current.buyAmounts).toEqual([10, 50, 100, 250]);
+    expect(result.current.sellPercentages).toEqual([25, 50, 75, 100]);
+  });
+
   it('persists updated preferences', async () => {
     const { result } = renderHook(() =>
       useQuickBuyQuickAmountPreferences({

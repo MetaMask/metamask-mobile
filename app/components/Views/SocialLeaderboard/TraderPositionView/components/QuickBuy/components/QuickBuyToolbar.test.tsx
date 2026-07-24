@@ -13,6 +13,7 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 
 const baseContext = {
   setActiveScreen: jest.fn(),
+  isQuickAmountPreferencesLoaded: true,
   features: {
     tradeModes: ['buy'] as ('buy' | 'sell')[],
     quickAmountPills: true,
@@ -75,5 +76,19 @@ describe('QuickBuyToolbar', () => {
     render(<QuickBuyToolbar />);
     fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
     expect(setActiveScreen).toHaveBeenCalledWith('editQuickAmounts');
+  });
+
+  it('disables the gear while quick amount preferences are loading', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      setActiveScreen,
+      isQuickAmountPreferencesLoaded: false,
+    });
+
+    render(<QuickBuyToolbar />);
+
+    expect(screen.getByTestId('quick-buy-edit-amounts-button')).toBeDisabled();
+    fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
+    expect(setActiveScreen).not.toHaveBeenCalled();
   });
 });

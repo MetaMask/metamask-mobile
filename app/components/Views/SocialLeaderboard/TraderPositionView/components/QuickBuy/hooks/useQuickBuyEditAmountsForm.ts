@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type KeypadChangeData } from '../../../../../../Base/Keypad';
 import type {
   QuickBuyAmountTuple,
@@ -9,6 +9,11 @@ import {
   type QuickBuyEditFieldError,
 } from '../utils/validateQuickBuyEditAmounts';
 import type { QuickBuyEditFocusedField } from '../components/QuickBuyEditAmountRow';
+
+const DEFAULT_FOCUSED_FIELD: Exclude<QuickBuyEditFocusedField, null> = {
+  kind: 'buy',
+  index: 0,
+};
 
 function toEditableStrings(values: readonly number[]): string[] {
   return values.map((value) => (value > 0 ? String(value) : ''));
@@ -33,6 +38,7 @@ function toSellTuple(values: string[]): QuickBuySellPercentTuple {
 export function useQuickBuyEditAmountsForm(
   initialBuyAmounts: QuickBuyAmountTuple,
   initialSellPercentages: QuickBuySellPercentTuple,
+  isPreferencesLoaded: boolean,
 ) {
   const [buyValues, setBuyValues] = useState(() =>
     toEditableStrings(initialBuyAmounts),
@@ -40,8 +46,27 @@ export function useQuickBuyEditAmountsForm(
   const [sellValues, setSellValues] = useState(() =>
     toEditableStrings(initialSellPercentages),
   );
-  const [focusedField, setFocusedField] =
-    useState<QuickBuyEditFocusedField>(null);
+  const [focusedField, setFocusedField] = useState<
+    Exclude<QuickBuyEditFocusedField, null>
+  >(DEFAULT_FOCUSED_FIELD);
+  const wasPreferencesLoadedRef = useRef(isPreferencesLoaded);
+
+  useEffect(() => {
+    if (!isPreferencesLoaded) {
+      wasPreferencesLoadedRef.current = false;
+      return;
+    }
+
+    const justLoaded = !wasPreferencesLoadedRef.current;
+    wasPreferencesLoadedRef.current = true;
+
+    if (!justLoaded) {
+      return;
+    }
+
+    setBuyValues(toEditableStrings(initialBuyAmounts));
+    setSellValues(toEditableStrings(initialSellPercentages));
+  }, [initialBuyAmounts, initialSellPercentages, isPreferencesLoaded]);
 
   const validation = useMemo(
     () =>
@@ -52,32 +77,19 @@ export function useQuickBuyEditAmountsForm(
     [buyValues, sellValues],
   );
 
-  const focusedValue = useMemo(() => {
-    if (!focusedField) {
-      return '';
-    }
-    return focusedField.kind === 'buy'
+  const focusedValue = useMemo(() => focusedField.kind === 'buy'
       ? (buyValues[focusedField.index] ?? '')
-      : (sellValues[focusedField.index] ?? '');
-  }, [buyValues, focusedField, sellValues]);
+      : (sellValues[focusedField.index] ?? ''), [buyValues, focusedField, sellValues]);
 
   const handleFieldPress = useCallback(
     (kind: 'buy' | 'sell', index: number) => {
-      setFocusedField((current) =>
-        current?.kind === kind && current.index === index
-          ? null
-          : { kind, index },
-      );
+      setFocusedField({ kind, index });
     },
     [],
   );
 
   const updateFocusedValue = useCallback(
     (nextValue: string) => {
-      if (!focusedField) {
-        return;
-      }
-
       if (focusedField.kind === 'buy') {
         setBuyValues((current) =>
           current.map((value, index) =>

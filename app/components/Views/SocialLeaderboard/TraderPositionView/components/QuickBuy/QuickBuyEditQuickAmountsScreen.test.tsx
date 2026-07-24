@@ -50,6 +50,7 @@ const baseContext = {
   currentCurrency: 'USD',
   buyQuickAmounts: [10, 50, 100, 250] as [number, number, number, number],
   sellQuickPercentages: [25, 50, 75, 100] as [number, number, number, number],
+  isQuickAmountPreferencesLoaded: true,
   saveQuickAmountPreferences,
   setActiveScreen,
   onClose: jest.fn(),
@@ -61,7 +62,7 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue(baseContext);
   });
 
-  it('renders the edit screen with confirm enabled for valid defaults', () => {
+  it('renders the edit screen with the keypad open by default', () => {
     render(<QuickBuyEditQuickAmountsScreen />);
 
     expect(screen.getByTestId('quick-buy-edit-header')).toHaveTextContent(
@@ -70,12 +71,13 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
     expect(
       screen.getByTestId('quick-buy-edit-amounts-confirm'),
     ).not.toBeDisabled();
+    expect(
+      screen.getByTestId('quick-buy-edit-amounts-keypad'),
+    ).toBeOnTheScreen();
   });
 
   it('keeps the amount rows visible while the keypad is open', () => {
     render(<QuickBuyEditQuickAmountsScreen />);
-
-    fireEvent.press(screen.getByTestId('quick-buy-edit-buy-field-0'));
 
     expect(screen.getByTestId('quick-buy-edit-buy-field-0')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-edit-sell-field-0')).toBeOnTheScreen();
@@ -84,6 +86,20 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId('quick-buy-edit-amounts-confirm'),
+    ).toBeOnTheScreen();
+  });
+
+  it('switches focus without collapsing the keypad', () => {
+    render(<QuickBuyEditQuickAmountsScreen />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-edit-sell-field-1'));
+
+    expect(
+      screen.getByTestId('quick-buy-edit-amounts-keypad'),
+    ).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('quick-buy-edit-sell-field-1'));
+    expect(
+      screen.getByTestId('quick-buy-edit-amounts-keypad'),
     ).toBeOnTheScreen();
   });
 
@@ -105,7 +121,6 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
   it('saves preferences and returns to the amount screen on confirm', async () => {
     render(<QuickBuyEditQuickAmountsScreen />);
 
-    fireEvent.press(screen.getByTestId('quick-buy-edit-buy-field-0'));
     fireEvent.press(screen.getByTestId('quick-buy-edit-keypad'));
     fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-confirm'));
 

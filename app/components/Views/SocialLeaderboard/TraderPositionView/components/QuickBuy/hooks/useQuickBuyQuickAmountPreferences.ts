@@ -6,6 +6,7 @@ import {
   type QuickBuyAmountTuple,
   type QuickBuySellPercentTuple,
 } from '../utils/quickBuyQuickAmounts';
+import { validateQuickBuyEditAmounts } from '../utils/validateQuickBuyEditAmounts';
 
 export const QUICK_BUY_QUICK_AMOUNT_PREFS_KEY = 'quick_buy_quick_amount_prefs';
 
@@ -30,6 +31,13 @@ function isAmountTuple(value: unknown): value is QuickBuyAmountTuple {
     value.length === 4 &&
     value.every((entry) => typeof entry === 'number' && Number.isFinite(entry))
   );
+}
+
+function isStoredQuickAmountPreferencesValid(
+  buyAmounts: QuickBuyAmountTuple,
+  sellPercentages: QuickBuySellPercentTuple,
+): boolean {
+  return validateQuickBuyEditAmounts(buyAmounts, sellPercentages).isValid;
 }
 
 function parseStoredPreferences(
@@ -122,7 +130,14 @@ export function useQuickBuyQuickAmountPreferences({
         return;
       }
 
-      if (stored && stored.currency === normalizedCurrency) {
+      if (
+        stored &&
+        stored.currency === normalizedCurrency &&
+        isStoredQuickAmountPreferencesValid(
+          stored.buyAmounts,
+          stored.sellPercentages,
+        )
+      ) {
         setPreferences(stored);
       } else {
         setPreferences(defaultPreferences);

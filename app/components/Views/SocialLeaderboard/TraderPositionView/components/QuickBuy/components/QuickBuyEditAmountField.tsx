@@ -14,6 +14,7 @@ import type { QuickBuyEditFieldError } from '../utils/validateQuickBuyEditAmount
 interface QuickBuyEditAmountFieldProps {
   displayValue: string;
   isError: boolean;
+  isFocused?: boolean;
   testID?: string;
   onPress: () => void;
 }
@@ -21,6 +22,7 @@ interface QuickBuyEditAmountFieldProps {
 const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
   displayValue,
   isError,
+  isFocused = false,
   testID,
   onPress,
 }) => {
@@ -32,7 +34,11 @@ const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
         <Box
           style={tw.style(
             'items-center justify-center rounded-xl border bg-muted px-4 py-3',
-            isError ? 'border-error-default' : 'border-muted',
+            isError
+              ? 'border-error-default'
+              : isFocused
+                ? 'border-default'
+                : 'border-muted',
           )}
         >
           <Text

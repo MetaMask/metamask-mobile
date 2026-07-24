@@ -4,10 +4,9 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import KeypadComponent from '../../../../../Base/Keypad';
-import CollapsibleReveal from './components/CollapsibleReveal';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyEditAmountRow from './components/QuickBuyEditAmountRow';
 import { useQuickBuyEditAmountsForm } from './hooks/useQuickBuyEditAmountsForm';
@@ -18,6 +17,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
     currentCurrency,
     buyQuickAmounts,
     sellQuickPercentages,
+    isQuickAmountPreferencesLoaded,
     saveQuickAmountPreferences,
     setActiveScreen,
     onClose,
@@ -34,17 +34,11 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
     handleFieldPress,
     handleKeypadChange,
     handleConfirm,
-  } = useQuickBuyEditAmountsForm(buyQuickAmounts, sellQuickPercentages);
-
-  const isKeypadOpen = Boolean(focusedField);
-
-  // Defer keypad mount until first open so the sheet open animation stays smooth.
-  const [hasOpenedKeypadOnce, setHasOpenedKeypadOnce] = useState(false);
-  useEffect(() => {
-    if (isKeypadOpen) {
-      setHasOpenedKeypadOnce(true);
-    }
-  }, [isKeypadOpen]);
+  } = useQuickBuyEditAmountsForm(
+    buyQuickAmounts,
+    sellQuickPercentages,
+    isQuickAmountPreferencesLoaded,
+  );
 
   const handleBack = useCallback(
     () => setActiveScreen('amount'),
@@ -62,8 +56,8 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
   }, [handleConfirm, saveQuickAmountPreferences, setActiveScreen]);
 
   const keypadCurrency =
-    focusedField?.kind === 'sell' ? 'native' : currentCurrency;
-  const keypadDecimals = focusedField?.kind === 'sell' ? 0 : undefined;
+    focusedField.kind === 'sell' ? 'native' : currentCurrency;
+  const keypadDecimals = focusedField.kind === 'sell' ? 0 : undefined;
 
   return (
     <Box>
@@ -81,6 +75,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
           kind="buy"
           values={buyValues}
           errors={buyErrors}
+          focusedField={focusedField}
           currentCurrency={currentCurrency}
           onFieldPress={(index) => handleFieldPress('buy', index)}
         />
@@ -93,6 +88,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
             kind="sell"
             values={sellValues}
             errors={sellErrors}
+            focusedField={focusedField}
             currentCurrency={currentCurrency}
             onFieldPress={(index) => handleFieldPress('sell', index)}
           />
@@ -112,26 +108,14 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
         </Button>
       </Box>
 
-      {hasOpenedKeypadOnce || isKeypadOpen ? (
-        <CollapsibleReveal
-          expanded={isKeypadOpen}
-          snapExpandedOnMount={false}
-          unmountWhenCollapsed={false}
-          testID="quick-buy-edit-amounts-keypad-reveal"
-        >
-          <Box
-            twClassName="px-4 pt-3 pb-4"
-            testID="quick-buy-edit-amounts-keypad"
-          >
-            <KeypadComponent
-              value={focusedValue}
-              onChange={handleKeypadChange}
-              currency={keypadCurrency}
-              decimals={keypadDecimals}
-            />
-          </Box>
-        </CollapsibleReveal>
-      ) : null}
+      <Box twClassName="px-4 pt-3 pb-4" testID="quick-buy-edit-amounts-keypad">
+        <KeypadComponent
+          value={focusedValue}
+          onChange={handleKeypadChange}
+          currency={keypadCurrency}
+          decimals={keypadDecimals}
+        />
+      </Box>
     </Box>
   );
 };

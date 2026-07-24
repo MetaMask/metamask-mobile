@@ -23,6 +23,7 @@ interface QuickBuyEditAmountRowProps {
   kind: 'buy' | 'sell';
   values: string[];
   errors: (QuickBuyEditFieldError | null)[];
+  focusedField: QuickBuyEditFocusedField;
   currentCurrency: string;
   onFieldPress: (index: number) => void;
 }
@@ -32,6 +33,7 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
   kind,
   values,
   errors,
+  focusedField,
   currentCurrency,
   onFieldPress,
 }) => {
@@ -61,6 +63,9 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
               key={`${kind}-${index}`}
               displayValue={displayValue}
               isError={errorKey !== null}
+              isFocused={
+                focusedField?.kind === kind && focusedField.index === index
+              }
               testID={`quick-buy-edit-${kind}-field-${index}`}
               onPress={() => onFieldPress(index)}
             />
