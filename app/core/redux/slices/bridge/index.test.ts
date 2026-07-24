@@ -303,6 +303,49 @@ describe('bridge slice', () => {
         '0x0000000000000000000000000000000000000000',
       );
     });
+
+    it('clears slippage when the source token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setSourceToken(mockToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
+
+    it('keeps slippage when the source token identity is unchanged', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.slippage).toBe('2');
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
+
+    it('clears slippage when the token address is unchanged on another network', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({
+          ...mockToken,
+          chainId: '0x89',
+        }),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
   });
 
   describe('batch sell state', () => {
@@ -518,6 +561,8 @@ describe('bridge slice', () => {
         destAmount: '100',
         sourceToken: mockToken,
         destToken: mockDestToken,
+        slippage: '3.5',
+        isSlippageUserOverride: true,
         bridgeViewMode: BridgeViewMode.Bridge,
       };
 

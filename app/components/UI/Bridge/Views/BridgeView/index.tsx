@@ -317,6 +317,12 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[SWAPS-4815] BridgeView slippage:', slippage);
+  }, [slippage]);
+
   const previousSlippageRef = useRef(slippage);
   const nonSlippageQuoteRequestKey = JSON.stringify([
     sourceAmount,
@@ -480,6 +486,16 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
   }
 
+  const handleSlippageSettingsPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
+    });
+  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
+
   useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
@@ -564,6 +580,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
       <HeaderStandard
         title={headerTitle}
         onBack={() => navigation.goBack()}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleSlippageSettingsPress,
+            testID: BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON,
+            accessibilityLabel: strings('bridge.slippage'),
+          },
+        ]}
         includesTopInset
       />
       <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>

@@ -126,6 +126,9 @@ export const useBridgeQuoteRequest = (
       insufficientBal,
     };
 
+    // eslint-disable-next-line no-console
+    console.log('[SWAPS-4815] Quote request slippage:', params.slippage);
+
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
       params,
       context,
