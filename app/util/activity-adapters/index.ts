@@ -32,6 +32,7 @@ export {
   type ActivityAdapterEnvironment,
 } from './adapters/environment';
 export type { TransactionGroup } from './adapters/transaction-group';
+export { GAS_FEE_SPONSORED } from './fees';
 export { getLabelKeys } from './label-keys';
 export {
   calculateFiatFromMarketRates,
