@@ -19,19 +19,6 @@ import NotificationService, {
 /** Android API level (13) that introduced the POST_NOTIFICATIONS runtime permission. */
 const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
-/** RN runtime exposes this; PermissionsAndroidStatic typings omit it. */
-async function shouldShowAndroidPermissionRationale(
-  permission: (typeof PermissionsAndroid.PERMISSIONS)[keyof typeof PermissionsAndroid.PERMISSIONS],
-): Promise<boolean> {
-  return (
-    PermissionsAndroid as typeof PermissionsAndroid & {
-      shouldShowRequestPermissionRationale: (
-        permission: (typeof PermissionsAndroid.PERMISSIONS)[keyof typeof PermissionsAndroid.PERMISSIONS],
-      ) => Promise<boolean>;
-    }
-  ).shouldShowRequestPermissionRationale(permission);
-}
-
 const NUDGE_LABELS = () => [
   { label: strings('sdk_connect_v2.push_nudge.title'), isBold: true },
 ];
@@ -46,15 +33,19 @@ const ERROR_LABELS = () => [
 
 /**
  * Shared toast-based push-permission nudge shown after a successful Agentic CLI
- * QR login (MMAI-925). On "Turn on": when the OS can still show its permission
- * dialog it calls enableNotifications() (in-app notifications + OS prompt).
- * Denying that dialog closes the toast without opening Settings. When the OS can
- * no longer show its dialog (e.g. iOS after a prior denial), it deep-links to
- * device notification settings and retries once the app returns to foreground.
+ * QR login (MMAI-925). On "Turn on", tapping the nudge signals intent to enable
+ * notifications.
+ *
+ * iOS: when the OS can still show its permission dialog, enableNotifications()
+ * requests permission; denying that dialog closes the toast without opening
+ * Settings. When the OS can no longer show its dialog (e.g. after a prior
+ * denial), it deep-links to device notification settings and retries once the
+ * app returns to foreground.
  *
  * Android: Notifee reports DENIED for both "never asked" and "permanently
- * denied", so we use PermissionsAndroid.request(POST_NOTIFICATIONS) and
- * shouldShowRequestPermissionRationale to detect when settings must be opened.
+ * denied", so we use PermissionsAndroid.request(POST_NOTIFICATIONS). Any deny
+ * after "Turn on" opens notification settings because the user already signaled
+ * intent to enable.
  */
 export function useCliLoginPushNudge(): {
   showNudge: () => boolean;
@@ -208,24 +199,8 @@ export function useCliLoginPushNudge(): {
             await runEnableFlow(isCurrent);
             return;
           }
-          if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            openSettingsAndScheduleRetry(isCurrent);
-            return;
-          }
-          const shouldShowRationale =
-            await shouldShowAndroidPermissionRationale(
-              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-            );
-          if (!isCurrent()) {
-            return;
-          }
-          if (!shouldShowRationale) {
-            openSettingsAndScheduleRetry(isCurrent);
-            return;
-          }
-          if (isCurrent()) {
-            toastRef?.current?.closeToast();
-          }
+          // User tapped Turn on — any deny opens settings.
+          openSettingsAndScheduleRetry(isCurrent);
           return;
         }
 
