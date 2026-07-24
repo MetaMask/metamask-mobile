@@ -78,11 +78,6 @@ import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetwo
 
 const mockEngine = Engine;
 
-const setShowTestNetworksSpy = jest.spyOn(
-  Engine.context.PreferencesController,
-  'setShowTestNetworks',
-);
-
 // Mock the entire module
 jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
@@ -360,6 +355,16 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Network Selector', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Engine.context.PreferencesController, 'setShowTestNetworks');
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders heterogeneous network sections through a virtualized list', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const { UNSAFE_getByType } = renderComponent(initialState);
@@ -424,7 +429,7 @@ describe('Network Selector', () => {
       expect(
         mockEngine.context.SelectedNetworkController
           .setNetworkClientIdForDomain,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
   });
 
@@ -445,7 +450,7 @@ describe('Network Selector', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('toggles the test networks switch correctly', () => {
@@ -457,7 +462,9 @@ describe('Network Selector', () => {
 
     fireEvent(testNetworksSwitch, 'onValueChange', true);
 
-    expect(setShowTestNetworksSpy).toBeCalled();
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalled();
   });
 
   it('toggle test network is disabled and is on when a testnet is selected', () => {
@@ -528,7 +535,7 @@ describe('Network Selector', () => {
     fireEvent.press(gnosisCell);
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('changes to test network when another network cell is pressed', async () => {
@@ -601,7 +608,7 @@ describe('Network Selector', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('renders correctly with no network configurations', async () => {
@@ -652,10 +659,15 @@ describe('Network Selector', () => {
 
     fireEvent.press(polygonCell);
 
-    await waitFor(() => {
-      const rpcOption = getByText('polygon-mainnet.infura.io/v3');
-      fireEvent.press(rpcOption);
+    const rpcOption = await waitFor(() => {
+      const option = getByText('polygon-mainnet.infura.io/v3');
+
+      expect(option).toBeOnTheScreen();
+
+      return option;
     });
+
+    fireEvent.press(rpcOption);
   });
 
   it('filters networks correctly when searching', () => {
@@ -709,11 +721,15 @@ describe('Network Selector', () => {
 
     // Toggle the switch on
     fireEvent(testNetworksSwitch, 'onValueChange', true);
-    expect(setShowTestNetworksSpy).toBeCalledWith(true);
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalledWith(true);
 
     // Toggle the switch off
     fireEvent(testNetworksSwitch, 'onValueChange', false);
-    expect(setShowTestNetworksSpy).toBeCalledWith(false);
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalledWith(false);
   });
 
   describe('renderLineaMainnet', () => {
