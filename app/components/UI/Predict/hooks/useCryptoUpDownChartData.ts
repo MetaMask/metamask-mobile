@@ -72,6 +72,16 @@ const trimLivePoints = (
   latestTime: number,
 ): LivelinePoint[] => {
   const cutoff = latestTime - LIVE_CHART_RETENTION_SECS;
+
+  // Fast path: nothing to trim — return the same reference to avoid an O(n)
+  // copy on every live tick.
+  if (
+    points.length <= LIVE_CHART_MAX_POINTS &&
+    (points.length === 0 || points[0].time >= cutoff)
+  ) {
+    return points;
+  }
+
   const retainedPoints = points.filter((point) => point.time >= cutoff);
 
   if (retainedPoints.length <= LIVE_CHART_MAX_POINTS) {
@@ -258,15 +268,18 @@ export const useCryptoUpDownChartData = (
       markLiveStreamFresh();
       setLiveValue(update.price);
       setLivePoints((points) => {
-        const timeSecs = getLivePointTime(
-          update.timestamp,
-          points.at(-1)?.time,
-        );
+        const lastPoint = points.at(-1);
+        const timeSecs = getLivePointTime(update.timestamp, lastPoint?.time);
         const point: LivelinePoint = {
           time: timeSecs,
           value: update.price,
         };
-        const nextPoints = mergeLivelinePoints(points, [point]);
+        // Fast path: live ticks almost always arrive in order, so append
+        // instead of re-building (Map + sort) the whole array on every tick.
+        const nextPoints =
+          !lastPoint || timeSecs > lastPoint.time
+            ? [...points, point]
+            : mergeLivelinePoints(points, [point]);
         return trimLivePoints(nextPoints, timeSecs);
       });
       if (liveLoadingRef.current) {

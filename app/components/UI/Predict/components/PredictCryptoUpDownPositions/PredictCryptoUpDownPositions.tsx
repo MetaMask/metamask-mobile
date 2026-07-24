@@ -64,4 +64,7 @@ const PredictCryptoUpDownPositions: React.FC<
 
 PredictCryptoUpDownPositions.displayName = 'PredictCryptoUpDownPositions';
 
-export default PredictCryptoUpDownPositions;
+// Memoized: the parent details screen re-renders on every live price tick;
+// `rows` is memoized upstream (usePredictSeriesPositions), so position rows
+// only re-render when positions actually change.
+export default React.memo(PredictCryptoUpDownPositions);
