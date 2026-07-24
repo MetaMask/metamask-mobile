@@ -37,8 +37,11 @@ export function initializeWallet({
     getTransactionControllerInitMessenger(messenger);
 
   const wallet: Wallet = new Wallet({
-    // Mobile RootMessenger carries app-wide actions; Wallet only types its
-    // default-controller action set. Runtime parentage is the same messenger.
+    // Mobile's root messenger carries a superset action/event union (all app
+    // controllers) vs. the wallet's narrower DefaultActions/DefaultEvents.
+    // `Messenger` isn't covariant in those params, so the superset messenger
+    // isn't assignable to the wallet's type despite being the same runtime
+    // 'Root' bus that already carries everything Wallet needs.
     messenger: messenger as NonNullable<WalletOptions['messenger']>,
     state,
     instanceOptions: {
