@@ -27,7 +27,7 @@ const styleSheet = (params: {
         justifyContent: 'center',
         height: Number(size),
         width: Number(size),
-        borderRadius: 8,
+        borderRadius: Number(size) / 2,
         ...(pressed && {
           backgroundColor: theme.colors.background.pressed,
         }),

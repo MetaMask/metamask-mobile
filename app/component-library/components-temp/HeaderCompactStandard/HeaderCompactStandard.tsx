@@ -10,6 +10,7 @@ import {
   TextColor,
   FontWeight,
   IconName,
+  ButtonIconSize,
   ButtonIconProps,
 } from '@metamask/design-system-react-native';
 
@@ -61,8 +62,15 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
     if (onBack || backButtonProps) {
       return {
         iconName: IconName.ArrowLeft,
+        size: ButtonIconSize.Sm,
         ...(backButtonProps || {}),
         onPress: backButtonProps?.onPress ?? onBack,
+        twClassName: [
+          'bg-section rounded-full w-10 h-10',
+          backButtonProps?.twClassName,
+        ]
+          .filter(Boolean)
+          .join(' '),
       } as ButtonIconProps;
     }
     return undefined;
@@ -76,8 +84,15 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
     if (onClose || closeButtonProps) {
       const closeProps: ButtonIconProps = {
         iconName: IconName.Close,
+        size: ButtonIconSize.Sm,
         ...(closeButtonProps || {}),
         onPress: closeButtonProps?.onPress ?? onClose,
+        twClassName: [
+          'bg-section rounded-full w-10 h-10',
+          closeButtonProps?.twClassName,
+        ]
+          .filter(Boolean)
+          .join(' '),
       };
       props.push(closeProps);
     }

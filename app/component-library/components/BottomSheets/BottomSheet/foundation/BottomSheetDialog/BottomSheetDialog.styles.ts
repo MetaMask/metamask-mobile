@@ -35,8 +35,8 @@ const styleSheet = (params: {
     sheet: Object.assign(
       {
         backgroundColor: getElevatedSurfaceColor(theme),
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        borderTopLeftRadius: 36,
+        borderTopRightRadius: 36,
         maxHeight: maxSheetHeight,
         overflow: 'hidden',
         paddingBottom: Platform.select({

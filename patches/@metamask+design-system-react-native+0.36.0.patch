@@ -1,0 +1,122 @@
+--- a/node_modules/@metamask/design-system-react-native/dist/components/ButtonBase/ButtonBase.constants.mjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/ButtonBase/ButtonBase.constants.mjs
+@@ -5,9 +5,9 @@
+     [ButtonBaseSize.Lg]: 'h-12', // size (48px).
+ };
+ export const TWCLASSMAP_BUTTONBASE_BORDER_RADIUS = {
+-    [ButtonBaseSize.Sm]: 'rounded-lg',
+-    [ButtonBaseSize.Md]: 'rounded-xl',
+-    [ButtonBaseSize.Lg]: 'rounded-xl', // 12px.
++    [ButtonBaseSize.Sm]: 'rounded-full',
++    [ButtonBaseSize.Md]: 'rounded-full',
++    [ButtonBaseSize.Lg]: 'rounded-full', // 12px.
+ };
+ export const MAP_BUTTONBASE_SIZE_ICONSIZE = {
+     [ButtonBaseSize.Sm]: IconSize.Sm,
+--- a/node_modules/@metamask/design-system-react-native/dist/components/ButtonBase/ButtonBase.constants.cjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/ButtonBase/ButtonBase.constants.cjs
+@@ -8,9 +8,9 @@
+     [design_system_shared_1.ButtonBaseSize.Lg]: 'h-12', // size (48px).
+ };
+ exports.TWCLASSMAP_BUTTONBASE_BORDER_RADIUS = {
+-    [design_system_shared_1.ButtonBaseSize.Sm]: 'rounded-lg',
+-    [design_system_shared_1.ButtonBaseSize.Md]: 'rounded-xl',
+-    [design_system_shared_1.ButtonBaseSize.Lg]: 'rounded-xl', // 12px.
++    [design_system_shared_1.ButtonBaseSize.Sm]: 'rounded-full',
++    [design_system_shared_1.ButtonBaseSize.Md]: 'rounded-full',
++    [design_system_shared_1.ButtonBaseSize.Lg]: 'rounded-full', // 12px.
+ };
+ exports.MAP_BUTTONBASE_SIZE_ICONSIZE = {
+     [design_system_shared_1.ButtonBaseSize.Sm]: design_system_shared_1.IconSize.Sm,
+--- a/node_modules/@metamask/design-system-react-native/dist/components/ButtonIcon/ButtonIcon.mjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/ButtonIcon/ButtonIcon.mjs
+@@ -27,7 +27,7 @@
+     const twIconColorClassNames = variant === ButtonIconVariant.Floating
+         ? 'text-primary-inverse'
+         : 'text-icon-default';
+-    const borderRadiusClass = variant === ButtonIconVariant.Default ? 'rounded-lg' : 'rounded-full';
++    const borderRadiusClass = variant === ButtonIconVariant.Default ? 'rounded-full' : 'rounded-full';
+     const onPressInHandler = (event) => {
+         setIsPressed(true);
+         onPressIn?.(event);
+--- a/node_modules/@metamask/design-system-react-native/dist/components/ButtonIcon/ButtonIcon.cjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/ButtonIcon/ButtonIcon.cjs
+@@ -46,7 +46,7 @@
+     const twIconColorClassNames = variant === design_system_shared_1.ButtonIconVariant.Floating
+         ? 'text-primary-inverse'
+         : 'text-icon-default';
+-    const borderRadiusClass = variant === design_system_shared_1.ButtonIconVariant.Default ? 'rounded-lg' : 'rounded-full';
++    const borderRadiusClass = variant === design_system_shared_1.ButtonIconVariant.Default ? 'rounded-full' : 'rounded-full';
+     const onPressInHandler = (event) => {
+         setIsPressed(true);
+         onPressIn?.(event);
+--- a/node_modules/@metamask/design-system-react-native/dist/components/TextField/TextField.mjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/TextField/TextField.mjs
+@@ -21,7 +21,7 @@
+         }
+     }, [isDisabled, onFocus]);
+     return (<Box ref={ref} {...props} testID={testID} accessible={false} style={[
+-            tw.style('flex-row', 'items-center', 'gap-3', 'rounded-lg', 'h-12', 'border', 'px-4', 'bg-muted', isDisabled && 'border-muted', !isDisabled && isError && 'border-error-default', !isDisabled && !isError && isFocused && 'border-default', !isDisabled && !isError && !isFocused && 'border-muted', isDisabled && 'opacity-50', twClassName),
++            tw.style('flex-row', 'items-center', 'gap-3', 'rounded-[10px]', 'h-12', 'border', 'px-4', 'bg-muted', isDisabled && 'border-muted', !isDisabled && isError && 'border-error-default', !isDisabled && !isError && isFocused && 'border-default', !isDisabled && !isError && !isFocused && 'border-muted', isDisabled && 'opacity-50', twClassName),
+             style,
+         ]}>
+         {startAccessory}
+--- a/node_modules/@metamask/design-system-react-native/dist/components/TextField/TextField.cjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/TextField/TextField.cjs
+@@ -24,7 +24,7 @@
+         }
+     }, [isDisabled, onFocus]);
+     return (<Box_1.Box ref={ref} {...props} testID={testID} accessible={false} style={[
+-            tw.style('flex-row', 'items-center', 'gap-3', 'rounded-lg', 'h-12', 'border', 'px-4', 'bg-muted', isDisabled && 'border-muted', !isDisabled && isError && 'border-error-default', !isDisabled && !isError && isFocused && 'border-default', !isDisabled && !isError && !isFocused && 'border-muted', isDisabled && 'opacity-50', twClassName),
++            tw.style('flex-row', 'items-center', 'gap-3', 'rounded-[10px]', 'h-12', 'border', 'px-4', 'bg-muted', isDisabled && 'border-muted', !isDisabled && isError && 'border-error-default', !isDisabled && !isError && isFocused && 'border-default', !isDisabled && !isError && !isFocused && 'border-muted', isDisabled && 'opacity-50', twClassName),
+             style,
+         ]}>
+         {startAccessory}
+--- a/node_modules/@metamask/design-system-react-native/dist/components/HeaderStandard/HeaderStandard.mjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/HeaderStandard/HeaderStandard.mjs
+@@ -19,8 +19,10 @@
+         if (onBack || backButtonProps) {
+             const startProps = {
+                 iconName: IconName.ArrowLeft,
++                size: 'sm',
+                 ...(backButtonProps ?? {}),
+                 onPress: backButtonProps?.onPress ?? onBack,
++                twClassName: mergeTwClassName('bg-section rounded-full w-10 h-10', backButtonProps?.twClassName),
+             };
+             return startProps;
+         }
+@@ -31,8 +33,10 @@
+         if (onClose || closeButtonProps) {
+             const closeProps = {
+                 iconName: IconName.Close,
++                size: 'sm',
+                 ...(closeButtonProps || {}),
+                 onPress: closeButtonProps?.onPress ?? onClose,
++                twClassName: mergeTwClassName('bg-section rounded-full w-10 h-10', closeButtonProps?.twClassName),
+             };
+             props.push(closeProps);
+         }
+--- a/node_modules/@metamask/design-system-react-native/dist/components/HeaderStandard/HeaderStandard.cjs
++++ b/node_modules/@metamask/design-system-react-native/dist/components/HeaderStandard/HeaderStandard.cjs
+@@ -38,8 +38,10 @@
+         if (onBack || backButtonProps) {
+             const startProps = {
+                 iconName: Icon_1.IconName.ArrowLeft,
++                size: 'sm',
+                 ...(backButtonProps ?? {}),
+                 onPress: backButtonProps?.onPress ?? onBack,
++                twClassName: (0, design_system_shared_1.mergeTwClassName)('bg-section rounded-full w-10 h-10', backButtonProps?.twClassName),
+             };
+             return startProps;
+         }
+@@ -50,8 +52,10 @@
+         if (onClose || closeButtonProps) {
+             const closeProps = {
+                 iconName: Icon_1.IconName.Close,
++                size: 'sm',
+                 ...(closeButtonProps || {}),
+                 onPress: closeButtonProps?.onPress ?? onClose,
++                twClassName: (0, design_system_shared_1.mergeTwClassName)('bg-section rounded-full w-10 h-10', closeButtonProps?.twClassName),
+             };
+             props.push(closeProps);
+         }
