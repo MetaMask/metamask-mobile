@@ -317,12 +317,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
-
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[SWAPS-4815] BridgeView slippage:', slippage);
-  }, [slippage]);
-
   const previousSlippageRef = useRef(slippage);
   const nonSlippageQuoteRequestKey = JSON.stringify([
     sourceAmount,
