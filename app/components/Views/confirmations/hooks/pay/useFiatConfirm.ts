@@ -94,11 +94,7 @@ export function useFiatConfirm() {
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
 
-    // TODO: `rampSurface` here only tags analytics. It does not filter the real
-    // MM Pay quote by a per-surface provider allowlist: `rampsQuote` was already
-    // fetched by transaction-pay-controller's getRampsQuote without a `surface`,
-    // so only the top-level `providerIds` list applies. Thread the surface
-    // through that quote fetch when per-surface allowlists are actually used.
+    // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type
       ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionMetadata.type]
       : undefined;
