@@ -53,7 +53,8 @@ const CONTENTHASH_RESULT =
   '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000026e3010170122029f2d17be6139079dc48696d1f582a8530eb9805b561eda517e22a892c7e3f1f0000000000000000000000000000000000000000000000000000';
 
 // The CIDv0 that contentHash.decode() returns (used by the app to construct gateway URL)
-const IPFS_CID_V0 = 'QmRAQB6YaCyidP37UdDnjFY5vQuiBrcqdyoW1CuDgwxkD4';
+export const ENS_IPFS_CID_V0 = 'QmRAQB6YaCyidP37UdDnjFY5vQuiBrcqdyoW1CuDgwxkD4';
+const IPFS_CID_V0 = ENS_IPFS_CID_V0;
 
 // The IPFS CID path segment used to match gateway requests.
 // Works regardless of the gateway host (real dweb.link or mock localhost).

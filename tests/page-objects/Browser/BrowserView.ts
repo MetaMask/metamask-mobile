@@ -25,7 +25,6 @@ import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { openUrlInBrowserView } from '../../flows/browser.flow';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -74,24 +73,11 @@ class Browser {
   }
 
   /**
-   * Tap target for the URL bar when it is unfocused. The visible URL text lives
-   * in the `url-input` wrapper; the TextInput testID stays hidden until focused.
-   * On Android Appium, tap the displayed URL text so `onPressUrlText` runs focus().
+   * Visible URL label when the bar is unfocused. Tapping it runs
+   * `onPressUrlText` → `inputRef.focus()` so the TextInput appears.
    */
-  get urlBarTapTarget(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//*[contains(@text,'http') or contains(@text,'localhost')]`,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            BrowserURLBarSelectorsIDs.URL_INPUT,
-          ),
-      },
-    });
+  get urlBarDisplayText(): EncapsulatedElementType {
+    return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT);
   }
 
   /**
@@ -202,30 +188,54 @@ class Browser {
         });
       },
       appium: async () => {
-        await openUrlInBrowserView();
+        await this.focusUrlBarAppium();
       },
     });
   }
 
   /**
-   * `dapp://` deeplinks are upgraded to HTTPS in `handleDappUrl` — local test
-   * dapps are HTTP-only (`http://localhost:8085`), so they must use the URL bar.
+   * Prefer the URL bar when the scheme must be preserved or ENS resolution is
+   * required.
    */
-  private requiresHttpUrlBarNavigation(url: string): boolean {
-    return /^http:\/\//i.test(url);
+  private requiresUrlBarNavigation(url: string): boolean {
+    return /^http:\/\//i.test(url) || !/^https?:\/\//i.test(url);
   }
 
   /**
-   * Navigate via the browser URL bar (preserves `http://` scheme).
+   * Focus the URL editor so `browser-modal-url-input` becomes visible.
+   * Taps the display Text (`browser-url-display-text`).
+   */
+  private async focusUrlBarAppium(): Promise<void> {
+    const input = await asPlaywrightElement(this.urlBarTextInput);
+    const alreadyFocused = await input.isVisible().catch(() => false);
+    if (alreadyFocused) {
+      return;
+    }
+
+    await Gestures.waitAndTap(this.urlBarDisplayText, {
+      elemDescription: 'URL bar display text (focus URL editor)',
+    });
+    await input.waitForDisplayed({ timeout: 10_000 });
+  }
+
+  /**
+   * Navigate via the browser URL bar (preserves `http://` scheme / ENS names).
    */
   private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
-    await this.tapUrlInputBox();
+    await this.focusUrlBarAppium();
 
     const input = await asPlaywrightElement(this.urlBarTextInput);
-    await input.waitForDisplayed({ timeout: 10_000 });
     await input.clear();
-    // Trailing `\n` triggers React Native `onSubmitEditing` (returnKeyType="go").
-    await PlaywrightGestures.typeText(input, `${url}\n`);
+    await PlaywrightGestures.typeText(input, url);
+
+    if (PlatformDetector.isAndroid()) {
+      await PlaywrightGestures.submitAndroidUrlBar();
+    } else {
+      await PlaywrightGestures.typeText(input, '\n');
+    }
+
+    // Dismiss the editor so subsequent reads/taps see the page.
+    await this.dismissUrlEditorIfOpen();
 
     const settleMs = process.env.CI === 'true' ? 8_000 : 3_000;
     await sleep(settleMs);
@@ -249,7 +259,7 @@ class Browser {
   }
 
   private async typeUrlAppium(url: string): Promise<void> {
-    if (this.requiresHttpUrlBarNavigation(url)) {
+    if (this.requiresUrlBarNavigation(url)) {
       await this.navigateToUrlViaUrlBarAppium(url);
       return;
     }
@@ -435,7 +445,13 @@ class Browser {
   }
 
   async expectUrlNotEqualTo(text: string, description?: string): Promise<void> {
-    await Assertions.expectElementToNotHaveText(this.urlInputBoxID, text, {
+    // Unfocused URL bar hides TextInput (`browser-modal-url-input`); Appium must
+    // read the visible wrapper (`url-input`) that shows the current URL text.
+    const urlElement = FrameworkDetector.isAppium()
+      ? PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT)
+      : this.urlInputBoxID;
+
+    await Assertions.expectElementToNotHaveText(urlElement, text, {
       description: description ?? `URL input box text is not "${text}"`,
     });
   }
