@@ -296,10 +296,8 @@ describe('SRPErrorScreen', () => {
         jest.advanceTimersByTime(2000);
       });
 
-      await waitFor(() => {
-        expect(queryByText('Copied')).toBeNull();
-        expect(getByText('Copy')).toBeTruthy();
-      });
+      expect(queryByText('Copied')).not.toBeOnTheScreen();
+      expect(getByText('Copy')).toBeOnTheScreen();
     });
   });
 

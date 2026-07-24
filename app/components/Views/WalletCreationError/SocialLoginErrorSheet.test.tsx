@@ -1,6 +1,6 @@
 import React, { ComponentType } from 'react';
 import { Image, Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -138,7 +138,7 @@ describe('SocialLoginErrorSheet', () => {
     });
 
     it('tracks retry clicked event when Try again is pressed', async () => {
-      (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
+      jest.mocked(Authentication.deleteWallet).mockResolvedValue(undefined);
 
       const { getByText } = renderSheet();
 
@@ -199,11 +199,13 @@ describe('SocialLoginErrorSheet', () => {
   });
 
   it('deletes wallet and resets navigation when try again is pressed', async () => {
-    (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
+    jest.mocked(Authentication.deleteWallet).mockResolvedValue(undefined);
     const { getByText } = renderSheet({}, initialState);
     const tryAgainButton = getByText('Try again');
 
-    fireEvent.press(tryAgainButton);
+    await act(async () => {
+      fireEvent.press(tryAgainButton);
+    });
 
     await waitFor(() => {
       expect(Authentication.deleteWallet).toHaveBeenCalled();
