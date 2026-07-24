@@ -509,13 +509,6 @@ jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn(),
 }));
 
-// Mock authentication error utility
-const mockIsAuthenticationError = jest.fn();
-jest.mock('../../util/isAuthenticationError', () => ({
-  isAuthenticationError: (...args: unknown[]) =>
-    mockIsAuthenticationError(...args),
-}));
-
 // Mock card token vault
 const mockRemoveCardBaanxToken = jest.fn();
 jest.mock('../../util/cardTokenVault', () => ({
@@ -1168,8 +1161,6 @@ describe('CardHome Component', () => {
     mockSetIsAuthenticated.mockClear();
 
     // Clear authentication error handling mocks
-    mockIsAuthenticationError.mockClear();
-    mockIsAuthenticationError.mockReturnValue(false); // Default to no auth error
     mockRemoveCardBaanxToken.mockClear();
     mockRemoveCardBaanxToken.mockResolvedValue(undefined);
     mockClearAllCache.mockClear();
