@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 interface Props {
   allowCustomSlippage?: boolean;
   slippageOptions: readonly string[];
-  slippage: string;
+  slippage?: string;
   onDefaultOptionPress: (value: SlippageType) => () => void;
   onCustomOptionPress?: () => void;
 }
@@ -31,9 +31,9 @@ export const useGetSlippageOptions = ({
         id: 'custom-slippage',
         label: strings('bridge.custom'),
         onPress: onCustomOptionPress,
-        selected: !slippageOptions.some(
-          (value) => String(value) === String(slippage),
-        ),
+        selected:
+          slippage !== undefined &&
+          !slippageOptions.some((value) => String(value) === String(slippage)),
       });
     }
 

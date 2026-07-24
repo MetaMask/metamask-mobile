@@ -35,10 +35,15 @@ export const DefaultSlippageModalContent = ({
   onOpenCustomSlippage,
 }: DefaultSlippageModalContentProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [selectedSlippage, setSelectedSlippage] = useState<SlippageType>(
-    initialSlippage ?? AUTO_SLIPPAGE_VALUE,
-  );
   const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
+  const [selectedSlippage, setSelectedSlippage] = useState<
+    SlippageType | undefined
+  >(
+    initialSlippage ??
+      (slippageConfig.default_slippage_options.includes(AUTO_SLIPPAGE_VALUE)
+        ? AUTO_SLIPPAGE_VALUE
+        : undefined),
+  );
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

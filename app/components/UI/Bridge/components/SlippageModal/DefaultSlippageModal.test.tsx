@@ -141,6 +141,22 @@ describe('DefaultSlippageModal', () => {
       );
     });
 
+    it('keeps slippage undefined for EVM options without auto', () => {
+      mockSelector.mockReturnValue(undefined);
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        default_slippage_options: ['0.5', '2', '3'],
+      });
+
+      render(<DefaultSlippageModal />);
+
+      expect(mockUseGetSlippageOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          slippage: undefined,
+        }),
+      );
+    });
+
     it('uses redux slippage value when defined', () => {
       mockSelector.mockReturnValue('2');
 
