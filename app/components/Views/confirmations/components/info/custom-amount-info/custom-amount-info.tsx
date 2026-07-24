@@ -178,7 +178,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { trackAmountCommitted, trackContinue } =
       useFiatFunnelMetricsAdapter();
 
-    const { isNative: isNativePayToken } = useTransactionPayToken();
+    const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
 
@@ -198,8 +198,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
+    const { hasTokens: hasAvailableTokens } =
+      useTransactionPayAvailableTokens();
+    const fiatPayment = useTransactionPayFiatPayment();
+    const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+
+    // Fiat was selected (explicitly or because no crypto tokens are available)
+    // with no crypto pay token — deposit prefill has nothing to prefill from.
+    const skipDepositPrefill =
+      Boolean(autoSelectFiatPayment) ||
+      (Boolean(selectedFiatPaymentMethodId) && !payToken) ||
+      (!hasAvailableTokens && !payToken);
+
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(
-      !isAddMusdIntent && !isDepositPrefillEnabled,
+      !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill),
     );
     const isKeyboardVisibleRef = useRef(isKeyboardVisible);
     isKeyboardVisibleRef.current = isKeyboardVisible;
@@ -218,10 +230,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible,
       wasKeyboardEverVisible,
     );
-    const { hasTokens: hasAvailableTokens } =
-      useTransactionPayAvailableTokens();
-    const fiatPayment = useTransactionPayFiatPayment();
-    const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -230,6 +238,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
     }
+
+    useEffect(() => {
+      if (isDepositPrefillEnabled && skipDepositPrefill && !isKeyboardVisible) {
+        setIsKeyboardVisible(true);
+      }
+    }, [isDepositPrefillEnabled, skipDepositPrefill, isKeyboardVisible]);
+
     const shouldHideAccountSelector =
       hideAccountSelector && !fiatEverSelectedRef.current;
     const transactionId = transactionMeta?.id;
@@ -262,6 +277,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const isAwaitingPrefillResult =
       !hasAccountNoFunds &&
+      !skipDepositPrefill &&
       (isDepositPrefillLoading ||
         (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
 
@@ -463,6 +479,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={Boolean(alertMessage)}
             isLoading={
               !hasAccountNoFunds &&
+              !skipDepositPrefill &&
               (isPrefillPending || isDepositPrefillLoading)
             }
             onPress={showLoadingReview ? undefined : handleAmountPress}
