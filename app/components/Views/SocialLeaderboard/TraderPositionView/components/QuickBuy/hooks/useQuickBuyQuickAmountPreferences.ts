@@ -9,6 +9,10 @@ import {
 
 export const QUICK_BUY_QUICK_AMOUNT_PREFS_KEY = 'quick_buy_quick_amount_prefs';
 
+/** Placeholder tuples exposed only while storage is loading — never rendered. */
+const LOADING_BUY_AMOUNTS: QuickBuyAmountTuple = [0, 0, 0, 0];
+const LOADING_SELL_PERCENTAGES: QuickBuySellPercentTuple = [0, 0, 0, 0];
+
 export interface QuickBuyQuickAmountPreferences {
   currency: string;
   buyAmounts: QuickBuyAmountTuple;
@@ -156,11 +160,14 @@ export function useQuickBuyQuickAmountPreferences({
     [normalizedCurrency],
   );
 
-  const resolvedPreferences = preferences ?? defaultPreferences;
+  const resolvedPreferences = isLoaded
+    ? (preferences ?? defaultPreferences)
+    : null;
 
   return {
-    buyAmounts: resolvedPreferences.buyAmounts,
-    sellPercentages: resolvedPreferences.sellPercentages,
+    buyAmounts: resolvedPreferences?.buyAmounts ?? LOADING_BUY_AMOUNTS,
+    sellPercentages:
+      resolvedPreferences?.sellPercentages ?? LOADING_SELL_PERCENTAGES,
     savePreferences,
     isLoaded,
   };

@@ -21,6 +21,36 @@ describe('useQuickBuyQuickAmountPreferences', () => {
     (StorageWrapper.setItem as jest.Mock).mockResolvedValue(undefined);
   });
 
+  it('does not expose defaults before preferences finish loading', async () => {
+    let resolveStorage: (value: string | null) => void = () => undefined;
+    (StorageWrapper.getItem as jest.Mock).mockReturnValue(
+      new Promise<string | null>((resolve) => {
+        resolveStorage = resolve;
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useQuickBuyQuickAmountPreferences({
+        currentCurrency: 'USD',
+        usdToCurrentCurrencyRate: 1,
+      }),
+    );
+
+    expect(result.current.isLoaded).toBe(false);
+    expect(result.current.buyAmounts).toEqual([0, 0, 0, 0]);
+    expect(result.current.sellPercentages).toEqual([0, 0, 0, 0]);
+
+    await act(async () => {
+      resolveStorage(null);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
+    expect(result.current.buyAmounts).toEqual([10, 50, 100, 250]);
+  });
+
   it('loads defaults when no preferences are stored', async () => {
     const { result } = renderHook(() =>
       useQuickBuyQuickAmountPreferences({

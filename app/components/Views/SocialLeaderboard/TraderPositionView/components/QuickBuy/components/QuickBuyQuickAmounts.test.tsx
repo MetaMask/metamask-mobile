@@ -41,6 +41,7 @@ const baseContext = {
   currentCurrency: 'USD',
   buyQuickAmounts: [10, 50, 100, 250] as [number, number, number, number],
   sellQuickPercentages: [25, 50, 75, 100] as [number, number, number, number],
+  isQuickAmountPreferencesLoaded: true,
   hasSourcePrice: true,
   isSliderDisabled: false,
   handleQuickAmountPress: jest.fn(),
@@ -55,6 +56,21 @@ describe('QuickBuyQuickAmounts', () => {
       playImpact: mockPlayImpact,
     });
     (useQuickBuyContext as jest.Mock).mockReturnValue(baseContext);
+  });
+
+  it('renders skeleton pills while quick amount preferences are loading', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      isQuickAmountPreferencesLoaded: false,
+    });
+
+    renderWithProvider(<QuickBuyQuickAmounts />);
+
+    expect(
+      screen.getAllByTestId('quick-buy-quick-amount-pill-skeleton'),
+    ).toHaveLength(4);
+    expect(screen.getByTestId('quick-buy-buy-pill-loading-0')).toBeDisabled();
+    expect(screen.queryByTestId('quick-buy-buy-pill-10')).not.toBeOnTheScreen();
   });
 
   it('renders buy pills and commits the tapped fiat amount', async () => {
