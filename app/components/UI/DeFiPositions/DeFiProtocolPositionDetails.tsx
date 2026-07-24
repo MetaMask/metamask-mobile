@@ -1,5 +1,8 @@
 import React, { useCallback } from 'react';
-import { GroupedDeFiPositions } from '@metamask/assets-controllers';
+import type {
+  DeFiProtocolPositionGroup,
+  GroupedDeFiPositions,
+} from '@metamask/assets-controllers';
 import { ImageSourcePropType, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +25,7 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
+import DeFiProtocolPositionGroupsV2 from './DeFiProtocolPositionGroupsV2';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
@@ -29,7 +33,8 @@ export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
 
 interface DeFiProtocolPositionDetailsParams {
-  protocolAggregate: GroupedDeFiPositions['protocols'][number];
+  protocolAggregate?: GroupedDeFiPositions['protocols'][number];
+  protocolPositionGroup?: DeFiProtocolPositionGroup;
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
@@ -37,13 +42,24 @@ const DeFiProtocolPositionDetails: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
   const navigation = useNavigation<AppStackNavigationProp>();
 
-  const { protocolAggregate, networkIconAvatar } =
+  const { protocolAggregate, protocolPositionGroup, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsParams>();
   const privacyMode = useSelector(selectPrivacyMode);
 
   const handleBack = useCallback(() => {
     navigation.pop();
   }, [navigation]);
+
+  const isV2 = Boolean(protocolPositionGroup);
+  const title = isV2
+    ? protocolPositionGroup?.protocolId
+    : protocolAggregate?.protocolDetails.name;
+  const marketValue = isV2
+    ? protocolPositionGroup?.marketValue
+    : protocolAggregate?.aggregatedMarketValue;
+  const iconUrl = isV2
+    ? protocolPositionGroup?.protocolIconUrl
+    : protocolAggregate?.protocolDetails.iconUrl;
 
   return (
     <SafeAreaView
@@ -60,9 +76,7 @@ const DeFiProtocolPositionDetails: React.FC = () => {
       <View style={styles.protocolPositionDetailsContent}>
         <View style={styles.detailsWrapper}>
           <View>
-            <Text variant={TextVariant.DisplayMD}>
-              {protocolAggregate.protocolDetails.name}
-            </Text>
+            <Text variant={TextVariant.DisplayMD}>{title}</Text>
             <SensitiveText
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}
@@ -70,31 +84,37 @@ const DeFiProtocolPositionDetails: React.FC = () => {
               length={SensitiveTextLength.Medium}
               testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
             >
-              {formatWithThreshold(
-                protocolAggregate.aggregatedMarketValue,
-                0.01,
-                I18n.locale,
-                { style: 'currency', currency: 'USD' },
-              )}
+              {formatWithThreshold(marketValue ?? 0, 0.01, I18n.locale, {
+                style: 'currency',
+                currency: 'USD',
+              })}
             </SensitiveText>
           </View>
 
           <View>
             <DeFiAvatarWithBadge
               networkIconAvatar={networkIconAvatar}
-              avatarName={protocolAggregate.protocolDetails.name}
-              avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
+              avatarName={title ?? ''}
+              avatarIconUrl={iconUrl ?? ''}
             />
           </View>
         </View>
         <View style={styles.separatorWrapper}>
           <Summary.Separator />
         </View>
-        <DeFiProtocolPositionGroups
-          protocolAggregate={protocolAggregate}
-          networkIconAvatar={networkIconAvatar}
-          privacyMode={privacyMode}
-        />
+        {isV2 && protocolPositionGroup ? (
+          <DeFiProtocolPositionGroupsV2
+            protocolPositionGroup={protocolPositionGroup}
+            networkIconAvatar={networkIconAvatar}
+            privacyMode={privacyMode}
+          />
+        ) : protocolAggregate ? (
+          <DeFiProtocolPositionGroups
+            protocolAggregate={protocolAggregate}
+            networkIconAvatar={networkIconAvatar}
+            privacyMode={privacyMode}
+          />
+        ) : null}
       </View>
     </SafeAreaView>
   );

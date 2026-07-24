@@ -92,7 +92,7 @@ describe('Feature Flag Registry', () => {
 
     it('includes known flags with correct values', () => {
       const defaults = getProductionRemoteFlagDefaults();
-      expect(defaults.assetsDefiPositionsEnabled).toBe(true);
+      expect(defaults.assetsEnableNotificationsByDefault).toBe(true);
       expect(defaults.bitcoinTestnetsEnabled).toBe(false);
     });
 

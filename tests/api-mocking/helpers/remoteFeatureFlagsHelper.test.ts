@@ -45,20 +45,23 @@ describe('Remote Feature Flags Helper', () => {
     it('overrides simple boolean flags', () => {
       const result = createRemoteFeatureFlagsMock({
         rewards: true,
-        assetsDefiPositionsEnabled: true,
+        assetsEnableNotificationsByDefault: true,
       });
 
-      // Find the rewards and assetsDefiPositionsEnabled objects
+      // Find the rewards and assetsEnableNotificationsByDefault objects
       const response = result.response as Record<string, unknown>[];
       const rewardsObj = response.find(
         (obj: Record<string, unknown>) => 'rewards' in obj,
       );
-      const defiObj = response.find(
-        (obj: Record<string, unknown>) => 'assetsDefiPositionsEnabled' in obj,
+      const notificationsObj = response.find(
+        (obj: Record<string, unknown>) =>
+          'assetsEnableNotificationsByDefault' in obj,
       );
 
       expect(rewardsObj).toEqual({ rewards: true });
-      expect(defiObj).toEqual({ assetsDefiPositionsEnabled: true });
+      expect(notificationsObj).toEqual({
+        assetsEnableNotificationsByDefault: true,
+      });
     });
 
     it('deep merges nested objects preserving existing properties', () => {

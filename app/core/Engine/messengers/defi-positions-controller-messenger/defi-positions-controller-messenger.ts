@@ -4,7 +4,6 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 
@@ -47,7 +46,7 @@ export function getDeFiPositionsControllerInitMessenger(
 ) {
   const messenger = new Messenger<
     'DeFiPositionsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction | AnalyticsControllerActions,
+    AnalyticsControllerActions,
     never,
     RootMessenger
   >({
@@ -55,10 +54,7 @@ export function getDeFiPositionsControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [
-      'RemoteFeatureFlagController:getState',
-      'AnalyticsController:trackEvent',
-    ],
+    actions: ['AnalyticsController:trackEvent'],
     messenger,
   });
   return messenger;

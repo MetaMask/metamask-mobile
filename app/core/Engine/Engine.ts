@@ -124,6 +124,7 @@ import { bridgeStatusControllerInit } from './controllers/bridge-status-controll
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
+import { defiPositionsControllerV2Init } from './controllers/defi-positions-controller-v2/defi-positions-controller-v2-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
@@ -343,6 +344,7 @@ export class Engine {
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
+        DeFiPositionsControllerV2: defiPositionsControllerV2Init,
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
@@ -643,6 +645,8 @@ export class Engine {
         messengerClientsByName.MoneyAccountApiDataService,
       GeolocationController: geolocationController,
       DeFiPositionsController: messengerClientsByName.DeFiPositionsController,
+      DeFiPositionsControllerV2:
+        messengerClientsByName.DeFiPositionsControllerV2,
       SeedlessOnboardingController: seedlessOnboardingController,
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
@@ -1473,6 +1477,7 @@ export default {
       ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
+      DeFiPositionsControllerV2,
       DelegationController,
       EarnController,
       GasFeeController,
@@ -1547,6 +1552,7 @@ export default {
       ConnectivityController: ConnectivityController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,
+      DeFiPositionsControllerV2: DeFiPositionsControllerV2.state,
       DelegationController: DelegationController.state,
       EarnController: EarnController.state,
       GasFeeController: GasFeeController.state,

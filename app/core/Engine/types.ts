@@ -42,6 +42,10 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+  DeFiPositionsControllerV2,
+  DeFiPositionsControllerV2State,
+  DeFiPositionsControllerV2Events,
+  DeFiPositionsControllerV2Actions,
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
@@ -632,6 +636,7 @@ export type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRoutingServiceActions
   | DeFiPositionsControllerActions
+  | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
@@ -729,6 +734,7 @@ export type GlobalEvents =
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
+  | DeFiPositionsControllerV2Events
   | AccountTreeControllerEvents
   | DelegationControllerEvents
   | NftDetectionControllerEvents
@@ -824,6 +830,7 @@ export type MessengerClients = {
   TokenRatesController: TokenRatesController;
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
+  DeFiPositionsControllerV2: DeFiPositionsControllerV2;
   TransactionController: TransactionController;
   TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
@@ -925,6 +932,7 @@ export type EngineState = {
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
+  DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: PersistedSnapControllerState;
   SnapRegistryController: SnapRegistryControllerState;
@@ -1045,6 +1053,7 @@ export type MessengerClientsToInitialize =
   | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
+  | 'DeFiPositionsControllerV2'
   | 'GasFeeController'
   | 'GeolocationController'
   | 'GeolocationApiService'

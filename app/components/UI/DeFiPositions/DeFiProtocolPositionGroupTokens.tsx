@@ -17,6 +17,8 @@ import { getTokenAvatarUrl } from './get-token-avatar-url';
 
 interface DeFiProtocolPositionGroupTokensProps {
   positionType: PositionType;
+  /** When true, omit the position-type label (e.g. V2 sections supply their own header). */
+  hidePositionTypeLabel?: boolean;
   tokens: {
     key: string;
     address: string;
@@ -34,6 +36,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
   DeFiProtocolPositionGroupTokensProps
 > = ({
   positionType,
+  hidePositionTypeLabel = false,
   tokens,
   networkIconAvatar,
   privacyMode,
@@ -46,9 +49,11 @@ const DeFiProtocolPositionGroupTokens: React.FC<
 
   return (
     <View>
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
-        {strings(`defi_positions.${positionType}`)}
-      </Text>
+      {!hidePositionTypeLabel && (
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+          {strings(`defi_positions.${positionType}`)}
+        </Text>
+      )}
       {tokens.map((token) => (
         <View key={token.key} style={styles.underlyingBalancesWrapper}>
           <View>

@@ -299,6 +299,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.BridgeStatusController',
     'engine.backgroundState.ConnectivityController',
     'engine.backgroundState.DeFiPositionsController',
+    'engine.backgroundState.DeFiPositionsControllerV2',
     'engine.backgroundState.DelegationController',
     'engine.backgroundState.EarnController',
     'engine.backgroundState.GatorPermissionsController',

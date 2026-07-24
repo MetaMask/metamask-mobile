@@ -22,6 +22,7 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
+import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
@@ -59,7 +60,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
+    const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
+    const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
+    const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
