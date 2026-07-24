@@ -1,12 +1,13 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SECURITY_SETTINGS_DELETE_WALLET_BUTTON } from '../SecuritySettings.constants';
 
 const DeleteWalletData = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const showDeleteWalletModal = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

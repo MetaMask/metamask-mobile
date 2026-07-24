@@ -17,6 +17,7 @@ import {
 import AppConstants from '../../../../../core/AppConstants';
 import createStyles from './FiatOnTestnetsFriction.styles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Text from '../../../../Base/Text';
 import { useDispatch } from 'react-redux';
 import { setShowFiatOnTestnets } from '../../../../../../app/actions/settings';
@@ -25,7 +26,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const FiatOnTestnetsFriction = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);

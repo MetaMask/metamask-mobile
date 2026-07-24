@@ -14,6 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -69,7 +70,7 @@ import Routes from '../../../constants/navigation/Routes';
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { y: frameY } = useSafeAreaFrame();
   const { trackEvent, createEventBuilder } = useAnalytics();

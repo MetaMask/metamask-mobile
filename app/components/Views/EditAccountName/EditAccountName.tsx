@@ -6,6 +6,7 @@ import {
   RouteProp,
   ParamListBase,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { InteractionManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -59,7 +60,7 @@ const EditAccountName = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
-  const { setOptions, goBack, navigate } = useNavigation();
+  const { setOptions, goBack, navigate } = useNavigation<AppNavigationProp>();
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
 
