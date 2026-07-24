@@ -44,7 +44,7 @@ jest.mock('../../../analytics', () => {
 });
 
 // Keyboard A/B test — default to treatment so the amount screen stays dynamic.
-let mockUseKeyboard = true;
+const mockUseKeyboard = true;
 jest.mock('../../../../../../hooks/useABTest', () => ({
   useABTest: () => ({
     variant: { useKeyboard: mockUseKeyboard },
