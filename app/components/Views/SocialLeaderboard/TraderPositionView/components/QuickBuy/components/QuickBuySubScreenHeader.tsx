@@ -6,8 +6,10 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
   IconName as DsIconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -28,11 +30,13 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="h-14 px-2"
+    twClassName="h-12 px-4 pt-0 mb-3"
   >
     <ButtonIcon
       iconName={DsIconName.ArrowLeft}
-      size={ButtonIconSize.Md}
+      size={ButtonIconSize.Lg}
+      variant={ButtonIconVariant.Filled}
+      iconProps={{ size: IconSize.Md }}
       onPress={onBack}
       testID="quick-buy-sub-screen-back-button"
     />
@@ -45,7 +49,9 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
     </Text>
     <ButtonIcon
       iconName={DsIconName.Close}
-      size={ButtonIconSize.Md}
+      size={ButtonIconSize.Lg}
+      variant={ButtonIconVariant.Filled}
+      iconProps={{ size: IconSize.Md }}
       onPress={onClose}
       testID="quick-buy-sub-screen-close-button"
     />
