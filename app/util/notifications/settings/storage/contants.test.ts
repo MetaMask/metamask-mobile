@@ -15,7 +15,8 @@ describe('constants', () => {
       DEFAULT_PUSH_NOTIFICATION_CHANNEL_PRIORITY: 'high',
       REQUEST_PERMISSION_ASKED: 'REQUEST_PERMISSION_ASKED',
       REQUEST_PERMISSION_GRANTED: 'REQUEST_PERMISSION_GRANTED',
-      PUSH_OS_PERMISSION_GRANTED_LAST_RESULT: 'pushOsPermissionGrantedLastResult',
+      PUSH_OS_PERMISSION_GRANTED_LAST_RESULT:
+        'pushOsPermissionGrantedLastResult',
       NOTIFICATION_DATE_FORMAT: 'DD/MM/YYYY HH:mm:ss',
       NOTIFICATIONS_SETTINGS: 'notifications-settings',
       PN_USER_STORAGE: 'pnUserStorage',
