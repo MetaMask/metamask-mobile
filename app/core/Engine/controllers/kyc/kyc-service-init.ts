@@ -21,7 +21,7 @@ export const kycServiceInit: MessengerClientInitFunction<
     fetch,
     env: isProduction() ? 'production' : 'development',
     messenger: controllerMessenger,
-    baseUrl: 'http://192.168.1.188:3000',
+    baseUrl: 'http://192.168.1.156:3000',
   });
 
   return { controller };

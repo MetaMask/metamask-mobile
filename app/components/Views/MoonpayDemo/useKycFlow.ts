@@ -13,7 +13,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { KycDisclaimer } from '@metamask/kyc-controller';
+import type { KycDisclaimer, KycProduct } from '@metamask/kyc-controller';
 import Engine from '../../../core/Engine';
 import {
   selectKycPhase,
@@ -52,27 +52,28 @@ export interface DebugEvent {
   data: unknown;
 }
 
-export interface AddressSubmission {
-  country?: string; // ISO 3166-1 alpha-3
-}
-
-export interface IdentitySubmission {
-  residentialAddress?: AddressSubmission;
-}
-
 export interface KycRequiredResult {
   kycRequired: boolean;
   lastCheckedAt: string | null;
 }
 
-export type DemoProfile = 'US' | 'FR';
+/** ISO 3166-1 alpha-3 country codes offered as demo overrides. */
+export type DemoCountry = 'USA' | 'FRA';
 
-export const DEMO_PROFILES: Record<DemoProfile, IdentitySubmission> = {
-  US: { residentialAddress: { country: 'USA' } },
-  FR: { residentialAddress: { country: 'FRA' } },
-};
+export const DEMO_COUNTRIES: { code: DemoCountry; label: string }[] = [
+  { code: 'USA', label: '\u{1F1FA}\u{1F1F8}  United States (USA)' },
+  { code: 'FRA', label: '\u{1F1EB}\u{1F1F7}  France (FRA)' },
+];
 
 const DEMO_EMAIL = 'jiexi.luan@consensys.net';
+
+/**
+ * The product this demo runs the KYC flow for. Scoping the flow to a product
+ * lets the controller automatically run the KYC-required check once
+ * authentication completes and chain into SumSub document verification when
+ * KYC is required — no manual "Check KYC status" / "Launch SumSub" steps.
+ */
+const KYC_PRODUCT: KycProduct = 'ramps';
 
 // The raw message shape emitted by the WebView transport (`useMoonpayFrame`).
 interface FrameBridgeMessage {
@@ -96,9 +97,6 @@ const useKycFlow = () => {
 
   // ---- View-only state ----
   const [email, setEmail] = useState(DEMO_EMAIL);
-  const [submission, setSubmission] = useState<IdentitySubmission>(
-    DEMO_PROFILES.US,
-  );
   const [showCheckFrame, setShowCheckFrame] = useState(false);
   // Transport-level frame errors that can't be routed through the controller.
   const [frameError, setFrameError] = useState<string | null>(null);
@@ -130,9 +128,14 @@ const useKycFlow = () => {
     // Only kick off a fresh flow; don't clobber one already in progress
     // (e.g. when navigating back into the screen mid-flow).
     if (Engine.context.KycController.state.phase === 'idle') {
-      Engine.context.KycController.initialize().catch(() => {
-        // Errors are surfaced via controller state (disclaimersError/error).
-      });
+      // Scope the flow to a product so the controller automatically runs the
+      // KYC-required check after authentication and launches SumSub when
+      // required.
+      Engine.context.KycController.initialize({ product: KYC_PRODUCT }).catch(
+        () => {
+          // Errors are surfaced via controller state (disclaimersError/error).
+        },
+      );
     }
 
     // Reset the flow when the screen unmounts so that leaving and re-entering
@@ -141,6 +144,11 @@ const useKycFlow = () => {
     // intentionally preserved here; clearing it is exposed as an explicit
     // action (`clearSavedTerms`) so it can be triggered on demand from the UI.
     return () => {
+      // Allow a genuine remount (including React Strict Mode's
+      // mount → unmount → remount cycle) to re-run initialization; otherwise
+      // the second mount would bail out early while the cleanup below has
+      // already reset the controller, leaving the flow stuck.
+      didInit.current = false;
       Engine.context.KycController.reset();
     };
   }, []);
@@ -190,41 +198,31 @@ const useKycFlow = () => {
   // ---- Actions ----
   const acceptTermsAndCreateSession = useCallback(async () => {
     setFrameError(null);
-    await Engine.context.KycController.acceptTermsAndStartSession({ email });
+    // Scope the session to a product so the controller automatically runs the
+    // KYC-required check and launches SumSub once authentication completes.
+    await Engine.context.KycController.acceptTermsAndStartSession({
+      email,
+      product: KYC_PRODUCT,
+    });
   }, [email]);
-
-  const runKycCheck = useCallback(async () => {
-    const country = submission.residentialAddress?.country;
-    if (!country) {
-      pushDebug(
-        'KYC check skipped',
-        'residentialAddress.country missing',
-        'error',
-      );
-      return;
-    }
-    const required = await Engine.context.KycController.checkKycRequired({
-      product: 'ramps',
-      country,
-    });
-    pushDebug(
-      `kyc-required (${country})`,
-      { kycRequired: required },
-      'success',
-    );
-  }, [submission, pushDebug]);
-
-  const launchSumSub = useCallback(() => {
-    pushDebug('Launching SumSub', null, 'info');
-    Engine.context.KycController.startSumSub().catch(() => {
-      // Failures are captured in `sumsub.result`/`sumsub.status`.
-    });
-  }, [pushDebug]);
 
   const clearSavedTerms = useCallback(() => {
     Engine.context.KycController.clearSavedTerms();
     pushDebug('Cleared saved terms', null, 'info');
   }, [pushDebug]);
+
+  // Override the resolved geolocation country. `loadDisclaimers` updates
+  // `geoCountry` (and refetches that country's disclaimers), so the automatic
+  // post-authentication KYC-required check picks up the override.
+  const setCountryOverride = useCallback(
+    (country: string) => {
+      pushDebug('Country override', { country }, 'info');
+      Engine.context.KycController.loadDisclaimers({ country }).catch(() => {
+        // Errors are surfaced via controller state (disclaimersError).
+      });
+    },
+    [pushDebug],
+  );
 
   const handleFrameMessage = useCallback(async (msg: FrameBridgeMessage) => {
     const { reply } = await Engine.context.KycController.handleFrameMessage({
@@ -266,8 +264,6 @@ const useKycFlow = () => {
     // view-only state
     email,
     setEmail,
-    submission,
-    setSubmission,
     debugEvents,
     clearDebug,
     showCheckFrame,
@@ -277,8 +273,7 @@ const useKycFlow = () => {
     authFrameUrl,
     // actions
     acceptTermsAndCreateSession,
-    runKycCheck,
-    launchSumSub,
+    setCountryOverride,
     clearSavedTerms,
     handleFrameMessage,
     handleCheckFrameError,

@@ -30,8 +30,11 @@ export const reactNativeSumSubLauncher: KycSumSubLauncher = {
   }: KycSumSubLaunchParams): Promise<Record<string, unknown>> {
     // Lazily load the native SDK so that merely wiring the controller into the
     // Engine never loads the native module (which is absent in Jest and Expo Go).
-    const SNSMobileSDK = (await import('@sumsub/react-native-mobilesdk-module'))
-      .default;
+    // The SumSub package is a CommonJS module that assigns its API directly to
+    // `module.exports` (no `default` export), so depending on interop the API
+    // may live on the namespace itself or under `.default`.
+    const SumSubModule = await import('@sumsub/react-native-mobilesdk-module');
+    const SNSMobileSDK = SumSubModule.default ?? SumSubModule;
     const sdk = SNSMobileSDK.init(applicantAccessToken, () =>
       onTokenExpiration(),
     )

@@ -9,12 +9,9 @@
  * session — POST /platform/v1/sessions via the local UKYC service
  * check — mount the Check frame (invisible) to detect a returning auth
  * auth — mount the Auth frame (visible) for email OTP when needed
- * form — confirm/edit the customer profile to submit
- * submit — POST /identities, then PATCH country, then PATCH rest
- * verify — POST /verifications
- * challenge — render the Challenge frame for liveness / doc capture
- * poll — GET /identities/{id} until terminal
- * done — show approved / rejected / blocked / manualReview
+ * form — authenticated; product-scoped KYC-required check runs automatically
+ * submit — submitting the KYC-required check
+ * done — show whether KYC is required; SumSub launches automatically if so
  *
  * State machine logic lives in `./useMoonpayIdentityFlow`. The HTTP layer
  * is in `./api`, crypto in `./crypto`, and the WebView bridge in
@@ -50,12 +47,10 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import MoonpayFrame from './MoonpayFrame';
 import useMoonpayReset from './useMoonpayReset';
 import {
-  DEMO_PROFILES,
-  type DemoProfile,
+  DEMO_COUNTRIES,
   type Phase,
   type DebugEvent,
   type DebugSeverity,
-  type IdentitySubmission,
   type KycRequiredResult,
   type KycFlow,
 } from './useKycFlow';
@@ -207,6 +202,8 @@ const TermsPanel: React.FC<{
   disclaimers: KycDisclaimer[];
   disclaimersError: string | null;
   disclaimersLoaded: boolean;
+  geoCountry: string | null;
+  onCountryChange: (country: string) => void;
   colors: ThemeColors;
 }> = ({
   email,
@@ -215,9 +212,12 @@ const TermsPanel: React.FC<{
   disclaimers,
   disclaimersError,
   disclaimersLoaded,
+  geoCountry,
+  onCountryChange,
   colors,
 }) => {
   const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
 
   return (
     <View style={styles.panel}>
@@ -286,6 +286,80 @@ const TermsPanel: React.FC<{
               {disclaimer.display_name}
             </Text>
           ))}
+      </View>
+
+      <View style={styles.profileSelector}>
+        <Text variant={TextVariant.BodySm}>
+          Country override (KYC-required check)
+        </Text>
+        <Pressable
+          onPress={() => setCountryDropdownOpen((v) => !v)}
+          style={[
+            styles.profileTrigger,
+            {
+              borderColor: colors.border.muted,
+              backgroundColor: colors.background.alternative,
+            },
+          ]}
+        >
+          <Text variant={TextVariant.BodySm}>
+            {DEMO_COUNTRIES.find((c) => c.code === geoCountry)?.label ??
+              geoCountry ??
+              'Resolving…'}
+          </Text>
+          <Text variant={TextVariant.BodySm}>
+            {countryDropdownOpen ? '\u25B2' : '\u25BC'}
+          </Text>
+        </Pressable>
+        {countryDropdownOpen && (
+          <View
+            style={[
+              styles.profileDropdown,
+              {
+                borderColor: colors.border.muted,
+                backgroundColor: colors.background.default,
+              },
+            ]}
+          >
+            {DEMO_COUNTRIES.map(({ code, label }) => {
+              const isSelected = code === geoCountry;
+              return (
+                <Pressable
+                  key={code}
+                  onPress={() => {
+                    onCountryChange(code);
+                    setCountryDropdownOpen(false);
+                  }}
+                  style={[
+                    styles.profileOption,
+                    isSelected && {
+                      backgroundColor: colors.primary.default + '18',
+                    },
+                  ]}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={
+                      isSelected
+                        ? TextColor.PrimaryDefault
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {label}
+                  </Text>
+                  {isSelected && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.PrimaryDefault}
+                    >
+                      {'\u2713'}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
       </View>
 
       <View style={styles.profileSelector}>
@@ -387,114 +461,6 @@ const TermsPanel: React.FC<{
   );
 };
 
-const PROFILE_LABELS: Record<DemoProfile, string> = {
-  US: '\u{1F1FA}\u{1F1F8}  United States (USA)',
-  FR: '\u{1F1EB}\u{1F1F7}  France (FRA)',
-};
-const PROFILE_KEYS: DemoProfile[] = ['US', 'FR'];
-
-const SubmissionReviewPanel: React.FC<{
-  submission: IdentitySubmission;
-  onChange: (s: IdentitySubmission) => void;
-  onSubmit: () => void;
-  colors: ThemeColors;
-}> = ({ submission, onChange, onSubmit, colors }) => {
-  const [selectedProfile, setSelectedProfile] = useState<DemoProfile>('US');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const applyProfile = (profile: DemoProfile) => {
-    setSelectedProfile(profile);
-    onChange(DEMO_PROFILES[profile]);
-    setDropdownOpen(false);
-  };
-
-  return (
-    <View style={styles.panel}>
-      <Text variant={TextVariant.HeadingSm}>Step 4 — Check KYC status</Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        Asks the local UKYC service whether KYC is required for the profile
-        below. Only `residentialAddress.country` is sent; the result is shown
-        next.
-      </Text>
-
-      <View style={styles.profileSelector}>
-        <Text variant={TextVariant.BodySm}>Country profile</Text>
-        <Pressable
-          onPress={() => setDropdownOpen((v) => !v)}
-          style={[
-            styles.profileTrigger,
-            {
-              borderColor: colors.border.muted,
-              backgroundColor: colors.background.alternative,
-            },
-          ]}
-        >
-          <Text variant={TextVariant.BodySm}>
-            {PROFILE_LABELS[selectedProfile]}
-          </Text>
-          <Text variant={TextVariant.BodySm}>
-            {dropdownOpen ? '\u25B2' : '\u25BC'}
-          </Text>
-        </Pressable>
-        {dropdownOpen && (
-          <View
-            style={[
-              styles.profileDropdown,
-              {
-                borderColor: colors.border.muted,
-                backgroundColor: colors.background.default,
-              },
-            ]}
-          >
-            {PROFILE_KEYS.map((key) => {
-              const isSelected = key === selectedProfile;
-              return (
-                <Pressable
-                  key={key}
-                  onPress={() => applyProfile(key)}
-                  style={[
-                    styles.profileOption,
-                    isSelected && {
-                      backgroundColor: colors.primary.default + '18',
-                    },
-                  ]}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={
-                      isSelected
-                        ? TextColor.PrimaryDefault
-                        : TextColor.TextDefault
-                    }
-                  >
-                    {PROFILE_LABELS[key]}
-                  </Text>
-                  {isSelected && (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.PrimaryDefault}
-                    >
-                      {'\u2713'}
-                    </Text>
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
-      </View>
-
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={onSubmit}
-      >
-        Check KYC status
-      </Button>
-    </View>
-  );
-};
-
 const LoadingPanel: React.FC<{ message: string }> = ({ message }) => (
   <View style={styles.panel}>
     <Text variant={TextVariant.BodyMd}>{message}</Text>
@@ -504,8 +470,7 @@ const LoadingPanel: React.FC<{ message: string }> = ({ message }) => (
 const DonePanel: React.FC<{
   result: KycRequiredResult;
   colors: ThemeColors;
-  onLaunchSumSub: () => void;
-}> = ({ result, colors, onLaunchSumSub }) => (
+}> = ({ result, colors }) => (
   <View
     style={[
       styles.panel,
@@ -517,7 +482,9 @@ const DonePanel: React.FC<{
       KYC required: {result.kycRequired ? 'Yes' : 'No'}
     </Text>
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-      Full response:
+      {result.kycRequired
+        ? 'SumSub document verification is launched automatically.'
+        : 'No document verification needed.'}
     </Text>
     <View
       style={[
@@ -532,13 +499,6 @@ const DonePanel: React.FC<{
         {JSON.stringify(result, null, 2)}
       </Text>
     </View>
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={onLaunchSumSub}
-    >
-      Launch SumSub verification
-    </Button>
   </View>
 );
 
@@ -683,8 +643,6 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ flow }) => {
     errorMessage,
     email,
     setEmail,
-    submission,
-    setSubmission,
     geoCountry,
     disclaimers,
     disclaimersError,
@@ -697,8 +655,7 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ flow }) => {
     checkFrameUrl,
     authFrameUrl,
     acceptTermsAndCreateSession,
-    runKycCheck,
-    launchSumSub,
+    setCountryOverride,
     clearSavedTerms,
     handleFrameMessage,
     handleCheckFrameError,
@@ -794,6 +751,8 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ flow }) => {
             disclaimers={disclaimers}
             disclaimersError={disclaimersError}
             disclaimersLoaded={disclaimersLoaded}
+            geoCountry={geoCountry}
+            onCountryChange={setCountryOverride}
             colors={colors}
           />
         )}
@@ -811,22 +770,13 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ flow }) => {
         )}
 
         {phase === 'form' && (
-          <SubmissionReviewPanel
-            submission={submission}
-            onChange={setSubmission}
-            onSubmit={runKycCheck}
-            colors={colors}
-          />
+          <LoadingPanel message="Authenticated — checking KYC status..." />
         )}
 
         {phase === 'submit' && <LoadingPanel message={statusMessage} />}
 
         {phase === 'done' && kycResult && (
-          <DonePanel
-            result={kycResult}
-            colors={colors}
-            onLaunchSumSub={launchSumSub}
-          />
+          <DonePanel result={kycResult} colors={colors} />
         )}
 
         {phase === 'error' && errorMessage && (
