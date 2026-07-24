@@ -5,11 +5,10 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for SheetActions component.
+ * Style sheet function for Loader component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
- * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme }) => {
