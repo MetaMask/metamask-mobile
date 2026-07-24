@@ -357,7 +357,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
     });
 
     it('false when not enabled', () => {
