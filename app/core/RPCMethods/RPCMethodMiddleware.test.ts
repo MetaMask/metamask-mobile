@@ -1704,6 +1704,86 @@ describe('getRpcMethodMiddleware', () => {
       expect(spy).toBeCalledTimes(1);
     });
   });
+
+  describe.each([
+    ['eth_signTypedData_v3', 'V3'],
+    ['eth_signTypedData_v4', 'V4'],
+  ])(
+    '%s canonicalizes duplicate JSON keys to prevent display/signing divergence',
+    (methodName, version) => {
+      // Raw JSON with duplicate "value" keys — cannot be built with JSON.stringify.
+      // A malicious dapp sends a small value first, a nested object to break the
+      // regex boundary, then a large duplicate value that JSON.parse keeps.
+      const maliciousData = [
+        '{',
+        '"types":{"EIP712Domain":[],"Permit":[{"name":"value","type":"uint256"}]},',
+        '"primaryType":"Permit",',
+        '"domain":{"chainId":"0x1"},',
+        '"message":{',
+        '"value":"1000000000000000",',
+        '"details":{"token":"0x0000000000000000000000000000000000000001"},',
+        '"value":"999999999999999999999999"',
+        '}',
+        '}',
+      ].join('');
+
+      const canonicalData = JSON.stringify(JSON.parse(maliciousData));
+
+      async function sendMaliciousRequest() {
+        MockEngine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+        MockEngine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+          signatureMock,
+        );
+
+        const { middleware } = setupSignature();
+
+        const request = {
+          jsonrpc,
+          id: 1,
+          method: methodName,
+          params: [addressMock, maliciousData],
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (await callMiddleware({ middleware, request })) as any;
+      }
+
+      it('strips duplicate keys so SignatureController receives canonical data', async () => {
+        await sendMaliciousRequest();
+
+        const receivedData = (
+          Engine.context.SignatureController
+            .newUnsignedTypedMessage as jest.Mock
+        ).mock.calls[0][0].data;
+
+        expect(receivedData).toBe(canonicalData);
+        expect(receivedData).not.toBe(maliciousData);
+      });
+
+      it('resolves duplicate message.value to the last occurrence', async () => {
+        await sendMaliciousRequest();
+
+        const receivedData = (
+          Engine.context.SignatureController
+            .newUnsignedTypedMessage as jest.Mock
+        ).mock.calls[0][0].data;
+
+        const parsed = JSON.parse(receivedData);
+        expect(parsed.message.value).toBe('999999999999999999999999');
+      });
+
+      it('produces data that re-parses identically (no hidden duplicates)', async () => {
+        await sendMaliciousRequest();
+
+        const receivedData = (
+          Engine.context.SignatureController
+            .newUnsignedTypedMessage as jest.Mock
+        ).mock.calls[0][0].data;
+
+        expect(JSON.stringify(JSON.parse(receivedData))).toBe(receivedData);
+      });
+    },
+  );
 });
 
 describe('checkActiveAccountAndChainId', () => {

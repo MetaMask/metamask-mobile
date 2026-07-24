@@ -209,6 +209,18 @@ describe('PayWithRow', () => {
     expect(getByTestId('pay-with-symbol')).toHaveTextContent('Select token');
   });
 
+  it('does not re-render on parent re-render with identical props', () => {
+    const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+    const { rerender } = render();
+    const initialRenderCallCount = useTransactionPayTokenMock.mock.calls.length;
+
+    rerender(<PayWithRow />);
+
+    expect(useTransactionPayTokenMock).toHaveBeenCalledTimes(
+      initialRenderCallCount,
+    );
+  });
+
   it('disables edit if hardware wallet', async () => {
     isHardwareAccountMock.mockReturnValue(true);
 

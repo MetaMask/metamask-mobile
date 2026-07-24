@@ -1,22 +1,23 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteExpiredModal.styles';
 import { DEPOSIT_CONFIG } from '@metamask/perps-controller';
 
 const PerpsQuoteExpiredModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(createStyles, {});
   const refreshRate = DEPOSIT_CONFIG.RefreshRate / 1000; // Convert to seconds
 
@@ -29,12 +30,12 @@ const PerpsQuoteExpiredModal = () => {
   return (
     <BottomSheet goBack={navigation.goBack}>
       <BottomSheetHeader onClose={navigation.goBack}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('perps.deposit.quote_expired_modal.title')}
         </Text>
       </BottomSheetHeader>
       <View style={styles.container}>
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMd}>
           {strings('perps.deposit.quote_expired_modal.description', {
             refreshRate,
           })}

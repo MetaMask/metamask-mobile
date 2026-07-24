@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   Box,
@@ -52,7 +53,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const {
     status: campaignStatus,

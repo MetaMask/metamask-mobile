@@ -31,7 +31,7 @@ const spotItem: FeedItem = {
   traderAddress: '0x1111111111111111111111111111111111111111',
   action: 'bought',
   timestamp: Date.now() - 1000,
-  subHeader: '$120K',
+  subHeader: { sizeLabel: '$120K' },
   valueLabel: '$123,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -59,7 +59,7 @@ const perpItem: FeedItem = {
   traderAddress: '0x2222222222222222222222222222222222222222',
   action: 'closed',
   timestamp: Date.now() - 2000,
-  subHeader: '$88K',
+  subHeader: { sizeLabel: '$88K' },
   valueLabel: '$88,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -123,33 +123,12 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
-
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
   return {
     ...actual,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
-  };
-});
-
-jest.mock('../TraderPositionView/components/QuickBuy', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    QuickBuy: {
-      Root: ({
-        isVisible,
-        analyticsContext,
-      }: {
-        isVisible: boolean;
-        analyticsContext?: { source?: string };
-      }) => {
-        mockQuickBuyAnalyticsContext = analyticsContext;
-        return isVisible ? <View testID="mock-quick-buy-open" /> : null;
-      },
-    },
-    TOP_TRADERS_QUICK_BUY_FEATURES: {},
   };
 });
 
@@ -173,7 +152,6 @@ describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
-    mockQuickBuyAnalyticsContext = undefined;
     handleTypeFilterChange = undefined;
   });
 
@@ -225,14 +203,21 @@ describe('FeedView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the QuickBuy sheet with a CTA haptic when a spot Trade is pressed', () => {
-    renderWithProvider(<FeedView />);
+  it('requests QuickBuy with a CTA haptic when a spot Trade is pressed', () => {
+    const onQuickBuy = jest.fn();
+    renderWithProvider(<FeedView onQuickBuy={onQuickBuy} />);
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'trader_feed' });
+    expect(onQuickBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: spotItem.tokenAddress,
+        tokenSymbol: spotItem.tokenSymbol,
+        tokenName: spotItem.tokenName,
+        chain: spotItem.chain,
+      }),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
@@ -248,6 +233,22 @@ describe('FeedView', () => {
         caip19: expect.stringContaining('eip155:1/erc20:'),
       }),
     );
+  });
+
+  it('reports spot availability to the parent', () => {
+    const onSpotAvailabilityChange = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />,
+    );
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(true);
+
+    onSpotAvailabilityChange.mockClear();
+    mockFeedResult = buildResult({ items: [perpItem] });
+    rerender(<FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />);
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(false);
   });
 
   it('navigates to the Perps market detail page when a perps Trade is pressed', () => {

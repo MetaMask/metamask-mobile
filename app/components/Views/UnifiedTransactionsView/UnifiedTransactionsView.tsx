@@ -721,6 +721,7 @@ const UnifiedTransactionsView = ({
               testID={UnifiedTransactionsViewSelectorsIDs.CONTAINER}
               renderItem={renderItem}
               keyExtractor={generateKey}
+              getItemType={(item) => item.kind ?? 'item'}
               ListHeaderComponent={header}
               ListEmptyComponent={
                 isInitialLoading ? renderInitialLoading : renderEmptyList

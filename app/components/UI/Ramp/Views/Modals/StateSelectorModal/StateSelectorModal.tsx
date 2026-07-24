@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { ListRenderItem, View } from 'react-native';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheetRef,
   FontWeight,
@@ -19,6 +20,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import { US_STATES } from '../../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -46,7 +48,7 @@ export const createStateSelectorModalNavigationDetails =
 
 function StateSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { selectedState, onStateSelect } =
     useParams<StateSelectorModalParams>();
   const { styles } = useStyles(styleSheet, {});
@@ -80,8 +82,9 @@ function StateSelectorModal() {
     (state: UsState) => {
       if (state.code === 'NY') {
         sheetRef.current?.onCloseBottomSheet(() => {
-          navigation.navigate(
-            ...createUnsupportedStateModalNavigationDetails({
+          navigateWithDetails(
+            navigation,
+            createUnsupportedStateModalNavigationDetails({
               stateCode: state.code,
               stateName: state.name,
               onStateSelect,

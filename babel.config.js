@@ -77,13 +77,30 @@ module.exports = {
         /\/ses\.cjs$/.test(f) ||
         /\/ses-hermes\.cjs$/.test(f) ||
         /\/react-native-lockdown\/src\/repair\.js$/.test(f) ||
+        // promise-with-resolvers.js is a Metro polyfill — no require() at that
+        // stage, and Babel/preset-expo must not inject core-js/@babel/runtime
+        // into it (which is exactly the crash this polyfill exists to prevent).
+        /\/polyfills\/promise-with-resolvers\.js$/.test(f) ||
         // expo/virtual/streams.js is a Metro polyfill — no require() available at that stage
         // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
         /\/expo\/virtual\/streams\.js$/.test(f)
       );
     },
   ],
-  presets: ['babel-preset-expo'],
+  presets: [
+    // `disableImportExportTransform: false` keeps Babel responsible for the
+    // ES-module -> CommonJS conversion (RN's preset runs it with
+    // `strictMode: false`), instead of deferring to Metro's static-ESM path.
+    // The `@expo/metro-config` babel-transformer maps Metro's
+    // `experimentalImportSupport: true` to the Babel caller flag
+    // `supportsStaticESM: true`; babel-preset-expo would otherwise use that to
+    // default `disableImportExportTransform` to `true`, leaving files as ES
+    // modules (`sourceType: 'module'`). metro-transform-worker then injects a
+    // `"use strict"` directive into every such module, which breaks code that
+    // relies on sloppy-mode semantics. Pinning this to `false` reproduces the
+    // pre-Expo-transformer pipeline and prevents the forced strict mode.
+    ['babel-preset-expo', { disableImportExportTransform: false }],
+  ],
   plugins: [
     ...reactCompilerBabelConfig,
     // `JEST_WORKER_ID` must NOT be inlined: Metro runs Babel transforms inside
@@ -92,7 +109,19 @@ module.exports = {
     // `process.env.JEST_WORKER_ID` runtime guard (e.g. the xhr2-based test-only
     // XMLHttpRequest shim), crashing the app. Excluding it keeps the lookup at
     // runtime: undefined in the app, set under Jest.
-    ['transform-inline-environment-variables', { exclude: ['JEST_WORKER_ID'] }],
+    // `EXPO_OS` / `EXPO_SERVER` / `EXPO_BASE_URL` are NOT real environment
+    // variables — `babel-preset-expo`'s define-plugin substitutes them (e.g.
+    // `process.env.EXPO_OS` -> "ios") using the babel caller. Babel runs plugins
+    // BEFORE preset plugins, so if we don't exclude them here this plugin inlines
+    // them to `undefined` first, producing the runtime error
+    // "The global process.env.EXPO_OS is not defined". Excluding them lets
+    // babel-preset-expo define them correctly.
+    [
+      'transform-inline-environment-variables',
+      {
+        exclude: ['JEST_WORKER_ID', 'EXPO_OS', 'EXPO_SERVER', 'EXPO_BASE_URL'],
+      },
+    ],
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
     // Required by reanimated v3 to compile `'worklet'` directives; without it,

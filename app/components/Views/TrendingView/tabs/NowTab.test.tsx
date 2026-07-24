@@ -93,10 +93,6 @@ jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
   usePredictionsFeed: jest.fn(),
 }));
 
-jest.mock('../feeds/predictions/useWorldCupPredictionsFeed', () => ({
-  useWorldCupPredictionsFeed: jest.fn(),
-}));
-
 jest.mock('../feeds/predictions/PredictionRowItem', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createElement } = require('react');
@@ -208,13 +204,11 @@ import type { ExploreTabName } from '../search/analytics';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
-const mockUseWorldCupPredictionsFeed = jest.mocked(useWorldCupPredictionsFeed);
 const mockUseStocksFeed = jest.mocked(useStocksFeed);
 const mockWhatsHappeningImpl = jest.mocked(WhatsHappeningSection);
 
@@ -275,12 +269,6 @@ const arrangeMocks = () => {
     isLoading: false,
     refetch: jest.fn(),
   });
-  mockUseWorldCupPredictionsFeed.mockReturnValue({
-    data: [],
-    isLoading: false,
-    isEnabled: false,
-    refetch: jest.fn(),
-  });
   mockUsePerpsFeed.mockReturnValue({
     data: [{ market: { symbol: 'BTC', change24hPercent: '5' } }] as never,
     isLoading: false,
@@ -326,7 +314,6 @@ const arrangeMocks = () => {
     useTokensFeed: mockUseTokensFeed,
     usePerpsFeed: mockUsePerpsFeed,
     usePredictionsFeed: mockUsePredictionsFeed,
-    useWorldCupPredictionsFeed: mockUseWorldCupPredictionsFeed,
     useStocksFeed: mockUseStocksFeed,
     useWhatsHappening: mockUseWhatsHappening,
     whatsHappeningImpl: mockWhatsHappeningImpl,
@@ -613,31 +600,6 @@ describe('NowTab — Predictions navigation', () => {
       params: {
         entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
         tab: 'trending',
-      },
-    });
-  });
-
-  it('opens the World Cup screen from the Predictions section title when World Cup predictions are enabled', () => {
-    const mocks = arrangePredictSelectionMocks();
-
-    mocks.useWorldCupPredictionsFeed.mockReturnValue({
-      data: [{ id: 'world-cup-market-1' }] as never,
-      isLoading: false,
-      isEnabled: true,
-      refetch: jest.fn(),
-    });
-
-    renderNowTab();
-
-    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId(predictSectionTestId));
-
-    expect(mocks.navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.WORLD_CUP,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        initialTab: 'all',
       },
     });
   });

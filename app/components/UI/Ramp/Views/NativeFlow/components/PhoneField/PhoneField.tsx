@@ -1,6 +1,8 @@
 import React, { forwardRef, useCallback, useMemo, useState } from 'react';
 import { TextInput, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../../../util/navigation/navUtils';
 import { Text } from '@metamask/design-system-react-native';
 import type { Country } from '@metamask/ramps-controller';
 import { useStyles } from '../../../../../../hooks/useStyles';
@@ -54,7 +56,7 @@ const PhoneField = forwardRef<TextInput, PhoneFieldProps>(
     },
     ref,
   ) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { styles } = useStyles(styleSheet, {});
 
     const defaultPhoneCountry = useMemo(
@@ -94,8 +96,9 @@ const PhoneField = forwardRef<TextInput, PhoneFieldProps>(
     );
 
     const handleCountryPress = useCallback(() => {
-      navigation.navigate(
-        ...createPhoneCountrySelectorModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createPhoneCountrySelectorModalNavigationDetails({
           countries,
           selectedCountry: phoneCountry,
           onCountrySelect: handleCountrySelect,

@@ -49,6 +49,12 @@ jest.mock('../../../util/mnemonic', () => ({
   ),
 }));
 
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+  warn: jest.fn(),
+}));
+
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((_phrase) => new Uint8Array([1, 2, 3])),
 }));
@@ -69,6 +75,7 @@ import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -99,6 +106,16 @@ jest.mock('../../../core/Engine', () => ({
         },
       ]),
       importAccountWithStrategy: jest.fn().mockResolvedValue('0x123'),
+      exportAccount: jest.fn().mockResolvedValue('0xprivatekey'),
+      addNewAccount: jest.fn().mockResolvedValue(undefined),
+      state: {
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: ['0xhd1'],
+          },
+        ],
+      },
     },
     PreferencesController: {
       setSelectedAddress: jest.fn(),
@@ -125,11 +142,11 @@ jest.mock('../../../store/storage-wrapper', () => ({
 
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({
-    currentAuthType: 'passcode',
+    currentAuthType: 'device_passcode',
     availableBiometryType: 'faceID',
   }),
   componentAuthenticationType: jest.fn().mockResolvedValue({
-    currentAuthType: 'passcode',
+    currentAuthType: 'device_passcode',
     availableBiometryType: 'faceID',
   }),
   requestBiometricsAccessControlForIOS: jest.fn((authType) =>
@@ -339,12 +356,36 @@ const fillAndSubmitForm = async (
 };
 
 describe('ChoosePassword', () => {
+  const defaultKeyringControllerState = {
+    keyrings: [
+      {
+        type: 'HD Key Tree',
+        accounts: ['0xhd1'],
+      },
+    ],
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
     store = mockStore(createInitialState());
     ReduxService.store = store as unknown as ReduxStore;
     mockRefreshGeolocation.mockResolvedValue('GB');
+    (Authentication.getType as jest.Mock).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- getType still returns PASSCODE
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: 'faceID',
+    });
+    (
+      Engine.context.KeyringController as unknown as {
+        state: typeof defaultKeyringControllerState;
+      }
+    ).state = {
+      keyrings: defaultKeyringControllerState.keyrings.map((keyring) => ({
+        ...keyring,
+        accounts: [...keyring.accounts],
+      })),
+    };
     mockRoute.params = {
       [ONBOARDING]: true,
       [PROTECT]: true,
@@ -376,6 +417,44 @@ describe('ChoosePassword', () => {
       expect(() =>
         component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
       ).toThrow();
+      expect(
+        component.queryByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID),
+      ).toBeNull();
+    });
+
+    it('shows back button when not loading and hides it while creating wallet', async () => {
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      let resolveWalletCreation: () => void;
+      const walletCreationPromise = new Promise<void>((resolve) => {
+        resolveWalletCreation = resolve;
+      });
+      mockNewWalletAndKeychain.mockReturnValue(walletCreationPromise);
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      expect(
+        component.getByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID),
+      ).toBeOnTheScreen();
+
+      await fillAndSubmitForm(component);
+
+      expect(
+        component.queryByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID),
+      ).toBeNull();
+
+      await act(async () => {
+        resolveWalletCreation();
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.replace).toHaveBeenCalled();
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
     });
 
     it('toggles between form and loading state when wallet creation is in progress', async () => {
@@ -414,7 +493,10 @@ describe('ChoosePassword', () => {
 
       await act(async () => {
         resolveWalletCreation();
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.replace).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -643,6 +725,166 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
+    it('recreates vault and reimports simple-key accounts for non-onboarding previous screen', async () => {
+      const keyringController = Engine.context.KeyringController as unknown as {
+        state: {
+          keyrings: { type: string; accounts: string[] }[];
+        };
+        exportAccount: jest.Mock;
+        addNewAccount: jest.Mock;
+        importAccountWithStrategy: jest.Mock;
+        exportSeedPhrase: jest.Mock;
+      };
+
+      keyringController.state = {
+        keyrings: [
+          { type: 'HD Key Tree', accounts: ['0xhd1', '0xhd2'] },
+          { type: 'Simple Key Pair', accounts: ['0ximported'] },
+        ],
+      };
+      keyringController.exportAccount = jest
+        .fn()
+        .mockResolvedValue('0xprivatekey');
+      keyringController.addNewAccount = jest.fn().mockResolvedValue(undefined);
+      keyringController.importAccountWithStrategy = jest
+        .fn()
+        .mockResolvedValue('0ximported');
+
+      const mockNewWalletAndRestore = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
+      );
+      mockNewWalletAndRestore.mockResolvedValue(undefined);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: PROTECT,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      await fillAndSubmitForm(component, 'StrongPassword123!@#');
+
+      await waitFor(() => {
+        expect(mockNewWalletAndRestore).toHaveBeenCalled();
+      });
+
+      expect(keyringController.exportAccount).toHaveBeenCalledWith(
+        { password: '' },
+        '0ximported',
+      );
+      expect(keyringController.addNewAccount).toHaveBeenCalledTimes(1);
+      expect(keyringController.importAccountWithStrategy).toHaveBeenCalled();
+
+      mockNewWalletAndRestore.mockRestore();
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      };
+    });
+
+    it('logs and continues when exporting simple-key accounts fails during vault recreate', async () => {
+      const keyringController = Engine.context.KeyringController as unknown as {
+        state: {
+          keyrings: { type: string; accounts: string[] }[];
+        };
+        exportAccount: jest.Mock;
+      };
+
+      keyringController.state = {
+        keyrings: [
+          { type: 'HD Key Tree', accounts: ['0xhd1'] },
+          { type: 'Simple Key Pair', accounts: ['0ximported'] },
+        ],
+      };
+      keyringController.exportAccount = jest
+        .fn()
+        .mockRejectedValue(new Error('export failed'));
+
+      const mockNewWalletAndRestore = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
+      );
+      mockNewWalletAndRestore.mockResolvedValue(undefined);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: PROTECT,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+      await fillAndSubmitForm(component, 'StrongPassword123!@#');
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          'error while trying to get imported accounts on recreate vault',
+        );
+        expect(mockNewWalletAndRestore).toHaveBeenCalled();
+      });
+
+      mockNewWalletAndRestore.mockRestore();
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      };
+    });
+
+    it('logs when reimporting private-key accounts fails during vault recreate', async () => {
+      const keyringController = Engine.context.KeyringController as unknown as {
+        state: {
+          keyrings: { type: string; accounts: string[] }[];
+        };
+        exportAccount: jest.Mock;
+        addNewAccount: jest.Mock;
+        importAccountWithStrategy: jest.Mock;
+      };
+
+      keyringController.state = {
+        keyrings: [
+          { type: 'HD Key Tree', accounts: ['0xhd1'] },
+          { type: 'Simple Key Pair', accounts: ['0ximported'] },
+        ],
+      };
+      keyringController.exportAccount = jest
+        .fn()
+        .mockResolvedValue('0xprivatekey');
+      keyringController.addNewAccount = jest.fn().mockResolvedValue(undefined);
+      keyringController.importAccountWithStrategy = jest
+        .fn()
+        .mockRejectedValue(new Error('import failed'));
+
+      const mockNewWalletAndRestore = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
+      );
+      mockNewWalletAndRestore.mockResolvedValue(undefined);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: PROTECT,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+      await fillAndSubmitForm(component, 'StrongPassword123!@#');
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          'error while trying to import accounts on recreate vault',
+        );
+      });
+
+      mockNewWalletAndRestore.mockRestore();
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      };
+    });
+
     it('calls exportSeedPhrase after SRP wallet creation', async () => {
       const mockExportSeedPhrase = Engine.context.KeyringController
         .exportSeedPhrase as jest.Mock;
@@ -768,9 +1010,10 @@ describe('ChoosePassword', () => {
   });
 
   describe('Authentication Type Detection', () => {
-    it('reads passcode storage flags when auth type is PASSCODE', async () => {
+    it('sets passcode biometry type when auth type is PASSCODE', async () => {
       const mockGetType = jest.spyOn(Authentication, 'getType');
-      mockGetType.mockResolvedValueOnce({
+      mockGetType.mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- getType still returns PASSCODE
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType: undefined,
       });
@@ -784,8 +1027,12 @@ describe('ChoosePassword', () => {
           return Promise.resolve('true');
         return Promise.resolve(null);
       });
+      jest
+        .spyOn(Authentication, 'newWalletAndKeychain')
+        .mockResolvedValue(undefined);
+      mockTrackOnboarding.mockClear();
 
-      renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
       expect(mockGetType).toHaveBeenCalled();
@@ -795,6 +1042,22 @@ describe('ChoosePassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
+
+      await fillAndSubmitForm(component, 'StrongPassword123!@#');
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.WALLET_CREATED,
+            properties: expect.objectContaining({
+              biometrics_enabled: true,
+            }),
+          }),
+          expect.any(Function),
+        );
+      });
+
+      mockGetType.mockRestore();
     });
 
     it('reads biometry storage flags when face ID is available', async () => {
@@ -823,6 +1086,7 @@ describe('ChoosePassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
+      mockGetType.mockRestore();
     });
 
     it('uses PASSWORD auth type for wallet creation when biometrics are declined on iOS', async () => {
@@ -1366,7 +1630,7 @@ describe('ChoosePassword', () => {
 
       mockComponentAuthenticationType.mockReset();
       mockComponentAuthenticationType.mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
         availableBiometryType: BIOMETRY_TYPE.FACE_ID,
       });
     });
@@ -1414,7 +1678,7 @@ describe('ChoosePassword', () => {
 
       mockComponentAuthenticationType.mockReset();
       mockComponentAuthenticationType.mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
         availableBiometryType: BIOMETRY_TYPE.FACE_ID,
       });
     });

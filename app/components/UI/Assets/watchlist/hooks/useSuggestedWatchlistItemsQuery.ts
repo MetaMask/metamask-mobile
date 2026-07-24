@@ -1,16 +1,35 @@
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { type UseQueryResult } from '@tanstack/react-query';
 
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { type WatchlistTokenWithBalance } from '../utils/addBalanceToTokens';
+import {
+  getDefaultWatchlistAssetIds,
+  isSpaceXDefaultEligible,
+} from '../utils/defaultWatchlistGeo';
 import { useTokenWatchlistQuery } from './useTokenWatchlistQuery';
 
-/** Curated ETH / BTC / SOL native asset IDs surfaced in the empty-state CTA. */
-export const SUGGESTED_WATCHLIST_ASSET_IDS: readonly string[] = [
-  'eip155:1/slip44:60',
-  'bip122:000000000019d6689c085ae165831e93/slip44:0',
-  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-] as const;
+export { DEFAULT_WATCHLIST_BASE_ASSET_IDS } from '../constants/defaultWatchlistTokens';
 
+/**
+ * Hydrates curated default watchlist tokens for the empty-state CTA.
+ * Geo-aware: eligible users receive SpaceX as a 6th default.
+ */
 export const useSuggestedWatchlistItemsQuery = (): UseQueryResult<
   WatchlistTokenWithBalance[],
   Error
-> => useTokenWatchlistQuery({ suggestedTokens: SUGGESTED_WATCHLIST_ASSET_IDS });
+> => {
+  const geolocation = useSelector(getDetectedGeolocation);
+  const includeSpaceX = isSpaceXDefaultEligible(geolocation);
+
+  const suggestedTokens = useMemo(
+    () => getDefaultWatchlistAssetIds(geolocation),
+    [geolocation],
+  );
+
+  return useTokenWatchlistQuery({
+    suggestedTokens,
+    suggestedIncludeSpaceX: includeSpaceX,
+  });
+};

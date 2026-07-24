@@ -13,3 +13,4 @@ export {
   type WatchlistRemoveInput,
   type WatchlistUpdateListInput,
 } from './useTokenWatchlistMutations';
+export { useSuggestedWatchlistItemsQuery } from './useSuggestedWatchlistItemsQuery';

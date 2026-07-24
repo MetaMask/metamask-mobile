@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef } from 'react';
 import {
   ToastContext,
   ToastVariants,
+  ButtonIconVariant,
 } from '../../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -13,7 +14,6 @@ import {
 } from '../../../hooks/gas/useGasFeeToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { hasTransactionType } from '../../../utils/transaction';
@@ -52,28 +52,21 @@ export function GasFeeTokenToast() {
 
     toast.showToast({
       labelOptions: [
-        { label: strings('gas_fee_token_toast.message'), isBold: false },
-        { label: `${gasFeeToken.symbol}`, isBold: true },
-        { label: '.', isBold: false },
+        {
+          label: `${strings('gas_fee_token_toast.message')}${gasFeeToken.symbol}.`,
+          isBold: true,
+        },
       ],
       variant: ToastVariants.Network,
       hasNoTimeout: false,
-      customBottomOffset: 24, // Add custom offset to avoid overlapping with confirmation buttons
       networkImageSource: tokenSelected?.image
         ? { uri: tokenSelected.image }
         : networkImageSource,
       closeButtonOptions: {
-        variant: ButtonVariants.Primary,
-        endIconName: IconName.Close,
-        label: undefined,
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
         onPress: () => {
           toast?.closeToast();
-        },
-        style: {
-          backgroundColor: 'transparent',
-          paddingHorizontal: 4,
-          paddingVertical: 10,
-          height: 20,
         },
       },
     });

@@ -244,6 +244,8 @@ export enum E2ECommandTypes {
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
   exportState = 'export-state',
+  /** Inject QR sync sync-ready SRP payload (HAS_TEST_OVERRIDES Appium/Detox). */
+  applyQrSyncSyncReady = 'apply-qr-sync-sync-ready',
 }
 
 export enum GanacheHardfork {

@@ -35,7 +35,7 @@ const smokeTags = {
   smokeStake: {
     tag: 'SmokeStake:',
     description:
-      'Tests wallet staking and lending flows. Covers stake entry from wallet actions, lending deposits, and lending withdrawals. Validates on-chain operations initiated from wallet surfaces. When selecting SmokeStake, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
+      'Tests wallet staking and lending flows. Covers stake entry from wallet actions, lending deposits, and lending withdrawals. Stake/lending smoke specs live in tests/smoke-appium/stake/ and run via Appium smoke CI (appium-smoke-tests-{android,ios}). Validates on-chain operations initiated from wallet surfaces. When selecting SmokeStake, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
   },
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',
@@ -65,7 +65,12 @@ const smokeTags = {
   smokeSeedlessOnboarding: {
     tag: 'SmokeSeedlessOnboarding:',
     description:
-      'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Tests the SeedlessOnboardingController mock integration, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync after social login.',
+      'Tests core seedless onboarding with social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, SeedlessOnboardingController mock integration, OAuth token exchange, and the onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, Account Already Exists, or the onboarding sheet, select this tag. For QR sync, add-SRP after seedless, attribution analytics, lock/unlock, or reset wallet, also select SmokeSeedlessOnboardingExtended. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync after social login.',
+  },
+  smokeSeedlessOnboardingExtended: {
+    tag: 'SmokeSeedlessOnboardingExtended:',
+    description:
+      'Tests extended seedless onboarding and post-onboard flows. Covers importing an additional SRP after Google seedless onboarding, Wallet Setup Completed attribution analytics for Google and Apple, QR sync SRP (new-user and existing-user mobile ↔ extension), and lock/unlock and reset-wallet after Google social login (may be skipped when flaky). Specs live in tests/smoke-appium/seedless/ under this tag. When changes touch Add Device / QR sync, post-seedless SRP import, onboarding attribution analytics, or seedless lock/reset, select this tag. Often pair with SmokeSeedlessOnboarding when OAuth onboarding UI also changes. Related to SmokeAccounts for multi-SRP after seedless and SmokeWalletPlatform for wallet lifecycle.',
   },
   smokeBrowser: {
     tag: 'SmokeBrowser:',
@@ -142,6 +147,7 @@ const {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
+  SmokeSeedlessOnboardingExtended,
   SmokeBrowser,
   SmokeSnaps,
 } = createSmokeDescribeFunctions(smokeTags);
@@ -176,6 +182,7 @@ export {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
+  SmokeSeedlessOnboardingExtended,
   SmokeBrowser,
   RegressionAccounts,
   RegressionConfirmations,

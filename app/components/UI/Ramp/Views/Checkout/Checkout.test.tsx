@@ -5,7 +5,15 @@ import Checkout from './Checkout';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
-import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
+
+jest.mock('../../utils/getRampCallbackBaseUrl', () => ({
+  getRampCallbackBaseUrl: jest.fn(
+    () => 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
+  ),
+}));
+
+const callbackBaseUrl = getRampCallbackBaseUrl();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -62,6 +70,21 @@ jest.mock(
   }),
 );
 
+const mockEmitOrderConfirmedAnalyticsFromCallback = jest.fn();
+const mockEmitTerminalOrderAnalyticsFromCallback = jest.fn();
+jest.mock(
+  '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+    ),
+    emitOrderConfirmedAnalyticsFromCallback: (...args: unknown[]) =>
+      mockEmitOrderConfirmedAnalyticsFromCallback(...args),
+    emitTerminalOrderAnalyticsFromCallback: (...args: unknown[]) =>
+      mockEmitTerminalOrderAnalyticsFromCallback(...args),
+  }),
+);
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
@@ -72,8 +95,6 @@ jest.mock('../../../../../util/browser', () => ({
 }));
 
 jest.mock('../../Aggregator/sdk', () => ({
-  callbackBaseUrl:
-    'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
   useRampSDK: jest.fn(() => null),
 }));
 
@@ -89,8 +110,8 @@ jest.mock('@metamask/react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
   const { View, Button } = require('react-native');
   const getCallbackBaseUrl = () =>
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- resolve mocked sdk at press time (avoids jest hoist / TDZ with outer consts)
-    require('../../Aggregator/sdk').callbackBaseUrl as string;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- resolve mocked helper at press time (avoids jest hoist / TDZ with outer consts)
+    require('../../utils/getRampCallbackBaseUrl').getRampCallbackBaseUrl() as string;
   return {
     WebView: ({
       onNavigationStateChange,
@@ -753,6 +774,37 @@ describe('Checkout', () => {
         type: 'PROTECT_WALLET_MODAL_VISIBLE',
       });
       expect(mockNavigation.reset).not.toHaveBeenCalled();
+    });
+
+    it('emits RAMPS_TRANSACTION_CONFIRMED for a non-terminal headless callback order', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { rampSurface: 'money_account' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(
+          mockEmitOrderConfirmedAnalyticsFromCallback,
+        ).toHaveBeenCalledWith(mockOrder, {
+          rampType: 'HEADLESS',
+          rampSurface: 'money_account',
+          region: undefined,
+        });
+      });
+      expect(mockEmitTerminalOrderAnalyticsFromCallback).not.toHaveBeenCalled();
     });
 
     it('persists the headless order context so a later terminal failure stays tagged HEADLESS', async () => {

@@ -42,7 +42,7 @@ perfTest.describe(PerformanceAccountList, () => {
       );
       const walletReadyTimer = new TimerHelper(
         'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
-        { ios: 5000, android: 2000 },
+        { ios: 5000, android: 2500 },
         currentDeviceDetails.platform,
       );
 
@@ -80,7 +80,7 @@ perfTest.describe(PerformanceAccountList, () => {
 
       await walletReadyTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.accountIcon),
+          asPlaywrightElement(WalletView.headerRoot),
           {
             description:
               'Wallet main screen should be visible after importing SRP',

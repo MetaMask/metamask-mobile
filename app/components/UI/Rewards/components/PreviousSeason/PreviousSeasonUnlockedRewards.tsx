@@ -33,9 +33,10 @@ import RewardItem from '../RewardItem/RewardItem';
 import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 const PreviousSeasonUnlockedRewards = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { fetchUnlockedRewards } = useUnlockedRewards();
   const tw = useTailwind();
   const theme = useTheme();

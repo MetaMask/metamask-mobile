@@ -6,10 +6,6 @@ jest.mock('./useInsufficientPayTokenBalanceAlert', () => ({
   useInsufficientPayTokenBalanceAlert: jest.fn(() => [{ id: 'alert-3' }]),
 }));
 
-jest.mock('./useMMPayHardwareAccountAlert', () => ({
-  useMMPayHardwareAccountAlert: () => [{ id: 'alert-1' }],
-}));
-
 jest.mock('./useInsufficientPredictBalanceAlert', () => ({
   useInsufficientPredictBalanceAlert: () => [{ id: 'alert-4' }],
 }));
@@ -56,7 +52,6 @@ describe('usePendingAmountAlerts', () => {
     );
 
     expect(result.current).toStrictEqual([
-      { id: 'alert-1' },
       { id: 'alert-3' },
       { id: 'alert-4' },
       { id: 'alert-5' },

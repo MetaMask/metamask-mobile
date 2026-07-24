@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { useRampSDK, SDK } from '../../sdk';
@@ -65,7 +66,7 @@ const CheckoutWebView = () => {
   const [customIdData, setCustomIdData] = useState<CustomIdData>();
   const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<CheckoutParams>();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 

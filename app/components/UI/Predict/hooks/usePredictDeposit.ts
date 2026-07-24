@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -17,6 +18,7 @@ import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { PlaceOrderParams } from '../types';
+import { RootState } from '../../../../reducers';
 
 interface PredictDepositAnalyticsParams {
   amountUsd?: number;
@@ -27,7 +29,7 @@ export const usePredictDeposit = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
@@ -36,10 +38,8 @@ export const usePredictDeposit = () => {
 
   const { deposit: depositWithConfirmation } = usePredictTrading();
 
-  const depositBatchId = useSelector(
-    selectPredictPendingDepositByAddress({
-      address: selectedInternalAccountAddress,
-    }),
+  const depositBatchId = useSelector((state: RootState) =>
+    selectPredictPendingDepositByAddress(state, selectedInternalAccountAddress),
   );
 
   const deposit = useCallback(

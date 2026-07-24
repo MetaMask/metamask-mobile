@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,6 @@ import {
   TextVariant,
   Button,
   BoxBackgroundColor,
-  TextField,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
@@ -43,6 +42,7 @@ import {
   selectQrSyncPresentation,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
+import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
 const Points = ({
   number,
@@ -73,7 +73,6 @@ const Points = ({
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
   const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
@@ -147,30 +146,15 @@ const AddDeviceToWallet = () => {
     });
   }, [navigation, onScanSuccess, isSessionActive]);
 
-  const handleManualQrSubmit = useCallback(async () => {
-    if (!manualQrPayload.trim()) {
-      return;
-    }
-
-    await submitQrPayload(manualQrPayload);
-  }, [manualQrPayload, submitQrPayload]);
-
-  const triggerManualQrSubmit = useCallback(() => {
-    handleManualQrSubmit().catch((submitError: unknown) => {
-      reportQrSyncFailure(submitError, {
-        surface: QrSyncSurfaces.SCANNER,
-        operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
-        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
-      });
-    });
-  }, [handleManualQrSubmit]);
-
   if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      testID={AddDeviceToWalletTestIds.SCREEN}
+    >
       <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
@@ -218,6 +202,7 @@ const AddDeviceToWallet = () => {
 
         <Box twClassName="mt-auto gap-4">
           <Button
+            testID={AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON}
             twClassName="w-full"
             onPress={openQRScanner}
             isDisabled={isBusy}
@@ -230,47 +215,6 @@ const AddDeviceToWallet = () => {
             <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
               {error.message}
             </Text>
-          ) : null}
-
-          {__DEV__ ? (
-            <Box
-              backgroundColor={BoxBackgroundColor.BackgroundSection}
-              twClassName="rounded-xl p-4 gap-3"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
-              >
-                Enter QR data manually
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                Paste the QR code payload here when testing on an emulator.
-              </Text>
-              <TextField
-                value={manualQrPayload}
-                onChangeText={setManualQrPayload}
-                placeholder="Paste QR payload"
-                isDisabled={isBusy}
-                inputProps={{
-                  autoCapitalize: 'none',
-                  autoCorrect: false,
-                  onSubmitEditing: triggerManualQrSubmit,
-                  returnKeyType: 'done',
-                }}
-              />
-              <Button
-                twClassName="w-full"
-                onPress={triggerManualQrSubmit}
-                isDisabled={!manualQrPayload.trim() || isBusy}
-                isLoading={isBusy}
-              >
-                Submit QR data
-              </Button>
-            </Box>
           ) : null}
         </Box>
       </Box>

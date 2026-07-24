@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import {
   Box,
@@ -32,7 +33,7 @@ import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitc
  */
 const CampaignsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
   useOndoOutcomeToast();

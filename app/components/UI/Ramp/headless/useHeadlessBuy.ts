@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { CaipChainId } from '@metamask/utils';
 
 import ReduxService from '../../../../core/redux';
@@ -68,7 +69,7 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
  * ```
  */
 export function useHeadlessBuy(): HeadlessBuyResult {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     tokens,
     tokensLoading,

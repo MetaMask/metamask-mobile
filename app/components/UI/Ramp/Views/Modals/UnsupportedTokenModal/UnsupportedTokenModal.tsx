@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import {
   BottomSheet,
@@ -23,7 +24,7 @@ export const createUnsupportedTokenModalNavigationDetails =
 
 function UnsupportedTokenModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   return (

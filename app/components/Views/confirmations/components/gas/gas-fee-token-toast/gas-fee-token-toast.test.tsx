@@ -156,9 +156,10 @@ describe('GasFeeTokenToast', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
-          { label: "You're paying this network fee with ", isBold: false },
-          { label: matchingTokenSymbol, isBold: true },
-          { label: '.', isBold: false },
+          {
+            label: `You're paying this network fee with ${matchingTokenSymbol}.`,
+            isBold: true,
+          },
         ],
         variant: ToastVariants.Network,
         networkImageSource: { uri: matchingTokenImage },

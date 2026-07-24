@@ -988,7 +988,7 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
-          iconName: 'Check',
+          iconName: 'Confirmation',
           hasNoTimeout: false,
         }),
       );

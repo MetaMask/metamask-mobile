@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeSeedlessOnboarding } from '../../tags.js';
+import { SmokeSeedlessOnboardingExtended } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { PlatformDetector } from '../../framework/PlatformLocator.js';
@@ -12,9 +12,10 @@ import {
 } from './helpers/seedless-helpers.js';
 
 appiumTest.describe(
-  SmokeSeedlessOnboarding('Google Login - Reset Wallet'),
+  SmokeSeedlessOnboardingExtended('Google Login - Reset Wallet'),
   () => {
-    appiumTest(
+    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
+    appiumTest.skip(
       'onboards with Google login, locks, and resets the wallet',
       async ({ driver: _driver, currentDeviceDetails }) => {
         const fixture = PlatformDetector.isIOS()

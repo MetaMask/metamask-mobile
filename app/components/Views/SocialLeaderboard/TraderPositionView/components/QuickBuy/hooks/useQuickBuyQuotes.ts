@@ -3,6 +3,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { debounce } from 'lodash';
 import {
   formatAddressToCaipReference,
+  formatChainIdToCaip,
   isNonEvmChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
@@ -24,6 +25,7 @@ import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../../../../
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
+  selectIsSlippageUserOverride,
   selectSlippage,
 } from '../../../../../../../core/redux/slices/bridge';
 import {
@@ -94,7 +96,7 @@ export interface UseQuickBuyQuotesResult {
   isNoQuotesAvailable: boolean;
   isActiveQuoteForCurrentTokenPair: boolean;
   /**
-   * True when request-only inputs the consumer cannot observe (slippage,
+   * True when request-only inputs the consumer cannot observe (amount, slippage,
    * destination address, gas settings) have changed since the currently
    * displayed quotes were fetched. While true, the displayed quotes no longer
    * match the active request and must not be treated as submittable.
@@ -187,6 +189,7 @@ export function useQuickBuyQuotes({
   immediateFetchToken,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
   const destAddress = useSelector(selectDestAddress);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const { gasIncluded, gasIncluded7702 } = useSelector(
@@ -242,7 +245,7 @@ export function useQuickBuyQuotes({
   // Tracks request timing so the received-event can report latency.
   const requestStartedAtRef = useRef<number | null>(null);
 
-  // Signature of the request-only inputs (slippage, destination address, gas
+  // Signature of the request-only inputs (amount, slippage, destination address, gas
   // settings) that the consumer of this hook cannot observe. Used to detect when
   // the displayed quotes were fetched for a different request than the current
   // one so the CTA is not left enabled with a stale quote.
@@ -250,12 +253,20 @@ export function useQuickBuyQuotes({
     () =>
       JSON.stringify({
         slippage: slippage ?? null,
+        sourceTokenAmount: sourceTokenAmount ?? null,
         destAddress: destAddress ?? null,
         gasIncluded,
         gasIncluded7702,
       }),
-    [slippage, destAddress, gasIncluded, gasIncluded7702],
+    [slippage, sourceTokenAmount, destAddress, gasIncluded, gasIncluded7702],
   );
+  const nonSlippageRequestParamsKey = JSON.stringify([
+    sourceTokenAmount ?? null,
+    destAddress ?? null,
+    gasIncluded,
+    gasIncluded7702,
+  ]);
+
   // The request-params signature the most recently settled quotes were fetched
   // for. Null until the first fetch settles (or after quotes are reset).
   const settledRequestParamsKeyRef = useRef<string | null>(null);
@@ -304,12 +315,7 @@ export function useQuickBuyQuotes({
 
     // Snapshot of the request-only inputs this fetch is for, recorded as settled
     // once the result (or error) lands so later input changes register as stale.
-    const fetchedRequestParamsKey = JSON.stringify({
-      slippage: slippage ?? null,
-      destAddress: destAddress ?? null,
-      gasIncluded,
-      gasIncluded7702,
-    });
+    const fetchedRequestParamsKey = requestParamsKey;
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -474,6 +480,7 @@ export function useQuickBuyQuotes({
     resetQuotesIdle,
     analyticsContext,
     track,
+    requestParamsKey,
   ]);
 
   const debouncedFetchQuotes = useMemo(
@@ -481,12 +488,38 @@ export function useQuickBuyQuotes({
     [fetchQuotes],
   );
 
+  const previousSlippageRef = useRef(slippage);
+  const previousNonSlippageRequestParamsKeyRef = useRef(
+    nonSlippageRequestParamsKey,
+  );
   useEffect(() => {
+    const previousSlippage = previousSlippageRef.current;
+    const previousNonSlippageRequestParamsKey =
+      previousNonSlippageRequestParamsKeyRef.current;
+    previousSlippageRef.current = slippage;
+    previousNonSlippageRequestParamsKeyRef.current =
+      nonSlippageRequestParamsKey;
+
+    // Backend hydration alone must not abort/refetch the quote stream.
+    const isHydrationOnlySlippageChange =
+      !isSlippageUserOverride &&
+      previousSlippage === undefined &&
+      slippage !== undefined &&
+      previousNonSlippageRequestParamsKey === nonSlippageRequestParamsKey;
+    if (isHydrationOnlySlippageChange) {
+      return;
+    }
+
     debouncedFetchQuotes();
     return () => {
       debouncedFetchQuotes.cancel();
     };
-  }, [debouncedFetchQuotes]);
+  }, [
+    debouncedFetchQuotes,
+    isSlippageUserOverride,
+    nonSlippageRequestParamsKey,
+    slippage,
+  ]);
 
   // Committed-value paths (e.g. slider release) bump `immediateFetchToken`.
   // The reactive effect above has already scheduled the debounced fetch for the
@@ -618,7 +651,7 @@ export function useQuickBuyQuotes({
       return false;
     }
 
-    const { srcAsset, destAsset } = activeQuote.quote;
+    const { srcAsset, destAsset, srcChainId, destChainId } = activeQuote.quote;
 
     const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
       ? (srcAsset.assetId ?? srcAsset.address)
@@ -628,6 +661,10 @@ export function useQuickBuyQuotes({
       : destAsset.address;
 
     return (
+      formatChainIdToCaip(srcChainId) ===
+        formatChainIdToCaip(sourceToken.chainId) &&
+      formatChainIdToCaip(destChainId) ===
+        formatChainIdToCaip(destToken.chainId) &&
       areAddressesEqual(quoteSourceAddress, sourceToken.address) &&
       areAddressesEqual(quoteDestAddress, destToken.address)
     );
@@ -644,9 +681,39 @@ export function useQuickBuyQuotes({
   // The displayed quotes were fetched for a settled request; if the current
   // request-only inputs no longer match it, the quotes are stale. Before the
   // first settle (ref null) there is nothing displayed to be stale against.
-  const isQuoteRequestStale =
-    settledRequestParamsKeyRef.current !== null &&
-    settledRequestParamsKeyRef.current !== requestParamsKey;
+  // Backend hydration writes slippage after a null-slippage fetch without
+  // refetching; that alone must not disable the CTA.
+  const isQuoteRequestStale = (() => {
+    const settledKey = settledRequestParamsKeyRef.current;
+    if (settledKey === null || settledKey === requestParamsKey) {
+      return false;
+    }
+    if (!isSlippageUserOverride) {
+      try {
+        const settled = JSON.parse(settledKey) as {
+          sourceTokenAmount: string | null;
+          slippage: string | null;
+          destAddress: string | null;
+          gasIncluded: boolean;
+          gasIncluded7702: boolean;
+        };
+        const current = JSON.parse(requestParamsKey) as typeof settled;
+        if (
+          settled.slippage === null &&
+          current.slippage !== null &&
+          settled.sourceTokenAmount === current.sourceTokenAmount &&
+          settled.destAddress === current.destAddress &&
+          settled.gasIncluded === current.gasIncluded &&
+          settled.gasIncluded7702 === current.gasIncluded7702
+        ) {
+          return false;
+        }
+      } catch {
+        // Fall through to stale when the settled key cannot be compared.
+      }
+    }
+    return true;
+  })();
 
   return {
     activeQuote,

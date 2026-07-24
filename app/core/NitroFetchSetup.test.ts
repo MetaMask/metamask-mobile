@@ -106,6 +106,92 @@ describe('NitroFetchSetup', () => {
       );
     });
 
+    describe('normalizeBodyForNitroFetch — Uint8Array/ArrayBuffer body coercion', () => {
+      // nitro-fetch's buildNitroRequest hardcodes `bodyBytes: undefined`,
+      // silently dropping binary bodies. These tests verify the shim converts
+      // them to strings so the payload reaches the server intact.
+
+      it('converts a Uint8Array body to a UTF-8 string before calling nitroFetch', async () => {
+        const json =
+          '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}';
+        const body = new TextEncoder().encode(json);
+
+        await global.fetch('https://linea-mainnet.infura.io/v3/key', {
+          method: 'POST',
+          body,
+        });
+
+        const [, passedInit] = mockNitroFetch.mock.calls[0];
+        expect(typeof passedInit?.body).toBe('string');
+        expect(passedInit?.body).toBe(json);
+      });
+
+      it('converts an ArrayBuffer body to a UTF-8 string before calling nitroFetch', async () => {
+        const json =
+          '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":2}';
+        const body = new TextEncoder().encode(json).buffer as ArrayBuffer;
+
+        await global.fetch('https://mainnet.infura.io/v3/key', {
+          method: 'POST',
+          body,
+        });
+
+        const [, passedInit] = mockNitroFetch.mock.calls[0];
+        expect(typeof passedInit?.body).toBe('string');
+        expect(passedInit?.body).toBe(json);
+      });
+
+      it('passes a string body through unchanged', async () => {
+        const json =
+          '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":3}';
+
+        await global.fetch('https://mainnet.infura.io/v3/key', {
+          method: 'POST',
+          body: json,
+        });
+
+        const [, passedInit] = mockNitroFetch.mock.calls[0];
+        expect(passedInit?.body).toBe(json);
+      });
+
+      it('passes null/undefined body through unchanged', async () => {
+        await global.fetch('https://example.com', { method: 'GET' });
+
+        const [, passedInit] = mockNitroFetch.mock.calls[0];
+        expect(passedInit?.body).toBeUndefined();
+      });
+
+      it('preserves all other init properties when converting a Uint8Array body', async () => {
+        const body = new TextEncoder().encode('{}');
+
+        await global.fetch('https://example.com', {
+          method: 'POST',
+          body,
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        const [, passedInit] = mockNitroFetch.mock.calls[0];
+        expect(passedInit?.method).toBe('POST');
+        expect(
+          (passedInit?.headers as Record<string, string>)?.['Content-Type'],
+        ).toBe('application/json');
+      });
+
+      it('applies body normalisation before prefetchKey injection (both transforms compose)', async () => {
+        const json = '{"data":true}';
+        const body = new TextEncoder().encode(json);
+
+        await global.fetch(METAMASK_STALELIST_URL, { method: 'POST', body });
+
+        const [, passedInit] = mockNitroFetch.mock.calls[0];
+        expect(typeof passedInit?.body).toBe('string');
+        expect(passedInit?.body).toBe(json);
+        expect((passedInit?.headers as Headers).get('prefetchKey')).toBe(
+          'phishing-stalelist',
+        );
+      });
+    });
+
     it('returns the response resolved by nitroFetch', async () => {
       const mockResponse = { ok: true, status: 200 } as unknown as Response;
       mockNitroFetch.mockResolvedValueOnce(mockResponse);

@@ -8,7 +8,10 @@ import {
   ButtonIconSize,
   FontWeight,
   HeaderSubpage,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -118,6 +121,13 @@ export const PerpsMarketInlineHeader = ({
               {displayTitle}
             </Text>
             {leverageBadge}
+            {onIdentityPress ? (
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Xs}
+                color={IconColor.IconAlternative}
+              />
+            ) : null}
           </Box>
           <Text
             variant={TextVariant.BodySm}

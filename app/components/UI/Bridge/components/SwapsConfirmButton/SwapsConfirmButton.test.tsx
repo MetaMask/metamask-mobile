@@ -78,10 +78,6 @@ jest.mock('../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
-jest.mock('../../../../../hooks', () => ({
-  useABTest: jest.fn(() => ({ variant: { showPostTradeModal: true } })),
-}));
-
 // Mock hasMinimumRequiredVersion so that selectBridgeFeatureFlags does not call
 // compareVersions (which requires a real app version string unavailable in tests).
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({

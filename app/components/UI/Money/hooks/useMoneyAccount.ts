@@ -178,6 +178,7 @@ export function useMoneyAccountDeposit() {
           accountantAddress: depositSetup.accountantAddress,
           lensAddress: depositSetup.lensAddress,
           provider: depositSetup.provider,
+          initialiseWithoutData: true,
         });
 
         // We only set the transaction from the money account perspective.
@@ -202,7 +203,7 @@ export function useMoneyAccountDeposit() {
               standard: 'erc20',
             },
           ],
-          skipInitialGasEstimate: depositSetup.isGasFeeSponsored,
+          skipInitialGasEstimate: true,
           transactions: [approveTx, depositTx],
         });
       } catch (error) {
@@ -296,7 +297,7 @@ export function useMoneyAccountWithdrawal() {
         isInternal: true,
         networkClientId,
         origin: ORIGIN_METAMASK,
-        skipInitialGasEstimate: isGasFeeSponsored,
+        skipInitialGasEstimate: true,
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {

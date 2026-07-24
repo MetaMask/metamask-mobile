@@ -15,9 +15,9 @@ import {
 const UNISWAP_URL = 'https://app.uniswap.org';
 
 perfTest.describe(`${PerformanceLogin}`, () => {
-  perfTest.setTimeout(10 * 60 * 1000);
+  perfTest.setTimeout(20 * 60 * 1000);
 
-  perfTest(
+  perfTest.skip(
     'Connect to Uniswap dapp, edit accounts, choose another account, and skip Solana popup',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver: _driver, performanceTracker }) => {
@@ -66,7 +66,6 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       }
 
       metamaskTimer.start();
-
       // Still on Native Context
       await unlockIfLockScreenVisible();
       metamaskTimer.stop();

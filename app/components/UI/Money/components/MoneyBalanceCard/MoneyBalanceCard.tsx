@@ -60,7 +60,7 @@ const MoneyBalanceCard = () => {
     apyPercent,
     isBalanceLoading,
     isBalanceFetchError,
-    isBalanceFetching,
+    moneyBalanceQuery,
     refetchBalance,
     vaultApyQuery,
   } = useMoneyAccountBalance();
@@ -85,6 +85,8 @@ const MoneyBalanceCard = () => {
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
   });
+
+  const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
@@ -113,7 +115,7 @@ const MoneyBalanceCard = () => {
   let buttonVariant: ButtonVariant;
   let containerTestId: string;
 
-  if (!hasMoneyAccount || isError || isRetrying) {
+  if (isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
@@ -204,19 +206,7 @@ const MoneyBalanceCard = () => {
   }, [navigation, trackTooltipClicked]);
 
   const renderBalanceSlot = () => {
-    if (!hasMoneyAccount) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          testID={MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT}
-        >
-          {strings('money.balance_no_account')}
-        </Text>
-      );
-    }
-    if (isBalanceLoading || isRetrying) {
+    if (!hasMoneyAccount || isBalanceLoading || isRetrying) {
       return (
         <Skeleton
           height={24}
@@ -270,6 +260,8 @@ const MoneyBalanceCard = () => {
         color={TextColor.TextDefault}
         isHidden={privacyMode}
         length={SensitiveTextLength.Medium}
+        numberOfLines={1}
+        twClassName="shrink"
         testID={MoneyBalanceCardTestIds.BALANCE}
       >
         {balanceText}
@@ -289,7 +281,7 @@ const MoneyBalanceCard = () => {
         ),
       ]}
     >
-      <Box twClassName="flex-1 gap-1 pr-3">
+      <Box twClassName="min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -301,6 +293,14 @@ const MoneyBalanceCard = () => {
             testID={MoneyBalanceCardTestIds.LABEL}
           >
             {strings('money.balance_card.label')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceCardTestIds.CURRENCY_SUFFIX}
+          >
+            {strings('money.balance_card.currency_suffix')}
           </Text>
           <ButtonIcon
             iconName={IconName.Info}
@@ -321,6 +321,7 @@ const MoneyBalanceCard = () => {
             <Skeleton
               height={20}
               width={60}
+              twClassName="shrink-0"
               testID={MoneyBalanceCardTestIds.APY_TAG_SKELETON}
             />
           ) : (
@@ -328,16 +329,10 @@ const MoneyBalanceCard = () => {
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
+              twClassName="shrink-0"
               testID={MoneyBalanceCardTestIds.APY_TAG}
             >
               {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.apy_currency_suffix')}
-              </Text>
             </Text>
           )}
         </Box>

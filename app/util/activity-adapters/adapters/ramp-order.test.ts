@@ -46,6 +46,36 @@ describe('mapRampOrder', () => {
     });
   });
 
+  it('keeps human-readable cryptoAmount without token decimals', () => {
+    const order = {
+      ...baseOrder,
+      cryptoAmount: '30',
+      data: {
+        cryptoCurrency: {
+          symbol: 'mUSD',
+          decimals: 6,
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        },
+      },
+    } as FiatOrder;
+
+    expect(mapRampOrder({ order })).toMatchObject({
+      data: {
+        token: {
+          amount: '30',
+          symbol: 'mUSD',
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          direction: 'in',
+        },
+      },
+    });
+    expect(mapRampOrder({ order })?.data).toEqual(
+      expect.objectContaining({
+        token: expect.not.objectContaining({ decimals: expect.anything() }),
+      }),
+    );
+  });
+
   it('maps a sell order to sell using sellTxHash and outgoing token', () => {
     const order = {
       ...baseOrder,

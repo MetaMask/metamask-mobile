@@ -33,6 +33,9 @@ import Engine from '../../../../core/Engine';
 // Mock dependencies
 jest.mock('./stream');
 jest.mock('./usePerpsMarkets');
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
 jest.mock('@metamask/perps-controller', () => ({
   ...jest.requireActual('@metamask/perps-controller'),
   sortMarkets: jest.fn(),
