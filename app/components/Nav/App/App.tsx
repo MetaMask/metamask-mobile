@@ -182,6 +182,16 @@ const NativeStack = createNativeStackNavigator();
 
 const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
   animation: 'slide_from_right',
+  presentation: 'card',
+  gestureEnabled: true,
+  fullScreenGestureEnabled: true,
+};
+
+const addWalletTransitionOptions: NativeStackNavigationOptions = {
+  animation: 'slide_from_right',
+  presentation: 'card',
+  gestureEnabled: true,
+  fullScreenGestureEnabled: true,
 };
 
 const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
@@ -189,13 +199,6 @@ const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
   contentStyle: { backgroundColor: importedColors.transparent },
   gestureEnabled: false,
 };
-
-const isAccountSelectorRootModalRoute = (params: object | undefined) =>
-  Boolean(
-    params &&
-      'screen' in params &&
-      params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
-  );
 
 const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
   Boolean(
@@ -534,12 +537,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={RampsServiceDisruptionModal}
     />
     <NativeStack.Screen
-      name={Routes.SHEET.ACCOUNT_SELECTOR}
-      component={AccountSelector}
-      options={accountSelectorTransitionOptions}
-    />
-    <NativeStack.Screen name={Routes.SHEET.ADD_WALLET} component={AddWallet} />
-    <NativeStack.Screen
       name={Routes.SHEET.ADDRESS_SELECTOR}
       component={AddressSelector}
     />
@@ -840,6 +837,7 @@ const ConnectHardwareWalletFlow = () => {
   return (
     <NativeStack.Navigator
       screenOptions={{
+        headerShown: false,
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
@@ -956,6 +954,8 @@ const MultichainAccountGroupDetails = () => {
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
           contentStyle: { backgroundColor: colors.background.default },
         }}
       />
@@ -1111,9 +1111,6 @@ const AppFlow = () => {
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
         options={({ route }) => {
-          if (isAccountSelectorRootModalRoute(route.params)) {
-            return accountSelectorTransitionOptions;
-          }
           if (isTradeWalletActionsRootModalRoute(route.params)) {
             return tradeWalletActionsRootModalOptions;
           }
@@ -1129,6 +1126,9 @@ const AppFlow = () => {
         component={ImportPrivateKeyView}
         options={{
           animation: 'slide_from_right',
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
           contentStyle: { backgroundColor: colors.background.default },
         }}
       />
@@ -1136,7 +1136,12 @@ const AppFlow = () => {
         <NativeStack.Screen
           name="ImportSRPView"
           component={ImportSRPView}
-          options={{ animation: 'slide_from_right' }}
+          options={{
+            animation: 'slide_from_right',
+            presentation: 'card',
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true,
+          }}
         />
       }
       <NativeStack.Screen
@@ -1150,6 +1155,12 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.HW.CONNECT}
         component={ConnectHardwareWalletFlow}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+        }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
@@ -1175,6 +1186,9 @@ const AppFlow = () => {
         component={MultichainAccountGroupDetails}
         options={{
           animation: 'slide_from_right',
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
         }}
       />
       <NativeStack.Screen
@@ -1183,6 +1197,9 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           animation: 'slide_from_right',
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
         }}
       />
       <NativeStack.Screen
@@ -1199,8 +1216,20 @@ const AppFlow = () => {
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
           contentStyle: { backgroundColor: colors.background.default },
         }}
+      />
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
+        component={AccountSelector}
+        options={accountSelectorTransitionOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.SHEET.ADD_WALLET}
+        component={AddWallet}
+        options={addWalletTransitionOptions}
       />
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
