@@ -481,6 +481,10 @@ export function excludeEvents(event: SentryEvent | null): SentryEvent | null {
       }
     }
   }
+  if (event?.contexts?.trace?.data?.['trace.timed_out'] === true) {
+    return null;
+  }
+
   //Modify or drop event here
   if (event?.transaction === 'Route Change') {
     //Route change is dropped because is does not reflect a screen we can action on.
