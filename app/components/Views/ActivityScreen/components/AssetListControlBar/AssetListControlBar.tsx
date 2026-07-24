@@ -52,13 +52,11 @@ const FilterChip: React.FC<{
 /**
  * Horizontally-scrollable filter chip row for the Activity screen — mirrors
  * the extension's `AssetListControlBar` pattern. Pure presentational: the
- * parent screen owns filter state, label resolution, and sheet rendering.
+ * parent screen owns filter state, label resolution, and opens filter sheets
+ * via `ROOT_MODAL_FLOW` navigation (so sheets cover the tab bar).
  *
  * Chips use the default design-system select-button styling (plain label +
  * dropdown chevron, no leading icon, no accent colour).
- *
- * Sheets must remain siblings of the scroll content (not nested inside it),
- * since the underlying `component-library` `BottomSheet` does not portal.
  */
 const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   typeChip,
