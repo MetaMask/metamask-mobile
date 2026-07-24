@@ -182,28 +182,41 @@ function addPayTypeProperties(
 ) {
   const { metamaskPay, id: transactionId } = transaction;
 
+  if (properties.mm_pay) {
+    return;
+  }
+
+  const chainId = metamaskPay?.chainId;
+  const tokenAddress = metamaskPay?.tokenAddress;
+
   if (
-    !metamaskPay?.chainId ||
-    !metamaskPay?.tokenAddress ||
-    properties.mm_pay
+    !hasTransactionType(transaction, PAY_TYPES) &&
+    (!chainId || !tokenAddress)
   ) {
     return;
   }
 
-  const { chainId, tokenAddress } = metamaskPay;
-
   properties.mm_pay = true;
-  properties.mm_pay_chain_selected = chainId;
   properties.mm_pay_payment_method_selected = 'crypto';
 
+  if (chainId) {
+    properties.mm_pay_chain_selected = chainId;
+  }
+
   const txPayData =
-    state.engine.backgroundState.TransactionPayController?.transactionData?.[
+    state?.engine?.backgroundState?.TransactionPayController?.transactionData?.[
       transactionId
     ];
 
-  properties.mm_pay_token_selected =
+  const tokenSymbol =
     txPayData?.paymentToken?.symbol ??
-    getTokenSymbol(state, chainId, tokenAddress);
+    (chainId && tokenAddress
+      ? getTokenSymbol(state, chainId, tokenAddress)
+      : undefined);
+
+  if (tokenSymbol !== undefined) {
+    properties.mm_pay_token_selected = tokenSymbol;
+  }
 
   for (const [types, useCase] of USE_CASE_MAP) {
     if (hasTransactionType(transaction, types)) {
