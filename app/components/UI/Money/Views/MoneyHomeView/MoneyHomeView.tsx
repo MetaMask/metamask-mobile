@@ -96,6 +96,7 @@ import {
 } from '../../constants/moneyEvents';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
+import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -133,6 +134,8 @@ const MoneyHomeView = () => {
     apyPercent,
     apyDecimal,
   } = useMoneyAccountBalance();
+  const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
+    useMoneyAccountInterest();
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
 
@@ -144,13 +147,17 @@ const MoneyHomeView = () => {
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refetchBalance(), refreshMusdFiatRate()]);
+      await Promise.all([
+        refetchBalance(),
+        refetchInterest(),
+        refreshMusdFiatRate(),
+      ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance, refreshMusdFiatRate]);
+  }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
   // mUSD is USD-pegged 1:1, so show the token balance as dollars — consistent
@@ -280,7 +287,7 @@ const MoneyHomeView = () => {
 
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
-  const monthlyEarnings = useMemo(() => {
+  const projectedMonthlyFallback = useMemo(() => {
     if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
@@ -294,7 +301,7 @@ const MoneyHomeView = () => {
     return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyDecimal, formattedZero]);
 
-  const yearlyEarnings = useMemo(() => {
+  const projectedAnnualFallback = useMemo(() => {
     if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
@@ -307,6 +314,55 @@ const MoneyHomeView = () => {
     const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyDecimal, formattedZero]);
+
+  const formatInterestEarned = useCallback(
+    (value: string | undefined): string | undefined => {
+      if (value === undefined) return undefined;
+      const earnings = new BigNumber(value);
+      if (earnings.isNaN() || !earnings.isFinite()) return undefined;
+
+      const formatted = moneyFormatUsd(earnings);
+      return earnings.isGreaterThan(0) && formatted !== formattedZero
+        ? `+${formatted}`
+        : formatted;
+    },
+    [formattedZero],
+  );
+
+  const formattedLast30DaysInterest = useMemo(
+    () =>
+      last30DaysQuery.isError
+        ? undefined
+        : formatInterestEarned(last30DaysQuery.data?.interest_earned_usd),
+    [
+      formatInterestEarned,
+      last30DaysQuery.data?.interest_earned_usd,
+      last30DaysQuery.isError,
+    ],
+  );
+
+  const formattedSinceInceptionInterest = useMemo(
+    () =>
+      sinceInceptionQuery.isError
+        ? undefined
+        : formatInterestEarned(sinceInceptionQuery.data?.interest_earned_usd),
+    [
+      formatInterestEarned,
+      sinceInceptionQuery.data?.interest_earned_usd,
+      sinceInceptionQuery.isError,
+    ],
+  );
+
+  const last30DaysInterest =
+    formattedLast30DaysInterest ?? projectedMonthlyFallback;
+  const sinceInceptionInterest =
+    formattedSinceInceptionInterest ?? projectedAnnualFallback;
+
+  const isEarningsLoading =
+    last30DaysQuery.isLoading ||
+    sinceInceptionQuery.isLoading ||
+    ((!formattedLast30DaysInterest || !formattedSinceInceptionInterest) &&
+      (vaultApyQuery.isLoading || isBalanceLoading));
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
@@ -722,9 +778,9 @@ const MoneyHomeView = () => {
       key: 'earnings',
       node: (
         <MoneyEarnings
-          monthlyEarnings={monthlyEarnings}
-          yearlyEarnings={yearlyEarnings}
-          isLoading={vaultApyQuery.isLoading || isBalanceLoading}
+          last30DaysEarnings={last30DaysInterest}
+          sinceInceptionEarnings={sinceInceptionInterest}
+          isLoading={isEarningsLoading}
           onInfoPress={handleEarningsInfoPress}
           privacyMode={privacyMode}
         />

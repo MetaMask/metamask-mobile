@@ -17,15 +17,14 @@ import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
 
 interface MoneyEarningsProps {
   /**
-   * Estimated monthly earnings based on current balance and APY, formatted in
-   * the user's selected currency.
+   * Interest earned over the last 30 days, formatted in USD.
    */
-  monthlyEarnings: string;
+  last30DaysEarnings: string;
   /**
-   * Estimated yearly earnings based on current balance and APY, formatted in
-   * the user's selected currency.
+   * Interest earned since the Money Account position was created, formatted
+   * in USD.
    */
-  yearlyEarnings: string;
+  sinceInceptionEarnings: string;
   /**
    * Render skeletons in place of the two earnings values while data is being
    * fetched.
@@ -67,8 +66,8 @@ const ValueText = ({
 };
 
 const MoneyEarnings = ({
-  monthlyEarnings,
-  yearlyEarnings,
+  last30DaysEarnings,
+  sinceInceptionEarnings,
   isLoading = false,
   onInfoPress,
   privacyMode = false,
@@ -85,7 +84,7 @@ const MoneyEarnings = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="justify-between"
-        testID={MoneyEarningsTestIds.MONTHLY}
+        testID={MoneyEarningsTestIds.LAST_30_DAYS}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.earnings.estimated_monthly')}
@@ -94,14 +93,14 @@ const MoneyEarnings = ({
           <Skeleton
             height={24}
             width={80}
-            testID={MoneyEarningsTestIds.MONTHLY_SKELETON}
+            testID={MoneyEarningsTestIds.LAST_30_DAYS_SKELETON}
           />
         ) : (
           <ValueText
-            testID={MoneyEarningsTestIds.MONTHLY_VALUE}
+            testID={MoneyEarningsTestIds.LAST_30_DAYS_VALUE}
             privacyMode={privacyMode}
           >
-            {monthlyEarnings}
+            {last30DaysEarnings}
           </ValueText>
         )}
       </Box>
@@ -110,7 +109,7 @@ const MoneyEarnings = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="justify-between"
-        testID={MoneyEarningsTestIds.YEARLY}
+        testID={MoneyEarningsTestIds.SINCE_INCEPTION}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.earnings.estimated_yearly')}
@@ -119,14 +118,14 @@ const MoneyEarnings = ({
           <Skeleton
             height={24}
             width={80}
-            testID={MoneyEarningsTestIds.YEARLY_SKELETON}
+            testID={MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON}
           />
         ) : (
           <ValueText
-            testID={MoneyEarningsTestIds.YEARLY_VALUE}
+            testID={MoneyEarningsTestIds.SINCE_INCEPTION_VALUE}
             privacyMode={privacyMode}
           >
-            {yearlyEarnings}
+            {sinceInceptionEarnings}
           </ValueText>
         )}
       </Box>
