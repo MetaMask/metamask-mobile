@@ -45,6 +45,7 @@ import {
   AccountType,
   WalletCreationErrorCtaType,
 } from '../../../constants/onboarding';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 
 interface SRPErrorScreenProps {
   error: Error;
@@ -59,6 +60,7 @@ const SRPErrorScreen = ({
 }: SRPErrorScreenProps) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { openSupportWithConsent } = useSupportConsent();
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -164,8 +166,11 @@ const SRPErrorScreen = ({
         .build(),
       saveOnboardingEvent,
     );
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [saveOnboardingEvent, accountType]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  }, [saveOnboardingEvent, accountType, openSupportWithConsent]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>

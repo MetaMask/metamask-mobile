@@ -45,6 +45,14 @@ jest.mock('../../../core', () => ({
   },
 }));
 
+const mockOpenSupportWithConsent = jest.fn();
+
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 import { Authentication } from '../../../core';
 
 describe('SRPErrorScreen', () => {
@@ -296,7 +304,7 @@ describe('SRPErrorScreen', () => {
   });
 
   describe('handleContactSupport', () => {
-    it('opens support URL when MetaMask Support is pressed', () => {
+    it('calls openSupportWithConsent with an opener and the support base URL when MetaMask Support is pressed', () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
@@ -312,8 +320,26 @@ describe('SRPErrorScreen', () => {
         }),
         expect.any(Function),
       );
-      expect(Linking.openURL).toHaveBeenCalledWith(
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
         AppConstants.REVIEW_PROMPT.SUPPORT,
+      );
+    });
+
+    // Covers only the call-site opener wiring: invoking the opener passed to
+    // openSupportWithConsent opens the URL via Linking. The consent modal
+    // internals are covered by the core support-consent tests.
+    it('opens the support URL via Linking when the opener callback is invoked', () => {
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      fireEvent.press(getByText('MetaMask Support'));
+      const [open] = mockOpenSupportWithConsent.mock.calls[0];
+      open('https://support.metamask.io/');
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://support.metamask.io/',
       );
     });
   });
