@@ -4,8 +4,14 @@ import {
   selectDefaultGrouping,
   aggregateOrderBookLevels,
   calculateAggregationParams,
+  groupOrderBook,
+  getDepthRatio,
+  getDepthWidth,
+  formatSpreadPercent,
+  formatColumnValue,
 } from './orderBookGrouping';
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
+import type { OrderBookData } from '@metamask/perps-controller';
 
 describe('orderBookGrouping', () => {
   describe('calculateGroupingOptions', () => {
@@ -304,6 +310,107 @@ describe('orderBookGrouping', () => {
         expect(result.nSigFigs).toBe(5);
         expect(result.mantissa).toBe(5);
       });
+    });
+  });
+
+  describe('groupOrderBook', () => {
+    const book: OrderBookData = {
+      bids: [
+        {
+          price: '100',
+          size: '1',
+          total: '1',
+          notional: '100',
+          totalNotional: '100',
+        },
+        {
+          price: '99',
+          size: '2',
+          total: '3',
+          notional: '198',
+          totalNotional: '298',
+        },
+      ],
+      asks: [
+        {
+          price: '101',
+          size: '1.5',
+          total: '1.5',
+          notional: '151.5',
+          totalNotional: '151.5',
+        },
+      ],
+      spread: '1',
+      spreadPercentage: '1',
+      midPrice: '100.5',
+      lastUpdated: 0,
+      maxTotal: '3',
+    };
+
+    it('trims without re-bucketing when grouping is null', () => {
+      const result = groupOrderBook(book, null, 1);
+      expect(result.bids).toHaveLength(1);
+      expect(result.asks).toHaveLength(1);
+      expect(result.maxTotal).toBe(1.5);
+    });
+  });
+
+  describe('getDepthRatio / getDepthWidth / formatters', () => {
+    it('computes buy/sell depth percentages', () => {
+      const bids: OrderBookLevel[] = [
+        {
+          price: '1',
+          size: '1',
+          total: '3',
+          notional: '1',
+          totalNotional: '3',
+        },
+      ];
+      const asks: OrderBookLevel[] = [
+        {
+          price: '2',
+          size: '1',
+          total: '1',
+          notional: '2',
+          totalNotional: '2',
+        },
+      ];
+      expect(getDepthRatio(bids, asks)).toEqual({
+        buyPercent: 75,
+        sellPercent: 25,
+      });
+    });
+
+    it('scales depth bar width against maxTotal', () => {
+      expect(
+        getDepthWidth(
+          {
+            price: '1',
+            size: '1',
+            total: '50',
+            notional: '1',
+            totalNotional: '1',
+          },
+          100,
+        ),
+      ).toBe(50);
+    });
+
+    it('formats spread percent and column values', () => {
+      expect(formatSpreadPercent(0.0027)).toBe('0.003%');
+      expect(
+        formatColumnValue(
+          {
+            price: '100',
+            size: '1.5',
+            total: '3',
+            notional: '150',
+            totalNotional: '300',
+          },
+          'usd',
+          'total',
+        ),
+      ).toContain('300');
     });
   });
 });
