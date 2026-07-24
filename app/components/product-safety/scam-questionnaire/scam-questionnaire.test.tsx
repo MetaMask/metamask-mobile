@@ -79,6 +79,10 @@ describe('ScamQuestionnaire', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('fires the "started" analytics event on first render', () => {
     setup();
     expect(mockTrackStarted).toHaveBeenCalledTimes(1);
