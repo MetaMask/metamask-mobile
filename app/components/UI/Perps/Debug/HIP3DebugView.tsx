@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
@@ -44,7 +45,7 @@ const getHyperLiquidProvider = (): HyperLiquidProvider | undefined => {
 };
 
 const HIP3DebugView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const provider = getHyperLiquidProvider();
 

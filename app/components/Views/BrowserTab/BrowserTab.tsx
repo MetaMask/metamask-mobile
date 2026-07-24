@@ -94,6 +94,7 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 import { isTestEnvironment } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -169,7 +170,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
   }) => {
     // Opted out of the React Compiler since it's a large component and we don't want to risk breaking changes.
     'use no memo';
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
