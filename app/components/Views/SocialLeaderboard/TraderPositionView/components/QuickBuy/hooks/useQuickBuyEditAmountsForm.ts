@@ -77,9 +77,13 @@ export function useQuickBuyEditAmountsForm(
     [buyValues, sellValues],
   );
 
-  const focusedValue = useMemo(() => focusedField.kind === 'buy'
-      ? (buyValues[focusedField.index] ?? '')
-      : (sellValues[focusedField.index] ?? ''), [buyValues, focusedField, sellValues]);
+  const focusedValue = useMemo(
+    () =>
+      focusedField.kind === 'buy'
+        ? (buyValues[focusedField.index] ?? '')
+        : (sellValues[focusedField.index] ?? ''),
+    [buyValues, focusedField, sellValues],
+  );
 
   const handleFieldPress = useCallback(
     (kind: 'buy' | 'sell', index: number) => {

@@ -176,7 +176,11 @@ describe('QuickBuyActionFooter', () => {
       ...baseContext,
       useKeyboard: true,
       isKeypadOpen: true,
-      features: { payWithSheet: true, quickAmountPills: true, quoteDetails: true },
+      features: {
+        payWithSheet: true,
+        quickAmountPills: true,
+        quoteDetails: true,
+      },
     });
 
     render(<QuickBuyActionFooter />);
