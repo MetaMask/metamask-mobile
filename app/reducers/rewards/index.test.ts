@@ -77,6 +77,12 @@ import rewardsReducer, {
   setVersionGuardError,
   dismissCampaignOutcomeToast,
   subscribeCampaignReminder,
+  markFirstPredictionOnUsOfferViewed,
+  markFirstPredictionOnUsSkipped,
+  markFirstPredictionOnUsOutcomeOpened,
+  markFirstPredictionOnUsOrderConfirmed,
+  markFirstPredictionOnUsOrderExecuted,
+  markFirstPredictionOnUsOrderFailed,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -2066,6 +2072,15 @@ describe('rewardsReducer', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        firstPredictionOnUsInteraction: {
+          offerViewed: true,
+          skipped: true,
+          marketId: null,
+          outcome: null,
+          orderStatus: null,
+          predictAccountAddress: null,
+          transactionHash: null,
+        },
         hideCurrentAccountNotOptedInBanner: [
           {
             accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
@@ -2201,6 +2216,15 @@ describe('rewardsReducer', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        firstPredictionOnUsInteraction: {
+          offerViewed: true,
+          skipped: true,
+          marketId: null,
+          outcome: null,
+          orderStatus: null,
+          predictAccountAddress: null,
+          transactionHash: null,
+        },
         hideCurrentAccountNotOptedInBanner: [
           {
             accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
@@ -2299,6 +2323,8 @@ describe('rewardsReducer', () => {
         unlockedRewards: persistedRewardsState.unlockedRewards,
         hideUnlinkedAccountsBanner:
           persistedRewardsState.hideUnlinkedAccountsBanner,
+        firstPredictionOnUsInteraction:
+          persistedRewardsState.firstPredictionOnUsInteraction,
         hideCurrentAccountNotOptedInBanner:
           persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         // These fields are restored from persisted state
@@ -2484,6 +2510,15 @@ describe('rewardsReducer', () => {
           },
         ],
         hideUnlinkedAccountsBanner: true,
+        firstPredictionOnUsInteraction: {
+          offerViewed: true,
+          skipped: true,
+          marketId: null,
+          outcome: null,
+          orderStatus: null,
+          predictAccountAddress: null,
+          transactionHash: null,
+        },
         hideCurrentAccountNotOptedInBanner: [
           {
             accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
@@ -7008,6 +7043,164 @@ describe('ondoCampaignDeposits', () => {
 
       expect(state.vipSplashAccepted).toEqual({
         'old-sub': true,
+      });
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves firstPredictionOnUsInteraction', () => {
+    it('preserves the interaction trail when subscription ID changes', () => {
+      const stateWithInteraction: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        firstPredictionOnUsInteraction: {
+          offerViewed: true,
+          skipped: false,
+          marketId: 'market-1',
+          outcome: 'Yes',
+          orderStatus: 'executed',
+          predictAccountAddress: '0xabc',
+          transactionHash: '0xhash',
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithInteraction,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.firstPredictionOnUsInteraction).toEqual({
+        offerViewed: true,
+        skipped: false,
+        marketId: 'market-1',
+        outcome: 'Yes',
+        orderStatus: 'executed',
+        predictAccountAddress: '0xabc',
+        transactionHash: '0xhash',
+      });
+    });
+  });
+
+  describe('First Prediction On Us interaction actions', () => {
+    it('marks the offer as viewed', () => {
+      const state = rewardsReducer(
+        initialState,
+        markFirstPredictionOnUsOfferViewed(),
+      );
+
+      expect(state.firstPredictionOnUsInteraction.offerViewed).toBe(true);
+    });
+
+    it('marks the offer as skipped', () => {
+      const state = rewardsReducer(
+        initialState,
+        markFirstPredictionOnUsSkipped(),
+      );
+
+      expect(state.firstPredictionOnUsInteraction.skipped).toBe(true);
+    });
+
+    it('records outcome opened details and clears prior order evidence', () => {
+      const seeded: RewardsState = {
+        ...initialState,
+        firstPredictionOnUsInteraction: {
+          offerViewed: true,
+          skipped: false,
+          marketId: 'old-market',
+          outcome: 'No',
+          orderStatus: 'executed',
+          predictAccountAddress: '0xold',
+          transactionHash: '0xoldhash',
+        },
+      };
+
+      const state = rewardsReducer(
+        seeded,
+        markFirstPredictionOnUsOutcomeOpened({
+          marketId: 'market-1',
+          outcome: 'Yes',
+        }),
+      );
+
+      expect(state.firstPredictionOnUsInteraction).toEqual({
+        offerViewed: true,
+        skipped: false,
+        marketId: 'market-1',
+        outcome: 'Yes',
+        orderStatus: null,
+        predictAccountAddress: null,
+        transactionHash: null,
+      });
+    });
+
+    it('records confirmed order status', () => {
+      const state = rewardsReducer(
+        initialState,
+        markFirstPredictionOnUsOrderConfirmed({
+          marketId: 'market-1',
+          outcome: 'Yes',
+        }),
+      );
+
+      expect(state.firstPredictionOnUsInteraction).toMatchObject({
+        skipped: false,
+        marketId: 'market-1',
+        outcome: 'Yes',
+        orderStatus: 'confirmed',
+      });
+    });
+
+    it('records executed order status with account and transaction evidence', () => {
+      const state = rewardsReducer(
+        initialState,
+        markFirstPredictionOnUsOrderExecuted({
+          marketId: 'market-1',
+          outcome: 'Yes',
+          predictAccountAddress: '0xabc',
+          transactionHash: '0xhash',
+        }),
+      );
+
+      expect(state.firstPredictionOnUsInteraction).toEqual({
+        offerViewed: false,
+        skipped: false,
+        marketId: 'market-1',
+        outcome: 'Yes',
+        orderStatus: 'executed',
+        predictAccountAddress: '0xabc',
+        transactionHash: '0xhash',
+      });
+    });
+
+    it('records failed order status and clears account evidence', () => {
+      const seeded: RewardsState = {
+        ...initialState,
+        firstPredictionOnUsInteraction: {
+          offerViewed: true,
+          skipped: false,
+          marketId: 'market-1',
+          outcome: 'Yes',
+          orderStatus: 'confirmed',
+          predictAccountAddress: '0xabc',
+          transactionHash: '0xhash',
+        },
+      };
+
+      const state = rewardsReducer(
+        seeded,
+        markFirstPredictionOnUsOrderFailed({
+          marketId: 'market-1',
+          outcome: 'Yes',
+        }),
+      );
+
+      expect(state.firstPredictionOnUsInteraction).toEqual({
+        offerViewed: true,
+        skipped: false,
+        marketId: 'market-1',
+        outcome: 'Yes',
+        orderStatus: 'failed',
+        predictAccountAddress: null,
+        transactionHash: null,
       });
     });
   });

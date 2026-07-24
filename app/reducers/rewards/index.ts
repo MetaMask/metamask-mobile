@@ -77,6 +77,32 @@ export interface BulkLinkState {
   initialSubscriptionId: string | null;
 }
 
+export type FirstPredictionOnUsOrderStatus =
+  | 'confirmed'
+  | 'executed'
+  | 'failed';
+
+export interface FirstPredictionOnUsInteraction {
+  offerViewed: boolean;
+  skipped: boolean;
+  marketId: string | null;
+  outcome: string | null;
+  orderStatus: FirstPredictionOnUsOrderStatus | null;
+  predictAccountAddress: string | null;
+  transactionHash: string | null;
+}
+
+export const initialFirstPredictionOnUsInteraction: FirstPredictionOnUsInteraction =
+  {
+    offerViewed: false,
+    skipped: false,
+    marketId: null,
+    outcome: null,
+    orderStatus: null,
+    predictAccountAddress: null,
+    transactionHash: null,
+  };
+
 export interface RewardsState {
   activeTab: 'overview' | 'campaigns' | 'activity';
   seasonStatusLoading: boolean;
@@ -240,6 +266,12 @@ export interface RewardsState {
 
   // Subscribed campaign start reminders (keyed by `${subscriptionId}:${campaignId}`)
   subscribedCampaignReminders: Record<string, boolean>;
+
+  // Customer-support trail for First Prediction On Us. Included in exported
+  // state logs so support can see whether the user viewed, skipped, or
+  // predicted — and the predict account / tx hash when a real order executes.
+  // `offerViewed` is also the one-time guard that prevents re-showing the splash.
+  firstPredictionOnUsInteraction: FirstPredictionOnUsInteraction;
 }
 
 /**
@@ -367,6 +399,8 @@ export const initialState: RewardsState = {
   dismissedCampaignOutcomeToasts: {},
 
   subscribedCampaignReminders: {},
+
+  firstPredictionOnUsInteraction: initialFirstPredictionOnUsInteraction,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -546,6 +580,7 @@ const rewardsSlice = createSlice({
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
           subscribedCampaignReminders: state.subscribedCampaignReminders,
+          firstPredictionOnUsInteraction: state.firstPredictionOnUsInteraction,
           vipSplashAccepted: state.vipSplashAccepted,
           vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
           versionGuardMinimumMobileVersion:
@@ -1230,6 +1265,67 @@ const rewardsSlice = createSlice({
       );
       state.subscribedCampaignReminders[key] = true;
     },
+
+    markFirstPredictionOnUsOfferViewed: (state) => {
+      state.firstPredictionOnUsInteraction.offerViewed = true;
+    },
+
+    markFirstPredictionOnUsSkipped: (state) => {
+      state.firstPredictionOnUsInteraction.skipped = true;
+    },
+
+    markFirstPredictionOnUsOutcomeOpened: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = null;
+      state.firstPredictionOnUsInteraction.predictAccountAddress = null;
+      state.firstPredictionOnUsInteraction.transactionHash = null;
+    },
+
+    markFirstPredictionOnUsOrderConfirmed: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'confirmed';
+    },
+
+    markFirstPredictionOnUsOrderExecuted: (
+      state,
+      action: PayloadAction<{
+        marketId: string;
+        outcome: string;
+        predictAccountAddress: string;
+        transactionHash: string;
+      }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'executed';
+      state.firstPredictionOnUsInteraction.predictAccountAddress =
+        action.payload.predictAccountAddress;
+      state.firstPredictionOnUsInteraction.transactionHash =
+        action.payload.transactionHash;
+    },
+
+    markFirstPredictionOnUsOrderFailed: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'failed';
+      state.firstPredictionOnUsInteraction.predictAccountAddress = null;
+      state.firstPredictionOnUsInteraction.transactionHash = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -1299,6 +1395,11 @@ const rewardsSlice = createSlice({
 
               subscribedCampaignReminders:
                 action.payload.rewards.subscribedCampaignReminders ?? {},
+
+              firstPredictionOnUsInteraction: {
+                ...initialFirstPredictionOnUsInteraction,
+                ...action.payload.rewards.firstPredictionOnUsInteraction,
+              },
 
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
@@ -1409,6 +1510,12 @@ export const {
   setPendingDeeplink,
   dismissCampaignOutcomeToast,
   subscribeCampaignReminder,
+  markFirstPredictionOnUsOfferViewed,
+  markFirstPredictionOnUsSkipped,
+  markFirstPredictionOnUsOutcomeOpened,
+  markFirstPredictionOnUsOrderConfirmed,
+  markFirstPredictionOnUsOrderExecuted,
+  markFirstPredictionOnUsOrderFailed,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

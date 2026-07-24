@@ -4,6 +4,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { markFirstPredictionOnUsOrderConfirmed } from '../../../../../reducers/rewards';
 import { usePredictOrderPreview } from '../../../Predict/hooks/usePredictOrderPreview';
 import { Recurrence, Side, type PredictMarket } from '../../../Predict/types';
 import { useFirstPredictOnUsOrder } from '../../hooks/useFirstPredictOnUsOrder';
@@ -12,6 +13,7 @@ import FirstPredictOnUsOrderSheet, {
 } from './FirstPredictOnUsOrderSheet';
 
 const mockSubmitOrder = jest.fn();
+const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'event' }));
@@ -32,6 +34,11 @@ jest.mock('../../../Predict/hooks/usePredictOrderPreview', () => ({
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
 }));
 
 jest.mock(
@@ -236,7 +243,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('tracks confirmed order and submits on confirm', async () => {
+  it('tracks confirmed order, updates support state, and submits on confirm', async () => {
     mockSubmitOrder.mockResolvedValueOnce(undefined);
     const { getByTestId } = render(<FirstPredictOnUsOrderSheet />);
 
@@ -250,6 +257,13 @@ describe('FirstPredictOnUsOrderSheet', () => {
       outcome: 'Yes',
       status: 'confirmed',
     });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      markFirstPredictionOnUsOrderConfirmed({
+        marketId: 'market-1',
+        outcome: 'Yes',
+      }),
+    );
+
     await waitFor(() => {
       expect(mockSubmitOrder).toHaveBeenCalledWith({
         amountUsd: 5,

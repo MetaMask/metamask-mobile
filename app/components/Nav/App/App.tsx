@@ -110,6 +110,8 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
+import FirstPredictOnUsSplashScreen from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsSplashScreen';
+import FirstPredictOnUsOrderSheet from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsOrderSheet';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
@@ -376,6 +378,23 @@ const OnboardingNav = () => {
         name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
         component={WalletCreationError}
         options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.FIRST_PREDICT_ON_US_SPLASH}
+        component={FirstPredictOnUsSplashScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET}
+        component={FirstPredictOnUsOrderSheet}
+        options={{
+          headerShown: false,
+          presentation: 'transparentModal',
+          contentStyle: { backgroundColor: importedColors.transparent },
+        }}
       />
     </NativeStack.Navigator>
   );
