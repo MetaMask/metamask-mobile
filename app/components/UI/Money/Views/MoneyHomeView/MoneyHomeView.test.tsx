@@ -486,6 +486,8 @@ describe('MoneyHomeView', () => {
           musdBalance: '1000000',
           vmusdValueInMusd: '2000000',
           totalBalance: '3000000',
+          source: 'api',
+          usedFallback: false,
         },
         isLoading: false,
       },

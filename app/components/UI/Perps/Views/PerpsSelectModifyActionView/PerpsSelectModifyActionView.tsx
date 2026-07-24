@@ -4,6 +4,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -35,7 +37,7 @@ const PerpsSelectModifyActionView: React.FC<
   onReversePosition,
   testID,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();

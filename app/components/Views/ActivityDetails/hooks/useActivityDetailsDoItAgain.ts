@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
@@ -42,7 +43,7 @@ export function useActivityDetailsDoItAgain({
   destinationToken?: TokenAmount;
   fallbackCaipChainId: CaipChainId;
 }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sourceBridgeToken = useMemo(
     () => toBridgeToken(sourceToken, fallbackCaipChainId),

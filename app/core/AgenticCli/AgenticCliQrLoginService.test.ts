@@ -51,6 +51,12 @@ jest.mock('../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
 
+const mockMaybePromptPushPermissionAfterCliLogin = jest.fn();
+jest.mock('./promptPushNotificationPermission', () => ({
+  maybePromptPushPermissionAfterCliLogin: () =>
+    mockMaybePromptPushPermissionAfterCliLogin(),
+}));
+
 const mockGetBearerToken = jest.fn().mockResolvedValue('hydra-token');
 const mockIsUnlocked = jest.fn(() => true);
 const mockSubscribe = jest.fn();
@@ -232,6 +238,7 @@ describe('AgenticCliQrLoginService', () => {
       description: 'sdk_connect_v2.show_cli_link_success.description',
     });
     expect(store.dispatch).toHaveBeenCalledTimes(1);
+    expect(mockMaybePromptPushPermissionAfterCliLogin).toHaveBeenCalledTimes(1);
     expect(cleanupConnection).toHaveBeenCalledWith(conn);
     expect(setStage).toHaveBeenCalledWith('send-auth-token-to-cli');
   });
