@@ -201,18 +201,44 @@ describe('resetDmk', () => {
     expect(mockDmkInstance.close).toHaveBeenCalledTimes(1);
   });
 
-  it('clears the cache when teardown rejects', async () => {
+  it('still disconnects and closes when stopDiscovering rejects', async () => {
     const stopError = new Error('stop failed');
     mockDmkInstance.stopDiscovering.mockRejectedValueOnce(stopError);
+    mockDmkInstance.listConnectedDevices.mockReturnValue([
+      { sessionId: 'session-1' },
+    ]);
     getDmk();
 
     await resetDmk();
 
     expect(DevLogger.log).toHaveBeenCalledWith(
-      '[DMK] Failed during reset:',
+      '[DMK] Failed to stop discovering during reset:',
       stopError,
     );
-    expect(mockDmkInstance.close).not.toHaveBeenCalled();
+    expect(mockDmkInstance.disconnect).toHaveBeenCalledWith({
+      sessionId: 'session-1',
+    });
+    expect(mockDmkInstance.close).toHaveBeenCalledTimes(1);
+
+    const rebuilt = getDmk();
+
+    expect(MockDeviceManagementKitBuilder).toHaveBeenCalledTimes(2);
+    expect(rebuilt).toBe(mockDmkInstance);
+  });
+
+  it('still closes when listing or disconnecting sessions rejects', async () => {
+    mockDmkInstance.listConnectedDevices.mockImplementationOnce(() => {
+      throw new Error('list failed');
+    });
+    getDmk();
+
+    await resetDmk();
+
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      '[DMK] Failed to disconnect sessions during reset:',
+      expect.any(Error),
+    );
+    expect(mockDmkInstance.close).toHaveBeenCalledTimes(1);
 
     const rebuilt = getDmk();
 
@@ -237,5 +263,53 @@ describe('resetDmk', () => {
 
     expect(MockDeviceManagementKitBuilder).toHaveBeenCalledTimes(2);
     expect(rebuilt).toBe(mockDmkInstance);
+  });
+
+  it('clears the cache when close rejects', async () => {
+    const closeError = new Error('close failed');
+    mockDmkInstance.close.mockImplementationOnce(() => {
+      throw closeError;
+    });
+    getDmk();
+
+    await resetDmk();
+
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      '[DMK] Failed to close during reset:',
+      closeError,
+    );
+
+    const rebuilt = getDmk();
+
+    expect(MockDeviceManagementKitBuilder).toHaveBeenCalledTimes(2);
+    expect(rebuilt).toBe(mockDmkInstance);
+  });
+
+  it('does not build a second kit while teardown is in flight', async () => {
+    let releaseStopDiscovering: (() => void) | undefined;
+    mockDmkInstance.stopDiscovering.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseStopDiscovering = resolve;
+        }),
+    );
+    const first = getDmk();
+
+    const resetPromise = resetDmk();
+    // Yield so resetDmk enters stopDiscovering before we race getDmk.
+    await Promise.resolve();
+
+    const duringReset = getDmk();
+
+    expect(duringReset).toBe(first);
+    expect(MockDeviceManagementKitBuilder).toHaveBeenCalledTimes(1);
+
+    releaseStopDiscovering?.();
+    await resetPromise;
+
+    const afterReset = getDmk();
+
+    expect(MockDeviceManagementKitBuilder).toHaveBeenCalledTimes(2);
+    expect(afterReset).toBe(mockDmkInstance);
   });
 });

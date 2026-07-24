@@ -55,26 +55,45 @@ export const getDmk = (): DeviceManagementKit => {
  * next {@link getDmk} builds a fresh instance.
  *
  * Stops BLE discovery, disconnects any open sessions, then closes the kit.
- * The cache is cleared even if teardown fails.
+ * Each step is independently guarded so a failure in one does not skip the
+ * others. The cache is cleared only after teardown so a concurrent
+ * {@link getDmk} cannot construct a second kit while this instance still owns
+ * the transport.
  */
 export const resetDmk = async (): Promise<void> => {
   const dmk = state.dmk;
-  // Clear first so concurrent getDmk() calls cannot reuse a tearing-down instance.
-  state.dmk = null;
   if (!dmk) {
     return;
   }
 
   try {
-    await dmk.stopDiscovering();
-    const sessions = dmk.listConnectedDevices();
-    await Promise.allSettled(
-      sessions.map((connectedDevice) =>
-        dmk.disconnect({ sessionId: connectedDevice.sessionId }),
-      ),
-    );
-    dmk.close();
-  } catch (error) {
-    DevLogger.log('[DMK] Failed during reset:', error);
+    try {
+      await dmk.stopDiscovering();
+    } catch (error) {
+      DevLogger.log('[DMK] Failed to stop discovering during reset:', error);
+    }
+
+    try {
+      const sessions = dmk.listConnectedDevices();
+      await Promise.allSettled(
+        sessions.map((connectedDevice) =>
+          dmk.disconnect({ sessionId: connectedDevice.sessionId }),
+        ),
+      );
+    } catch (error) {
+      DevLogger.log('[DMK] Failed to disconnect sessions during reset:', error);
+    }
+
+    try {
+      dmk.close();
+    } catch (error) {
+      DevLogger.log('[DMK] Failed to close during reset:', error);
+    }
+  } finally {
+    // Clear only after BLE teardown so concurrent getDmk() cannot build a
+    // second DeviceManagementKit while this instance still holds the transport.
+    if (state.dmk === dmk) {
+      state.dmk = null;
+    }
   }
 };
