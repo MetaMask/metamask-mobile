@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { Alert, BackHandler, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Box } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
@@ -126,7 +125,7 @@ class ManualBackupStep3 extends PureComponent {
 
   render() {
     return (
-      <Box twClassName="flex-1 bg-default mt-4">
+      <>
         <OnboardingSuccessComponent
           onDone={this.done}
           successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
@@ -135,7 +134,7 @@ class ManualBackupStep3 extends PureComponent {
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}
         {this.renderHint()}
-      </Box>
+      </>
     );
   }
 }
