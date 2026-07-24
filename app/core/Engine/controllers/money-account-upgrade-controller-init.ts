@@ -110,15 +110,17 @@ export const __resetMoneyAccountUpgradeBootstrapForTesting = () => {
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.initMessenger - The init messenger for unlock and feature-flag signals.
+ * @param request.persistedState - The persisted state to hydrate from.
  * @returns The initialized controller.
  */
 export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
   MoneyAccountUpgradeController,
   MoneyAccountUpgradeControllerMessenger,
   MoneyAccountUpgradeControllerInitMessenger
-> = ({ controllerMessenger, initMessenger }) => {
+> = ({ controllerMessenger, initMessenger, persistedState }) => {
   const controller = new MoneyAccountUpgradeController({
     messenger: controllerMessenger,
+    state: persistedState.MoneyAccountUpgradeController,
   });
 
   const bootstrap = async (vaultConfig: MoneyAccountVaultConfig) => {
