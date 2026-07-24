@@ -352,7 +352,7 @@ describe('useDepositPrefillAmount', () => {
   });
 
   describe('isLoading', () => {
-    it('true when enabled but payToken has not arrived', () => {
+    it('false when enabled but payToken is missing', () => {
       setupMocks({ payToken: null });
 
       const { result } = runHook();

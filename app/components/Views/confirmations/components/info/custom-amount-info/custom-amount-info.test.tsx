@@ -2255,6 +2255,33 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('deposit-keyboard')).toBeDefined();
     });
 
+    it('does not show keyboard while payToken has not arrived', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: jest.fn(),
+      });
+
+      const { queryByTestId } = render();
+
+      expect(queryByTestId('deposit-keyboard')).toBeNull();
+    });
+
     it('does not show keyboard when isPrefillPending is true', () => {
       useTransactionCustomAmountMock.mockReturnValue({
         amountFiat: '0',

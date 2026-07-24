@@ -178,7 +178,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { trackAmountCommitted, trackContinue } =
       useFiatFunnelMetricsAdapter();
 
-    const { isNative: isNativePayToken } = useTransactionPayToken();
+    const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
 
@@ -276,6 +276,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useEffect(() => {
       if (
         isDepositPrefillEnabled &&
+        payToken &&
         !isDepositPrefillLoading &&
         !isDepositPrefilled &&
         !isPrefillPending
@@ -284,6 +285,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [
       isDepositPrefillEnabled,
+      payToken,
       isDepositPrefillLoading,
       isDepositPrefilled,
       isPrefillPending,
