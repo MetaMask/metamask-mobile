@@ -274,9 +274,21 @@ describe('useCliLoginPushNudge', () => {
   });
 
   describe('android 13+', () => {
+    let mockShouldShowRationale: jest.Mock;
+
     beforeEach(() => {
       Platform.OS = 'android';
       jest.spyOn(Platform, 'Version', 'get').mockReturnValue(33);
+      mockShouldShowRationale = jest.fn().mockResolvedValue(true);
+      Object.defineProperty(
+        PermissionsAndroid,
+        'shouldShowRequestPermissionRationale',
+        {
+          value: mockShouldShowRationale,
+          configurable: true,
+          writable: true,
+        },
+      );
     });
 
     it('opens settings when the OS permanently denied the permission', async () => {
@@ -297,12 +309,11 @@ describe('useCliLoginPushNudge', () => {
       expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
     });
 
-    it('opens settings when DENIED is returned without showing the OS dialog', async () => {
-      const dateNow = jest.spyOn(Date, 'now');
-      dateNow.mockReturnValueOnce(0).mockReturnValueOnce(50);
+    it('opens settings when DENIED and the OS will not show rationale again', async () => {
       jest
         .spyOn(PermissionsAndroid, 'request')
         .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+      mockShouldShowRationale.mockResolvedValue(false);
       const { result } = renderNudge();
 
       act(() => {
@@ -312,15 +323,13 @@ describe('useCliLoginPushNudge', () => {
 
       expect(mockEnableNotifications).not.toHaveBeenCalled();
       expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
-      dateNow.mockRestore();
     });
 
     it('closes without settings when the user dismisses the OS dialog', async () => {
-      const dateNow = jest.spyOn(Date, 'now');
-      dateNow.mockReturnValueOnce(0).mockReturnValueOnce(1500);
       jest
         .spyOn(PermissionsAndroid, 'request')
         .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+      mockShouldShowRationale.mockResolvedValue(true);
       const { result } = renderNudge();
 
       act(() => {
@@ -332,7 +341,6 @@ describe('useCliLoginPushNudge', () => {
       expect(mockEnableNotifications).not.toHaveBeenCalled();
       expect(mockOpenSystemSettings).not.toHaveBeenCalled();
       expect(closeToast).toHaveBeenCalled();
-      dateNow.mockRestore();
     });
 
     it('enables notifications when the OS grants push permission', async () => {

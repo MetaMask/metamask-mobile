@@ -19,26 +19,6 @@ import NotificationService, {
 /** Android API level (13) that introduced the POST_NOTIFICATIONS runtime permission. */
 const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
-/**
- * Below this threshold, `PermissionsAndroid.request(POST_NOTIFICATIONS)` likely
- * returned without showing the OS dialog (permanent deny). Only applies to the
- * direct PermissionsAndroid call — not Notifee channel setup.
- */
-const ANDROID_OS_DIALOG_MIN_ELAPSED_MS = 300;
-
-function shouldOpenAndroidNotificationSettings(
-  result: string,
-  requestElapsedMs: number,
-): boolean {
-  if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-    return true;
-  }
-  return (
-    result === PermissionsAndroid.RESULTS.DENIED &&
-    requestElapsedMs < ANDROID_OS_DIALOG_MIN_ELAPSED_MS
-  );
-}
-
 const NUDGE_LABELS = () => [
   { label: strings('sdk_connect_v2.push_nudge.title'), isBold: true },
 ];
@@ -61,7 +41,7 @@ const ERROR_LABELS = () => [
  *
  * Android: Notifee reports DENIED for both "never asked" and "permanently
  * denied", so we use PermissionsAndroid.request(POST_NOTIFICATIONS) and
- * treat NEVER_ASK_AGAIN as the signal to open device notification settings.
+ * shouldShowRequestPermissionRationale to detect when settings must be opened.
  */
 export function useCliLoginPushNudge(): {
   showNudge: () => boolean;
@@ -203,11 +183,9 @@ export function useCliLoginPushNudge(): {
         // denied it, which is the authoritative signal that the OS dialog can
         // no longer be shown.
         if (Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
-          const requestStartedAt = Date.now();
           const result = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
           );
-          const requestElapsedMs = Date.now() - requestStartedAt;
           if (!isCurrent()) {
             return;
           }
@@ -215,11 +193,21 @@ export function useCliLoginPushNudge(): {
             await runEnableFlow(isCurrent);
             return;
           }
-          if (shouldOpenAndroidNotificationSettings(result, requestElapsedMs)) {
+          if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
             openSettingsAndScheduleRetry(isCurrent);
             return;
           }
-          // DENIED after the OS dialog was shown and dismissed.
+          const shouldShowRationale =
+            await PermissionsAndroid.shouldShowRequestPermissionRationale(
+              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+            );
+          if (!isCurrent()) {
+            return;
+          }
+          if (!shouldShowRationale) {
+            openSettingsAndScheduleRetry(isCurrent);
+            return;
+          }
           if (isCurrent()) {
             toastRef?.current?.closeToast();
           }
