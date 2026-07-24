@@ -26,6 +26,14 @@ jest.mock('../../../../hooks/useSupportConsent', () => ({
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
+const mockTrackButtonClicked = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
+const mockTrackActivitySurfaceClicked = jest.fn();
+const mockTrackScreenViewed = jest.fn();
+const mockTrackComponentViewed = jest.fn();
+const mockTrackOnboardingEvent = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -83,8 +91,16 @@ describe('MoneyMoreSheet', () => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     jest.mocked(useMoneyAnalytics).mockReturnValue({
+      trackButtonClicked: mockTrackButtonClicked,
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
+      trackTooltipClicked: mockTrackTooltipClicked,
+      trackTokenButtonClicked: mockTrackTokenButtonClicked,
+      trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
+      trackActivitySurfaceClicked: mockTrackActivitySurfaceClicked,
+      trackScreenViewed: mockTrackScreenViewed,
+      trackComponentViewed: mockTrackComponentViewed,
+      trackOnboardingEvent: mockTrackOnboardingEvent,
     });
   });
 
