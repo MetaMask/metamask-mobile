@@ -3,6 +3,7 @@ import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -45,7 +46,7 @@ import { TemplateLoader } from './templates/TemplateLoader';
  */
 const ActivityDetails = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
   const { chainId, txIdentifier, preloadKey } =
     useParams<ActivityDetailsParams>();
