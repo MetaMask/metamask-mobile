@@ -646,7 +646,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       startAccessory: (
         <View style={styles.toastAccessory}>
           <Icon
-            name={IconName.CheckBold}
+            name={IconName.Confirmation}
             size={IconSize.Lg}
             color={IconColor.Success}
           />

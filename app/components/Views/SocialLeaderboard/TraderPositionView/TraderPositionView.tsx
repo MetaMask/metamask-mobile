@@ -219,20 +219,14 @@ const TraderPositionView = () => {
     await ClipboardManager.setString(displayPosition.tokenAddress);
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.CheckBold,
-      iconColor: colors.accent03.dark,
-      backgroundColor: colors.accent03.normal,
+      iconName: ComponentLibraryIconName.Confirmation,
+      iconColor: colors.success.default,
       labelOptions: [
         { label: strings('detected_tokens.address_copied_to_clipboard') },
       ],
       hasNoTimeout: false,
     });
-  }, [
-    colors.accent03.dark,
-    colors.accent03.normal,
-    displayPosition?.tokenAddress,
-    toastRef,
-  ]);
+  }, [colors.success.default, displayPosition?.tokenAddress, toastRef]);
 
   // Quick Buy `source` is always the trade screen; upstream journey attribution
   // is carried separately on `original_entry_point`.
