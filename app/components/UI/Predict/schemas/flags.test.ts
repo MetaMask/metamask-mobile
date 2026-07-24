@@ -2,17 +2,74 @@ import { create, StructError } from '@metamask/superstruct';
 import {
   PredictFeeCollectionSchema,
   PredictFeedBannerSchema,
+  PredictFeedCarouselSchema,
   PredictWorldCupSchema,
 } from './flags';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
 } from '../constants/feedBanner';
+
+describe('PredictFeedCarouselSchema', () => {
+  const validFlag = {
+    enabled: true,
+    minimumVersion: '1.0.0',
+    mode: 'custom',
+    title: 'Wimbledon',
+    deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
+    queryParams: 'tag_slug=tennis&title_search=Wimbledon',
+  };
+
+  it('returns live defaults when input is undefined', () => {
+    const result = create(undefined, PredictFeedCarouselSchema);
+
+    expect(result).toStrictEqual(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
+  });
+
+  it('preserves a custom config and tolerates future fields', () => {
+    const result = create(
+      { ...validFlag, futureRemoteField: 'ignored' },
+      PredictFeedCarouselSchema,
+    );
+
+    expect(result).toStrictEqual({
+      ...validFlag,
+      futureRemoteField: 'ignored',
+    });
+  });
+
+  it('defaults an omitted content source to top-market query behavior', () => {
+    const { queryParams } = create(
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        mode: 'custom',
+        title: 'Top markets',
+      },
+      PredictFeedCarouselSchema,
+    );
+
+    expect(queryParams).toBe('');
+  });
+
+  it.each([
+    ['mode', 'automatic'],
+    ['minimumVersion', 'not-semver'],
+    ['title', 123],
+    ['deeplink', false],
+    ['queryParams', ['tag_slug=tennis']],
+  ])('throws for unsupported %s value', (field, value) => {
+    const input = { ...validFlag, [field]: value };
+
+    expect(() => create(input, PredictFeedCarouselSchema)).toThrow(StructError);
+  });
+});
 
 describe('PredictFeedBannerSchema', () => {
   const validFlag = {

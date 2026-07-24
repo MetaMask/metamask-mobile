@@ -1,4 +1,5 @@
 import {
+  isAllowedMetaMaskDeeplink,
   isInternalDeepLink,
   isMetaMaskSDKDeeplinkAction,
   isMetaMaskUniversalLink,
@@ -7,6 +8,41 @@ import {
 import { ACTIONS } from '../../../../constants/deeplinks';
 
 describe('deeplinks utils', () => {
+  describe('isAllowedMetaMaskDeeplink', () => {
+    it.each([
+      'metamask://predict?feed=live',
+      'https://link.metamask.io/predict?feed=live',
+      'https://link-test.metamask.io/predict?feed=live',
+    ])('allows MetaMask-owned destination %s', (url) => {
+      expect(isAllowedMetaMaskDeeplink(url)).toBe(true);
+    });
+
+    it('restricts remote destinations to requested actions', () => {
+      expect(
+        isAllowedMetaMaskDeeplink('metamask://predict?feed=live', [
+          ACTIONS.PREDICT,
+        ]),
+      ).toBe(true);
+      expect(
+        isAllowedMetaMaskDeeplink('metamask://connect?channelId=test', [
+          ACTIONS.PREDICT,
+        ]),
+      ).toBe(false);
+    });
+
+    it.each([
+      'metamask://connect/mwp?p=payload',
+      'https://example.com/predict',
+      'http://link.metamask.io/predict',
+      // eslint-disable-next-line no-script-url
+      'javascript:alert(1)',
+      'not-a-url',
+      '',
+    ])('rejects remote destination %s', (url) => {
+      expect(isAllowedMetaMaskDeeplink(url)).toBe(false);
+    });
+  });
+
   describe('isMetaMaskUniversalLink', () => {
     it('identifies MetaMask universal links by host', () => {
       expect(isMetaMaskUniversalLink('https://link.metamask.io/swap')).toBe(

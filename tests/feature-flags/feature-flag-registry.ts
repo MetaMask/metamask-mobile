@@ -5633,6 +5633,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictFeedCarousel: {
+    name: 'predictFeedCarousel',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.6.0',
+      mode: 'live',
+      title: '',
+      queryParams: '',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictPortfolio: {
     name: 'predictPortfolio',
     type: FeatureFlagType.Remote,

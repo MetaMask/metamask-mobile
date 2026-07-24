@@ -8,14 +8,25 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictFeedBannerConfig, PredictHotTabFlag } from '../../types/flags';
+import {
+  PredictFeedBannerConfig,
+  PredictFeedCarouselConfig,
+  PredictHotTabFlag,
+} from '../../types/flags';
 import {
   DEFAULT_HOT_TAB_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
 } from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 import { resolvePredictFeatureFlags } from '../../utils/resolvePredictFeatureFlags';
-import { parse, PredictFeedBannerSchema } from '../../schemas';
+import {
+  parse,
+  PredictFeedBannerSchema,
+  PredictFeedCarouselSchema,
+} from '../../schemas';
+import { isAllowedMetaMaskDeeplink } from '../../../../../core/DeeplinkManager/util/deeplinks';
+import { ACTIONS } from '../../../../../constants/deeplinks';
 
 /**
  * Selector for Predict trading feature enablement
@@ -249,6 +260,43 @@ export const selectPredictFeedBannerConfig = createSelector(
     }
 
     return parsedFlag;
+  },
+);
+
+export const selectPredictFeedCarouselConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictFeedCarouselConfig => {
+    const parsedFlag = parse(
+      unwrapRemoteFeatureFlag<PredictFeedCarouselConfig>(
+        remoteFeatureFlags?.predictFeedCarousel,
+      ),
+      PredictFeedCarouselSchema,
+      DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+    );
+
+    if (
+      parsedFlag.mode !== 'custom' ||
+      !validatedVersionGatedFeatureFlag(parsedFlag)
+    ) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    const title = parsedFlag.title.trim();
+    const deeplink = parsedFlag.deeplink?.trim() || undefined;
+
+    if (
+      !title ||
+      (deeplink && !isAllowedMetaMaskDeeplink(deeplink, [ACTIONS.PREDICT]))
+    ) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    return {
+      ...parsedFlag,
+      title,
+      deeplink,
+      queryParams: parsedFlag.queryParams.trim().replace(/^\?/, ''),
+    };
   },
 );
 

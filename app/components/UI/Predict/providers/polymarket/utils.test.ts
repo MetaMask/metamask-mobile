@@ -1481,6 +1481,31 @@ describe('polymarket utils', () => {
 
       expect(params.get('title_search')).toBeNull();
     });
+
+    it('uses custom query params to override generated filters', () => {
+      const params = buildMarketListQueryParams({
+        live: true,
+        order: 'volume24hr',
+        customQueryParams:
+          'tag_id=100&tag_id=200&live=false&order=startDate&ascending=true',
+      });
+
+      expect(params.getAll('tag_id')).toEqual(['100', '200']);
+      expect(params.get('live')).toBe('false');
+      expect(params.get('order')).toBe('startDate');
+      expect(params.get('ascending')).toBe('true');
+    });
+
+    it('keeps pagination and page size app-controlled', () => {
+      const params = buildMarketListQueryParams({
+        limit: 15,
+        afterCursor: 'cursor-2',
+        customQueryParams: 'limit=100&after_cursor=remote-cursor',
+      });
+
+      expect(params.get('limit')).toBe('15');
+      expect(params.get('after_cursor')).toBe('cursor-2');
+    });
   });
 
   describe('fetchMarketsFromPolymarketApi', () => {

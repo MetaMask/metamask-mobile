@@ -6,14 +6,17 @@ import {
   number,
   object,
   optional,
+  refine,
   string,
   type,
   union,
 } from '@metamask/superstruct';
+import compareVersions from 'compare-versions';
 import { HexSchema } from './common';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
@@ -22,6 +25,42 @@ import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
 } from '../constants/feedBanner';
+
+const PredictFeedCarouselModeSchema = union([
+  literal('live'),
+  literal('custom'),
+]);
+
+const SemanticVersionSchema = refine(
+  string(),
+  'semantic version',
+  compareVersions.validate,
+);
+const MinimumVersionSchema = union([literal(''), SemanticVersionSchema]);
+
+export const PredictFeedCarouselSchema = defaulted(
+  type({
+    enabled: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.enabled,
+    ),
+    minimumVersion: defaulted(
+      MinimumVersionSchema,
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.minimumVersion,
+    ),
+    mode: defaulted(
+      PredictFeedCarouselModeSchema,
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.mode,
+    ),
+    title: defaulted(string(), () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.title),
+    deeplink: optional(string()),
+    queryParams: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.queryParams,
+    ),
+  }),
+  () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+);
 
 const PredictFeedBannerPositionSchema = union([
   literal(PredictFeedBannerPosition.AfterBalance),

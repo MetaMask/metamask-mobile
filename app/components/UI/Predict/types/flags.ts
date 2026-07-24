@@ -17,6 +17,14 @@ export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
   dismissible: boolean;
 }
 
+export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
+  mode: 'live' | 'custom';
+  title: string;
+  deeplink?: string;
+  /** Raw Polymarket query params, without a leading `?`. */
+  queryParams: string;
+}
+
 export interface PredictLiveSportsFlag {
   enabled: boolean;
   leagues: string[];
