@@ -236,9 +236,6 @@ class Browser {
 
     // Dismiss the editor so subsequent reads/taps see the page.
     await this.dismissUrlEditorIfOpen();
-
-    const settleMs = process.env.CI === 'true' ? 8_000 : 3_000;
-    await sleep(settleMs);
   }
 
   /**
