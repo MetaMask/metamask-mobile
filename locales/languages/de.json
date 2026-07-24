@@ -651,7 +651,7 @@
     "seed_phrase_placeholder": "Geben Sie Ihre geheime Wiederherstellungsphrase ein",
     "create_new_password": "Passwort erstellen",
     "confirm_password": "Passwort bestätigen",
-    "import_button": "Import",
+    "import_button": "Importieren",
     "cancel_button": "Stornieren",
     "password_length_error": "Das Passwort muss eine Länge von mindestens 8 Zeichen haben",
     "password_dont_match": "Passwörter stimmen nicht überein",
@@ -722,8 +722,8 @@
     "help": "Support",
     "lock": "Sperren",
     "lock_title": "Möchten Sie Ihr Wallet wirklich sperren?",
-    "lock_ok": "Yes",
-    "lock_cancel": "No",
+    "lock_ok": "Ja",
+    "lock_cancel": "Nein",
     "feedback": "Feedback",
     "metamask_support": "MetaMask-Support",
     "public_address": "Öffentliche Adresse"
@@ -1104,12 +1104,12 @@
       }
     },
     "type_filter": {
-      "all": "All types",
-      "tokens": "Tokens",
+      "all": "Alle Arten",
+      "tokens": "Token",
       "perps": "Perps"
     },
     "feed": {
-      "title": "Top traders",
+      "title": "Top-Trader",
       "tabs": {
         "leaderboard": "Rangliste",
         "feed": "Feed"
@@ -1125,7 +1125,7 @@
       },
       "new_position": {
         "bought": "Holding",
-        "opened": "Open"
+        "opened": "Eröffnen"
       },
       "empty_following": {
         "title": "Noch keine Aktivität",
@@ -1148,6 +1148,12 @@
       "error": {
         "title": "Couldn't load the feed",
         "retry": "Erneut versuchen"
+      },
+      "sub_header": {
+        "at_connector": "at",
+        "market_cap_suffix": "MC",
+        "size_at_price": "{{size}} at {{price}}",
+        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
       "no_data": "Keine Daten"
     },
@@ -1181,7 +1187,7 @@
       "error_loading_followed": "Die von Ihnen gefolgten Trader können nicht geladen werden."
     },
     "settings": {
-      "section_title": "Top Traders",
+      "section_title": "Top-Trader",
       "show_account_on_leaderboard": "Show account on leaderboard",
       "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
@@ -1280,6 +1286,14 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps nicht verfügbar",
     "title": "Perps",
+    "mode": {
+      "lite": "Lite",
+      "pro": "Pro",
+      "lite_transition_title": "Lite Mode",
+      "pro_transition_title": "Pro Mode",
+      "active_pill_accessibility_label": "Currently {{mode}} mode",
+      "active_pill_accessibility_hint": "Switches to {{mode}} mode"
+    },
     "send_to_perps": "An Perps senden",
     "perps_trading": "Perps-Trading",
     "perp_account_balance": "Perp-Guthaben abrufen",
@@ -1485,6 +1499,18 @@
       "metamask_fee_tooltip_deposit": "MetaMask erhebt für Einzahlungen auf Hyperliquid keine Gebühren",
       "metamask_fee_tooltip_withdrawal": "MetaMask erhebt für Auszahlungen von Hyperliquid keine Gebühren"
     },
+    "pro_order_form": {
+      "isolated": "Isolated",
+      "choose_order_type": "Choose order type",
+      "size_usd": "Size USD",
+      "size_percentage": "Order size percentage",
+      "toggle_size_unit": "Switch size denomination",
+      "available_balance_unavailable": "-- available",
+      "est_liquidation": "Est Liquidation",
+      "tpsl": "TP / SL",
+      "place_order": "Place order",
+      "close_keyboard": "Close keyboard"
+    },
     "order": {
       "title": "Neue Order",
       "leverage": "Hebel",
@@ -1608,7 +1634,7 @@
       "select_payment_token": "Zahlungstoken wählen",
       "select_token": "Token auswählen",
       "no_payment_tokens": "Keine Zahlungstoken verfügbar",
-      "swap": "Swap",
+      "swap": "Tauschen",
       "swap_submitted": "Swap übermittelt",
       "transaction_id": "Transaktions-ID: {{txId}}",
       "swap_failed": "Swap fehlgeschlagen",
@@ -1999,7 +2025,7 @@
       "pay_attention_to_volatility": "Achten Sie auf Volatilität und Slippage",
       "badge": {
         "experimental": "EXPERIMENTELL",
-        "equity": "STOCK",
+        "equity": "AKTIE",
         "commodity": "ROHSTOFF",
         "crypto": "KRYPTO",
         "forex": "DEVISEN",
@@ -2458,7 +2484,7 @@
     },
     "market_details": {
       "fullscreen_chart": "Vollbilddiagramm",
-      "market_list": "Browse markets",
+      "market_list": "Märkte durchsuchen",
       "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
@@ -3072,7 +3098,7 @@
     "defi": "DeFi",
     "perps": "Perps",
     "predict": "Prognosen",
-    "transactions": "Transactions",
+    "transactions": "Transaktionen",
     "no_collectibles": "Sehen Sie ihr NFT nicht?",
     "no_available_tokens": "Sehen Sie Ihr Token nicht?",
     "add_tokens": "Token importieren",
@@ -3303,8 +3329,8 @@
     "search_token": "Search",
     "custom_token": "Custom token",
     "tokens": {
-      "cancel_add_token": "Cancel",
-      "add_token": "Import"
+      "cancel_add_token": "Stornieren",
+      "add_token": "Importieren"
     },
     "collectibles": {
       "cancel_add_collectible": "Stornieren",
@@ -3487,8 +3513,8 @@
   },
   "transfer": {
     "title": "Transfer",
-    "send": "Send",
-    "receive": "Receive"
+    "send": "Senden",
+    "receive": "Empfangen"
   },
   "accounts": {
     "srp_index": "GWP #{{index}}",
@@ -3626,7 +3652,7 @@
   },
   "account_selector": {
     "prev": "Prev",
-    "next": "Next",
+    "next": "Weiter",
     "unlock": "Entsperren",
     "forget": "Dieses Gerät entfernen"
   },
@@ -3671,10 +3697,10 @@
     "autolock_never": "Niemals",
     "autolock_after": "Nach {{time}} Sekunden",
     "autolock_after_minutes": "Nach {{time}} Minuten",
-    "reveal_seed_words": "Reveal Secret Recovery Phrase",
+    "reveal_seed_words": "Geheime Wiederherstellungsphrase offenlegen",
     "reset_account": "Konto zurücksetzen",
     "state_logs_button": "Statusprotokolle herunterladen",
-    "reveal_seed_words_button": "Reveal Secret Recovery Phrase",
+    "reveal_seed_words_button": "Geheime Wiederherstellungsphrase offenlegen",
     "reset_account_button": "Konto zurücksetzen",
     "reset_account_confirm_button": "Ja, zurücksetzen",
     "reset_account_cancel_button": "Stornieren",
@@ -3686,17 +3712,17 @@
     "clear_cookies_modal_title": "Browser-Cookies löschen",
     "clear_cookies_modal_message": "Wir löschen die Cookies Ihres Browsers. Sind Sie sicher?",
     "reset_account_modal_message": "Wenn Sie Ihr Konto zurücksetzen, werden Ihre Transaktionsaktivitäten gelöscht.",
-    "save_rpc_url": "Save",
+    "save_rpc_url": "Speichern",
     "invalid_rpc_prefix": "URL benötigen das entsprechende HTTPS-Präfix",
     "invalid_rpc_url": "Ungültige RPC-URL",
     "invalid_block_explorer_url": "Ungültige Block-Explorer-URL",
     "sync": "Sync",
-    "clear_approved_dapps": "Clear approved dapps",
-    "clear_browser_history": "Clear browser history",
+    "clear_approved_dapps": "Freigegebene dapps löschen",
+    "clear_browser_history": "Browserverlauf löschen",
     "clear_approve_dapps_desc": "Freigegebene dapps löschen",
     "clear_browser_history_desc": "Browserverlauf löschen",
     "clear_browser_cookies_desc": "Browser-Cookies löschen",
-    "clear": "Clear",
+    "clear": "Löschen",
     "protect_cta": "Schützen",
     "protect_title": "Wallet-Wiederherstellung",
     "banner_social_login_enabled": "Mit {{authConnection}} anmelden",
@@ -4243,10 +4269,10 @@
       "extension_cancelled_button": "Erneut versuchen",
       "already_synced_title": "Account already synced",
       "already_synced_description": "This account has already been synced to this device.",
-      "already_synced_button": "Close",
+      "already_synced_button": "Schließen",
       "import_failed_title": "Couldn't add account",
       "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
-      "import_failed_button": "Close"
+      "import_failed_button": "Schließen"
     }
   },
   "aes_crypto_test_form": {
@@ -4309,6 +4335,12 @@
     "support_center": "Besuchen Sie unser Support Center",
     "web_site": "Besuchen Sie unsere Webseite",
     "contact_us": "Kontakt"
+  },
+  "support_consent": {
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "confirm": "Confirm",
+    "reject": "Don't share"
   },
   "reveal_credential": {
     "seed_phrase_title": "Geheime Wiederherstellungsphrase offenlegen",
@@ -4421,7 +4453,7 @@
     "period_1h": "1hr",
     "period_24h": "24hr",
     "period_1h_short": "1h",
-    "period_24h_short": "24h",
+    "period_24h_short": "24 Stunden",
     "moves_up_summary": "Moves up {{percent}}%",
     "moves_down_summary": "Moves down {{percent}}%",
     "period_recurrence": "{{period}} • {{recurrence}}",
@@ -4431,11 +4463,11 @@
   "share_token": {
     "title": "Share token info",
     "share": "Share token info",
-    "market_cap": "Market cap",
-    "price": "Price",
+    "market_cap": "Marktkapitalisierung",
+    "price": "Preis",
     "liquidity": "Liquidity",
     "holders": "Holders",
-    "volume_24h": "24h volume",
+    "volume_24h": "24-Std.-Volumen",
     "change_24h": "24h change",
     "buy_on_metamask": "Buy on MetaMask",
     "buy_on": "Buy on",
@@ -4738,7 +4770,7 @@
   },
   "transaction": {
     "transaction_id": "Transaktions-ID",
-    "alert": "Alert",
+    "alert": "Benachrichtigung",
     "amount": "Betrag",
     "details": "Details",
     "next": "Weiter",
@@ -4765,7 +4797,7 @@
     "think_of_the_nonce": "Stellen Sie sich die Nonce als Transaktionsnummer eines Kontos vor. Die Nonce eines jeden Kontos beginnt für die erste Transaktion mit „0“ in aufsteigender Reihenfolge.",
     "nonce_warning": "Achtung: Sie könnten bei zukünftigen Transaktionen auf Probleme stoßen, wenn Sie fortfahren. Mit Vorsicht verwenden.",
     "review_details": "Details",
-    "review_data": "Data",
+    "review_data": "Daten",
     "data": "Daten",
     "data_description": "Daten hinsichtlich dieser Transaktion",
     "review_function_type": "Function type",
@@ -4957,7 +4989,7 @@
     "dapp_browser": "Dapp browser",
     "dapp_browser_message": "MetaMask ist Ihr Wallet und Ihr Browser für das dezentralisierte Internet. Sehen Sie sich um!",
     "featured_dapps": "Featured dapps",
-    "my_favorites": "Favorites",
+    "my_favorites": "Favoriten",
     "search": "Suchen oder URL eingeben",
     "welcome": "Willkommen!",
     "remove": "Entfernen",
@@ -5069,10 +5101,10 @@
     "activity_market_close_long": "Market — close long",
     "activity_limit_long": "Limit long",
     "activity_limit_close_long": "Limit — close long",
-    "activity_order_status_filled": "Filled",
-    "activity_order_status_canceled": "Canceled",
-    "activity_order_status_rejected": "Rejected",
-    "activity_order_status_open": "Open",
+    "activity_order_status_filled": "Ausgeführt",
+    "activity_order_status_canceled": "Storniert",
+    "activity_order_status_rejected": "Abgelehnt",
+    "activity_order_status_open": "Eröffnen",
     "activity_trustline_activated": "Trustline activated",
     "activity_trustline_activating": "Activating trustline",
     "activity_trustline_activation_failed": "Activate trustline failed",
@@ -5103,14 +5135,14 @@
     "receive": "Empfangen",
     "swap": "Swap",
     "send": "Senden",
-    "activity_swapped": "Swapped",
+    "activity_swapped": "Geswappt",
     "activity_swapping": "Swapping",
-    "activity_swap_failed": "Swap failed",
+    "activity_swap_failed": "Swap fehlgeschlagen",
     "activity_bridged": "Bridged",
     "activity_bridging": "Bridging",
-    "activity_bridge_failed": "Bridge failed",
-    "activity_sending": "Sending",
-    "activity_send_failed": "Send failed",
+    "activity_bridge_failed": "Bridge fehlgeschlagen",
+    "activity_sending": "Senden",
+    "activity_send_failed": "Senden fehlgeschlagen",
     "redeposit": "Erneute Einzahlung",
     "interaction": "Interaktion",
     "contract_deploy": "Contract-Einsatz",
@@ -5385,7 +5417,7 @@
   },
   "watch_asset_request": {
     "title": "Empfohlenes Token hinzufügen",
-    "cancel": "Cancel",
+    "cancel": "Stornieren",
     "add": "Add token",
     "message": "Möchten Sie dieses Token hinzufügen?",
     "token": "Token",
@@ -5592,7 +5624,7 @@
     "cta_text": "I've copied the phrase",
     "confirm_password": "Bestätigen Sie Ihr Passwort",
     "before_continiuing": "Bevor Sie fortfahren, müssen Sie Ihr Passwort bestätigen",
-    "confirm": "Confirm"
+    "confirm": "Bestätigen"
   },
   "account_backup_step_5": {
     "error_title": "Ups!",
@@ -5603,7 +5635,7 @@
     "cta_text": "Confirm phrase",
     "modal_title": "Geheime Wiederherstellungsphrase bestätigt!",
     "modal_text": "Hiermit gingen wir sicher, dass Sie diese Sicherheitsmaßnahme ergreifen",
-    "modal_button": "Next"
+    "modal_button": "Weiter"
   },
   "account_backup_step_6": {
     "title": "Sicherheitstipps",
@@ -5613,10 +5645,10 @@
     "tip_3": "Teilen Sie diese Phrase niemals mit anderen",
     "disclaimer": "* Um Ihre geheime Wiederherstellungsphrase zu finden, gehen Sie zu",
     "disclaimer_bold": "Einstellungen > Sicherheit und Datenschutz",
-    "cta_text": "Got it",
+    "cta_text": "Verstanden",
     "modal_title": "Glückwunsch!",
     "modal_text": "Sie haben Ihre Backups erstellt und können loslegen.",
-    "modal_button": "Done",
+    "modal_button": "Fertig",
     "copy_seed_phrase": "Copy Secret Recovery Phrase to clipboard"
   },
   "manual_backup": {
@@ -6256,7 +6288,7 @@
     "enter_larger_amount": "Geben Sie zum Fortfahren einen größeren Betrag ein",
     "enter_smaller_amount": "Geben Sie zum Fortfahren einen kleineren Betrag ein",
     "enter_lower_gas_fees": "Geben Sie einen niedrigeren Betrag für die Gas-Gebühren ein",
-    "max": "Max",
+    "max": "Max.",
     "try_again": "Erneut versuchen",
     "error": "Fehler",
     "something_went_wrong": "Hoppla, etwas ist schiefgelaufen",
@@ -7470,7 +7502,7 @@
       "verification_pending": "Ihre Identitätsverifizierung wird derzeit durchgeführt. Dies dauert in der Regel weniger als 12 Stunden."
     },
     "what_you_get": {
-      "title": "Benefits",
+      "title": "Vorteile",
       "benefit_auto_earn": "Automatisch verdienen bis zu",
       "benefit_auto_earn_variable": "(variabel)",
       "benefit_dollar_backed": "Halten Sie Ihr Geld sicher in mUSD, einem 1:1 durch den Dollar gedeckten Stablecoin",
@@ -7496,7 +7528,7 @@
     "more_sheet": {
       "title": "Mehr",
       "how_it_works": "Wie es funktioniert",
-      "what_you_get": "Benefits",
+      "what_you_get": "Vorteile",
       "contact_support": "Support kontaktieren"
     },
     "transfer_sheet": {
@@ -7626,10 +7658,10 @@
       "buy": "Kaufen"
     },
     "earn_banner": {
-      "title": "Earn up to {{apy}}% APY",
+      "title": "Verdienen Sie bis zu {{apy}} % Effektivertrag",
       "title_no_apy": "Earn with your Money account",
       "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
-      "cta": "Add {{symbol}}"
+      "cta": "{{symbol}} hinzufügen"
     },
     "how_it_works_page": {
       "header_title": "Money",
@@ -8403,7 +8435,7 @@
     "you_received": "Sie haben empfangen",
     "bridge_to_chain": "Bridge zu {{chainName}}",
     "recipient": "Empfänger",
-    "swapped": "Swapped",
+    "swapped": "Geswappt",
     "bridged": "Bridged",
     "bridged_token": "Bridged {{symbol}}"
   },
@@ -8798,9 +8830,10 @@
         "invalid_password": "Das Passwort muss mindestens 15 Zeichen lang sein. Es darf keine nicht druckbaren Zeichen oder aufeinanderfolgende Leerzeichen enthalten.",
         "join_waitlist": "Auf die Warteliste setzen",
         "country_not_available": "Die Kartenanmeldung ist in Ihrem Land noch nicht verfügbar.",
-        "account_label": "Account",
+        "account_label": "Konto",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_exists_toast": "You already have a card account."
+        "account_exists_toast": "You already have a card account.",
+        "card_program_label": "Card program (testing)"
       },
       "confirm_email": {
         "title": "Bestätigen Sie Ihre E-Mail-Adresse",
@@ -8859,9 +8892,9 @@
         "helper_text": "Dies dauert in der Regel einige Sekunden. Bitte schließen Sie die App nicht."
       },
       "immersve_kyc_processing": {
-        "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "title": "Warten auf Genehmigung",
+        "description": "Unser Partner muss zur Genehmigung Ihres Antrags Ihre Identität verifizieren.",
+        "helper_text": "Dies dauert in der Regel einige Sekunden. Bitte schließen Sie die App nicht.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
         "continue_button": "Continue verification",
@@ -8872,14 +8905,14 @@
       },
       "immersve_kyc_modal": {
         "load_error": "Something went wrong loading identity verification. Please try again.",
-        "try_again": "Try again"
+        "try_again": "Erneut versuchen"
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "helper_text": "Dies dauert in der Regel einige Sekunden. Bitte schließen Sie die App nicht.",
         "confirm_button": "Approve funding",
-        "retry_button": "Try again"
+        "retry_button": "Erneut versuchen"
       },
       "verifying_registration": {
         "title": "Verifizieren Ihrer Identität",
@@ -9025,7 +9058,7 @@
         "expiry_label": "Expiry",
         "cvv_label": "CVV",
         "name_label": "Name",
-        "copied": "Copied to clipboard"
+        "copied": "In die Zwischenablage kopiert"
       },
       "warnings": {
         "close_spending_limit": {
@@ -9054,6 +9087,11 @@
         "kyc_pending": {
           "title": "Verifizierung läuft",
           "description": "Ihre Identitätsverifizierung wird derzeit durchgeführt. Dies dauert in der Regel weniger als 12 Stunden."
+        },
+        "pending_verification": {
+          "title": "Finish setting up your card",
+          "description": "You have pending verification steps to complete before your card can be enabled.",
+          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {
@@ -9476,6 +9514,17 @@
       "swaps_volume_info_label": "Informationen zum Swap-Volumen",
       "swaps_volume_info_title": "Swap-Volumen",
       "swaps_volume_info_description": "Ihr Swap-Volumen wird einmal täglich aktualisiert; daher kann es bis zu 24 Stunden dauern, bis kürzlich durchgeführte Swaps hier erscheinen."
+    },
+    "vip_transactions": {
+      "select_type": "Select type",
+      "type_perps": "Perps",
+      "type_swap": "Swaps",
+      "swap_title": "Swap",
+      "perps_title": "Perps",
+      "error_title": "Failed to load transactions",
+      "error_description": "Something went wrong while loading your transactions. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
     "referral_title": "Empfehlungen",
     "referral_stats_earned_from_referrals": "Durch Empfehlungen verdient",
@@ -10092,7 +10141,7 @@
     "bandwidth_fee": "Bandbreite",
     "energy_fee": "Energie",
     "bridge_fee": "Bridge-Gebühr",
-    "gas_token_fee": "Gas fee",
+    "gas_token_fee": "Gas-Gebühr",
     "transaction_fee": "Transaktionsgebühr",
     "unknown_token": "Unbekannt",
     "total_amount": "Gesamtbetrag",
@@ -10129,6 +10178,14 @@
     "show_cli_link_success": {
       "title": "MetaMask Agent CLI erfolgreich verknüpft",
       "description": "Kehren Sie zur CLI zurück, um fortzufahren."
+    },
+    "push_nudge": {
+      "title": "Turn on notifications",
+      "description": "Get alerts for transactions from your CLI session.",
+      "turn_on_button": "Turn on",
+      "loading_title": "Turning on notifications",
+      "loading_description": "Give us a moment while we set things up.",
+      "enable_error": "Couldn't turn on notifications. Try again from Settings."
     },
     "show_otp": {
       "title": "Diesen Code eingeben",
@@ -10382,13 +10439,13 @@
   },
   "homepage": {
     "action_buttons": {
-      "buy": "Buy",
-      "sell": "Sell",
-      "send": "Send",
-      "receive": "Receive",
-      "swap": "Swap",
+      "buy": "Kaufen",
+      "sell": "Verkaufen",
+      "send": "Senden",
+      "receive": "Empfangen",
+      "swap": "Tauschen",
       "perps": "Perps",
-      "predict": "Predict",
+      "predict": "Prognostizieren",
       "batch_swap": "Batch Swap",
       "traders": "Traders"
     },
@@ -10404,9 +10461,6 @@
       "top_traders": "Top-Trader der Woche",
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "Angesagt",
-      "trending_perpetuals": "Trendige Perpetuals",
-      "trending_predictions": "Trendige Prognosen",
       "watchlist": "Watchlist",
       "import_nfts": "NFTs importieren",
       "import_nfts_description": "Fügen Sie ganz einfach Ihre Sammlerstücke hinzu",
@@ -10456,9 +10510,9 @@
     "home_empty_title": "Watchlist",
     "home_empty_subtitle": "You have no watchlist items yet",
     "fullscreen_title": "Watchlist",
-    "tokens_tab": "Tokens",
-    "edit": "Edit",
-    "done": "Done",
+    "tokens_tab": "Token",
+    "edit": "Bearbeiten",
+    "done": "Fertig",
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
     "search_placeholder": "Search for any asset to add"

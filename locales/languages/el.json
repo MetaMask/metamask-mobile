@@ -651,7 +651,7 @@
     "seed_phrase_placeholder": "Εισαγάγετε την Μυστική Φράση Ανάκτησης",
     "create_new_password": "Δημιουργία κωδικού πρόσβασης",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
-    "import_button": "Import",
+    "import_button": "Εισαγωγή",
     "cancel_button": "Άκυρο",
     "password_length_error": "Ο κωδικός πρόσβασης πρέπει να αποτελείται από τουλάχιστον 8 χαρακτήρες.",
     "password_dont_match": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
@@ -722,8 +722,8 @@
     "help": "Υποστήριξη",
     "lock": "Κλείδωμα",
     "lock_title": "Θέλετε πραγματικά να κλειδώσετε το πορτοφόλι σας;",
-    "lock_ok": "Yes",
-    "lock_cancel": "No",
+    "lock_ok": "Ναι",
+    "lock_cancel": "Όχι",
     "feedback": "Ανατροφοδότηση",
     "metamask_support": "Υποστήριξη του MetaMask",
     "public_address": "Δημόσια διεύθυνση"
@@ -1104,12 +1104,12 @@
       }
     },
     "type_filter": {
-      "all": "All types",
-      "tokens": "Tokens",
-      "perps": "Perps"
+      "all": "Όλες οι κατηγορίες",
+      "tokens": "Token",
+      "perps": "Συμβ.αορ."
     },
     "feed": {
-      "title": "Top traders",
+      "title": "Κορυφαίοι traders",
       "tabs": {
         "leaderboard": "Πίνακας κατάταξης",
         "feed": "Feed"
@@ -1125,7 +1125,7 @@
       },
       "new_position": {
         "bought": "Holding",
-        "opened": "Open"
+        "opened": "Άνοιγμα"
       },
       "empty_following": {
         "title": "Καμία δραστηριότητα μέχρι στιγμής",
@@ -1148,6 +1148,12 @@
       "error": {
         "title": "Couldn't load the feed",
         "retry": "Προσπαθήστε ξανά"
+      },
+      "sub_header": {
+        "at_connector": "at",
+        "market_cap_suffix": "MC",
+        "size_at_price": "{{size}} at {{price}}",
+        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
       "no_data": "Δεν υπάρχουν δεδομένα"
     },
@@ -1181,7 +1187,7 @@
       "error_loading_followed": "Δεν είναι δυνατή η φόρτωση των traders που ακολουθείτε."
     },
     "settings": {
-      "section_title": "Top Traders",
+      "section_title": "Κορυφαίοι Traders",
       "show_account_on_leaderboard": "Show account on leaderboard",
       "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
@@ -1280,6 +1286,14 @@
   "perps": {
     "basic_functionality_disabled_title": "Τα Perps δεν είναι διαθέσιμα",
     "title": "Συμβ.αορ.",
+    "mode": {
+      "lite": "Lite",
+      "pro": "Pro",
+      "lite_transition_title": "Lite Mode",
+      "pro_transition_title": "Pro Mode",
+      "active_pill_accessibility_label": "Currently {{mode}} mode",
+      "active_pill_accessibility_hint": "Switches to {{mode}} mode"
+    },
     "send_to_perps": "Αποστολή στα Perps",
     "perps_trading": "Συναλλαγές με συμβόλαια αορίστου διάρκειας",
     "perp_account_balance": "Υπόλοιπο λογαριασμού συμβολαίων αορίστου διάρκειας",
@@ -1485,6 +1499,18 @@
       "metamask_fee_tooltip_deposit": "Το MetaMask δεν χρεώνει καμία προμήθεια για καταθέσεις στο Hyperliquid",
       "metamask_fee_tooltip_withdrawal": "Το MetaMask δεν χρεώνει καμία προμήθεια για αναλήψεις στο Hyperliquid"
     },
+    "pro_order_form": {
+      "isolated": "Isolated",
+      "choose_order_type": "Choose order type",
+      "size_usd": "Size USD",
+      "size_percentage": "Order size percentage",
+      "toggle_size_unit": "Switch size denomination",
+      "available_balance_unavailable": "-- available",
+      "est_liquidation": "Est Liquidation",
+      "tpsl": "TP / SL",
+      "place_order": "Place order",
+      "close_keyboard": "Close keyboard"
+    },
     "order": {
       "title": "Νέα εντολή",
       "leverage": "Μόχλευση",
@@ -1608,7 +1634,7 @@
       "select_payment_token": "Επιλέξτε token πληρωμής",
       "select_token": "Επιλέξτε token",
       "no_payment_tokens": "Δεν υπάρχουν διαθέσιμα token πληρωμής",
-      "swap": "Swap",
+      "swap": "Ανταλλαγή",
       "swap_submitted": "Η ανταλλαγή υποβλήθηκε",
       "transaction_id": "Αναγνωριστικό συναλλαγής: {{txId}}",
       "swap_failed": "Η ανταλλαγή απέτυχε",
@@ -1999,7 +2025,7 @@
       "pay_attention_to_volatility": "Εστιάστε στη μεταβλητότητα και στην απόκλιση τιμής",
       "badge": {
         "experimental": "ΠΕΙΡΑΜΑΤΙΚΑ",
-        "equity": "STOCK",
+        "equity": "ΜΕΤΟΧΕΣ",
         "commodity": "ΕΜΠΟΡΕΥΜΑΤΑ",
         "crypto": "ΚΡΥΠΤΟΝΟΜΙΣΜΑΤΑ",
         "forex": "FOREX",
@@ -2458,7 +2484,7 @@
     },
     "market_details": {
       "fullscreen_chart": "Γράφημα σε πλήρη οθόνη",
-      "market_list": "Browse markets",
+      "market_list": "Περιήγηση στις πλατφόρμες",
       "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
@@ -3072,7 +3098,7 @@
     "defi": "DeFi",
     "perps": "Συμβ.αορ.",
     "predict": "Προβλέψεις",
-    "transactions": "Transactions",
+    "transactions": "Συναλλαγές",
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
     "no_available_tokens": "Δεν βλέπετε το token σας;",
     "add_tokens": "Εισαγωγή tokens",
@@ -3303,8 +3329,8 @@
     "search_token": "Search",
     "custom_token": "Custom token",
     "tokens": {
-      "cancel_add_token": "Cancel",
-      "add_token": "Import"
+      "cancel_add_token": "Άκυρο",
+      "add_token": "Εισαγωγή"
     },
     "collectibles": {
       "cancel_add_collectible": "Ακύρωση",
@@ -3487,8 +3513,8 @@
   },
   "transfer": {
     "title": "Μεταφορά",
-    "send": "Send",
-    "receive": "Receive"
+    "send": "Αποστολή",
+    "receive": "Λήψη"
   },
   "accounts": {
     "srp_index": "SRP #{{index}}",
@@ -3626,7 +3652,7 @@
   },
   "account_selector": {
     "prev": "Prev",
-    "next": "Next",
+    "next": "Επόμενο",
     "unlock": "Ξεκλείδωμα",
     "forget": "Αγνοήστε αυτή τη συσκευή"
   },
@@ -3671,10 +3697,10 @@
     "autolock_never": "Ποτέ",
     "autolock_after": "Μετά από {{time}} δευτερόλεπτα",
     "autolock_after_minutes": "Μετά από {{time}} λεπτά",
-    "reveal_seed_words": "Reveal Secret Recovery Phrase",
+    "reveal_seed_words": "Αποκαλύψτε τη Μυστική Φράση Ανάκτησης",
     "reset_account": "Επαναφορά λογαριασμού",
     "state_logs_button": "Λήψη των αρχείων καταγραφής κατάστασης",
-    "reveal_seed_words_button": "Reveal Secret Recovery Phrase",
+    "reveal_seed_words_button": "Αποκαλύψτε τη Μυστική Φράση Ανάκτησης",
     "reset_account_button": "Επαναφορά λογαριασμού",
     "reset_account_confirm_button": "Ναι, επαναφορά",
     "reset_account_cancel_button": "Άκυρο",
@@ -3686,17 +3712,17 @@
     "clear_cookies_modal_title": "Εκκαθάριση cookies",
     "clear_cookies_modal_message": "Θα αφαιρέσουμε τα cookies από το πρόγραμμα περιήγησής σας. Είστε σίγουροι;",
     "reset_account_modal_message": "Η επαναφορά του λογαριασμού σας θα διαγράψει τη δραστηριότητα των συναλλαγών σας.",
-    "save_rpc_url": "Save",
+    "save_rpc_url": "Αποθήκευση",
     "invalid_rpc_prefix": "Οι διευθύνσεις URL απαιτούν το κατάλληλο πρόθεμα HTTPS",
     "invalid_rpc_url": "Μη έγκυρη διεύθυνση URL του RPC",
     "invalid_block_explorer_url": "Μη έγκυρη διεύθυνση URL του Block Explorer",
     "sync": "Sync",
-    "clear_approved_dapps": "Clear approved dapps",
-    "clear_browser_history": "Clear browser history",
+    "clear_approved_dapps": "Εκκαθάριση εγκεκριμένων αποκεντρωμένων εφαρμογών",
+    "clear_browser_history": "Εκκαθάριση ιστορικού του προγράμματος περιήγησης",
     "clear_approve_dapps_desc": "Εκκαθάριση εγκεκριμένων αποκεντρωμένων εφαρμογών",
     "clear_browser_history_desc": "Εκκαθάριση ιστορικού του προγράμματος περιήγησης",
     "clear_browser_cookies_desc": "Εκκαθάριση cookies",
-    "clear": "Clear",
+    "clear": "Διαγραφή",
     "protect_cta": "Προστασία",
     "protect_title": "Επαναφορά πορτοφολιού",
     "banner_social_login_enabled": "Συνδεθείτε με {{authConnection}}",
@@ -4243,10 +4269,10 @@
       "extension_cancelled_button": "Προσπαθήστε ξανά",
       "already_synced_title": "Account already synced",
       "already_synced_description": "This account has already been synced to this device.",
-      "already_synced_button": "Close",
+      "already_synced_button": "Κλείσιμο",
       "import_failed_title": "Couldn't add account",
       "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
-      "import_failed_button": "Close"
+      "import_failed_button": "Κλείσιμο"
     }
   },
   "aes_crypto_test_form": {
@@ -4309,6 +4335,12 @@
     "support_center": "Επισκεφθείτε το κέντρο υποστήριξής μας",
     "web_site": "Επισκεφθείτε την ιστοσελίδα μας",
     "contact_us": "Επικοινωνήστε μαζί μας"
+  },
+  "support_consent": {
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "confirm": "Confirm",
+    "reject": "Don't share"
   },
   "reveal_credential": {
     "seed_phrase_title": "Αποκαλύψτε τη Μυστική Φράση Ανάκτησης",
@@ -4431,11 +4463,11 @@
   "share_token": {
     "title": "Share token info",
     "share": "Share token info",
-    "market_cap": "Market cap",
-    "price": "Price",
+    "market_cap": "Κεφαλαιοποίηση αγοράς",
+    "price": "Τιμή",
     "liquidity": "Liquidity",
     "holders": "Holders",
-    "volume_24h": "24h volume",
+    "volume_24h": "Όγκος 24ώρου",
     "change_24h": "24h change",
     "buy_on_metamask": "Buy on MetaMask",
     "buy_on": "Buy on",
@@ -4738,7 +4770,7 @@
   },
   "transaction": {
     "transaction_id": "Αναγνωριστικό συναλλαγής",
-    "alert": "Alert",
+    "alert": "Ειδοποίηση",
     "amount": "Ποσό",
     "details": "Λεπτομέρειες",
     "next": "Επόμενο",
@@ -4764,8 +4796,8 @@
     "edit_transaction_nonce": "Επεξεργασία nonce συναλλαγής",
     "think_of_the_nonce": "Σκεφτείτε το nonce ως τον αριθμό συναλλαγής ενός λογαριασμού. Το nonce κάθε λογαριασμού ξεκινά με 0 για την πρώτη συναλλαγή και συνεχίζεται με αύξουσα αρίθμηση.",
     "nonce_warning": "Προσοχή: Ίσως αντιμετωπίσετε προβλήματα με μελλοντικές συναλλαγές εάν συνεχίσετε. Χρησιμοποιείστε το με προσοχή.",
-    "review_details": "Details",
-    "review_data": "Data",
+    "review_details": "Λεπτομέρειες",
+    "review_data": "Δεδομένα",
     "data": "Δεδομένα",
     "data_description": "Δεδομένα που σχετίζονται με αυτή τη συναλλαγή",
     "review_function_type": "Function type",
@@ -4957,7 +4989,7 @@
     "dapp_browser": "Dapp browser",
     "dapp_browser_message": "Το MetaMask είναι το πορτοφόλι σας και το πρόγραμμα περιήγησής σας για τον αποκεντρωμένο ιστό. Ρίξτε μια ματιά!",
     "featured_dapps": "Featured dapps",
-    "my_favorites": "Favorites",
+    "my_favorites": "Αγαπημένα",
     "search": "Αναζητήστε ή πληκτρολογήστε μια διεύθυνση URL",
     "welcome": "Καλώς ήρθατε!",
     "remove": "Αφαίρεση",
@@ -5069,10 +5101,10 @@
     "activity_market_close_long": "Market — close long",
     "activity_limit_long": "Limit long",
     "activity_limit_close_long": "Limit — close long",
-    "activity_order_status_filled": "Filled",
-    "activity_order_status_canceled": "Canceled",
-    "activity_order_status_rejected": "Rejected",
-    "activity_order_status_open": "Open",
+    "activity_order_status_filled": "Εκτελέστηκε",
+    "activity_order_status_canceled": "Ακυρώθηκε",
+    "activity_order_status_rejected": "Απορρίφθηκε",
+    "activity_order_status_open": "Άνοιγμα",
     "activity_trustline_activated": "Trustline activated",
     "activity_trustline_activating": "Activating trustline",
     "activity_trustline_activation_failed": "Activate trustline failed",
@@ -5103,14 +5135,14 @@
     "receive": "Λήψη",
     "swap": "Ανταλλαγή",
     "send": "Αποστολή",
-    "activity_swapped": "Swapped",
+    "activity_swapped": "Ανταλλαγή",
     "activity_swapping": "Swapping",
-    "activity_swap_failed": "Swap failed",
+    "activity_swap_failed": "Η ανταλλαγή απέτυχε",
     "activity_bridged": "Bridged",
     "activity_bridging": "Bridging",
-    "activity_bridge_failed": "Bridge failed",
-    "activity_sending": "Sending",
-    "activity_send_failed": "Send failed",
+    "activity_bridge_failed": "Η μεταφορά απέτυχε",
+    "activity_sending": "Αποστολή",
+    "activity_send_failed": "Η αποστολή απέτυχε",
     "redeposit": "Κατάθεση εκ νέου",
     "interaction": "Αλληλεπίδραση",
     "contract_deploy": "Ανάπτυξη Συμβολαίου",
@@ -5385,7 +5417,7 @@
   },
   "watch_asset_request": {
     "title": "Προσθήκη προτεινόμενου token",
-    "cancel": "Cancel",
+    "cancel": "Άκυρο",
     "add": "Add token",
     "message": "Θέλετε να προσθέσετε αυτό το token;",
     "token": "Token",
@@ -5592,7 +5624,7 @@
     "cta_text": "I've copied the phrase",
     "confirm_password": "Επιβεβαιώστε τον κωδικό πρόσβασής σας",
     "before_continiuing": "Πριν συνεχίσετε πρέπει να επιβεβαιώσετε τον κωδικό πρόσβασής σας",
-    "confirm": "Confirm"
+    "confirm": "Επιβεβαίωση"
   },
   "account_backup_step_5": {
     "error_title": "Ωχ!",
@@ -5603,7 +5635,7 @@
     "cta_text": "Confirm phrase",
     "modal_title": "Η Μυστική Φράση Ανάκτησης επιβεβαιώθηκε!",
     "modal_text": "Αυτό έγινε για να διασφαλίσουμε ότι θα ακολουθήσετε αυτό το μέτρο ασφαλείας",
-    "modal_button": "Next"
+    "modal_button": "Επόμενο"
   },
   "account_backup_step_6": {
     "title": "Συμβουλές ασφαλείας",
@@ -5613,10 +5645,10 @@
     "tip_3": "Μην μοιραστείτε αυτήν τη φράση ποτέ και με κανέναν",
     "disclaimer": "* Θα βρείτε τη Μυστική Φράση Ανάκτησης, εάν μεταβείτε στις",
     "disclaimer_bold": "Ρυθμίσεις > Ασφάλεια και απόρρητο",
-    "cta_text": "Got it",
+    "cta_text": "Κατανοητό",
     "modal_title": "Συγχαρητήρια!",
     "modal_text": "Έχετε όλα τα αντίγραφα ασφαλείας και είστε έτοιμοι.",
-    "modal_button": "Done",
+    "modal_button": "Τέλος",
     "copy_seed_phrase": "Copy Secret Recovery Phrase to clipboard"
   },
   "manual_backup": {
@@ -6958,7 +6990,7 @@
     },
     "question_two": {
       "question": "Αν κάποιος, ακόμα και ένας τεχνικός υποστήριξης, σας ζητήσει τη Μυστική Φράση Ανάκτησης...",
-      "right_answer": "Σας έχουν εξαπατήσει",
+      "right_answer": "Σας εξαπατούν",
       "right_answer_title": "Σωστά! Το να μοιράζεστε τη Μυστική Φράση Ανάκτησης δεν είναι καλή ιδέα",
       "right_answer_description": "Όποιος ισχυριστεί ότι χρειάζεται τη Μυστική Φράση Ανάκτησης, σας λέει ψέματα. Αν την μοιραστείτε μαζί του, θα κλέψει τα περιουσιακά σας στοιχεία.",
       "wrong_answer": "Πρέπει να τους την δώσετε",
@@ -7470,7 +7502,7 @@
       "verification_pending": "Η επαλήθευση ταυτότητάς σας βρίσκεται υπό εξέταση. Αυτό συνήθως διαρκεί λιγότερο από 12 ώρες."
     },
     "what_you_get": {
-      "title": "Benefits",
+      "title": "Ανταμοιβές",
       "benefit_auto_earn": "Αυτόματη απόδοση έως και",
       "benefit_auto_earn_variable": "(μεταβλητό)",
       "benefit_dollar_backed": "Κρατήστε τα χρήματά σας ασφαλή σε mUSD, ένα stablecoin με αναλογία 1:1 σε δολάρια",
@@ -7496,7 +7528,7 @@
     "more_sheet": {
       "title": "Περισσότερα",
       "how_it_works": "Πώς λειτουργεί",
-      "what_you_get": "Benefits",
+      "what_you_get": "Ανταμοιβές",
       "contact_support": "Επικοινωνία με την υποστήριξη"
     },
     "transfer_sheet": {
@@ -7626,10 +7658,10 @@
       "buy": "Αγορά"
     },
     "earn_banner": {
-      "title": "Earn up to {{apy}}% APY",
+      "title": "Κερδίστε έως και {{apy}}% APY",
       "title_no_apy": "Earn with your Money account",
       "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
-      "cta": "Add {{symbol}}"
+      "cta": "Προσθήκη του {{symbol}}"
     },
     "how_it_works_page": {
       "header_title": "Οικονομικά",
@@ -8403,7 +8435,7 @@
     "you_received": "Έχετε λάβει",
     "bridge_to_chain": "Διασύνδεση προς {{chainName}}",
     "recipient": "Αποδέκτης",
-    "swapped": "Swapped",
+    "swapped": "Ανταλλαγή",
     "bridged": "Bridged",
     "bridged_token": "Bridged {{symbol}}"
   },
@@ -8798,9 +8830,10 @@
         "invalid_password": "Ο κωδικός πρέπει να έχει τουλάχιστον 15 χαρακτήρες. Δεν μπορεί να περιέχει μη εκτυπώσιμους χαρακτήρες ή διαδοχικά κενά.",
         "join_waitlist": "Εγγραφή στη λίστα αναμονής",
         "country_not_available": "Η εγγραφή για κάρτα δεν είναι ακόμη διαθέσιμη στη χώρα σας.",
-        "account_label": "Account",
+        "account_label": "Λογαριασμός",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_exists_toast": "You already have a card account."
+        "account_exists_toast": "You already have a card account.",
+        "card_program_label": "Card program (testing)"
       },
       "confirm_email": {
         "title": "Επιβεβαιώστε το email σας",
@@ -8859,9 +8892,9 @@
         "helper_text": "Αυτό συνήθως διαρκεί λίγα λεπτά. Μην κλείσετε την εφαρμογή."
       },
       "immersve_kyc_processing": {
-        "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "title": "Σε αναμονή έγκρισης",
+        "description": "Ο συνεργάτης μας πρέπει να επαληθεύσει την ταυτότητά σας για να εγκρίνει την αίτησή σας.",
+        "helper_text": "Αυτό συνήθως διαρκεί λίγα λεπτά. Μην κλείσετε την εφαρμογή.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
         "continue_button": "Continue verification",
@@ -8872,14 +8905,14 @@
       },
       "immersve_kyc_modal": {
         "load_error": "Something went wrong loading identity verification. Please try again.",
-        "try_again": "Try again"
+        "try_again": "Προσπαθήστε ξανά"
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "helper_text": "Αυτό συνήθως διαρκεί λίγα λεπτά. Μην κλείσετε την εφαρμογή.",
         "confirm_button": "Approve funding",
-        "retry_button": "Try again"
+        "retry_button": "Προσπαθήστε ξανά"
       },
       "verifying_registration": {
         "title": "Επαλήθευση της ταυτότητάς σας",
@@ -9024,8 +9057,8 @@
         "card_number_label": "Card number",
         "expiry_label": "Expiry",
         "cvv_label": "CVV",
-        "name_label": "Name",
-        "copied": "Copied to clipboard"
+        "name_label": "Όνομα",
+        "copied": "Αντιγραφή στο πρόχειρο"
       },
       "warnings": {
         "close_spending_limit": {
@@ -9054,6 +9087,11 @@
         "kyc_pending": {
           "title": "Επαλήθευση σε εξέλιξη",
           "description": "Η επαλήθευση ταυτότητάς σας βρίσκεται υπό εξέταση. Αυτό συνήθως διαρκεί λιγότερο από 12 ώρες."
+        },
+        "pending_verification": {
+          "title": "Finish setting up your card",
+          "description": "You have pending verification steps to complete before your card can be enabled.",
+          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {
@@ -9476,6 +9514,17 @@
       "swaps_volume_info_label": "Πληροφορίες για τον όγκο των ανταλλαγών",
       "swaps_volume_info_title": "Όγκος ανταλλαγών",
       "swaps_volume_info_description": "Ο όγκος των ανταλλαγών ενημερώνεται μία φορά την ημέρα, οπότε οι πρόσφατες συναλλαγές μπορεί να χρειαστούν έως 24 ώρες για να εμφανιστούν εδώ."
+    },
+    "vip_transactions": {
+      "select_type": "Select type",
+      "type_perps": "Perps",
+      "type_swap": "Swaps",
+      "swap_title": "Swap",
+      "perps_title": "Perps",
+      "error_title": "Failed to load transactions",
+      "error_description": "Something went wrong while loading your transactions. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
     "referral_title": "Συστάσεις",
     "referral_stats_earned_from_referrals": "Κερδίσατε από συστάσεις",
@@ -10092,7 +10141,7 @@
     "bandwidth_fee": "Εύρος ζώνης",
     "energy_fee": "Ενέργεια",
     "bridge_fee": "Τέλη διασύνδεσης",
-    "gas_token_fee": "Gas fee",
+    "gas_token_fee": "Τέλη συναλλαγών",
     "transaction_fee": "Τέλος συναλλαγής",
     "unknown_token": "Άγνωστο",
     "total_amount": "Συνολικό ποσό",
@@ -10129,6 +10178,14 @@
     "show_cli_link_success": {
       "title": "Η σύνδεση με το MetaMask Agent CLI ολοκληρώθηκε επιτυχώς",
       "description": "Επιστρέψτε στο CLI για να συνεχίσετε."
+    },
+    "push_nudge": {
+      "title": "Turn on notifications",
+      "description": "Get alerts for transactions from your CLI session.",
+      "turn_on_button": "Turn on",
+      "loading_title": "Turning on notifications",
+      "loading_description": "Give us a moment while we set things up.",
+      "enable_error": "Couldn't turn on notifications. Try again from Settings."
     },
     "show_otp": {
       "title": "Πληκτρολογήστε αυτόν τον κωδικό",
@@ -10382,13 +10439,13 @@
   },
   "homepage": {
     "action_buttons": {
-      "buy": "Buy",
-      "sell": "Sell",
-      "send": "Send",
-      "receive": "Receive",
-      "swap": "Swap",
-      "perps": "Perps",
-      "predict": "Predict",
+      "buy": "Αγορά",
+      "sell": "Πώληση",
+      "send": "Αποστολή",
+      "receive": "Λήψη",
+      "swap": "Ανταλλαγή",
+      "perps": "Συμβ.αορ.",
+      "predict": "Πρόβλεψη",
       "batch_swap": "Batch Swap",
       "traders": "Traders"
     },
@@ -10404,9 +10461,6 @@
       "top_traders": "Κορυφαίοι Traders της Εβδομάδας",
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Δημοφιλή",
-      "trending_perpetuals": "Δημοφιλή perpetuals",
-      "trending_predictions": "Δημοφιλείς προβλέψεις",
       "watchlist": "Λίστα παρακολούθησης",
       "import_nfts": "Εισαγωγή NFT",
       "import_nfts_description": "Προσθέστε εύκολα τα συλλεκτικά σας αντικείμενα",
@@ -10455,10 +10509,10 @@
     "removed_from_watchlist": "Removed from Watchlist",
     "home_empty_title": "Λίστα παρακολούθησης",
     "home_empty_subtitle": "You have no watchlist items yet",
-    "fullscreen_title": "Watchlist",
-    "tokens_tab": "Tokens",
-    "edit": "Edit",
-    "done": "Done",
+    "fullscreen_title": "Λίστα παρακολούθησης",
+    "tokens_tab": "Token",
+    "edit": "Επεξεργασία",
+    "done": "Τέλος",
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
     "search_placeholder": "Search for any asset to add"

@@ -651,7 +651,7 @@
     "seed_phrase_placeholder": "Ilagay rito ang iyong Lihim na Parirala sa Pagbawi",
     "create_new_password": "Gumawa ng password",
     "confirm_password": "Kumpirmahin ang password",
-    "import_button": "Import",
+    "import_button": "I-import",
     "cancel_button": "Kanselahin",
     "password_length_error": "Ang password ay dapat na kahit 8 character lang",
     "password_dont_match": "Hindi magkatugma ang mga password",
@@ -722,8 +722,8 @@
     "help": "Suporta",
     "lock": "I-lock",
     "lock_title": "Gusto mo ba talagang i-lock ang iyong wallet?",
-    "lock_ok": "Yes",
-    "lock_cancel": "No",
+    "lock_ok": "Oo",
+    "lock_cancel": "Hindi",
     "feedback": "Feedback",
     "metamask_support": "Suporta ng MetaMask",
     "public_address": "Pampublikong address"
@@ -1104,12 +1104,12 @@
       }
     },
     "type_filter": {
-      "all": "All types",
-      "tokens": "Tokens",
+      "all": "Lahat ng uri",
+      "tokens": "Mga Token",
       "perps": "Perps"
     },
     "feed": {
-      "title": "Top traders",
+      "title": "Mga nangungunang trader",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed"
@@ -1125,7 +1125,7 @@
       },
       "new_position": {
         "bought": "Holding",
-        "opened": "Open"
+        "opened": "Bukas"
       },
       "empty_following": {
         "title": "Wala pang aktibidad",
@@ -1148,6 +1148,12 @@
       "error": {
         "title": "Couldn't load the feed",
         "retry": "Subukang muli"
+      },
+      "sub_header": {
+        "at_connector": "at",
+        "market_cap_suffix": "MC",
+        "size_at_price": "{{size}} at {{price}}",
+        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
       "no_data": "Walang data"
     },
@@ -1181,7 +1187,7 @@
       "error_loading_followed": "Hindi mai-load ang mga trader na fina-follow mo."
     },
     "settings": {
-      "section_title": "Top Traders",
+      "section_title": "Mga Nangungunang Trader",
       "show_account_on_leaderboard": "Show account on leaderboard",
       "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
@@ -1280,6 +1286,14 @@
   "perps": {
     "basic_functionality_disabled_title": "Hindi available ang mga perp",
     "title": "Perps",
+    "mode": {
+      "lite": "Lite",
+      "pro": "Pro",
+      "lite_transition_title": "Lite Mode",
+      "pro_transition_title": "Pro Mode",
+      "active_pill_accessibility_label": "Currently {{mode}} mode",
+      "active_pill_accessibility_hint": "Switches to {{mode}} mode"
+    },
     "send_to_perps": "Ipadala sa Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Balanse ng Perp account",
@@ -1485,6 +1499,18 @@
       "metamask_fee_tooltip_deposit": "Hindi naniningil ang MetaMask para sa anumang pagdeposito sa Hyperliquid",
       "metamask_fee_tooltip_withdrawal": "Hindi naniningil ang MetaMask para sa anumang pag-withdraw sa Hyperliquid"
     },
+    "pro_order_form": {
+      "isolated": "Isolated",
+      "choose_order_type": "Choose order type",
+      "size_usd": "Size USD",
+      "size_percentage": "Order size percentage",
+      "toggle_size_unit": "Switch size denomination",
+      "available_balance_unavailable": "-- available",
+      "est_liquidation": "Est Liquidation",
+      "tpsl": "TP / SL",
+      "place_order": "Place order",
+      "close_keyboard": "Close keyboard"
+    },
     "order": {
       "title": "Bagong order",
       "leverage": "Leverage",
@@ -1608,7 +1634,7 @@
       "select_payment_token": "Pumili ng token na pambayad",
       "select_token": "Pumili ng token",
       "no_payment_tokens": "Walang available na mga token na pambayad",
-      "swap": "Swap",
+      "swap": "Mag-swap",
       "swap_submitted": "Naisumite ang Swap",
       "transaction_id": "ID ng Transaksyon: {{txId}}",
       "swap_failed": "Nabigo ang Pagsu-swap",
@@ -2458,7 +2484,7 @@
     },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
-      "market_list": "Browse markets",
+      "market_list": "Mag-browse ng mga market",
       "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
@@ -3072,7 +3098,7 @@
     "defi": "DeFi",
     "perps": "Perps",
     "predict": "Mga prediksyon",
-    "transactions": "Transactions",
+    "transactions": "Mga Transaksyon",
     "no_collectibles": "Hindi makita ang iyong NFT?",
     "no_available_tokens": "Hindi mo ba nakikita ang iyong token?",
     "add_tokens": "Mag-import ng mga token",
@@ -3303,8 +3329,8 @@
     "search_token": "Search",
     "custom_token": "Custom token",
     "tokens": {
-      "cancel_add_token": "Cancel",
-      "add_token": "Import"
+      "cancel_add_token": "Kanselahin",
+      "add_token": "I-import"
     },
     "collectibles": {
       "cancel_add_collectible": "Kanselahin",
@@ -3487,8 +3513,8 @@
   },
   "transfer": {
     "title": "Maglipat",
-    "send": "Send",
-    "receive": "Receive"
+    "send": "Ipadala",
+    "receive": "Tumanggap"
   },
   "accounts": {
     "srp_index": "SRP #{{index}}",
@@ -3626,7 +3652,7 @@
   },
   "account_selector": {
     "prev": "Prev",
-    "next": "Next",
+    "next": "Susunod",
     "unlock": "I-unlock",
     "forget": "Kalimutan ang device na ito"
   },
@@ -3671,10 +3697,10 @@
     "autolock_never": "Hindi kailanman",
     "autolock_after": "Makalipas ang {{time}} (na) segundo",
     "autolock_after_minutes": "Makalipas ang {{time}} (na) minuto",
-    "reveal_seed_words": "Reveal Secret Recovery Phrase",
+    "reveal_seed_words": "Ihayag ang Lihim na Parirala sa Pagbawi",
     "reset_account": "I-reset ang account",
     "state_logs_button": "I-download ang mga log ng estado",
-    "reveal_seed_words_button": "Reveal Secret Recovery Phrase",
+    "reveal_seed_words_button": "Ihayag ang Lihim na Parirala sa Pagbawi",
     "reset_account_button": "I-reset ang account",
     "reset_account_confirm_button": "Oo, i-reset ito",
     "reset_account_cancel_button": "Kanselahin",
@@ -3686,17 +3712,17 @@
     "clear_cookies_modal_title": "I-clear ang cookies ng browser",
     "clear_cookies_modal_message": "Aalisin namin ang cookies ng iyong browser. Sigurado ka ba?",
     "reset_account_modal_message": "Kapag ni-reset ang iyong account, maki-clear ang history ng iyong transaksyon.",
-    "save_rpc_url": "Save",
+    "save_rpc_url": "I-save",
     "invalid_rpc_prefix": "Kailangan ng mga URI ng naaangkop na HTTPS prefix",
     "invalid_rpc_url": "Di-wastong RPC URL",
     "invalid_block_explorer_url": "Hindi Valid ang URL ng Block Explorer",
     "sync": "Sync",
-    "clear_approved_dapps": "Clear approved dapps",
-    "clear_browser_history": "Clear browser history",
+    "clear_approved_dapps": "I-clear ang inaprubahang dapps",
+    "clear_browser_history": "I-clear ang history ng browser",
     "clear_approve_dapps_desc": "I-clear ang inaprubahang dapps",
     "clear_browser_history_desc": "I-clear ang history ng browser",
     "clear_browser_cookies_desc": "I-clear ang cookies ng browser",
-    "clear": "Clear",
+    "clear": "I-clear",
     "protect_cta": "Protektahan",
     "protect_title": "Pag-recover ng wallet",
     "banner_social_login_enabled": "Mag-log in gamit ang {{authConnection}}",
@@ -4243,10 +4269,10 @@
       "extension_cancelled_button": "Subukang muli",
       "already_synced_title": "Account already synced",
       "already_synced_description": "This account has already been synced to this device.",
-      "already_synced_button": "Close",
+      "already_synced_button": "Isara",
       "import_failed_title": "Couldn't add account",
       "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
-      "import_failed_button": "Close"
+      "import_failed_button": "Isara"
     }
   },
   "aes_crypto_test_form": {
@@ -4309,6 +4335,12 @@
     "support_center": "Bisitahin ang aming sentro ng suporta",
     "web_site": "Bisitahin ang aming website",
     "contact_us": "Makipag-ugnayan sa amin"
+  },
+  "support_consent": {
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "confirm": "Confirm",
+    "reject": "Don't share"
   },
   "reveal_credential": {
     "seed_phrase_title": "Ihayag ang Lihim na Parirala sa Pagbawi",
@@ -4421,7 +4453,7 @@
     "period_1h": "1hr",
     "period_24h": "24hr",
     "period_1h_short": "1h",
-    "period_24h_short": "24h",
+    "period_24h_short": "24 na oras",
     "moves_up_summary": "Moves up {{percent}}%",
     "moves_down_summary": "Moves down {{percent}}%",
     "period_recurrence": "{{period}} • {{recurrence}}",
@@ -4432,7 +4464,7 @@
     "title": "Share token info",
     "share": "Share token info",
     "market_cap": "Market cap",
-    "price": "Price",
+    "price": "Presyo",
     "liquidity": "Liquidity",
     "holders": "Holders",
     "volume_24h": "24h volume",
@@ -4738,7 +4770,7 @@
   },
   "transaction": {
     "transaction_id": "ID ng Transaksyon",
-    "alert": "Alert",
+    "alert": "Alerto",
     "amount": "Halaga",
     "details": "Mga detalye",
     "next": "Susunod",
@@ -4764,7 +4796,7 @@
     "edit_transaction_nonce": "I-edit ang nonce ng transaksyon",
     "think_of_the_nonce": "Ituring ang nonce bilang numero ng transaksyon ng isang account. Ang nonce ng bawat account ay nagsisimula sa 0 para sa unang transaksyon at nagpapatuloy nang sunod-sunod.",
     "nonce_warning": "Babala: Maaaring may makaharap kang mga isyu sa mga transaksyon sa hinaharap kung magpapatuloy ka. Gamitin nang may pag-iingat.",
-    "review_details": "Details",
+    "review_details": "Mga detalye",
     "review_data": "Data",
     "data": "Datos",
     "data_description": "Data na nauugnay sa transaksyong ito",
@@ -4957,7 +4989,7 @@
     "dapp_browser": "Dapp browser",
     "dapp_browser_message": "Ang MetaMask ay ang iyong wallet at browser para sa desentralisadong web. Mag-explore!",
     "featured_dapps": "Featured dapps",
-    "my_favorites": "Favorites",
+    "my_favorites": "Mga Paborito",
     "search": "Maghanap o mag-type ng URL",
     "welcome": "Maligayang pagdating!",
     "remove": "Alisin",
@@ -5069,10 +5101,10 @@
     "activity_market_close_long": "Market — close long",
     "activity_limit_long": "Limit long",
     "activity_limit_close_long": "Limit — close long",
-    "activity_order_status_filled": "Filled",
-    "activity_order_status_canceled": "Canceled",
-    "activity_order_status_rejected": "Rejected",
-    "activity_order_status_open": "Open",
+    "activity_order_status_filled": "Na-fill",
+    "activity_order_status_canceled": "Nakansela",
+    "activity_order_status_rejected": "Tinanggihan",
+    "activity_order_status_open": "Bukas",
     "activity_trustline_activated": "Trustline activated",
     "activity_trustline_activating": "Activating trustline",
     "activity_trustline_activation_failed": "Activate trustline failed",
@@ -5103,14 +5135,14 @@
     "receive": "Tumanggap",
     "swap": "Mag-swap",
     "send": "Ipadala",
-    "activity_swapped": "Swapped",
+    "activity_swapped": "Nai-swap",
     "activity_swapping": "Swapping",
-    "activity_swap_failed": "Swap failed",
+    "activity_swap_failed": "Nabigo ang pagsu-swap",
     "activity_bridged": "Bridged",
     "activity_bridging": "Bridging",
-    "activity_bridge_failed": "Bridge failed",
-    "activity_sending": "Sending",
-    "activity_send_failed": "Send failed",
+    "activity_bridge_failed": "Nabigo ang pag-bridge",
+    "activity_sending": "Ipinapadala",
+    "activity_send_failed": "Nabigong ipadala",
     "redeposit": "Magdepositong muli",
     "interaction": "Interaksyon",
     "contract_deploy": "Deployment ng kontrata",
@@ -5385,7 +5417,7 @@
   },
   "watch_asset_request": {
     "title": "Idagdag nag iminumungkahing token",
-    "cancel": "Cancel",
+    "cancel": "Kanselahin",
     "add": "Add token",
     "message": "Gusto mo bang idagdag ang token na ito?",
     "token": "Token",
@@ -5592,7 +5624,7 @@
     "cta_text": "I've copied the phrase",
     "confirm_password": "Kumpirmahin ang iyong password",
     "before_continiuing": "Bago magpatuloy, kailangan mong kumpirmahin ang iyong password",
-    "confirm": "Confirm"
+    "confirm": "Kumpirmahin"
   },
   "account_backup_step_5": {
     "error_title": "Oops!",
@@ -5603,7 +5635,7 @@
     "cta_text": "Confirm phrase",
     "modal_title": "Nakumpirma ang Lihim na Parirala sa Pagbawi!",
     "modal_text": "Ito ay para matiyak na susundin mo ang panseguridad na hakbang na ito",
-    "modal_button": "Next"
+    "modal_button": "Susunod"
   },
   "account_backup_step_6": {
     "title": "Mga tip sa seguridad",
@@ -5613,10 +5645,10 @@
     "tip_3": "Huwag ibahagi ang phrase na ito sa sinuman",
     "disclaimer": "* Makikita mo ang iyong Lihim na Parirala sa Pagbawi kung pupunta ka sa ",
     "disclaimer_bold": "Settings > Seguridad at pagkapribado",
-    "cta_text": "Got it",
+    "cta_text": "Nakuha ko",
     "modal_title": "Pagbati!",
     "modal_text": "Na-back up mo na lahat at handa ka na.",
-    "modal_button": "Done",
+    "modal_button": "Tapos na",
     "copy_seed_phrase": "Copy Secret Recovery Phrase to clipboard"
   },
   "manual_backup": {
@@ -6256,7 +6288,7 @@
     "enter_larger_amount": "Maglagay ng mas malaking halaga para magpatuloy",
     "enter_smaller_amount": "Maglagay ng mas maliit na halaga para magpatuloy",
     "enter_lower_gas_fees": "Maglagay ng mas mababang halaga para bayaran ang gas fees",
-    "max": "Max",
+    "max": "Pinakamataas",
     "try_again": "Subukang muli",
     "error": "Error",
     "something_went_wrong": "Oops, nagkaproblema",
@@ -7470,7 +7502,7 @@
       "verification_pending": "Sinusuri ang pag-verify ng pagkakakilanlan mo. Karaniwan itong tumatagal nang wala pang 12 oras."
     },
     "what_you_get": {
-      "title": "Benefits",
+      "title": "Mga Benepisyo",
       "benefit_auto_earn": "Awtomatikong kumita ng hanggang",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Itabi nang ligtas ang pera mo sa mUSD, isang stablecoin na sinusuportahan ng dolyar nang 1:1",
@@ -7496,7 +7528,7 @@
     "more_sheet": {
       "title": "Higit pa",
       "how_it_works": "Paano ito gumagana",
-      "what_you_get": "Benefits",
+      "what_you_get": "Mga Benepisyo",
       "contact_support": "Kontakin ang suporta"
     },
     "transfer_sheet": {
@@ -7626,10 +7658,10 @@
       "buy": "Bumili"
     },
     "earn_banner": {
-      "title": "Earn up to {{apy}}% APY",
+      "title": "Kumita ng hanggang {{apy}}% APY",
       "title_no_apy": "Earn with your Money account",
       "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
-      "cta": "Add {{symbol}}"
+      "cta": "Idagdag ang {{symbol}}"
     },
     "how_it_works_page": {
       "header_title": "Pera",
@@ -8403,7 +8435,7 @@
     "you_received": "Nakatanggap ka ng",
     "bridge_to_chain": "I-bridge sa {{chainName}}",
     "recipient": "Tatanggap",
-    "swapped": "Swapped",
+    "swapped": "Nai-swap",
     "bridged": "Bridged",
     "bridged_token": "Bridged {{symbol}}"
   },
@@ -8800,7 +8832,8 @@
         "country_not_available": "Hindi pa available ang card sign-up sa iyong bansa.",
         "account_label": "Account",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_exists_toast": "You already have a card account."
+        "account_exists_toast": "You already have a card account.",
+        "card_program_label": "Card program (testing)"
       },
       "confirm_email": {
         "title": "Kumpirmahin ang email mo",
@@ -8859,9 +8892,9 @@
         "helper_text": "Karaniwan itong tumatagal nang ilang segundo. Huwag isara ang app."
       },
       "immersve_kyc_processing": {
-        "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "title": "Naghihintay ng pag-apruba",
+        "description": "Kailangang i-verify ng aming partner ang iyong pagkakakilanlan mo para aprubahan ang aplikasyon mo.",
+        "helper_text": "Karaniwan itong tumatagal nang ilang segundo. Huwag isara ang app.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
         "continue_button": "Continue verification",
@@ -8872,14 +8905,14 @@
       },
       "immersve_kyc_modal": {
         "load_error": "Something went wrong loading identity verification. Please try again.",
-        "try_again": "Try again"
+        "try_again": "Subukang muli"
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "helper_text": "Karaniwan itong tumatagal nang ilang segundo. Huwag isara ang app.",
         "confirm_button": "Approve funding",
-        "retry_button": "Try again"
+        "retry_button": "Subukang muli"
       },
       "verifying_registration": {
         "title": "Bini-verify ang iyong pagkakakilanlan",
@@ -9024,8 +9057,8 @@
         "card_number_label": "Card number",
         "expiry_label": "Expiry",
         "cvv_label": "CVV",
-        "name_label": "Name",
-        "copied": "Copied to clipboard"
+        "name_label": "Pangalan",
+        "copied": "Nakopya sa clipboard"
       },
       "warnings": {
         "close_spending_limit": {
@@ -9054,6 +9087,11 @@
         "kyc_pending": {
           "title": "Kasalukuyan ang pag-verify",
           "description": "Sinusuri ang pag-verify ng pagkakakilanlan mo. Karaniwan itong tumatagal nang wala pang 12 oras."
+        },
+        "pending_verification": {
+          "title": "Finish setting up your card",
+          "description": "You have pending verification steps to complete before your card can be enabled.",
+          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {
@@ -9476,6 +9514,17 @@
       "swaps_volume_info_label": "Impormasyon sa dami ng mga swap",
       "swaps_volume_info_title": "Dami ng mga swap",
       "swaps_volume_info_description": "Ang dami ng mga swap mo ay nag-a-update isang beses sa isang araw, kaya ang mga swap mo kamakailan ay maaaring tumagal ng 24 oras bago lumitaw dito."
+    },
+    "vip_transactions": {
+      "select_type": "Select type",
+      "type_perps": "Perps",
+      "type_swap": "Swaps",
+      "swap_title": "Swap",
+      "perps_title": "Perps",
+      "error_title": "Failed to load transactions",
+      "error_description": "Something went wrong while loading your transactions. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
     "referral_title": "Mga Referral",
     "referral_stats_earned_from_referrals": "Nakuha mula sa mga referral",
@@ -10092,7 +10141,7 @@
     "bandwidth_fee": "Bandwidth",
     "energy_fee": "Enerhiya",
     "bridge_fee": "Bayad sa bridge",
-    "gas_token_fee": "Gas fee",
+    "gas_token_fee": "Bayad sa gas",
     "transaction_fee": "Bayarin sa transaksyon",
     "unknown_token": "Hindi Kilala",
     "total_amount": "Kabuuang halaga",
@@ -10129,6 +10178,14 @@
     "show_cli_link_success": {
       "title": "Matagumpay na nai-link ang MetaMask Agent CLI",
       "description": "Bumalik sa CLI para magpatuloy."
+    },
+    "push_nudge": {
+      "title": "Turn on notifications",
+      "description": "Get alerts for transactions from your CLI session.",
+      "turn_on_button": "Turn on",
+      "loading_title": "Turning on notifications",
+      "loading_description": "Give us a moment while we set things up.",
+      "enable_error": "Couldn't turn on notifications. Try again from Settings."
     },
     "show_otp": {
       "title": "Ilagay ang code na ito",
@@ -10382,13 +10439,13 @@
   },
   "homepage": {
     "action_buttons": {
-      "buy": "Buy",
-      "sell": "Sell",
-      "send": "Send",
-      "receive": "Receive",
-      "swap": "Swap",
+      "buy": "Bumili",
+      "sell": "Magbenta",
+      "send": "Ipadala",
+      "receive": "Tumanggap",
+      "swap": "Mag-swap",
       "perps": "Perps",
-      "predict": "Predict",
+      "predict": "Humula",
       "batch_swap": "Batch Swap",
       "traders": "Traders"
     },
@@ -10404,9 +10461,6 @@
       "top_traders": "Mga Nangungunang Trader Linggu-linggo",
       "defi": "DeFi",
       "nfts": "Mga NFT",
-      "trending_tokens": "Nagte-trend",
-      "trending_perpetuals": "Mga trending na perpetual",
-      "trending_predictions": "Mga trending na prediksyon",
       "watchlist": "Watchlist",
       "import_nfts": "Mag-import ng mga NFT",
       "import_nfts_description": "Madaling idagdag ang mga collectible mo",
@@ -10456,9 +10510,9 @@
     "home_empty_title": "Watchlist",
     "home_empty_subtitle": "You have no watchlist items yet",
     "fullscreen_title": "Watchlist",
-    "tokens_tab": "Tokens",
-    "edit": "Edit",
-    "done": "Done",
+    "tokens_tab": "Mga Token",
+    "edit": "I-edit",
+    "done": "Tapos na",
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
     "search_placeholder": "Search for any asset to add"
