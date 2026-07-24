@@ -103,6 +103,32 @@ export class OAuthMockttpService {
   }
 
   /**
+   * Configure for Telegram New User flow
+   * @returns this for method chaining
+   */
+  configureTelegramNewUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.NEW_USER,
+      email: E2E_EMAILS.TELEGRAM_NEW_USER,
+    };
+    return this;
+  }
+
+  /**
+   * Configure for Telegram Existing User flow
+   * @returns this for method chaining
+   */
+  configureTelegramExistingUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.EXISTING_USER,
+      email: E2E_EMAILS.TELEGRAM_EXISTING_USER,
+    };
+    return this;
+  }
+
+  /**
    * Configure for error scenario
    * @param errorType - Type of error to simulate
    * @returns this for method chaining
@@ -267,7 +293,7 @@ export class OAuthMockttpService {
           );
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -363,7 +389,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -435,7 +461,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 

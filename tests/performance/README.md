@@ -312,6 +312,7 @@ Tests for new users:
 - `new-wallet-account-creation.spec.ts` - New wallet creation flow
 - `seedless-apple-onboarding.spec.ts` - Apple social sign-in onboarding
 - `seedless-google-onboarding.spec.ts` - Google social sign-in onboarding
+- `seedless-telegram-onboarding.spec.ts` - Telegram social sign-in onboarding (requires `MM_TELEGRAM_LOGIN_ENABLED=true` on without-srp e2e builds)
 - `launch-times/` - Onboarding launch metrics
 
 ### Predict Tests (`tests/performance/login/predict/`)
