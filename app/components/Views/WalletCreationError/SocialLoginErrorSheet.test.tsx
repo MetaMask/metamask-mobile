@@ -146,7 +146,9 @@ describe('SocialLoginErrorSheet', () => {
       mockAddProperties.mockClear();
       mockTrackEvent.mockClear();
 
-      fireEvent.press(getByText('Try again'));
+      await act(async () => {
+        fireEvent.press(getByText('Try again'));
+      });
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(

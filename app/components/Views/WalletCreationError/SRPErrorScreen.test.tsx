@@ -257,12 +257,14 @@ describe('SRPErrorScreen', () => {
   });
 
   describe('handleCopyError', () => {
-    it('copies error report to clipboard when Copy is pressed', () => {
+    it('copies error report to clipboard when Copy is pressed', async () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
+      });
 
       expect(Clipboard.setString).toHaveBeenCalledWith(
         'View: ChoosePassword\nError: WalletCreationError\nTest wallet creation error',
@@ -274,10 +276,12 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
+      });
 
       await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+        expect(getByText('Copied')).toBeOnTheScreen();
       });
     });
 
@@ -286,10 +290,12 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
+      });
 
       await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+        expect(getByText('Copied')).toBeOnTheScreen();
       });
 
       act(() => {
@@ -379,10 +385,12 @@ describe('SRPErrorScreen', () => {
       );
 
       // Trigger copy to start a timeout
-      fireEvent.press(getByText('Copy'));
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
+      });
 
       await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+        expect(getByText('Copied')).toBeOnTheScreen();
       });
 
       // Unmount component
@@ -399,13 +407,17 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
 
-      fireEvent.press(getByText('Copied'));
+      await waitFor(() => {
+        expect(getByText('Copied')).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Copied'));
+      });
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       clearTimeoutSpy.mockRestore();
