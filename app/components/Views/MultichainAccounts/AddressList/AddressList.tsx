@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
@@ -43,7 +44,7 @@ export const createAddressListNavigationDetails =
  * @returns {JSX.Element} The rendered component.
  */
 export const AddressList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 

@@ -32,6 +32,7 @@ import type {
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../../components/UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 
 // Bridge params
 import type {
@@ -389,7 +390,9 @@ export type RootModalFlowParamList = {
   TokenSort: undefined;
   NetworkManager: undefined;
   BasicFunctionality: undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   TurnOffRememberMeModal: undefined;
   AssetHideConfirmation: { onConfirm: () => void } | undefined;
@@ -712,7 +715,9 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
@@ -999,6 +1004,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes

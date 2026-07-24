@@ -12,6 +12,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { Camera } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -173,7 +174,7 @@ export interface HwQrScannerRouteParams {
 export function HwQrScanner() {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const isFocused = useIsFocused();
   const toastRef = useContext(ToastContext)?.toastRef;

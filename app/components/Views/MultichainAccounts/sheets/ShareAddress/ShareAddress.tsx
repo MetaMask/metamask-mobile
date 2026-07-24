@@ -11,6 +11,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -47,7 +48,7 @@ export const ShareAddress = () => {
   const tw = useTailwind();
   const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);
 

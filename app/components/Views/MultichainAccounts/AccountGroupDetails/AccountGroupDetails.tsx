@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
   AvatarAccount,
@@ -46,6 +47,7 @@ import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { AddressListViewedSource } from '../../../../util/analytics/addressListViewedTracking';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import {
   endTrace,
@@ -67,7 +69,7 @@ interface AccountGroupDetailsRouteParams {
 export const AccountGroupDetails = () => {
   const route =
     useRoute<RouteProp<{ params: AccountGroupDetailsRouteParams }, 'params'>>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { accountGroup: initialAccountGroup } = route.params;
   const { id } = initialAccountGroup;
 
@@ -134,8 +136,9 @@ export const AccountGroupDetails = () => {
       },
     });
 
-    navigation.navigate(
-      ...createAddressListNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createAddressListNavigationDetails({
         groupId: id,
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           metadata.name
@@ -266,8 +269,9 @@ export const AccountGroupDetails = () => {
             style={styles.privateKeys}
             testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
             onPress={() => {
-              navigation.navigate(
-                ...createPrivateKeyListNavigationDetails({
+              navigateWithDetails(
+                navigation,
+                createPrivateKeyListNavigationDetails({
                   groupId: id,
                   title: strings(
                     'multichain_accounts.account_details.private_keys',

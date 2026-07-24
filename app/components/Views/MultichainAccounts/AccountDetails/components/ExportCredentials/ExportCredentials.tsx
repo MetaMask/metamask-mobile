@@ -21,6 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
 import { useHdKeyringsWithSnapAccounts } from '../../../../../hooks/useHdKeyringsWithSnapAccounts';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   FlexDirection,
@@ -37,7 +38,7 @@ interface ExportCredentialsProps {
 }
 
 export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const canExportPrivateKey =
     account.metadata.keyring.type === KeyringTypes.hd ||
     isPrivateKeyAccount(account);
@@ -80,7 +81,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   }, [seedphraseBackedUp, hdKeyringsWithSnapAccounts, account]);
 
   const onExportMnemonic = useCallback(() => {
-    const keyringId = account.options.entropySource;
+    const keyringId = account.options.entropySource as string;
     if (keyringId) {
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         shouldUpdateNav: true,

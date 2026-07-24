@@ -38,7 +38,10 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { useHwQrState } from './hooks/useHwQrState';
 import { StepRow } from './StepRow';
@@ -56,7 +59,7 @@ export type { SubmissionParams } from './flowStrategy';
 
 export function HardwareWalletsSwaps() {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const progress = useSelector(selectHardwareWalletsSwaps);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);

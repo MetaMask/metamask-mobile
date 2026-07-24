@@ -9,6 +9,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -49,7 +50,7 @@ export const EditMultichainAccountName = () => {
   const { themeAppearance } = useTheme();
   const route = useRoute<EditMultichainAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
 
   const accountGroupFromSelector = useSelector((state: RootState) =>
