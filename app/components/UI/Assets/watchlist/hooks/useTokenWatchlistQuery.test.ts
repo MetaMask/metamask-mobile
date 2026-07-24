@@ -151,6 +151,72 @@ describe('useTokenWatchlistQuery', () => {
     ]);
   });
 
+  it('drops tokens removed from the optimistic blob while getTokens is in flight', async () => {
+    const { Wrapper, queryClient } = createWrapper();
+    mockedReadFromTokenWatchList.mockResolvedValue({
+      assets: ['eip155:1/slip44:60', 'eip155:1/erc20:0xbbb'],
+      version: 1,
+    });
+
+    let resolveGetTokens:
+      | ((
+          value: {
+            assetId: string;
+            symbol: string;
+            name: string;
+            decimals: number;
+          }[],
+        ) => void)
+      | null = null;
+    mockedGetTokens.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveGetTokens = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useTokenWatchlistQuery(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(mockedGetTokens).toHaveBeenCalled();
+    });
+
+    // Simulate remove winning while Token API hydration is still pending.
+    queryClient.setQueryData(tokenWatchlistQueryKeys.blob, {
+      assets: ['eip155:1/slip44:60'],
+      version: 1,
+    });
+
+    await waitFor(() => {
+      expect(resolveGetTokens).not.toBeNull();
+    });
+
+    resolveGetTokens?.([
+      {
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+      },
+      {
+        assetId: 'eip155:1/erc20:0xbbb',
+        symbol: 'BBB',
+        name: 'Token BBB',
+        decimals: 18,
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toStrictEqual(true);
+    });
+
+    expect(result.current.data?.map((token) => token.assetId)).toStrictEqual([
+      'eip155:1/slip44:60',
+    ]);
+  });
+
   it('hydrates the user balance from controller state for watched tokens held by the wallet', async () => {
     mockAssetsByChain = {
       'eip155:1': [
