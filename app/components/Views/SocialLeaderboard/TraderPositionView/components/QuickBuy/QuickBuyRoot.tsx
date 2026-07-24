@@ -4,19 +4,9 @@ import {
   type BottomSheetDialogRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import type { LayoutChangeEvent } from 'react-native';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import { useABTest } from '../../../../../../hooks/useABTest';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import {
@@ -38,11 +28,9 @@ import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
 import QuickBuyTokenSelectScreen from './QuickBuyTokenSelectScreen';
-import {
-  makeScreenTransitions,
-  SCREEN_DEPTH,
-  type ScreenDirection,
-} from './transitions';
+import { SHEET_STACK_PUSH_DURATION } from './sheetStackMotion';
+import { isSheetStackScreen } from './transitions';
+import { Animated, useSheetStackTransition } from './useSheetStackTransition';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
@@ -53,15 +41,8 @@ import type {
 
 export type { QuickBuyRootProps } from './types';
 
-function renderActiveScreen(
-  activeScreen: QuickBuyScreen,
-  children: React.ReactNode | undefined,
-): React.ReactNode {
-  if (children !== undefined && children !== null) {
-    return children;
-  }
-
-  switch (activeScreen) {
+function renderScreen(screen: QuickBuyScreen): React.ReactNode {
+  switch (screen) {
     case 'payWith':
       return <QuickBuyTokenSelectScreen />;
     case 'quoteDetails':
@@ -97,15 +78,41 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
-  // Measured once from the first screen and reused as a fixed height for every
-  // screen so the sheet keeps a constant size during navigation (no layout
-  // shift between screens).
-  const [lockedHeight, setLockedHeight] = useState<number | null>(null);
-  // True once a dismissal is requested via the CTA/Cancel so the content drops
-  // with the sheet instead of running its horizontal screen-exit transition.
+  // Keep the last pushed screen mounted through the pop animation so the
+  // outgoing detail stays visible while it slides off.
+  const [renderedDetail, setRenderedDetail] = useState<QuickBuyScreen | null>(
+    null,
+  );
+  // True once a dismissal is requested via the CTA/Cancel so we don't also
+  // run a horizontal pop while the sheet is sliding down.
   const [isClosing, setIsClosing] = useState(false);
-  const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  // Last screen we already drove stack motion for — ignores Strict Mode's
+  // double effect invoke so we don't skip pop/unmount or re-snap mid-push.
+  const lastAnimatedScreenRef = useRef<QuickBuyScreen>('amount');
+  const unmountDetailTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const surfaceClass = useElevatedSurface();
+
+  const {
+    isPushed,
+    requestPush,
+    pop,
+    snapToPushed,
+    onStackLayout,
+    onRootLayout,
+    onDetailLayout,
+    heightStyle,
+    rootScreenStyle,
+    detailScreenStyle,
+  } = useSheetStackTransition();
+
+  const popRef = useRef(pop);
+  popRef.current = pop;
+  const requestPushRef = useRef(requestPush);
+  requestPushRef.current = requestPush;
+  const snapToPushedRef = useRef(snapToPushed);
+  snapToPushedRef.current = snapToPushed;
 
   // Keyboard vs slider A/B test. Resolved here so `Experiment Viewed` fires
   // once the sheet is actually shown (this component only mounts when visible).
@@ -116,26 +123,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   );
   const useKeyboard = variant.useKeyboard;
 
-  const directionSV = useSharedValue<ScreenDirection>(1);
-  // Suppresses the enter animation on the initial screen when the sheet opens;
-  // transitions only kick in once the user navigates between screens.
-  const [hasNavigated, setHasNavigated] = useState(false);
-  const { entering, exiting } = useMemo(
-    () => makeScreenTransitions(directionSV),
-    [directionSV],
-  );
-
-  const navigateToScreen = useCallback(
-    (next: QuickBuyScreen) => {
-      setHasNavigated(true);
-      setActiveScreen((current) => {
-        directionSV.value =
-          SCREEN_DEPTH[next] >= SCREEN_DEPTH[current] ? 1 : -1;
-        return next;
-      });
-    },
-    [directionSV],
-  );
+  const navigateToScreen = useCallback((next: QuickBuyScreen) => {
+    setActiveScreen(next);
+  }, []);
 
   const trackSheetViewed = useCallback(() => {
     const source = analyticsContext?.source;
@@ -157,6 +147,50 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     });
   }, [trackSheetViewed]);
 
+  // Drive in-sheet stack push/pop from activeScreen. Skip while the whole
+  // sheet is dismissing so content doesn't also slide horizontally.
+  // Push is deferred via requestPush → detail onLayout so we never animate
+  // with an unmeasured (0-height) detail, which collapsed the sheet.
+  useEffect(() => {
+    if (isClosing) {
+      lastAnimatedScreenRef.current = activeScreen;
+      return;
+    }
+
+    const from = lastAnimatedScreenRef.current;
+    if (from === activeScreen) {
+      return;
+    }
+    lastAnimatedScreenRef.current = activeScreen;
+
+    if (isSheetStackScreen(activeScreen)) {
+      if (unmountDetailTimeoutRef.current !== null) {
+        clearTimeout(unmountDetailTimeoutRef.current);
+        unmountDetailTimeoutRef.current = null;
+      }
+      setRenderedDetail(activeScreen);
+      if (isSheetStackScreen(from)) {
+        // Already drilled in (e.g. quoteDetails ↔ selectQuote) — swap detail
+        // content without replaying the push from amount.
+        snapToPushedRef.current();
+      } else {
+        requestPushRef.current();
+      }
+      return;
+    }
+
+    // Returning to amount: pop, then unmount detail after the slide finishes.
+    if (isSheetStackScreen(from)) {
+      popRef.current();
+      if (unmountDetailTimeoutRef.current === null) {
+        unmountDetailTimeoutRef.current = setTimeout(() => {
+          unmountDetailTimeoutRef.current = null;
+          setRenderedDetail(null);
+        }, SHEET_STACK_PUSH_DURATION);
+      }
+    }
+  }, [activeScreen, isClosing]);
+
   // Animate the sheet down (then run the parent's onClose) and flag the content
   // as closing so it doesn't slide horizontally on the way out. Falls back to a
   // direct onClose when the imperative handle isn't available.
@@ -170,35 +204,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     }
   }, [onClose]);
 
-  const handleContentLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      // Capture the first (amount) screen height once so every sub-screen shares
-      // it and doesn't collapse to its own (often short) content height. In the
-      // keyboard treatment the amount screen stays dynamic below, but its
-      // initial (keypad-open) height is still the baseline for the others.
-      if (lockedHeight !== null) {
-        return;
-      }
-      const { height } = event.nativeEvent.layout;
-      if (height > 0) {
-        setLockedHeight(height);
-      }
-    },
-    [lockedHeight],
-  );
-
   // Keep the bottom safe-area inset only on screens that pin a CTA at the
-  // bottom; the scroll-only screens (quote details / select quote / pay with /
-  // receive) sit flush to the edge instead of leaving dead space below.
-  const hasBottomCta =
-    activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
+  // bottom; scroll-only detail screens sit flush to the edge.
+  const detailHasBottomCta = renderedDetail === 'priceImpactConfirm';
 
-  // The amount screen in the keyboard treatment stays dynamic so it can grow and
-  // shrink with the keypad; every other screen (and the whole control variant)
-  // uses the locked height so sub-screens like "Pay with" don't collapse to
-  // their own short content height.
-  const isDynamicAmountScreen = useKeyboard && activeScreen === 'amount';
-  const shouldLockHeight = lockedHeight !== null && !isDynamicAmountScreen;
+  // Custom children (tests / compound overrides) use a single layer — the
+  // in-sheet stack is for the real amount ↔ payWith / quoteDetails flow.
+  const useCustomChildren = children !== undefined && children !== null;
 
   return (
     <BottomSheetDialog
@@ -230,33 +242,46 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           setActiveScreen={navigateToScreen}
           useKeyboard={useKeyboard}
         >
-          <Box
-            testID="quick-buy-content-container"
-            onLayout={handleContentLayout}
-            style={
-              shouldLockHeight && lockedHeight !== null
-                ? {
-                    // Scroll-only screens reclaim the bottom safe-area inset
-                    // that BottomSheetDialog adds, so they sit flush to the
-                    // edge while keeping the same overall sheet height as the
-                    // CTA screens (no layout shift between screens).
-                    height: hasBottomCta
-                      ? lockedHeight
-                      : lockedHeight + bottomInset,
-                    ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
-                  }
-                : undefined
-            }
-          >
+          {useCustomChildren ? (
+            <Box testID="quick-buy-content-container">{children}</Box>
+          ) : (
             <Animated.View
-              key={activeScreen}
-              entering={hasNavigated ? entering : undefined}
-              exiting={isClosing ? undefined : exiting}
-              style={shouldLockHeight ? tw.style('flex-1') : undefined}
+              testID="quick-buy-content-container"
+              onLayout={onStackLayout}
+              style={[tw.style('w-full overflow-hidden'), heightStyle]}
             >
-              {renderActiveScreen(activeScreen, children)}
+              <Animated.View
+                testID="quick-buy-stack-root"
+                onLayout={onRootLayout}
+                pointerEvents={isPushed ? 'none' : 'auto'}
+                style={[
+                  tw.style(`absolute left-0 right-0 top-0 ${surfaceClass}`),
+                  rootScreenStyle,
+                ]}
+              >
+                {renderScreen('amount')}
+              </Animated.View>
+
+              {renderedDetail !== null && (
+                <Animated.View
+                  testID="quick-buy-stack-detail"
+                  onLayout={onDetailLayout}
+                  pointerEvents={isPushed ? 'auto' : 'none'}
+                  style={[
+                    tw.style(
+                      `absolute left-0 right-0 top-0 overflow-hidden ${surfaceClass}`,
+                    ),
+                    detailHasBottomCta
+                      ? undefined
+                      : { marginBottom: -bottomInset },
+                    detailScreenStyle,
+                  ]}
+                >
+                  <Box twClassName="flex-1">{renderScreen(renderedDetail)}</Box>
+                </Animated.View>
+              )}
             </Animated.View>
-          </Box>
+          )}
         </QuickBuyProvider>
       ) : (
         <QuickBuyBottomSheetSkeleton useKeyboard={useKeyboard} />

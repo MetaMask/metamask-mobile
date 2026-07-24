@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import QuickBuyRoot from './QuickBuyRoot';
@@ -115,11 +115,86 @@ jest.mock('./QuickBuyAmount', () => {
 
 jest.mock('./components/QuickBuyActionFooter', () => {
   const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, Pressable: PressableMock } = jest.requireActual('react-native');
+  const { useQuickBuyContext: useCtx } = jest.requireActual(
+    './useQuickBuyContext',
+  );
   return {
     __esModule: true,
-    default: () =>
-      ReactMock.createElement(Text, { testID: 'mock-action-footer' }, 'footer'),
+    default: () => {
+      const { setActiveScreen } = useCtx();
+      return ReactMock.createElement(
+        ReactMock.Fragment,
+        null,
+        ReactMock.createElement(
+          Text,
+          { testID: 'mock-action-footer' },
+          'footer',
+        ),
+        ReactMock.createElement(PressableMock, {
+          testID: 'nav-to-payWith',
+          onPress: () => setActiveScreen('payWith'),
+        }),
+        ReactMock.createElement(PressableMock, {
+          testID: 'nav-to-quoteDetails',
+          onPress: () => setActiveScreen('quoteDetails'),
+        }),
+      );
+    },
+  };
+});
+
+jest.mock('./QuickBuyTokenSelectScreen', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text, Pressable: PressableMock } = jest.requireActual('react-native');
+  const { useQuickBuyContext: useCtx } = jest.requireActual(
+    './useQuickBuyContext',
+  );
+  return {
+    __esModule: true,
+    default: () => {
+      const { setActiveScreen } = useCtx();
+      return ReactMock.createElement(
+        ReactMock.Fragment,
+        null,
+        ReactMock.createElement(
+          Text,
+          { testID: 'mock-pay-with-screen' },
+          'pay-with',
+        ),
+        ReactMock.createElement(PressableMock, {
+          testID: 'nav-back-from-payWith',
+          onPress: () => setActiveScreen('amount'),
+        }),
+      );
+    },
+  };
+});
+
+jest.mock('./QuickBuyQuoteDetailsScreen', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text, Pressable: PressableMock } = jest.requireActual('react-native');
+  const { useQuickBuyContext: useCtx } = jest.requireActual(
+    './useQuickBuyContext',
+  );
+  return {
+    __esModule: true,
+    default: () => {
+      const { setActiveScreen } = useCtx();
+      return ReactMock.createElement(
+        ReactMock.Fragment,
+        null,
+        ReactMock.createElement(
+          Text,
+          { testID: 'mock-quote-details-screen' },
+          'quote-details',
+        ),
+        ReactMock.createElement(PressableMock, {
+          testID: 'nav-back-from-quoteDetails',
+          onPress: () => setActiveScreen('amount'),
+        }),
+      );
+    },
   };
 });
 
@@ -452,7 +527,7 @@ describe('QuickBuyRoot', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('applies the measured locked height after the first layout', () => {
+  it('renders the in-sheet stack root layer for the amount screen', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -465,46 +540,9 @@ describe('QuickBuyRoot', () => {
       storedOnOpenCallback?.();
     });
 
-    const container = screen.getByTestId('quick-buy-content-container');
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 480 } },
-      });
-    });
-
-    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
-    });
-  });
-
-  it('keeps the initial locked height when a later layout reports a different height', () => {
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      />,
-    );
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    const container = screen.getByTestId('quick-buy-content-container');
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 480 } },
-      });
-    });
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 300 } },
-      });
-    });
-
-    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
-    });
+    expect(screen.getByTestId('quick-buy-stack-root')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-stack-detail')).toBeNull();
+    expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
   });
 
   describe('close behavior', () => {
@@ -536,37 +574,62 @@ describe('QuickBuyRoot', () => {
       expect(mockOnCloseDialog).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('suppresses the content exit transition while closing', () => {
+  describe('in-sheet stack', () => {
+    const openSheet = () => {
       renderWithProvider(
         <QuickBuyRoot
           isVisible
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
-        >
-          <CloseProbe />
-        </QuickBuyRoot>,
+        />,
       );
       act(() => {
         storedOnOpenCallback?.();
       });
+    };
 
-      const beforeContainer = screen.getByTestId('quick-buy-content-container');
-      const animatedBefore = beforeContainer.children[0] as {
-        props: { exiting?: unknown };
-      };
-      expect(animatedBefore.props.exiting).toBeDefined();
+    it('pushes pay with as a detail layer while keeping the amount root mounted', () => {
+      openSheet();
 
       act(() => {
-        fireEvent.press(screen.getByTestId('probe-close'));
+        fireEvent.press(screen.getByTestId('nav-to-payWith'));
       });
 
-      const afterContainer = screen.getByTestId('quick-buy-content-container');
-      const animatedAfter = afterContainer.children[0] as {
-        props: { exiting?: unknown };
-      };
-      expect(animatedAfter.props.exiting).toBeUndefined();
+      expect(screen.getByTestId('quick-buy-stack-root')).toBeOnTheScreen();
+      expect(screen.getByTestId('quick-buy-stack-detail')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-pay-with-screen')).toBeOnTheScreen();
+    });
+
+    it('pushes quote details as a detail layer', () => {
+      openSheet();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-to-quoteDetails'));
+      });
+
+      expect(screen.getByTestId('quick-buy-stack-detail')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-quote-details-screen')).toBeOnTheScreen();
+    });
+
+    it('keeps the detail mounted through the pop so the slide-out can play', () => {
+      openSheet();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-to-payWith'));
+      });
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-back-from-payWith'));
+      });
+
+      // Detail stays mounted immediately after pop so the outgoing screen can
+      // slide away; it unmounts after SHEET_STACK_PUSH_DURATION.
+      expect(screen.getByTestId('quick-buy-stack-detail')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-pay-with-screen')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     });
   });
 
