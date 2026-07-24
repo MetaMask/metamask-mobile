@@ -29,12 +29,20 @@ const CAROUSEL_CARD_HEIGHT = 210;
 interface FirstPredictOnUsMarketsCarouselProps {
   confirmLabel: string;
   markets: PredictMarket[];
+  tradeDescriptionTemplate: string;
+  tradePlacedLabel: string;
   usdAmount: number;
 }
 
 const FirstPredictOnUsMarketsCarousel: React.FC<
   FirstPredictOnUsMarketsCarouselProps
-> = ({ confirmLabel, markets, usdAmount }) => {
+> = ({
+  confirmLabel,
+  markets,
+  tradeDescriptionTemplate,
+  tradePlacedLabel,
+  usdAmount,
+}) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -101,6 +109,8 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
       navigation.navigate(Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET, {
         confirmLabel,
         selectedOrder: params,
+        tradeDescriptionTemplate,
+        tradePlacedLabel,
         usdAmount,
       });
       return true;
@@ -111,6 +121,8 @@ const FirstPredictOnUsMarketsCarousel: React.FC<
       dispatch,
       navigation,
       trackEvent,
+      tradeDescriptionTemplate,
+      tradePlacedLabel,
       usdAmount,
     ],
   );

@@ -9461,18 +9461,6 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "first_predict_on_us": {
-      "splash": {
-        "skip": "Skip"
-      },
-      "trade_confirm": {
-        "confirm": "Confirm"
-      },
-      "toast": {
-        "trade_placed": "Trade placed",
-        "bought": "Bought {{amount}} of {{outcome}}"
-      }
-    },
     "main_title": "Rewards",
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",

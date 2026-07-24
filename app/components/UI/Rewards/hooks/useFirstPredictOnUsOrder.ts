@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
-import { strings } from '../../../../../locales/i18n';
 import type {
   PredictMarket,
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../Predict/types';
+import { interpolateFirstPredictOnUsTradeDescription } from '../components/FirstPredictOnUs/constants';
 import useRewardsToast from './useRewardsToast';
 
 export interface FirstPredictOnUsOrderParams {
@@ -12,6 +12,8 @@ export interface FirstPredictOnUsOrderParams {
   market: PredictMarket;
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
+  tradeDescriptionTemplate: string;
+  tradePlacedLabel: string;
 }
 
 interface UseFirstPredictOnUsOrderResult {
@@ -26,18 +28,24 @@ export function useFirstPredictOnUsOrder(): UseFirstPredictOnUsOrderResult {
   const [isLoading, setIsLoading] = useState(false);
 
   const submitOrder = useCallback(
-    async ({ amountUsd, outcomeToken }: FirstPredictOnUsOrderParams) => {
+    async ({
+      amountUsd,
+      outcomeToken,
+      tradeDescriptionTemplate,
+      tradePlacedLabel,
+    }: FirstPredictOnUsOrderParams) => {
       setIsLoading(true);
       setError(null);
 
       try {
         showToast(
           RewardsToastOptions.success(
-            strings('rewards.first_predict_on_us.toast.trade_placed'),
-            strings('rewards.first_predict_on_us.toast.bought', {
-              amount: `$${amountUsd.toFixed(2)}`,
-              outcome: outcomeToken.title,
-            }),
+            tradePlacedLabel,
+            interpolateFirstPredictOnUsTradeDescription(
+              tradeDescriptionTemplate,
+              `$${amountUsd.toFixed(2)}`,
+              outcomeToken.title,
+            ),
           ),
         );
       } catch (err) {

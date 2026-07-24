@@ -48,11 +48,17 @@ export interface FirstPredictOnUsSelectedOrder {
 interface FirstPredictOnUsOrderSheetRouteParams {
   confirmLabel: string;
   selectedOrder: FirstPredictOnUsSelectedOrder;
+  tradeDescriptionTemplate: string;
+  tradePlacedLabel: string;
   usdAmount: number;
 }
 
 type FirstPredictOnUsOrderSheetRoute = RouteProp<
-  { FirstPredictOnUsOrderSheet: FirstPredictOnUsOrderSheetRouteParams },
+  {
+    FirstPredictOnUsOrderSheet:
+      | FirstPredictOnUsOrderSheetRouteParams
+      | undefined;
+  },
   'FirstPredictOnUsOrderSheet'
 >;
 
@@ -63,28 +69,38 @@ const FirstPredictOnUsOrderSheet: React.FC = () => {
   const navigation =
     useNavigation<NavigationProp<ReactNavigation.RootParamList>>();
   const route = useRoute<FirstPredictOnUsOrderSheetRoute>();
-  const { confirmLabel, selectedOrder, usdAmount } = route.params;
+  const params = route.params;
   const { error, isLoading, submitOrder } = useFirstPredictOnUsOrder();
   const { preview, isLoading: isPreviewLoading } = usePredictOrderPreview({
-    marketId: selectedOrder.market.id,
-    outcomeId: selectedOrder.outcome.id,
-    outcomeTokenId: selectedOrder.outcomeToken.id,
+    marketId: params?.selectedOrder.market.id ?? '',
+    outcomeId: params?.selectedOrder.outcome.id ?? '',
+    outcomeTokenId: params?.selectedOrder.outcomeToken.id ?? '',
     side: Side.BUY,
-    size: usdAmount,
+    size: params?.usdAmount ?? 0,
   });
   const toWin = preview?.minAmountReceived ?? 0;
   const displayBuyPrice =
-    preview?.sharePrice ?? getDisplayBuyPrice(selectedOrder.outcomeToken) ?? 0;
+    preview?.sharePrice ??
+    (params
+      ? getDisplayBuyPrice(params.selectedOrder.outcomeToken)
+      : undefined) ??
+    0;
 
   const onClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleConfirm = useCallback(async () => {
-    if (!selectedOrder) {
+    if (!params) {
       return;
     }
 
+    const {
+      selectedOrder,
+      tradeDescriptionTemplate,
+      tradePlacedLabel,
+      usdAmount,
+    } = params;
     const marketId = selectedOrder.market.id;
     const outcome = selectedOrder.outcomeToken.title;
 
@@ -110,20 +126,20 @@ const FirstPredictOnUsOrderSheet: React.FC = () => {
         market: selectedOrder.market,
         outcome: selectedOrder.outcome,
         outcomeToken: selectedOrder.outcomeToken,
+        tradeDescriptionTemplate,
+        tradePlacedLabel,
       });
       onClose();
     } catch {
       // The hook owns error state for the sheet.
     }
-  }, [
-    createEventBuilder,
-    dispatch,
-    onClose,
-    selectedOrder,
-    submitOrder,
-    trackEvent,
-    usdAmount,
-  ]);
+  }, [createEventBuilder, dispatch, onClose, params, submitOrder, trackEvent]);
+
+  if (!params) {
+    return null;
+  }
+
+  const { confirmLabel, selectedOrder, usdAmount } = params;
 
   const image =
     selectedOrder.outcome.image ||

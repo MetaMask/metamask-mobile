@@ -128,6 +128,8 @@ describe('FirstPredictOnUsMarketsCarousel', () => {
       <FirstPredictOnUsMarketsCarousel
         confirmLabel="Confirm"
         markets={markets}
+        tradeDescriptionTemplate="Bought {amount} of {outcome}"
+        tradePlacedLabel="Trade placed"
         usdAmount={5}
       />,
     );
@@ -151,6 +153,8 @@ describe('FirstPredictOnUsMarketsCarousel', () => {
       <FirstPredictOnUsMarketsCarousel
         confirmLabel="Confirm"
         markets={[buildMarket('1'), buildMarket('2')]}
+        tradeDescriptionTemplate="Bought {amount} of {outcome}"
+        tradePlacedLabel="Trade placed"
         usdAmount={5}
       />,
     );
@@ -183,6 +187,8 @@ describe('FirstPredictOnUsMarketsCarousel', () => {
       <FirstPredictOnUsMarketsCarousel
         confirmLabel="Confirm"
         markets={[market]}
+        tradeDescriptionTemplate="Bought {amount} of {outcome}"
+        tradePlacedLabel="Trade placed"
         usdAmount={5}
       />,
     );
@@ -216,6 +222,8 @@ describe('FirstPredictOnUsMarketsCarousel', () => {
       {
         confirmLabel: 'Confirm',
         selectedOrder: { market, outcome, outcomeToken },
+        tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
+        tradePlacedLabel: 'Trade placed',
         usdAmount: 5,
       },
     );

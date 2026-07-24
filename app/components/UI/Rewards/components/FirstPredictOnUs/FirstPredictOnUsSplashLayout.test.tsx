@@ -1,7 +1,6 @@
 import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
 import type { FirstPredictOnUsDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { PredictMarket } from '../../../Predict/types';
 import FirstPredictOnUsMarketsCarousel from './FirstPredictOnUsMarketsCarousel';
@@ -54,6 +53,8 @@ const buildContent = (
     'splashSheet.region': 'Availability varies by region.',
     'splashSheet.termsApply': 'Terms apply.',
     'tradeConfirm.confirm': 'Confirm trade',
+    'tradeConfirm.tradePlaced': 'Trade placed',
+    'tradeConfirm.description': 'Bought {amount} of {outcome}',
   },
   usdAmount: 5,
   markets: [{ eventId: '30615', conditionId: '0xabc' }],
@@ -126,6 +127,9 @@ describe('FirstPredictOnUsSplashLayout', () => {
       {
         confirmLabel: content.localizedText['tradeConfirm.confirm'],
         markets,
+        tradeDescriptionTemplate:
+          content.localizedText['tradeConfirm.description'],
+        tradePlacedLabel: content.localizedText['tradeConfirm.tradePlaced'],
         usdAmount: content.usdAmount,
       },
       undefined,
@@ -189,7 +193,7 @@ describe('FirstPredictOnUsSplashLayout', () => {
     expect(mockRewardsThemeImageComponent).not.toHaveBeenCalled();
   });
 
-  it('falls back to localized strings when CMS copy keys are missing', () => {
+  it('renders empty CMS labels when localizedText omits API defaults', () => {
     const { getByTestId } = render(
       <FirstPredictOnUsSplashLayout
         content={buildContent({ localizedText: {} })}
@@ -199,13 +203,13 @@ describe('FirstPredictOnUsSplashLayout', () => {
     );
 
     expect(getByTestId('first-predict-on-us-splash-skip')).toHaveTextContent(
-      strings('rewards.first_predict_on_us.splash.skip'),
+      '',
     );
     expect(mockFirstPredictOnUsMarketsCarousel).toHaveBeenCalledWith(
       expect.objectContaining({
-        confirmLabel: strings(
-          'rewards.first_predict_on_us.trade_confirm.confirm',
-        ),
+        confirmLabel: '',
+        tradeDescriptionTemplate: '',
+        tradePlacedLabel: '',
       }),
       undefined,
     );

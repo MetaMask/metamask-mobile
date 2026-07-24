@@ -25,7 +25,7 @@ export interface FirstPredictOnUsSplashRouteParams {
 }
 
 type FirstPredictOnUsSplashRoute = RouteProp<
-  { FirstPredictOnUsSplash: FirstPredictOnUsSplashRouteParams },
+  { FirstPredictOnUsSplash: FirstPredictOnUsSplashRouteParams | undefined },
   'FirstPredictOnUsSplash'
 >;
 
@@ -45,7 +45,7 @@ const FirstPredictOnUsSplashScreen: React.FC = () => {
   const navigation =
     useNavigation<NavigationProp<ReactNavigation.RootParamList>>();
   const route = useRoute<FirstPredictOnUsSplashRoute>();
-  const { content, markets, successFlow } = route.params;
+  const params = route.params;
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -59,13 +59,14 @@ const FirstPredictOnUsSplashScreen: React.FC = () => {
             screen: Routes.ONBOARDING.SUCCESS,
             params: {
               successFlow:
-                successFlow ?? ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                params?.successFlow ??
+                ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
             },
           },
         },
       ],
     });
-  }, [navigation, successFlow]);
+  }, [navigation, params?.successFlow]);
 
   const onSkip = useCallback(() => {
     trackEvent(
@@ -78,13 +79,24 @@ const FirstPredictOnUsSplashScreen: React.FC = () => {
   }, [createEventBuilder, dispatch, onClose, trackEvent]);
 
   useEffect(() => {
+    if (!params) {
+      onClose();
+      return;
+    }
+
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.FIRST_PREDICTION_ON_US_VIEWED,
       ).build(),
     );
     dispatch(markFirstPredictionOnUsOfferViewed());
-  }, [createEventBuilder, dispatch, trackEvent]);
+  }, [createEventBuilder, dispatch, onClose, params, trackEvent]);
+
+  if (!params) {
+    return null;
+  }
+
+  const { content, markets } = params;
 
   return (
     <FirstPredictOnUsSplashLayout
