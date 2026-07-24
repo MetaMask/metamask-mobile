@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
@@ -280,9 +280,7 @@ describe('SRPErrorScreen', () => {
         fireEvent.press(getByText('Copy'));
       });
 
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeOnTheScreen();
-      });
+      expect(getByText('Copied')).toBeOnTheScreen();
     });
 
     it('reverts to Copy text after 2 seconds', async () => {
@@ -294,9 +292,7 @@ describe('SRPErrorScreen', () => {
         fireEvent.press(getByText('Copy'));
       });
 
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeOnTheScreen();
-      });
+      expect(getByText('Copied')).toBeOnTheScreen();
 
       act(() => {
         jest.advanceTimersByTime(2000);
@@ -389,9 +385,7 @@ describe('SRPErrorScreen', () => {
         fireEvent.press(getByText('Copy'));
       });
 
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeOnTheScreen();
-      });
+      expect(getByText('Copied')).toBeOnTheScreen();
 
       // Unmount component
       unmount();
@@ -411,9 +405,7 @@ describe('SRPErrorScreen', () => {
         fireEvent.press(getByText('Copy'));
       });
 
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeOnTheScreen();
-      });
+      expect(getByText('Copied')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('Copied'));
