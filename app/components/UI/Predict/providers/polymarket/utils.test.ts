@@ -138,6 +138,10 @@ describe('polymarket utils', () => {
     >);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const createRawActivity = (
     overrides: Partial<PolymarketApiActivity> = {},
   ): PolymarketApiActivity => ({
@@ -1868,7 +1872,7 @@ describe('polymarket utils', () => {
     });
 
     it('applies startTimeMinMinutesAgo on top of raw queryParams', () => {
-      const dateNowSpy = jest
+      jest
         .spyOn(Date, 'now')
         .mockReturnValue(new Date('2026-01-17T10:00:00.000Z').getTime());
 
@@ -1879,11 +1883,10 @@ describe('polymarket utils', () => {
       });
 
       expect(params.get('start_time_min')).toBe('2026-01-17T09:30:00.000Z');
-      dateNowSpy.mockRestore();
     });
 
     it('maps startTimeMinMinutesAgo to a relative start_time_min param', () => {
-      const dateNowSpy = jest
+      jest
         .spyOn(Date, 'now')
         .mockReturnValue(new Date('2026-01-17T10:00:00.000Z').getTime());
 
@@ -1892,7 +1895,6 @@ describe('polymarket utils', () => {
       });
 
       expect(params.get('start_time_min')).toBe('2026-01-17T09:30:00.000Z');
-      dateNowSpy.mockRestore();
     });
 
     it('maps search to the title_search param', () => {
