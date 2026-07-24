@@ -623,6 +623,11 @@ const PerpsHomeView = ({
           },
         }),
       SUPPORT_CONFIG.Url,
+      () => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+        );
+      },
     );
     // Track contact support interaction for Perps analytics
     trackEvent(
@@ -634,10 +639,6 @@ const PerpsHomeView = ({
             PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
         })
         .build(),
-    );
-    // Also track the general navigation event
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
   }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 

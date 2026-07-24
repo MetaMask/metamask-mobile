@@ -1070,6 +1070,7 @@ describe('PerpsHomeView', () => {
       expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
         expect.any(Function),
         SUPPORT_CONFIG.Url,
+        expect.any(Function),
       );
     });
 
