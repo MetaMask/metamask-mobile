@@ -322,7 +322,7 @@ const ManualBackupStep1 = () => {
         twClassName="flex-1 flex-col gap-4"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+        <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
           {strings('manual_backup_step_1.action')}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

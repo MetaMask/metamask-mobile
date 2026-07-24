@@ -127,7 +127,7 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
     >
       <Box twClassName="mx-4 mt-4 mb-2">
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Bold}
         >

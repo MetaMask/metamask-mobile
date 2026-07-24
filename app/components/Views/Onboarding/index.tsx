@@ -115,12 +115,10 @@ import {
   ButtonVariant,
   Text,
   TextVariant,
+  TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
-import {
-  Theme,
-  ThemeProvider,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
 import { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -1044,40 +1042,31 @@ const Onboarding = () => {
           setStartFoxAnimation={setStartFoxAnimation}
         >
           {/*
-           * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
-           * system theme setting: the "Create" button is always dark (black bg, white text) and the
-           * "Import" button is always light (white bg, black text). This design choice ensures both
-           * buttons remain visually distinct and accessible against the purple onboarding background
-           * in all theme contexts.
+           * "Create a new wallet" is the primary CTA (black button). "Import using
+           * Secret Recovery Phrase" is a secondary black text link centered beneath it.
            */}
-          <ThemeProvider
-            theme={Theme.Dark} // Keep this button in dark mode regardless of theme
+          <Button
+            variant={ButtonVariant.Primary}
+            onPress={() => handleCtaActions('create')}
+            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+            isFullWidth
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('create')}
-              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {strings('onboarding.start_exploring_now')}
-            </Button>
-          </ThemeProvider>
-          <ThemeProvider
-            theme={Theme.Light} // Keep this button in light mode regardless of theme
+            {strings('onboarding.start_exploring_now')}
+          </Button>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            fontWeight={FontWeight.Medium}
+            accessibilityRole="link"
+            onPress={() => handleCtaActions('existing')}
+            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
+            twClassName="text-center"
           >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('existing')}
-              testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {SEEDLESS_ONBOARDING_ENABLED
-                ? strings('onboarding.import_using_srp_social_login')
-                : strings('onboarding.import_using_srp')}
-            </Button>
-          </ThemeProvider>
+            {SEEDLESS_ONBOARDING_ENABLED
+              ? strings('onboarding.import_using_srp_social_login')
+              : strings('onboarding.import_using_srp')}
+          </Text>
         </OnboardingAnimation>
       </Box>
     ),
@@ -1191,7 +1180,7 @@ const Onboarding = () => {
         style={tw.style('flex-1', {
           backgroundColor:
             themeContext.themeAppearance === 'dark'
-              ? importedColors.gettingStartedTextColor
+              ? themeContext.colors.background.default
               : importedColors.gettingStartedPageBackgroundColorLightMode,
         })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
@@ -1217,7 +1206,7 @@ const Onboarding = () => {
                   {
                     backgroundColor:
                       themeContext.themeAppearance === 'dark'
-                        ? importedColors.gettingStartedTextColor
+                        ? themeContext.colors.background.default
                         : importedColors.gettingStartedPageBackgroundColorLightMode,
                   },
                 )}

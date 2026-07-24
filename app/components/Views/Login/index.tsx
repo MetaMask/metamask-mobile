@@ -405,7 +405,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView style={tw.style('flex-1')}>
+      <SafeAreaView
+        style={tw.style('flex-1', {
+          backgroundColor: colors.background.default,
+        })}
+      >
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           style={tw.style('flex-1')}

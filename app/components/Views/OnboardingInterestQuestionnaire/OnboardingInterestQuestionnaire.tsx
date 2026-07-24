@@ -239,7 +239,7 @@ const OnboardingInterestQuestionnaire = () => {
 
       <Box twClassName="mx-4 mb-4 flex flex-col gap-y-2">
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Bold}
         >

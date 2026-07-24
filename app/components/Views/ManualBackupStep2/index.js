@@ -451,7 +451,7 @@ const ManualBackupStep2 = ({
               style={{ height: windowHeight - 290 }}
             >
               <Text
-                variant={TextVariant.DisplayMd}
+                variant={TextVariant.HeadingLg}
                 color={TextColor.TextDefault}
               >
                 {strings('manual_backup_step_2.action')}

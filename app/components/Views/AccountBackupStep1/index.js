@@ -150,7 +150,7 @@ const AccountBackupStep1 = (props) => {
           </Text>
           <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 mb-2.5">
             <Text
-              variant={TextVariant.DisplayMd}
+              variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
               twClassName="text-left self-start mb-4"
             >

@@ -117,7 +117,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         }}
       />
       <Text
-        variant={TextVariant.DisplayMd}
+        variant={TextVariant.HeadingLg}
         fontFamily={FontFamily.Accent}
         fontWeight={FontWeight.Regular}
         style={tw.style('mt-6 mb-4 mx-4 text-center', {
