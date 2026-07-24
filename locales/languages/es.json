@@ -8973,7 +8973,8 @@
         "title": "Únete a la lista de espera",
         "load_error": "Se produjo un error al cargar el formulario. Inténtalo de nuevo.",
         "try_again": "Inténtalo de nuevo",
-        "success_toast": "¡Estás en la lista de espera! Te avisaremos cuando la tarjeta esté disponible en tu país."
+        "success_toast": "¡Estás en la lista de espera!",
+        "success_toast_description": "Te avisaremos cuando la tarjeta esté disponible en tu país."
       },
       "region_selector": {
         "title": "Selecciona tu región"

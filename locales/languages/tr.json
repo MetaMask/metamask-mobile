@@ -8973,7 +8973,8 @@
         "title": "Bekleme listesine katılın",
         "load_error": "Form yüklenirken bir şeyler ters gitti. Lütfen tekrar deneyin.",
         "try_again": "Tekrar dene",
-        "success_toast": "Bekleme listesindesiniz! Kart ülkenizde kullanılabilir olduğunda size bildireceğiz."
+        "success_toast": "Bekleme listesindesiniz!",
+        "success_toast_description": "Kart ülkenizde kullanılabilir olduğunda size bildireceğiz."
       },
       "region_selector": {
         "title": "Bölgeni Seç"

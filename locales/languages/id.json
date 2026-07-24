@@ -8973,7 +8973,8 @@
         "title": "Gabung dalam daftar tunggu",
         "load_error": "Terjadi kesalahan saat memuat formulir. Coba lagi.",
         "try_again": "Coba lagi",
-        "success_toast": "Anda masuk dalam daftar tunggu! Kami akan memberi tahu Anda saat kartu tersebut tersedia di negara Anda."
+        "success_toast": "Anda masuk dalam daftar tunggu!",
+        "success_toast_description": "Kami akan memberi tahu Anda saat kartu tersebut tersedia di negara Anda."
       },
       "region_selector": {
         "title": "Pilih Wilayah Anda"

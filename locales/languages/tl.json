@@ -8973,7 +8973,8 @@
         "title": "Sumali sa waitlist",
         "load_error": "Nagkaproblema sa paglo-load ng form. Pakisubukan muli.",
         "try_again": "Subukang muli",
-        "success_toast": "Nasa waitlist ka! Ipapaalam namin sa iyo kapag ang card ay available sa iyong bansa."
+        "success_toast": "Nasa waitlist ka!",
+        "success_toast_description": "Ipapaalam namin sa iyo kapag ang card ay available sa iyong bansa."
       },
       "region_selector": {
         "title": "Piliin ang iyong Rehiyon"
