@@ -1,8 +1,21 @@
 import { Infer } from '@metamask/superstruct';
 import { PredictFeeCollectionSchema } from '../schemas';
 import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import type {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../constants/feedBanner';
 
 export type PredictFeeCollection = Infer<typeof PredictFeeCollectionSchema>;
+
+export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
+  id: string;
+  title: string;
+  description: string;
+  position: PredictFeedBannerPosition;
+  severity: PredictFeedBannerSeverity;
+  dismissible: boolean;
+}
 
 export interface PredictLiveSportsFlag {
   enabled: boolean;
