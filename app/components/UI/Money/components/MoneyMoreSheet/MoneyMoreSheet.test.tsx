@@ -82,10 +82,14 @@ describe('MoneyMoreSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+    jest.mocked(useMoneyAnalytics).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
     });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders How it works, What you get, and Contact support rows', () => {
