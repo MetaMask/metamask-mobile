@@ -32,6 +32,8 @@ const newOverrides = [
       'app/core/Engine/controllers/remote-feature-flag-controller/utils.test.ts',
       'app/components/UI/Ramp/utils/getSdkEnvironment.ts',
       'app/components/UI/Ramp/utils/getSdkEnvironment.test.ts',
+      'app/components/UI/Ramp/utils/getRampCallbackBaseUrl.ts',
+      'app/components/UI/Ramp/utils/getRampCallbackBaseUrl.test.ts',
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.ts',
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.ts',
