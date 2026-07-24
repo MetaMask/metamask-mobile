@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,6 +23,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -38,7 +40,7 @@ interface ActionConfig {
 
 const AddWallet = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
@@ -103,7 +105,7 @@ const AddWallet = () => {
         // than this screen.
         navigation.dispatch(StackActions.replace(config.routeName));
       } else {
-        navigation.navigate(config.routeName as never);
+        navigateWithDetails(navigation, [config.routeName]);
       }
       trackEvent(createEventBuilder(config.analyticsEvent).build());
     },
