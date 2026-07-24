@@ -205,22 +205,38 @@ export const usePredictFeedMarketList = (
   const regularMarketCount = regularMarkets.length;
   const livePhaseEnabled = enabled && showLiveFirst;
   const regularPhaseEnabled = enabled && (!showLiveFirst || liveExhausted);
+  const shouldAutoAdvanceLiveEmptyPage = canAutoAdvanceEmptyPage({
+    phaseEnabled: livePhaseEnabled,
+    advanceCount: emptyPageAdvanceState.live,
+    isAutoAdvancing: emptyPageAdvanceState.liveInFlight,
+    error: liveError,
+    isLoading: liveIsLoading,
+    isFetching: liveIsFetching,
+    isFetchingNextPage: liveIsFetchingNextPage,
+    hasNextPage: liveHasNextPage,
+    marketCount: liveMarketCount,
+  });
+  const shouldAutoAdvanceRegularEmptyPage = canAutoAdvanceEmptyPage({
+    phaseEnabled: regularPhaseEnabled,
+    advanceCount: emptyPageAdvanceState.regular,
+    isAutoAdvancing: emptyPageAdvanceState.regularInFlight,
+    error: regularError,
+    isLoading: regularIsLoading,
+    isFetching: regularIsFetching,
+    isFetchingNextPage: regularIsFetchingNextPage,
+    hasNextPage: regularHasNextPage,
+    marketCount: regularMarketCount,
+  });
+  const isAutoAdvancingLiveEmptyPage =
+    autoAdvanceEmptyPages &&
+    (emptyPageAdvanceState.liveInFlight || shouldAutoAdvanceLiveEmptyPage);
+  const isAutoAdvancingRegularEmptyPage =
+    autoAdvanceEmptyPages &&
+    (emptyPageAdvanceState.regularInFlight ||
+      shouldAutoAdvanceRegularEmptyPage);
 
   useEffect(() => {
-    if (
-      !autoAdvanceEmptyPages ||
-      !canAutoAdvanceEmptyPage({
-        phaseEnabled: livePhaseEnabled,
-        advanceCount: emptyPageAdvanceState.live,
-        isAutoAdvancing: emptyPageAdvanceState.liveInFlight,
-        error: liveError,
-        isLoading: liveIsLoading,
-        isFetching: liveIsFetching,
-        isFetchingNextPage: liveIsFetchingNextPage,
-        hasNextPage: liveHasNextPage,
-        marketCount: liveMarketCount,
-      })
-    ) {
+    if (!autoAdvanceEmptyPages || !shouldAutoAdvanceLiveEmptyPage) {
       return;
     }
 
@@ -239,33 +255,12 @@ export const usePredictFeedMarketList = (
       });
   }, [
     autoAdvanceEmptyPages,
-    emptyPageAdvanceState.liveInFlight,
-    emptyPageAdvanceState.live,
     fetchNextLivePage,
-    liveError,
-    liveHasNextPage,
-    liveIsFetching,
-    liveIsFetchingNextPage,
-    liveIsLoading,
-    liveMarketCount,
-    livePhaseEnabled,
+    shouldAutoAdvanceLiveEmptyPage,
   ]);
 
   useEffect(() => {
-    if (
-      !autoAdvanceEmptyPages ||
-      !canAutoAdvanceEmptyPage({
-        phaseEnabled: regularPhaseEnabled,
-        advanceCount: emptyPageAdvanceState.regular,
-        isAutoAdvancing: emptyPageAdvanceState.regularInFlight,
-        error: regularError,
-        isLoading: regularIsLoading,
-        isFetching: regularIsFetching,
-        isFetchingNextPage: regularIsFetchingNextPage,
-        hasNextPage: regularHasNextPage,
-        marketCount: regularMarketCount,
-      })
-    ) {
+    if (!autoAdvanceEmptyPages || !shouldAutoAdvanceRegularEmptyPage) {
       return;
     }
 
@@ -284,16 +279,8 @@ export const usePredictFeedMarketList = (
       });
   }, [
     autoAdvanceEmptyPages,
-    emptyPageAdvanceState.regularInFlight,
-    emptyPageAdvanceState.regular,
     fetchNextRegularPage,
-    regularError,
-    regularHasNextPage,
-    regularIsFetching,
-    regularIsFetchingNextPage,
-    regularIsLoading,
-    regularMarketCount,
-    regularPhaseEnabled,
+    shouldAutoAdvanceRegularEmptyPage,
   ]);
 
   const markets = useMemo(() => {
@@ -332,8 +319,12 @@ export const usePredictFeedMarketList = (
   }, [liveExhausted, liveResult, regularResult, showLiveFirst]);
 
   if (!showLiveFirst) {
+    const isAutoAdvancingInitialRegularPage =
+      regularMarketCount === 0 && isAutoAdvancingRegularEmptyPage;
+
     return {
       ...regularResult,
+      isLoading: regularResult.isLoading || isAutoAdvancingInitialRegularPage,
       refetch,
       fetchNextPage,
     };
@@ -349,6 +340,9 @@ export const usePredictFeedMarketList = (
   const isRegularNextPageFetching =
     liveExhausted &&
     (regularResult.isFetchingNextPage || isRegularInitialFooter);
+  const isAutoAdvancingInitialEmptyFeed =
+    markets.length === 0 &&
+    (isAutoAdvancingLiveEmptyPage || isAutoAdvancingRegularEmptyPage);
   const error = liveExhausted
     ? (regularResult.error ?? liveResult.error)
     : liveResult.error;
@@ -358,7 +352,10 @@ export const usePredictFeedMarketList = (
 
   return {
     markets,
-    isLoading: liveResult.isLoading || isRegularLoadingAfterEmptyLive,
+    isLoading:
+      liveResult.isLoading ||
+      isRegularLoadingAfterEmptyLive ||
+      isAutoAdvancingInitialEmptyFeed,
     isFetching: liveResult.isFetching || regularResult.isFetching,
     isFetchingNextPage: isLiveNextPageFetching || isRegularNextPageFetching,
     error,

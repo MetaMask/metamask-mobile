@@ -24,6 +24,11 @@ const createMarketListResult = (
   ...overrides,
 });
 
+const createPendingPromise = (): Promise<unknown> =>
+  new Promise<unknown>(() => {
+    // Keep auto-advance in flight for assertions that inspect loading state.
+  });
+
 describe('usePredictFeedMarketList', () => {
   let liveResult: UsePredictMarketListResult;
   let regularResult: UsePredictMarketListResult;
@@ -288,6 +293,40 @@ describe('usePredictFeedMarketList', () => {
     await waitFor(() => {
       expect(regularFetchNextPage).toHaveBeenCalledTimes(3);
     });
+  });
+
+  it('keeps loading while an empty regular page can auto-advance', () => {
+    regularResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: jest.fn(createPendingPromise),
+    });
+
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'], excludedTags: ['100639'] },
+        { showLiveFirst: false, autoAdvanceEmptyPages: true },
+      ),
+    );
+
+    expect(result.current.markets).toEqual([]);
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('keeps loading while an empty live page can auto-advance', () => {
+    liveResult = createMarketListResult({
+      hasNextPage: true,
+      fetchNextPage: jest.fn(createPendingPromise),
+    });
+
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true, autoAdvanceEmptyPages: true },
+      ),
+    );
+
+    expect(result.current.markets).toEqual([]);
+    expect(result.current.isLoading).toBe(true);
   });
 
   it('resets the empty-page budget when the feed params change', async () => {

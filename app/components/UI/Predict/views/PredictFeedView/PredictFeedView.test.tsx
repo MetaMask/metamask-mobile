@@ -388,6 +388,21 @@ describe('PredictFeedView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('does not render the empty state while empty results are still loading', () => {
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ markets: [], isLoading: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(
+        screen.getByTestId(getPredictFeedViewSelector.skeleton(1)),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PredictFeedViewSelectorsIDs.EMPTY_STATE),
+      ).toBeNull();
+    });
+
     it('renders market cards when data is present', () => {
       mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({
