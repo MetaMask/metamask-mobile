@@ -68,6 +68,27 @@ describe('ProgressList', () => {
     expect(queryAllByTestId('progress-list-item-subtitle')).toHaveLength(2);
   });
 
+  it('renders dotted connectors between items but not after the last in dot variant', () => {
+    const { getAllByTestId, queryAllByTestId } = render(
+      <ProgressList variant="dot">
+        <ProgressListItem
+          title="First"
+          subtitle="First subtitle"
+          severity="success"
+        />
+        <ProgressListItem
+          title="Second"
+          subtitle="Second subtitle"
+          severity="success"
+        />
+      </ProgressList>,
+    );
+
+    expect(getAllByTestId('progress-list-dotted-connector')).toHaveLength(1);
+    expect(getAllByTestId('progress-status-dot-success')).toHaveLength(2);
+    expect(queryAllByTestId('progress-list-divider')).toHaveLength(0);
+  });
+
   it('hides dividers when showConnectors is false', () => {
     const { queryAllByTestId } = render(
       <ProgressList showConnectors={false}>
