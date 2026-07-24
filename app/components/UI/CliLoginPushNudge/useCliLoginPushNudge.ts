@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Platform } from 'react-native';
+// PermissionsAndroid usage below is gated behind `Platform.OS === 'android'`.
+// eslint-disable-next-line react-native/split-platform-components
+import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications/constants';
 import { useEnableNotifications } from '../../../util/notifications/hooks/useNotifications';
 import NotificationService, {
   isPushPermissionGranted,
   isPushPermissionPromptable,
-  requestPushPermissions,
 } from '../../../util/notifications/services/NotificationService';
 import { subscribeCliLoginPushNudge } from '../../../core/AgenticCli/cliLoginPushNudgeSignal';
 import logger from '../../../core/SDKConnectV2/services/logger';
 
-/** Below this threshold, Android likely skipped the OS dialog (permanent deny). */
-const ANDROID_OS_DIALOG_MIN_ELAPSED_MS = 800;
+/** Android API level (13) that introduced the POST_NOTIFICATIONS runtime permission. */
+const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
 /**
  * Drives the post-CLI-login push-permission bottom sheet (MMAI-925). Subscribes
@@ -116,24 +117,32 @@ export function useCliLoginPushNudge(): {
       }
 
       if (Platform.OS === 'android') {
-        const requestStartedAt = Date.now();
-        const osGranted = await requestPushPermissions();
-        const requestElapsedMs = Date.now() - requestStartedAt;
-
-        if (!isCurrent()) {
+        // Android 13+ requires the POST_NOTIFICATIONS runtime permission. The
+        // request resolves to NEVER_ASK_AGAIN once the user has permanently
+        // denied it, which is the authoritative signal that the OS dialog can
+        // no longer be shown — far more reliable than timing the request.
+        if (Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
+          const result = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          );
+          if (!isCurrent()) {
+            return;
+          }
+          if (result === PermissionsAndroid.RESULTS.GRANTED) {
+            await runEnableNotifications();
+            return;
+          }
+          if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+            openSettingsAndScheduleRetry(isCurrent);
+          }
+          // RESULTS.DENIED: the OS dialog was shown and dismissed; retry on a
+          // future login rather than deep-linking into settings.
           return;
         }
 
-        if (osGranted) {
-          await runEnableNotifications();
-          return;
-        }
-
-        if (requestElapsedMs < ANDROID_OS_DIALOG_MIN_ELAPSED_MS) {
-          openSettingsAndScheduleRetry(isCurrent);
-          return;
-        }
-
+        // Android < 13 has no runtime dialog; when notifications are not
+        // already granted they can only be enabled from system settings.
+        openSettingsAndScheduleRetry(isCurrent);
         return;
       }
 
