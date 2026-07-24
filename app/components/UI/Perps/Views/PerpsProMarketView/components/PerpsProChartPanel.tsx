@@ -31,6 +31,7 @@ import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
 import { usePerpsLiveCandles } from '../../../hooks/stream/usePerpsLiveCandles';
+import { getPerpsChartAnalyticsProperties } from '../../../utils/chartAnalytics';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import PerpsCandlePeriodSelector, {
   type PerpsCandlePeriodOption,
@@ -53,11 +54,6 @@ const PRO_CANDLE_PERIODS = [
   { label: '1h', value: CandlePeriod.OneHour },
   { label: '1d', value: CandlePeriod.OneDay },
 ] as const satisfies readonly PerpsCandlePeriodOption[];
-
-const getChartAnalyticsProperties = (chartLibrary: string) => ({
-  [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
-  [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
-});
 
 interface PerpsProChartPanelProps {
   symbol: string;
@@ -97,7 +93,7 @@ const PerpsProChartPanel = ({
   }, [isAdvancedChartEnabled, selectedCandlePeriod, symbol]);
 
   const chartAnalyticsProperties = useMemo(
-    () => getChartAnalyticsProperties(effectiveChartLibrary),
+    () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
     [effectiveChartLibrary],
   );
 

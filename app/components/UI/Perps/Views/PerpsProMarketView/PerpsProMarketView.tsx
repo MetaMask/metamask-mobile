@@ -6,33 +6,29 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
-  CandlePeriod,
-  PERPS_CONSTANTS,
   TimeDuration,
   getPerpsDisplaySymbol,
   type OrderType,
 } from '@metamask/perps-controller';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { useStyles } from '../../../../../component-library/hooks';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Logger from '../../../../../util/Logger';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
+import {
+  getPerpsChartAnalyticsProperties,
+  getPerpsChartLibrary,
+} from '../../utils/chartAnalytics';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsProMarketHeader from './components/PerpsProMarketHeader';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
@@ -41,16 +37,6 @@ import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import PerpsProStatsBar from './components/PerpsProStatsBar';
 import { createStyles } from './PerpsProMarketView.styles';
-
-const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
-  isAdvancedChartEnabled
-    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
-    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
-
-const getChartAnalyticsProperties = (chartLibrary: string) => ({
-  [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
-  [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
-});
 
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
@@ -62,8 +48,6 @@ const getChartAnalyticsProperties = (chartLibrary: string) => ({
  */
 const PerpsProMarketView = () => {
   const { styles } = useStyles(createStyles, {});
-  const dispatch = useDispatch();
-  const { track } = usePerpsEventTracking();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const market = route.params?.market;
@@ -73,7 +57,7 @@ const PerpsProMarketView = () => {
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
-  const configuredChartLibrary = getChartLibrary(isAdvancedChartEnabled);
+  const configuredChartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,
   );
@@ -101,51 +85,22 @@ const PerpsProMarketView = () => {
   }, [configuredChartLibrary, market?.symbol]);
 
   const chartAnalyticsProperties = useMemo(
-    () => getChartAnalyticsProperties(effectiveChartLibrary),
+    () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
     [effectiveChartLibrary],
   );
 
-  const handleCandlePeriodChange = useCallback(
-    (newPeriod: CandlePeriod) => {
-      dispatch(setPerpsChartPreferredCandlePeriod(newPeriod));
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
-        ...chartAnalyticsProperties,
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
-        [PERPS_EVENT_PROPERTY.CANDLE_PERIOD]: newPeriod,
-      });
-    },
-    [chartAnalyticsProperties, dispatch, market?.symbol, track],
-  );
+  const handleAdvancedChartError = useCallback(() => {
+    setEffectiveChartLibrary(PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT);
+  }, []);
 
-  const handleChartError = useCallback(
-    (error?: Error | string) => {
-      const errorMessage =
-        typeof error === 'string'
-          ? error
-          : (error?.message ?? 'Chart rendering error in Pro market view');
-
-      Logger.error(new Error(errorMessage), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-      });
-      track(MetaMetricsEvents.PERPS_ERROR, {
-        [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
-        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
-        [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-          PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS,
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
-        [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
-        ...chartAnalyticsProperties,
-      });
-
-      if (isAdvancedChartEnabled) {
-        setEffectiveChartLibrary(PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT);
-      }
-    },
-    [chartAnalyticsProperties, isAdvancedChartEnabled, market?.symbol, track],
-  );
+  const { handleCandlePeriodChange, handleChartError } =
+    usePerpsChartInteractions({
+      asset: market?.symbol,
+      chartAnalyticsProperties,
+      chartErrorMessage: 'Chart rendering error in Pro market view',
+      isAdvancedChartEnabled,
+      onAdvancedChartError: handleAdvancedChartError,
+    });
 
   if (!market?.symbol) {
     return (

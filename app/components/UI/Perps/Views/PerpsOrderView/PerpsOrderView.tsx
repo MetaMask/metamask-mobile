@@ -150,6 +150,7 @@ import {
 import { willFlipPosition } from '../../utils/orderUtils';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
@@ -195,11 +196,6 @@ interface OrderRouteParams {
   defaultMaxLeverage?: number;
 }
 
-const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
-  isAdvancedChartEnabled
-    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
-    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
-
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
   defaultSzDecimals?: number;
@@ -235,7 +231,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     selectPerpsAdvancedChartEnabledFlag,
   );
   const chartLibrary =
-    route.params?.chartLibrary ?? getChartLibrary(isAdvancedChartEnabled);
+    route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
