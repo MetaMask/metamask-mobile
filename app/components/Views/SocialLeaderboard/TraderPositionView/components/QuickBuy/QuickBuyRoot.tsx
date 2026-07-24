@@ -255,7 +255,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
                 onLayout={onRootLayout}
                 pointerEvents={isPushed ? 'none' : 'auto'}
                 style={[
-                  tw.style(`absolute left-0 right-0 top-0 ${surfaceClass}`),
+                  tw.style('absolute left-0 right-0 top-0'),
                   rootScreenStyle,
                 ]}
               >
@@ -268,9 +268,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
                   onLayout={onDetailLayout}
                   pointerEvents={isPushed ? 'auto' : 'none'}
                   style={[
-                    tw.style(
-                      `absolute left-0 right-0 top-0 overflow-hidden ${surfaceClass}`,
-                    ),
+                    tw.style('absolute left-0 right-0 top-0 overflow-hidden'),
                     detailHasBottomCta
                       ? undefined
                       : { marginBottom: -bottomInset },
