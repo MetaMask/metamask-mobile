@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useRef, useEffect } from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -8,7 +8,7 @@ import Text from '../../../../Texts/Text';
 // Internal dependencies
 import BottomSheetDialog from './BottomSheetDialog';
 import { BottomSheetDialogRef } from './BottomSheetDialog.types';
-import { Platform, StyleSheet, ViewStyle } from 'react-native';
+import { Platform } from 'react-native';
 
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
