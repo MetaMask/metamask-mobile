@@ -14,11 +14,13 @@ import renderWithProvider, {
 notifyManager.setBatchNotifyFunction((callback) => callback());
 
 function QueryClientBoundary({ children }: { children: React.ReactNode }) {
-  const [queryClient] = React.useState(() => createQueryClient({
-    defaultOptions: {
-      queries: { retry: false }
-    },
-  }));
+  const [queryClient] = React.useState(() =>
+    createQueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    }),
+  );
 
   React.useEffect(
     () => () => {
