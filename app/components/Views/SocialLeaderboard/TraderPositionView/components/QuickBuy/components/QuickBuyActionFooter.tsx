@@ -172,7 +172,7 @@ const QuickBuyActionFooter: React.FC = () => {
               {features.payWithSheet ? (
                 <Icon
                   name={IconName.ArrowRight}
-                  size={IconSize.Sm}
+                  size={IconSize.Xs}
                   color={IconColor.IconDefault}
                 />
               ) : null}
