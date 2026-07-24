@@ -20,6 +20,7 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'SnapController:getRunnableSnaps',
   'PermissionController:getPermissions',
   'PhishingController:bulkScanTokens',
+  'RemoteFeatureFlagController:getState',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
@@ -41,6 +42,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
   'AccountActivityService:balanceUpdated',
+  'RemoteFeatureFlagController:stateChange',
 ] as const;
 
 const getRootMessenger = () =>
@@ -165,6 +167,36 @@ describe('getAssetsControllerMessenger', () => {
           'BackendWebSocketService:findSubscriptionsByChannelPrefix',
           'BackendWebSocketService:addChannelCallback',
           'BackendWebSocketService:removeChannelCallback',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates RemoteFeatureFlagController getState action', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'RemoteFeatureFlagController:getState',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates RemoteFeatureFlagController stateChange event', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining([
+          'RemoteFeatureFlagController:stateChange',
         ]),
       }),
     );
