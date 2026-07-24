@@ -375,6 +375,7 @@ export interface CardFundingSourceResult {
   network?: string;
   balance?: string;
   balanceCurrency?: string;
+  fundingChannelId?: string;
 }
 
 export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
@@ -384,6 +385,12 @@ export type CardPrerequisiteStatus =
   | 'ok'
   | 'blocked'
   | 'kyc_check_failed';
+
+export type CardKycCtaHint =
+  | 'KYC_NOT_STARTED'
+  | 'KYC_NOT_COMPLETED'
+  | 'KYC_INFORMATION_NEEDED'
+  | 'KYC_EXPIRING';
 
 export interface CardSmartContractWriteParams {
   abi: unknown[];
@@ -397,6 +404,7 @@ export interface CardSpendingPrerequisite {
   status: CardPrerequisiteStatus;
   actionType?: string;
   type?: string;
+  ctaHint?: CardKycCtaHint;
   params?: Record<string, unknown>;
 }
 

@@ -55,6 +55,13 @@ export interface PerpsMarketListProps {
    */
   filterKey?: string;
   /**
+   * Optional token that, when it changes, resets the scroll position back to
+   * the top (revealing the list header). Use it to key on more than the
+   * category — e.g. toggling search on/off — so the header scrolls back into
+   * view. Falls back to {@link filterKey} when omitted.
+   */
+  scrollResetKey?: string;
+  /**
    * Test ID for E2E testing
    */
   testID?: string;

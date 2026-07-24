@@ -24,6 +24,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -38,14 +39,15 @@ import {
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { getBetaSupportUrl } from './AccountsMenu.utils';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
@@ -56,7 +58,6 @@ const AccountsMenu = () => {
     getMetamaskNotificationsUnreadCount,
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -83,23 +84,13 @@ const AccountsMenu = () => {
   ]);
 
   const onPressNotifications = useCallback(() => {
+    navigation.navigate(Routes.NOTIFICATIONS.VIEW);
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
-      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
         createEventBuilder(EVENT_NAME.NOTIFICATIONS_MENU_OPENED)
           .addProperties({
             unread_count: unreadNotificationCount,
             read_count: readNotificationCount,
-          })
-          .build(),
-      );
-    } else {
-      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(
-        createEventBuilder(EVENT_NAME.NOTIFICATIONS_ACTIVATED)
-          .addProperties({
-            action_type: 'started',
-            is_profile_syncing_enabled: isBackupAndSyncEnabled,
           })
           .build(),
       );
@@ -111,7 +102,6 @@ const AccountsMenu = () => {
     createEventBuilder,
     unreadNotificationCount,
     readNotificationCount,
-    isBackupAndSyncEnabled,
   ]);
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -170,17 +160,27 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl;
+    const betaSupportUrl = getBetaSupportUrl();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    if (betaSupportUrl) {
+      trackEvent(
+        createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+      goToBrowserUrl(betaSupportUrl, strings('app_settings.contact_support'));
+      return;
+    }
 
-    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
-
-    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
-    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
-  }, [goToBrowserUrl, trackEvent, createEventBuilder]);
+    // Defer tracking to when support actually opens (consent confirm/reject),
+    // not the mere press that only shows the consent sheet.
+    openSupportWithConsent(
+      (url) => goToBrowserUrl(url, strings('app_settings.contact_support')),
+      METAMASK_SUPPORT_URL,
+      () =>
+        trackEvent(
+          createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+        ),
+    );
+  }, [goToBrowserUrl, trackEvent, createEventBuilder, openSupportWithConsent]);
 
   const onPressLock = useCallback(async () => {
     await Authentication.lockApp({ reset: false, locked: false });

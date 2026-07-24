@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { CardApiError } from '../services/BaanxService';
@@ -12,10 +13,23 @@ import {
   type CardAuthSession,
   type CardAuthTokens,
 } from '../provider-types';
-import { BASE_SEPOLIA_USDC_TOKEN_ADDRESS } from '../../../../../components/UI/Card/constants';
+import {
+  ARBITRUM_SEPOLIA_RPC_URL,
+  ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+  BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+} from '../../../../../components/UI/Card/constants';
+import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/util/onChainAllowance';
 import { ImmersveProvider } from './ImmersveProvider';
 
 jest.mock('../../../../../util/Logger');
+jest.mock('../../../../../components/UI/Card/util/onChainAllowance', () => ({
+  readErc20AllowanceAndBalance: jest.fn(),
+}));
+
+const mockReadErc20AllowanceAndBalance =
+  readErc20AllowanceAndBalance as jest.MockedFunction<
+    typeof readErc20AllowanceAndBalance
+  >;
 
 const CONFIG: ImmersveProviderConfig = {
   apiKey: 'test-key',
@@ -30,6 +44,14 @@ const FEATURE_FLAG: CardFeatureFlag = {
     cardProgramId: 'program-1',
     partnerAccountId: 'partner-1',
     fundingChannelId: 'base-channel',
+  },
+  immersveCountries: ['GB'],
+};
+
+const FEATURE_FLAG_WITH_SPENDER: CardFeatureFlag = {
+  immersve: {
+    ...FEATURE_FLAG.immersve,
+    spenderAddress: '0x2222222222222222222222222222222222222222',
   },
   immersveCountries: ['GB'],
 };
@@ -77,10 +99,17 @@ describe('ImmersveProvider', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.setSystemTime(FIXED_NOW);
+    jest.spyOn(ethers.providers, 'StaticJsonRpcProvider').mockImplementation(
+      () =>
+        ({
+          getBlockNumber: jest.fn().mockResolvedValue(1),
+        }) as unknown as ethers.providers.StaticJsonRpcProvider,
+    );
   });
 
   afterEach(() => {
     jest.resetAllMocks();
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -166,6 +195,24 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ clientApplicationId: 'flag-app' }),
+      );
+    });
+
+    it('prefers the feature-flag appUrl over the env config', async () => {
+      const { provider, service } = createProvider({
+        immersve: { ...FEATURE_FLAG.immersve, appUrl: 'https://flag.app' },
+        immersveCountries: ['GB'],
+      });
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'sign in' },
+      });
+
+      await provider.initiateAuth('GB', { address: '0xabc' });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ url: 'https://flag.app' }),
       );
     });
 
@@ -573,6 +620,7 @@ describe('ImmersveProvider', () => {
           network: 'base-sepolia',
           balance: '1000000',
           balanceCurrency: 'USDC',
+          fundingChannelId: 'base-channel',
         },
       ]);
     });
@@ -657,7 +705,7 @@ describe('ImmersveProvider', () => {
         expect.objectContaining({
           cardProgramId: 'program-1',
           fundingSourceId: 'fs-1',
-          spendableAmount: 999999999,
+          spendableAmount: 2199023255551,
           spendableCurrency: 'USD',
           kycType: 'immersve-conducted',
           kycRegion: 'GB',
@@ -679,7 +727,7 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/api/spending-prerequisites',
         expect.objectContaining({
-          spendableAmount: 999999999,
+          spendableAmount: 2199023255551,
           spendableCurrency: 'USD',
           kycType: 'immersve-conducted',
         }),
@@ -729,6 +777,62 @@ describe('ImmersveProvider', () => {
       );
 
       await expect(provider.createCard('fs-1', TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.ServerError,
+      });
+    });
+
+    it('getResumeCardInfo returns null when the account has no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
+      await expect(provider.getResumeCardInfo(TOKENS)).resolves.toBeNull();
+    });
+
+    it('getResumeCardInfo returns the card program and funding sources', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation((path: string) => {
+        if (path.includes('/cards?')) {
+          return Promise.resolve({
+            items: [
+              {
+                id: 'card-1',
+                accountId: 'cardholder-1',
+                type: 'virtual',
+                createdAt: '2024-01-02T00:00:00.000Z',
+                modifiedAt: '2024-01-02T00:00:00.000Z',
+                expiresAt: '2029-01-01T00:00:00.000Z',
+                isBlocked: false,
+                status: 'active',
+                fundingSourceIds: ['fs-arbitrum'],
+              },
+            ],
+          });
+        }
+        if (path === '/api/cards/card-1') {
+          return Promise.resolve({
+            id: 'card-1',
+            cardProgramId: 'program-arbitrum',
+            fundingSourceIds: ['fs-arbitrum'],
+            status: 'active',
+            isBlocked: false,
+          });
+        }
+        return Promise.resolve({});
+      });
+
+      await expect(provider.getResumeCardInfo(TOKENS)).resolves.toStrictEqual({
+        cardProgramId: 'program-arbitrum',
+        fundingSourceIds: ['fs-arbitrum'],
+      });
+    });
+
+    it('getResumeCardInfo maps API failures', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(500, '/api/accounts/cardholder-1/cards', 'down'),
+      );
+
+      await expect(provider.getResumeCardInfo(TOKENS)).rejects.toMatchObject({
         code: CardProviderErrorCode.ServerError,
       });
     });
@@ -792,7 +896,7 @@ describe('ImmersveProvider', () => {
     };
 
   describe('getCardHomeData', () => {
-    it('creates a card and returns a provisioning alert when the account has none', async () => {
+    it('returns a provisioning alert without creating a card when the account has none', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
         routeGet({
@@ -800,13 +904,14 @@ describe('ImmersveProvider', () => {
           fundingSources: { items: [fundingSourceDetail] },
         }),
       );
-      service.post.mockResolvedValue({ cardId: 'card-1' });
 
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
-      expect(service.post).toHaveBeenCalledWith(
-        '/api/cards',
-        { cardProgramId: 'program-1', fundingSourceId: 'fs-1' },
+      // Card creation is not a read-path side effect (gated ImmersveFundingApproval owns it).
+      expect(service.post).not.toHaveBeenCalled();
+      // No funding-sources lookup either — the read path stays pure.
+      expect(service.get).not.toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/funding-sources',
         TOKENS,
       );
       expect(data.card).toBeNull();
@@ -880,6 +985,172 @@ describe('ImmersveProvider', () => {
 
       expect(data.card).toBeNull();
       expect(data.fundingAssets).toStrictEqual([]);
+    });
+
+    it('populates spendableBalance as min(wallet, allowance) when spender is configured', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '30.0',
+        allowance: '15.0',
+        spendableBalance: '15',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+        fundingAddress,
+        '0x2222222222222222222222222222222222222222',
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '15',
+        spendingCap: '15.0',
+        status: FundingAssetStatus.Active,
+        walletAddress: fundingAddress,
+      });
+    });
+
+    it('uses wallet balance when it is lower than the allowance', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '10.0',
+        allowance: '100.0',
+        spendableBalance: '10',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '10',
+        spendingCap: '100.0',
+      });
+    });
+
+    it('falls back to empty spendableBalance when the on-chain read fails', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockRejectedValue(
+        new Error('rpc unavailable'),
+      );
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '',
+        spendingCap: '',
+        status: FundingAssetStatus.Active,
+      });
+    });
+
+    it('skips the on-chain read when spenderAddress is unset', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(mockReadErc20AllowanceAndBalance).not.toHaveBeenCalled();
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '',
+        spendingCap: '',
+      });
+    });
+
+    it('reads on-chain allowance on Arbitrum Sepolia for arbitrum-sepolia funding', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'arbitrum-sepolia',
+          },
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '20.0',
+        allowance: '8.0',
+        spendableBalance: '8',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(ethers.providers.StaticJsonRpcProvider).toHaveBeenCalledWith(
+        { url: ARBITRUM_SEPOLIA_RPC_URL, skipFetchSetup: true },
+        { name: 'arbitrum-sepolia', chainId: 421614 },
+      );
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+        fundingAddress,
+        '0x2222222222222222222222222222222222222222',
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '8',
+        spendingCap: '8.0',
+        chainId: 'eip155:421614',
+      });
     });
   });
 

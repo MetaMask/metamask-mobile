@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -17,7 +19,7 @@ const PerpsServiceInterruptionBanner: React.FC<
   const isEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleSupportPress = useCallback(() => {
     navigation.navigate(Routes.WEBVIEW.MAIN, {

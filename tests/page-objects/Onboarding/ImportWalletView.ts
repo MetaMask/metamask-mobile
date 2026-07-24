@@ -264,18 +264,11 @@ class ImportWalletView {
         Matchers.getElementByID(
           ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
         ),
-      appium: {
-        // Nested/legacy Android renders may omit resource-id — match copy.
-        android: () =>
-          PlaywrightMatchers.getElementByText(
-            enContent.import_from_seed.import_wallet_from_extension,
-            true,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
-          ),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          enContent.import_from_seed.import_wallet_from_extension,
+          true,
+        ),
     });
   }
 
