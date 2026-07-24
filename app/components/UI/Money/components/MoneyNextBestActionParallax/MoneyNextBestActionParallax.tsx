@@ -68,7 +68,9 @@ const MoneyNextBestActionParallax = ({
 
   const applyTilt = useCallback(
     (x: number, y: number) => {
-      if (!riveInstance) return;
+      // viewTag() is null while the native Rive view is detached; dispatching
+      // then throws "found null reactTag".
+      if (!riveInstance || riveInstance.viewTag() === null) return;
       setXValue(tiltToParallaxValue(x));
       setYValue(tiltToParallaxValue(y));
     },
