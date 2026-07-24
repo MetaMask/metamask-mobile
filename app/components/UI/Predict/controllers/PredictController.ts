@@ -4000,13 +4000,6 @@ export class PredictController extends BaseController<
     }
 
     const signer = this.getSigner(request.transactionMeta.txParams.from);
-
-    const chainId = activeWithdrawTransaction.chainId;
-
-    const networkClientId = this.messenger.call(
-      'NetworkController:findNetworkClientIdByChainId',
-      numberToHex(chainId),
-    );
     const withdrawDataPrefix = withdrawTransaction.data?.slice(0, 10);
 
     if (
@@ -4017,13 +4010,43 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Invalidate query cache (to avoid nonce issues)
-    await this.invalidateQueryCache(chainId);
+    const accountState = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const chainId = activeWithdrawTransaction.chainId;
 
-    const { callData, amount } = await provider.signWithdraw({
+    if (accountState.walletType === 'safe') {
+      // Invalidate query cache to avoid using a stale Safe nonce.
+      await this.invalidateQueryCache(chainId);
+    }
+
+    const { callData, amount, walletType } = await provider.signWithdraw({
       callData: withdrawTransaction?.data as Hex,
       signer,
     });
+
+    if (walletType === 'deposit-wallet') {
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.amount = amount;
+          state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
+        }
+      });
+
+      return {
+        updateTransaction: (transaction: TransactionMeta) => {
+          transaction.assetsFiatValues = {
+            ...transaction.assetsFiatValues,
+            receiving: String(amount),
+          };
+        },
+      };
+    }
+
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      numberToHex(chainId),
+    );
 
     const newParams = {
       ...withdrawTransaction,

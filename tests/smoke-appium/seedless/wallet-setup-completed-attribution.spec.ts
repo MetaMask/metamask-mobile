@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeSeedlessOnboarding } from '../../tags.js';
+import { SmokeSeedlessOnboardingExtended } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { onboardingEvents } from '../../helpers/analytics/helpers.js';
@@ -32,7 +32,7 @@ function walletSetupCompletedOnlyExpectations(
 }
 
 appiumTest.describe(
-  SmokeSeedlessOnboarding(
+  SmokeSeedlessOnboardingExtended(
     'Wallet Setup Completed includes persisted attribution (Google + Apple)',
   ),
   () => {

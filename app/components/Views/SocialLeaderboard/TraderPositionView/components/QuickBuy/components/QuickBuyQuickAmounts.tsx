@@ -1,12 +1,13 @@
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
-import { TextVariant } from '../../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { useQuickBuyContext } from '../useQuickBuyContext';
@@ -21,16 +22,24 @@ import {
  * 16px horizontal padding so all four labels fit on one row without clipping.
  */
 const QUICK_AMOUNT_PILL_PROPS = {
-  variant: ButtonVariants.Secondary,
+  variant: ButtonVariant.Secondary,
   size: ButtonSize.Md,
-  labelTextVariant: TextVariant.BodySMMedium,
 } as const;
 
+const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
 const QUICK_AMOUNT_PILL_COUNT = 4;
-
 const QUICK_AMOUNT_PILL_SKELETON_LABEL = 'quick-buy-quick-amount-pill-skeleton';
 
-const QuickBuyQuickAmounts: React.FC = () => {
+export interface QuickBuyQuickAmountsProps {
+  /** When true, appends a primary Done pill (keyboard-open row above the keypad). */
+  showDone?: boolean;
+  onDonePress?: () => void;
+}
+
+const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
+  showDone = false,
+  onDonePress,
+}) => {
   const tw = useTailwind();
   const { playImpact } = useHaptics();
   const {
@@ -81,6 +90,19 @@ const QuickBuyQuickAmounts: React.FC = () => {
     [handleQuickAmountPress, playImpact],
   );
 
+  const doneButton =
+    showDone && onDonePress ? (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Md}
+        onPress={onDonePress}
+        twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+        testID="quick-buy-keypad-done"
+      >
+        Done
+      </Button>
+    ) : null;
+
   const renderPillSkeletonLabel = () => (
     <Skeleton
       width={32}
@@ -102,13 +124,15 @@ const QuickBuyQuickAmounts: React.FC = () => {
           <Button
             key={index}
             {...QUICK_AMOUNT_PILL_PROPS}
-            label={renderPillSkeletonLabel()}
             onPress={() => undefined}
             isDisabled
-            style={tw.style('min-w-0 flex-1 px-2')}
+            twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
             testID={`${loadingTestIdPrefix}-${index}`}
-          />
+          >
+            {renderPillSkeletonLabel()}
+          </Button>
         ))}
+        {doneButton}
       </Box>
     );
   }
@@ -120,13 +144,15 @@ const QuickBuyQuickAmounts: React.FC = () => {
           <Button
             key={option.percent}
             {...QUICK_AMOUNT_PILL_PROPS}
-            label={option.label}
             onPress={() => handleSellPercentPress(option.percent)}
             isDisabled={isSliderDisabled}
-            style={tw.style('min-w-0 flex-1 px-2')}
+            twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
             testID={`quick-buy-sell-pill-${option.percent}`}
-          />
+          >
+            {option.label}
+          </Button>
         ))}
+        {doneButton}
       </Box>
     );
   }
@@ -137,13 +163,15 @@ const QuickBuyQuickAmounts: React.FC = () => {
         <Button
           key={`${option.presetValue}-${index}`}
           {...QUICK_AMOUNT_PILL_PROPS}
-          label={option.label}
           onPress={() => handleBuyAmountPress(option.value, option.presetValue)}
           isDisabled={isSliderDisabled}
-          style={tw.style('min-w-0 flex-1 px-2')}
+          twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
           testID={`quick-buy-buy-pill-${option.presetValue}`}
-        />
+        >
+          {option.label}
+        </Button>
       ))}
+      {doneButton}
     </Box>
   );
 };

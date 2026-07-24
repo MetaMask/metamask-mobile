@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Theme,
@@ -37,7 +38,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   perpsSubFilterActive = false,
 }) => {
   const designSystemTheme = useDesignSystemTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
   const hasFunds = useSelector(selectAddressHasTokenBalances);
 
@@ -70,6 +71,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       case ActivityEmptyStateAction.BrowsePerpsMarkets:
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_LIST,
+          params: {},
         });
         return;
       case ActivityEmptyStateAction.OpenMetamaskCard:

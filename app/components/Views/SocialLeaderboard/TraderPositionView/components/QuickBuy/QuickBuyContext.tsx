@@ -1,4 +1,4 @@
-import React, { createContext, useCallback } from 'react';
+import React, { createContext, useCallback, useState } from 'react';
 import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
@@ -36,6 +36,14 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
    * Otherwise it delegates directly to `handleConfirm`.
    */
   handleBuy: () => Promise<void>;
+  /**
+   * Keyboard vs slider A/B assignment (`socialAiTSA905AbtestQuickBuyKeyboard`).
+   * When true (treatment), the numeric keypad replaces the percentage slider.
+   */
+  useKeyboard: boolean;
+  /** Whether the numeric keypad is currently shown (treatment only). */
+  isKeypadOpen: boolean;
+  setIsKeypadOpen: (open: boolean) => void;
 }
 
 export const QuickBuyContext = createContext<QuickBuyContextValue | null>(null);
@@ -47,6 +55,8 @@ interface QuickBuyProviderProps {
   analyticsContext?: QuickBuyAnalyticsContext;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
+  /** A/B assignment: true renders the keypad, false keeps the slider. */
+  useKeyboard?: boolean;
   children: React.ReactNode;
 }
 
@@ -57,9 +67,17 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   analyticsContext,
   activeScreen,
   setActiveScreen,
+  useKeyboard = false,
   children,
 }) => {
-  const controller = useQuickBuyController(target, onClose, analyticsContext);
+  const controller = useQuickBuyController(
+    target,
+    onClose,
+    analyticsContext,
+    useKeyboard,
+  );
+  // Keypad starts closed; the user opens it by tapping the amount headline.
+  const [isKeypadOpen, setIsKeypadOpen] = useState(false);
   const {
     currentCurrency,
     usdToCurrentCurrencyRate,
@@ -117,6 +135,9 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     isQuickAmountPreferencesLoaded,
     saveQuickAmountPreferences,
     handleBuy,
+    useKeyboard,
+    isKeypadOpen,
+    setIsKeypadOpen,
   };
 
   return (
