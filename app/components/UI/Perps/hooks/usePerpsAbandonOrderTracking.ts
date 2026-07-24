@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -49,7 +50,7 @@ export function usePerpsAbandonOrderTracking({
   getAbandonProperties: () => Record<string, unknown>;
   hasCommittedRef: MutableRefObject<boolean>;
 }): void {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const focusStartRef = useRef(0);
   const focusDepthRef = useRef(0);

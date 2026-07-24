@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -42,7 +43,7 @@ export const clearImmersveKycOnClose = () => {
  */
 const ImmersveKYCModal: React.FC = () => {
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState<WebViewStatus>('loading');
