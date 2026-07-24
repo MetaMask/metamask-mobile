@@ -52,39 +52,38 @@ const runDetection = async (): Promise<void> => {
   }
 
   try {
-      const osPermissionGranted = await isPushPermissionGranted();
-      const previouslyGranted =
-        mmStorage.getLocal(
-          STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
-        ) === true;
+    const osPermissionGranted = await isPushPermissionGranted();
+    const previouslyGranted =
+      mmStorage.getLocal(STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT) ===
+      true;
 
-      // Granted -> revoked transition: the user turned notifications off in the
-      // system settings after having push notifications enabled.
-      if (previouslyGranted && !osPermissionGranted) {
-        trackPushNotificationsDisabled();
-        mmStorage.saveLocal(
-          STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
-          false,
-        );
-        return;
-      }
-
-      // Update the last result: it is only "true" while push notifications are
-      // enabled in-app AND the OS still grants permission.
-      const pushEnabled = selectIsMetaMaskPushNotificationsEnabled(
-        store.getState(),
-      );
+    // Granted -> revoked transition: the user turned notifications off in the
+    // system settings after having push notifications enabled.
+    if (previouslyGranted && !osPermissionGranted) {
+      trackPushNotificationsDisabled();
       mmStorage.saveLocal(
         STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
-        Boolean(pushEnabled && osPermissionGranted),
+        false,
       );
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'Failed to detect push notification OS permission revocation',
-      );
+      return;
     }
-  };
+
+    // Update the last result: it is only "true" while push notifications are
+    // enabled in-app AND the OS still grants permission.
+    const pushEnabled = selectIsMetaMaskPushNotificationsEnabled(
+      store.getState(),
+    );
+    mmStorage.saveLocal(
+      STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
+      Boolean(pushEnabled && osPermissionGranted),
+    );
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to detect push notification OS permission revocation',
+    );
+  }
+};
 
 // Serializes runs so overlapping invocations (e.g. the mount check and a
 // background→active check firing close together) never both read a stale
