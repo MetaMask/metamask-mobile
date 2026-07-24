@@ -10,7 +10,9 @@ describe('QuickBuyBottomSheetSkeleton', () => {
 
   it('renders the toolbar rate-tag skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(screen.getByTestId('quick-buy-skeleton-rate-tag')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-skeleton-close-button'),
+    ).toBeOnTheScreen();
   });
 
   it('renders the slider skeleton', () => {
@@ -21,6 +23,11 @@ describe('QuickBuyBottomSheetSkeleton', () => {
   it('renders the pay-with pill skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(screen.getByTestId('quick-buy-skeleton-pay-with')).toBeOnTheScreen();
+  });
+
+  it('renders the total row skeleton', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(screen.getByTestId('quick-buy-skeleton-total')).toBeOnTheScreen();
   });
 
   it('renders the confirm-button skeleton', () => {

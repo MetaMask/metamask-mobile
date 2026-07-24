@@ -24,20 +24,25 @@ const QuickBuyBottomSheetSkeleton: React.FC<
 
   return (
     <Box testID="quick-buy-content-loading">
-      {/* Toolbar — mirrors QuickBuyToolbar px-4 pt-2 pb-3 */}
+      {/* Toolbar — mirrors QuickBuyToolbar: settings | toggle | close */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
         twClassName="px-4 pt-2 pb-3"
       >
-        <Skeleton width={56} height={28} style={tw.style('rounded-full')} />
-        <Skeleton
-          width={140}
-          height={28}
-          style={tw.style('rounded-full')}
-          testID="quick-buy-skeleton-rate-tag"
-        />
+        <Box twClassName="flex-1" alignItems={BoxAlignItems.Start}>
+          <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
+        </Box>
+        <Skeleton width={120} height={32} style={tw.style('rounded-full')} />
+        <Box twClassName="flex-1" alignItems={BoxAlignItems.End}>
+          <Skeleton
+            width={40}
+            height={40}
+            style={tw.style('rounded-full')}
+            testID="quick-buy-skeleton-close-button"
+          />
+        </Box>
       </Box>
 
       {/* Amount area — mirrors QuickBuyAmountSection pt-6 pb-4 */}
@@ -97,11 +102,29 @@ const QuickBuyBottomSheetSkeleton: React.FC<
           />
         </Box>
 
+        {/* Total row */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="pb-5"
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.total')}
+          </Text>
+          <Skeleton
+            width={56}
+            height={16}
+            style={tw.style('rounded-md')}
+            testID="quick-buy-skeleton-total"
+          />
+        </Box>
+
         {/* Confirm button */}
         <Skeleton
           width="100%"
           height={48}
-          style={tw.style('rounded-xl')}
+          style={tw.style('rounded-[99px]')}
           testID="quick-buy-skeleton-confirm-button"
         />
       </Box>

@@ -30,6 +30,11 @@ const styles = StyleSheet.create({
 interface QuickBuyTokenIconProps {
   token: BridgeToken;
   size?: AvatarTokenSize;
+  /**
+   * Optional Tailwind override for the avatar dimensions (e.g. `h-[20px] w-[20px]`).
+   * Applied after the size preset so custom pixel sizes can be used.
+   */
+  twClassName?: string;
 }
 
 /**
@@ -45,6 +50,7 @@ interface QuickBuyTokenIconProps {
 const QuickBuyTokenIcon: React.FC<QuickBuyTokenIconProps> = ({
   token,
   size = AvatarTokenSize.Md,
+  twClassName,
 }) => {
   const networkImageSource = getNetworkImageSource({
     chainId: token.chainId,
@@ -73,6 +79,7 @@ const QuickBuyTokenIcon: React.FC<QuickBuyTokenIconProps> = ({
       name={token.symbol}
       src={source}
       size={size}
+      twClassName={twClassName}
       imageOrSvgProps={{
         imageProps: { onError, testID: QUICK_BUY_TOKEN_ICON_AVATAR_TEST_ID },
       }}

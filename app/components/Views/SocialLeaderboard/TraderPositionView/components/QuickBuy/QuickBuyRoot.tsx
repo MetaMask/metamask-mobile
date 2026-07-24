@@ -204,8 +204,21 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     <BottomSheetDialog
       ref={bottomSheetRef}
       onClose={onClose}
-      twClassName={surfaceClass}
+      twClassName={`${surfaceClass} rounded-t-[40px]`}
     >
+      {/* Temporary override: DS BottomSheetDialog ships h-1 (4px); cover with a
+          thicker pill to match design until the DS default is updated.
+          Keep this wrapper transparent — a full-bleed surface bg here clips
+          against large top radii and leaves a gap at the corners. */}
+      <Box
+        twClassName="-mt-3 items-center pt-2 pb-2"
+        pointerEvents="none"
+        testID="quick-buy-drag-handle"
+      >
+        {/* Mask the thin DS handle only under the pill */}
+        <Box twClassName={`absolute h-3 w-12 rounded-full ${surfaceClass}`} />
+        <Box twClassName="h-[6px] w-10 rounded-full bg-border-muted" />
+      </Box>
       {isContentReady ? (
         <QuickBuyProvider
           key={variantName}
