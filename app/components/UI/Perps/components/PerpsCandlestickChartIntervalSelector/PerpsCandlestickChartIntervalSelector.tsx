@@ -50,12 +50,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
                 ? TextColor.TextDefault
                 : TextColor.TextMuted
             }
-            style={[
-              styles.intervalTabText,
-              selectedInterval === interval.value
-                ? styles.intervalTabTextActive
-                : styles.intervalTabTextInactive,
-            ]}
+            style={styles.intervalTabText}
           >
             {interval.label}
           </Text>
