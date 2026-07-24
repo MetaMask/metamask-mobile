@@ -52,7 +52,6 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
-import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
@@ -73,21 +72,14 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     {
       sectionIndex,
       totalSectionsLoaded,
-      mode = 'default',
-      sectionName: sectionNameOverride,
-      titleOverride,
       emptyStateContent = 'tiles',
       emptyStateTitleOverride,
     },
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const defaultTitle = strings('homepage.sections.perpetuals');
-    const baseTitle = titleOverride ?? defaultTitle;
-    const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
-    const isPositionsOnly = mode === 'positions-only';
-    const usesPillsEmptyState =
-      !isPositionsOnly && emptyStateContent === 'pills';
+    const baseTitle = strings('homepage.sections.perpetuals');
+    const usesPillsEmptyState = emptyStateContent === 'pills';
     const { error: connectionError, reconnectWithNewContext } =
       usePerpsConnection();
     const { track } = usePerpsEventTracking();
@@ -138,7 +130,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     // HomepagePerpsTreatmentEmptyBranch: !showSkeleton && !hasItems).
     const shouldShowPillsEmptyState =
       usesPillsEmptyState && !showSkeleton && !hasItems;
-    const shouldLoadMarkets = !isPositionsOnly && !shouldShowPillsEmptyState;
+    const shouldLoadMarkets = !shouldShowPillsEmptyState;
 
     const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
       usePerpsTrendingCarouselData({
@@ -149,8 +141,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         ? (emptyStateTitleOverride ?? baseTitle)
         : baseTitle;
 
-    const trendingTransactionActiveAbTests =
-      useHomepageTrendingTransactionActiveAbTests();
     const perpsPillsEmptyTransactionActiveAbTests =
       useHomepagePerpsPillsEmptyTransactionActiveAbTests(
         shouldShowPillsEmptyState,
@@ -171,8 +161,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       handleViewMorePerps,
       handleTilePress,
     } = usePerpsNavigationHandlers({
-      trendingTransactionActiveAbTests,
-      extraTransactionActiveAbTests: perpsPillsEmptyTransactionActiveAbTests,
+      transactionActiveAbTests: perpsPillsEmptyTransactionActiveAbTests,
     });
 
     const handleTrendingMarketPress = useCallback(
@@ -207,11 +196,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       !shouldShowPillsEmptyState &&
       !marketsLoading;
     const carouselSymbols = useMemo(
-      () =>
-        showTrending && !isPositionsOnly
-          ? allCarouselMarkets.map((m) => m.symbol)
-          : [],
-      [allCarouselMarkets, isPositionsOnly, showTrending],
+      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+      [allCarouselMarkets, showTrending],
     );
     const { sparklines, refresh: refreshSparklines } =
       useHomepageSparklines(carouselSymbols);
@@ -283,58 +269,44 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
-    // positions-only: never wait on market/trending data — analytics for empty
-    // sections must not block on unrelated REST market loads (see pendingTrending).
-    const isLoadingSection = isPositionsOnly
-      ? showSkeleton
-      : hookLoading ||
-        deferredLoading ||
-        pendingTrending ||
-        (shouldShowPillsEmptyState && isPerpsPillsLoading);
+    const isLoadingSection =
+      hookLoading ||
+      deferredLoading ||
+      pendingTrending ||
+      (shouldShowPillsEmptyState && isPerpsPillsLoading);
 
     const isEmpty = !hasItems;
 
-    const positionsOnlyHidden = isPositionsOnly && !hasItems && !showSkeleton;
     const pillsEmptyFeedHidden =
       shouldShowPillsEmptyState &&
       !showSkeleton &&
       !isPerpsPillsLoading &&
       perpsPillsData.length === 0;
 
-    const willRender = isPositionsOnly
-      ? !showSkeleton && hasItems
-      : !isLoadingSection && !pillsEmptyFeedHidden;
+    const willRender = !isLoadingSection && !pillsEmptyFeedHidden;
 
     const itemCount = hasItems
       ? displayPositions.length + displayOrders.length
       : 0;
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef:
-        willRender && !positionsOnlyHidden && !pillsEmptyFeedHidden
-          ? sectionViewRef
-          : null,
+      sectionRef: willRender && !pillsEmptyFeedHidden ? sectionViewRef : null,
       isLoading: isLoadingSection,
-      sectionName: analyticsName,
+      sectionName: HomeSectionNames.PERPS,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty,
       itemCount,
-      fireImmediateWhenNoView: !positionsOnlyHidden && !pillsEmptyFeedHidden,
+      fireImmediateWhenNoView: !pillsEmptyFeedHidden,
     });
 
     useSectionPerformance({
-      sectionId: analyticsName,
+      sectionId: HomeSectionNames.PERPS,
       contentReady: !isLoadingSection,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
     });
-
-    // positions-only: hide when empty before connection error UI (WS failure must not show error for empty section)
-    if (isPositionsOnly && !hasItems && !showSkeleton) {
-      return null;
-    }
 
     const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;
 
@@ -347,7 +319,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               title={title}
               isInteractive
               onPress={handleViewAllPerps}
-              testID={homepageSectionTitleTestId(analyticsName)}
+              testID={homepageSectionTitleTestId(HomeSectionNames.PERPS)}
             />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
@@ -374,7 +346,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           title={title}
           isInteractive
           onPress={handleViewAllPerps}
-          testID={homepageSectionTitleTestId(analyticsName)}
+          testID={homepageSectionTitleTestId(HomeSectionNames.PERPS)}
         />
         <Box gap={3} paddingTop={shouldAddContentTopGap ? 3 : undefined}>
           {showHomepageUnrealizedPnl && (
