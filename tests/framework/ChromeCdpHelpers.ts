@@ -15,6 +15,8 @@ const CDP_READY_TIMEOUT_MS = 20_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
 /** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
 const DEEPLINK_CAPTURE_TIMEOUT_MS = 30_000;
+/** Wait this long after a stringify guess before accepting it over a late real URL. */
+const RECONSTRUCTED_DEEPLINK_GRACE_MS = 3_000;
 const POLL_MS = 500;
 
 interface ChromeContextInfo {
@@ -343,10 +345,13 @@ export default class ChromeCdpHelpers {
   ): Promise<void> {
     // Capture URL when the SDK builds it (createConnectionDeeplink), which
     // happens on session_request — before (and even if) location.href is blocked.
+    // Observed URLs (Page events / href / window.open) and reconstructed URLs
+    // are kept separate so a guess never outranks a real navigation.
     await session.evaluate(`(() => {
       const w = window;
       w.__mmCdpDeeplinks = [];
-      const push = (url) => {
+      w.__mmCdpReconstructedDeeplinks = [];
+      const pushObserved = (url) => {
         if (url == null) return;
         const value = String(url);
         if (!value || value === 'about:blank') return;
@@ -354,14 +359,19 @@ export default class ChromeCdpHelpers {
           w.__mmCdpDeeplinks.push(value);
         }
       };
-
-      const toMwpUrl = (scheme, payloadJson) => {
-        const bytes = new TextEncoder().encode(payloadJson);
-        let binary = '';
-        bytes.forEach((b) => { binary += String.fromCharCode(b); });
-        const b64 = btoa(binary);
-        return scheme + '/mwp?p=' + encodeURIComponent(b64) + '&c=1';
+      const pushReconstructed = (url) => {
+        if (url == null) return;
+        const value = String(url);
+        if (!value || value === 'about:blank') return;
+        if (!w.__mmCdpReconstructedDeeplinks.includes(value)) {
+          w.__mmCdpReconstructedDeeplinks.push(value);
+        }
       };
+
+      // Wallet parseMwpConnectPayload: c=1 => pako-inflate base64; otherwise
+      // treat p as raw JSON. Reconstruct uncompressed so inflate is not invoked.
+      const toMwpUrl = (scheme, payloadJson) =>
+        scheme + '/mwp?p=' + encodeURIComponent(payloadJson);
 
       const origStringify = JSON.stringify.bind(JSON);
       JSON.stringify = (value, ...args) => {
@@ -374,8 +384,8 @@ export default class ChromeCdpHelpers {
             value.metadata &&
             value.metadata.dapp
           ) {
-            push(toMwpUrl('metamask://connect', out));
-            push(toMwpUrl('https://metamask.app.link/connect', out));
+            pushReconstructed(toMwpUrl('metamask://connect', out));
+            pushReconstructed(toMwpUrl('https://metamask.app.link/connect', out));
           }
         } catch (_) {}
         return out;
@@ -389,7 +399,7 @@ export default class ChromeCdpHelpers {
             enumerable: desc.enumerable,
             get() { return desc.get.call(this); },
             set(v) {
-              push(v);
+              pushObserved(v);
               return desc.set.call(this, v);
             },
           });
@@ -399,7 +409,7 @@ export default class ChromeCdpHelpers {
       try {
         const origOpen = window.open.bind(window);
         window.open = (url, ...args) => {
-          push(url);
+          pushObserved(url);
           return origOpen(url, ...args);
         };
       } catch (_) {}
@@ -407,7 +417,7 @@ export default class ChromeCdpHelpers {
       try {
         const origClick = HTMLAnchorElement.prototype.click;
         HTMLAnchorElement.prototype.click = function (...args) {
-          push(this.href);
+          pushObserved(this.href);
           return origClick.apply(this, args);
         };
       } catch (_) {}
@@ -416,34 +426,80 @@ export default class ChromeCdpHelpers {
     })()`);
   }
 
+  private static pickMetaMaskConnectUrl(urls: string[]): string | undefined {
+    // Prefer native scheme for Appium deepLink package scoping.
+    const native = urls.find((url) => url.startsWith('metamask://'));
+    if (native) {
+      return native;
+    }
+    return urls.find((url) => this.isMetaMaskConnectUrl(url));
+  }
+
+  private static async readCapturedDeeplinkLists(session: CdpSession): Promise<{
+    observed: string[];
+    reconstructed: string[];
+  }> {
+    return session.evaluate<{
+      observed: string[];
+      reconstructed: string[];
+    }>(
+      `({
+        observed: Array.isArray(window.__mmCdpDeeplinks)
+          ? window.__mmCdpDeeplinks.slice()
+          : [],
+        reconstructed: Array.isArray(window.__mmCdpReconstructedDeeplinks)
+          ? window.__mmCdpReconstructedDeeplinks.slice()
+          : [],
+      })`,
+    );
+  }
+
   private static async waitForCapturedDeeplink(
     session: CdpSession,
     cdpCaptured: string[],
   ): Promise<string> {
     const deadline = Date.now() + DEEPLINK_CAPTURE_TIMEOUT_MS;
+    let reconstructedSeenAt: number | undefined;
+    // Observed URLs (CDP Page / href / window.open) always win. Reconstructed
+    // stringify guesses appear earlier while the SDK builds the link — only
+    // accept them after a short grace period (or at timeout) so a late real
+    // navigation is not shadowed.
     while (Date.now() < deadline) {
-      const pageUrls = await session.evaluate<string[]>(
-        `Array.isArray(window.__mmCdpDeeplinks) ? window.__mmCdpDeeplinks.slice() : []`,
-      );
-      const all = [...cdpCaptured, ...pageUrls];
-      // Prefer native scheme for Appium deepLink package scoping.
-      const native = all.find((url) => url.startsWith('metamask://'));
-      if (native) {
-        return native;
+      const pageUrls = await this.readCapturedDeeplinkLists(session);
+      const observed = this.pickMetaMaskConnectUrl([
+        ...cdpCaptured,
+        ...pageUrls.observed,
+      ]);
+      if (observed) {
+        return observed;
       }
-      const match = all.find((url) => this.isMetaMaskConnectUrl(url));
-      if (match) {
-        return match;
+      const reconstructed = this.pickMetaMaskConnectUrl(pageUrls.reconstructed);
+      if (reconstructed) {
+        reconstructedSeenAt ??= Date.now();
+        if (Date.now() - reconstructedSeenAt >= RECONSTRUCTED_DEEPLINK_GRACE_MS) {
+          return reconstructed;
+        }
       }
       await new Promise((r) => setTimeout(r, POLL_MS));
     }
 
-    const pageUrls = await session.evaluate<string[]>(
-      `Array.isArray(window.__mmCdpDeeplinks) ? window.__mmCdpDeeplinks.slice() : []`,
-    );
+    const pageUrls = await this.readCapturedDeeplinkLists(session);
+    const observed = this.pickMetaMaskConnectUrl([
+      ...cdpCaptured,
+      ...pageUrls.observed,
+    ]);
+    if (observed) {
+      return observed;
+    }
+    const reconstructed = this.pickMetaMaskConnectUrl(pageUrls.reconstructed);
+    if (reconstructed) {
+      return reconstructed;
+    }
     throw new Error(
       `CDP: MetaMask connect deeplink was not captured within ${DEEPLINK_CAPTURE_TIMEOUT_MS}ms` +
-        ` (cdp=${JSON.stringify(cdpCaptured)}; page=${JSON.stringify(pageUrls)})`,
+        ` (cdp=${JSON.stringify(cdpCaptured)};` +
+        ` observed=${JSON.stringify(pageUrls.observed)};` +
+        ` reconstructed=${JSON.stringify(pageUrls.reconstructed)})`,
     );
   }
 
