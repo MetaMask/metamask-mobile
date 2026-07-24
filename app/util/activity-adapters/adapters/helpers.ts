@@ -41,8 +41,31 @@ export function getNetworkFeeAmount(
 }
 
 /**
+ * Adds L1 / operator fee (hex wei) onto an L2 network fee (decimal wei string).
+ * Prefers `layer1GasFee` (L1 data fee + operator fee from TransactionController)
+ * over raw receipt `l1Fee` so Mantle operator fee is included when available.
+ */
+function addLayer1FeeToNetworkFeeAmount(
+  networkFeeAmount: string,
+  layer1GasFee: string | undefined,
+  receiptL1Fee: string | undefined,
+): string {
+  const layer1OrL1Fee = layer1GasFee ?? receiptL1Fee;
+  if (!layer1OrL1Fee) {
+    return networkFeeAmount;
+  }
+
+  try {
+    return String(BigInt(networkFeeAmount) + BigInt(layer1OrL1Fee));
+  } catch {
+    return networkFeeAmount;
+  }
+}
+
+/**
  * Builds the base network fee (in the chain's native token) for a local
- * transaction from its receipt (`gasUsed × effectiveGasPrice`), falling back to
+ * transaction from its receipt (`gasUsed × effectiveGasPrice`), plus any
+ * L1 / operator fee from `layer1GasFee` or receipt `l1Fee`. Falls back to
  * `txParams.gasPrice` while pending. Mirrors the extension's
  * `getLocalTransactionFees` + `buildBaseNetworkFee`.
  */
@@ -52,15 +75,21 @@ export function getLocalTransactionFees(
   nativeSymbol: string | undefined,
 ): ActivityFee[] | undefined {
   const { primaryTransaction } = transactionGroup;
-  const amount = getNetworkFeeAmount(
+  const l2Amount = getNetworkFeeAmount(
     primaryTransaction.txReceipt?.gasUsed,
     primaryTransaction.txReceipt?.effectiveGasPrice ??
       primaryTransaction.txParams?.gasPrice,
   );
 
-  if (!amount) {
+  if (!l2Amount) {
     return undefined;
   }
+
+  const amount = addLayer1FeeToNetworkFeeAmount(
+    l2Amount,
+    primaryTransaction.layer1GasFee,
+    primaryTransaction.txReceipt?.l1Fee,
+  );
 
   return [
     {

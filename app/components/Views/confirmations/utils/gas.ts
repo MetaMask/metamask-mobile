@@ -149,7 +149,11 @@ export function calculateGasEstimate({
   };
 }) {
   if (receiptGasPrice) {
-    return getFeesFromHexFn(multiplyHexes(receiptGasPrice as Hex, gas as Hex));
+    const receiptL2Fee = multiplyHexes(receiptGasPrice as Hex, gas as Hex);
+    if (layer1GasFee) {
+      return getFeesFromHexFn(addHexes(receiptL2Fee, layer1GasFee) as Hex);
+    }
+    return getFeesFromHexFn(receiptL2Fee);
   }
 
   let minimumFeePerGas = addHexes(

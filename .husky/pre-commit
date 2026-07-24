@@ -1,1 +1,3 @@
+# Match yarn lint heap; bare eslint via lint-staged OOMs on default ~2GB.
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 yarn lint-staged
