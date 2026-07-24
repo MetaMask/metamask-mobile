@@ -10,9 +10,11 @@ import {
   usePerpsLivePositions,
 } from '../../../hooks/stream';
 import {
+  getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
+import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
@@ -31,8 +33,7 @@ interface PerpsProPositionsPanelProps {
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * The Positions tab shows a read-only list of the user's open positions
  * across all assets, falling back to an empty state when there are none.
- * The Orders tab currently shows its empty state — no ticket scopes its
- * populated content yet.
+ * The Orders tab shows the user's open orders as read-only cards.
  */
 const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
@@ -41,7 +42,8 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     throttleMs: 1000,
     useLivePnl: true,
   });
-  const { orders } = usePerpsLiveOrders({ throttleMs: 1000 });
+  const { orders, isInitialLoading: areOrdersInitiallyLoading } =
+    usePerpsLiveOrders({ throttleMs: 1000 });
   const { account } = usePerpsLiveAccount({ throttleMs: 1000 });
 
   const openPositionsCount = positions.length;
@@ -143,6 +145,32 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     );
   };
 
+  const renderOrdersTab = () => {
+    if (orders.length > 0) {
+      return (
+        <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
+          {orders.map((order, index) => (
+            <PerpsProOrderCard
+              key={order.orderId}
+              order={order}
+              testID={getPerpsProOrderRowSelector(order.symbol, index)}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    if (areOrdersInitiallyLoading) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="items-center justify-center px-4 pt-6">
+        <PerpsProOrdersEmptyState />
+      </Box>
+    );
+  };
+
   return (
     <Box
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL}
@@ -166,13 +194,9 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
           />
         </Box>
       )}
-      {activeIndex === ORDERS_TAB_INDEX ? (
-        <Box twClassName="items-center justify-center px-4 pt-6">
-          <PerpsProOrdersEmptyState />
-        </Box>
-      ) : (
-        renderPositionsTab()
-      )}
+      {activeIndex === ORDERS_TAB_INDEX
+        ? renderOrdersTab()
+        : renderPositionsTab()}
     </Box>
   );
 };

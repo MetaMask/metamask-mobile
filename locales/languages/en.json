@@ -1531,6 +1531,17 @@
         "close": "Close",
         "reverse": "Reverse",
         "share": "Share"
+      },
+      "order_card": {
+        "size": "Size",
+        "order_value": "Order value",
+        "price": "Price",
+        "reduce_only": "Reduce only",
+        "tp_sl": "TP / SL",
+        "trigger_condition": "Trigger condition",
+        "take_profit": "Take profit",
+        "stop": "Stop",
+        "cancel": "Cancel"
       }
     },
     "order": {

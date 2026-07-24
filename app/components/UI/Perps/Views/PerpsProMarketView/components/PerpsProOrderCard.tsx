@@ -1,0 +1,266 @@
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  Tag,
+  TagSeverity,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+  type Order,
+} from '@metamask/perps-controller';
+import React from 'react';
+import { strings } from '../../../../../../../locales/i18n';
+import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  formatPerpsFiat,
+  formatPositionSize,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../utils/formatUtils';
+import {
+  getOrderPositionDirection,
+  getValidOrderPrice,
+  getValidTriggerPrice,
+  inferTriggerConditionKey,
+} from '../../../utils/orderUtils';
+
+interface PerpsProOrderCardProps {
+  order: Order;
+  testID?: string;
+}
+
+interface KeyValueItemProps {
+  label: string;
+  value: string;
+  isEditable?: boolean;
+}
+
+const KeyValueItem = ({
+  label,
+  value,
+  isEditable = false,
+}: KeyValueItemProps) => (
+  <Box>
+    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-1"
+    >
+      <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+        {value}
+      </Text>
+      {isEditable && <Icon name={IconName.Edit} size={IconSize.Sm} />}
+    </Box>
+  </Box>
+);
+
+const formatOrderTimestamp = (timestamp: number): string => {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date(timestamp));
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '';
+
+  return `${value('day')} ${value('month')} ${value('year')} • ${value(
+    'hour',
+  )}:${value('minute')}:${value('second')}`;
+};
+
+const formatOptionalPrice = (price?: string): string => {
+  const parsedPrice = Number.parseFloat(price ?? '');
+  return Number.isFinite(parsedPrice) && parsedPrice > 0
+    ? formatPerpsFiat(parsedPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+    : PERPS_CONSTANTS.FallbackPriceDisplay;
+};
+
+const getOrderTypeLabel = (order: Order): string => {
+  const detailedType = order.detailedOrderType?.toLowerCase() ?? '';
+  if (detailedType.includes('take profit')) {
+    return strings('perps.pro_positions_panel.order_card.take_profit');
+  }
+  if (detailedType.includes('stop')) {
+    return strings('perps.pro_positions_panel.order_card.stop');
+  }
+  return order.orderType === 'limit'
+    ? strings('perps.order.limit')
+    : strings('perps.order.market');
+};
+
+/**
+ * Read-only summary of an open perps order in the Pro market view.
+ */
+const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
+  const displaySymbol = getPerpsDisplaySymbol(order.symbol);
+  const direction = getOrderPositionDirection(order);
+  const isLong = direction === 'long';
+  const size = formatPositionSize(order.originalSize);
+  const validOrderPrice = getValidOrderPrice(order);
+  const validTriggerPrice = getValidTriggerPrice(order);
+  const effectivePrice = validOrderPrice ?? validTriggerPrice;
+  const orderValue =
+    effectivePrice === null
+      ? PERPS_CONSTANTS.FallbackPriceDisplay
+      : formatPerpsFiat(
+          Number.parseFloat(order.originalSize) * effectivePrice,
+          { ranges: PRICE_RANGES_UNIVERSAL },
+        );
+  const price =
+    validOrderPrice === null
+      ? strings('perps.order.market')
+      : formatPerpsFiat(validOrderPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        });
+  const triggerConditionKey =
+    validTriggerPrice === null
+      ? undefined
+      : inferTriggerConditionKey({
+          detailedOrderType: order.detailedOrderType,
+          side: order.side,
+          triggerPrice: order.triggerPrice,
+          price: order.price,
+        });
+  const triggerCondition = triggerConditionKey
+    ? strings(triggerConditionKey, {
+        price: formatPerpsFiat(validTriggerPrice as number, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
+      })
+    : PERPS_CONSTANTS.FallbackPriceDisplay;
+  const tpSl = `${formatOptionalPrice(
+    order.takeProfitPrice,
+  )} / ${formatOptionalPrice(order.stopLossPrice)}`;
+
+  return (
+    <Box
+      twClassName="gap-3 py-3"
+      testID={testID ?? PerpsProMarketViewSelectorsIDs.ORDER_ROW}
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="gap-4 px-4 py-2"
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="flex-1 gap-4"
+        >
+          <PerpsTokenLogo symbol={order.symbol} size={40} />
+          <Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-1"
+            >
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {displaySymbol}
+              </Text>
+              <Tag severity={isLong ? TagSeverity.Success : TagSeverity.Danger}>
+                {isLong
+                  ? strings('perps.market.long')
+                  : strings('perps.market.short')}
+              </Tag>
+            </Box>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {formatOrderTimestamp(order.timestamp)}
+            </Text>
+          </Box>
+        </Box>
+        <Tag severity={TagSeverity.Neutral}>{getOrderTypeLabel(order)}</Tag>
+      </Box>
+
+      <Box twClassName="px-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-4 rounded-xl border border-muted px-4 py-2"
+        >
+          <Box twClassName="flex-1 gap-6">
+            <KeyValueItem
+              label={strings('perps.pro_positions_panel.order_card.size')}
+              value={`${size} ${displaySymbol}`}
+              isEditable
+            />
+            <KeyValueItem
+              label={strings(
+                'perps.pro_positions_panel.order_card.reduce_only',
+              )}
+              value={
+                order.reduceOnly
+                  ? strings('perps.order_details.yes')
+                  : strings('perps.order_details.no')
+              }
+            />
+          </Box>
+          <Box twClassName="flex-1 gap-6">
+            <KeyValueItem
+              label={strings(
+                'perps.pro_positions_panel.order_card.order_value',
+              )}
+              value={orderValue}
+            />
+            <KeyValueItem
+              label={strings('perps.pro_positions_panel.order_card.tp_sl')}
+              value={tpSl}
+              isEditable
+            />
+          </Box>
+          <Box twClassName="min-w-[120px] gap-6">
+            <KeyValueItem
+              label={strings('perps.pro_positions_panel.order_card.price')}
+              value={price}
+              isEditable
+            />
+            <KeyValueItem
+              label={strings(
+                'perps.pro_positions_panel.order_card.trigger_condition',
+              )}
+              value={triggerCondition}
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      <Box twClassName="px-4">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          isDanger
+          startIconName={IconName.Close}
+          twClassName="w-full border-muted bg-background-default"
+        >
+          {strings('perps.pro_positions_panel.order_card.cancel')}
+        </Button>
+      </Box>
+    </Box>
+  );
+};
+
+export default React.memo(PerpsProOrderCard);

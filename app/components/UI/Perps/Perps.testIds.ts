@@ -469,11 +469,16 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
   POSITIONS_LIST: 'perps-pro-market-positions-list',
   POSITION_ROW: 'perps-pro-market-position-row',
+  ORDERS_LIST: 'perps-pro-market-orders-list',
+  ORDER_ROW: 'perps-pro-market-order-row',
 };
 
 // Helper for dynamic Pro position row test IDs
 export const getPerpsProPositionRowSelector = (symbol: string, index: number) =>
   `${PerpsProMarketViewSelectorsIDs.POSITION_ROW}-${symbol}-${index}`;
+
+export const getPerpsProOrderRowSelector = (symbol: string, index: number) =>
+  `${PerpsProMarketViewSelectorsIDs.ORDER_ROW}-${symbol}-${index}`;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
