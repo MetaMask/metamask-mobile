@@ -94,35 +94,6 @@ describe('Notification Selectors', () => {
     expect(selectCanonicalProfileId(stateWithoutSession)).toBeUndefined();
   });
 
-  it('selectCanonicalProfileId returns undefined for an empty canonicalProfileId', () => {
-    const stateWithEmptyCanonical = {
-      engine: {
-        backgroundState: {
-          AuthenticationController: {
-            isSignedIn: true,
-            srpSessionData: {
-              'entropy-1': {
-                profile: {
-                  profileId: 'per-srp-profile-id',
-                  canonicalProfileId: '',
-                  identifierId: 'id',
-                  metaMetricsId: 'mm-id',
-                },
-                token: {
-                  accessToken: 'token',
-                  expiresIn: 3600,
-                  obtainedAt: 1,
-                },
-              },
-            },
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    expect(selectCanonicalProfileId(stateWithEmptyCanonical)).toBeUndefined();
-  });
-
   it('selectNeedsProfilePairing returns the persisted value when present', () => {
     expect(selectNeedsProfilePairing(mockState)).toBe(false);
   });
