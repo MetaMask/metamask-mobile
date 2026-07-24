@@ -24,19 +24,34 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingTop: 8,
     },
+    listContainerEditMode: {
+      paddingRight: 8,
+    },
     emptyContentContainer: {
       flex: 1,
     },
     editableRow: {
       flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    dragHandle: {
+      height: 40,
+      marginTop: 8,
       alignItems: 'center',
+      justifyContent: 'center',
+      paddingRight: 12,
     },
     unwatchStar: {
+      height: 40,
+      marginTop: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
       paddingLeft: 16,
       zIndex: 1,
     },
     editableRowContent: {
       flex: 1,
+      minWidth: 0,
     },
     editControlHidden: {
       width: 0,
