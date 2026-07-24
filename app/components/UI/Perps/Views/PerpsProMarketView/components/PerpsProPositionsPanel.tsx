@@ -1,14 +1,15 @@
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React, { useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { usePerpsLivePositions } from '../../../hooks/stream';
+import {
+  getPerpsProPositionRowSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
+import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 
 const POSITIONS_TAB_INDEX = 0;
@@ -18,11 +19,17 @@ const ORDERS_TAB_INDEX = 1;
  * Pro-mode positions/orders section.
  *
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
- * Each tab currently shows its empty state — no ticket scopes populated
- * content yet.
+ * The Positions tab shows a read-only list of the user's open positions
+ * across all assets, falling back to an empty state when there are none.
+ * The Orders tab currently shows its empty state — no ticket scopes its
+ * populated content yet.
  */
 const PerpsProPositionsPanel = () => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000,
+    useLivePnl: true,
+  });
 
   const tabs: TabItem[] = [
     {
@@ -39,6 +46,35 @@ const PerpsProPositionsPanel = () => {
     },
   ];
 
+  const hasPositions = positions.length > 0;
+
+  const renderPositionsTab = () => {
+    if (hasPositions) {
+      return (
+        <Box testID={PerpsProMarketViewSelectorsIDs.POSITIONS_LIST}>
+          {positions.map((position, index) => (
+            <PerpsProPositionCard
+              key={`${position.symbol}-${index}`}
+              position={position}
+              testID={getPerpsProPositionRowSelector(position.symbol, index)}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    // Avoid flashing the empty state while the first stream update is pending.
+    if (isInitialLoading) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="items-center justify-center px-4 pt-6">
+        <PerpsProPositionsEmptyState />
+      </Box>
+    );
+  };
+
   return (
     <Box
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL}
@@ -50,17 +86,13 @@ const PerpsProPositionsPanel = () => {
         onTabPress={setActiveIndex}
         testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
       />
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="px-4 pt-6"
-      >
-        {activeIndex === ORDERS_TAB_INDEX ? (
+      {activeIndex === ORDERS_TAB_INDEX ? (
+        <Box twClassName="items-center justify-center px-4 pt-6">
           <PerpsProOrdersEmptyState />
-        ) : (
-          <PerpsProPositionsEmptyState />
-        )}
-      </Box>
+        </Box>
+      ) : (
+        renderPositionsTab()
+      )}
     </Box>
   );
 };

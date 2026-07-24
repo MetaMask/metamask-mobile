@@ -1515,7 +1515,17 @@
       "positions": "Positions",
       "orders": "Orders",
       "positions_empty": "Your open positions will appear here.",
-      "orders_empty": "Your open orders will appear here."
+      "orders_empty": "Your open orders will appear here.",
+      "card": {
+        "entry_price": "Entry price",
+        "margin": "Margin",
+        "mark_price": "Mark price",
+        "tp_sl": "TP / SL",
+        "liq_price": "Liq. price",
+        "funding": "Funding",
+        "isolated": "Isolated",
+        "cross": "Cross"
+      }
     },
     "order": {
       "title": "New order",
