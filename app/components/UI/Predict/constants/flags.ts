@@ -138,11 +138,13 @@ const createSportsFeedTab = ({
   chips,
   titleKey = `predict.feed.tabs.${id}`,
   tagSlug = id,
+  gamesTitleKey = 'predict.feed.filters.games',
 }: {
   id: string;
   chips: PredictSportsFeedChipConfig[];
   titleKey?: string;
   tagSlug?: string;
+  gamesTitleKey?: string;
 }): PredictSportsFeedTabConfig => ({
   id,
   titleKey,
@@ -152,7 +154,7 @@ const createSportsFeedTab = ({
     {
       id: 'games',
       kind: 'games',
-      titleKey: 'predict.feed.filters.games',
+      titleKey: gamesTitleKey,
     },
     {
       id: 'props',
@@ -242,6 +244,7 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
     }),
     createSportsFeedTab({
       id: 'golf',
+      gamesTitleKey: 'predict.feed.filters.tournaments',
       chips: [
         createSportsFeedChip('pga-tour', 'pga-tour'),
         createSportsFeedChip('liv-golf', 'liv-golf'),
@@ -249,6 +252,7 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
     }),
     createSportsFeedTab({
       id: 'combat',
+      gamesTitleKey: 'predict.feed.filters.fights',
       chips: [
         createSportsFeedChip('ufc', 'ufc'),
         createSportsFeedChip('boxing', 'boxing'),

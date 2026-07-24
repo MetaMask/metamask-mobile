@@ -117,6 +117,23 @@ describe('feedConfig', () => {
     ]);
   });
 
+  it('labels golf and combat games chips as Tournaments and Fights', () => {
+    const golfTab = PREDICT_FEED_REGISTRY.sports.tabs.find(
+      (tab) => tab.id === 'golf',
+    );
+    const combatTab = PREDICT_FEED_REGISTRY.sports.tabs.find(
+      (tab) => tab.id === 'combat',
+    );
+
+    expect(
+      golfTab?.filters.static.find((filter) => filter.id === 'games')?.titleKey,
+    ).toBe('predict.feed.filters.tournaments');
+    expect(
+      combatTab?.filters.static.find((filter) => filter.id === 'games')
+        ?.titleKey,
+    ).toBe('predict.feed.filters.fights');
+  });
+
   it('uses static sports filters from the configured sports feed', () => {
     const [allTab, soccerTab] = PREDICT_FEED_REGISTRY.sports.tabs;
 
