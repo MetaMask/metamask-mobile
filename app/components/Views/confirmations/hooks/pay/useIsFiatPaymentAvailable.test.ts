@@ -71,7 +71,7 @@ describe('useIsFiatPaymentAvailable', () => {
     expect(result.current).toBe(false);
   });
 
-  it('returns false when no native provider serves the region', () => {
+  it('returns false when no fiat provider serves the region', () => {
     useHasFiatProviderMock.mockReturnValue(false);
 
     const { result } = renderHook(() => useIsFiatPaymentAvailable());

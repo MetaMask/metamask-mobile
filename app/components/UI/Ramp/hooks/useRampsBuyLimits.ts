@@ -12,12 +12,12 @@ import { useFormatters } from '../../../hooks/useFormatters';
  * Hook to validate a fiat amount against the selected provider's static buy
  * limits (`providers.selected` in `RampsController` state).
  *
- * Assumes the native-gated fiat flow, where `providers.selected` is the
- * provider quotes are requested with: the flow only renders when the selected
- * provider is native (see `useHasFiatProvider`), and
- * `RampsController.getQuotes` resolves the selected provider first. If fiat
- * deposit opens up to non-native providers, limit lookup must use the same
- * provider resolution as `getQuotes` (needs a public accessor in core).
+ * Reads limits from `providers.selected` in `RampsController` state, which
+ * is the provider `getQuotes` resolves first. Limit lookup is only correct
+ * when the selected provider matches what `getQuotes` returns; if the
+ * controller's provider resolution changes (e.g. picking a non-selected
+ * provider under the all-providers flag), limit lookup must use the same
+ * resolution as `getQuotes` (needs a public accessor in core).
  *
  * @param options.amount - The fiat amount entered by the user.
  * @param options.paymentMethodId - The selected payment method ID.
