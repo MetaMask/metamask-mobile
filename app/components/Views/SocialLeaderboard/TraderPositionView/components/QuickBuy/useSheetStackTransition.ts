@@ -297,6 +297,7 @@ export const useSheetStackTransition = () => {
 
   return {
     isPushed,
+    isHeightReady,
     push,
     requestPush,
     pop,

@@ -1,8 +1,4 @@
-import {
-  BottomSheetDialog,
-  Box,
-  type BottomSheetDialogRef,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +18,10 @@ import {
 import { useSocialLeaderboardAnalytics } from '../../../analytics';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
+import {
+  QuickBuyBottomSheetDialog,
+  type QuickBuyBottomSheetDialogRef,
+} from './QuickBuyBottomSheetDialog';
 import {
   QuickBuyBottomSheetOverlay,
   type QuickBuyBottomSheetOverlayRef,
@@ -78,7 +78,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
-  const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
+  const bottomSheetRef = useRef<QuickBuyBottomSheetDialogRef>(null);
   const overlayRef = useRef<QuickBuyBottomSheetOverlayRef>(null);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
   // Keep the last pushed screen mounted through the pop animation so the
@@ -188,20 +188,24 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     }
   }, [activeScreen, isClosing]);
 
-  // Animate the sheet down (then run the parent's onClose) and flag the content
-  // as closing so it doesn't slide horizontally on the way out. Falls back to a
-  // direct onClose when the imperative handle isn't available.
-  // Fade the backdrop in parallel with dismiss (DS onCloseStart → overlay fade).
-  const requestClose = useCallback(() => {
+  // Fade backdrop + flag content closing when dismiss starts (CTA, overlay, or
+  // drag) so in-sheet stack doesn't also slide while the sheet tweens down.
+  const handleCloseStart = useCallback(() => {
     setIsClosing(true);
     overlayRef.current?.onCloseOverlay();
+  }, []);
+
+  // Animate the sheet down (then run the parent's onClose). Falls back to a
+  // direct onClose when the imperative handle isn't available.
+  const requestClose = useCallback(() => {
     const sheet = bottomSheetRef.current;
     if (sheet?.onCloseDialog) {
       sheet.onCloseDialog(onClose);
     } else {
+      handleCloseStart();
       onClose();
     }
-  }, [onClose]);
+  }, [handleCloseStart, onClose]);
 
   // Keep the bottom safe-area inset only on screens that pin a CTA at the
   // bottom; scroll-only detail screens sit flush to the edge.
@@ -224,25 +228,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
         onPress={requestClose}
         testID="quick-buy-overlay"
       />
-      <BottomSheetDialog
+      <QuickBuyBottomSheetDialog
         ref={bottomSheetRef}
         onOpen={trackSheetViewed}
+        onCloseStart={handleCloseStart}
         onClose={onClose}
         twClassName={`${surfaceClass} rounded-t-[40px]`}
       >
-        {/* Temporary override: DS BottomSheetDialog ships h-1 (4px); cover with a
-            thicker pill to match design until the DS default is updated.
-            Keep this wrapper transparent — a full-bleed surface bg here clips
-            against large top radii and leaves a gap at the corners. */}
-        <Box
-          twClassName="-mt-3 items-center pt-2 pb-2"
-          pointerEvents="none"
-          testID="quick-buy-drag-handle"
-        >
-          {/* Mask the thin DS handle only under the pill */}
-          <Box twClassName={`absolute h-3 w-12 rounded-full ${surfaceClass}`} />
-          <Box twClassName="h-[6px] w-10 rounded-full bg-border-muted" />
-        </Box>
         <QuickBuyProvider
           key={variantName}
           target={target}
@@ -291,15 +283,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
                     detailScreenStyle,
                   ]}
                 >
-                  <Box twClassName="flex-1">
-                    {renderScreen(renderedDetail)}
-                  </Box>
+                  <Box twClassName="flex-1">{renderScreen(renderedDetail)}</Box>
                 </Animated.View>
               )}
             </Animated.View>
           )}
         </QuickBuyProvider>
-      </BottomSheetDialog>
+      </QuickBuyBottomSheetDialog>
     </Box>
   );
 };

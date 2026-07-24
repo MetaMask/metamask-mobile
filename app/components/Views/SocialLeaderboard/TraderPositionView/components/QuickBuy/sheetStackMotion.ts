@@ -8,16 +8,54 @@
  */
 
 /**
+ * Sheet open / snap-back spring — critically damped, no bounce.
+ * Matches Framer `stiffness: 540, damping: 55` (mass 1).
+ */
+export const SHEET_DIALOG_SPRING = {
+  stiffness: 540,
+  damping: 55,
+  mass: 1,
+} as const;
+
+/**
+ * Offscreen start/end multiplier for open/close (y: 105%).
+ */
+export const SHEET_DIALOG_OFFSCREEN_FACTOR = 1.05;
+
+/**
+ * Sheet dismiss tween duration in ms (0.28s).
+ */
+export const SHEET_DIALOG_CLOSE_DURATION = 280;
+
+/**
+ * iOS sheet curve — fast start, soft landing: [0.32, 0.72, 0, 1].
+ */
+export const SHEET_DIALOG_CLOSE_EASING = [0.32, 0.72, 0, 1] as const;
+
+/**
+ * Drag dismiss distance threshold in px.
+ */
+export const SHEET_DIALOG_DRAG_DISMISS_OFFSET = 120;
+
+/**
+ * Drag dismiss velocity threshold in px/s.
+ */
+export const SHEET_DIALOG_DRAG_DISMISS_VELOCITY = 800;
+
+/**
+ * Downward drag follow factor (1 = 1:1 with the finger).
+ */
+export const SHEET_DIALOG_DRAG_ELASTIC_DOWN = 1;
+
+/**
  * Content / surface ease — easeOutExpo-style: [0.16, 1, 0.3, 1].
  */
 export const SHEET_STACK_CONTENT_EASING = [0.16, 1, 0.3, 1] as const;
 
 /**
- * Backdrop open duration in ms — match installed BottomSheetDialog open
- * (`AnimationDuration.Fast` = 150). Keeps scrim and sheet Y in sync; bump
- * with the DS sheet when PR #1411 ships a longer open.
+ * Backdrop open duration in ms (0.4s).
  */
-export const OVERLAY_OPEN_DURATION = 150;
+export const OVERLAY_OPEN_DURATION = 400;
 
 /**
  * Backdrop open curve — same content ease as in-sheet nav.

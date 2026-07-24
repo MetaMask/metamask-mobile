@@ -39,23 +39,23 @@ const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
 const mockOnCloseOverlay = jest.fn((cb?: () => void) => cb?.());
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
+jest.mock('./QuickBuyBottomSheetDialog', () => {
   const ReactMock = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
   return {
-    ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    QuickBuyBottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
           onClose,
           onOpen,
+          onCloseStart,
         }: {
           children: unknown;
           onClose?: () => void;
           onOpen?: () => void;
+          onCloseStart?: () => void;
         },
         ref: unknown,
       ) => {
@@ -64,7 +64,10 @@ jest.mock('@metamask/design-system-react-native', () => {
           onOpenDialog: (cb?: () => void) => {
             cb?.();
           },
-          onCloseDialog: mockOnCloseDialog,
+          onCloseDialog: (cb?: () => void) => {
+            onCloseStart?.();
+            mockOnCloseDialog(cb);
+          },
         }));
         return ReactMock.createElement(
           View,
@@ -250,20 +253,6 @@ jest.mock('./QuickBuyPriceImpactConfirmScreen', () => {
   };
 });
 
-jest.mock('./QuickBuyBottomSheetSkeleton', () => {
-  const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactMock.createElement(
-        Text,
-        { testID: 'mock-skeleton' },
-        'quick-buy-content-loading',
-      ),
-  };
-});
-
 jest.mock('../../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../../util/theme');
   return {
@@ -404,10 +393,6 @@ describe('QuickBuyRoot', () => {
         onClose={jest.fn()}
       />,
     );
-
-    act(() => {
-      storedOnOpenCallback?.();
-    });
 
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();

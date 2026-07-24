@@ -2,6 +2,13 @@ import {
   OVERLAY_CLOSE_DURATION,
   OVERLAY_OPEN_DURATION,
   OVERLAY_OPEN_EASING,
+  SHEET_DIALOG_CLOSE_DURATION,
+  SHEET_DIALOG_CLOSE_EASING,
+  SHEET_DIALOG_DRAG_DISMISS_OFFSET,
+  SHEET_DIALOG_DRAG_DISMISS_VELOCITY,
+  SHEET_DIALOG_DRAG_ELASTIC_DOWN,
+  SHEET_DIALOG_OFFSCREEN_FACTOR,
+  SHEET_DIALOG_SPRING,
   SHEET_STACK_CONTENT_EASING,
   SHEET_STACK_HEIGHT_DURATION,
   SHEET_STACK_HEIGHT_EASING,
@@ -13,6 +20,26 @@ import {
 } from './sheetStackMotion';
 
 describe('sheetStackMotion', () => {
+  it('matches DS sheet open spring (critically damped)', () => {
+    expect(SHEET_DIALOG_SPRING).toEqual({
+      stiffness: 540,
+      damping: 55,
+      mass: 1,
+    });
+  });
+
+  it('matches DS sheet dismiss tween and offscreen factor', () => {
+    expect(SHEET_DIALOG_CLOSE_DURATION).toBe(280);
+    expect(SHEET_DIALOG_CLOSE_EASING).toEqual([0.32, 0.72, 0, 1]);
+    expect(SHEET_DIALOG_OFFSCREEN_FACTOR).toBe(1.05);
+  });
+
+  it('matches DS drag dismiss thresholds', () => {
+    expect(SHEET_DIALOG_DRAG_DISMISS_OFFSET).toBe(120);
+    expect(SHEET_DIALOG_DRAG_DISMISS_VELOCITY).toBe(800);
+    expect(SHEET_DIALOG_DRAG_ELASTIC_DOWN).toBe(1);
+  });
+
   it('matches DS in-sheet stack durations (0.45s slide / height)', () => {
     expect(SHEET_STACK_PUSH_DURATION).toBe(450);
     expect(SHEET_STACK_HEIGHT_DURATION).toBe(450);
@@ -30,8 +57,8 @@ describe('sheetStackMotion', () => {
     expect(SHEET_STACK_HEIGHT_EASING).toEqual(SHEET_STACK_CONTENT_EASING);
   });
 
-  it('matches installed BottomSheetDialog open (Fast) and DS close', () => {
-    expect(OVERLAY_OPEN_DURATION).toBe(150);
+  it('matches DS backdrop open / close durations', () => {
+    expect(OVERLAY_OPEN_DURATION).toBe(400);
     expect(OVERLAY_CLOSE_DURATION).toBe(200);
   });
 
