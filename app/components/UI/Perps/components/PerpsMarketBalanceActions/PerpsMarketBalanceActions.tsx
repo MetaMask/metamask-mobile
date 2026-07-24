@@ -226,26 +226,24 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           />
           {isAnyTransactionInProgress && (
             <>
-              <Box twClassName="px-4">
-                <KeyValueRow
-                  variant={KeyValueRowVariant.Summary}
-                  keyLabel={statusText}
-                  twClassName="mt-3 h-6"
-                  value={
-                    transactionAmountDisplay ? (
-                      <SensitiveText
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.TextDefault}
-                        isHidden={privacyMode}
-                        length={SensitiveTextLength.Short}
-                      >
-                        {transactionAmountDisplay}
-                      </SensitiveText>
-                    ) : undefined
-                  }
-                />
-              </Box>
+              <KeyValueRow
+                variant={KeyValueRowVariant.Summary}
+                keyLabel={statusText}
+                twClassName="mt-3 h-6"
+                value={
+                  transactionAmountDisplay ? (
+                    <SensitiveText
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextDefault}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                    >
+                      {transactionAmountDisplay}
+                    </SensitiveText>
+                  ) : undefined
+                }
+              />
               <SectionDivider marginVertical={3} />
             </>
           )}

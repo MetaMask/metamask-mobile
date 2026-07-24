@@ -62,7 +62,6 @@ export const createStyles = (theme: Theme) => {
     inputGroupContainer: {
       backgroundColor: colors.background.section,
       borderRadius: 12,
-      paddingHorizontal: 12,
       overflow: 'hidden',
     },
     detailsSection: {
@@ -109,20 +108,19 @@ export const createStyles = (theme: Theme) => {
       marginBottom: 8,
     },
     footer: {
-      paddingHorizontal: 16,
       paddingVertical: 16,
       gap: 12,
     },
     footerWithSummary: {
       paddingTop: 0,
     },
+    footerButton: {
+      paddingHorizontal: 16,
+    },
     summaryContainer: {
       paddingTop: 16,
       paddingBottom: 16,
       gap: 4,
-    },
-    paddingHorizontal: {
-      paddingHorizontal: 16,
     },
     summaryRow: {
       flexDirection: 'row',

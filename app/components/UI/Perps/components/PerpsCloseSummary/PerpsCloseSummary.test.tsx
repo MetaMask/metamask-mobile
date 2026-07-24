@@ -21,7 +21,6 @@ jest.mock('../../../../hooks/useStyles', () => ({
   useStyles: jest.fn(() => ({
     styles: {
       summaryContainer: {},
-      paddingHorizontal: {},
       summaryRow: {},
       summaryLabel: {},
       summaryValue: {},
@@ -184,17 +183,6 @@ describe('PerpsCloseSummary', () => {
     const { getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert - component renders without crashing with custom style
-    expect(getByText('perps.close_position.margin')).toBeOnTheScreen();
-  });
-
-  it('applies padding when input focused', () => {
-    // Arrange
-    const props = { ...defaultProps, isInputFocused: true };
-
-    // Act
-    const { getByText } = render(<PerpsCloseSummary {...props} />);
-
-    // Assert - component renders without crashing with focused state
     expect(getByText('perps.close_position.margin')).toBeOnTheScreen();
   });
 

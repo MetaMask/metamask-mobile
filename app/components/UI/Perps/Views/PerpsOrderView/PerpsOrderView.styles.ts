@@ -44,7 +44,6 @@ const createStyles = (colors: Colors) =>
     inputGroupContainer: {
       backgroundColor: colors.background.section,
       borderRadius: 12,
-      paddingHorizontal: 12,
       overflow: 'hidden',
     },
     detailLeft: {
@@ -60,7 +59,6 @@ const createStyles = (colors: Colors) =>
       marginBottom: -10,
     },
     infoSection: {
-      paddingHorizontal: 16,
       borderRadius: 12,
     },
     infoSectionSpacer: {
@@ -71,6 +69,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      paddingHorizontal: 16,
       paddingVertical: 8,
     },
     stopLossLiquidationWarning: {
