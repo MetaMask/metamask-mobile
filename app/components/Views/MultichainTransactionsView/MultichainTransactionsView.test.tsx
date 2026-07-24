@@ -8,7 +8,9 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
-import MultichainTransactionsView from './MultichainTransactionsView';
+import MultichainTransactionsView, {
+  getMultichainTransactionItemType,
+} from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
@@ -124,6 +126,20 @@ describe('MultichainTransactionsView', () => {
       timestamp: 1742400000,
     },
   ];
+
+  it('uses distinct recycle pools for standard and bridge transactions', () => {
+    expect(
+      getMultichainTransactionItemType(mockTransactions[0], false, {}),
+    ).toBe('transaction');
+    expect(
+      getMultichainTransactionItemType(mockTransactions[1], false, {}),
+    ).toBe('transaction');
+    expect(
+      getMultichainTransactionItemType(mockTransactions[0], false, {
+        [mockTransactions[0].id]: {},
+      }),
+    ).toBe('bridge-transaction');
+  });
 
   const customRender = (ui: React.ReactElement) => {
     const utils = render(ui);

@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 import { View, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -58,7 +60,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   style,
   contentContainerStyle,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleViewAll = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {

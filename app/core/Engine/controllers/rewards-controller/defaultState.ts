@@ -11,6 +11,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   vipDashboard: {},
   vipRefereeDashboard: {},
   vipPerpsFees: {},
+  vipTransactions: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
