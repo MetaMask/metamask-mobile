@@ -120,8 +120,7 @@ export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboar
   return {
     // Mobile's Encryptor yields `cipher`-shaped results, while the wallet pins
     // the seedless encryptor to the controller's default `data`-shaped generics.
-    // The adapter reconciles the two at runtime, so only this field needs the
-    // cast — every other option below stays type-checked.
+    // The adapter reconciles the two at runtime.
     encryptor:
       seedlessOnboardingEncryptorAdapter as unknown as SeedlessOnboardingControllerOptions['encryptor'],
     network: web3AuthNetwork as Web3AuthNetwork,
