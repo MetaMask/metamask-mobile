@@ -54,8 +54,10 @@ export const DefaultSlippageModalContent = ({
   }, [onOpenCustomSlippage]);
 
   const handleSubmit = useCallback(() => {
+    if (selectedSlippage === undefined) return;
+
     const nextSlippage =
-      selectedSlippage === undefined || selectedSlippage === AUTO_SLIPPAGE_VALUE
+      selectedSlippage === AUTO_SLIPPAGE_VALUE
         ? undefined
         : String(selectedSlippage);
 
@@ -100,6 +102,7 @@ export const DefaultSlippageModalContent = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleSubmit}
+          isDisabled={selectedSlippage === undefined}
           isFullWidth
         >
           {strings('bridge.submit')}
