@@ -20,6 +20,7 @@ import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistory
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
   mapLocalTransaction,
   mobileActivityAdapterEnvironment,
@@ -105,6 +106,13 @@ type GroupMember = TransactionMeta & { isSmartTransaction?: boolean };
 
 const byTimeAscending = (a: GroupMember, b: GroupMember) =>
   (a.time ?? 0) - (b.time ?? 0);
+
+function isHardwareWalletAccount(keyringType: string | undefined): boolean {
+  return (
+    keyringType === ExtendedKeyringTypes.qr ||
+    keyringType === ExtendedKeyringTypes.ledger
+  );
+}
 
 function buildTransactionGroups(
   transactions: GroupMember[],
@@ -289,6 +297,8 @@ export function useLocalActivityItems(): ActivityListItem[] {
     string,
     Record<Hex, { symbol?: string; decimals?: number; address: string }[]>
   >;
+  const groupEvmAccountAddress = groupEvmAccount?.address;
+  const groupEvmAccountKeyringType = groupEvmAccount?.metadata?.keyring?.type;
 
   const transactionMetaList = useMemo(
     () => localTransactions.filter(isTransactionMetaLike),
@@ -297,7 +307,10 @@ export function useLocalActivityItems(): ActivityListItem[] {
 
   return useMemo(() => {
     const items: ActivityListItem[] = [];
-    const accountAddress = groupEvmAccount?.address?.toLowerCase();
+    const accountAddress = groupEvmAccountAddress?.toLowerCase();
+    const isSelectedHardwareWalletAccount = isHardwareWalletAccount(
+      groupEvmAccountKeyringType,
+    );
     const groupedTransactions = buildTransactionGroups(
       transactionMetaList,
       replacedTransactions,
@@ -360,6 +373,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
         destinationToken,
         nativeAssetSymbol,
         contractTokenMetadata,
+        isHardwareWalletAccount: isSelectedHardwareWalletAccount,
       };
 
       const item = mapLocalTransaction(group, mobileActivityAdapterEnvironment);
@@ -373,6 +387,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
     bridgeHistory,
     networkConfigurations,
     allTokens,
-    groupEvmAccount?.address,
+    groupEvmAccountAddress,
+    groupEvmAccountKeyringType,
   ]);
 }

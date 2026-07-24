@@ -1,4 +1,5 @@
 import type { ActivityListItem, TokenAmount } from './types';
+import { GAS_FEE_SPONSORED } from './fees';
 import {
   activityMatchesAssetId,
   enrichTokenFromApi,
@@ -205,6 +206,39 @@ describe('activity list helpers', () => {
       });
       expect(shouldPreferLocalActivityItem(local, api)).toBe(false);
       expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
+    it('preserves sponsored local fees when an API item is preferred', () => {
+      const local = makeItem({
+        type: 'swap',
+        data: {
+          sourceToken: { amount: '1', direction: 'out', symbol: 'MON' },
+          destinationToken: { direction: 'in', symbol: 'USDC' },
+          fees: [{ type: GAS_FEE_SPONSORED }],
+        },
+      });
+      const api = makeItem({
+        type: 'swap',
+        data: {
+          sourceToken: { amount: '1', direction: 'out', symbol: 'MON' },
+          destinationToken: { amount: '2', direction: 'in', symbol: 'USDC' },
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'MON' },
+            { type: 'bridge', amount: '100', decimals: 6, symbol: 'USDC' },
+          ],
+        },
+      });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toStrictEqual({
+        ...api,
+        data: {
+          ...api.data,
+          fees: [
+            { type: GAS_FEE_SPONSORED },
+            { type: 'bridge', amount: '100', decimals: 6, symbol: 'USDC' },
+          ],
+        },
+      });
     });
   });
 

@@ -25,4 +25,6 @@ export interface TransactionGroup {
   nativeAssetSymbol?: string;
   /** Token metadata from TokensController for contract interactions. */
   contractTokenMetadata?: { symbol?: string; decimals?: number };
+  /** Whether the signing account cannot use gas sponsorship. */
+  isHardwareWalletAccount?: boolean;
 }

@@ -10,12 +10,16 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type {
-  ActivityFee,
-  TokenAmount,
+import {
+  GAS_FEE_SPONSORED,
+  type ActivityFee,
+  type TokenAmount,
 } from '../../../../util/activity-adapters';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
+import TagColored, {
+  TagColor,
+} from '../../../../component-library/components-temp/TagColored';
 
 const FEE_NETWORK_BADGE_SIZE = 12;
 const FEE_NETWORK_BADGE_RADIUS = 4;
@@ -46,6 +50,17 @@ export function ActivityDetailsFeeValue({
 }) {
   if (!value) {
     return null;
+  }
+
+  if (fee.type === GAS_FEE_SPONSORED) {
+    return (
+      <TagColored
+        color={TagColor.Success}
+        labelProps={{ testID: 'paid-by-metamask' }}
+      >
+        {value}
+      </TagColored>
+    );
   }
 
   const token: TokenAmount = {
