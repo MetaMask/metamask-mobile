@@ -49,6 +49,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const mockGoBack = jest.fn();
+
 interface OrderSheetRouteParams {
   confirmLabel: string;
   selectedOrder: FirstPredictOnUsSelectedOrder;
@@ -56,7 +57,51 @@ interface OrderSheetRouteParams {
   tradePlacedLabel: string;
   usdAmount: number;
 }
-let mockRouteParams: OrderSheetRouteParams | undefined;
+
+const PREVIEW_TIMESTAMP_MS = 1_700_000_000_000;
+
+const market: PredictMarket = {
+  id: 'market-1',
+  providerId: 'polymarket',
+  slug: 'market-1',
+  title: 'France Stage of Elimination',
+  description: 'France Stage of Elimination',
+  image: 'https://example.com/market.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'sports',
+  tags: ['world-cup'],
+  outcomes: [],
+  liquidity: 100,
+  volume: 100,
+};
+
+const selectedOrder: FirstPredictOnUsSelectedOrder = {
+  market,
+  outcome: {
+    id: 'condition-1',
+    marketId: 'market-1',
+    providerId: 'polymarket',
+    title: 'Yes',
+    description: 'Yes',
+    image: '',
+    status: 'open',
+    tokens: [{ id: 'token-yes', title: 'Yes', price: 0.37 }],
+    volume: 100,
+    groupItemTitle: 'Yes',
+  },
+  outcomeToken: { id: 'token-yes', title: 'Yes', price: 0.37 },
+};
+
+const defaultRouteParams: OrderSheetRouteParams = {
+  confirmLabel: 'Confirm',
+  selectedOrder,
+  tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
+  tradePlacedLabel: 'Trade placed',
+  usdAmount: 5,
+};
+
+let mockRouteParams: OrderSheetRouteParams | undefined = defaultRouteParams;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -69,46 +114,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('FirstPredictOnUsOrderSheet', () => {
-  const market: PredictMarket = {
-    id: 'market-1',
-    providerId: 'polymarket',
-    slug: 'market-1',
-    title: 'France Stage of Elimination',
-    description: 'France Stage of Elimination',
-    image: 'https://example.com/market.png',
-    status: 'open',
-    recurrence: Recurrence.NONE,
-    category: 'sports',
-    tags: ['world-cup'],
-    outcomes: [],
-    liquidity: 100,
-    volume: 100,
-  };
-  const selectedOrder: FirstPredictOnUsSelectedOrder = {
-    market,
-    outcome: {
-      id: 'condition-1',
-      marketId: 'market-1',
-      providerId: 'polymarket',
-      title: 'Yes',
-      description: 'Yes',
-      image: '',
-      status: 'open',
-      tokens: [{ id: 'token-yes', title: 'Yes', price: 0.37 }],
-      volume: 100,
-      groupItemTitle: 'Yes',
-    },
-    outcomeToken: { id: 'token-yes', title: 'Yes', price: 0.37 },
-  };
-
-  const defaultRouteParams: OrderSheetRouteParams = {
-    confirmLabel: 'Confirm',
-    selectedOrder,
-    tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
-    tradePlacedLabel: 'Trade placed',
-    usdAmount: 5,
-  };
-
   const renderWithParams = (
     ...args: [] | [OrderSheetRouteParams | undefined]
   ) => {
@@ -134,7 +139,7 @@ describe('FirstPredictOnUsOrderSheet', () => {
         marketId: 'market-1',
         outcomeId: 'condition-1',
         outcomeTokenId: 'token-yes',
-        timestamp: Date.now(),
+        timestamp: PREVIEW_TIMESTAMP_MS,
         side: Side.BUY,
         sharePrice: 0.38,
         maxAmountSpent: 5,
