@@ -177,8 +177,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           isFullWidth
           size={isMedium ? ButtonSize.Md : ButtonSize.Lg}
           onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
-          marginBottom={4}
-          twClassName="w-full"
+          twClassName="w-full mb-4"
         >
           {strings(
             isUserTypeNew
