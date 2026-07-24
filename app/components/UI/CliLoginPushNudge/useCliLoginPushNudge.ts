@@ -19,6 +19,19 @@ import NotificationService, {
 /** Android API level (13) that introduced the POST_NOTIFICATIONS runtime permission. */
 const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
+/** RN runtime exposes this; PermissionsAndroidStatic typings omit it. */
+async function shouldShowAndroidPermissionRationale(
+  permission: (typeof PermissionsAndroid.PERMISSIONS)[keyof typeof PermissionsAndroid.PERMISSIONS],
+): Promise<boolean> {
+  return (
+    PermissionsAndroid as typeof PermissionsAndroid & {
+      shouldShowRequestPermissionRationale: (
+        permission: (typeof PermissionsAndroid.PERMISSIONS)[keyof typeof PermissionsAndroid.PERMISSIONS],
+      ) => Promise<boolean>;
+    }
+  ).shouldShowRequestPermissionRationale(permission);
+}
+
 const NUDGE_LABELS = () => [
   { label: strings('sdk_connect_v2.push_nudge.title'), isBold: true },
 ];
@@ -114,7 +127,9 @@ export function useCliLoginPushNudge(): {
             return;
           }
           clearForegroundRetry();
-          void retry();
+          retry().catch(() => {
+            /* enable flow logs its own failures */
+          });
         },
       );
     },
@@ -198,7 +213,7 @@ export function useCliLoginPushNudge(): {
             return;
           }
           const shouldShowRationale =
-            await PermissionsAndroid.shouldShowRequestPermissionRationale(
+            await shouldShowAndroidPermissionRationale(
               PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
             );
           if (!isCurrent()) {
