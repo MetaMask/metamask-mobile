@@ -9,8 +9,9 @@ import React from 'react';
 import { Pressable } from 'react-native';
 import { getCurrencySymbol } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { strings } from '../../../../../../../../locales/i18n';
-import type { QuickBuyEditFieldError ,
+import {
   getBuyAmountMaxValid,
+  type QuickBuyEditFieldError,
   type QuickBuyEditValidationContext,
 } from '../utils/validateQuickBuyEditAmounts';
 

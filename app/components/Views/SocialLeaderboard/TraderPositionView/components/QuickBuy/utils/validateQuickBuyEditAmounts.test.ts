@@ -78,6 +78,37 @@ describe('validateQuickBuyEditAmounts', () => {
     ).toBe('buy_below_max');
   });
 
+  it('accepts default quick-buy tiers across high-magnitude currencies', () => {
+    const cases = [
+      { currency: 'USD', rate: 1 },
+      { currency: 'EUR', rate: 0.92 },
+      { currency: 'GBP', rate: 0.79 },
+      { currency: 'JPY', rate: 150 },
+      { currency: 'KRW', rate: 1400 },
+      { currency: 'IDR', rate: 16_000 },
+      { currency: 'INR', rate: 90 },
+      { currency: 'BRL', rate: 5.5 },
+      { currency: 'VND', rate: 25_000 },
+    ] as const;
+
+    for (const { currency, rate } of cases) {
+      const defaults = getBuyQuickAmounts(currency, rate).map(
+        (option) => option.value,
+      );
+      const result = validateQuickBuyEditAmounts(defaults, [25, 50, 75, 100], {
+        currency,
+        usdToCurrentCurrencyRate: rate,
+      });
+
+      expect(result.isValid).toBe(true);
+      expect(
+        defaults.every(
+          (amount) => amount <= getBuyAmountMaxValid(currency, rate),
+        ),
+      ).toBe(true);
+    }
+  });
+
   it('rejects sell percentages at or below zero', () => {
     expect(validateQuickBuyEditField('sell', 0)).toBe('sell_above_zero');
   });
