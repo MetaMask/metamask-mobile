@@ -34,6 +34,7 @@ import { captureException } from '@sentry/react-native';
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
@@ -561,8 +562,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-  const isError =
-    password !== '' && confirmPassword !== '' && password !== confirmPassword;
+  const isError = shouldShowPasswordMismatchError(password, confirmPassword);
 
   const showWhatIsSeedPhrase = () => {
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {

@@ -48,6 +48,7 @@ import {
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { passcodeType } from '../../../util/authentication';
@@ -404,8 +405,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [reauthenticate, password]);
 
   const isError = useCallback(
-    () =>
-      password !== '' && confirmPassword !== '' && password !== confirmPassword,
+    () => shouldShowPasswordMismatchError(password, confirmPassword),
     [password, confirmPassword],
   );
 
