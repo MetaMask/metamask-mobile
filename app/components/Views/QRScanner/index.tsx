@@ -8,7 +8,6 @@ import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
   Alert,
   DeviceEventEmitter,
-  Image,
   InteractionManager,
   View,
   Linking,
@@ -85,8 +84,6 @@ const ADD_DEVICE_ERROR_STATES = new Set<AddDeviceScannerUiState>([
   AddDeviceScannerUiState.ExpiredQr,
   AddDeviceScannerUiState.ConnectionFailed,
 ]);
-
-const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
 /**
  * View that wraps the QR code scanner screen
@@ -859,9 +856,19 @@ const QRScanner = ({
     return null;
   }
 
+  const renderScannerFrame = () => (
+    <View style={styles.scannerFrame}>
+      <View style={[styles.frameCorner, styles.frameCornerTopLeft]} />
+      <View style={[styles.frameCorner, styles.frameCornerTopRight]} />
+      <View style={[styles.frameCorner, styles.frameCornerBottomLeft]} />
+      <View style={[styles.frameCorner, styles.frameCornerBottomRight]} />
+    </View>
+  );
+
   if (!cameraDevice) {
     return (
       <View style={styles.container}>
+        <View style={styles.frameCenter}>{renderScannerFrame()}</View>
         <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
           {strings('qr_scanner.camera_not_available')}
         </Text>
@@ -901,7 +908,7 @@ const QRScanner = ({
             {getScannerOverlayLabel()}
           </Text>
           <View style={styles.overlay} />
-          <Image source={frameImage} style={styles.frame} />
+          {renderScannerFrame()}
           <View style={styles.overlay} />
         </View>
         <View style={styles.overlay} />

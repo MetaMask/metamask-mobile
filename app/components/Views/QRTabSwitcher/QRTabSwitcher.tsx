@@ -225,8 +225,9 @@ const QRTabSwitcher = () => {
         endAccessory={
           <ButtonIcon
             iconName={IconName.Close}
-            size={ButtonIconSize.Md}
+            size={ButtonIconSize.Sm}
             onPress={goBack}
+            twClassName="bg-section rounded-full w-10 h-10"
           />
         }
       />
