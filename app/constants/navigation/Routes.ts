@@ -189,6 +189,8 @@ const Routes = {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
+    FIRST_PREDICT_ON_US_SPLASH: 'FirstPredictOnUsSplash',
+    FIRST_PREDICT_ON_US_ORDER_SHEET: 'FirstPredictOnUsOrderSheet',
     DEFAULT_SETTINGS: 'DefaultSettings',
     GENERAL_SETTINGS: 'GeneralSettings',
     ASSETS_SETTINGS: 'AssetsSettings',

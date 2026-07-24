@@ -641,6 +641,25 @@ export type RootStackParamList = {
   EndOfSeasonClaimBottomSheet:
     | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
     | undefined;
+  FirstPredictOnUsSplash:
+    | {
+        content: unknown;
+        markets: unknown;
+      }
+    | undefined;
+  FirstPredictOnUsOrderSheet:
+    | {
+        confirmLabel: string;
+        selectedOrder: {
+          market: unknown;
+          outcome: unknown;
+          outcomeToken: unknown;
+        };
+        tradeDescriptionTemplate: string;
+        tradePlacedLabel: string;
+        usdAmount: number;
+      }
+    | undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
