@@ -3498,6 +3498,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
+  earnMoneyCardEducationAnimationEnabled: {
+    name: 'earnMoneyCardEducationAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
 
   earnMoneyVaultApyControl: {
     name: 'earnMoneyVaultApyControl',
