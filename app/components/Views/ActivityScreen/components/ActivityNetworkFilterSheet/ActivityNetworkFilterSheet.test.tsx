@@ -140,7 +140,6 @@ describe('ActivityNetworkFilterSheet', () => {
     mockOnNetworkSelect.mockClear();
     mockCanGoBack.mockReturnValue(true);
   });
-
   it('renders the network filter sheet', () => {
     render(<ActivityNetworkFilterSheet />);
     expect(
@@ -148,14 +147,12 @@ describe('ActivityNetworkFilterSheet', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Linea')).toBeOnTheScreen();
   });
-
   it('calls onNetworkSelect then closes the sheet', () => {
     render(<ActivityNetworkFilterSheet />);
     fireEvent.press(screen.getByText('Linea'));
     expect(mockOnNetworkSelect).toHaveBeenCalledWith(['eip155:59144']);
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
   });
-
   it('calls onNetworkSelect with null for All networks', () => {
     render(<ActivityNetworkFilterSheet />);
     fireEvent.press(screen.getByText('All networks'));
