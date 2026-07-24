@@ -57,7 +57,7 @@ describe('useCopyClipboard', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: 'Icon',
-        iconName: IconName.CheckBold,
+        iconName: IconName.Confirmation,
         hasNoTimeout: false,
       }),
     );

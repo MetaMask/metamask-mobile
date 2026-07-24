@@ -33,9 +33,8 @@ function useCopyClipboard() {
       await ClipboardManager.setString(value);
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
-        iconColor: colors.accent03.dark,
-        backgroundColor: colors.accent03.normal,
+        iconName: IconName.Confirmation,
+        iconColor: colors.success.default,
         labelOptions: [
           { label: alertText ?? CopyClipboardAlertMessage.default() },
         ],
@@ -43,12 +42,7 @@ function useCopyClipboard() {
       });
       setTimeout(() => handleProtectWalletModalVisible(), 2000);
     },
-    [
-      colors.accent03.dark,
-      colors.accent03.normal,
-      toastRef,
-      handleProtectWalletModalVisible,
-    ],
+    [colors.success.default, toastRef, handleProtectWalletModalVisible],
   );
 
   return copyToClipboard;
