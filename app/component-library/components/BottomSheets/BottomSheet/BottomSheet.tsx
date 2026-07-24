@@ -48,7 +48,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       isInteractable = true,
       shouldNavigateBack = true,
       isFullscreen = false,
-      hasBottomBorder = false,
       keyboardAvoidingViewEnabled = true,
       ...props
     },
@@ -171,7 +170,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           onOpen={onOpenCB}
           ref={bottomSheetDialogRef}
           isFullscreen={isFullscreen}
-          hasBottomBorder={hasBottomBorder}
           style={style}
           keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
         >

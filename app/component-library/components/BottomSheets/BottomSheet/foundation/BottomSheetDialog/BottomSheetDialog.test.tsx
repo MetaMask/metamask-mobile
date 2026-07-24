@@ -224,22 +224,13 @@ describe('BottomSheetDialog', () => {
       return findSheetStyle(node.children as ReactTestRendererJSON[] | null);
     };
 
-    it('removes the bottom border by default', () => {
+    it('renders the sheet without a bottom border', () => {
       const { toJSON } = render(<BottomSheetDialog />);
 
       const sheetStyle = findSheetStyle(toJSON());
 
       expect(sheetStyle?.borderWidth).toBe(1);
       expect(sheetStyle?.borderBottomWidth).toBe(0);
-    });
-
-    it('keeps the bottom border when hasBottomBorder is true', () => {
-      const { toJSON } = render(<BottomSheetDialog hasBottomBorder />);
-
-      const sheetStyle = findSheetStyle(toJSON());
-
-      expect(sheetStyle?.borderWidth).toBe(1);
-      expect(sheetStyle?.borderBottomWidth).toBeUndefined();
     });
   });
 

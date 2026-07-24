@@ -23,13 +23,7 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors, shadows } = theme;
-  const {
-    isFullscreen,
-    hasBottomBorder,
-    maxSheetHeight,
-    screenBottomPadding,
-    style,
-  } = vars;
+  const { isFullscreen, maxSheetHeight, screenBottomPadding, style } = vars;
 
   return StyleSheet.create({
     base: Object.assign({
@@ -51,7 +45,7 @@ const styleSheet = (params: {
           default: screenBottomPadding + 16,
         }),
         borderWidth: 1,
-        ...(!hasBottomBorder && { borderBottomWidth: 0 }),
+        borderBottomWidth: 0,
         borderColor: colors.border.muted,
         ...(isFullscreen && { height: maxSheetHeight }),
         ...shadows.size.lg,
