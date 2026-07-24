@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import {
   Image,
   ImageStyle,
+  PixelRatio,
   StyleProp,
   StyleSheet,
   ViewStyle,
@@ -56,7 +57,8 @@ const CardWelcomeCardsAnimation = ({
         artboardName={RIVE_ARTBOARD_CARDS}
         animationName={RIVE_CARDS_IN_ANIMATION}
         autoplay
-        fit={Fit.Contain}
+        fit={Fit.Layout}
+        layoutScaleFactor={PixelRatio.get()}
         style={riveStyle}
         onError={handleError}
         testID={testID ?? CardWelcomeSelectors.CARDS_ANIMATION}
