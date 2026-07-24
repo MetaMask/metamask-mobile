@@ -193,9 +193,9 @@ Does the same Matchers.getElementByID/Text/Label call work for both?
 
 ## Test Organization — Detox vs Appium Specs
 
-Detox smoke tests live in `tests/smoke/`. Appium equivalents live in `tests/smoke-appium/` with the same folder structure. Because page objects are cross-framework, the test body is nearly identical — only the runner wrapper and login helper differ.
+Detox smoke tests live in `tests/smoke/`. Appium equivalents live in `tests/smoke-appium/` with the same folder structure. Detox regression lives in `tests/regression/`; Appium regression lives in `tests/regression-appium/`. Because page objects are cross-framework, the test body is nearly identical — only the runner wrapper and login helper differ.
 
-**Running Appium smoke locally:** see [Appium smoke testing](./appium-smoke-testing.md) for builds (`main-e2e-MetaMask.app`), commands (`yarn appium-smoke:ios`), and CI artifact download.
+**Running Appium locally:** see [Appium smoke testing](./appium-smoke-testing.md) for builds (`main-e2e-MetaMask.app`), smoke (`yarn appium-smoke:ios`), regression (`yarn appium-regression:ios`), and CI.
 
 ```typescript
 // Detox: tests/smoke/accounts/my-feature.spec.ts

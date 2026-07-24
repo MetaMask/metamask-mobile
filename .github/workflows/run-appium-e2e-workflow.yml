@@ -1,5 +1,6 @@
-# Runs Appium smoke tests for one smoke tag on Android or iOS.
-# Called from run-appium-smoke-tests-{android,ios}.yml (one job per tag/split).
+# Runs Appium E2E tests for one tag on Android or iOS.
+# Called from run-appium-smoke-tests-{android,ios}.yml and
+# run-appium-regression-tests-{android,ios}.yml (one job per tag/split).
 
 name: Run Appium E2E
 
@@ -15,7 +16,7 @@ on:
         required: true
         type: string
       test_suite_tag:
-        description: 'Smoke tag id to filter tests (e.g. SmokeAccounts matches describe titles)'
+        description: 'Tag id to filter tests (e.g. SmokeAccounts or RegressionWalletUX)'
         required: true
         type: string
       split_number:
@@ -48,6 +49,26 @@ on:
         required: false
         type: string
         default: 'current'
+      playwright_config:
+        description: 'Playwright config path relative to repo root'
+        required: false
+        type: string
+        default: 'tests/playwright.smoke-appium.config.ts'
+      playwright_project_android:
+        description: 'Playwright project name for Android'
+        required: false
+        type: string
+        default: 'android-smoke'
+      playwright_project_ios:
+        description: 'Playwright project name for iOS'
+        required: false
+        type: string
+        default: 'ios-smoke'
+      report_name_prefix:
+        description: 'Prefix for report/video artifact paths (appium-smoke or appium-regression)'
+        required: false
+        type: string
+        default: 'appium-smoke'
 
 permissions:
   contents: read
@@ -277,22 +298,22 @@ jobs:
         env:
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
 
-      - name: Run Appium smoke tests (Android)
+      - name: Run Appium tests (Android)
         id: run-tests-android
         if: ${{ inputs.platform == 'android' }}
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: >-
           yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project android-smoke
+          --config ${{ inputs.playwright_config }}
+          --project ${{ inputs.playwright_project_android }}
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
           ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
-          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_ARTIFACT_NAME: ${{ inputs.report_name_prefix }}-report-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: ${{ inputs.report_name_prefix }}-videos-${{ inputs.test-suite-name }}
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
@@ -307,22 +328,22 @@ jobs:
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      - name: Run Appium smoke tests (iOS)
+      - name: Run Appium tests (iOS)
         id: run-tests-ios
         if: ${{ inputs.platform == 'ios' }}
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: >-
           yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project ios-smoke
+          --config ${{ inputs.playwright_config }}
+          --project ${{ inputs.playwright_project_ios }}
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
           ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
-          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_ARTIFACT_NAME: ${{ inputs.report_name_prefix }}-report-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: ${{ inputs.report_name_prefix }}-videos-${{ inputs.test-suite-name }}
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
@@ -343,16 +364,16 @@ jobs:
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: appium-smoke-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
+          name: ${{ inputs.report_name_prefix }}-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/${{ inputs.report_name_prefix }}-report/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
       - name: Upload Playwright HTML report (current)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: appium-smoke-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
+          name: ${{ inputs.report_name_prefix }}-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/${{ inputs.report_name_prefix }}-report/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -375,20 +396,38 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Upload JUnit report (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.report_name_prefix }}-junit-${{ inputs.test-suite-name }}
+          path: tests/test-reports/${{ inputs.report_name_prefix }}-junit/${{ inputs.test-suite-name }}.xml
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload JUnit report (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.report_name_prefix }}-junit-${{ inputs.test-suite-name }}
+          path: tests/test-reports/${{ inputs.report_name_prefix }}-junit/${{ inputs.test-suite-name }}.xml
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Upload failure screen recordings (Namespace)
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: appium-smoke-videos-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
+          name: ${{ inputs.report_name_prefix }}-videos-${{ inputs.test-suite-name }}
+          # ScreenRecording writes to this flat dir (no suite subdirectory).
+          path: tests/test-reports/appium-smoke-videos/
           if-no-files-found: ignore
           retention-days: 7
       - name: Upload failure screen recordings (current)
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: appium-smoke-videos-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
+          name: ${{ inputs.report_name_prefix }}-videos-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-smoke-videos/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -397,7 +436,7 @@ jobs:
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: Appium ${{ inputs.test-suite-name }} (${{ inputs.platform }})
-          path: tests/test-reports/appium-smoke-junit/${{ inputs.test-suite-name }}.xml
+          path: tests/test-reports/${{ inputs.report_name_prefix }}-junit/${{ inputs.test-suite-name }}.xml
           reporter: java-junit
           fail-on-error: false
           list-suites: all

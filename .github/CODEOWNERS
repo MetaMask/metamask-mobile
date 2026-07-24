@@ -373,6 +373,8 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
+.github/workflows/run-appium-regression-tests-android.yml       @MetaMask/qa
+.github/workflows/run-appium-regression-tests-ios.yml           @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
 .github/workflows/run-e2e-regression-tests-android.yml          @MetaMask/qa

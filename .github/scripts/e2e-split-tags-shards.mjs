@@ -129,12 +129,12 @@ async function shouldSkipFlakinessDetection() {
  *
  * Excludes:
  *   - `quarantine/` specs (skipped in CI)
- *   - `smoke-appium/` specs — these are Playwright + Appium specs run via
- *     tests/playwright.smoke-appium.config.ts, and are explicitly ignored by
- *     the Detox Jest config (jest.e2e.detox.config.js `testPathIgnorePatterns`).
- *     They still carry Smoke* tags, so without this exclusion the tag-based
- *     selection feeds them to the Detox runner, which then finds 0 matching
- *     tests and exits 1.
+ *   - `smoke-appium/` / `regression-appium/` specs — Playwright + Appium specs
+ *     run via tests/playwright.{smoke,regression}-appium.config.ts, and are
+ *     explicitly ignored by the Detox Jest config (jest.e2e.detox.config.js
+ *     `testPathIgnorePatterns`). They still carry Smoke*/Regression* tags, so
+ *     without this exclusion the tag-based selection feeds them to the Detox
+ *     runner, which then finds 0 matching tests and exits 1.
  * @param {*} filePath - The path to the file
  * @returns True if the file is a spec file, false otherwise
  */
@@ -142,7 +142,8 @@ function isSpecFile(filePath) {
   const segments = filePath.split(path.sep);
   return (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
     !segments.includes('quarantine') &&
-    !segments.includes('smoke-appium');
+    !segments.includes('smoke-appium') &&
+    !segments.includes('regression-appium');
 }
 
 /**
@@ -163,12 +164,14 @@ function* walk(dir) {
 }
 
 /**
- * Appium smoke specs live under tests/smoke-appium/ and are sharded by Playwright, not Detox.
- * This will be changed in the future when Detox is removed and all E2E tests are run by Playwright.
+ * Appium specs live under tests/smoke-appium/ and tests/regression-appium/ and
+ * are sharded by Playwright, not Detox. This will be changed in the future when
+ * Detox is removed and all E2E tests are run by Playwright.
  * @param {string} filePath
  */
 function isDetoxSpecFile(filePath) {
-  return !timingLookupKey(filePath).includes('smoke-appium/');
+  const key = timingLookupKey(filePath);
+  return !key.includes('smoke-appium/') && !key.includes('regression-appium/');
 }
 
 /**

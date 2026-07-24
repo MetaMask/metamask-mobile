@@ -149,6 +149,8 @@
     "run-system-tests:ios-onboarding-sim": "yarn playwright test --project system-ios-onboarding-sim --config tests/playwright.system-emulator.config.ts",
     "appium-smoke:android": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project android-smoke",
     "appium-smoke:ios": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project ios-smoke",
+    "appium-regression:android": "yarn playwright test --config tests/playwright.regression-appium.config.ts --project android-regression",
+    "appium-regression:ios": "yarn playwright test --config tests/playwright.regression-appium.config.ts --project ios-regression",
     "capture-visual-baselines:android": "CAPTURE_BASELINES=true AI_VISUAL_TESTING_ENABLED=true yarn playwright test --project system-android-login-emu --config tests/playwright.system-emulator.config.ts",
     "capture-visual-baselines:ios": "CAPTURE_BASELINES=true AI_VISUAL_TESTING_ENABLED=true yarn playwright test --project system-ios-login-sim --config tests/playwright.system-emulator.config.ts",
     "test:depcheck": "yarn depcheck",

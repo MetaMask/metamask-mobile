@@ -52,6 +52,7 @@ e2e_test_files: &e2e_test_files
   - 'tests/regression/**'
   - 'tests/performance/**'
   - 'tests/smoke-appium/**'
+  - 'tests/regression-appium/**'
   - 'tests/flows/**'
   - 'tests/page-objects/**'
   - 'tests/selectors/**'
