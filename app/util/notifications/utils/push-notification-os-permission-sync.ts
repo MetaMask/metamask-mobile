@@ -46,13 +46,12 @@ const trackPushNotificationsDisabled = (): void => {
  * notifications enabled and dedupes it: after firing, it flips to `false`, so
  * subsequent checks stay silent until permission is granted again.
  */
-export const detectPushNotificationOsPermissionRevocation =
-  async (): Promise<void> => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
+const runDetection = async (): Promise<void> => {
+  if (!isNotificationsFeatureEnabled()) {
+    return;
+  }
 
-    try {
+  try {
       const osPermissionGranted = await isPushPermissionGranted();
       const previouslyGranted =
         mmStorage.getLocal(
@@ -85,4 +84,18 @@ export const detectPushNotificationOsPermissionRevocation =
         'Failed to detect push notification OS permission revocation',
       );
     }
+  };
+
+// Serializes runs so overlapping invocations (e.g. the mount check and a
+// background→active check firing close together) never both read a stale
+// "granted" last result and emit duplicate events. Each call waits for the
+// previous run to persist before it reads. `runDetection` never rejects, so the
+// chain cannot get stuck.
+let inFlight: Promise<void> = Promise.resolve();
+
+/** @see runDetection */
+export const detectPushNotificationOsPermissionRevocation =
+  (): Promise<void> => {
+    inFlight = inFlight.then(runDetection, runDetection);
+    return inFlight;
   };

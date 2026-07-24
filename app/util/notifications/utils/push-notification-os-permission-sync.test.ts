@@ -97,6 +97,22 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
     expect(getLastResult()).toBe(false);
   });
 
+  it('serializes overlapping calls so a revocation fires only once', async () => {
+    // Mirrors mount + background->active firing close together: without
+    // serialization both runs would read the stored `true` before either
+    // persists `false` and emit duplicate events.
+    mmStorage.saveLocal(LAST_RESULT_KEY, true);
+    mockIsPushPermissionGranted.mockResolvedValue(false);
+
+    await Promise.all([
+      detectPushNotificationOsPermissionRevocation(),
+      detectPushNotificationOsPermissionRevocation(),
+    ]);
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(getLastResult()).toBe(false);
+  });
+
   it('does not fire again on a second check while still revoked (dedup)', async () => {
     mmStorage.saveLocal(LAST_RESULT_KEY, true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
