@@ -19,6 +19,7 @@ export enum FeatureFlagNames {
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
+  mobileMinimumVersions = 'mobileMinimumVersions',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -39,11 +40,10 @@ export const DEFAULT_COMPLIANCE_ENABLED = false;
 export const DEFAULT_TELEGRAM_LOGIN_ENABLED = false;
 
 /**
- * LaunchDarkly / Redux key for the mobile minimum-versions feature flag. Its
- * value is not part of {@link FeatureFlagNames} because it is a structured
- * object rather than a simple toggle.
+ * LaunchDarkly / Redux key for the mobile minimum-versions feature flag.
  */
-export const MOBILE_MINIMUM_VERSIONS_FLAG_NAME = 'mobileMinimumVersions';
+export const MOBILE_MINIMUM_VERSIONS_FLAG_NAME =
+  FeatureFlagNames.mobileMinimumVersions;
 
 /**
  * Default minimum app versions used when the remote flag is missing or invalid.
@@ -72,15 +72,7 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   },
   [FeatureFlagNames.telegramLoginEnabled]: DEFAULT_TELEGRAM_LOGIN_ENABLED,
   [FeatureFlagNames.complianceEnabled]: DEFAULT_COMPLIANCE_ENABLED,
-};
-
-/**
- * Defaults for flags whose keys are not part of {@link FeatureFlagNames}
- * (e.g. structured objects). Merged into the resolved defaults so they are
- * seeded alongside the enum-keyed toggles.
- */
-export const ADDITIONAL_DEFAULT_FEATURE_FLAG_VALUES: Record<string, Json> = {
-  [MOBILE_MINIMUM_VERSIONS_FLAG_NAME]: DEFAULT_MOBILE_MINIMUM_VERSIONS,
+  [FeatureFlagNames.mobileMinimumVersions]: DEFAULT_MOBILE_MINIMUM_VERSIONS,
 };
 
 /**
@@ -112,8 +104,5 @@ export interface FeatureFlagDefaultsContext {
 export function getDefaultFeatureFlags(
   _context?: FeatureFlagDefaultsContext,
 ): Record<string, Json> {
-  return {
-    ...DEFAULT_FEATURE_FLAG_VALUES,
-    ...ADDITIONAL_DEFAULT_FEATURE_FLAG_VALUES,
-  };
+  return { ...DEFAULT_FEATURE_FLAG_VALUES };
 }
