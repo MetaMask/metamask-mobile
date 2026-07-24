@@ -13,6 +13,7 @@ import Text, {
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { useSelector } from 'react-redux';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
@@ -32,6 +33,7 @@ export function TransactionDetailsStatus({
   transactionMeta: TransactionMeta;
 }) {
   const { status } = transactionMeta;
+  const isMoneyContext = useIsMoneyAccountContext();
   const hasSuccessfulPerpsBridge = useHasSuccessfulPerpsBridge();
   const { fiat } = useTokenAmount({ transactionMeta });
   const errorMessage = getErrorMessage(transactionMeta);
@@ -57,7 +59,12 @@ export function TransactionDetailsStatus({
         gap={gap ?? 6}
         alignItems={AlignItems.center}
       >
-        <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
+        {/* The Money account status row is a plain colour-coded label per the
+            Activity redesign; other contexts keep the status icon (and its
+            error tooltip). */}
+        {!isMoneyContext && (
+          <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
+        )}
         <Text
           color={textColour}
           variant={TextVariant.BodyMDMedium}
