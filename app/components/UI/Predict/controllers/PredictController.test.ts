@@ -8715,6 +8715,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -8748,6 +8749,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 250.5,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -8777,6 +8779,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xmodifieddata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -8828,6 +8831,60 @@ describe('PredictController', () => {
       });
     });
 
+    it('leaves deposit-wallet transaction data unchanged for external signing', async () => {
+      const estimateGas = jest.fn().mockResolvedValue({
+        gas: '0x5208',
+        simulationFails: undefined,
+      });
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
+        callData: ERC20_TRANSFER_CALL_DATA,
+        amount: 0.07,
+        walletType: 'deposit-wallet',
+      });
+      mockPolymarketProvider.getAccountState.mockResolvedValue({
+        address: '0x2222222222222222222222222222222222222222' as `0x${string}`,
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+      });
+
+      await withController(
+        async ({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              chainId: 137,
+              status: PredictWithdrawStatus.IDLE,
+              providerId: POLYMARKET_PROVIDER_ID,
+              predictAddress:
+                '0x2222222222222222222222222222222222222222' as `0x${string}`,
+              transactionId: 'tx-1',
+              amount: 0,
+            };
+          });
+          const transaction = {
+            ...mockTransactionMeta,
+            txParams: { ...mockTransactionMeta.txParams },
+          } as unknown as TransactionMeta;
+
+          const result = await controller.beforeSign({
+            transactionMeta: transaction,
+          });
+          result?.updateTransaction?.(transaction);
+
+          expect(transaction.txParams).toEqual(mockTransactionMeta.txParams);
+          expect(transaction.assetsFiatValues).toEqual({ receiving: '0.07' });
+          expect(controller.state.withdrawTransaction).toEqual(
+            expect.objectContaining({
+              amount: 0.07,
+              status: PredictWithdrawStatus.PENDING,
+            }),
+          );
+          expect(mockInvalidateQueries).not.toHaveBeenCalled();
+          expect(estimateGas).not.toHaveBeenCalled();
+        },
+        { mocks: { estimateGas } },
+      );
+    });
+
     it('throw error when prepareWithdrawConfirmation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockRejectedValue(
         new Error('Confirmation preparation failed'),
@@ -8857,6 +8914,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(

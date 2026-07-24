@@ -117,11 +117,16 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       fireEvent.press(unwatchStars[0]);
     });
 
-    await waitFor(() => expect(putScope.isDone()).toBe(true));
-
     await waitFor(() => {
       expect(queryByTestId(getRowTestId(assetToRemove))).not.toBeOnTheScreen();
     });
+    expect(putScope.isDone()).toBe(false);
+
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    );
+
+    await waitFor(() => expect(putScope.isDone()).toBe(true));
     expect(
       queryByTestId(getRowTestId(NEWEST_FIRST_ASSET_IDS[1])),
     ).toBeOnTheScreen();
