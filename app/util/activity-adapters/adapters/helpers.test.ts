@@ -222,6 +222,19 @@ describe('isTransactionGasFeeSponsored', () => {
     ).toBe(false);
   });
 
+  it('returns false for dropped transactions', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.dropped,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
   it('returns false for failed transactions with no gas used', () => {
     expect(
       isTransactionGasFeeSponsored({

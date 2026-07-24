@@ -47,8 +47,8 @@ export function getNetworkFeeAmount(
  *
  * Mirrors the existing transaction-details sponsorship rules: the transaction
  * must be marked as gas-sponsored, while hardware wallets, revoke-delegation
- * transactions, rejected transactions, and failed transactions with no gas used
- * are not shown as paid by MetaMask.
+ * transactions, terminal transactions with no gas paid, and failed
+ * transactions with no gas used are not shown as paid by MetaMask.
  */
 export function isTransactionGasFeeSponsored({
   transaction,
@@ -68,6 +68,7 @@ export function isTransactionGasFeeSponsored({
       type !== TransactionType.revokeDelegation &&
       !isHardwareWalletAccount &&
       status !== TransactionStatus.rejected &&
+      status !== TransactionStatus.dropped &&
       !(status === TransactionStatus.failed && !transaction.txReceipt?.gasUsed),
   );
 }
