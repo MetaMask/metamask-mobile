@@ -59,6 +59,21 @@ describe('FirstPredictOnUsLegalFooter', () => {
     ).toHaveTextContent('Terms apply.');
   });
 
+  it('does not render the terms link when only region copy is provided', () => {
+    const { getByTestId, queryByTestId } = render(
+      <FirstPredictOnUsLegalFooter
+        regionText="Availability varies by region."
+        termsText=""
+        termsUrl={TERMS_URL}
+      />,
+    );
+
+    expect(
+      getByTestId('first-predict-on-us-splash-legal-footer'),
+    ).toHaveTextContent('Availability varies by region.');
+    expect(queryByTestId('first-predict-on-us-splash-terms-link')).toBeNull();
+  });
+
   it('opens the terms URL when the terms link is pressed', () => {
     const { getByTestId } = render(
       <FirstPredictOnUsLegalFooter

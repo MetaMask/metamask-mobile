@@ -35,11 +35,13 @@ const content: FirstPredictOnUsDto = {
 
 const markets = [{ id: '30615', outcomes: [] } as unknown as PredictMarket];
 
-let mockRouteParams: {
-  content: FirstPredictOnUsDto;
-  markets: PredictMarket[];
-  successFlow?: ONBOARDING_SUCCESS_FLOW;
-} = { content, markets };
+let mockRouteParams:
+  | {
+      content: FirstPredictOnUsDto;
+      markets: PredictMarket[];
+      successFlow?: ONBOARDING_SUCCESS_FLOW;
+    }
+  | undefined = { content, markets };
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -142,5 +144,15 @@ describe('FirstPredictOnUsSplashScreen', () => {
     fireEvent.press(getByTestId('first-predict-on-us-splash-skip'));
 
     expect(mockReset).toHaveBeenCalledWith(expectedSuccessReset);
+  });
+
+  it('resets forward to OnboardingSuccess when route params are missing', () => {
+    mockRouteParams = undefined;
+
+    const { queryByTestId } = render(<FirstPredictOnUsSplashScreen />);
+
+    expect(queryByTestId('first-predict-on-us-splash-skip')).toBeNull();
+    expect(mockReset).toHaveBeenCalledWith(expectedSuccessReset);
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

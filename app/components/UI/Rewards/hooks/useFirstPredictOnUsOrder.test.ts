@@ -20,18 +20,6 @@ jest.mock('./useRewardsToast', () => ({
   })),
 }));
 
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, string>) => {
-    if (key === 'rewards.first_predict_on_us.toast.trade_placed') {
-      return 'Trade placed';
-    }
-    if (key === 'rewards.first_predict_on_us.toast.bought') {
-      return `Bought ${params?.amount} of ${params?.outcome}`;
-    }
-    return key;
-  }),
-}));
-
 describe('useFirstPredictOnUsOrder', () => {
   const market: PredictMarket = {
     id: 'market-1',
@@ -74,6 +62,8 @@ describe('useFirstPredictOnUsOrder', () => {
         market,
         outcome,
         outcomeToken: outcome.tokens[0],
+        tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
+        tradePlacedLabel: 'Trade placed',
       });
     });
 

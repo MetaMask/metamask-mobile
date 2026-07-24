@@ -49,11 +49,15 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const mockGoBack = jest.fn();
-let mockRouteParams: {
-  confirmLabel: string;
-  selectedOrder: FirstPredictOnUsSelectedOrder;
-  usdAmount: number;
-};
+let mockRouteParams:
+  | {
+      confirmLabel: string;
+      selectedOrder: FirstPredictOnUsSelectedOrder;
+      tradeDescriptionTemplate: string;
+      tradePlacedLabel: string;
+      usdAmount: number;
+    }
+  | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -103,6 +107,8 @@ describe('FirstPredictOnUsOrderSheet', () => {
     mockRouteParams = {
       confirmLabel: 'Confirm',
       selectedOrder,
+      tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
+      tradePlacedLabel: 'Trade placed',
       usdAmount: 5,
     };
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -213,6 +219,8 @@ describe('FirstPredictOnUsOrderSheet', () => {
     mockRouteParams = {
       confirmLabel: 'Confirm',
       selectedOrder: twoTokenOrder,
+      tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
+      tradePlacedLabel: 'Trade placed',
       usdAmount: 5,
     };
 
@@ -248,8 +256,19 @@ describe('FirstPredictOnUsOrderSheet', () => {
         market: selectedOrder.market,
         outcome: selectedOrder.outcome,
         outcomeToken: selectedOrder.outcomeToken,
+        tradeDescriptionTemplate: 'Bought {amount} of {outcome}',
+        tradePlacedLabel: 'Trade placed',
       });
     });
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders nothing when route params are missing', () => {
+    mockRouteParams = undefined;
+
+    const { queryByTestId } = render(<FirstPredictOnUsOrderSheet />);
+
+    expect(queryByTestId('first-predict-on-us-order-sheet')).toBeNull();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });
