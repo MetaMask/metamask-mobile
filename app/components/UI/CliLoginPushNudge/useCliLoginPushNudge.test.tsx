@@ -245,7 +245,27 @@ describe('useCliLoginPushNudge', () => {
       expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
     });
 
+    it('opens settings when DENIED is returned without showing the OS dialog', async () => {
+      const dateNow = jest.spyOn(Date, 'now');
+      dateNow.mockReturnValueOnce(0).mockReturnValueOnce(50);
+      jest
+        .spyOn(PermissionsAndroid, 'request')
+        .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+      const { result } = renderNudge();
+      emit();
+
+      await act(async () => {
+        await result.current.onYes();
+      });
+
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+      dateNow.mockRestore();
+    });
+
     it('closes without settings when the user dismisses the OS dialog', async () => {
+      const dateNow = jest.spyOn(Date, 'now');
+      dateNow.mockReturnValueOnce(0).mockReturnValueOnce(1500);
       jest
         .spyOn(PermissionsAndroid, 'request')
         .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
@@ -259,6 +279,7 @@ describe('useCliLoginPushNudge', () => {
       expect(PermissionsAndroid.request).toHaveBeenCalledTimes(1);
       expect(mockEnableNotifications).not.toHaveBeenCalled();
       expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+      dateNow.mockRestore();
     });
 
     it('enables notifications when the OS grants push permission', async () => {

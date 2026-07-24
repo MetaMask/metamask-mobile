@@ -15,6 +15,26 @@ import logger from '../../../core/SDKConnectV2/services/logger';
 const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
 /**
+ * Below this threshold, `PermissionsAndroid.request(POST_NOTIFICATIONS)` likely
+ * returned without showing the OS dialog (permanent deny). Only applies to the
+ * direct PermissionsAndroid call — not Notifee channel setup.
+ */
+const ANDROID_OS_DIALOG_MIN_ELAPSED_MS = 300;
+
+function shouldOpenAndroidNotificationSettings(
+  result: string,
+  requestElapsedMs: number,
+): boolean {
+  if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+    return true;
+  }
+  return (
+    result === PermissionsAndroid.RESULTS.DENIED &&
+    requestElapsedMs < ANDROID_OS_DIALOG_MIN_ELAPSED_MS
+  );
+}
+
+/**
  * Drives the post-CLI-login push-permission bottom sheet (MMAI-925). Subscribes
  * to the module-level nudge signal to become visible after a successful login.
  * On "Enable notifications": requests OS permission when needed, opens device
@@ -122,9 +142,11 @@ export function useCliLoginPushNudge(): {
         // denied it, which is the authoritative signal that the OS dialog can
         // no longer be shown — far more reliable than timing the request.
         if (Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
+          const requestStartedAt = Date.now();
           const result = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
           );
+          const requestElapsedMs = Date.now() - requestStartedAt;
           if (!isCurrent()) {
             return;
           }
@@ -132,10 +154,10 @@ export function useCliLoginPushNudge(): {
             await runEnableNotifications();
             return;
           }
-          if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+          if (shouldOpenAndroidNotificationSettings(result, requestElapsedMs)) {
             openSettingsAndScheduleRetry(isCurrent);
           }
-          // RESULTS.DENIED: the OS dialog was shown and dismissed; retry on a
+          // DENIED after the OS dialog was shown and dismissed; retry on a
           // future login rather than deep-linking into settings.
           return;
         }
