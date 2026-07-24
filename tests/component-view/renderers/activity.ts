@@ -155,7 +155,9 @@ function renderActivityScreenWithFilterModals(
   const ModalStack = createNativeStackNavigator();
 
   // Cast Navigators so createElement children args type-check without JSX (.ts).
-  interface NavigatorProps { screenOptions?: { headerShown: boolean } }
+  interface NavigatorProps {
+    screenOptions?: { headerShown: boolean };
+  }
   const ModalNavigator =
     ModalStack.Navigator as unknown as React.FC<NavigatorProps>;
   const RootNavigator =
