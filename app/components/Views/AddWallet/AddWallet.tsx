@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -95,11 +95,15 @@ const AddWallet = () => {
 
   const handleActionPress = useCallback(
     (config: ActionConfig) => {
-      navigation.navigate(config.routeName as never);
-      // Dismiss AddWallet so that hardware wallet completion (pop(2) in HW
-      // screens) lands on AccountSelector rather than back here.
       if (config.routeName === Routes.HW.CONNECT) {
-        navigation.goBack();
+        // Replace AddWallet with the hardware wallet flow so completion
+        // (pop(2) in the HW screens) lands on AccountSelector instead of
+        // back on this screen. AddWallet and the HW flow now live in the same
+        // navigator, so navigate()+goBack() would dismiss the HW flow rather
+        // than this screen.
+        navigation.dispatch(StackActions.replace(config.routeName));
+      } else {
+        navigation.navigate(config.routeName as never);
       }
       trackEvent(createEventBuilder(config.analyticsEvent).build());
     },
