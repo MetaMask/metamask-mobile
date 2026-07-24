@@ -31,8 +31,6 @@ export enum TokenDetailsSource {
   MoversSwaps = 'movers-swaps',
   /** Swap discovery feed — stocks section */
   RwasStocksSwaps = 'rwas_stocks-swaps',
-  /** Dedicated homepage trending-tokens section (A/B treatment layout) */
-  HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */
   Swap = 'swap',
   /** Price alert notification deeplink */

@@ -45,6 +45,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import {
   KYC_REDIRECT_URL,
+  BAANX_MAX_LIMIT,
   cardNetworkInfos,
   BASE_USDC_TOKEN_ADDRESS,
 } from '../../constants';
@@ -222,8 +223,9 @@ const ImmersveFundingApproval = () => {
     if (!nextAction || nextAction.type !== 'funding') {
       return;
     }
+
     setIsSettling(true);
-    executeFunding(nextAction.write)
+    executeFunding(nextAction.write, BAANX_MAX_LIMIT)
       .then(() => refresh())
       .catch(() => setIsSettling(false));
   }, [nextAction, executeFunding, refresh]);

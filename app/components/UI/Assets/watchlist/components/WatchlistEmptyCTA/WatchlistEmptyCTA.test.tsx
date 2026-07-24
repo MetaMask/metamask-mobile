@@ -89,7 +89,7 @@ describe('WatchlistEmptyCTA', () => {
     mockMutate.mockImplementation(() => undefined);
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({ name: 'Watchlist Token Added' }),
+      build: jest.fn().mockReturnValue({ name: 'Token Watchlist Token Added' }),
     });
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: [

@@ -166,15 +166,48 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateTokenAmountMock).not.toHaveBeenCalled();
   });
 
-  it('delegates to updateTokenAmount for transactions that are neither money account deposit nor withdraw', () => {
+  it('delegates to updateTokenAmount for transactions that are neither money account deposit nor withdraw', async () => {
     const { result } = runHook();
 
-    result.current.updateTransactionPayAmount('1.23');
+    await result.current.updateTransactionPayAmount('1.23');
 
     expect(updateTokenAmountMock).toHaveBeenCalledWith('1.23');
     expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
     expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+  });
+
+  it('waits for delegated nested amount updates', async () => {
+    let resolveUpdate: () => void = () => undefined;
+    updateTokenAmountMock.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveUpdate = resolve;
+      }),
+    );
+    const { result } = runHook();
+
+    const updatePromise = result.current.updateTransactionPayAmount('1.23');
+    let isSettled = false;
+    updatePromise.then(() => {
+      isSettled = true;
+    });
+    await flushPromises();
+
+    expect(isSettled).toBe(false);
+
+    resolveUpdate();
+    await updatePromise;
+
+    expect(isSettled).toBe(true);
+  });
+
+  it('rejects when a delegated nested amount update fails', async () => {
+    updateTokenAmountMock.mockRejectedValue(new Error('update failed'));
+    const { result } = runHook();
+
+    await expect(
+      result.current.updateTransactionPayAmount('1.23'),
+    ).rejects.toThrow('update failed');
   });
 
   it('rejects and logs when updateAtomicBatchData rejects', async () => {

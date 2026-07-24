@@ -319,6 +319,11 @@ import {
   MoneyAccountBalanceServiceEvents,
 } from '@metamask/money-account-balance-service';
 import {
+  MoneyAccountApiDataService,
+  type MoneyAccountApiDataServiceActions,
+  type MoneyAccountApiDataServiceEvents,
+} from '@metamask/money-account-api-data-service';
+import {
   GeolocationController,
   GeolocationControllerState,
   GeolocationControllerActions,
@@ -453,6 +458,11 @@ import {
   TransactionPayControllerEvents,
   TransactionPayControllerState,
 } from '@metamask/transaction-pay-controller';
+import {
+  SentinelApiService,
+  type SentinelApiServiceActions,
+  type SentinelApiServiceEvents,
+} from '@metamask/sentinel-api-service';
 import {
   AiDigestController,
   AiDigestControllerActions,
@@ -608,6 +618,7 @@ export type GlobalActions =
   | EarnControllerActions
   | MoneyAccountControllerActions
   | MoneyAccountBalanceServiceActions
+  | MoneyAccountApiDataServiceActions
   | GeolocationControllerActions
   | GeolocationApiServiceActions
   | PerpsControllerActions
@@ -640,7 +651,8 @@ export type GlobalActions =
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
-  | MoneyAccountUpgradeControllerActions;
+  | MoneyAccountUpgradeControllerActions
+  | SentinelApiServiceActions;
 
 export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -706,6 +718,7 @@ export type GlobalEvents =
   | EarnControllerEvents
   | MoneyAccountControllerEvents
   | MoneyAccountBalanceServiceEvents
+  | MoneyAccountApiDataServiceEvents
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
@@ -732,7 +745,8 @@ export type GlobalEvents =
   | ComplianceServiceEvents
   | TransakServiceEvents
   | ChompApiServiceEvents
-  | MoneyAccountUpgradeControllerEvents;
+  | MoneyAccountUpgradeControllerEvents
+  | SentinelApiServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -783,6 +797,7 @@ export type MessengerClients = {
   ConnectivityController: ConnectivityController;
   ConfigRegistryController: ConfigRegistryController;
   ConfigRegistryApiService: ConfigRegistryApiService;
+  SentinelApiService: SentinelApiService;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
@@ -846,6 +861,7 @@ export type MessengerClients = {
   EarnController: EarnController;
   MoneyAccountController: MoneyAccountController;
   MoneyAccountBalanceService: MoneyAccountBalanceService;
+  MoneyAccountApiDataService: MoneyAccountApiDataService;
   GeolocationController: GeolocationController;
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
@@ -994,6 +1010,7 @@ export type MessengerClientsToInitialize =
   | 'AssetsController'
   | 'ConfigRegistryController'
   | 'ConfigRegistryApiService'
+  | 'SentinelApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -1023,6 +1040,7 @@ export type MessengerClientsToInitialize =
   | 'EarnController'
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
+  | 'MoneyAccountApiDataService'
   | 'LoggingController'
   | 'AccountTreeController'
   | 'CurrencyRateController'

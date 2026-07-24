@@ -112,7 +112,6 @@ const mockGetBetaSupportUrl = jest.fn();
 jest.mock('./AccountsMenu.utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
-
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
 
@@ -347,7 +346,6 @@ describe('AccountsMenu', () => {
       notificationEnabled = false,
       unreadCount = 0,
       readCount = 0,
-      backupSyncEnabled = false,
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
@@ -371,7 +369,6 @@ describe('AccountsMenu', () => {
         if (selector === getMetamaskNotificationsUnreadCount)
           return unreadCount;
         if (selector === getMetamaskNotificationsReadCount) return readCount;
-        if (selector === selectIsBackupAndSyncEnabled) return backupSyncEnabled;
 
         // Default: return false
         return false;
@@ -483,46 +480,11 @@ describe('AccountsMenu', () => {
       fireEvent.press(notificationsButton);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Menu Opened',
+        'InApp Notifications Menu Opened',
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         unread_count: 5,
         read_count: 3,
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-
-    it('track NOTIFICATIONS_ACTIVATED event when not enabled and pressed', () => {
-      jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
-      setupNotificationMocks({
-        notificationEnabled: false,
-        backupSyncEnabled: true,
-      });
-
-      mockCreateEventBuilder.mockClear();
-      mockTrackEvent.mockClear();
-
-      const mockAddProperties = jest.fn().mockReturnThis();
-      const mockBuild = jest.fn(() => ({
-        name: 'NOTIFICATIONS_ACTIVATED',
-      }));
-
-      mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-
-      const { getByText } = render(<AccountsMenu />);
-      const notificationsButton = getByText('accounts_menu.notifications');
-
-      fireEvent.press(notificationsButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Activated',
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_type: 'started',
-        is_profile_syncing_enabled: true,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });

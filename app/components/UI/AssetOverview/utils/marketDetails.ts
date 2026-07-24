@@ -1,5 +1,5 @@
 import { formatWithThreshold } from '../../../../util/assets';
-import { localizeLargeNumber } from '../../../../util/number';
+import { localizeLargeNumber } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
