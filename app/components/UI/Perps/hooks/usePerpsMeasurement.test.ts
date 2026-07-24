@@ -384,6 +384,70 @@ describe('usePerpsMeasurement', () => {
     });
   });
 
+  describe('unmount cleanup', () => {
+    it('ends an active trace once with an unmounted reason', () => {
+      const { unmount } = renderHook(() =>
+        usePerpsMeasurement({
+          traceName: TraceName.PerpsMarketDetailLive,
+          endConditions: [false],
+        }),
+      );
+      const traceId = mockTrace.mock.calls[0][0].id;
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsMarketDetailLive,
+        id: traceId,
+        data: { success: false, reason: 'unmounted' },
+      });
+    });
+
+    it('does not end a completed trace again on unmount', () => {
+      const { rerender, unmount } = renderHook(
+        ({ endConditions }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions,
+          }),
+        { initialProps: { endConditions: [false] } },
+      );
+      rerender({ endConditions: [true] });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: { success: true } }),
+      );
+    });
+
+    it('does not end a reset trace again on unmount', () => {
+      const { rerender, unmount } = renderHook(
+        ({ resetConditions }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions: [false],
+            resetConditions,
+          }),
+        { initialProps: { resetConditions: [false] } },
+      );
+      rerender({ resetConditions: [true] });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'reset' },
+        }),
+      );
+    });
+  });
+
   describe('foreground settle on entry render', () => {
     beforeEach(() => {
       resetPerpsLifecycleContextForTests();
