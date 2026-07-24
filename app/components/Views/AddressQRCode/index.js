@@ -116,15 +116,14 @@ const AddressQRCode = ({ closeQrModal }) => {
     await ClipboardManager.setString(selectedAddress);
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
-      iconName: IconName.CheckBold,
-      iconColor: colors.accent03.dark,
-      backgroundColor: colors.accent03.normal,
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
       labelOptions: [
         { label: strings('account_details.account_copied_to_clipboard') },
       ],
       hasNoTimeout: false,
     });
-  }, [colors.accent03.dark, colors.accent03.normal, selectedAddress, toastRef]);
+  }, [colors.success.default, selectedAddress, toastRef]);
 
   const processAddress = useCallback(() => {
     const processedAddress = `${selectedAddress.slice(0, 2)} ${selectedAddress
