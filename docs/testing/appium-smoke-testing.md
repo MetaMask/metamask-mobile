@@ -1,16 +1,16 @@
-# Appium Smoke E2E Tests
+# Appium Smoke & Regression E2E Tests
 
-Appium smoke tests are the **Playwright + Appium** counterpart to Detox smoke tests. They share page objects, fixtures, and assertions with Detox via the cross-framework layer in `tests/framework/`.
+Appium E2E tests are the **Playwright + Appium** counterpart to Detox. They share page objects, fixtures, and assertions with Detox via the cross-framework layer in `tests/framework/`.
 
-|                         | Detox smoke                     | Appium smoke                                           |
-| ----------------------- | ------------------------------- | ------------------------------------------------------ |
-| **Specs**               | `tests/smoke/`                  | `tests/smoke-appium/` (same folder layout)             |
-| **Runner**              | Detox + Jest                    | Playwright (`tests/playwright.smoke-appium.config.ts`) |
-| **CI workflows**        | `e2e-smoke-tests-{android,ios}` | `appium-smoke-tests-{android,ios}`                     |
-| **Build**               | Debug (Metro bundler required)  | **main-e2e release** (`HAS_TEST_OVERRIDES=true`)       |
-| **Local yarn commands** | `yarn test:e2e:*`               | `yarn appium-smoke:ios` / `yarn appium-smoke:android`  |
+|                         | Detox smoke                     | Appium smoke                                          | Detox regression             | Appium regression                                               |
+| ----------------------- | ------------------------------- | ----------------------------------------------------- | ---------------------------- | --------------------------------------------------------------- |
+| **Specs**               | `tests/smoke/`                  | `tests/smoke-appium/`                                 | `tests/regression/`          | `tests/regression-appium/`                                      |
+| **Runner**              | Detox + Jest                    | Playwright (`playwright.smoke-appium.config.ts`)      | Detox + Jest                 | Playwright (`playwright.regression-appium.config.ts`)           |
+| **CI workflows**        | `e2e-smoke-tests-{android,ios}` | `appium-smoke-tests-{android,ios}` (PR CI)            | `run-e2e-regression-tests-*` | `run-appium-regression-tests-*` (`workflow_dispatch`, not PR)   |
+| **Build**               | Debug (Metro bundler required)  | **main-e2e release** (`HAS_TEST_OVERRIDES=true`)      | Debug                        | **main-e2e release** (`HAS_TEST_OVERRIDES=true`)                |
+| **Local yarn commands** | `yarn test:e2e:*`               | `yarn appium-smoke:ios` / `yarn appium-smoke:android` | `yarn test:e2e:*`            | `yarn appium-regression:ios` / `yarn appium-regression:android` |
 
-Use Appium smoke when validating Appium framework changes, CI Appium jobs, or when adding smoke coverage that must run without Metro.
+Use Appium smoke when validating Appium framework changes, CI Appium jobs, or when adding smoke coverage that must run without Metro. Use Appium regression for deeper suites (e.g. `RegressionWalletUX`) that mirror Detox regression — manual / scheduled, not every PR.
 
 ## Architecture
 
@@ -190,9 +190,10 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smok
 
 ## CI
 
-- **Build:** `build` workflow produces `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
-- **Tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
-- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — downloads artifacts, runs `prepare-ios-appium-runner.mjs`, executes Playwright with `--grep` per smoke tag.
+- **Build:** `build` workflow / `build-*-e2e.yml` produce `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
+- **Smoke tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
+- **Regression tests:** `run-appium-regression-tests-ios.yml` / `run-appium-regression-tests-android.yml` — `workflow_dispatch` only (same model as Detox regression). Currently fans out `RegressionWalletUX`; add jobs as more `tests/regression-appium/` tags land.
+- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — downloads artifacts, runs `prepare-ios-appium-runner.mjs`, executes Playwright with `--grep` per tag. Smoke vs regression selects config/project via workflow inputs.
 
 ## Adding a new Appium smoke spec
 
@@ -202,6 +203,14 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smok
 4. Reuse existing page objects — avoid Detox-only `device.*` calls.
 5. Lint: `yarn lint tests/smoke-appium/<path> --fix` and `yarn lint:tsc`.
 6. Run locally with main-e2e build before opening a PR.
+
+## Adding a new Appium regression spec
+
+1. Place the spec under `tests/regression-appium/<feature>/` with a `Regression*` tag from `tests/tags.js`.
+2. Use the same Appium Playwright wrapper as smoke (`appiumTest`, `loginToAppPlaywright`, `currentDeviceDetails`).
+3. Run locally: `yarn appium-regression:ios --grep RegressionWalletUX` (or your tag).
+4. If the tag is new to Appium CI, add a job in `run-appium-regression-tests-{ios,android}.yml` (mirror the Detox regression tag split).
+5. Lint and run with a main-e2e build before opening a PR.
 
 ## Troubleshooting
 

@@ -19,15 +19,15 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 - [tests/integration/AGENTS.md](integration/AGENTS.md) — Agent index for integration tests: harnesses, layer boundaries, canonical skill, run commands, enforcement.
 
-### E2E Tests (Detox smoke/regression + Appium smoke)
+### E2E Tests (Detox smoke/regression + Appium smoke/regression)
 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
-- [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
+- [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke + regression: main-e2e builds, `yarn appium-smoke:*` / `yarn appium-regression:*`, local setup, CI.
 
 ## Canonical Sources (read these, do not duplicate)
 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
-- [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke tests: builds, run commands, local/CI setup.
+- [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke + regression tests: builds, run commands, local/CI setup.
 - [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro, Detox, Flask; Appium smoke quick start.
 - [.github/guidelines/E2E_DECISION_TREE.md](../.github/guidelines/E2E_DECISION_TREE.md) — CI decision flow: when E2E runs, which labels gate it (pr-not-ready-for-e2e, skip-e2e, skip-smart-e2e-selection), AI test selection logic.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.

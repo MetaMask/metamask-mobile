@@ -13,8 +13,9 @@ module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/tests/**/*.spec.{js,ts}'],
   testPathIgnorePatterns: [
-    // Playwright + Appium smoke specs — run via tests/playwright.smoke-appium.config.ts
+    // Playwright + Appium specs — run via tests/playwright.{smoke,regression}-appium.config.ts
     '<rootDir>/tests/smoke-appium/',
+    '<rootDir>/tests/regression-appium/',
   ],
   testTimeout: 300000,
   maxWorkers: 1,

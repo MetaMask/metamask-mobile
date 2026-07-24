@@ -101,13 +101,13 @@ scripts/                  # Build and automation scripts
 
 **Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set installed via `yarn skills` (Cursor / Codex / Claude harnesses):
 
-| Guide                                                                                      | Scope                                                                        |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
-| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke/regression — Page Objects, gestures                              |
-| [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
-| [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
-| [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
+| Guide                                                                                      | Scope                                                                                         |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                                                |
+| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke/regression — Page Objects, gestures                                               |
+| [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke/regression — main-e2e builds, `yarn appium-smoke:*` / `yarn appium-regression:*` |
+| [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                                             |
+| [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors                  |
 
 General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set installed via `yarn skills` (see `.agents/skills/mms-*` after sync).
 
