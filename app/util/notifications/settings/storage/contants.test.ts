@@ -15,6 +15,7 @@ describe('constants', () => {
       DEFAULT_PUSH_NOTIFICATION_CHANNEL_PRIORITY: 'high',
       REQUEST_PERMISSION_ASKED: 'REQUEST_PERMISSION_ASKED',
       REQUEST_PERMISSION_GRANTED: 'REQUEST_PERMISSION_GRANTED',
+      PUSH_OS_PERMISSION_GRANTED_LAST_RESULT: 'pushOsPermissionGrantedLastResult',
       NOTIFICATION_DATE_FORMAT: 'DD/MM/YYYY HH:mm:ss',
       NOTIFICATIONS_SETTINGS: 'notifications-settings',
       PN_USER_STORAGE: 'pnUserStorage',
@@ -49,6 +50,9 @@ describe('constants', () => {
     expect(mapStorageTypeToIds(STORAGE_IDS.REQUEST_PERMISSION_GRANTED)).toEqual(
       STORAGE_TYPES.BOOLEAN,
     );
+    expect(
+      mapStorageTypeToIds(STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT),
+    ).toEqual(STORAGE_TYPES.BOOLEAN);
     expect(mapStorageTypeToIds('unknown')).toEqual(STORAGE_TYPES.STRING);
   });
 });
