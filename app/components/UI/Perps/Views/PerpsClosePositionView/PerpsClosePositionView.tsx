@@ -3,6 +3,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -25,11 +27,10 @@ import {
   IconSize,
   KeyValueRow,
   KeyValueRowVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -86,7 +87,7 @@ import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../../selectors/f
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const {
@@ -716,7 +717,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
         </View>
@@ -773,7 +774,10 @@ const PerpsClosePositionView: React.FC = () => {
                   size={IconSize.Sm}
                   color={IconColor.ErrorDefault}
                 />
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {error}
                 </Text>
               </View>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { InteractionManager, Platform, ScrollView, Share } from 'react-native';
@@ -26,7 +27,7 @@ import Logger from '../../../../util/Logger';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasTrackedReferralsViewed = useRef(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
 

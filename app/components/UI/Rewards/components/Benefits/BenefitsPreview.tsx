@@ -27,12 +27,13 @@ import { useBenefits } from '../../hooks/useBenefits.ts';
 import BenefitCard from './BenefitCard.tsx';
 import Routes from '../../../../../constants/navigation/Routes.ts';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BenefitEmptyList from './BenefitEmptyList.tsx';
 
 const BenefitsPreview = () => {
   const benefits = useSelector(selectBenefits);
   const isLoading = useSelector(selectBenefitsLoading);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   useBenefits();
 
   const handleNavigateToBenefitsFullView = () => {

@@ -88,7 +88,6 @@ export const testSpecificMock: TestSpecificMock = async (
     stxMigrationCancel: false,
     stxMigrationGetFees: false,
     stxMigrationSubmitTransactions: false,
-    swapsSWAPS4543AbtestPostTradeModal: 'control',
   });
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
@@ -275,7 +274,6 @@ export const createBridgeQuoteStatusManagerMock = (
       stxMigrationCancel: false,
       stxMigrationGetFees: false,
       stxMigrationSubmitTransactions: false,
-      swapsSWAPS4543AbtestPostTradeModal: 'control',
     });
 
     // Mock Ethereum token list

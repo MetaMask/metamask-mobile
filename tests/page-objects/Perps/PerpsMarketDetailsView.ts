@@ -2,7 +2,6 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
-  PerpsOpenOrderCardSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
@@ -410,7 +409,7 @@ class PerpsMarketDetailsView {
   // Verify that Orders tab has at least one open order card
   async expectOpenOrderVisible() {
     const openOrderCard = Matchers.getElementByID(
-      PerpsOpenOrderCardSelectorsIDs.CARD,
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
     ) as DetoxElement;
 
     // Try a few extra scroll attempts; then assert to avoid masking regressions
@@ -434,7 +433,7 @@ class PerpsMarketDetailsView {
 
   async expectNoOpenOrderVisible() {
     const openOrderCard = Matchers.getElementByID(
-      PerpsOpenOrderCardSelectorsIDs.CARD,
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
     ) as DetoxElement;
     await Assertions.expectElementToNotBeVisible(openOrderCard, {
       description: 'Open limit order card is not visible',
@@ -538,11 +537,12 @@ class PerpsMarketDetailsView {
   }
 
   async tapOpenOrderCancelButton(): Promise<void> {
-    const cancelButton = Matchers.getElementByID(
-      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    // Compact order rows navigate to order details; cancel lives on that screen.
+    const orderRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
     );
-    await Gestures.waitAndTap(cancelButton, {
-      elemDescription: 'Cancel open order button',
+    await Gestures.waitAndTap(orderRow, {
+      elemDescription: 'Open order row (navigate to details to cancel)',
       timeout: 15000,
     });
   }

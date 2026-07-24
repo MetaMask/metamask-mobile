@@ -109,16 +109,21 @@ const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
-const createBalanceMock = (
-  overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
-) =>
+type BalanceMockOverrides = Partial<
+  Omit<ReturnType<typeof useMoneyAccountBalance>, 'moneyBalanceQuery'>
+> & {
+  moneyBalanceQuery?: Partial<
+    ReturnType<typeof useMoneyAccountBalance>['moneyBalanceQuery']
+  >;
+};
+
+const createBalanceMock = (overrides: BalanceMockOverrides = {}) =>
   ({
     totalFiatFormatted: '$1,000.00',
     totalFiatRaw: '1000',
     tokenTotal: undefined,
     isBalanceLoading: false,
     isBalanceFetchError: false,
-    isBalanceFetching: false,
     refetchBalance: jest.fn(),
     apyDecimal: 0.04,
     apyPercent: 4,
@@ -127,6 +132,7 @@ const createBalanceMock = (
       data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
       isLoading: false,
     },
+    ...overrides,
     moneyBalanceQuery: {
       data: {
         musdBalance: '1000000000',
@@ -134,8 +140,9 @@ const createBalanceMock = (
         totalBalance: '1000000000',
       },
       isLoading: false,
+      isFetching: false,
+      ...overrides.moneyBalanceQuery,
     },
-    ...overrides,
   }) as ReturnType<typeof useMoneyAccountBalance>;
 
 const createInfoMock = (
@@ -756,7 +763,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: false,
+          moneyBalanceQuery: { isFetching: false },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
         }),
@@ -806,7 +813,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: false,
+          moneyBalanceQuery: { isFetching: false },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
           refetchBalance: mockRefetch,
@@ -826,7 +833,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: true,
+          moneyBalanceQuery: { isFetching: true },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
         }),
@@ -845,7 +852,7 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
-  describe('noAccount state', () => {
+  describe('when the money account has not resolved yet', () => {
     beforeEach(() => {
       mockUseMoneyAccountInfo.mockReturnValue(
         createInfoMock({
@@ -853,14 +860,29 @@ describe('MoneyBalanceCard', () => {
           primaryMoneyAccount: undefined,
         }),
       );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          isBalanceLoading: true,
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+        }),
+      );
     });
 
-    it('renders the no-account message in the balance slot', () => {
+    it('renders the balance skeleton', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT),
-      ).toHaveTextContent(strings('money.balance_no_account'));
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the no-account message', () => {
+      const { queryByText } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByText(strings('money.balance_no_account')),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not render the balance text', () => {
@@ -877,6 +899,22 @@ describe('MoneyBalanceCard', () => {
       expect(
         queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
       ).not.toBeOnTheScreen();
+    });
+
+    it('renders the balance skeleton even when the balance is not loading', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          isBalanceLoading: false,
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+        }),
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
+      ).toBeOnTheScreen();
     });
   });
 

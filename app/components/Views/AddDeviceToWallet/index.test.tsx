@@ -279,38 +279,6 @@ describe('AddDeviceToWallet', () => {
         );
       });
     });
-
-    it('reports manual QR submit failures to Sentry in dev', async () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = true;
-      mockHandleScannedQrPayload.mockRejectedValueOnce(
-        new Error('manual submit failed'),
-      );
-
-      try {
-        const { getByPlaceholderText, getByText } = renderComponent();
-
-        fireEvent.changeText(
-          getByPlaceholderText('Paste QR payload'),
-          'metamask://connect/mwp?p=manual',
-        );
-        fireEvent.press(getByText('Submit QR data'));
-
-        await waitFor(() => {
-          expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-            expect.any(Error),
-            {
-              surface: QrSyncSurfaces.SCANNER,
-              operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
-              source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
-            },
-          );
-        });
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
-    });
   });
 
   describe('QR sync presentation', () => {
@@ -351,20 +319,6 @@ describe('AddDeviceToWallet', () => {
       expect(
         getByText(strings('app_settings.add_device.waiting_for_extension')),
       ).toBeOnTheScreen();
-    });
-
-    it('does not render the manual QR input outside dev', () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = false;
-
-      try {
-        const { queryByText } = renderComponent();
-
-        expect(queryByText('Enter QR data manually')).not.toBeOnTheScreen();
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
     });
 
     it('shows sync error message when the session fails in dev', () => {

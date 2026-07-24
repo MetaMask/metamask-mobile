@@ -1,4 +1,5 @@
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex } from '@metamask/utils';
 import { RampIntent } from '../types';
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
@@ -34,9 +35,8 @@ export default function parseRampIntent(
       rampIntentCandidate.chainId = '1';
     }
 
-    const assetIdNamespace = toEvmCaipChainId(
-      toHex(rampIntentCandidate.chainId),
-    );
+    const chainIdHex = toHex(rampIntentCandidate.chainId) as Hex;
+    const assetIdNamespace = toEvmCaipChainId(chainIdHex);
     let assetIdAssetReference = rampIntentCandidate.address;
 
     if (!assetIdAssetReference || assetIdAssetReference === NATIVE_ADDRESS) {

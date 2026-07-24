@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import ImmersveKYCModal, {
   setImmersveKycOnClose,
   clearImmersveKycOnClose,
@@ -44,18 +44,6 @@ jest.mock('@metamask/design-system-react-native', () => {
         TouchableOpacity,
         { onPress, testID },
         children,
-      ),
-    HeaderStandard: ({
-      onBack,
-      backButtonProps,
-    }: {
-      onBack?: () => void;
-      backButtonProps?: { testID?: string };
-    }) =>
-      ActualReact.createElement(
-        TouchableOpacity,
-        { onPress: onBack, testID: backButtonProps?.testID },
-        'Back',
       ),
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Md: 'Md' },
@@ -124,12 +112,6 @@ describe('ImmersveKYCModal', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('closes when the back button is pressed', () => {
-    const { getByTestId } = render(<ImmersveKYCModal />);
-    fireEvent.press(getByTestId('immersve-kyc-back-button'));
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
   it('fires the registered onClose callback on redirect close', async () => {
     const onClose = jest.fn();
     setImmersveKycOnClose(onClose);
@@ -139,15 +121,6 @@ describe('ImmersveKYCModal', () => {
         url: 'https://metamask.io/card/kyc-complete?status=done',
       });
     });
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('fires the registered onClose callback on back-button close', () => {
-    const onClose = jest.fn();
-    setImmersveKycOnClose(onClose);
-    const { getByTestId } = render(<ImmersveKYCModal />);
-    fireEvent.press(getByTestId('immersve-kyc-back-button'));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalled();
   });

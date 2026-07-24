@@ -5,12 +5,11 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
 import type { PerpsMarketListEmptyStateProps } from './PerpsMarketListEmptyState.types';
 import styleSheet from './PerpsMarketListEmptyState.styles';
 
@@ -51,15 +50,15 @@ const PerpsMarketListEmptyState: React.FC<PerpsMarketListEmptyStateProps> = ({
         style={styles.icon}
       />
       <Text
-        variant={TextVariant.HeadingSM}
-        color={TextColor.Default}
+        variant={TextVariant.HeadingSm}
+        color={TextColor.TextDefault}
         style={styles.title}
       >
         {title}
       </Text>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
         style={styles.description}
       >
         {description}
@@ -71,7 +70,7 @@ const PerpsMarketListEmptyState: React.FC<PerpsMarketListEmptyStateProps> = ({
           testID={ctaTestID}
           accessibilityRole="button"
         >
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
             {ctaLabel}
           </Text>
         </TouchableOpacity>

@@ -122,6 +122,9 @@ const createStyles = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+      alignSelf: 'flex-start',
+      paddingVertical: 4,
+      paddingHorizontal: 4,
     },
     currencyContainer: {
       flex: 1,

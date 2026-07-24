@@ -75,7 +75,13 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
+import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
+import { usePerpsMode } from '../../UI/Perps/hooks';
+import PerpsModeToggle from '../../UI/Perps/components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../UI/Perps/utils/perpsModeFlash';
+import { buildDefaultProMarket } from '../../UI/Perps/utils/perpsModeSwitch';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -162,7 +168,10 @@ function TradeWalletActions() {
   const shouldRenderBatchSell =
     isBatchSellEnabled && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -233,6 +242,44 @@ function TradeWalletActions() {
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
+
+  const onPerpsModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      setPerpsMode(nextMode);
+      // Dismiss the Trade sheet, then route the user into Perps.
+      postCallback.current = () => {
+        // First-time users must still go through onboarding (same as tapping
+        // the Perps row): routing straight into Perps would skip the tutorial
+        // otherwise, so no mode-switch flash is shown here.
+        if (isFirstTimePerpsUser) {
+          navigate(Routes.PERPS.TUTORIAL);
+          return;
+        }
+        // Flash the destination mode on top of the Perps stack once it mounts.
+        showPerpsModeFlash(nextMode);
+        if (nextMode === PerpsMode.Pro) {
+          // Pro lands on the default (BTC) market screen, with Perps home
+          // seeded beneath it (initial: false) so back navigation works.
+          navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.MARKET_DETAILS,
+            params: {
+              market: buildDefaultProMarket(),
+              source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+            },
+            initial: false,
+          });
+          return;
+        }
+        // Lite lands on Perps home.
+        navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+          initial: false,
+        });
+      };
+      handleNavigateBack();
+    },
+    [handleNavigateBack, navigate, setPerpsMode, isFirstTimePerpsUser],
+  );
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
@@ -362,6 +409,15 @@ function TradeWalletActions() {
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
+          endAccessory={
+            isPerpsProModeEnabled && canSignTransactions ? (
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={onPerpsModeChange}
+                source={PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION}
+              />
+            ) : undefined
+          }
         />
       )}
       {isPredictEnabled && (

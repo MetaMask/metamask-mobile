@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   FontWeight,
@@ -24,7 +25,7 @@ import VipSplashScreenLayout, {
 } from '../components/Vip/VipSplashScreenLayout';
 
 const RewardsVipRefereeSplashViewContent: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
@@ -100,7 +101,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
 };
 
 const RewardsVipRefereeSplashView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipRefereeSplashView">

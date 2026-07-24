@@ -475,6 +475,14 @@ describe('useTrendingRequest', () => {
       expect(result).toBe(100000); // SEI: $100k
     });
 
+    it('returns specific threshold for single chain - Monad', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.MONAD];
+
+      const result = getMinLiquidityForChains(chainIds);
+
+      expect(result).toBe(100000); // MONAD: $100k
+    });
+
     it('returns specific threshold for single chain - Solana', () => {
       const chainIds: CaipChainId[] = [NetworkToCaipChainId.SOLANA];
 
@@ -538,6 +546,14 @@ describe('useTrendingRequest', () => {
       expect(result).toBe(500000); // Base: $500k
     });
 
+    it('returns specific threshold for single chain - Monad', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.MONAD];
+
+      const result = getMinVolume24hForChains(chainIds);
+
+      expect(result).toBe(25000); // Monad: $25k
+    });
+
     it('returns specific threshold for single chain - Solana', () => {
       const chainIds: CaipChainId[] = [NetworkToCaipChainId.SOLANA];
 
@@ -581,7 +597,7 @@ describe('useTrendingRequest', () => {
   });
 
   describe('per-network threshold integration', () => {
-    it('uses per-network liquidity threshold when single chainId provided - Ethereum', async () => {
+    it('uses per-network liquidity and volume threshold when single chainId provided - Ethereum', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,
         'getTrendingTokens',
@@ -608,7 +624,7 @@ describe('useTrendingRequest', () => {
       spyGetTrendingTokens.mockRestore();
     });
 
-    it('uses per-network volume threshold when single chainId provided - SEI', async () => {
+    it('uses per-network liquidity and volume threshold when single chainId provided - SEI', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,
         'getTrendingTokens',
@@ -629,6 +645,33 @@ describe('useTrendingRequest', () => {
         expect.objectContaining({
           minLiquidity: 100000, // SEI: $100k
           minVolume24hUsd: 25000, // SEI: $25k
+        }),
+      );
+
+      spyGetTrendingTokens.mockRestore();
+    });
+
+    it('uses per-network liquidity and volume threshold when single chainId provided - Monad', async () => {
+      const spyGetTrendingTokens = jest.spyOn(
+        assetsControllers,
+        'getTrendingTokens',
+      );
+      spyGetTrendingTokens.mockResolvedValue([] as never);
+
+      renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds: [NetworkToCaipChainId.MONAD],
+        }),
+      );
+
+      await waitFor(() => {
+        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minLiquidity: 100000, // MONAD: $100k
+          minVolume24hUsd: 25000, // MONAD: $25k
         }),
       );
 

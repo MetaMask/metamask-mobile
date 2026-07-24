@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
@@ -63,7 +64,7 @@ interface LinkedOffDeviceAccountsSheetProps {
 const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
 > = ({ accounts, onClose }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleContactSupport = useCallback(() => {
     let supportUrl;
