@@ -149,6 +149,27 @@ describe('moneyAccountUpgradeControllerInit', () => {
     expect(controller).toBe(mockedController);
   });
 
+  it('constructs the controller with its persisted state', () => {
+    const { requestMock } = getInitRequestMock({ isUnlocked: false });
+    const persistedControllerState = {
+      upgradedAccounts: {
+        '0x1111111111111111111111111111111111111111': {
+          configFingerprint: 'fingerprint',
+          completedAt: 1752451200000,
+        },
+      },
+    };
+    requestMock.persistedState = {
+      MoneyAccountUpgradeController: persistedControllerState,
+    };
+
+    moneyAccountUpgradeControllerInit(requestMock);
+
+    expect(jest.mocked(MoneyAccountUpgradeController)).toHaveBeenCalledWith(
+      expect.objectContaining({ state: persistedControllerState }),
+    );
+  });
+
   describe('whenMoneyAccountUpgradeReady', () => {
     it('rejects when bootstrap has not been scheduled yet', async () => {
       await expect(whenMoneyAccountUpgradeReady()).rejects.toThrow(

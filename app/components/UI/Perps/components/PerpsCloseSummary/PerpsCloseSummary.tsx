@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 import { View, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { strings } from '../../../../../../locales/i18n';
 import {
   formatPerpsFiat,
@@ -120,7 +122,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   testIDs,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey, data?: Record<string, unknown>) => {

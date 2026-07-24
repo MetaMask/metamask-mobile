@@ -168,6 +168,20 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Kill-switch for the link-card sheet Rive card flip animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardFlipAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardFlipAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 
 /**
