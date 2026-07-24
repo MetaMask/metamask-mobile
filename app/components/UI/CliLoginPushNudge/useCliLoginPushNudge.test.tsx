@@ -1,12 +1,11 @@
-import React from 'react';
-import { AppState } from 'react-native';
+// eslint-disable-next-line react-native/split-platform-components
+import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { renderHook, act } from '@testing-library/react-native';
-import { ToastContext } from '../../../component-library/components/Toast';
-import type {
-  ToastRef,
-  ToastOptions,
-} from '../../../component-library/components/Toast/Toast.types';
 import { useCliLoginPushNudge } from './useCliLoginPushNudge';
+import {
+  emitCliLoginPushNudge,
+  __resetCliLoginPushNudgeListenersForTests,
+} from '../../../core/AgenticCli/cliLoginPushNudgeSignal';
 
 const mockEnableNotifications = jest.fn();
 const mockIsPushPermissionPromptable = jest.fn();
@@ -33,47 +32,36 @@ jest.mock('../../../util/notifications/services/NotificationService', () => ({
   isPushPermissionGranted: () => mockIsPushPermissionGranted(),
 }));
 
-jest.mock('../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+jest.mock('../../../core/SDKConnectV2/services/logger', () => ({
+  __esModule: true,
+  default: { warn: jest.fn() },
 }));
 
 describe('useCliLoginPushNudge', () => {
-  let showToast: jest.Mock;
-  let closeToast: jest.Mock;
   let appStateChangeHandler: ((state: string) => void) | undefined;
   let removeMocks: jest.Mock[];
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => {
-    const toastRef = {
-      current: { showToast, closeToast } as unknown as ToastRef,
-    };
-    return (
-      <ToastContext.Provider value={{ toastRef }}>
-        {children}
-      </ToastContext.Provider>
-    );
-  };
+  const renderNudge = () => renderHook(() => useCliLoginPushNudge());
 
-  const renderNudge = () =>
-    renderHook(() => useCliLoginPushNudge(), { wrapper });
-
-  const tapTurnOn = async () => {
-    const options = showToast.mock.calls[0][0] as ToastOptions;
-    await act(async () => {
-      await options.linkButtonOptions?.onPress?.();
+  const emit = () => {
+    act(() => {
+      emitCliLoginPushNudge();
     });
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    showToast = jest.fn();
-    closeToast = jest.fn();
+    __resetCliLoginPushNudgeListenersForTests();
     appStateChangeHandler = undefined;
     removeMocks = [];
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockEnableNotifications.mockResolvedValue(undefined);
     mockIsPushPermissionPromptable.mockResolvedValue(true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
+    jest
+      .spyOn(PermissionsAndroid, 'request')
+      .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+    Platform.OS = 'ios';
     jest.spyOn(AppState, 'addEventListener').mockImplementation(((
       _event: string,
       handler: (state: string) => void,
@@ -89,100 +77,79 @@ describe('useCliLoginPushNudge', () => {
     jest.restoreAllMocks();
   });
 
-  it('does not show the toast when the notifications feature is disabled', () => {
+  it('is hidden initially', () => {
+    const { result } = renderNudge();
+
+    expect(result.current.isVisible).toBe(false);
+  });
+
+  it('becomes visible when the nudge signal is emitted', () => {
+    const { result } = renderNudge();
+
+    emit();
+
+    expect(result.current.isVisible).toBe(true);
+  });
+
+  it('stays hidden when the notifications feature is disabled', () => {
     mockIsNotificationsFeatureEnabled.mockReturnValue(false);
     const { result } = renderNudge();
 
-    let shown: boolean | undefined;
-    act(() => {
-      shown = result.current.showNudge();
-    });
+    emit();
 
-    expect(shown).toBe(false);
-    expect(showToast).not.toHaveBeenCalled();
+    expect(result.current.isVisible).toBe(false);
   });
 
-  it('shows a toast with a Turn on action when enabled', () => {
-    const { result } = renderNudge();
-
-    let shown: boolean | undefined;
-    act(() => {
-      shown = result.current.showNudge();
-    });
-
-    expect(shown).toBe(true);
-    expect(showToast).toHaveBeenCalledTimes(1);
-    const options = showToast.mock.calls[0][0] as ToastOptions;
-    expect(options.linkButtonOptions?.onPress).toBeDefined();
-    expect(options.closeButtonOptions?.onPress).toBeDefined();
-  });
-
-  it('enables and closes without opening settings when push is already granted', async () => {
+  it('enables notifications when push is already granted', async () => {
     mockIsPushPermissionGranted.mockResolvedValue(true);
     const { result } = renderNudge();
+    emit();
 
-    act(() => {
-      result.current.showNudge();
+    await act(async () => {
+      await result.current.onYes();
     });
-    await tapTurnOn();
 
     expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
     expect(mockOpenSystemSettings).not.toHaveBeenCalled();
-    expect(closeToast).toHaveBeenCalled();
+    expect(result.current.isVisible).toBe(false);
   });
 
-  it('enables via the OS dialog when push is still promptable', async () => {
+  it('enables via the OS dialog when push is still promptable on iOS', async () => {
     mockIsPushPermissionPromptable.mockResolvedValue(true);
     const { result } = renderNudge();
+    emit();
 
-    act(() => {
-      result.current.showNudge();
+    await act(async () => {
+      await result.current.onYes();
     });
-    await tapTurnOn();
 
     expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
     expect(mockOpenSystemSettings).not.toHaveBeenCalled();
-    expect(closeToast).toHaveBeenCalled();
+    expect(result.current.isVisible).toBe(false);
   });
 
-  it('does not open settings when the user denies the OS dialog', async () => {
-    mockIsPushPermissionPromptable.mockResolvedValue(true);
-    mockIsPushPermissionGranted.mockResolvedValue(false);
-    const { result } = renderNudge();
-
-    act(() => {
-      result.current.showNudge();
-    });
-    await tapTurnOn();
-
-    expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
-    expect(mockOpenSystemSettings).not.toHaveBeenCalled();
-    expect(closeToast).toHaveBeenCalled();
-  });
-
-  it('opens device settings when the OS can no longer show its dialog', async () => {
+  it('opens device settings when iOS can no longer show its dialog', async () => {
     mockIsPushPermissionPromptable.mockResolvedValue(false);
     const { result } = renderNudge();
+    emit();
 
-    act(() => {
-      result.current.showNudge();
+    await act(async () => {
+      await result.current.onYes();
     });
-    await tapTurnOn();
 
     expect(mockEnableNotifications).not.toHaveBeenCalled();
     expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    expect(result.current.isVisible).toBe(false);
   });
 
-  it('re-enables on return from settings when permission becomes granted', async () => {
+  it('enables on return from settings when permission becomes granted', async () => {
     mockIsPushPermissionPromptable.mockResolvedValue(false);
     const { result } = renderNudge();
+    emit();
 
-    act(() => {
-      result.current.showNudge();
+    await act(async () => {
+      await result.current.onYes();
     });
-    await tapTurnOn();
-
-    expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
 
     mockIsPushPermissionGranted.mockResolvedValue(true);
     await act(async () => {
@@ -192,79 +159,170 @@ describe('useCliLoginPushNudge', () => {
     expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the toast without re-enabling when the user returns still not granted', async () => {
+  it('does not enable on foreground return when permission is still not granted', async () => {
     mockIsPushPermissionPromptable.mockResolvedValue(false);
     mockIsPushPermissionGranted.mockResolvedValue(false);
     const { result } = renderNudge();
+    emit();
 
-    act(() => {
-      result.current.showNudge();
+    await act(async () => {
+      await result.current.onYes();
     });
-    await tapTurnOn();
 
     mockEnableNotifications.mockClear();
-    closeToast.mockClear();
     await act(async () => {
       appStateChangeHandler?.('active');
     });
 
     expect(mockEnableNotifications).not.toHaveBeenCalled();
-    expect(closeToast).toHaveBeenCalled();
   });
 
-  it('does not block Turn on after opening settings when the user never returns', async () => {
-    mockIsPushPermissionPromptable.mockResolvedValue(false);
+  it('hides on "Not now" without enabling', () => {
     const { result } = renderNudge();
+    emit();
 
     act(() => {
-      result.current.showNudge();
+      result.current.onNotNow();
     });
 
-    await tapTurnOn();
-    await tapTurnOn();
-
-    expect(mockOpenSystemSettings).toHaveBeenCalledTimes(2);
+    expect(result.current.isVisible).toBe(false);
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
   });
 
-  it('cancels a pending settings-return retry when a new nudge is shown', async () => {
-    mockIsPushPermissionPromptable.mockResolvedValue(false);
+  it('ignores button-driven close but hides on genuine dismissal', () => {
     const { result } = renderNudge();
+    emit();
 
     act(() => {
-      result.current.showNudge();
+      result.current.onClose(true);
     });
-    await tapTurnOn();
+    expect(result.current.isVisible).toBe(true);
+
+    act(() => {
+      result.current.onClose(false);
+    });
+    expect(result.current.isVisible).toBe(false);
+  });
+
+  it('cancels a pending settings-return retry when a new nudge is emitted', async () => {
+    mockIsPushPermissionPromptable.mockResolvedValue(false);
+    const { result } = renderNudge();
+    emit();
+
+    await act(async () => {
+      await result.current.onYes();
+    });
 
     expect(removeMocks).toHaveLength(1);
 
-    act(() => {
-      result.current.showNudge();
-    });
+    emit();
 
     expect(removeMocks[0]).toHaveBeenCalled();
+    expect(result.current.isVisible).toBe(true);
   });
 
-  it('does not run a superseded settings-return retry after a new nudge', async () => {
-    mockIsPushPermissionPromptable.mockResolvedValue(false);
-    const { result } = renderNudge();
+  describe('android 13+', () => {
+    let mockShouldShowRationale: jest.Mock;
 
-    act(() => {
-      result.current.showNudge();
-    });
-    await tapTurnOn();
-
-    act(() => {
-      result.current.showNudge();
-    });
-
-    mockIsPushPermissionGranted.mockClear();
-    mockIsPushPermissionGranted.mockResolvedValue(true);
-    mockEnableNotifications.mockClear();
-    await act(async () => {
-      appStateChangeHandler?.('active');
+    beforeEach(() => {
+      Platform.OS = 'android';
+      jest.spyOn(Platform, 'Version', 'get').mockReturnValue(33);
+      mockShouldShowRationale = jest.fn().mockResolvedValue(true);
+      Object.defineProperty(
+        PermissionsAndroid,
+        'shouldShowRequestPermissionRationale',
+        {
+          value: mockShouldShowRationale,
+          configurable: true,
+          writable: true,
+        },
+      );
     });
 
-    expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
-    expect(mockEnableNotifications).not.toHaveBeenCalled();
+    it('opens settings when the OS permanently denied the permission', async () => {
+      jest
+        .spyOn(PermissionsAndroid, 'request')
+        .mockResolvedValue(PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN);
+      const { result } = renderNudge();
+      emit();
+
+      await act(async () => {
+        await result.current.onYes();
+      });
+
+      expect(PermissionsAndroid.request).toHaveBeenCalledWith(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens settings when DENIED and the OS will not show rationale again', async () => {
+      jest
+        .spyOn(PermissionsAndroid, 'request')
+        .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+      mockShouldShowRationale.mockResolvedValue(false);
+      const { result } = renderNudge();
+      emit();
+
+      await act(async () => {
+        await result.current.onYes();
+      });
+
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes without settings when the user dismisses the OS dialog', async () => {
+      jest
+        .spyOn(PermissionsAndroid, 'request')
+        .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+      mockShouldShowRationale.mockResolvedValue(true);
+      const { result } = renderNudge();
+      emit();
+
+      await act(async () => {
+        await result.current.onYes();
+      });
+
+      expect(PermissionsAndroid.request).toHaveBeenCalledTimes(1);
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+    });
+
+    it('enables notifications when the OS grants push permission', async () => {
+      jest
+        .spyOn(PermissionsAndroid, 'request')
+        .mockResolvedValue(PermissionsAndroid.RESULTS.GRANTED);
+      const { result } = renderNudge();
+      emit();
+
+      await act(async () => {
+        await result.current.onYes();
+      });
+
+      expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('android < 13', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+      jest.spyOn(Platform, 'Version', 'get').mockReturnValue(31);
+    });
+
+    it('opens settings without a runtime dialog when push is not granted', async () => {
+      const { result } = renderNudge();
+      emit();
+
+      await act(async () => {
+        await result.current.onYes();
+      });
+
+      expect(PermissionsAndroid.request).not.toHaveBeenCalled();
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    });
   });
 });

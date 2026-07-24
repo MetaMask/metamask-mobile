@@ -24,6 +24,12 @@ export interface NewUserSheetProps {
   onYes?: () => void;
   onNotNow?: () => void;
   testID?: string;
+  /** Optional heading override. Defaults to the push-onboarding copy. */
+  title?: string;
+  /** Optional body override. Defaults to the push-onboarding copy. */
+  body?: string;
+  /** Whether to render the notification preview card. Defaults to true. */
+  showPreview?: boolean;
 }
 
 const NewUserSheet: React.FC<NewUserSheetProps> = ({
@@ -32,6 +38,9 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   onYes,
   onNotNow,
   testID,
+  title = strings('notifications.push_onboarding.new_user.title'),
+  body = strings('notifications.push_onboarding.new_user.body'),
+  showPreview = true,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -69,9 +78,11 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
           />
         </Box>
-        <Box twClassName="mb-2 px-6">
-          <NotifCard />
-        </Box>
+        {showPreview && (
+          <Box twClassName="mb-2 px-6">
+            <NotifCard />
+          </Box>
+        )}
 
         <Box twClassName="px-4">
           <Text
@@ -79,7 +90,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             twClassName="mb-2 text-center"
             testID={NewUserSheetSelectorsIDs.TITLE}
           >
-            {strings('notifications.push_onboarding.new_user.title')}
+            {title}
           </Text>
 
           <Text
@@ -87,7 +98,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             twClassName="mb-7 text-center text-alternative"
             testID={NewUserSheetSelectorsIDs.BODY}
           >
-            {strings('notifications.push_onboarding.new_user.body')}
+            {body}
           </Text>
 
           <Box twClassName="gap-3">
