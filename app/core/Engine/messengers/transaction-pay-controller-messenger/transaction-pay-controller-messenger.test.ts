@@ -25,6 +25,10 @@ const getRootMessenger = (): RootMessenger =>
     namespace: MOCK_ANY_NAMESPACE,
   });
 
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 describe('getTransactionPayControllerMessenger', () => {
   it('returns a messenger instance', () => {
     const rootMessenger = getRootMessenger();
