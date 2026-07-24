@@ -4,9 +4,15 @@ import { CardNetwork, CardNetworkInfo } from './types';
 import { CaipChainId } from '@metamask/utils';
 
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+const infuraProjectId =
+  !InfuraKey || InfuraKey === 'null' || InfuraKey === 'undefined'
+    ? ''
+    : InfuraKey;
+export const LINEA_PUBLIC_RPC_URL = 'https://rpc.linea.build';
 
-export const LINEA_MAINNET_RPC_URL = `https://linea-mainnet.infura.io/v3/${infuraProjectId}`;
+export const LINEA_MAINNET_RPC_URL = infuraProjectId
+  ? `https://linea-mainnet.infura.io/v3/${infuraProjectId}`
+  : LINEA_PUBLIC_RPC_URL;
 export const BASE_MAINNET_RPC_URL = `https://base-mainnet.infura.io/v3/${infuraProjectId}`;
 export const MONAD_MAINNET_RPC_URL = `https://monad-mainnet.infura.io/v3/${infuraProjectId}`;
 export const BASE_SEPOLIA_RPC_URL = `https://base-sepolia.infura.io/v3/${infuraProjectId}`;

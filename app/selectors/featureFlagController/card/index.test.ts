@@ -8,6 +8,7 @@ import {
   selectGalileoGoogleWalletProvisioningEnabled,
   selectCardForgotPasswordFeatureEnabled,
   selectCardIntercomSupportEnabled,
+  selectImmersveOnboardingEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -1003,5 +1004,48 @@ describe('selectCardIntercomSupportEnabled', () => {
     const result = selectCardIntercomSupportEnabled(stateWithMalformedFlag);
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectImmersveOnboardingEnabled', () => {
+  it('returns true when cardFeature.immersve.enabled is true', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                immersve: { enabled: true },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    expect(selectImmersveOnboardingEnabled(state)).toBe(true);
+  });
+
+  it('returns false when cardFeature.immersve.enabled is missing or false', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                immersve: { enabled: false },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    expect(selectImmersveOnboardingEnabled(state)).toBe(false);
+    expect(selectImmersveOnboardingEnabled(mockedEmptyFlagsState)).toBe(false);
   });
 });
