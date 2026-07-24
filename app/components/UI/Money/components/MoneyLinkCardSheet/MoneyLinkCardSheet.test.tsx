@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyLinkCardSheet from './MoneyLinkCardSheet';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
@@ -11,8 +11,6 @@ import {
   selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
 import { CardType } from '../../../Card/types';
-import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   CardActions,
@@ -20,7 +18,25 @@ import {
   CardScreens,
 } from '../../../Card/util/metrics';
 
+const MOCK_CARD_FLIP_ANIMATION_TEST_ID = 'mock-money-card-flip-animation';
+const mockCardFlipProps: { current?: { isMetalCard?: boolean } } = {};
+
+jest.mock('../MoneyCardFlipAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: { isMetalCard?: boolean }) => {
+      mockCardFlipProps.current = { isMetalCard: props.isMetalCard };
+      return ReactActual.createElement(View, {
+        testID: 'mock-money-card-flip-animation',
+      });
+    },
+  };
+});
+
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
+const mockSheetGoBackRef: { current?: () => void } = {};
 const mockGoBack = jest.fn();
 let mockRouteParams: { entrypoint?: CardEntryPoint | string } | undefined;
 const mockTrackEvent = jest.fn();
@@ -72,9 +88,18 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   const MockBottomSheet = ReactActual.forwardRef(
     (
-      { children, testID }: { children: React.ReactNode; testID?: string },
+      {
+        children,
+        testID,
+        goBack,
+      }: {
+        children: React.ReactNode;
+        testID?: string;
+        goBack?: () => void;
+      },
       ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
+      mockSheetGoBackRef.current = goBack;
       ReactActual.useImperativeHandle(ref, () => ({
         onCloseBottomSheet: mockOnCloseBottomSheet,
         onOpenBottomSheet: jest.fn(),
@@ -105,6 +130,7 @@ describe('MoneyLinkCardSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = undefined;
+    mockCardFlipProps.current = undefined;
     mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
     mockUseMoneyAccountCardLinkage.mockReturnValue({
       confirmLinkInBackground: mockConfirmLinkInBackground,
@@ -255,53 +281,63 @@ describe('MoneyLinkCardSheet', () => {
   });
 
   describe('card illustration adapts to user card type', () => {
-    const getCardImageSource = (
-      root: ReturnType<typeof renderWithProvider>,
-    ) => {
-      const illustration = root.getByTestId(
-        MoneyLinkCardSheetTestIds.ILLUSTRATION,
-      );
-      const image = illustration.findByProps({ resizeMode: 'contain' });
-      return image.props.source;
-    };
+    it('renders the card flip animation inside the illustration', () => {
+      const { getByTestId } = renderWithProvider(<MoneyLinkCardSheet />);
 
-    it('renders the metal card image when the user has a metal card', () => {
+      const illustration = getByTestId(MoneyLinkCardSheetTestIds.ILLUSTRATION);
+      expect(
+        within(illustration).getByTestId(MOCK_CARD_FLIP_ANIMATION_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('passes isMetalCard true when the user has a metal card', () => {
       mockSelectCardHomeData.mockReturnValue({
         card: { type: CardType.METAL },
       });
 
-      const root = renderWithProvider(<MoneyLinkCardSheet />);
+      renderWithProvider(<MoneyLinkCardSheet />);
 
-      expect(getCardImageSource(root)).toBe(mmCardMetal);
+      expect(mockCardFlipProps.current?.isMetalCard).toBe(true);
     });
 
-    it('renders the virtual card image when the user has a virtual card', () => {
+    it('passes isMetalCard false when the user has a virtual card', () => {
       mockSelectCardHomeData.mockReturnValue({
         card: { type: CardType.VIRTUAL },
       });
 
-      const root = renderWithProvider(<MoneyLinkCardSheet />);
+      renderWithProvider(<MoneyLinkCardSheet />);
 
-      expect(getCardImageSource(root)).toBe(mmCardRegular);
+      expect(mockCardFlipProps.current?.isMetalCard).toBe(false);
     });
 
-    it('renders the virtual card image when there is no card data available', () => {
+    it('passes isMetalCard false when there is no card data available', () => {
       mockSelectCardHomeData.mockReturnValue(null);
 
-      const root = renderWithProvider(<MoneyLinkCardSheet />);
+      renderWithProvider(<MoneyLinkCardSheet />);
 
-      expect(getCardImageSource(root)).toBe(mmCardRegular);
+      expect(mockCardFlipProps.current?.isMetalCard).toBe(false);
+    });
+
+    it('passes isMetalCard undefined while the card home data fetch is still loading', () => {
+      mockSelectCardHomeData.mockReturnValue(null);
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(mockCardFlipProps.current?.isMetalCard).toBeUndefined();
     });
   });
 
-  it('dismisses the sheet and dispatches confirmLinkInBackground when the CTA is pressed', () => {
+  it('dismisses the sheet and dispatches confirmLinkInBackground when the CTA is pressed', async () => {
     mockRouteParams = {
       entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     };
     const { getByTestId } = renderWithProvider(<MoneyLinkCardSheet />);
     jest.clearAllMocks();
 
-    fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CTA_BUTTON));
+    await act(async () => {
+      fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CTA_BUTTON));
+    });
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockConfirmLinkInBackground).toHaveBeenCalledTimes(1);
@@ -318,6 +354,25 @@ describe('MoneyLinkCardSheet', () => {
       action: CardActions.MONEY_LINK_CARD_SHEET_CONFIRM_BUTTON,
       card_type: 'virtual',
     });
+  });
+
+  it('navigates back when the bottom sheet requests goBack', () => {
+    renderWithProvider(<MoneyLinkCardSheet />);
+
+    mockSheetGoBackRef.current?.();
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not surface confirmLinkInBackground rejections from the CTA press', async () => {
+    mockConfirmLinkInBackground.mockRejectedValue(new Error('link failed'));
+    const { getByTestId } = renderWithProvider(<MoneyLinkCardSheet />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CTA_BUTTON));
+    });
+
+    expect(mockConfirmLinkInBackground).toHaveBeenCalledTimes(1);
   });
 
   it('dismisses the sheet without dispatching the linkage when the close button is pressed', () => {
