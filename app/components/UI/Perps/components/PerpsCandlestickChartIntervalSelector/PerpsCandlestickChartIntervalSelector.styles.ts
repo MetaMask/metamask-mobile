@@ -22,19 +22,13 @@ export const selectorStyleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     intervalTabActive: {
-      backgroundColor: colors.primary.muted,
+      backgroundColor: colors.background.muted,
     },
     intervalTabInactive: {
       backgroundColor: importedColors.transparent,
     },
     intervalTabText: {
       fontSize: 12,
-    },
-    intervalTabTextActive: {
-      color: colors.primary.inverse,
-    },
-    intervalTabTextInactive: {
-      color: colors.text.muted,
     },
   });
 };

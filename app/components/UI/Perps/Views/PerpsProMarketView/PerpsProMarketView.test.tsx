@@ -1,5 +1,7 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
+import { Box, ButtonBase } from '@metamask/design-system-react-native';
+import { CandlePeriod } from '@metamask/perps-controller';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -13,9 +15,84 @@ interface MockRouteParams {
   market?: { symbol: string };
 }
 
+interface MockChartPanelProps {
+  symbol: string;
+  selectedCandlePeriod: CandlePeriod;
+  onMorePress: () => void;
+}
+
+interface MockCandlePeriodBottomSheetProps {
+  isVisible: boolean;
+  selectedPeriod: CandlePeriod;
+  onClose: () => void;
+  onPeriodChange: (period: CandlePeriod) => void;
+  testID?: string;
+}
+
 let mockRouteParams: MockRouteParams | undefined = {
   market: { symbol: 'BTC' },
 };
+const mockTrack = jest.fn();
+
+const mockPerpsProChartPanel = jest.fn(
+  ({ symbol, onMorePress }: MockChartPanelProps) => (
+    <>
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
+        twClassName="h-[76px]"
+      />
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
+        accessibilityLabel={symbol}
+      >
+        <Box
+          testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
+          twClassName="h-[344px]"
+        />
+        <ButtonBase testID="mock-pro-chart-more-button" onPress={onMorePress}>
+          <Box />
+        </ButtonBase>
+      </Box>
+    </>
+  ),
+);
+
+const mockCandlePeriodBottomSheet = jest.fn(
+  ({
+    isVisible,
+    onClose,
+    onPeriodChange,
+    testID,
+  }: MockCandlePeriodBottomSheetProps) =>
+    isVisible ? (
+      <Box testID={testID}>
+        <ButtonBase
+          testID="mock-more-period-option"
+          onPress={() => onPeriodChange(CandlePeriod.FourHours)}
+        >
+          <Box />
+        </ButtonBase>
+        <ButtonBase testID="mock-more-period-close" onPress={onClose}>
+          <Box />
+        </ButtonBase>
+      </Box>
+    ) : null,
+);
+
+jest.mock('./components/PerpsProChartPanel', () => ({
+  __esModule: true,
+  default: (props: MockChartPanelProps) => mockPerpsProChartPanel(props),
+}));
+
+jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
+  __esModule: true,
+  default: (props: MockCandlePeriodBottomSheetProps) =>
+    mockCandlePeriodBottomSheet(props),
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -32,6 +109,7 @@ const renderView = () =>
 
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockRouteParams = { market: { symbol: 'BTC' } };
   });
 
@@ -130,6 +208,52 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the More candle periods sheet from the chart', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('mounts the More candle periods sheet outside the scroll view', () => {
+    const { getByTestId } = renderView();
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+    const scrollView = getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW);
+
+    const nestedSheet = within(scrollView).queryByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET,
+    );
+
+    expect(nestedSheet).not.toBeOnTheScreen();
+  });
+
+  it('updates the chart period from the More candle periods sheet', () => {
+    const { getByTestId } = renderView();
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+
+    fireEvent.press(getByTestId('mock-more-period-option'));
+
+    expect(mockPerpsProChartPanel).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        selectedCandlePeriod: CandlePeriod.FourHours,
+      }),
+    );
+  });
+
+  it('closes the More candle periods sheet', () => {
+    const { getByTestId, queryByTestId } = renderView();
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+
+    fireEvent.press(getByTestId('mock-more-period-close'));
+
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET),
+    ).not.toBeOnTheScreen();
   });
 
   it('updates the form to Market and closes the order type sheet', () => {
