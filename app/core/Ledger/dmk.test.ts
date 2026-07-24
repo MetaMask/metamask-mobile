@@ -41,6 +41,14 @@ const { __mockBuild: mockBuild, __mockAddTransport: mockAddTransport } =
     __mockAddTransport: jest.Mock;
   };
 
+const createMockDmk = () => ({
+  id: 'dmk-instance',
+  stopDiscovering: jest.fn().mockResolvedValue(undefined),
+  listConnectedDevices: jest.fn().mockReturnValue([]),
+  disconnect: jest.fn().mockResolvedValue(undefined),
+  close: jest.fn(),
+});
+
 describe('isDmkEnabled', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -92,17 +100,18 @@ describe('isDmkEnabled', () => {
 });
 
 describe('getDmk', () => {
-  const mockDmkInstance = { id: 'dmk-instance' };
+  let mockDmkInstance: ReturnType<typeof createMockDmk>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+    mockDmkInstance = createMockDmk();
     mockAddTransport.mockReturnThis();
     mockBuild.mockReturnValue(mockDmkInstance);
-    resetDmk();
+    await resetDmk();
   });
 
-  afterEach(() => {
-    resetDmk();
+  afterEach(async () => {
+    await resetDmk();
   });
 
   it('builds a DeviceManagementKit with the RN BLE transport on first call', () => {
@@ -138,9 +147,91 @@ describe('getDmk', () => {
     );
   });
 
-  it('builds a new instance after resetDmk clears the cache', () => {
+  it('builds a new instance after resetDmk clears the cache', async () => {
     getDmk();
-    resetDmk();
+    await resetDmk();
+
+    const rebuilt = getDmk();
+
+    expect(MockDeviceManagementKitBuilder).toHaveBeenCalledTimes(2);
+    expect(rebuilt).toBe(mockDmkInstance);
+  });
+});
+
+describe('resetDmk', () => {
+  let mockDmkInstance: ReturnType<typeof createMockDmk>;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    mockDmkInstance = createMockDmk();
+    mockAddTransport.mockReturnThis();
+    mockBuild.mockReturnValue(mockDmkInstance);
+    await resetDmk();
+  });
+
+  afterEach(async () => {
+    await resetDmk();
+  });
+
+  it('is a no-op when no DeviceManagementKit is cached', async () => {
+    await expect(resetDmk()).resolves.toBeUndefined();
+
+    expect(mockDmkInstance.stopDiscovering).not.toHaveBeenCalled();
+    expect(mockDmkInstance.listConnectedDevices).not.toHaveBeenCalled();
+    expect(mockDmkInstance.close).not.toHaveBeenCalled();
+  });
+
+  it('stops discovery, disconnects sessions, and closes the kit', async () => {
+    mockDmkInstance.listConnectedDevices.mockReturnValue([
+      { sessionId: 'session-1' },
+      { sessionId: 'session-2' },
+    ]);
+    getDmk();
+
+    await resetDmk();
+
+    expect(mockDmkInstance.stopDiscovering).toHaveBeenCalledTimes(1);
+    expect(mockDmkInstance.listConnectedDevices).toHaveBeenCalledTimes(1);
+    expect(mockDmkInstance.disconnect).toHaveBeenCalledWith({
+      sessionId: 'session-1',
+    });
+    expect(mockDmkInstance.disconnect).toHaveBeenCalledWith({
+      sessionId: 'session-2',
+    });
+    expect(mockDmkInstance.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the cache when teardown rejects', async () => {
+    const stopError = new Error('stop failed');
+    mockDmkInstance.stopDiscovering.mockRejectedValueOnce(stopError);
+    getDmk();
+
+    await resetDmk();
+
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      '[DMK] Failed during reset:',
+      stopError,
+    );
+    expect(mockDmkInstance.close).not.toHaveBeenCalled();
+
+    const rebuilt = getDmk();
+
+    expect(MockDeviceManagementKitBuilder).toHaveBeenCalledTimes(2);
+    expect(rebuilt).toBe(mockDmkInstance);
+  });
+
+  it('clears the cache when a session disconnect rejects', async () => {
+    mockDmkInstance.listConnectedDevices.mockReturnValue([
+      { sessionId: 'session-1' },
+    ]);
+    mockDmkInstance.disconnect.mockRejectedValueOnce(
+      new Error('disconnect failed'),
+    );
+    getDmk();
+
+    await resetDmk();
+
+    expect(mockDmkInstance.close).toHaveBeenCalledTimes(1);
 
     const rebuilt = getDmk();
 

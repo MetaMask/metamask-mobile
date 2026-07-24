@@ -50,6 +50,31 @@ export const getDmk = (): DeviceManagementKit => {
   return state.dmk;
 };
 
-export const resetDmk = (): void => {
+/**
+ * Tears down the cached DeviceManagementKit and clears the singleton so the
+ * next {@link getDmk} builds a fresh instance.
+ *
+ * Stops BLE discovery, disconnects any open sessions, then closes the kit.
+ * The cache is cleared even if teardown fails.
+ */
+export const resetDmk = async (): Promise<void> => {
+  const dmk = state.dmk;
+  // Clear first so concurrent getDmk() calls cannot reuse a tearing-down instance.
   state.dmk = null;
+  if (!dmk) {
+    return;
+  }
+
+  try {
+    await dmk.stopDiscovering();
+    const sessions = dmk.listConnectedDevices();
+    await Promise.allSettled(
+      sessions.map((connectedDevice) =>
+        dmk.disconnect({ sessionId: connectedDevice.sessionId }),
+      ),
+    );
+    dmk.close();
+  } catch (error) {
+    DevLogger.log('[DMK] Failed during reset:', error);
+  }
 };
