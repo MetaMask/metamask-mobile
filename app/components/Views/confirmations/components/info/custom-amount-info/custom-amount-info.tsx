@@ -189,7 +189,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     } = useTransactionCustomAmount({ currency });
 
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(
-      !isAddMusdIntent && !isDepositPrefillEnabled,
+      !isAddMusdIntent &&
+        (!isDepositPrefillEnabled || Boolean(autoSelectFiatPayment)),
     );
     const isKeyboardVisibleRef = useRef(isKeyboardVisible);
     isKeyboardVisibleRef.current = isKeyboardVisible;

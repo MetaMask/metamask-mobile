@@ -389,6 +389,30 @@ describe('useMoneyAccountDeposit', () => {
     selectPrefilledAmountConfig.mockReturnValue({ enabled: false });
   });
 
+  it('uses AdvancedCustomAmount loader for card intent even when prefill is enabled', async () => {
+    const { selectPrefilledAmountConfig } = jest.requireMock(
+      '../../../../selectors/featureFlagController/confirmations',
+    );
+    selectPrefilledAmountConfig.mockReturnValue({ enabled: true });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        autoSelectFiatPayment: true,
+        intent: 'card',
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loader: ConfirmationLoader.AdvancedCustomAmount,
+      }),
+    );
+
+    selectPrefilledAmountConfig.mockReturnValue({ enabled: false });
+  });
+
   it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
     let observedBatchId: string | undefined;
     mockAddTransactionBatch.mockImplementationOnce(async (args) => {

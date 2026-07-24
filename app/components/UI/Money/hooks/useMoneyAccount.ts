@@ -159,7 +159,8 @@ export function useMoneyAccountDeposit() {
       }
 
       const usePrefillLoader =
-        prefillConfig.enabled || options?.intent === 'addMusd';
+        (prefillConfig.enabled || options?.intent === 'addMusd') &&
+        options?.intent !== 'card';
 
       const confirmationParams = {
         loader: usePrefillLoader
