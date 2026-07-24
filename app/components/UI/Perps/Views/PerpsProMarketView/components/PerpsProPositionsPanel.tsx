@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
-import { usePerpsLivePositions } from '../../../hooks/stream';
+import {
+  usePerpsLiveAccount,
+  usePerpsLivePositions,
+} from '../../../hooks/stream';
 import {
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
@@ -11,6 +14,7 @@ import {
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
+import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
@@ -30,6 +34,7 @@ const PerpsProPositionsPanel = () => {
     throttleMs: 1000,
     useLivePnl: true,
   });
+  const { account } = usePerpsLiveAccount({ throttleMs: 1000 });
 
   const tabs: TabItem[] = [
     {
@@ -52,6 +57,10 @@ const PerpsProPositionsPanel = () => {
     if (hasPositions) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.POSITIONS_LIST}>
+          <PerpsProUnrealizedPnl
+            unrealizedPnl={account?.unrealizedPnl ?? '0'}
+            returnOnEquity={account?.returnOnEquity ?? '0'}
+          />
           {positions.map((position, index) => (
             <PerpsProPositionCard
               key={`${position.symbol}-${index}`}
