@@ -70,7 +70,7 @@ describe('BridgeQuoteDataContext', () => {
         recommendedQuote: mockQuoteWithMetadata,
         sortedQuotes: [mockQuoteWithMetadata],
         activeQuote: mockQuoteWithMetadata,
-        quotesLastFetchedMs: Date.now(),
+        quotesLastFetchedMs: 1_700_000_000_000,
         isLoading: false,
         quoteFetchError: null,
         quotesRefreshCount: 0,

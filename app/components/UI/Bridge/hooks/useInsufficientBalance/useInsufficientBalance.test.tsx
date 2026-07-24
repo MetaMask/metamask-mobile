@@ -85,6 +85,10 @@ describe('useIsInsufficientBalance', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('ERC-20 Tokens', () => {
     const usdcToken: BridgeToken = {
       address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
