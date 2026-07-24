@@ -29,6 +29,7 @@ import {
   type Status,
   type TokenAmount,
 } from '../../../../util/activity-adapters';
+import { isHardwareAccount } from '../../../../util/address';
 
 const BRIDGE_FAIL_STATUSES = [
   TransactionStatus.failed,
@@ -106,13 +107,6 @@ type GroupMember = TransactionMeta & { isSmartTransaction?: boolean };
 
 const byTimeAscending = (a: GroupMember, b: GroupMember) =>
   (a.time ?? 0) - (b.time ?? 0);
-
-function isHardwareWalletAccount(keyringType: string | undefined): boolean {
-  return (
-    keyringType === ExtendedKeyringTypes.qr ||
-    keyringType === ExtendedKeyringTypes.ledger
-  );
-}
 
 function buildTransactionGroups(
   transactions: GroupMember[],
@@ -298,7 +292,6 @@ export function useLocalActivityItems(): ActivityListItem[] {
     Record<Hex, { symbol?: string; decimals?: number; address: string }[]>
   >;
   const groupEvmAccountAddress = groupEvmAccount?.address;
-  const groupEvmAccountKeyringType = groupEvmAccount?.metadata?.keyring?.type;
 
   const transactionMetaList = useMemo(
     () => localTransactions.filter(isTransactionMetaLike),
@@ -308,8 +301,8 @@ export function useLocalActivityItems(): ActivityListItem[] {
   return useMemo(() => {
     const items: ActivityListItem[] = [];
     const accountAddress = groupEvmAccountAddress?.toLowerCase();
-    const isSelectedHardwareWalletAccount = isHardwareWalletAccount(
-      groupEvmAccountKeyringType,
+    const isHardwareWalletAccount = Boolean(
+      accountAddress && isHardwareAccount(accountAddress),
     );
     const groupedTransactions = buildTransactionGroups(
       transactionMetaList,
@@ -373,7 +366,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
         destinationToken,
         nativeAssetSymbol,
         contractTokenMetadata,
-        isHardwareWalletAccount: isSelectedHardwareWalletAccount,
+        isHardwareWalletAccount,
       };
 
       const item = mapLocalTransaction(group, mobileActivityAdapterEnvironment);
@@ -388,6 +381,5 @@ export function useLocalActivityItems(): ActivityListItem[] {
     networkConfigurations,
     allTokens,
     groupEvmAccountAddress,
-    groupEvmAccountKeyringType,
   ]);
 }
