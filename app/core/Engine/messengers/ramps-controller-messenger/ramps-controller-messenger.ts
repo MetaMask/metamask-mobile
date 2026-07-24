@@ -66,6 +66,7 @@ export function getRampsControllerMessenger(
       'TransakService:getUserLimits',
       'TransakService:requestOtt',
       'TransakService:generatePaymentWidgetUrl',
+      'TransakService:createWidgetUrl',
       'TransakService:submitPurposeOfUsageForm',
       'TransakService:patchUser',
       'TransakService:submitSsnDetails',

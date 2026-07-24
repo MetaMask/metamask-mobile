@@ -16,7 +16,11 @@ import {
 } from '@metamask/ramps-controller';
 import { getRampsEnvironment } from '../../../../core/Engine/controllers/ramps-controller/ramps-service-init';
 import { REDIRECTION_URL } from '../constants';
-import { generateThemeParameters } from '../utils/depositUtils';
+import {
+  generateThemeParameters,
+  generateWidgetThemeParameters,
+} from '../utils/depositUtils';
+import { selectRampsTransakWidgetUrlProxyEnabled } from '../../../../selectors/featureFlagController/deposit';
 import type {
   AddressFormData,
   BasicInfoFormData,
@@ -195,8 +199,13 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     getUserLimits,
     requestOtt,
     generatePaymentWidgetUrl,
+    createWidgetUrl,
     submitPurposeOfUsageForm,
   } = useTransakController();
+
+  const isTransakWidgetUrlProxyEnabled = useSelector(
+    selectRampsTransakWidgetUrlProxyEnabled,
+  );
 
   const { userRegion } = useRampsUserRegion();
   const { selectedPaymentMethod } = useRampsPaymentMethods();
@@ -850,18 +859,28 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   shouldUpdate: false,
                 });
               } else {
-                const ottResponse = await requestOtt();
+                let paymentUrl: string;
 
-                if (!ottResponse) {
-                  throw new Error('Failed to get OTT token');
+                if (isTransakWidgetUrlProxyEnabled) {
+                  paymentUrl = await createWidgetUrl(
+                    quote,
+                    walletAddress || '',
+                    generateWidgetThemeParameters(themeAppearance, colors),
+                  );
+                } else {
+                  const ottResponse = await requestOtt();
+
+                  if (!ottResponse) {
+                    throw new Error('Failed to get OTT token');
+                  }
+
+                  paymentUrl = generatePaymentWidgetUrl(
+                    ottResponse.ott,
+                    quote,
+                    walletAddress || '',
+                    generateThemeParameters(themeAppearance, colors),
+                  );
                 }
-
-                const paymentUrl = generatePaymentWidgetUrl(
-                  ottResponse.ott,
-                  quote,
-                  walletAddress || '',
-                  generateThemeParameters(themeAppearance, colors),
-                );
 
                 if (!paymentUrl) {
                   throw new Error('Failed to generate payment URL');
@@ -1023,6 +1042,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       transakCreateOrder,
       requestOtt,
       generatePaymentWidgetUrl,
+      createWidgetUrl,
+      isTransakWidgetUrlProxyEnabled,
       checkUserLimits,
       walletAddress,
       themeAppearance,

@@ -34,6 +34,7 @@ jest.mock('../../../../core/Engine', () => ({
       transakGetUserLimits: jest.fn(),
       transakRequestOtt: jest.fn(),
       transakGeneratePaymentWidgetUrl: jest.fn(),
+      transakCreateWidgetUrl: jest.fn(),
       transakSubmitPurposeOfUsageForm: jest.fn(),
       transakPatchUser: jest.fn(),
       transakSubmitSsnDetails: jest.fn(),
@@ -132,6 +133,7 @@ describe('useTransakController', () => {
       expect(typeof result.current.getUserLimits).toBe('function');
       expect(typeof result.current.requestOtt).toBe('function');
       expect(typeof result.current.generatePaymentWidgetUrl).toBe('function');
+      expect(typeof result.current.createWidgetUrl).toBe('function');
       expect(typeof result.current.submitPurposeOfUsageForm).toBe('function');
       expect(typeof result.current.patchUser).toBe('function');
       expect(typeof result.current.submitSsnDetails).toBe('function');
@@ -362,6 +364,35 @@ describe('useTransakController', () => {
         'test@test.com',
       );
       expect(response).toEqual(mockResponse);
+    });
+
+    it('createWidgetUrl delegates to RampsController with correct arguments', async () => {
+      const mockQuote = { quoteId: 'q1', fiatAmount: 100 };
+      const mockThemeParams = { colorMode: 'DARK' };
+      (
+        getRampsController().transakCreateWidgetUrl as jest.Mock
+      ).mockResolvedValue('https://widget.example/checkout');
+
+      const store = createMockStore();
+      const { result } = renderHook(() => useTransakController(), {
+        wrapper: createWrapper(store),
+      });
+
+      let url: unknown;
+      await act(async () => {
+        url = await result.current.createWidgetUrl(
+          mockQuote as never,
+          '0xwallet',
+          mockThemeParams,
+        );
+      });
+
+      expect(getRampsController().transakCreateWidgetUrl).toHaveBeenCalledWith(
+        mockQuote,
+        '0xwallet',
+        mockThemeParams,
+      );
+      expect(url).toBe('https://widget.example/checkout');
     });
 
     it('getUserDetails delegates to RampsController', async () => {

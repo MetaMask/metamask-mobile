@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 export interface DepositConfig {
   providerApiKey?: string | null;
@@ -75,4 +76,12 @@ export const selectDepositFeatures = createSelector(
     const depositFeatures = depositConfig?.features;
     return depositFeatures ?? {};
   },
+);
+
+export const selectRampsTransakWidgetUrlProxyEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      remoteFeatureFlags?.rampsTransakWidgetUrlProxy,
+    ) ?? false,
 );
