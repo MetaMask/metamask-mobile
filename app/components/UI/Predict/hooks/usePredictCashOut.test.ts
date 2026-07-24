@@ -40,6 +40,16 @@ jest.mock('../../../../util/Logger', () => ({
   error: (...args: unknown[]) => mockLoggerError(...args),
 }));
 
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      error: {
+        default: 'error-default',
+      },
+    },
+  }),
+}));
+
 const mockShowToast = jest.fn();
 const toastRef = { current: { showToast: mockShowToast } };
 
@@ -224,6 +234,7 @@ describe('usePredictCashOut', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: ToastVariants.Icon,
+        iconColor: 'error-default',
         hasNoTimeout: false,
         labelOptions: expect.arrayContaining([
           expect.objectContaining({ isBold: true }),

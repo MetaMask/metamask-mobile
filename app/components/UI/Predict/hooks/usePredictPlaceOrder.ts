@@ -7,6 +7,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { useTheme } from '../../../../util/theme';
 import {
   endTrace,
   trace,
@@ -89,6 +90,7 @@ export function usePredictPlaceOrder(
   const [result, setResult] = useState<Result | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
   const queryClient = useQueryClient();
   const { data: balance = 0, refetch: refetchBalance } = usePredictBalance();
   const { deposit, isDepositPending } = usePredictDeposit();
@@ -108,7 +110,8 @@ export function usePredictPlaceOrder(
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        iconName: IconName.Check,
+        iconName: IconName.Confirmation,
+        iconColor: colors.success.default,
         labelOptions: [
           { label: strings('predict.order.cashed_out'), isBold: true },
           { label: '\n', isBold: false },
@@ -129,7 +132,7 @@ export function usePredictPlaceOrder(
         data: { success: true },
       });
     },
-    [toastRef],
+    [colors.success.default, toastRef],
   );
 
   const showOrderPlacedToast = useCallback(() => {
@@ -146,7 +149,8 @@ export function usePredictPlaceOrder(
 
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
-      iconName: IconName.Check,
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
       labelOptions: [
         { label: strings('predict.order.prediction_placed'), isBold: true },
       ],
@@ -159,7 +163,7 @@ export function usePredictPlaceOrder(
       id: traceId,
       data: { success: true },
     });
-  }, [toastRef]);
+  }, [colors.success.default, toastRef]);
 
   const invalidateOrderQueries = useCallback(() => {
     queryClient.invalidateQueries({
