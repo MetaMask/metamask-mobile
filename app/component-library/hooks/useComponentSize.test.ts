@@ -10,6 +10,13 @@ describe('useComponentSize', () => {
     expect(typeof result.current.onLayout).toBe('function');
   });
 
+  it('should initialize with provided initialSize', () => {
+    const { result } = renderHook(() =>
+      useComponentSize({ width: 40, height: 40 }),
+    );
+    expect(result.current.size).toStrictEqual({ width: 40, height: 40 });
+  });
+
   it('should update size on first layout event', () => {
     const { result } = renderHook(() => useComponentSize());
     const event = {

@@ -26,10 +26,13 @@ import {
   PredictThePitchPrizePoolDto,
   VipDashboardState,
   VipRefereeMeState,
+  VipTransactionDto,
+  VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import {
   buildCampaignOutcomeToastCompositeKey,
   buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
 } from './compositeKeys';
 import {
   type CampaignResourceCacheEntry,
@@ -156,6 +159,8 @@ export interface RewardsState {
   vipRefereeDashboardError: boolean;
   vipSplashAccepted: Record<string, boolean>;
   vipRefereeSplashAccepted: Record<string, boolean>;
+  // VIP transactions (keyed by `${subscriptionId}:${type}`)
+  vipTransactions: Record<string, VipTransactionDto[] | null>;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -323,6 +328,7 @@ export const initialState: RewardsState = {
   vipRefereeDashboardError: false,
   vipSplashAccepted: {},
   vipRefereeSplashAccepted: {},
+  vipTransactions: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -495,6 +501,7 @@ const rewardsSlice = createSlice({
       state.vipRefereeDashboardError = false;
       state.vipSplashAccepted = {};
       state.vipRefereeSplashAccepted = {};
+      state.vipTransactions = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -861,6 +868,21 @@ const rewardsSlice = createSlice({
       action: PayloadAction<{ subscriptionId: string }>,
     ) => {
       state.vipRefereeSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
+    setVipTransactions: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        type: VipTransactionType;
+        transactions: VipTransactionDto[] | null;
+      }>,
+    ) => {
+      const key = buildSubscriptionVipTransactionCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.type,
+      );
+      state.vipTransactions[key] = action.payload.transactions;
     },
 
     setOndoCampaignActivity: (
@@ -1276,6 +1298,7 @@ const rewardsSlice = createSlice({
               vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
               vipRefereeSplashAccepted:
                 action.payload.rewards.vipRefereeSplashAccepted ?? {},
+              vipTransactions: action.payload.rewards.vipTransactions ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -1361,6 +1384,7 @@ export const {
   setVipRefereeDashboardLoading,
   acceptVipInvite,
   acceptVipRefereeInvite,
+  setVipTransactions,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,

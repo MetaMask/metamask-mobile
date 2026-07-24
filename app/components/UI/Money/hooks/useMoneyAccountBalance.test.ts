@@ -108,11 +108,15 @@ const DEFAULT_MONEY_BALANCE_QUERY: QueryState<{
   musdBalance: string;
   vmusdValueInMusd: string;
   totalBalance: string;
+  source: 'api' | 'rpc';
+  usedFallback: boolean;
 }> = {
   data: {
     musdBalance: '1000000',
     vmusdValueInMusd: '2000000',
     totalBalance: '3000000',
+    source: 'api',
+    usedFallback: false,
   },
   isLoading: false,
   isError: false,
@@ -133,13 +137,15 @@ function setupDefaultQueries(
     musdBalance: string;
     vmusdValueInMusd: string;
     totalBalance: string;
+    source?: 'api' | 'rpc';
+    usedFallback?: boolean;
   }> = DEFAULT_MONEY_BALANCE_QUERY,
   vaultApy: QueryState<{ apy: number }> = DEFAULT_VAULT_APY_QUERY,
 ) {
   mockUseQuery.mockImplementation(((options: { queryKey?: unknown[] }) => {
     if (
       options.queryKey?.[0] ===
-      'MoneyAccountBalanceService:getMoneyAccountBalance'
+      'MoneyAccountBalanceService:fetchBalanceWithFallback'
     ) {
       return moneyBalance;
     }
@@ -279,7 +285,7 @@ describe('useMoneyAccountBalance', () => {
     const balanceCallArgs = mockUseQuery.mock.calls.find(
       ([opts]) =>
         (opts as { queryKey: string[] }).queryKey[0] ===
-        'MoneyAccountBalanceService:getMoneyAccountBalance',
+        'MoneyAccountBalanceService:fetchBalanceWithFallback',
     );
     expect((balanceCallArgs?.[0] as { enabled?: boolean }).enabled).toBe(false);
   });
@@ -611,19 +617,62 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.moneyBalanceQuery.isFetching).toBe(true);
     });
 
-    it('refetchBalance invalidates the balance query via ReactQueryService', async () => {
+    it('refetchBalance invalidates source service caches then the UI facade', async () => {
+      mockControllerMessengerCall.mockResolvedValue(undefined as never);
+
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       await result.current.refetchBalance();
 
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'MoneyAccountBalanceService:invalidateQueries',
+        {
+          queryKey: [
+            'MoneyAccountBalanceService:getMoneyAccountBalance',
+            MOCK_ADDRESS,
+          ],
+        },
+      );
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'MoneyAccountApiDataService:invalidateQueries',
+        {
+          queryKey: [
+            'MoneyAccountApiDataService:fetchPositions',
+            MOCK_ADDRESS.toLowerCase(),
+          ],
+        },
+      );
       expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: [
-          'MoneyAccountBalanceService:getMoneyAccountBalance',
+          'MoneyAccountBalanceService:fetchBalanceWithFallback',
           MOCK_ADDRESS,
         ],
         refetchType: 'all',
       });
+    });
+
+    it('refetchBalance is a no-op when no primary Money Account exists', async () => {
+      setupDefaultSelectors();
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return undefined;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'usd';
+        }
+        if (selector === selectMoneyVaultApyRemoteConfig) {
+          return DEFAULT_REMOTE_APY_CONFIG;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      await expect(result.current.refetchBalance()).resolves.toBeUndefined();
+
+      expect(mockControllerMessengerCall).not.toHaveBeenCalled();
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
     });
   });
 
@@ -707,6 +756,37 @@ describe('useMoneyAccountBalance', () => {
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       expect(result.current.lastKnownTotalFiatFormatted).toBeUndefined();
+    });
+  });
+
+  describe('balance provenance', () => {
+    it('exposes balanceSource and usedFallback from the canonical response', () => {
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.balanceSource).toBe('api');
+      expect(result.current.usedFallback).toBe(false);
+      expect(result.current.isBalanceDegraded).toBe(false);
+    });
+
+    it('marks the balance as degraded when usedFallback is true', () => {
+      setupDefaultQueries({
+        data: {
+          musdBalance: '1000000',
+          vmusdValueInMusd: '2000000',
+          totalBalance: '3000000',
+          source: 'rpc',
+          usedFallback: true,
+        },
+        isLoading: false,
+        isError: false,
+        isFetching: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.balanceSource).toBe('rpc');
+      expect(result.current.usedFallback).toBe(true);
+      expect(result.current.isBalanceDegraded).toBe(true);
     });
   });
 });
