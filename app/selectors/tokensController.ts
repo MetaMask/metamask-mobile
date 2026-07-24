@@ -118,7 +118,7 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   },
 );
 
-const EMPTY_TOKENS: Token[] = Object.freeze([]) as Token[];
+const EMPTY_TOKENS: Token[] = Object.freeze([] as Token[]) as Token[];
 
 export const selectAllTokensFlat = createDeepEqualSelector(
   getTokensControllerAllTokens,
