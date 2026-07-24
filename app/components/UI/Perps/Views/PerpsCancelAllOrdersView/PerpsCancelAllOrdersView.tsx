@@ -24,6 +24,10 @@ import {
   PERPS_EVENT_VALUE,
   type CancelOrdersResult,
 } from '@metamask/perps-controller';
+import {
+  resolveCancelAllErrorMessage,
+  resolveCancelAllSuccessFeedback,
+} from './resolveCancelAllOrdersFeedback';
 
 interface PerpsCancelAllOrdersViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -69,26 +73,27 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
 
   const handleSuccess = useCallback(
     (result: CancelOrdersResult) => {
-      if (result.successCount <= 0) {
-        return;
-      }
-
+      const feedback = resolveCancelAllSuccessFeedback(result);
       const { shared } = PerpsToastOptions.orderManagement;
 
-      if (result.success) {
-        showToast(shared.cancelAllSuccess(result.successCount));
-        closeSheetIfOverlay();
+      if (feedback.action === 'success') {
+        showToast(shared.cancelAllSuccess(feedback.successCount));
+        if (feedback.shouldCloseOverlay) {
+          closeSheetIfOverlay();
+        }
         return;
       }
 
-      if (result.failureCount > 0) {
+      if (feedback.action === 'partial') {
         showToast(
           shared.cancelAllPartialSuccess(
-            result.successCount,
-            result.successCount + result.failureCount,
+            feedback.successCount,
+            feedback.totalCount,
           ),
         );
-        closeSheetIfOverlay();
+        if (feedback.shouldCloseOverlay) {
+          closeSheetIfOverlay();
+        }
       }
     },
     [showToast, PerpsToastOptions, closeSheetIfOverlay],
@@ -98,7 +103,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
     (error: Error) => {
       showToast(
         PerpsToastOptions.orderManagement.shared.cancelAllFailed(
-          error.message || 'Unknown error',
+          resolveCancelAllErrorMessage(error),
         ),
       );
     },
