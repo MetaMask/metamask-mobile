@@ -1,5 +1,7 @@
 import { useCallback, useContext, useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
+// PermissionsAndroid usage below is gated behind `Platform.OS === 'android'`.
+// eslint-disable-next-line react-native/split-platform-components
+import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { ToastContext } from '../../../component-library/components/Toast';
 import {
   ToastVariants,
@@ -13,6 +15,29 @@ import NotificationService, {
   isPushPermissionGranted,
   isPushPermissionPromptable,
 } from '../../../util/notifications/services/NotificationService';
+
+/** Android API level (13) that introduced the POST_NOTIFICATIONS runtime permission. */
+const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
+
+/**
+ * Below this threshold, `PermissionsAndroid.request(POST_NOTIFICATIONS)` likely
+ * returned without showing the OS dialog (permanent deny). Only applies to the
+ * direct PermissionsAndroid call — not Notifee channel setup.
+ */
+const ANDROID_OS_DIALOG_MIN_ELAPSED_MS = 300;
+
+function shouldOpenAndroidNotificationSettings(
+  result: string,
+  requestElapsedMs: number,
+): boolean {
+  if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+    return true;
+  }
+  return (
+    result === PermissionsAndroid.RESULTS.DENIED &&
+    requestElapsedMs < ANDROID_OS_DIALOG_MIN_ELAPSED_MS
+  );
+}
 
 const NUDGE_LABELS = () => [
   { label: strings('sdk_connect_v2.push_nudge.title'), isBold: true },
@@ -33,6 +58,10 @@ const ERROR_LABELS = () => [
  * Denying that dialog closes the toast without opening Settings. When the OS can
  * no longer show its dialog (e.g. iOS after a prior denial), it deep-links to
  * device notification settings and retries once the app returns to foreground.
+ *
+ * Android: Notifee reports DENIED for both "never asked" and "permanently
+ * denied", so we use PermissionsAndroid.request(POST_NOTIFICATIONS) and
+ * treat NEVER_ASK_AGAIN as the signal to open device notification settings.
  */
 export function useCliLoginPushNudge(): {
   showNudge: () => boolean;
@@ -112,6 +141,36 @@ export function useCliLoginPushNudge(): {
     [clearForegroundRetry],
   );
 
+  const openSettingsAndScheduleRetry = useCallback(
+    (isCurrent: () => boolean) => {
+      toastRef?.current?.closeToast();
+      NotificationService.openSystemSettings();
+      scheduleForegroundRetry(async () => {
+        if (!isCurrent()) {
+          return;
+        }
+        inFlightRef.current = true;
+        try {
+          if (!(await isPushPermissionGranted())) {
+            if (isCurrent()) {
+              toastRef?.current?.closeToast();
+            }
+            return;
+          }
+          if (!isCurrent()) {
+            return;
+          }
+          showLoadingToast();
+          await runEnableFlow(isCurrent);
+        } finally {
+          inFlightRef.current = false;
+        }
+      });
+      inFlightRef.current = false;
+    },
+    [runEnableFlow, scheduleForegroundRetry, showLoadingToast, toastRef],
+  );
+
   const onTapTurnOn = useCallback(async () => {
     if (inFlightRef.current) {
       return;
@@ -137,45 +196,53 @@ export function useCliLoginPushNudge(): {
         return;
       }
 
+      if (Platform.OS === 'android') {
+        showLoadingToast();
+        // Android 13+ requires the POST_NOTIFICATIONS runtime permission. The
+        // request resolves to NEVER_ASK_AGAIN once the user has permanently
+        // denied it, which is the authoritative signal that the OS dialog can
+        // no longer be shown.
+        if (Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
+          const requestStartedAt = Date.now();
+          const result = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          );
+          const requestElapsedMs = Date.now() - requestStartedAt;
+          if (!isCurrent()) {
+            return;
+          }
+          if (result === PermissionsAndroid.RESULTS.GRANTED) {
+            await runEnableFlow(isCurrent);
+            return;
+          }
+          if (shouldOpenAndroidNotificationSettings(result, requestElapsedMs)) {
+            openSettingsAndScheduleRetry(isCurrent);
+            return;
+          }
+          // DENIED after the OS dialog was shown and dismissed.
+          if (isCurrent()) {
+            toastRef?.current?.closeToast();
+          }
+          return;
+        }
+
+        // Android < 13 has no runtime dialog; when notifications are not
+        // already granted they can only be enabled from system settings.
+        openSettingsAndScheduleRetry(isCurrent);
+        return;
+      }
+
       const promptable = await isPushPermissionPromptable();
       if (!isCurrent()) {
         return;
       }
 
       if (!promptable) {
-        // OS dialog cannot be shown again (e.g. iOS after a prior denial).
-        // Deep-link to device settings and retry on return to foreground.
-        toastRef?.current?.closeToast();
-        NotificationService.openSystemSettings();
-        scheduleForegroundRetry(async () => {
-          if (!isCurrent()) {
-            return;
-          }
-          inFlightRef.current = true;
-          try {
-            if (!(await isPushPermissionGranted())) {
-              if (isCurrent()) {
-                toastRef?.current?.closeToast();
-              }
-              return;
-            }
-            if (!isCurrent()) {
-              return;
-            }
-            showLoadingToast();
-            await runEnableFlow(isCurrent);
-          } finally {
-            inFlightRef.current = false;
-          }
-        });
-        // The enable work is deferred to the foreground retry, which manages
-        // its own in-flight guard. Release the guard now so a later tap is not
-        // permanently blocked if the user never returns from device settings.
-        inFlightRef.current = false;
+        openSettingsAndScheduleRetry(isCurrent);
         return;
       }
 
-      // OS can still show its dialog — request permission via enableNotifications().
+      // iOS: OS can still show its dialog — request permission via enableNotifications().
       // If the user denies, dismiss the toast without opening Settings (matches
       // PushNotificationOnboarding).
       showLoadingToast();
@@ -195,8 +262,8 @@ export function useCliLoginPushNudge(): {
     }
   }, [
     enableNotifications,
+    openSettingsAndScheduleRetry,
     runEnableFlow,
-    scheduleForegroundRetry,
     showErrorToast,
     showLoadingToast,
     toastRef,
