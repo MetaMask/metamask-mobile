@@ -26,6 +26,19 @@ export function isCrossmintPaymentCompleted(order?: CrossmintOrder): boolean {
   return order.phase === 'delivery' || order.phase === 'completed';
 }
 
+/**
+ * True once the user has authorized payment and Crossmint is settling the order
+ * (post–Apple Pay biometrics), but before delivery/completion.
+ */
+export function isCrossmintPaymentInProgress(order?: CrossmintOrder): boolean {
+  if (!order || isCrossmintPaymentCompleted(order)) {
+    return false;
+  }
+
+  const status = order.payment?.status;
+  return status === 'in-progress' || status === 'crypto-payouts-in-progress';
+}
+
 export function getCrossmintFailureMessage(
   message: CrossmintCheckoutMessage,
 ): string | null {

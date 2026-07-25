@@ -1,6 +1,7 @@
 import {
   getCrossmintFailureMessage,
   isCrossmintPaymentCompleted,
+  isCrossmintPaymentInProgress,
   parseCrossmintCheckoutMessage,
 } from './parseCheckoutMessage';
 
@@ -56,6 +57,32 @@ describe('isCrossmintPaymentCompleted', () => {
         orderId: '1',
         phase: 'payment',
         payment: { status: 'awaiting-payment' },
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('isCrossmintPaymentInProgress', () => {
+  it('returns true for in-progress payment status', () => {
+    expect(
+      isCrossmintPaymentInProgress({
+        orderId: '1',
+        payment: { status: 'in-progress' },
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for awaiting-payment and completed', () => {
+    expect(
+      isCrossmintPaymentInProgress({
+        orderId: '1',
+        payment: { status: 'awaiting-payment' },
+      }),
+    ).toBe(false);
+    expect(
+      isCrossmintPaymentInProgress({
+        orderId: '1',
+        payment: { status: 'completed' },
       }),
     ).toBe(false);
   });

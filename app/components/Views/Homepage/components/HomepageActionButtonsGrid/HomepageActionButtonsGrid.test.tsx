@@ -217,6 +217,23 @@ describe('HomepageActionButtonsGrid', () => {
     },
   );
 
+  it('opens the fund action menu when buy is pressed', () => {
+    const { getByTestId } = render(
+      <HomepageActionButtonsGrid
+        onSend={mockOnSend}
+        onReceive={mockOnReceive}
+        rowOrder="row1Top"
+      />,
+    );
+
+    fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.BUY_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'FundActionMenu',
+    });
+    expect(mockGoToBuy).not.toHaveBeenCalled();
+  });
+
   it('tracks sell tap with sixth position for row2Top', () => {
     const { getByTestId } = render(
       <HomepageActionButtonsGrid

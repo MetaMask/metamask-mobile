@@ -72,13 +72,6 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-const mockGoToBuy = jest.fn();
-jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({
-    goToBuy: mockGoToBuy,
-  }),
-}));
-
 jest.mock('../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => ({
     is_authenticated: true,
@@ -195,9 +188,8 @@ describe('AccountsMenu', () => {
       ).toBeOnTheScreen();
     });
 
-    it('navigate to buy flow and track analytics when Buy is pressed', () => {
-      // Clear previous calls
-      mockGoToBuy.mockClear();
+    it('navigates to FundActionMenu and tracks analytics when Buy is pressed', () => {
+      mockNavigate.mockClear();
       mockTrackEvent.mockClear();
 
       const { getByTestId } = render(<AccountsMenu />);
@@ -205,13 +197,10 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(buyButton);
 
-      // Verify goToBuy was called
-      expect(mockGoToBuy).toHaveBeenCalled();
-
-      // Verify analytics tracking
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.FUND_ACTION_MENU,
+      });
       expect(mockTrackEvent).toHaveBeenCalled();
-      const trackEventCall = mockTrackEvent.mock.calls[0][0];
-      expect(trackEventCall).toBeDefined();
     });
 
     it('track RAMPS_BUTTON_CLICKED event with correct properties when Buy is pressed', () => {

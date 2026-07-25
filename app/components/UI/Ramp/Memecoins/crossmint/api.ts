@@ -10,7 +10,11 @@ import {
   getCrossmintClientApiKey,
   getCrossmintEnvironment,
 } from './config';
-import { mergeStagingXmeme, toMemecoinToken } from './tokenLocator';
+import {
+  mergeDemoMemecoinStubs,
+  mergeStagingXmeme,
+  toMemecoinToken,
+} from './tokenLocator';
 import type {
   CrossmintCreateOrderParams,
   CrossmintCreateOrderResponse,
@@ -65,7 +69,7 @@ export async function fetchCrossmintMemecoinTokens(options?: {
         getCrossmintEnvironment() === 'staging' &&
         (response.status === 403 || response.status === 401)
       ) {
-        return [CROSSMINT_STAGING_XMEME_TOKEN];
+        return mergeDemoMemecoinStubs([CROSSMINT_STAGING_XMEME_TOKEN]);
       }
       throw new Error(
         `Failed to fetch Crossmint tokens (${response.status} ${response.statusText})`,
@@ -77,10 +81,10 @@ export async function fetchCrossmintMemecoinTokens(options?: {
       .filter((item) => item.available && item.features?.creditCardPayment)
       .map(toMemecoinToken);
 
-    return mergeStagingXmeme(tokens);
+    return mergeDemoMemecoinStubs(mergeStagingXmeme(tokens));
   } catch (error) {
     if (getCrossmintEnvironment() === 'staging') {
-      return [CROSSMINT_STAGING_XMEME_TOKEN];
+      return mergeDemoMemecoinStubs([CROSSMINT_STAGING_XMEME_TOKEN]);
     }
     throw error;
   }
@@ -104,9 +108,7 @@ export async function createCrossmintOrder(
     ],
     payment: {
       method: 'card',
-      ...(params.receiptEmail
-        ? { receiptEmail: params.receiptEmail }
-        : {}),
+      ...(params.receiptEmail ? { receiptEmail: params.receiptEmail } : {}),
     },
     recipient: {
       walletAddress: params.walletAddress,

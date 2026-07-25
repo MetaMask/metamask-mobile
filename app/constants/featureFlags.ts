@@ -48,8 +48,9 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  // TEMP: enabled until LaunchDarkly flag exists; flip back to false then.
   [FeatureFlagNames.crossmintMemecoinCheckout]: {
-    enabled: false,
+    enabled: true,
     minimumVersion: CROSSMINT_MEMECOIN_CHECKOUT_MINIMUM_VERSION,
   },
 };

@@ -1,6 +1,7 @@
 import {
   CROSSMINT_STAGING_XMEME_LOCATOR,
   CROSSMINT_STAGING_XMEME_TOKEN,
+  DEMO_MEMECOIN_CATALOG_STUBS,
 } from './constants';
 import type {
   CrossmintMemecoinToken,
@@ -64,11 +65,23 @@ export function mergeStagingXmeme(
 }
 
 /**
+ * Appends demo Solana memecoin stubs (TRUMP / PENGU / FARTCOIN) that have live
+ * MetaMask Price API coverage. Skips locators already present in `tokens`.
+ */
+export function mergeDemoMemecoinStubs(
+  tokens: CrossmintMemecoinToken[],
+): CrossmintMemecoinToken[] {
+  const existing = new Set(tokens.map((token) => token.tokenLocator));
+  const stubs = DEMO_MEMECOIN_CATALOG_STUBS.filter(
+    (stub) => !existing.has(stub.tokenLocator),
+  );
+  return [...tokens, ...stubs];
+}
+
+/**
  * Maps Crossmint chain slug to MetaMask CAIP chain id for recipient lookup.
  */
-export function crossmintChainToCaipChainId(
-  chain: string,
-): string | null {
+export function crossmintChainToCaipChainId(chain: string): string | null {
   switch (chain.toLowerCase()) {
     case 'solana':
       return 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -91,4 +104,27 @@ export function crossmintChainToCaipChainId(
       }
       return null;
   }
+}
+
+/**
+ * Maps a Crossmint token locator (`chain:address`) to a MetaMask CAIP-19 asset
+ * id for Price / Tokens API lookups.
+ */
+export function crossmintLocatorToCaipAssetId(
+  token: Pick<CrossmintMemecoinToken, 'chain' | 'address' | 'tokenLocator'>,
+): string | null {
+  const caipChainId = crossmintChainToCaipChainId(token.chain);
+  if (!caipChainId || !token.address) {
+    return null;
+  }
+
+  if (caipChainId.startsWith('solana:')) {
+    return `${caipChainId}/token:${token.address}`;
+  }
+
+  if (caipChainId.startsWith('eip155:')) {
+    return `${caipChainId}/erc20:${token.address.toLowerCase()}`;
+  }
+
+  return null;
 }

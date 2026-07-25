@@ -15,6 +15,8 @@ export {
   CROSSMINT_DEFAULT_MAX_SLIPPAGE_BPS,
   CROSSMINT_STAGING_XMEME_LOCATOR,
   CROSSMINT_STAGING_XMEME_TOKEN,
+  CROSSMINT_STAGING_XMEME_MARKET_DATA,
+  DEMO_MEMECOIN_CATALOG_STUBS,
   CROSSMINT_USD_AMOUNT_PRESETS,
   SOLANA_MAINNET_CAIP_CHAIN_ID,
 } from './constants';
@@ -29,13 +31,16 @@ export { buildCrossmintCheckoutUrl } from './buildCheckoutUrl';
 export {
   parseCrossmintCheckoutMessage,
   isCrossmintPaymentCompleted,
+  isCrossmintPaymentInProgress,
   getCrossmintFailureMessage,
 } from './parseCheckoutMessage';
 export {
   parseTokenLocator,
   toMemecoinToken,
   mergeStagingXmeme,
+  mergeDemoMemecoinStubs,
   crossmintChainToCaipChainId,
+  crossmintLocatorToCaipAssetId,
 } from './tokenLocator';
 export type {
   CrossmintMemecoinToken,

@@ -1,10 +1,12 @@
 import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   ActionButtonType,
   ActionLocation,
@@ -18,8 +20,8 @@ const BuyButton = ({
   actionPosition,
   allowTwoLineLabel,
 }: HomepageActionButtonSlotProps) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { goToBuy } = useRampNavigation();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const label = strings('homepage.action_buttons.buy');
 
@@ -30,8 +32,11 @@ const BuyButton = ({
       button_label: label,
       location: ActionLocation.HOME,
     });
-    goToBuy();
-  }, [actionPosition, createEventBuilder, goToBuy, label, trackEvent]);
+    // Open FundActionMenu so gated options (e.g. Memecoins) can appear alongside Buy/Sell.
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+    });
+  }, [actionPosition, createEventBuilder, label, navigation, trackEvent]);
 
   return (
     <HomepageActionButton

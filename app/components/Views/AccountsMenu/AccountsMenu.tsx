@@ -34,7 +34,6 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
-import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import {
   getMetamaskNotificationsReadCount,
@@ -50,7 +49,6 @@ const AccountsMenu = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();
-  const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
   const isNotificationEnabled = useSelector(
@@ -76,9 +74,12 @@ const AccountsMenu = () => {
         })
         .build(),
     );
-    goToBuy();
+    // Open FundActionMenu so gated options (e.g. Memecoins) can appear alongside Buy/Sell.
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+    });
   }, [
-    goToBuy,
+    navigation,
     createEventBuilder,
     trackEvent,
     rampGeodetectedRegion,

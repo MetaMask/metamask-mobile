@@ -1,6 +1,8 @@
 import { CROSSMINT_STAGING_XMEME_TOKEN } from './constants';
 import {
   crossmintChainToCaipChainId,
+  crossmintLocatorToCaipAssetId,
+  mergeDemoMemecoinStubs,
   mergeStagingXmeme,
   parseTokenLocator,
   toMemecoinToken,
@@ -51,5 +53,22 @@ describe('tokenLocator helpers', () => {
     expect(crossmintChainToCaipChainId('solana')).toBe(
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     );
+  });
+
+  it('maps Crossmint locator to CAIP-19 asset id', () => {
+    expect(crossmintLocatorToCaipAssetId(CROSSMINT_STAGING_XMEME_TOKEN)).toBe(
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:7EivYFyNfgGj8xbUymR7J4LuxUHLKRzpLaERHLvi7Dgu',
+    );
+  });
+
+  it('appends demo memecoin stubs without duplicating locators', () => {
+    const merged = mergeDemoMemecoinStubs([CROSSMINT_STAGING_XMEME_TOKEN]);
+    expect(merged.map((token) => token.symbol)).toEqual([
+      'XMEME',
+      'TRUMP',
+      'PENGU',
+      'FARTCOIN',
+    ]);
+    expect(mergeDemoMemecoinStubs(merged)).toHaveLength(4);
   });
 });

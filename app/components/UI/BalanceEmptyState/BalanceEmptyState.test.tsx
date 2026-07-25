@@ -8,11 +8,14 @@ import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Routes from '../../../constants/navigation/Routes';
 
-// Mock useRampNavigation hook
-const mockGoToBuy = jest.fn();
-jest.mock('../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
 }));
 
 const mockButtonClickData: RampsButtonClickData = {
@@ -74,7 +77,7 @@ describe('BalanceEmptyState', () => {
     });
   });
 
-  it('navigates to buy flow when action button is pressed', () => {
+  it('opens the fund action menu when action button is pressed', () => {
     const { getByTestId } = renderComponent();
     const actionButton = getByTestId('balance-empty-state-action-button');
 
@@ -82,10 +85,12 @@ describe('BalanceEmptyState', () => {
 
     fireEvent.press(actionButton);
 
-    expect(mockGoToBuy).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+    });
   });
 
-  it('tracks RAMPS_BUTTON_CLICKED event with ramp_type UNIFIED_BUY_2', () => {
+  it('tracks RAMPS_BUTTON_CLICKED event when opening the fund menu', () => {
     const { getByTestId } = renderComponent();
     const actionButton = getByTestId('balance-empty-state-action-button');
 
@@ -99,7 +104,7 @@ describe('BalanceEmptyState', () => {
         button_text: 'Add funds',
         location: 'BalanceEmptyState',
         chain_id_destination: 1,
-        ramp_type: 'UNIFIED_BUY_2',
+        ramp_type: 'FUND_MENU',
         is_authenticated: false,
         preferred_provider: undefined,
         order_count: 0,

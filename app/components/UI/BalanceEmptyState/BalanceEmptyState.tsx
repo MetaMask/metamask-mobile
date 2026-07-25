@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -20,8 +22,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
-import { trace, TraceName } from '../../../util/trace';
-import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import Routes from '../../../constants/navigation/Routes';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -29,29 +30,27 @@ import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
- * with an illustration, title, subtitle, and action button that navigates to deposit flow.
+ * with an illustration, title, subtitle, and action button that opens the fund menu.
  */
 const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   testID = 'balance-empty-state',
   ...props
 }) => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
   const chainId = useSelector(selectChainId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
 
-  const handleAction = () => {
-    goToBuy();
-
+  const handleAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           button_text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: 'UNIFIED_BUY_2',
+          ramp_type: 'FUND_MENU',
           region: rampGeodetectedRegion,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
@@ -60,10 +59,20 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
         .build(),
     );
 
-    trace({
-      name: TraceName.LoadRampExperience,
+    // Open FundActionMenu so gated options (e.g. Memecoins) can appear alongside Buy/Sell.
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
     });
-  };
+  }, [
+    buttonClickData.is_authenticated,
+    buttonClickData.order_count,
+    buttonClickData.preferred_provider,
+    chainId,
+    createEventBuilder,
+    navigation,
+    rampGeodetectedRegion,
+    trackEvent,
+  ]);
 
   return (
     <Box

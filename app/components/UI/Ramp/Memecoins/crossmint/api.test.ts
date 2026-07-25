@@ -46,10 +46,14 @@ describe('crossmint api', () => {
       }),
     );
     expect(tokens[0].tokenLocator).toBe(CROSSMINT_STAGING_XMEME_LOCATOR);
-    expect(tokens).toHaveLength(2);
+    // XMEME + API token + TRUMP/PENGU/FARTCOIN demo stubs
+    expect(tokens).toHaveLength(5);
+    expect(tokens.map((token) => token.symbol)).toEqual(
+      expect.arrayContaining(['XMEME', 'TRUMP', 'PENGU', 'FARTCOIN']),
+    );
   });
 
-  it('falls back to staging XMEME when tokens API is forbidden', async () => {
+  it('falls back to staging XMEME plus demo stubs when tokens API is forbidden', async () => {
     fetchMock.mockResolvedValue({
       ok: false,
       status: 403,
@@ -58,8 +62,11 @@ describe('crossmint api', () => {
 
     const tokens = await fetchCrossmintMemecoinTokens({ chains: 'solana' });
 
-    expect(tokens).toHaveLength(1);
+    expect(tokens).toHaveLength(4);
     expect(tokens[0].tokenLocator).toBe(CROSSMINT_STAGING_XMEME_LOCATOR);
+    expect(tokens.map((token) => token.symbol)).toEqual(
+      expect.arrayContaining(['XMEME', 'TRUMP', 'PENGU', 'FARTCOIN']),
+    );
   });
 
   it('creates an order', async () => {
