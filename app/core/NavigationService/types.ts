@@ -117,6 +117,9 @@ import type {
   RampTokenListRootParamList,
 } from '../../components/UI/Ramp/types/navigation';
 import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
+import type { AmountParams as MemecoinsAmountParams } from '../../components/UI/Ramp/Memecoins/Views/Amount/Amount';
+import type { CheckoutParams as MemecoinsCheckoutParams } from '../../components/UI/Ramp/Memecoins/Views/Checkout/Checkout';
+import type { MemecoinsStackParamList } from '../../components/UI/Ramp/Memecoins/routes';
 
 // Transactions params
 import type {
@@ -489,6 +492,10 @@ export type RootStackParamList = {
   Ramp: undefined;
   RampBuy: RampBuySellParams | undefined;
   RampSell: RampBuySellParams | undefined;
+  RampMemecoins: NavigatorScreenParams<MemecoinsStackParamList> | undefined;
+  RampMemecoinsTokenList: undefined;
+  RampMemecoinsAmount: MemecoinsAmountParams;
+  RampMemecoinsCheckout: MemecoinsCheckoutParams;
   RampTokenSelection:
     | NavigatorScreenParams<RampTokenListRootParamList>
     | undefined;

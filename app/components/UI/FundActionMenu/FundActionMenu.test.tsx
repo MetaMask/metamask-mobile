@@ -14,6 +14,7 @@ import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import FundActionMenu from './FundActionMenu';
 import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import { selectCrossmintMemecoinCheckoutEnabled } from '../../../selectors/featureFlagController/crossmintMemecoinCheckout';
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
@@ -31,6 +32,9 @@ jest.mock('../../../util/networks', () => ({
 jest.mock('../Ramp/Aggregator/routes/utils', () => ({
   createBuyNavigationDetails: jest.fn(),
   createSellNavigationDetails: jest.fn(),
+}));
+jest.mock('../Ramp/Memecoins', () => ({
+  createMemecoinsNavDetails: jest.fn(() => ['RampMemecoins'] as const),
 }));
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -85,6 +89,9 @@ describe('FundActionMenu', () => {
     } as never);
 
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectCrossmintMemecoinCheckoutEnabled) {
+        return false;
+      }
       const selectorString = selector.toString();
       if (selectorString.includes('selectEvmChainId')) return '0x1';
       if (selectorString.includes('selectCanSignTransactions')) return true;
@@ -146,6 +153,32 @@ describe('FundActionMenu', () => {
       expect(
         queryByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
       ).toBeNull();
+    });
+
+    it('hides memecoins button when Crossmint feature flag is disabled', () => {
+      const { queryByTestId } = render(<FundActionMenu />);
+
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.MEMECOINS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders memecoins button when Crossmint feature flag is enabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectCrossmintMemecoinCheckoutEnabled) {
+          return true;
+        }
+        const selectorString = selector.toString();
+        if (selectorString.includes('selectEvmChainId')) return '0x1';
+        if (selectorString.includes('selectCanSignTransactions')) return true;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<FundActionMenu />);
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MEMECOINS_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('renders sell button independently of the selected network', () => {

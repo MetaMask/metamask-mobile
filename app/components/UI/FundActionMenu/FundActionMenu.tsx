@@ -24,6 +24,9 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { createMemecoinsNavDetails } from '../Ramp/Memecoins';
+import { selectCrossmintMemecoinCheckoutEnabled } from '../../../selectors/featureFlagController/crossmintMemecoinCheckout';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 
 // Types
 import type {
@@ -50,6 +53,9 @@ const FundActionMenu = () => {
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy, goToSell } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
+  const isMemecoinsEnabled = useSelector(
+    selectCrossmintMemecoinCheckoutEnabled,
+  );
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -131,6 +137,27 @@ const FundActionMenu = () => {
           traceProperties: { tags: { rampType: RampType.BUY } },
         },
         {
+          type: 'memecoins',
+          label: strings('fund_actionmenu.memecoins'),
+          description: strings('fund_actionmenu.memecoins_description'),
+          iconName: IconName.Coin,
+          testID: WalletActionsBottomSheetSelectorsIDs.MEMECOINS_BUTTON,
+          isVisible: isMemecoinsEnabled,
+          analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+          analyticsProperties: {
+            button_text: 'Memecoins',
+            location: 'FundActionMenu',
+            chain_id_destination: getChainIdForAsset(),
+            ramp_type: 'CROSSMINT_MEMECOIN',
+            region: rampGeodetectedRegion,
+          },
+          navigationAction: () => {
+            navigateWithDetails(navigation, createMemecoinsNavDetails());
+          },
+          traceName: TraceName.LoadRampExperience,
+          traceProperties: { tags: { rampType: 'CROSSMINT_MEMECOIN' } },
+        },
+        {
           type: 'sell',
           label: strings('fund_actionmenu.sell'),
           description: strings('fund_actionmenu.sell_description'),
@@ -163,6 +190,8 @@ const FundActionMenu = () => {
       goToBuy,
       goToSell,
       rampsButtonClickData,
+      isMemecoinsEnabled,
+      navigation,
     ],
   );
 

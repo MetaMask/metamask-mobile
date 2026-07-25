@@ -78,6 +78,7 @@ import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
+import MemecoinsRoutes from '../../UI/Ramp/Memecoins/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 
@@ -1174,6 +1175,10 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.MEMECOINS.ROOT}
+        component={MemecoinsRoutes}
       />
       <NativeStack.Screen
         name={Routes.RAMP.HEADLESS_ENTRY}

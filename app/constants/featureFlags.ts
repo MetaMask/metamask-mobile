@@ -19,6 +19,7 @@ export enum FeatureFlagNames {
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
+  crossmintMemecoinCheckout = 'crossmintMemecoinCheckout',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -26,6 +27,9 @@ export const ADD_DEVICE_SYNC_MINIMUM_VERSION = '8.6.0';
 
 /** Minimum expected app version required for Ledger DMK (Device Management Key). */
 export const LEDGER_DMK_MINIMUM_VERSION = '8.2.0';
+
+/** Minimum expected app version required for Crossmint memecoin checkout. */
+export const CROSSMINT_MEMECOIN_CHECKOUT_MINIMUM_VERSION = '7.50.0';
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
@@ -44,4 +48,8 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.crossmintMemecoinCheckout]: {
+    enabled: false,
+    minimumVersion: CROSSMINT_MEMECOIN_CHECKOUT_MINIMUM_VERSION,
+  },
 };

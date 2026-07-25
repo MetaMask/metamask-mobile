@@ -27,6 +27,12 @@ const Routes = {
     HEADLESS_HOST: 'RampHeadlessHost',
     HEADLESS_ENTRY: 'RampHeadlessEntry',
     AMOUNT_INPUT: 'RampAmountInput',
+    MEMECOINS: {
+      ROOT: 'RampMemecoins',
+      TOKEN_LIST: 'RampMemecoinsTokenList',
+      AMOUNT: 'RampMemecoinsAmount',
+      CHECKOUT: 'RampMemecoinsCheckout',
+    },
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
     ORDER_PROCESSING: 'RampOrderProcessing',
