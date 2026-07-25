@@ -26,7 +26,11 @@ export {
   getCrossmintEnvironment,
   isCrossmintConfigured,
 } from './config';
-export { fetchCrossmintMemecoinTokens, createCrossmintOrder } from './api';
+export {
+  fetchCrossmintMemecoinTokens,
+  createCrossmintOrder,
+  getCrossmintOrder,
+} from './api';
 export { buildCrossmintCheckoutUrl } from './buildCheckoutUrl';
 export {
   parseCrossmintCheckoutMessage,

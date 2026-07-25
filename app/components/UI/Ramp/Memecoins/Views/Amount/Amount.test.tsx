@@ -5,6 +5,7 @@ import Amount from './Amount';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOnMessage = jest.fn();
+const mockInjectJavaScript = jest.fn();
 const mockTokenLocator = 'solana:7EivYFyNfgGj8xbUymR7J4LuxUHLKRzpLaERHLvi7Dgu';
 
 jest.mock('@react-navigation/native', () => ({
@@ -46,20 +47,23 @@ jest.mock('../../hooks/useMemecoinMarketData', () => ({
   }),
 }));
 
-jest.mock('../../crossmint', () => {
-  const actual = jest.requireActual('../../crossmint');
-  return {
-    ...actual,
-    createCrossmintOrder: jest.fn().mockResolvedValue({
-      order: { orderId: 'order-1' },
-      clientSecret: 'secret-1',
-    }),
-    buildCrossmintCheckoutUrl: jest.fn(
-      () =>
-        'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=1',
-    ),
-  };
-});
+jest.mock('../../crossmint/api', () => ({
+  createCrossmintOrder: jest.fn().mockResolvedValue({
+    order: { orderId: 'order-1' },
+    clientSecret: 'secret-1',
+  }),
+  getCrossmintOrder: jest.fn().mockResolvedValue({
+    orderId: 'order-1',
+    payment: { status: 'awaiting-payment' },
+  }),
+}));
+
+jest.mock('../../crossmint/buildCheckoutUrl', () => ({
+  buildCrossmintCheckoutUrl: jest.fn(
+    () =>
+      'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=1',
+  ),
+}));
 
 jest.mock('@metamask/react-native-webview', () => {
   const ReactActual = jest.requireActual('react');
@@ -70,8 +74,11 @@ jest.mock('@metamask/react-native-webview', () => {
         testID?: string;
         onMessage?: (event: { nativeEvent: { data: string } }) => void;
       },
-      _ref: unknown,
+      ref: React.Ref<{ injectJavaScript: (script: string) => void }>,
     ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        injectJavaScript: mockInjectJavaScript,
+      }));
       mockOnMessage.mockImplementation((data: string) => {
         props.onMessage?.({ nativeEvent: { data } });
       });
@@ -104,16 +111,13 @@ function emitCheckoutMessage(payload: unknown) {
   });
 }
 
-async function prepareApplePayReady() {
+async function flushPrepare() {
   await act(async () => {
     jest.advanceTimersByTime(400);
   });
-
-  await waitFor(() => {
-    expect(mockOnMessage).toBeDefined();
+  await act(async () => {
+    await Promise.resolve();
   });
-
-  emitCheckoutMessage({ event: 'ui:express-checkout.ready' });
 }
 
 describe('Memecoins Amount', () => {
@@ -135,42 +139,42 @@ describe('Memecoins Amount', () => {
     expect(getByText('$0 fee')).toBeOnTheScreen();
   });
 
-  it('keeps Buy disabled with loading until Apple Pay widget is ready', async () => {
-    const { getByTestId, getByText, queryByTestId } = render(<Amount />);
+  it('shows the Crossmint Apple Pay WebView once the order is prepared', async () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <Amount />,
+    );
 
     expect(getByText('Preparing Apple Pay…')).toBeOnTheScreen();
     expect(queryByTestId('memecoins-checkout-webview')).toBeNull();
 
-    await act(async () => {
-      jest.advanceTimersByTime(400);
-    });
+    await flushPrepare();
 
     await waitFor(() => {
       expect(getByTestId('memecoins-checkout-webview')).toBeOnTheScreen();
     });
-
-    expect(getByText('Preparing Apple Pay…')).toBeOnTheScreen();
-
-    emitCheckoutMessage({ event: 'ui:express-checkout.ready' });
-
-    await waitFor(() => {
-      expect(getByText('Buy')).toBeOnTheScreen();
-    });
+    expect(queryByText('Confirm purchase')).toBeNull();
   });
 
-  it('opens Apple Pay sheet on Buy, then shows processing after payment starts', async () => {
-    const { getByTestId, getByText, queryByTestId } = render(<Amount />);
+  it('does not show a MetaMask confirm modal around Apple Pay', async () => {
+    const { getByTestId, queryByText } = render(<Amount />);
 
-    await prepareApplePayReady();
-
+    await flushPrepare();
     await waitFor(() => {
-      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(getByTestId('memecoins-checkout-webview')).toBeOnTheScreen();
     });
 
-    fireEvent.press(getByTestId('memecoins-apple-pay-button'));
+    expect(queryByText('Confirm purchase')).toBeNull();
+    expect(queryByText('Tap Apple Pay below')).toBeNull();
+    expect(mockInjectJavaScript).not.toHaveBeenCalled();
+  });
 
-    expect(getByText('Confirm purchase')).toBeOnTheScreen();
-    expect(getByTestId('memecoins-checkout-overlay')).toBeOnTheScreen();
+  it('shows processing after payment starts', async () => {
+    const { getByTestId } = render(<Amount />);
+
+    await flushPrepare();
+    await waitFor(() => {
+      expect(getByTestId('memecoins-checkout-webview')).toBeOnTheScreen();
+    });
 
     emitCheckoutMessage({
       event: 'order:updated',
@@ -183,17 +187,15 @@ describe('Memecoins Amount', () => {
     });
 
     expect(getByTestId('memecoins-checkout-processing')).toBeOnTheScreen();
-    expect(queryByTestId('memecoins-amount-value')).toBeNull();
   });
 
   it('shows success after payment completes', async () => {
-    const { getByTestId, getByText } = render(<Amount />);
+    const { getByTestId } = render(<Amount />);
 
-    await prepareApplePayReady();
+    await flushPrepare();
     await waitFor(() => {
-      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(getByTestId('memecoins-checkout-webview')).toBeOnTheScreen();
     });
-    fireEvent.press(getByTestId('memecoins-apple-pay-button'));
 
     emitCheckoutMessage({
       event: 'order:updated',
@@ -221,11 +223,10 @@ describe('Memecoins Amount', () => {
   it('shows failure page when payment fails', async () => {
     const { getByTestId, getByText } = render(<Amount />);
 
-    await prepareApplePayReady();
+    await flushPrepare();
     await waitFor(() => {
-      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(getByTestId('memecoins-checkout-webview')).toBeOnTheScreen();
     });
-    fireEvent.press(getByTestId('memecoins-apple-pay-button'));
 
     emitCheckoutMessage({
       event: 'order:updated',

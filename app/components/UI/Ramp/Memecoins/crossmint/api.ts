@@ -19,6 +19,7 @@ import type {
   CrossmintCreateOrderParams,
   CrossmintCreateOrderResponse,
   CrossmintMemecoinToken,
+  CrossmintOrder,
   CrossmintTokensResponse,
 } from './types';
 
@@ -90,6 +91,8 @@ export async function fetchCrossmintMemecoinTokens(options?: {
   }
 }
 
+const CREATE_ORDER_TIMEOUT_MS = 20_000;
+
 export async function createCrossmintOrder(
   params: CrossmintCreateOrderParams,
 ): Promise<CrossmintCreateOrderResponse> {
@@ -115,11 +118,29 @@ export async function createCrossmintOrder(
     },
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: buildHeaders(),
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, CREATE_ORDER_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        `Crossmint create order timed out after ${CREATE_ORDER_TIMEOUT_MS}ms`,
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
@@ -129,4 +150,38 @@ export async function createCrossmintOrder(
   }
 
   return (await response.json()) as CrossmintCreateOrderResponse;
+}
+
+/**
+ * Fetches a Crossmint order by id using the order `clientSecret`.
+ * Used as a fallback when WKWebView `enableApplePay` blocks the usual
+ * `ReactNativeWebView.postMessage` bridge after Apple Pay authorization.
+ */
+export async function getCrossmintOrder(
+  orderId: string,
+  clientSecret: string,
+): Promise<CrossmintOrder> {
+  const url = `${getCrossmintBaseUrl()}${CROSSMINT_ORDERS_API_PATH}/${encodeURIComponent(orderId)}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      ...buildHeaders(),
+      Authorization: clientSecret,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(
+      `Failed to fetch Crossmint order (${response.status}): ${errorText || response.statusText}`,
+    );
+  }
+
+  const payload = (await response.json()) as
+    | CrossmintOrder
+    | { order: CrossmintOrder };
+  if ('order' in payload && payload.order) {
+    return payload.order;
+  }
+  return payload as CrossmintOrder;
 }

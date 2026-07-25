@@ -1,15 +1,18 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { usePrepareApplePayCheckout } from './usePrepareApplePayCheckout';
 
-jest.mock('../crossmint', () => ({
+jest.mock('../crossmint/api', () => ({
   createCrossmintOrder: jest.fn(),
+}));
+
+jest.mock('../crossmint/buildCheckoutUrl', () => ({
   buildCrossmintCheckoutUrl: jest.fn(
     ({ orderId, clientSecret }: { orderId: string; clientSecret: string }) =>
       `https://checkout.test/?orderId=${orderId}&clientSecret=${clientSecret}`,
   ),
 }));
 
-const { createCrossmintOrder } = jest.requireMock('../crossmint') as {
+const { createCrossmintOrder } = jest.requireMock('../crossmint/api') as {
   createCrossmintOrder: jest.Mock;
 };
 
@@ -41,9 +44,13 @@ describe('usePrepareApplePayCheckout', () => {
     await act(async () => {
       jest.advanceTimersByTime(400);
     });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     await waitFor(() => {
       expect(result.current.prepared?.checkoutUrl).toContain('order-1');
+      expect(result.current.prepared?.clientSecret).toBe('secret-1');
       expect(result.current.isPreparing).toBe(false);
     });
 

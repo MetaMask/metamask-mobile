@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { buildCrossmintCheckoutUrl, createCrossmintOrder } from '../crossmint';
+import { buildCrossmintCheckoutUrl } from '../crossmint/buildCheckoutUrl';
+import { createCrossmintOrder } from '../crossmint/api';
 
 const PREPARE_DEBOUNCE_MS = 400;
 
 export interface PreparedApplePayCheckout {
   checkoutUrl: string;
   orderId: string;
+  clientSecret: string;
   amountUsd: string;
 }
 
@@ -36,6 +38,9 @@ export function usePrepareApplePayCheckout({
 
   useEffect(() => {
     if (!enabled) {
+      prepareIdRef.current += 1;
+      setPrepared(null);
+      setIsPreparing(false);
       return;
     }
 
@@ -76,6 +81,7 @@ export function usePrepareApplePayCheckout({
               applePayOnly: true,
             }),
             orderId: order.orderId,
+            clientSecret,
             amountUsd: String(numericAmount),
           });
           setIsPreparing(false);

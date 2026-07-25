@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, Pressable, StyleSheet } from 'react-native';
+import { AppState, Image, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 import type { WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -39,11 +39,13 @@ import {
   CROSSMINT_USD_AMOUNT_PRESETS,
   crossmintChainToCaipChainId,
   getCrossmintFailureMessage,
+  getCrossmintOrder,
   isCrossmintPaymentCompleted,
   isCrossmintPaymentInProgress,
   parseCrossmintCheckoutMessage,
   SOLANA_MAINNET_CAIP_CHAIN_ID,
   type CrossmintMemecoinToken,
+  type CrossmintOrder,
 } from '../../crossmint';
 import ApplePayCheckoutOverlay from '../../components/ApplePayCheckoutOverlay';
 import { useMemecoinMarketData } from '../../hooks/useMemecoinMarketData';
@@ -77,6 +79,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 20,
     resizeMode: 'contain',
+  },
+  quoteHiddenDuringProcessing: {
+    position: 'absolute',
+    opacity: 0,
+    height: 0,
+    overflow: 'hidden',
   },
 });
 
@@ -119,9 +127,7 @@ function Amount() {
     CROSSMINT_USD_AMOUNT_PRESETS[1] ?? CROSSMINT_USD_AMOUNT_PRESETS[0],
   );
   const [phase, setPhase] = useState<PurchasePhase>('quote');
-  const [isSheetVisible, setIsSheetVisible] = useState(false);
-  const [isApplePayReady, setIsApplePayReady] = useState(false);
-  const [webviewHeight, setWebviewHeight] = useState(120);
+  const [webviewHeight, setWebviewHeight] = useState(74);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const phaseRef = useRef<PurchasePhase>('quote');
   const successHandledRef = useRef(false);
@@ -174,12 +180,12 @@ function Amount() {
     tokenLocator: params.tokenLocator,
     amount,
     walletAddress,
-    enabled: isQuotePhase,
+    // Keep prepared checkout alive while processing (WebView must stay mounted).
+    enabled: phase === 'quote' || phase === 'processing',
   });
 
   useEffect(() => {
-    setIsApplePayReady(false);
-    setWebviewHeight(120);
+    setWebviewHeight(74);
   }, [prepared?.checkoutUrl]);
 
   useEffect(
@@ -195,6 +201,88 @@ function Amount() {
     phaseRef.current = next;
     setPhase(next);
   }, []);
+
+  const applyOrderStatus = useCallback(
+    (order: CrossmintOrder | undefined) => {
+      if (!order) {
+        return;
+      }
+
+      const failure =
+        order.payment?.failureReason?.message ||
+        order.lineItems?.[0]?.quote?.unavailabilityReason?.message;
+      if (failure) {
+        setCheckoutError(failure);
+        setPurchasePhase('failure');
+        return;
+      }
+
+      if (isCrossmintPaymentInProgress(order) && phaseRef.current === 'quote') {
+        setPurchasePhase('processing');
+        return;
+      }
+
+      if (isCrossmintPaymentCompleted(order) && !successHandledRef.current) {
+        successHandledRef.current = true;
+        if (phaseRef.current === 'quote') {
+          setPurchasePhase('processing');
+          successTimerRef.current = setTimeout(() => {
+            setPurchasePhase('success');
+          }, 1400);
+        } else {
+          setPurchasePhase('success');
+        }
+      }
+    },
+    [setPurchasePhase],
+  );
+
+  // Fallback when enableApplePay blocks Crossmint postMessage: poll order status
+  // after returning from the native Apple Pay sheet (and periodically).
+  useEffect(() => {
+    if (
+      !prepared?.orderId ||
+      !prepared.clientSecret ||
+      (phase !== 'quote' && phase !== 'processing')
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const order = await getCrossmintOrder(
+          prepared.orderId,
+          prepared.clientSecret,
+        );
+        if (cancelled) {
+          return;
+        }
+        applyOrderStatus(order);
+      } catch {
+        // Ignore transient poll errors; WebView messages may still arrive.
+      }
+    };
+
+    const intervalId = setInterval(() => {
+      if (phaseRef.current === 'processing') {
+        poll();
+      }
+    }, 2500);
+
+    const appStateSub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        poll();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+      appStateSub.remove();
+    };
+  }, [applyOrderStatus, phase, prepared?.clientSecret, prepared?.orderId]);
 
   const priceLabel = useMemo(() => {
     if (marketData?.price === undefined || !Number.isFinite(marketData.price)) {
@@ -260,30 +348,15 @@ function Amount() {
   const handleRetry = useCallback(() => {
     successHandledRef.current = false;
     setCheckoutError(null);
-    setIsSheetVisible(false);
     setPurchasePhase('quote');
   }, [setPurchasePhase]);
 
-  const handleCloseSheet = useCallback(() => {
-    setIsSheetVisible(false);
-  }, []);
-
-  const handlePay = useCallback(() => {
-    if (!prepared || !isApplePayReady) {
-      return;
-    }
-    setIsSheetVisible(true);
-  }, [isApplePayReady, prepared]);
-
   const handleCheckoutMessage = useCallback(
     (event: WebViewMessageEvent) => {
-      const message = parseCrossmintCheckoutMessage(event.nativeEvent.data);
+      const raw = event.nativeEvent.data;
+      const message = parseCrossmintCheckoutMessage(raw);
       if (!message) {
         return;
-      }
-
-      if (message.event === 'ui:express-checkout.ready') {
-        setIsApplePayReady(true);
       }
 
       if (
@@ -296,7 +369,6 @@ function Amount() {
       const failure = getCrossmintFailureMessage(message);
       if (failure) {
         setCheckoutError(failure);
-        setIsSheetVisible(false);
         setPurchasePhase('failure');
         return;
       }
@@ -305,38 +377,10 @@ function Amount() {
         return;
       }
 
-      const order = message.data?.order;
-
-      if (isCrossmintPaymentInProgress(order) && phaseRef.current === 'quote') {
-        setIsSheetVisible(false);
-        setPurchasePhase('processing');
-        return;
-      }
-
-      if (isCrossmintPaymentCompleted(order) && !successHandledRef.current) {
-        successHandledRef.current = true;
-        setIsSheetVisible(false);
-        if (phaseRef.current === 'quote') {
-          setPurchasePhase('processing');
-          successTimerRef.current = setTimeout(() => {
-            setPurchasePhase('success');
-          }, 1400);
-        } else {
-          setPurchasePhase('success');
-        }
-      }
+      applyOrderStatus(message.data?.order);
     },
-    [setPurchasePhase],
+    [applyOrderStatus, setPurchasePhase],
   );
-
-  const isBuyLoading = isPreparing || (Boolean(prepared) && !isApplePayReady);
-  const canPay =
-    Boolean(walletAddress) &&
-    Boolean(prepared) &&
-    isApplePayReady &&
-    !isPreparing &&
-    Number(amount) > 0 &&
-    Number.isFinite(Number(amount));
 
   const errorMessage = checkoutError || prepareError;
 
@@ -374,8 +418,20 @@ function Amount() {
           />
         ) : null}
 
-        {isQuotePhase ? (
-          <Box twClassName="flex-1 px-4 pb-4">
+        {/*
+          Keep the quote tree (including Crossmint WebView) mounted through
+          processing so order:updated events are not lost on remount.
+        */}
+        {phase === 'quote' || phase === 'processing' ? (
+          <Box
+            twClassName="flex-1 px-4 pb-4"
+            style={
+              phase === 'processing'
+                ? styles.quoteHiddenDuringProcessing
+                : undefined
+            }
+            pointerEvents={phase === 'quote' ? 'auto' : 'none'}
+          >
             <Box twClassName="flex-row items-center justify-between py-2">
               <Box twClassName="flex-row items-center gap-3 flex-1 pr-3">
                 {displayImageUrl ? (
@@ -524,33 +580,35 @@ function Amount() {
               </Box>
             </Box>
 
-            <Button
-              testID={MEMECOINS_TEST_IDS.APPLE_PAY_BUTTON}
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              isDisabled={!canPay}
-              isLoading={isBuyLoading}
-              onPress={handlePay}
-            >
-              {isBuyLoading
-                ? strings('memecoins.preparing_apple_pay')
-                : strings('memecoins.buy')}
-            </Button>
+            {isPreparing || !prepared?.checkoutUrl ? (
+              <Button
+                testID={MEMECOINS_TEST_IDS.APPLE_PAY_BUTTON}
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDisabled
+                isLoading={isPreparing}
+              >
+                {isPreparing
+                  ? strings('memecoins.preparing_apple_pay')
+                  : strings('memecoins.buy')}
+              </Button>
+            ) : (
+              <Box testID={MEMECOINS_TEST_IDS.APPLE_PAY_BUTTON}>
+                {/*
+                  Crossmint's real Apple Pay button must stay on-screen at a real
+                  size so Payment Request can initialize and the tap is a genuine
+                  user gesture (native iOS Apple Pay sheet).
+                */}
+                <ApplePayCheckoutOverlay
+                  checkoutUrl={prepared.checkoutUrl}
+                  interactive={phase === 'quote'}
+                  webviewHeight={webviewHeight}
+                  onMessage={handleCheckoutMessage}
+                />
+              </Box>
+            )}
           </Box>
-        ) : null}
-
-        {prepared?.checkoutUrl &&
-        (phase === 'quote' || phase === 'processing') ? (
-          <ApplePayCheckoutOverlay
-            checkoutUrl={prepared.checkoutUrl}
-            isSheetVisible={isSheetVisible && phase === 'quote'}
-            webviewHeight={webviewHeight}
-            amountUsd={prepared.amountUsd}
-            tokenLabel={tokenLabel}
-            onMessage={handleCheckoutMessage}
-            onCloseSheet={handleCloseSheet}
-          />
         ) : null}
       </ScreenLayout.Body>
     </ScreenLayout>
