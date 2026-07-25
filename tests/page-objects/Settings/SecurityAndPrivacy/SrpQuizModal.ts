@@ -20,9 +20,7 @@ import type { UnifiedGestureOptions } from '../../../framework/GestureStrategy';
  * element exists. Skip displayed checks and tap by testID (same pattern as
  * AccountDetails.tapBackButton / AddressList.tapBackButton).
  */
-const iosAppiumTapOptions = (
-  description: string,
-): UnifiedGestureOptions => ({
+const iosAppiumTapOptions = (description: string): UnifiedGestureOptions => ({
   description,
   checkForDisplayed: !(
     FrameworkDetector.isAppium() && PlatformDetector.isIOS()
@@ -163,9 +161,7 @@ class SrpQuizModal {
   async tapQuestionRightAnswerButton(questionNumber: number): Promise<void> {
     await UnifiedGestures.waitAndTap(
       this.getQuestionRightAnswerButton(questionNumber),
-      iosAppiumTapOptions(
-        `Srp Quiz - Question ${questionNumber} Right Answer`,
-      ),
+      iosAppiumTapOptions(`Srp Quiz - Question ${questionNumber} Right Answer`),
     );
   }
 

@@ -24,9 +24,7 @@ import type { UnifiedGestureOptions } from '../../../framework/GestureStrategy';
  * exists. Skip displayed checks and tap by testID (same pattern as
  * AccountDetails.tapBackButton / SrpQuizModal).
  */
-const iosAppiumTapOptions = (
-  description: string,
-): UnifiedGestureOptions => ({
+const iosAppiumTapOptions = (description: string): UnifiedGestureOptions => ({
   description,
   checkForDisplayed: !(
     FrameworkDetector.isAppium() && PlatformDetector.isIOS()
