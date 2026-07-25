@@ -21,9 +21,7 @@ const renderWithProviders = (ui: React.ReactElement) =>
 const mockGoBack = jest.fn();
 const mockIsFocused = jest.fn();
 const mockNavigate = jest.fn();
-const mockOnCloseBottomSheet = jest.fn(
-  (callback?: () => void) => callback?.(),
-);
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
