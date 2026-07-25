@@ -6,6 +6,7 @@ import { SelectSRPBottomSheet } from './SelectSRPBottomSheet';
 import { SelectSRPBottomSheetTestIds } from './SelectSRPBottomSheet.testIds';
 import { goBackIfFocused } from './SelectSRPBottomSheet.utils';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 
 const initialMetrics: Metrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -19,6 +20,10 @@ const renderWithProviders = (ui: React.ReactElement) =>
 
 const mockGoBack = jest.fn();
 const mockIsFocused = jest.fn();
+const mockNavigate = jest.fn();
+const mockOnCloseBottomSheet = jest.fn(
+  (callback?: () => void) => callback?.(),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -27,16 +32,49 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       isFocused: mockIsFocused,
+      navigate: mockNavigate,
     }),
   };
 });
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+        }: {
+          children?: React.ReactNode;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: typeof mockOnCloseBottomSheet }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onOpenBottomSheet: jest.fn(),
+        }));
+        return children;
+      },
+    ),
+  };
+});
+
 jest.mock('./SelectSRP', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockSelectSRP() {
+  const { View, Text, Pressable } = jest.requireActual('react-native');
+  return function MockSelectSRP({
+    onKeyringSelect,
+  }: {
+    onKeyringSelect?: (keyringId: string) => void;
+  }) {
     return (
       <View testID="mock-select-srp">
         <Text>SelectSRP</Text>
+        <Pressable
+          testID="mock-select-srp-item"
+          onPress={() => onKeyringSelect?.('test-keyring-id')}
+        />
       </View>
     );
   };
@@ -82,6 +120,21 @@ describe('SelectSRPBottomSheet', () => {
 
     expect(mockIsFocused).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('dismisses the sheet before navigating to reveal private credential', () => {
+    const { getByTestId } = renderWithProviders(<SelectSRPBottomSheet />);
+
+    fireEvent.press(getByTestId('mock-select-srp-item'));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      {
+        shouldUpdateNav: true,
+        keyringId: 'test-keyring-id',
+      },
+    );
   });
 });
 
