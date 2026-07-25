@@ -189,4 +189,127 @@ describe('PerpsCancelAllOrdersView', () => {
       expect(onClose).toHaveBeenCalled();
     });
   });
+
+  it('closes the overlay when cancel all succeeds with an external sheetRef', async () => {
+    const onClose = jest.fn();
+    const cancelOrders = Engine.context.PerpsController
+      .cancelOrders as jest.Mock;
+    cancelOrders.mockResolvedValue({
+      success: true,
+      successCount: 2,
+      failureCount: 0,
+    });
+
+    const OverlayCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return <PerpsCancelAllOrdersView sheetRef={sheetRef} onClose={onClose} />;
+    };
+
+    renderPerpsView(
+      OverlayCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    fireEvent.press(
+      await screen.findByText(strings('perps.cancel_all_modal.confirm')),
+    );
+
+    await waitFor(() => {
+      expect(cancelOrders).toHaveBeenCalledWith({ cancelAll: true });
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  it('closes the overlay when cancel all reports a partial success', async () => {
+    const onClose = jest.fn();
+    const cancelOrders = Engine.context.PerpsController
+      .cancelOrders as jest.Mock;
+    cancelOrders.mockResolvedValue({
+      success: false,
+      successCount: 1,
+      failureCount: 1,
+    });
+
+    const OverlayCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return <PerpsCancelAllOrdersView sheetRef={sheetRef} onClose={onClose} />;
+    };
+
+    renderPerpsView(
+      OverlayCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    fireEvent.press(
+      await screen.findByText(strings('perps.cancel_all_modal.confirm')),
+    );
+
+    await waitFor(() => {
+      expect(cancelOrders).toHaveBeenCalledWith({ cancelAll: true });
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  it('keeps the overlay open when cancel all fails', async () => {
+    const onClose = jest.fn();
+    const cancelOrders = Engine.context.PerpsController
+      .cancelOrders as jest.Mock;
+    cancelOrders.mockRejectedValue(new Error('Network timeout'));
+
+    const OverlayCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return <PerpsCancelAllOrdersView sheetRef={sheetRef} onClose={onClose} />;
+    };
+
+    renderPerpsView(
+      OverlayCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    fireEvent.press(
+      await screen.findByText(strings('perps.cancel_all_modal.confirm')),
+    );
+
+    await waitFor(() => {
+      expect(cancelOrders).toHaveBeenCalledWith({ cancelAll: true });
+    });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(strings('perps.cancel_all_modal.title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not close the overlay when cancel all reports zero successes', async () => {
+    const onClose = jest.fn();
+    const cancelOrders = Engine.context.PerpsController
+      .cancelOrders as jest.Mock;
+    cancelOrders.mockResolvedValue({
+      success: false,
+      successCount: 0,
+      failureCount: 2,
+    });
+
+    const OverlayCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return <PerpsCancelAllOrdersView sheetRef={sheetRef} onClose={onClose} />;
+    };
+
+    renderPerpsView(
+      OverlayCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    fireEvent.press(
+      await screen.findByText(strings('perps.cancel_all_modal.confirm')),
+    );
+
+    await waitFor(() => {
+      expect(cancelOrders).toHaveBeenCalledWith({ cancelAll: true });
+    });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });
