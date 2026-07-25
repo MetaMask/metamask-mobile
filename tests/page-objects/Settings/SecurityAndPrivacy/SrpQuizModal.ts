@@ -20,12 +20,16 @@ import type { UnifiedGestureOptions } from '../../../framework/GestureStrategy';
  * element exists. Skip displayed checks and tap by testID (same pattern as
  * AccountDetails.tapBackButton / AddressList.tapBackButton).
  */
-const iosAppiumTapOptions = (description: string): UnifiedGestureOptions => ({
-  description,
-  checkForDisplayed: !(
-    FrameworkDetector.isAppium() && PlatformDetector.isIOS()
-  ),
-});
+const iosAppiumTapOptions = (description: string): UnifiedGestureOptions => {
+  const skipDisplayedChecks =
+    FrameworkDetector.isAppium() && PlatformDetector.isIOS();
+  return {
+    description,
+    checkForDisplayed: !skipDisplayedChecks,
+    // When XCTest lies about displayed, enabled checks can also stall the tap.
+    checkForEnabled: !skipDisplayedChecks,
+  };
+};
 
 class SrpQuizModal {
   get getStartedContainer(): EncapsulatedElementType {
