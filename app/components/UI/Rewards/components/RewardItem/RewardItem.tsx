@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TouchableOpacity } from 'react-native';
@@ -297,7 +298,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
     ? seasonReward.longDescription
     : seasonReward.longUnlockedDescription;
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const currentAccountAddress = useSelector(selectRewardsActiveAccountAddress);
 
   const rewardInputAction = useMemo(() => {

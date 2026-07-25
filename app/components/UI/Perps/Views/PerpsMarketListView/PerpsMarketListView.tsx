@@ -5,7 +5,12 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import {
   View,
   Animated,
@@ -16,10 +21,6 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
@@ -56,6 +57,8 @@ import {
   useFocusEffect,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,7 +92,7 @@ const PerpsMarketListView = ({
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
   const perpsNavigation = usePerpsNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const variant = route.params?.variant ?? propVariant ?? 'full';
   const title = route.params?.title ?? propTitle;
@@ -674,13 +677,13 @@ const PerpsMarketListView = ({
       return (
         <View style={styles.errorContainer}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Error}
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
             style={styles.errorText}
           >
             {strings('perps.failed_to_load_market_data')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.data_updates_automatically')}
           </Text>
         </View>

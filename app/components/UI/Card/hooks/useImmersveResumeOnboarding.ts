@@ -13,6 +13,7 @@ interface ResumeParams {
   country: string;
   address: string;
   email?: string;
+  phone?: string;
   showAccountExistsToast?: boolean;
   navigateFromRoot?: boolean;
 }
@@ -28,6 +29,7 @@ export const useImmersveResumeOnboarding = () => {
       country,
       address,
       email,
+      phone,
       showAccountExistsToast,
       navigateFromRoot,
     }: ResumeParams): Promise<void> => {
@@ -37,16 +39,38 @@ export const useImmersveResumeOnboarding = () => {
 
       await signIn({ country, address });
 
+      const resume = await controller.getResumeCardInfo();
+      if (resume?.cardProgramId) {
+        controller.setSelectedCardProgramId(resume.cardProgramId);
+      }
+
       const id = await resolveImmersveFundingSourceId({
         fundingChannelId: cardFeatureFlag.immersve?.fundingChannelId,
+        existingId: resume?.fundingSourceIds?.[0],
       });
       dispatch(setImmersveFundingSourceId(id));
 
-      const { prerequisites } = await controller.getSpendingPrerequisites(id, {
+      const prerequisitesParams = {
         kycRegion: country,
         kycRedirectUrl: KYC_REDIRECT_URL,
-      });
-      route(deriveNextImmersveAction(prerequisites), {
+      };
+
+      let { prerequisites } = await controller.getSpendingPrerequisites(
+        id,
+        prerequisitesParams,
+      );
+      let nextAction = deriveNextImmersveAction(prerequisites);
+
+      if (nextAction.type === 'contact' && (email || phone)) {
+        await controller.patchContactDetails({ email, phone });
+        ({ prerequisites } = await controller.getSpendingPrerequisites(
+          id,
+          prerequisitesParams,
+        ));
+        nextAction = deriveNextImmersveAction(prerequisites);
+      }
+
+      route(nextAction, {
         email,
         countryKey: country,
         showAccountExistsToast,

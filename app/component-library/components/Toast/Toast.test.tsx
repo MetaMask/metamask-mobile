@@ -289,6 +289,42 @@ describe('Toast', () => {
       expect(screen.getByText('Description line')).toBeOnTheScreen();
     });
 
+    it('renders non-bold label segments alongside bold segments', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Normal weight', isBold: false },
+          { label: ' Bold weight', isBold: true },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Normal weight')).toBeOnTheScreen();
+      expect(screen.getByText(' Bold weight')).toBeOnTheScreen();
+    });
+
+    it('falls back to stable keys when label is not a string', async () => {
+      render(<Toast ref={toastRef} />);
+      // Runtime-only path for Sonar S6479 key fallbacks (`typeof label === 'string'`).
+      const nonStringLabel = 42 as unknown as string;
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: nonStringLabel, isBold: false },
+          { label: '\n' },
+          { label: nonStringLabel },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getAllByText('42')).toHaveLength(2);
+    });
+
     it('uses custom startAccessory instead of avatar', async () => {
       render(<Toast ref={toastRef} />);
       const options: ToastOptions = {
@@ -571,6 +607,86 @@ describe('Toast', () => {
     });
 
     expect(screen.getByTestId(ToastSelectorsIDs.PRESSABLE)).toBeOnTheScreen();
+  });
+
+  it('vertically centers pressable toast content by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Conversion complete', isBold: true },
+        { label: '\n' },
+        { label: '$50.00 added to Money account.' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Conversion complete'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Conversion complete' }] },
+      });
+      fireEvent(
+        screen.getByText('$50.00 added to Money account.'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: '$50.00 added to Money account.' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('center');
+  });
+
+  it('top-aligns pressable toast content when multi-line description requires it', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Title', isBold: true },
+        { label: '\n' },
+        { label: 'Long description that wraps' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Title'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Title' }] },
+      });
+      fireEvent(
+        screen.getByText('Long description that wraps'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: 'Long description' }, { text: 'that wraps' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('flex-start');
   });
 
   it('calls onPress when the toast content is pressed', async () => {
