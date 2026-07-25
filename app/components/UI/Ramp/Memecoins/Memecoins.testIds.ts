@@ -13,6 +13,8 @@ export const MEMECOINS_TEST_IDS = {
   AMOUNT_KEYPAD: 'memecoins-amount-keypad',
   APPLE_PAY_BUTTON: 'memecoins-apple-pay-button',
   CHECKOUT_SCREEN: 'memecoins-checkout-screen',
+  CHECKOUT_OVERLAY: 'memecoins-checkout-overlay',
+  CHECKOUT_OVERLAY_BACKDROP: 'memecoins-checkout-overlay-backdrop',
   CHECKOUT_WEBVIEW: 'memecoins-checkout-webview',
   CHECKOUT_LOADING: 'memecoins-checkout-loading',
   CHECKOUT_PROCESSING: 'memecoins-checkout-processing',

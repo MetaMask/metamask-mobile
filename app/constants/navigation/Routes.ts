@@ -31,7 +31,6 @@ const Routes = {
       ROOT: 'RampMemecoins',
       TOKEN_LIST: 'RampMemecoinsTokenList',
       AMOUNT: 'RampMemecoinsAmount',
-      CHECKOUT: 'RampMemecoinsCheckout',
     },
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',

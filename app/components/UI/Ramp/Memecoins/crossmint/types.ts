@@ -54,7 +54,7 @@ export interface CrossmintOrder {
     expiresAt?: string;
     totalPrice?: CrossmintOrderQuotePrice;
   };
-  lineItems?: Array<{
+  lineItems?: {
     chain?: string;
     metadata?: {
       name?: string;
@@ -71,7 +71,7 @@ export interface CrossmintOrder {
         message?: string;
       };
     };
-  }>;
+  }[];
 }
 
 export interface CrossmintCreateOrderResponse {

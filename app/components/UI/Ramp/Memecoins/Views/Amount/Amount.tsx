@@ -1,7 +1,14 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Image, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
+import type { WebViewMessageEvent } from '@metamask/react-native-webview';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   Box,
@@ -30,14 +37,23 @@ import { getNetworkBadgeSource } from '../../../../Trending/components/TrendingT
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import {
   CROSSMINT_USD_AMOUNT_PRESETS,
-  createCrossmintOrder,
-  buildCrossmintCheckoutUrl,
   crossmintChainToCaipChainId,
+  getCrossmintFailureMessage,
+  isCrossmintPaymentCompleted,
+  isCrossmintPaymentInProgress,
+  parseCrossmintCheckoutMessage,
   SOLANA_MAINNET_CAIP_CHAIN_ID,
   type CrossmintMemecoinToken,
 } from '../../crossmint';
+import ApplePayCheckoutOverlay from '../../components/ApplePayCheckoutOverlay';
 import { useMemecoinMarketData } from '../../hooks/useMemecoinMarketData';
+import { usePrepareApplePayCheckout } from '../../hooks/usePrepareApplePayCheckout';
 import { MEMECOINS_TEST_IDS } from '../../Memecoins.testIds';
+import {
+  CheckoutFailureView,
+  CheckoutProcessingView,
+  CheckoutSuccessView,
+} from '../Checkout/CheckoutPhaseViews';
 
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const ApplePayMark = require('../../../../../../images/ApplePayMark.png');
@@ -72,6 +88,8 @@ export interface AmountParams {
   imageUrl?: string;
 }
 
+type PurchasePhase = 'quote' | 'processing' | 'success' | 'failure';
+
 function formatPresetLabel(amount: string): string {
   const numeric = Number(amount);
   if (!Number.isFinite(numeric)) {
@@ -100,8 +118,14 @@ function Amount() {
   const [amount, setAmount] = useState<string>(
     CROSSMINT_USD_AMOUNT_PRESETS[1] ?? CROSSMINT_USD_AMOUNT_PRESETS[0],
   );
-  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [phase, setPhase] = useState<PurchasePhase>('quote');
+  const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const [isApplePayReady, setIsApplePayReady] = useState(false);
+  const [webviewHeight, setWebviewHeight] = useState(120);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const phaseRef = useRef<PurchasePhase>('quote');
+  const successHandledRef = useRef(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tokenForMarketData = useMemo<CrossmintMemecoinToken>(
     () => ({
@@ -135,8 +159,43 @@ function Amount() {
     [caipChainId],
   );
 
+  const displayName = marketData?.name || params.name;
   const displaySymbol = marketData?.symbol || params.symbol;
   const displayImageUrl = marketData?.imageUrl || params.imageUrl;
+  const tokenLabel = displaySymbol || displayName;
+
+  const isQuotePhase = phase === 'quote';
+  const {
+    prepared,
+    isPreparing,
+    error: prepareError,
+    clearError: clearPrepareError,
+  } = usePrepareApplePayCheckout({
+    tokenLocator: params.tokenLocator,
+    amount,
+    walletAddress,
+    enabled: isQuotePhase,
+  });
+
+  useEffect(() => {
+    setIsApplePayReady(false);
+    setWebviewHeight(120);
+  }, [prepared?.checkoutUrl]);
+
+  useEffect(
+    () => () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const setPurchasePhase = useCallback((next: PurchasePhase) => {
+    phaseRef.current = next;
+    setPhase(next);
+  }, []);
+
   const priceLabel = useMemo(() => {
     if (marketData?.price === undefined || !Number.isFinite(marketData.price)) {
       return '—';
@@ -176,244 +235,323 @@ function Amount() {
     return absolute;
   }, [marketData?.priceChange1d, percent.changeLabel]);
 
-  const handleKeypadChange = useCallback(({ value }: KeypadChangeData) => {
-    setAmount(value);
-    setError(null);
+  const handleKeypadChange = useCallback(
+    ({ value }: KeypadChangeData) => {
+      setAmount(value);
+      clearPrepareError();
+      setCheckoutError(null);
+    },
+    [clearPrepareError],
+  );
+
+  const handlePresetPress = useCallback(
+    (preset: string) => {
+      setAmount(preset);
+      clearPrepareError();
+      setCheckoutError(null);
+    },
+    [clearPrepareError],
+  );
+
+  const goHome = useCallback(() => {
+    navigation.navigate(Routes.WALLET_VIEW);
+  }, [navigation]);
+
+  const handleRetry = useCallback(() => {
+    successHandledRef.current = false;
+    setCheckoutError(null);
+    setIsSheetVisible(false);
+    setPurchasePhase('quote');
+  }, [setPurchasePhase]);
+
+  const handleCloseSheet = useCallback(() => {
+    setIsSheetVisible(false);
   }, []);
 
-  const handlePresetPress = useCallback((preset: string) => {
-    setAmount(preset);
-    setError(null);
-  }, []);
-
-  const handlePay = useCallback(async () => {
-    setError(null);
-
-    if (!walletAddress) {
-      setError(strings('memecoins.missing_wallet'));
+  const handlePay = useCallback(() => {
+    if (!prepared || !isApplePayReady) {
       return;
     }
+    setIsSheetVisible(true);
+  }, [isApplePayReady, prepared]);
 
-    const numericAmount = Number(amount);
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-      setError(strings('memecoins.invalid_amount'));
-      return;
-    }
+  const handleCheckoutMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      const message = parseCrossmintCheckoutMessage(event.nativeEvent.data);
+      if (!message) {
+        return;
+      }
 
-    setIsCreatingOrder(true);
-    try {
-      const { order, clientSecret } = await createCrossmintOrder({
-        tokenLocator: params.tokenLocator,
-        amountUsd: String(numericAmount),
-        walletAddress,
-      });
+      if (message.event === 'ui:express-checkout.ready') {
+        setIsApplePayReady(true);
+      }
 
-      const checkoutUrl = buildCrossmintCheckoutUrl({
-        orderId: order.orderId,
-        clientSecret,
-        applePayOnly: true,
-      });
+      if (
+        message.event === 'ui:height.changed' &&
+        typeof message.data?.height === 'number'
+      ) {
+        setWebviewHeight(Math.max(74, Math.min(220, message.data.height)));
+      }
 
-      navigation.navigate(Routes.RAMP.MEMECOINS.CHECKOUT, {
-        checkoutUrl,
-        orderId: order.orderId,
-        tokenName: marketData?.name || params.name,
-        tokenSymbol: marketData?.symbol || params.symbol,
-        amountUsd: String(numericAmount),
-        imageUrl: marketData?.imageUrl || params.imageUrl,
-      });
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : strings('memecoins.create_order_error'),
-      );
-    } finally {
-      setIsCreatingOrder(false);
-    }
-  }, [
-    amount,
-    marketData?.imageUrl,
-    marketData?.name,
-    marketData?.symbol,
-    navigation,
-    params.imageUrl,
-    params.name,
-    params.symbol,
-    params.tokenLocator,
-    walletAddress,
-  ]);
+      const failure = getCrossmintFailureMessage(message);
+      if (failure) {
+        setCheckoutError(failure);
+        setIsSheetVisible(false);
+        setPurchasePhase('failure');
+        return;
+      }
 
+      if (message.event !== 'order:updated') {
+        return;
+      }
+
+      const order = message.data?.order;
+
+      if (isCrossmintPaymentInProgress(order) && phaseRef.current === 'quote') {
+        setIsSheetVisible(false);
+        setPurchasePhase('processing');
+        return;
+      }
+
+      if (isCrossmintPaymentCompleted(order) && !successHandledRef.current) {
+        successHandledRef.current = true;
+        setIsSheetVisible(false);
+        if (phaseRef.current === 'quote') {
+          setPurchasePhase('processing');
+          successTimerRef.current = setTimeout(() => {
+            setPurchasePhase('success');
+          }, 1400);
+        } else {
+          setPurchasePhase('success');
+        }
+      }
+    },
+    [setPurchasePhase],
+  );
+
+  const isBuyLoading = isPreparing || (Boolean(prepared) && !isApplePayReady);
   const canPay =
     Boolean(walletAddress) &&
-    !isCreatingOrder &&
+    Boolean(prepared) &&
+    isApplePayReady &&
+    !isPreparing &&
     Number(amount) > 0 &&
     Number.isFinite(Number(amount));
 
+  const errorMessage = checkoutError || prepareError;
+
   return (
     <ScreenLayout testID={MEMECOINS_TEST_IDS.AMOUNT_SCREEN}>
-      <HeaderStandard onBack={() => navigation.goBack()} includesTopInset />
+      {isQuotePhase ? (
+        <HeaderStandard onBack={() => navigation.goBack()} includesTopInset />
+      ) : null}
+
       <ScreenLayout.Body>
-        <Box twClassName="flex-1 px-4 pb-4">
-          <Box twClassName="flex-row items-center justify-between py-2">
-            <Box twClassName="flex-row items-center gap-3 flex-1 pr-3">
-              {displayImageUrl ? (
-                <Image
-                  source={{ uri: displayImageUrl }}
-                  style={styles.tokenAvatar}
-                />
-              ) : (
-                <Box twClassName="w-11 h-11 rounded-full bg-background-muted items-center justify-center">
+        {phase === 'processing' ? (
+          <CheckoutProcessingView
+            tokenName={displayName}
+            tokenSymbol={tokenLabel}
+            amountUsd={prepared?.amountUsd ?? amount}
+            imageUrl={displayImageUrl}
+          />
+        ) : null}
+
+        {phase === 'success' ? (
+          <CheckoutSuccessView
+            tokenName={displayName}
+            tokenSymbol={tokenLabel}
+            amountUsd={prepared?.amountUsd ?? amount}
+            imageUrl={displayImageUrl}
+            onDone={goHome}
+          />
+        ) : null}
+
+        {phase === 'failure' ? (
+          <CheckoutFailureView
+            errorMessage={errorMessage}
+            onRetry={handleRetry}
+            onDone={goHome}
+          />
+        ) : null}
+
+        {isQuotePhase ? (
+          <Box twClassName="flex-1 px-4 pb-4">
+            <Box twClassName="flex-row items-center justify-between py-2">
+              <Box twClassName="flex-row items-center gap-3 flex-1 pr-3">
+                {displayImageUrl ? (
+                  <Image
+                    source={{ uri: displayImageUrl }}
+                    style={styles.tokenAvatar}
+                  />
+                ) : (
+                  <Box twClassName="w-11 h-11 rounded-full bg-background-muted items-center justify-center">
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Bold}
+                    >
+                      {displaySymbol.slice(0, 1)}
+                    </Text>
+                  </Box>
+                )}
+                <Box twClassName="flex-1">
+                  <Box twClassName="flex-row items-center gap-1">
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Bold}
+                      numberOfLines={1}
+                    >
+                      {displaySymbol}
+                    </Text>
+                    {networkBadgeSource ? (
+                      <Image
+                        source={networkBadgeSource}
+                        style={styles.networkBadge}
+                      />
+                    ) : null}
+                  </Box>
                   <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Bold}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
                   >
-                    {displaySymbol.slice(0, 1)}
+                    {marketCapLabel}
                   </Text>
                 </Box>
-              )}
-              <Box twClassName="flex-1">
-                <Box twClassName="flex-row items-center gap-1">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Bold}
-                    numberOfLines={1}
-                  >
-                    {displaySymbol}
-                  </Text>
-                  {networkBadgeSource ? (
-                    <Image
-                      source={networkBadgeSource}
-                      style={styles.networkBadge}
-                    />
-                  ) : null}
-                </Box>
+              </Box>
+              <Box twClassName="items-end">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {priceLabel}
+                </Text>
                 <Text
                   variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
+                  color={percent.changeTextColor}
                 >
-                  {marketCapLabel}
+                  {percentLabel}
                 </Text>
               </Box>
             </Box>
-            <Box twClassName="items-end">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {priceLabel}
-              </Text>
+
+            <Box twClassName="flex-1 items-center justify-center py-4">
               <Text
-                variant={TextVariant.BodySm}
-                color={percent.changeTextColor}
+                variant={TextVariant.DisplayMd}
+                fontWeight={FontWeight.Bold}
+                testID={MEMECOINS_TEST_IDS.AMOUNT_VALUE}
               >
-                {percentLabel}
+                {formatAmountDisplay(amount)}
               </Text>
             </Box>
-          </Box>
 
-          <Box twClassName="flex-1 items-center justify-center py-4">
-            <Text
-              variant={TextVariant.DisplayMd}
-              fontWeight={FontWeight.Bold}
-              testID={MEMECOINS_TEST_IDS.AMOUNT_VALUE}
-            >
-              {formatAmountDisplay(amount)}
-            </Text>
-          </Box>
-
-          <Box twClassName="flex-row gap-2 mb-3">
-            {CROSSMINT_USD_AMOUNT_PRESETS.map((preset) => {
-              const isSelected = amount === preset;
-              return (
-                <Pressable
-                  key={preset}
-                  testID={`${MEMECOINS_TEST_IDS.AMOUNT_PRESET}-${preset}`}
-                  onPress={() => handlePresetPress(preset)}
-                  style={styles.presetPressable}
-                >
-                  <Box
-                    twClassName={`items-center py-2.5 rounded-xl border ${
-                      isSelected
-                        ? 'bg-background-muted-pressed border-border-default'
-                        : 'bg-background-muted border-border-muted'
-                    }`}
+            <Box twClassName="flex-row gap-2 mb-3">
+              {CROSSMINT_USD_AMOUNT_PRESETS.map((preset) => {
+                const isSelected = amount === preset;
+                return (
+                  <Pressable
+                    key={preset}
+                    testID={`${MEMECOINS_TEST_IDS.AMOUNT_PRESET}-${preset}`}
+                    onPress={() => handlePresetPress(preset)}
+                    style={styles.presetPressable}
                   >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
+                    <Box
+                      twClassName={`items-center py-2.5 rounded-xl border ${
+                        isSelected
+                          ? 'bg-background-muted-pressed border-border-default'
+                          : 'bg-background-muted border-border-muted'
+                      }`}
                     >
-                      {formatPresetLabel(preset)}
-                    </Text>
-                  </Box>
-                </Pressable>
-              );
-            })}
-          </Box>
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {formatPresetLabel(preset)}
+                      </Text>
+                    </Box>
+                  </Pressable>
+                );
+              })}
+            </Box>
 
-          <Box twClassName="mb-3" testID={MEMECOINS_TEST_IDS.AMOUNT_KEYPAD}>
-            <Keypad
-              value={amount}
-              onChange={handleKeypadChange}
-              currency="USD"
-              decimals={2}
-            />
-          </Box>
-
-          {!walletAddress ? (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              twClassName="text-center mb-2"
-            >
-              {strings('memecoins.missing_wallet')}
-            </Text>
-          ) : null}
-
-          {error ? (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              twClassName="text-center mb-2"
-            >
-              {error}
-            </Text>
-          ) : null}
-
-          <Box twClassName="flex-row items-center justify-between mb-3 px-1">
-            <Image source={ApplePayMark} style={styles.applePayMark} />
-            <Box twClassName="flex-row items-center gap-1">
-              <Icon
-                name={IconName.Gift}
-                size={IconSize.Sm}
-                color={IconColor.PrimaryDefault}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.PrimaryDefault}
-              >
-                {strings('memecoins.zero_fee')}
-              </Text>
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Xs}
-                color={IconColor.PrimaryDefault}
+            <Box twClassName="mb-3" testID={MEMECOINS_TEST_IDS.AMOUNT_KEYPAD}>
+              <Keypad
+                value={amount}
+                onChange={handleKeypadChange}
+                currency="USD"
+                decimals={2}
               />
             </Box>
-          </Box>
 
-          <Button
-            testID={MEMECOINS_TEST_IDS.APPLE_PAY_BUTTON}
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            isDisabled={!canPay}
-            isLoading={isCreatingOrder}
-            onPress={handlePay}
-          >
-            {isCreatingOrder
-              ? strings('memecoins.loading')
-              : strings('memecoins.buy')}
-          </Button>
-        </Box>
+            {!walletAddress ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.ErrorDefault}
+                twClassName="text-center mb-2"
+              >
+                {strings('memecoins.missing_wallet')}
+              </Text>
+            ) : null}
+
+            {errorMessage && isQuotePhase ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.ErrorDefault}
+                twClassName="text-center mb-2"
+              >
+                {errorMessage}
+              </Text>
+            ) : null}
+
+            <Box twClassName="flex-row items-center justify-between mb-3 px-1">
+              <Image source={ApplePayMark} style={styles.applePayMark} />
+              <Box twClassName="flex-row items-center gap-1">
+                <Icon
+                  name={IconName.Gift}
+                  size={IconSize.Sm}
+                  color={IconColor.PrimaryDefault}
+                />
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.PrimaryDefault}
+                >
+                  {strings('memecoins.zero_fee')}
+                </Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Xs}
+                  color={IconColor.PrimaryDefault}
+                />
+              </Box>
+            </Box>
+
+            <Button
+              testID={MEMECOINS_TEST_IDS.APPLE_PAY_BUTTON}
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isDisabled={!canPay}
+              isLoading={isBuyLoading}
+              onPress={handlePay}
+            >
+              {isBuyLoading
+                ? strings('memecoins.preparing_apple_pay')
+                : strings('memecoins.buy')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {prepared?.checkoutUrl &&
+        (phase === 'quote' || phase === 'processing') ? (
+          <ApplePayCheckoutOverlay
+            checkoutUrl={prepared.checkoutUrl}
+            isSheetVisible={isSheetVisible && phase === 'quote'}
+            webviewHeight={webviewHeight}
+            amountUsd={prepared.amountUsd}
+            tokenLabel={tokenLabel}
+            onMessage={handleCheckoutMessage}
+            onCloseSheet={handleCloseSheet}
+          />
+        ) : null}
       </ScreenLayout.Body>
     </ScreenLayout>
   );
