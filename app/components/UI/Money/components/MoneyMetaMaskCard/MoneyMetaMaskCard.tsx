@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, ImageSourcePropType } from 'react-native';
+import { Image } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -25,6 +25,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
+import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
 import styles from './MoneyMetaMaskCard.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -88,13 +89,13 @@ interface MoneyMetaMaskCardProps {
 }
 
 const CardRow = ({
-  imageSource,
+  isMetalCard,
   cardName,
   cashbackPercentage,
   onPress,
   testID,
 }: {
-  imageSource: ImageSourcePropType;
+  isMetalCard: boolean;
   cardName: string;
   cashbackPercentage: string;
   onPress: () => void;
@@ -112,7 +113,7 @@ const CardRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-4"
     >
-      <Image source={imageSource} style={styles.cardImage} />
+      <MoneyCardTiltAnimation isMetalCard={isMetalCard} />
       <Box twClassName="gap-2">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
@@ -240,7 +241,7 @@ const LinkContent = ({
 };
 
 const ManageRow = ({
-  imageSource,
+  isMetalCard,
   title,
   subtitle,
   isBalanceStale = false,
@@ -252,7 +253,7 @@ const ManageRow = ({
   subtitleTestID,
   privacyMode = false,
 }: {
-  imageSource: ImageSourcePropType;
+  isMetalCard: boolean;
   title: string;
   subtitle?: string;
   isBalanceStale?: boolean;
@@ -276,7 +277,7 @@ const ManageRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-3 flex-1"
     >
-      <Image source={imageSource} style={styles.manageCardImage} />
+      <MoneyCardTiltAnimation isMetalCard={isMetalCard} />
       <Box twClassName="gap-1 flex-1">
         <Box>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -332,7 +333,7 @@ const ManageContent = ({
 }) => (
   <Box twClassName="gap-2" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
     <ManageRow
-      imageSource={showMetalCard ? mmCardMetal : mmCardRegular}
+      isMetalCard={showMetalCard}
       title={strings('money.metamask_card.avail_balance')}
       subtitle={cardBalance}
       isBalanceStale={isBalanceStale}
@@ -502,7 +503,7 @@ const MoneyMetaMaskCard = ({
           {strings('money.metamask_card.subtitle')}
         </Text>
         <CardRow
-          imageSource={mmCardRegular}
+          isMetalCard={false}
           cardName={strings('money.metamask_card.virtual_card')}
           cashbackPercentage="1"
           onPress={handleGetNowPress}
