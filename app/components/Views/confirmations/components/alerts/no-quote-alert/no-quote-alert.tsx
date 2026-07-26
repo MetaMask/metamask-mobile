@@ -17,20 +17,8 @@ interface Props {
 export function NoQuoteAlert({ error }: Props) {
   const { styles } = useStyles(styleSheet, {});
   const [tapCount, setTapCount] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const handlePress = useCallback(() => {
-    setTapCount((count) => {
-      const nextCount = count + 1;
-
-      if (nextCount >= TAPS_TO_TOGGLE) {
-        setIsExpanded((expanded) => !expanded);
-        return 0;
-      }
-
-      return nextCount;
-    });
-  }, []);
+  const isExpanded = Math.floor(tapCount / TAPS_TO_TOGGLE) % 2 === 1;
+  const handlePress = useCallback(() => setTapCount((c) => c + 1), []);
 
   const collapsedMessage =
     error.reason === 'insufficient-source-balance'
