@@ -20,6 +20,7 @@ import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistory
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
   mapLocalTransaction,
   mobileActivityAdapterEnvironment,
@@ -28,6 +29,7 @@ import {
   type Status,
   type TokenAmount,
 } from '../../../../util/activity-adapters';
+import { isHardwareAccount } from '../../../../util/address';
 
 const BRIDGE_FAIL_STATUSES = [
   TransactionStatus.failed,
@@ -289,6 +291,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
     string,
     Record<Hex, { symbol?: string; decimals?: number; address: string }[]>
   >;
+  const groupEvmAccountAddress = groupEvmAccount?.address;
 
   const transactionMetaList = useMemo(
     () => localTransactions.filter(isTransactionMetaLike),
@@ -297,7 +300,10 @@ export function useLocalActivityItems(): ActivityListItem[] {
 
   return useMemo(() => {
     const items: ActivityListItem[] = [];
-    const accountAddress = groupEvmAccount?.address?.toLowerCase();
+    const accountAddress = groupEvmAccountAddress?.toLowerCase();
+    const isHardwareWalletAccount = Boolean(
+      accountAddress && isHardwareAccount(accountAddress),
+    );
     const groupedTransactions = buildTransactionGroups(
       transactionMetaList,
       replacedTransactions,
@@ -360,6 +366,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
         destinationToken,
         nativeAssetSymbol,
         contractTokenMetadata,
+        isHardwareWalletAccount,
       };
 
       const item = mapLocalTransaction(group, mobileActivityAdapterEnvironment);
@@ -373,6 +380,6 @@ export function useLocalActivityItems(): ActivityListItem[] {
     bridgeHistory,
     networkConfigurations,
     allTokens,
-    groupEvmAccount?.address,
+    groupEvmAccountAddress,
   ]);
 }
