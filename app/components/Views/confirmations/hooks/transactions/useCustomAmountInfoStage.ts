@@ -1,6 +1,5 @@
 import {
   Dispatch,
-  RefObject,
   SetStateAction,
   useEffect,
   useRef,
@@ -74,8 +73,7 @@ export enum CustomAmountInfoStage {
  * @param options.isDepositPrefilled - Whether a deposit prefill has resolved.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
  * @param options.hasAccountNoFunds - Whether the account-no-funds alert is set.
- * @returns The current stage, its setter, and a ref holding the latest stage
- * for reading inside async callbacks that outlive the render that created them.
+ * @returns The current stage and its setter.
  */
 export function useCustomAmountInfoStage({
   amountFiat,
@@ -96,7 +94,6 @@ export function useCustomAmountInfoStage({
 }): {
   stage: CustomAmountInfoStage;
   setStage: Dispatch<SetStateAction<CustomAmountInfoStage | null>>;
-  stageRef: RefObject<CustomAmountInfoStage>;
 } {
   // `null` means "no override — derive the stage". In practice the override
   // only ever holds `AmountInput` (keyboard open) or `Loading` (update in
@@ -220,9 +217,8 @@ export function useCustomAmountInfoStage({
 
   const stage = deriveStage();
 
-  // Mirror the current stage into a ref so async callbacks (e.g. the amount
-  // commit handler) can read the latest stage after an await, rather than the
-  // stale value captured when the callback was created.
+  // Mirror the current stage into a ref so the skip-prefill effect below can
+  // read the latest stage without becoming reactive to every stage change.
   const stageRef = useRef(stage);
   stageRef.current = stage;
 
@@ -243,7 +239,7 @@ export function useCustomAmountInfoStage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDepositPrefillEnabled, skipDepositPrefill]);
 
-  return { setStage, stage, stageRef };
+  return { setStage, stage };
 
   function deriveStage(): CustomAmountInfoStage {
     // The override wins while set.

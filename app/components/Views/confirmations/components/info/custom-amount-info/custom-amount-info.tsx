@@ -204,7 +204,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
 
-    const { stage, setStage, stageRef } = useCustomAmountInfoStage({
+    const { stage, setStage } = useCustomAmountInfoStage({
       amountFiat,
       isAddMusdIntent,
       isDepositPrefillEnabled,
@@ -245,8 +245,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAutoSubmittedPrefill = useRef(false);
 
     const handleDone = useCallback(async () => {
-      const wasAmountInputAtStart =
-        stageRef.current === CustomAmountInfoStage.AmountInput;
       if (isAmountUpdateInProgressRef.current) {
         return;
       }
@@ -294,24 +292,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
       EngineService.flushState();
       hasAutoSubmittedPrefill.current = true;
-      // If the amount input was closed when handleDone started (auto-submit)
-      // but the user opened it during the await, don't dismiss it.
-      if (
-        !wasAmountInputAtStart &&
-        stageRef.current === CustomAmountInfoStage.AmountInput
-      ) {
-        return;
-      }
-      // Leaving Loading is owned solely by the stage hook's exit effect, which
-      // waits for the quote fetch to settle. Clearing the override here would
-      // race that fetch and briefly derive a non-loading stage, flashing the
-      // totals/alert before the skeleton returns.
+      // Notify the caller the amount was committed (e.g. to start quote-timing
+      // instrumentation). Leaving Loading is owned solely by the stage hook's
+      // exit effect, which waits for the quote fetch to settle, so we do not
+      // clear the override here.
       onAmountSubmit?.();
     }, [
       amountFiat,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
-      stageRef,
       setStage,
       toastRef,
       trackAmountCommitted,
