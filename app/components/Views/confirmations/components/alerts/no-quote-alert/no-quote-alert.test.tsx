@@ -33,6 +33,21 @@ describe('NoQuoteAlert', () => {
     expect(queryByTestId('no-quote-alert-details')).toBeNull();
   });
 
+  it('renders the insufficient balance collapsed message for that reason', () => {
+    const insufficientMessage = strings(
+      'alert_system.insufficient_pay_method_balance.message',
+    );
+
+    const { getByText, queryByText } = render(
+      <NoQuoteAlert
+        error={createError({ reason: 'insufficient-source-balance' })}
+      />,
+    );
+
+    expect(getByText(insufficientMessage)).toBeDefined();
+    expect(queryByText(COLLAPSED_MESSAGE)).toBeNull();
+  });
+
   it('does not expand after a single tap', () => {
     const { getByText, queryByText, queryByTestId } = render(
       <NoQuoteAlert error={createError()} />,
@@ -58,6 +73,23 @@ describe('NoQuoteAlert', () => {
     DETAIL_MOCK.forEach((row) => {
       expect(getByText(row)).toBeDefined();
     });
+  });
+
+  it('collapses again after another two taps', () => {
+    const { getByTestId, getByText, queryByText, queryByTestId } = render(
+      <NoQuoteAlert error={createError()} />,
+    );
+
+    const pressable = getByTestId('no-quote-alert');
+
+    tap(pressable, 2);
+    expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();
+    expect(getByTestId('no-quote-alert-details')).toBeDefined();
+
+    tap(pressable, 2);
+    expect(getByText(COLLAPSED_MESSAGE)).toBeDefined();
+    expect(queryByText(ERROR_MESSAGE_MOCK)).toBeNull();
+    expect(queryByTestId('no-quote-alert-details')).toBeNull();
   });
 
   it('expands the message but omits the details block when detail is empty', () => {
