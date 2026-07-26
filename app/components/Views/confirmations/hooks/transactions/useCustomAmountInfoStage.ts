@@ -1,10 +1,4 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -215,55 +209,50 @@ export function useCustomAmountInfoStage({
   const showPaymentDetails =
     hasQuotes || (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
-  const stage = deriveStage();
-
-  // Mirror the current stage into a ref so the skip-prefill effect below can
-  // read the latest stage without becoming reactive to every stage change.
-  const stageRef = useRef(stage);
-  stageRef.current = stage;
-
   // Re-assert the keyboard when deposit prefill is enabled but skipped (e.g. a
   // fiat method was selected): there is nothing to prefill, so the user should
-  // be entering an amount. Reads the latest stage via the ref so it does not
-  // clobber a `Loading` / non-input stage.
+  // be entering an amount. The functional updater reads the latest override and
+  // returns it unchanged when already `AmountInput`, so this never clobbers a
+  // `Loading` / non-input stage.
   useEffect(() => {
-    if (
-      isDepositPrefillEnabled &&
-      skipDepositPrefill &&
-      stageRef.current !== CustomAmountInfoStage.AmountInput
-    ) {
-      setStage(CustomAmountInfoStage.AmountInput);
+    if (isDepositPrefillEnabled && skipDepositPrefill) {
+      setStage((prev) =>
+        prev === CustomAmountInfoStage.AmountInput
+          ? prev
+          : CustomAmountInfoStage.AmountInput,
+      );
     }
-    // `stageRef` is a stable ref; reading `.current` intentionally does not
-    // make this effect reactive to stage changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDepositPrefillEnabled, skipDepositPrefill]);
 
-  return { setStage, stage };
+  // Derive the stage. All hooks have run above, so we can early-return.
 
-  function deriveStage(): CustomAmountInfoStage {
-    // The override wins while set.
-    if (stageOverride !== null) {
-      return stageOverride;
-    }
-
-    // No override: derive the stage from reactive inputs. Stay in Loading while
-    // quotes are actively fetching, or while a prefill / add-mUSD preload
-    // resolves — the override only bridges the pre-fetch window, so
-    // isQuotesLoading covers the fetch itself.
-    if (
-      isQuotesLoading ||
-      isAwaitingPrefillResult ||
-      (isAddMusdIntent && !showPaymentDetails)
-    ) {
-      return CustomAmountInfoStage.Loading;
-    }
-
-    // ShowTotals once payment details are ready, otherwise NoQuote.
-    if (showPaymentDetails) {
-      return CustomAmountInfoStage.ShowTotals;
-    }
-
-    return CustomAmountInfoStage.NoQuote;
+  // The override wins while set.
+  if (stageOverride !== null) {
+    return { setStage, stage: stageOverride };
   }
+
+  // No override: derive the stage from reactive inputs. Stay in Loading while
+  // quotes are actively fetching, or while a prefill / add-mUSD preload
+  // resolves — the override only bridges the pre-fetch window, so
+  // isQuotesLoading covers the fetch itself.
+  //
+  // The add-mUSD preload holds the skeleton through its prefill→auto-submit
+  // window (quotes not yet present, none fetching). It must NOT hold once the
+  // fetch has settled with no quotes: `hasNoQuotesAlert` marks that terminal
+  // failure, so exclude it here — otherwise a failed quote would spin the
+  // loader forever instead of falling through to NoQuote.
+  if (
+    isQuotesLoading ||
+    isAwaitingPrefillResult ||
+    (isAddMusdIntent && !showPaymentDetails && !hasNoQuotesAlert)
+  ) {
+    return { setStage, stage: CustomAmountInfoStage.Loading };
+  }
+
+  // ShowTotals once payment details are ready, otherwise NoQuote.
+  if (showPaymentDetails) {
+    return { setStage, stage: CustomAmountInfoStage.ShowTotals };
+  }
+
+  return { setStage, stage: CustomAmountInfoStage.NoQuote };
 }

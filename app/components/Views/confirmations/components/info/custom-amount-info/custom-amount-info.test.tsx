@@ -37,6 +37,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { useRoute } from '@react-navigation/native';
+import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { fireEvent } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -94,6 +95,10 @@ jest.mock('../../rows/predict-account-picker-row', () => ({
   PredictAccountPickerRow: () => null,
 }));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccount', () => ({
+  ...jest.requireActual('../../../../../UI/Money/hooks/useMoneyAccount'),
+  getMoneyAccountDepositIntent: jest.fn(),
+}));
 
 const mockTransactionPayControllerState = {
   transactionData: {} as Record<
@@ -873,6 +878,10 @@ describe('CustomAmountInfo', () => {
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
 
+      // A fresh, non-empty quote newer than the baseline settles the loading
+      // override. The timestamp bump alone is not enough — an empty pre-fetch
+      // bump must not settle, so quotes must be present.
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
       useTransactionPayQuotesLastUpdatedMock.mockReturnValue(101);
       view.rerender(
         createCustomAmountInfo({
@@ -904,6 +913,7 @@ describe('CustomAmountInfo', () => {
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
       useTransactionPayQuotesLastUpdatedMock.mockReturnValue(123);
       view.rerender(
         createCustomAmountInfo({
@@ -945,6 +955,7 @@ describe('CustomAmountInfo', () => {
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
       useTransactionPayQuotesLastUpdatedMock.mockReturnValue(3);
       view.rerender(
         createCustomAmountInfo({
@@ -1638,12 +1649,26 @@ describe('CustomAmountInfo', () => {
       view.rerender(createCustomAmountInfo());
     }
 
-    it('clears the handoff immediately for synchronous updates without quote signals', async () => {
+    it('holds the loading review after commit until a quote signal settles it', async () => {
       const view = render();
 
+      // Committing arms the loading override. Leaving loading is owned solely by
+      // the stage hook's exit effect, which waits for a genuine quote signal —
+      // it must NOT settle synchronously on commit, otherwise the skeleton would
+      // flash to the review and back once the real fetch begins.
       await act(async () => {
         fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
       });
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+
+      // A fresh, non-empty quote settles the override into the populated review.
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
+      view.rerender(createCustomAmountInfo());
 
       expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
       expect(
@@ -1925,8 +1950,13 @@ describe('CustomAmountInfo', () => {
     });
 
     it('hides buy section during loading when override is present (prevents flash)', () => {
+      // add-mUSD intent starts the stage in Loading (no keyboard) with deposit
+      // prefill disabled, so the buy-section hide is exercised via the
+      // `stage === Loading` term rather than the prefill-enabled gate.
+      (getMoneyAccountDepositIntent as jest.Mock).mockReturnValue('addMusd');
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
+        batchId: '0xbatch',
         txParams: { from: '0x123' },
       } as never);
 
@@ -1943,6 +1973,8 @@ describe('CustomAmountInfo', () => {
         transactionType: TransactionType.moneyAccountDeposit,
       });
 
+      // With an account override in the Loading stage, the buy section must
+      // stay hidden to avoid a flash before the review renders.
       expect(
         queryByText(strings('confirm.custom_amount.buy_button')),
       ).toBeNull();
@@ -2052,31 +2084,42 @@ describe('CustomAmountInfo', () => {
   });
 
   it('opens keyboard when custom amount input is pressed', async () => {
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      isDepositPrefillEnabled: true,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
-      updateTokenAmount: jest.fn(),
+    // Reach a settled review stage first: commit the amount (Loading override),
+    // then a fresh quote settles it to ShowTotals. In review the keyboard is
+    // hidden but the amount input is pressable, so tapping it re-opens the
+    // keyboard.
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'test-tx-id',
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    setControllerTransactions([{ id: 'test-tx-id' }]);
+
+    const view = render({
+      transactionType: TransactionType.moneyAccountDeposit,
     });
-
-    const { getByTestId, queryByTestId } = render();
-
-    expect(queryByTestId('deposit-keyboard')).toBeNull();
 
     await act(async () => {
-      fireEvent.press(getByTestId('custom-amount-input'));
+      fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
     });
 
-    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    // Settle the Loading override into the review.
+    useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+    view.rerender(
+      createCustomAmountInfo({
+        transactionType: TransactionType.moneyAccountDeposit,
+      }),
+    );
+
+    expect(view.queryByTestId('deposit-keyboard')).toBeNull();
+
+    await act(async () => {
+      fireEvent.press(view.getByTestId('custom-amount-input'));
+    });
+
+    expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
   });
 
   it('shows keyboard immediately when autoSelectFiatPayment is set even with prefill enabled', () => {
