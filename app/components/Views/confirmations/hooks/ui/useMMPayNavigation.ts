@@ -2,33 +2,45 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   type Dispatch,
-  type MutableRefObject,
   type SetStateAction,
   useEffect,
+  useRef,
 } from 'react';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { CustomAmountInfoStage } from '../transactions/useCustomAmountInfoStage';
 
 const useMMPayNavigation = (
-  isKeyboardVisible: boolean,
-  setIsKeyboardVisible: Dispatch<SetStateAction<boolean>>,
-  keyboardEverShown?: MutableRefObject<boolean>,
-  skipBackToKeyboard = false,
+  stage: CustomAmountInfoStage,
+  setStage: Dispatch<SetStateAction<CustomAmountInfoStage | null>>,
+  skipBackToAmountInput = false,
 ) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
 
-  useEffect(() => {
-    const showKeyboard = () => setIsKeyboardVisible(true);
-    const neverShown = keyboardEverShown && !keyboardEverShown.current;
+  const isAmountInput = stage === CustomAmountInfoStage.AmountInput;
 
-    const allowBack = isKeyboardVisible || skipBackToKeyboard || neverShown;
-    mmPayRequestInProgressNavHandler.current = allowBack ? false : showKeyboard;
+  // Track whether the amount input has ever been shown, so the back gesture is
+  // allowed to leave the screen before the user has had a chance to edit.
+  const wasAmountInputVisibleRef = useRef(isAmountInput);
+  if (isAmountInput) {
+    wasAmountInputVisibleRef.current = true;
+  }
+
+  useEffect(() => {
+    const showAmountInput = () =>
+      setStage(CustomAmountInfoStage.AmountInput);
+    const neverShown = !wasAmountInputVisibleRef.current;
+
+    const allowBack = isAmountInput || skipBackToAmountInput || neverShown;
+    mmPayRequestInProgressNavHandler.current = allowBack
+      ? false
+      : showAmountInput;
     navigation.setOptions({
       gestureEnabled: !!allowBack,
     });
 
-    if (isKeyboardVisible || neverShown) {
+    if (isAmountInput || neverShown) {
       return () => {
         mmPayRequestInProgressNavHandler.current = false;
       };
@@ -36,7 +48,7 @@ const useMMPayNavigation = (
 
     const backSub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (mmPayRequestInProgressNavHandler.current) {
-        showKeyboard();
+        showAmountInput();
         return true;
       }
       return false;
@@ -48,11 +60,10 @@ const useMMPayNavigation = (
     };
   }, [
     mmPayRequestInProgressNavHandler,
-    isKeyboardVisible,
+    isAmountInput,
     navigation,
-    setIsKeyboardVisible,
-    keyboardEverShown,
-    skipBackToKeyboard,
+    setStage,
+    skipBackToAmountInput,
   ]);
 };
 

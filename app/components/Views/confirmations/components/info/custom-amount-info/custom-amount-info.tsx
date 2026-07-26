@@ -1,7 +1,5 @@
 import React, {
-  Dispatch,
   ReactNode,
-  SetStateAction,
   memo,
   useCallback,
   useContext,
@@ -206,51 +204,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
 
-    const { stage, setStage } = useCustomAmountInfoStage({
-      initialStage:
-        !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill)
-          ? CustomAmountInfoStage.AmountInput
-          : CustomAmountInfoStage.Loading,
+    const { stage, setStage, stageRef } = useCustomAmountInfoStage({
       amountFiat,
       isAddMusdIntent,
+      isDepositPrefillEnabled,
       isDepositPrefillLoading,
       isDepositPrefilled,
       skipDepositPrefill,
       hasAccountNoFunds,
     });
 
-    const isKeyboardVisible = stage === CustomAmountInfoStage.AmountInput;
-    const isKeyboardVisibleRef = useRef(isKeyboardVisible);
-    isKeyboardVisibleRef.current = isKeyboardVisible;
-    // Adapts the boolean keyboard API used by handlers and navigation onto the
-    // stage machine: showing the keyboard is the AmountInput stage.
-    const setIsKeyboardVisible = useCallback<Dispatch<SetStateAction<boolean>>>(
-      (action) => {
-        setStage((current) => {
-          const wasVisible = current === CustomAmountInfoStage.AmountInput;
-          const visible =
-            typeof action === 'function' ? action(wasVisible) : action;
-          if (visible) {
-            return CustomAmountInfoStage.AmountInput;
-          }
-          // Hiding the keyboard clears the override so the stage is derived.
-          return wasVisible ? null : current;
-        });
-      },
-      [setStage],
-    );
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
-    const wasKeyboardEverVisible = useRef(isKeyboardVisible);
-    if (isKeyboardVisible) {
-      wasKeyboardEverVisible.current = true;
-    }
-    useMMPayNavigation(
-      isKeyboardVisible,
-      setIsKeyboardVisible,
-      wasKeyboardEverVisible,
-    );
+    useMMPayNavigation(stage, setStage);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -259,17 +226,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
     }
-
-    useEffect(() => {
-      if (isDepositPrefillEnabled && skipDepositPrefill && !isKeyboardVisible) {
-        setStage(CustomAmountInfoStage.AmountInput);
-      }
-    }, [
-      isDepositPrefillEnabled,
-      skipDepositPrefill,
-      isKeyboardVisible,
-      setStage,
-    ]);
 
     const shouldHideAccountSelector =
       hideAccountSelector && !fiatEverSelectedRef.current;
@@ -281,7 +237,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
-      isKeyboardVisible,
+      isKeyboardVisible: stage === CustomAmountInfoStage.AmountInput,
       pendingTokenAmount: amountHumanDebounced,
       pendingFiatAmount: amountFiatDebounced,
     });
@@ -289,7 +245,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAutoSubmittedPrefill = useRef(false);
 
     const handleDone = useCallback(async () => {
-      const keyboardVisibleAtStart = isKeyboardVisibleRef.current;
+      const wasAmountInputAtStart =
+        stageRef.current === CustomAmountInfoStage.AmountInput;
       if (isAmountUpdateInProgressRef.current) {
         return;
       }
@@ -337,18 +294,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
       EngineService.flushState();
       hasAutoSubmittedPrefill.current = true;
-      // If the keyboard was closed when handleDone started (auto-submit) but
-      // the user opened it during the await, don't dismiss it.
-      if (!keyboardVisibleAtStart && isKeyboardVisibleRef.current) {
+      // If the amount input was closed when handleDone started (auto-submit)
+      // but the user opened it during the await, don't dismiss it.
+      if (
+        !wasAmountInputAtStart &&
+        stageRef.current === CustomAmountInfoStage.AmountInput
+      ) {
         return;
       }
-      setIsKeyboardVisible(false);
+      // Leaving Loading is owned solely by the stage hook's exit effect, which
+      // waits for the quote fetch to settle. Clearing the override here would
+      // race that fetch and briefly derive a non-loading stage, flashing the
+      // totals/alert before the skeleton returns.
       onAmountSubmit?.();
     }, [
       amountFiat,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
-      setIsKeyboardVisible,
+      stageRef,
       setStage,
       toastRef,
       trackAmountCommitted,
@@ -376,7 +339,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
       // (true → false → true) during background state changes, which resets
       // the guard above and would otherwise dismiss the keyboard mid-edit.
-      if (isKeyboardVisible) {
+      if (stage === CustomAmountInfoStage.AmountInput) {
         return;
       }
 
@@ -384,7 +347,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         hasAutoSubmittedPrefill.current = true;
         handleDone();
       }
-    }, [isDepositPrefilled, amountFiat, handleDone, isKeyboardVisible]);
+    }, [isDepositPrefilled, amountFiat, handleDone, stage]);
 
     const isMaxAutoSubmitPending = useRef(false);
 
@@ -393,10 +356,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         updatePendingAmountPercentage(percentage);
         if (percentage === 100) {
           isMaxAutoSubmitPending.current = true;
-          setIsKeyboardVisible(false);
+          // Max defers the commit to the effect below once the amount lands;
+          // show the loading skeleton through that gap rather than the derived
+          // stage, matching the direct-commit path.
+          setStage(CustomAmountInfoStage.Loading);
         }
       },
-      [updatePendingAmountPercentage, setIsKeyboardVisible],
+      [updatePendingAmountPercentage, setStage],
     );
 
     useEffect(() => {
@@ -407,9 +373,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [amountFiat, handleDone]);
 
     const handleAmountPress = useCallback(() => {
-      wasKeyboardEverVisible.current = true;
-      setIsKeyboardVisible(true);
-    }, [setIsKeyboardVisible]);
+      setStage(CustomAmountInfoStage.AmountInput);
+    }, [setStage]);
 
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;

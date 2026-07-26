@@ -1,4 +1,11 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -57,30 +64,31 @@ export enum CustomAmountInfoStage {
  * purely off the returned `stage`.
  *
  * @param options - The inputs.
- * @param options.initialStage - The stage to start in.
  * @param options.amountFiat - The current fiat amount in the input. Used to
  * detect a no-op commit (the user re-commits without changing the amount): when
  * the shell sets the `Loading` override but `amountFiat` is unchanged since the
  * last commit, no quote fetch will follow, so the override is ignored.
  * @param options.isAddMusdIntent - Whether this is an add-mUSD intent.
+ * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
  * @param options.isDepositPrefilled - Whether a deposit prefill has resolved.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
  * @param options.hasAccountNoFunds - Whether the account-no-funds alert is set.
- * @returns The current stage and its setter.
+ * @returns The current stage, its setter, and a ref holding the latest stage
+ * for reading inside async callbacks that outlive the render that created them.
  */
 export function useCustomAmountInfoStage({
-  initialStage,
   amountFiat,
   isAddMusdIntent,
+  isDepositPrefillEnabled,
   isDepositPrefillLoading,
   isDepositPrefilled,
   skipDepositPrefill,
   hasAccountNoFunds,
 }: {
-  initialStage: CustomAmountInfoStage;
   amountFiat: string;
   isAddMusdIntent: boolean;
+  isDepositPrefillEnabled: boolean;
   isDepositPrefillLoading: boolean;
   isDepositPrefilled: boolean;
   skipDepositPrefill: boolean;
@@ -88,12 +96,17 @@ export function useCustomAmountInfoStage({
 }): {
   stage: CustomAmountInfoStage;
   setStage: Dispatch<SetStateAction<CustomAmountInfoStage | null>>;
+  stageRef: RefObject<CustomAmountInfoStage>;
 } {
   // `null` means "no override — derive the stage". In practice the override
   // only ever holds `AmountInput` (keyboard open) or `Loading` (update in
-  // flight); `initialStage` is one of those.
+  // flight). The initial stage is one of those: the keyboard opens straight
+  // away unless a deposit prefill is expected to resolve first.
   const [stageOverride, setStage] = useState<CustomAmountInfoStage | null>(
-    initialStage,
+    () =>
+      !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill)
+        ? CustomAmountInfoStage.AmountInput
+        : CustomAmountInfoStage.Loading,
   );
 
   const isQuotesLoading = useIsTransactionPayLoading();
@@ -111,9 +124,9 @@ export function useCustomAmountInfoStage({
   // the amount update.
   const loadingBaselineRef = useRef<number | undefined>(undefined);
   const wasLoadingRef = useRef(false);
-  const hasObservedQuotesLoadingRef = useRef(false);
-  // The `amountFiat` captured when the current `Loading` override began, so we
-  // can recognise a re-commit that did not change the amount.
+  // The `amountFiat` from the previous commit, so we can recognise a re-commit
+  // that did not change the amount. Only read (and then overwritten) on the arm
+  // transition, so it always reflects the prior commit at the moment we check.
   const lastCommittedFiatRef = useRef<string | undefined>(undefined);
 
   /**
@@ -122,60 +135,77 @@ export function useCustomAmountInfoStage({
    *
    * The override is a stateful bridge for the window between committing an
    * amount and the quote fetch starting — a period no reactive input yet
-   * reflects.
+   * reflects. Once that window closes, the derive path can render the stage
+   * itself, so the override clears.
    *
-   * First, ignore a no-op commit: if the override is `Loading` but `amountFiat`
-   * has not changed since the last commit, the amount update will not fetch a
-   * new quote, so there is nothing to wait for — clear the override immediately
-   * rather than sit in a skeleton that would never resolve. Because of this, a
-   * live `Loading` override always corresponds to a real amount change, so the
-   * exit below can rely on a fetch arriving.
+   * The effect distinguishes the two transitions:
    *
-   * While it is `Loading` for a real change, this effect watches the quote state
-   * and clears it (to `null`) when the update has settled:
+   * 1. Arm (the first render where the override became `Loading`): snapshot the
+   * quote timestamp as the baseline and record the committed amount. At this
+   * one moment, compare the new amount against the *previous* commit's amount:
+   * if unchanged, this is a no-op re-commit that will not trigger a fetch, so
+   * clear the override immediately rather than sit in a skeleton that never
+   * resolves. The comparison happens ONLY here, against the prior value, before
+   * we overwrite it — checking on later renders would always match the value we
+   * just stored and collapse the override mid-commit.
    *
-   * - `hasFreshQuote`: a quote newer than the one present when Loading began
-   * arrived (compared against `loadingBaselineRef` so a stale quote that
-   * predates the amount update never counts).
-   * - `hasObservedQuotesLoadingRef`: a fetch we saw running has since finished.
+   * 2. Settle (later renders while armed): clear the override when either
+   * - `hasFreshQuote`: real quotes newer than the baseline arrived (gated on
+   * `hasQuotes` so an empty pre-fetch bump that only advances the timestamp
+   * never counts), or
+   * - `isQuotesLoading`: the composite loading is now `true`, meaning the real
+   * fetch (or the tx-data update) is in flight. The derived `Loading` takes
+   * over seamlessly, so the override is redundant. Keying off the *current*
+   * loading state — not a latched "we saw loading then it stopped" ref — avoids
+   * the flash: the controller pulses `isLoading` for an intermediate/empty
+   * quote update BEFORE the real fetch, and a latch cannot tell that empty
+   * pulse apart from the real fetch, so it would clear during the gap and
+   * briefly derive `NoQuote`.
    *
-   * Resetting the refs whenever the override is not `Loading` re-arms the
+   * Resetting `wasLoadingRef` whenever the override is not `Loading` re-arms the
    * effect for the next amount update.
    */
   useEffect(() => {
     if (stageOverride !== CustomAmountInfoStage.Loading) {
       wasLoadingRef.current = false;
-      hasObservedQuotesLoadingRef.current = false;
-      return;
-    }
-
-    // Ignore a re-commit that did not change the amount: no fetch will follow,
-    // so hand the stage straight back to the derive path.
-    if (lastCommittedFiatRef.current === amountFiat) {
-      setStage(null);
       return;
     }
 
     if (!wasLoadingRef.current) {
+      // Arm: compare against the PRIOR commit before overwriting the ref.
+      const isNoOpRecommit = lastCommittedFiatRef.current === amountFiat;
+
       wasLoadingRef.current = true;
       loadingBaselineRef.current = quotesLastUpdated;
       lastCommittedFiatRef.current = amountFiat;
-    }
 
-    if (isQuotesLoading) {
-      hasObservedQuotesLoadingRef.current = true;
+      // A re-commit of the unchanged amount fetches nothing, so hand the stage
+      // straight back to the derive path.
+      if (isNoOpRecommit) {
+        setStage(null);
+      }
       return;
     }
 
+    // A quote timestamp newer than the one present when Loading began. Gated on
+    // `hasQuotes` so an empty pre-fetch bump (which advances the timestamp but
+    // carries no quotes, often a NoPayTokenQuotes alert) never counts.
     const hasFreshQuote =
+      hasQuotes &&
       quotesLastUpdated !== undefined &&
       (loadingBaselineRef.current === undefined ||
         quotesLastUpdated > loadingBaselineRef.current);
 
-    if (hasFreshQuote || hasObservedQuotesLoadingRef.current) {
+    if (hasFreshQuote || isQuotesLoading) {
       setStage(null);
     }
-  }, [stageOverride, amountFiat, isQuotesLoading, quotesLastUpdated]);
+  }, [
+    stageOverride,
+    amountFiat,
+    hasQuotes,
+    isQuotesLoading,
+    quotesLastUpdated,
+  ]);
 
   const isKeyboardVisible = stageOverride === CustomAmountInfoStage.AmountInput;
 
@@ -188,27 +218,56 @@ export function useCustomAmountInfoStage({
   const showPaymentDetails =
     hasQuotes || (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
-  // The override wins while set — return it directly.
-  if (stageOverride !== null) {
-    return { setStage, stage: stageOverride };
-  }
+  const stage = deriveStage();
 
-  // No override: derive the stage from reactive inputs. Stay in Loading while
-  // quotes are actively fetching, or while a prefill / add-mUSD preload
-  // resolves — the override only bridges the pre-fetch window, so isQuotesLoading
-  // covers the fetch itself.
-  if (
-    isQuotesLoading ||
-    isAwaitingPrefillResult ||
-    (isAddMusdIntent && !showPaymentDetails)
-  ) {
-    return { setStage, stage: CustomAmountInfoStage.Loading };
-  }
+  // Mirror the current stage into a ref so async callbacks (e.g. the amount
+  // commit handler) can read the latest stage after an await, rather than the
+  // stale value captured when the callback was created.
+  const stageRef = useRef(stage);
+  stageRef.current = stage;
 
-  // ShowTotals once payment details are ready, otherwise NoQuote.
-  if (showPaymentDetails) {
-    return { setStage, stage: CustomAmountInfoStage.ShowTotals };
-  }
+  // Re-assert the keyboard when deposit prefill is enabled but skipped (e.g. a
+  // fiat method was selected): there is nothing to prefill, so the user should
+  // be entering an amount. Reads the latest stage via the ref so it does not
+  // clobber a `Loading` / non-input stage.
+  useEffect(() => {
+    if (
+      isDepositPrefillEnabled &&
+      skipDepositPrefill &&
+      stageRef.current !== CustomAmountInfoStage.AmountInput
+    ) {
+      setStage(CustomAmountInfoStage.AmountInput);
+    }
+    // `stageRef` is a stable ref; reading `.current` intentionally does not
+    // make this effect reactive to stage changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDepositPrefillEnabled, skipDepositPrefill]);
 
-  return { setStage, stage: CustomAmountInfoStage.NoQuote };
+  return { setStage, stage, stageRef };
+
+  function deriveStage(): CustomAmountInfoStage {
+    // The override wins while set.
+    if (stageOverride !== null) {
+      return stageOverride;
+    }
+
+    // No override: derive the stage from reactive inputs. Stay in Loading while
+    // quotes are actively fetching, or while a prefill / add-mUSD preload
+    // resolves — the override only bridges the pre-fetch window, so
+    // isQuotesLoading covers the fetch itself.
+    if (
+      isQuotesLoading ||
+      isAwaitingPrefillResult ||
+      (isAddMusdIntent && !showPaymentDetails)
+    ) {
+      return CustomAmountInfoStage.Loading;
+    }
+
+    // ShowTotals once payment details are ready, otherwise NoQuote.
+    if (showPaymentDetails) {
+      return CustomAmountInfoStage.ShowTotals;
+    }
+
+    return CustomAmountInfoStage.NoQuote;
+  }
 }
