@@ -9,8 +9,6 @@ import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
 const mockSetXValue = jest.fn();
 const mockSetYValue = jest.fn();
-const mockSetCardType = jest.fn();
-const mockFireStartAnimation = jest.fn();
 const mockRefCallback = jest.fn();
 const mockRiveInstance = {};
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
@@ -28,8 +26,6 @@ jest.mock('rive-react-native', () => {
       undefined,
       path === 'xValue' ? mockSetXValue : mockSetYValue,
     ],
-    useRiveEnum: () => [undefined, mockSetCardType],
-    useRiveTrigger: () => mockFireStartAnimation,
     default: (props: {
       testID?: string;
       artboardName?: string;
@@ -78,37 +74,16 @@ describe('MoneyCardTiltAnimation', () => {
     ).toBeNull();
   });
 
-  it('renders the MainTilt artboard', () => {
+  it('renders the digital X-tilt artboard for a virtual card', () => {
     render(<MoneyCardTiltAnimation isMetalCard={false} />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('MainTilt');
+    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Digital ');
   });
 
-  it('sets the metal card type on the view model for a metal card', () => {
+  it('renders the metal X-tilt artboard for a metal card', () => {
     render(<MoneyCardTiltAnimation isMetalCard />);
 
-    expect(mockSetCardType).toHaveBeenCalledWith('metalTiltX');
-  });
-
-  it('sets the digital card type on the view model for a virtual card', () => {
-    render(<MoneyCardTiltAnimation isMetalCard={false} />);
-
-    expect(mockSetCardType).toHaveBeenCalledWith('digitalTiltX');
-  });
-
-  it('fires the start animation trigger once the rive instance exists', () => {
-    render(<MoneyCardTiltAnimation isMetalCard={false} />);
-
-    expect(mockFireStartAnimation).toHaveBeenCalled();
-  });
-
-  it('does not set the card type or fire the trigger when not animating', () => {
-    mockUseSelector.mockReturnValue(false);
-
-    render(<MoneyCardTiltAnimation isMetalCard={false} />);
-
-    expect(mockSetCardType).not.toHaveBeenCalled();
-    expect(mockFireStartAnimation).not.toHaveBeenCalled();
+    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Metal');
   });
 
   it('renders the static image when the feature flag is disabled', () => {

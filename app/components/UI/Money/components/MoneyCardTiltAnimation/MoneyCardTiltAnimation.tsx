@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -7,9 +7,7 @@ import Rive, {
   Fit,
   RNRiveError,
   useRive,
-  useRiveEnum,
   useRiveNumber,
-  useRiveTrigger,
 } from 'rive-react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/featureFlags';
@@ -28,28 +26,24 @@ const log = createProjectLogger('money-card-tilt');
 // These MUST match the names authored in card_tilt_v1.3.riv. If the Rive
 // designer renames any of these, update the constants here.
 //
-// The `cardType` variants shipped here are single-axis (X only), but both
-// `xValue` and `yValue` are wired so a future both-axes asset works without
-// code changes.
+// The per-variant artboards are rendered directly (not through the `MainTilt`
+// wrapper with its `cardType` enum) so the component needs no imperative
+// setup calls that could race the native view's file load. The artboards
+// shipped here are single-axis (X only), but both `xValue` and `yValue` are
+// wired so a future both-axes asset works without code changes.
 
-/** Artboard holding the data-bound tilt state machine. */
-const RIVE_ARTBOARD_MAIN = 'MainTilt';
+/**
+ * Artboard holding the virtual-card X tilt. The trailing space is authored
+ * in the file.
+ */
+const RIVE_ARTBOARD_DIGITAL = 'Card Tilt X - Digital ';
 
-/** ViewModel enum selecting the card variant to display. */
-const RIVE_PROPERTY_CARD_TYPE = 'cardType';
-
-/** `cardType` value for the virtual card, tilting on the X axis. */
-const RIVE_CARD_TYPE_DIGITAL = 'digitalTiltX';
-
-/** `cardType` value for the metal card, tilting on the X axis. */
-const RIVE_CARD_TYPE_METAL = 'metalTiltX';
+/** Artboard holding the metal-card X tilt. */
+const RIVE_ARTBOARD_METAL = 'Card Tilt X - Metal';
 
 /** ViewModel numbers (0-100, rest 50) driving the tilt per axis. */
 const RIVE_PROPERTY_X = 'xValue';
 const RIVE_PROPERTY_Y = 'yValue';
-
-/** ViewModel trigger playing the entry reveal animation. */
-const RIVE_TRIGGER_START = 'startAnimation';
 
 interface MoneyCardTiltAnimationProps {
   /** Which card variant to show. */
@@ -65,18 +59,10 @@ const MoneyCardTiltAnimation = ({
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
   const [riveRef, riveInstance] = useRive();
-  const [, setCardType] = useRiveEnum(riveInstance, RIVE_PROPERTY_CARD_TYPE);
   const [, setXValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_X);
   const [, setYValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_Y);
-  const fireStartAnimation = useRiveTrigger(riveInstance, RIVE_TRIGGER_START);
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
-
-  useEffect(() => {
-    if (!riveInstance || !animate) return;
-    setCardType(isMetalCard ? RIVE_CARD_TYPE_METAL : RIVE_CARD_TYPE_DIGITAL);
-    fireStartAnimation?.();
-  }, [riveInstance, animate, isMetalCard, setCardType, fireStartAnimation]);
 
   const applyTilt = useCallback(
     (x: number, y: number) => {
@@ -100,7 +86,7 @@ const MoneyCardTiltAnimation = ({
       <Rive
         ref={riveRef}
         source={CardTiltAnimation}
-        artboardName={RIVE_ARTBOARD_MAIN}
+        artboardName={isMetalCard ? RIVE_ARTBOARD_METAL : RIVE_ARTBOARD_DIGITAL}
         dataBinding={AutoBind(true)}
         fit={Fit.Contain}
         style={styles.media}
