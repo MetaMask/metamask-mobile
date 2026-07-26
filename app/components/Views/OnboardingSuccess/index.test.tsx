@@ -458,9 +458,11 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('fails to add networks to the network controller but renders the component', () => {
@@ -468,9 +470,11 @@ describe('OnboardingSuccess', () => {
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
   });
 
@@ -480,10 +484,11 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
@@ -491,7 +496,9 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      );
       fireEvent.press(button);
       expect(mockDiscoverAccounts).toHaveBeenCalled();
 
@@ -500,6 +507,27 @@ describe('OnboardingSuccess', () => {
           skipInitialBalanceWait: true,
         }),
       );
+      await waitFor(() => {
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          ResetNavigationToHome,
+        );
+      });
+    });
+  });
+
+  describe('first predict on us splash flow', () => {
+    it('resets to HomeNav when Done is pressed after the gate completes', async () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      };
+
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      );
+
+      fireEvent.press(button);
+
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           ResetNavigationToHome,
