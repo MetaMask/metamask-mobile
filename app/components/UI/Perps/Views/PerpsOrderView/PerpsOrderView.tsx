@@ -4,6 +4,8 @@ import {
   CommonActions,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -220,7 +222,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   defaultSzDecimals,
   defaultMaxLeverage,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   // Source: from route params (caller-passed) or trending session, else default
   const source =
@@ -1120,7 +1122,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: orderForm.amount,
-      szDecimals,
+      szDecimals: szDecimals ?? undefined,
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,
@@ -1306,7 +1308,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 {
                   name: Routes.PERPS.MARKET_DETAILS,
                   params: {
-                    market: navigationMarketData,
+                    market: navigationMarketData ?? {
+                      symbol: orderForm.asset,
+                      name: orderForm.asset,
+                    },
                     monitoringIntent: {
                       asset: orderForm.asset,
                       monitorOrders: true,
@@ -1394,7 +1399,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
-            market: navigationMarketData,
+            market: navigationMarketData ?? {
+              symbol: orderForm.asset,
+              name: orderForm.asset,
+            },
             // Pass monitoring intent to destination screen for data-driven tab selection
             monitoringIntent: {
               asset: orderForm.asset,

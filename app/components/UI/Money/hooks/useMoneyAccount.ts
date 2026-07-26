@@ -178,6 +178,7 @@ export function useMoneyAccountDeposit() {
           accountantAddress: depositSetup.accountantAddress,
           lensAddress: depositSetup.lensAddress,
           provider: depositSetup.provider,
+          initialiseWithoutData: true,
         });
 
         // We only set the transaction from the money account perspective.
