@@ -819,6 +819,39 @@ describe('CustomAmountInfo', () => {
       ).toBeUndefined();
     });
 
+    it('shows the default confirm label, not the alert title, during loading', async () => {
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+
+      setControllerTransactionData({ isLoading: true });
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      // An alert arrives while already in the loading review.
+      useTransactionCustomAmountAlertsMock.mockReturnValue({
+        alertTitle: 'Test Alert Title',
+        alertMessage: 'Test Alert Message',
+      });
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      // The alert title is suppressed on the disabled button while loading; the
+      // default "Done" label shows instead.
+      expect(
+        view.getByText(strings('confirm.deposit_edit_amount_done')),
+      ).toBeOnTheScreen();
+      expect(view.queryByText('Test Alert Title')).not.toBeOnTheScreen();
+    });
+
     it('keeps the loading review until Redux observes controller loading', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({

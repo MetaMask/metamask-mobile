@@ -38,6 +38,10 @@ describe('useMMPayNavigation', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('when stage is AmountInput (input state)', () => {
     it('sets mmPayRequestInProgressNavHandler to false', () => {
       renderHook(() => useMMPayNavigation(AMOUNT_INPUT, jest.fn()));

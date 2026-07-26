@@ -368,8 +368,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;
 
-    const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
-
     const hideBuyForNoFunds =
       Boolean(accountOverride) &&
       (hasAccountNoFunds || stage === CustomAmountStage.Loading);
@@ -382,7 +380,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
-            hasAlert={Boolean(alertMessage)}
+            hasAlert={
+              stage !== CustomAmountStage.Loading && Boolean(alertMessage)
+            }
             isLoading={
               !hasAccountNoFunds &&
               !skipDepositPrefill &&
@@ -489,12 +489,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <ConfirmButton
               alertTitle={alertTitle}
               isDisabled={
-                stage !== CustomAmountStage.ShowTotals ||
-                disableConfirm ||
-                isAccountSelectionNeeded ||
-                isPrefillPending
+                disableConfirm || isAccountSelectionNeeded || isPrefillPending
               }
               onContinue={trackContinue}
+              stage={stage}
             />
           )}
         </Box>
@@ -693,23 +691,23 @@ function ConfirmButton({
   alertTitle,
   isDisabled,
   onContinue,
+  stage,
 }: Readonly<{
   alertTitle: string | undefined;
   isDisabled: boolean;
   onContinue?: () => void;
+  stage: CustomAmountStage;
 }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
   const { onConfirm } = useConfirmActions();
-  const disabled = isDisabled || hasBlockingAlerts || isHeadlessBuyInProgress;
-  const buttonLabel = useButtonLabel();
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
-    // Continue / Add Funds CTA funnel event; no-op for non-money flows.
     onContinue?.();
+
     try {
       await onConfirm();
     } catch (error) {
@@ -717,6 +715,19 @@ function ConfirmButton({
       throw error;
     }
   }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
+
+  const disabled =
+    isDisabled ||
+    stage !== CustomAmountStage.ShowTotals ||
+    hasBlockingAlerts ||
+    isHeadlessBuyInProgress;
+
+  const enabledButtonLabel = useButtonLabel();
+
+  const buttonLabel =
+    stage === CustomAmountStage.Loading
+      ? enabledButtonLabel
+      : (alertTitle ?? enabledButtonLabel);
 
   return (
     <Button
@@ -730,7 +741,7 @@ function ConfirmButton({
       onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
-      {alertTitle ?? buttonLabel}
+      {buttonLabel}
     </Button>
   );
 }
