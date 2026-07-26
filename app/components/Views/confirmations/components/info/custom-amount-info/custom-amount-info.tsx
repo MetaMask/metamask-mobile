@@ -29,7 +29,7 @@ import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/us
 import {
   CustomAmountInfoStage,
   useCustomAmountInfoStage,
-} from '../../../hooks/transactions/useCustomAmountInfoStage';
+} from '../../../hooks/custom-amount/useCustomAmountInfoStage';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {

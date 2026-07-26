@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { CustomAmountInfoStage } from '../transactions/useCustomAmountInfoStage';
+import { CustomAmountInfoStage } from '../custom-amount/useCustomAmountInfoStage';
 
 const useMMPayNavigation = (
   stage: CustomAmountInfoStage,
@@ -28,8 +28,7 @@ const useMMPayNavigation = (
   }
 
   useEffect(() => {
-    const showAmountInput = () =>
-      setStage(CustomAmountInfoStage.AmountInput);
+    const showAmountInput = () => setStage(CustomAmountInfoStage.AmountInput);
     const neverShown = !wasAmountInputVisibleRef.current;
 
     const allowBack = isAmountInput || skipBackToAmountInput || neverShown;

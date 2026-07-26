@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import useMMPayNavigation from './useMMPayNavigation';
-import { CustomAmountInfoStage } from '../transactions/useCustomAmountInfoStage';
+import { CustomAmountInfoStage } from '../custom-amount/useCustomAmountInfoStage';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -125,7 +125,9 @@ describe('useMMPayNavigation', () => {
     it('disables gesture', () => {
       renderPreviouslyShown();
 
-      expect(mockSetOptions).toHaveBeenLastCalledWith({ gestureEnabled: false });
+      expect(mockSetOptions).toHaveBeenLastCalledWith({
+        gestureEnabled: false,
+      });
     });
 
     it('registers BackHandler listener', () => {
