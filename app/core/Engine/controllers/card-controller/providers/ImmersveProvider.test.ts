@@ -705,7 +705,7 @@ describe('ImmersveProvider', () => {
         expect.objectContaining({
           cardProgramId: 'program-1',
           fundingSourceId: 'fs-1',
-          spendableAmount: 2199023255551,
+          spendableAmount: '1',
           spendableCurrency: 'USD',
           kycType: 'immersve-conducted',
           kycRegion: 'GB',
@@ -727,7 +727,7 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/api/spending-prerequisites',
         expect.objectContaining({
-          spendableAmount: 2199023255551,
+          spendableAmount: '1',
           spendableCurrency: 'USD',
           kycType: 'immersve-conducted',
         }),
