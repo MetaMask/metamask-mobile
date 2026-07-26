@@ -203,8 +203,6 @@ jobs:
       - name: Run Tests
         continue-on-error: true
         env:
-          BROWSERSTACK_LOCAL: 'false'
-          BROWSERSTACK_LOCAL_IDENTIFIER: ''
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
           GREP_TAGS: ${{ inputs.grep_tags }}
         working-directory: '.'
@@ -215,7 +213,6 @@ jobs:
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
           echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
-          echo "BrowserStack Local: $BROWSERSTACK_LOCAL"
           echo "BrowserStack Geo Location: ${BROWSERSTACK_GEO_LOCATION:-SE}"
           if [ -n "$GREP_TAGS" ]; then
             echo "Grep filter: $GREP_TAGS"

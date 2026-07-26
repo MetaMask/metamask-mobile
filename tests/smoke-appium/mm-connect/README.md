@@ -14,29 +14,32 @@ Requires a **main-e2e release** APK (`HAS_TEST_OVERRIDES=true`). See
 
 ## Specs
 
-| Spec | Status |
-|------|--------|
-| `connection-multichain.spec.ts` | Active — Multichain API connect via Browser Playground |
-| `connection-evm-account.spec.ts` | Skipped — [WAPI-1511](https://consensyssoftware.atlassian.net/browse/WAPI-1511) |
-| `connection-evm-rejection.spec.ts` | Skipped — WAPI-1511 |
-| `connection-evm-session-timeout.spec.ts` | Skipped — WAPI-1511 |
-| `connection-evm-sign.spec.ts` | Skipped — WAPI-1511 |
-| `connection-wagmi.spec.ts` | Skipped — WAPI-1511 |
-| `connection-wagmi-chains.spec.ts` | Skipped — WAPI-1511 |
-| `connection-multiclient.spec.ts` | Skipped — WAPI-1511 |
-| `connection-multiclient-resilience.spec.ts` | Skipped — WAPI-1511 |
-| `legacy-evm-rn-connect.spec.ts` | Skipped — WAPI-1511 (RN Playground APK) |
-| `multichain-rn-evm.spec.ts` | Skipped — WAPI-1511 (RN Playground APK) |
-| `multichain-rn-solana.spec.ts` | Skipped — WAPI-1511 (RN Playground APK) |
+| Spec                                        | Status                                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------- |
+| `connection-multichain.spec.ts`             | Active — Multichain API connect via Browser Playground                          |
+| `connection-evm-account.spec.ts`            | Skipped — [WAPI-1511](https://consensyssoftware.atlassian.net/browse/WAPI-1511) |
+| `connection-evm-rejection.spec.ts`          | Skipped — WAPI-1511                                                             |
+| `connection-evm-session-timeout.spec.ts`    | Skipped — WAPI-1511                                                             |
+| `connection-evm-sign.spec.ts`               | Skipped — WAPI-1511                                                             |
+| `connection-wagmi.spec.ts`                  | Skipped — WAPI-1511                                                             |
+| `connection-wagmi-chains.spec.ts`           | Skipped — WAPI-1511                                                             |
+| `connection-multiclient.spec.ts`            | Skipped — WAPI-1511                                                             |
+| `connection-multiclient-resilience.spec.ts` | Skipped — WAPI-1511                                                             |
+| `legacy-evm-rn-connect.spec.ts`             | Skipped — WAPI-1511 (RN Playground APK)                                         |
+| `multichain-rn-evm.spec.ts`                 | Skipped — WAPI-1511 (RN Playground APK)                                         |
+| `multichain-rn-solana.spec.ts`              | Skipped — WAPI-1511 (RN Playground APK)                                         |
 
 Un-skipping remaining specs is tracked in
 [MMQA-2062](https://consensyssoftware.atlassian.net/browse/MMQA-2062).
 
 ## Wallet & mocks
 
-- Fixture: `FixtureBuilder().withSolanaAccountPermission().build()` (standard e2e vault)
+- Fixture: `FixtureBuilder().withSolanaAccountPermission().withAutoLockDisabled().build()` (standard e2e vault)
 - Login: `loginToAppPlaywright({ scenarioType: 'e2e' })`
 - API mocks: `DEFAULT_MOCKS` via `withFixtures`
+
+Skipped browser/RN specs use `describe.skip` so their `beforeAll` playground
+servers and APK install hooks do not run on CI.
 
 ## RN Playground APK (local)
 

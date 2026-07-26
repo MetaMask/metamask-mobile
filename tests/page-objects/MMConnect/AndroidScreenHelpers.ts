@@ -1,8 +1,4 @@
 import { encapsulatedAction, sleep, createLogger } from '../../framework';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
@@ -33,13 +29,6 @@ const CHOOSER_TIMEOUT_MS = 45_000;
 const POLL_MS = 500;
 
 class AndroidScreenHelpers {
-  get openDeeplinkWithMetaMask(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(CHOOSER_METAMASK_XPATHS[0]),
-    });
-  }
-
   /**
    * After a dapp deeplink, select MetaMask from the Android app chooser (if
    * shown) and wait for the connect sheet. Auto-lock often appears instead of

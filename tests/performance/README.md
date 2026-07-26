@@ -80,14 +80,14 @@ The test suite is configured in `tests/playwright.config.ts`, which defines mult
 
 ### Available Projects
 
-| Project Name                      | Platform | Environment     | Test Scope                 |
-| --------------------------------- | -------- | --------------- | -------------------------- |
-| `android`                         | Android  | Local Emulator  | All performance tests      |
-| `ios`                             | iOS      | Local Simulator | All performance tests      |
-| `browserstack-android`            | Android  | BrowserStack    | Login tests only           |
-| `browserstack-ios`                | iOS      | BrowserStack    | Login tests only           |
-| `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only      |
-| `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only      |
+| Project Name           | Platform | Environment     | Test Scope            |
+| ---------------------- | -------- | --------------- | --------------------- |
+| `android`              | Android  | Local Emulator  | All performance tests |
+| `ios`                  | iOS      | Local Simulator | All performance tests |
+| `browserstack-android` | Android  | BrowserStack    | Login tests only      |
+| `browserstack-ios`     | iOS      | BrowserStack    | Login tests only      |
+| `android-onboarding`   | Android  | BrowserStack    | Onboarding tests only |
+| `ios-onboarding`       | iOS      | BrowserStack    | Onboarding tests only |
 
 ### Configuration Details
 
@@ -790,8 +790,6 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 - Verify credentials in `.e2e.env`
 - Check app URLs are valid
 - Ensure account has available sessions
-
-- Start the BrowserStack Local binary before the test and wait for the success message.
 
 **Quality gates failing unexpectedly**
 

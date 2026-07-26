@@ -36,7 +36,8 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-appiumTest.describe(SmokeMMConnect('EVM session timeout'), () => {
+// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
+appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
   appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();
@@ -81,17 +82,11 @@ appiumTest.describe(SmokeMMConnect('EVM session timeout'), () => {
   //
   // 6. CLEANUP
   //    - Tap disconnect to reset dapp state
-
-  // This test is currently being skipped as the mobile app displays a double prompt.
-  appiumTest.skip(
+  appiumTest(
     '@metamask/connect-evm - Incomplete session timeout and read-only methods',
     async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
-      const useBrowserStackLocal =
-        process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-      const DAPP_URL = useBrowserStackLocal
-        ? `http://bs-local.com:${DAPP_PORT}`
-        : getDappUrlForBrowser(platform);
+      const DAPP_URL = getDappUrlForBrowser(platform);
 
       await PlaywrightContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();

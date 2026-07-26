@@ -21,22 +21,12 @@ async function returnToPlayground() {
   await RNPlaygroundDapp.ensureInPlayground();
 }
 
-appiumTest.describe(SmokeMMConnect('Legacy EVM RN playground'), () => {
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  appiumTest.skip(
+// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
+appiumTest.describe.skip(SmokeMMConnect('Legacy EVM RN playground'), () => {
+  appiumTest(
     '@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains',
     async ({ currentDeviceDetails, driver: _driver }) => {
-      // When running on BrowserStack we skip the test if the RN playground is not installed
-      appiumTest.skip(
-        currentDeviceDetails.isBrowserstack &&
-          !process.env.BROWSERSTACK_RN_PLAYGROUND_URL,
-        'Skipped: BROWSERSTACK_RN_PLAYGROUND_URL is not set',
-      );
-
-      // handle local installs of the RN playground
-      if (!currentDeviceDetails.isBrowserstack) {
-        ensurePlaygroundInstalled(currentDeviceDetails);
-      }
+      ensurePlaygroundInstalled(currentDeviceDetails);
 
       //
       // 1. Login to MetaMask wallet
@@ -74,9 +64,6 @@ appiumTest.describe(SmokeMMConnect('Legacy EVM RN playground'), () => {
       await RNPlaygroundDapp.assertLegacyEvmHasAccounts();
       await RNPlaygroundDapp.assertLegacyEvmActiveAccount();
 
-      const initialChainId = await RNPlaygroundDapp.getLegacyEvmChainId();
-      console.log(`Initial chain ID: ${initialChainId}`);
-
       //
       // 4. personal_sign — request, approve, verify result
       //
@@ -102,9 +89,6 @@ appiumTest.describe(SmokeMMConnect('Legacy EVM RN playground'), () => {
       await RNPlaygroundDapp.scrollToElement(
         RNPlaygroundDapp.legacyEvmResponseText,
       );
-      const signResponse = await RNPlaygroundDapp.getLegacyEvmResponseText();
-      console.log(`personal_sign response: ${signResponse}`);
-      console.log(`personal_sign contains 0x: ${signResponse.includes('0x')}`);
 
       //
       // 5. eth_sendTransaction — request, cancel (to avoid spending funds)
@@ -139,12 +123,6 @@ appiumTest.describe(SmokeMMConnect('Legacy EVM RN playground'), () => {
         },
       );
 
-      const txResponse = await RNPlaygroundDapp.getLegacyEvmResponseText();
-      console.log(`eth_sendTransaction (cancelled) response: ${txResponse}`);
-      console.log(
-        `eth_sendTransaction contains denied: ${txResponse.toLowerCase().includes('denied')}`,
-      );
-
       //
       // 6. Chain switching from the dapp — wallet_switchEthereumChain
       //    Switch to Polygon from the dapp, verify the chain ID updates.
@@ -175,9 +153,6 @@ appiumTest.describe(SmokeMMConnect('Legacy EVM RN playground'), () => {
         RNPlaygroundDapp.legacyEvmChainIdValue,
         { scrollParams: { direction: 'down' } },
       );
-      const polygonChainId = await RNPlaygroundDapp.getLegacyEvmChainId();
-      console.log(`Chain ID after dapp switch to Polygon: ${polygonChainId}`);
-      console.log(`Chain ID contains 0x89: ${polygonChainId.includes('0x89')}`);
     },
   );
 }); // end describe

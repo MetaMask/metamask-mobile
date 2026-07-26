@@ -29,15 +29,12 @@ function getBuildTypeInfo() {
  * Used so Slack category status can reflect quality-gate failures even when
  * CI jobs exit green by design.
  * @param {string|null|undefined} testFilePath
- * @returns {'onboarding'|'imported-wallet'|'mm-connect'}
+ * @returns {'onboarding'|'imported-wallet'}
  */
 function resolveScenarioFromTestFilePath(testFilePath) {
   const pathValue = testFilePath || '';
   if (pathValue.includes('/performance/onboarding/')) {
     return 'onboarding';
-  }
-  if (pathValue.includes('/performance/mm-connect/')) {
-    return 'mm-connect';
   }
   return 'imported-wallet';
 }
@@ -415,7 +412,6 @@ function createSummary(groupedResults) {
   const failedTestsByCategory = {
     onboarding: { android: 0, ios: 0 },
     'imported-wallet': { android: 0, ios: 0 },
-    'mm-connect': { android: 0, ios: 0 },
   };
 
   const uniqueFailedTestNames = new Set();

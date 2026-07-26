@@ -31,7 +31,6 @@ import {
 
 const DAPP_PORT = 8090;
 
-// NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 
 // Create the playground server using the shared framework
@@ -41,7 +40,8 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-appiumTest.describe(SmokeMMConnect('Wagmi session'), () => {
+// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
+appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
   // Start local playground server before all tests
   appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
@@ -92,17 +92,11 @@ appiumTest.describe(SmokeMMConnect('Wagmi session'), () => {
   //
   // 7. RESET DAPP STATE
   //    - Tap disconnect to clean up
-
-  // This test is currently failing. See 250.
-  appiumTest.skip(
+  appiumTest(
     '@metamask/connect-evm (wagmi) - Session stability via Wagmi',
     async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
-      const useBrowserStackLocal =
-        process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-      const DAPP_URL = useBrowserStackLocal
-        ? `http://bs-local.com:${DAPP_PORT}`
-        : getDappUrlForBrowser(platform);
+      const DAPP_URL = getDappUrlForBrowser(platform);
 
       //
       // Login and navigate to dapp

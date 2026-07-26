@@ -37,8 +37,7 @@ async function returnToPlayground() {
 // Test steps (in order):
 //
 // 1. SETUP
-//    - Skip if running on BrowserStack and BROWSERSTACK_RN_PLAYGROUND_URL is not set
-//    - If running locally: call ensurePlaygroundInstalled to adb-install the APK
+//    - call ensurePlaygroundInstalled to adb-install the RN playground APK
 //
 // 2. LOGIN AND NAVIGATE TO PLAYGROUND
 //    - Login to MetaMask wallet, wait for wallet container to be visible
@@ -65,22 +64,12 @@ async function returnToPlayground() {
 //    - Assert session is disconnected
 //    - Switch to MetaMask and unlock if needed to confirm no active session
 
-appiumTest.describe(SmokeMMConnect('Multichain RN Solana'), () => {
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  appiumTest.skip(
+// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
+appiumTest.describe.skip(SmokeMMConnect('Multichain RN Solana'), () => {
+  appiumTest(
     '@metamask/connect-multichain-rn-solana - Connect with Solana, invoke signMessage, and disconnect',
     async ({ currentDeviceDetails, driver: _driver }) => {
-      // When running on BrowserStack we skip the test if the RN playground is not installed
-      appiumTest.skip(
-        currentDeviceDetails.isBrowserstack &&
-          !process.env.BROWSERSTACK_RN_PLAYGROUND_URL,
-        'Skipped: BROWSERSTACK_RN_PLAYGROUND_URL is not set',
-      );
-
-      // handle local installs of the RN playground
-      if (!currentDeviceDetails.isBrowserstack) {
-        ensurePlaygroundInstalled(currentDeviceDetails);
-      }
+      ensurePlaygroundInstalled(currentDeviceDetails);
 
       //
       // 1. Login to MetaMask wallet

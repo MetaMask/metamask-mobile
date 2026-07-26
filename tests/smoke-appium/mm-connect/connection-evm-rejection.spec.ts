@@ -29,7 +29,6 @@ import {
 
 const DAPP_PORT = 8090;
 
-// NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 
 const playgroundServer = new DappServer({
@@ -38,7 +37,8 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-appiumTest.describe(SmokeMMConnect('EVM rejection'), () => {
+// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
+appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
   appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();
@@ -84,17 +84,11 @@ appiumTest.describe(SmokeMMConnect('EVM rejection'), () => {
   //
   // 6. CLEANUP
   //    - Tap disconnect to reset dapp state
-
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  appiumTest.skip(
+  appiumTest(
     '@metamask/connect-evm - Rejection response value verification',
     async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
-      const useBrowserStackLocal =
-        process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-      const DAPP_URL = useBrowserStackLocal
-        ? `http://bs-local.com:${DAPP_PORT}`
-        : getDappUrlForBrowser(platform);
+      const DAPP_URL = getDappUrlForBrowser(platform);
 
       await PlaywrightContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();

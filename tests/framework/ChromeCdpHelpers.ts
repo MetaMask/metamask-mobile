@@ -177,7 +177,7 @@ export default class ChromeCdpHelpers {
   /**
    * Forward host → device Chrome DevTools abstract socket.
    */
-  static ensureAdbForward(port = CDP_FORWARD_PORT): void {
+  private static ensureAdbForward(port = CDP_FORWARD_PORT): void {
     try {
       execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
         stdio: 'pipe',
@@ -233,9 +233,9 @@ export default class ChromeCdpHelpers {
   }
 
   /**
-   * Click `[data-testid]` in the Chrome tab for `dappUrl` using a real CDP
-   * mouse input (trusted user activation). Synthetic JS clicks are not enough
-   * for MM Connect: the SDK opens `metamask://` inside `setTimeout(…, 10)`.
+   * Click `[data-testid]` in the Chrome tab for `dappUrl` via CDP
+   * `Runtime.evaluate` with `userGesture: true` (trusted activation for
+   * deeplink / `setTimeout` paths that ignore synthetic page clicks).
    */
   static async clickTestId(dappUrl: string, testId: string): Promise<void> {
     await this.withCdpSession(dappUrl, async (session) => {
@@ -526,7 +526,6 @@ export default class ChromeCdpHelpers {
     testId: string,
   ): Promise<void> {
     // Single activation only — a second click while CONNECTING fails the dapp.
-    // userGesture:true matches the path that previously reached CONNECTING in CI.
     const clicked = await session.evaluate<boolean>(
       `(() => {
         const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');

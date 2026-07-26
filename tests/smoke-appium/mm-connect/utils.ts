@@ -166,15 +166,8 @@ export async function ensureAccountGroupsFinishedLoading(
  * the pre-built release APK so the device always has a clean copy.
  */
 export function ensurePlaygroundInstalled(
-  currentDeviceDetails: CurrentDeviceDetails,
+  _currentDeviceDetails: CurrentDeviceDetails,
 ): void {
-  if (currentDeviceDetails.isBrowserstack) {
-    logger.info(
-      "Playground should've been uploaded to BrowserStack before the test run",
-    );
-    return;
-  }
-
   const apkPath = resolvePlaygroundApkPath();
   logger.info(`Resolved playground APK path: ${apkPath}`);
 

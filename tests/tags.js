@@ -85,7 +85,7 @@ const smokeTags = {
   smokeMMConnect: {
     tag: 'SmokeMMConnect:',
     description:
-      'Tests MetaMask Connect flows via the system browser (Chrome on Android, Safari on iOS) and local Browser Playground dApp. Covers Multichain API connect/disconnect, session scopes (eip155:1), and deeplink handoff back to MetaMask for connection approval. Specs live in tests/smoke-appium/mm-connect/ and run via Appium smoke CI. Uses withFixtures + the standard e2e fixture wallet (not baked-SRP performance builds). When changes touch MMConnect connection modals, multichain sessions, native browser deeplinks, or Browser Playground integration, select this tag. Related to SmokeMultiChainAPI and SmokeNetworkExpansion for CAIP-25 / multi-chain provider behavior.',
+      'Tests MetaMask Connect flows via Chrome on Android (google_apis emulator) and the local Browser Playground dApp. Covers Multichain API connect/disconnect, session scopes (eip155:1), and deeplink handoff back to MetaMask for connection approval. Specs live in tests/smoke-appium/mm-connect/ and run via Appium smoke CI (Android). Uses withFixtures + the standard e2e fixture wallet (not baked-SRP performance builds). When changes touch MMConnect connection modals, multichain sessions, native browser deeplinks, or Browser Playground integration, select this tag. Related to SmokeMultiChainAPI and SmokeNetworkExpansion for CAIP-25 / multi-chain provider behavior.',
   },
 };
 

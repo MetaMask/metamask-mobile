@@ -34,7 +34,6 @@ import {
 
 const DAPP_PORT = 8090;
 
-// NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
@@ -45,7 +44,8 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-appiumTest.describe(SmokeMMConnect('Wagmi chain switching'), () => {
+// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
+appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
   // Start local playground server before all tests
   appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
@@ -93,16 +93,11 @@ appiumTest.describe(SmokeMMConnect('Wagmi chain switching'), () => {
   // 6. CLEANUP
   //    - Tap disconnect to clean up
   //
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  appiumTest.skip(
+  appiumTest(
     '@metamask/connect-evm (wagmi) - Chain switching via Wagmi',
     async ({ currentDeviceDetails, driver: _driver }) => {
       const platform = currentDeviceDetails.platform;
-      const useBrowserStackLocal =
-        process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-      const DAPP_URL = useBrowserStackLocal
-        ? `http://bs-local.com:${DAPP_PORT}`
-        : getDappUrlForBrowser(platform);
+      const DAPP_URL = getDappUrlForBrowser(platform);
 
       //
       // Login and navigate to dapp

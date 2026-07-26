@@ -32,7 +32,6 @@ import {
 
 const DAPP_PORT = 8090;
 
-// NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_EVM_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_1_SOLANA_ADDRESS = '6fr9gpqbsszm6snzsjubu91jwxeduhwnvnkwxqksfwcz';
 
@@ -48,7 +47,8 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-appiumTest.describe(SmokeMMConnect('Multiclient connect'), () => {
+// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
+appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
   // Start local playground server before all tests
   appiumTest.beforeAll(async () => {
     // Set port and start the server directly (bypassing Detox-specific utilities)
@@ -91,17 +91,12 @@ appiumTest.describe(SmokeMMConnect('Multiclient connect'), () => {
   //    - Wagmi personal sign -> confirm -> assert signature starts with 0x
   //    - Assert: Solana scope still visible, Solana still connected
   //    - Solana sign message -> confirm -> assert correct signed result
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  appiumTest.skip(
+  appiumTest(
     '@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground',
     async ({ currentDeviceDetails }) => {
       // Get platform-specific URL
       const platform = currentDeviceDetails.platform;
-      const useBrowserStackLocal =
-        process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-      const DAPP_URL = useBrowserStackLocal
-        ? `http://bs-local.com:${DAPP_PORT}`
-        : getDappUrlForBrowser(platform);
+      const DAPP_URL = getDappUrlForBrowser(platform);
 
       //
       // Login and navigate to dapp
