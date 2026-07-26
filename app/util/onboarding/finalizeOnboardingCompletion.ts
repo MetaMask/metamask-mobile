@@ -31,11 +31,10 @@ export interface FinalizeOnboardingCompletionParams {
 
 /**
  * Shared onboarding completion side effects used when finishing onboarding from
- * OptinMetrics (SRP flow) or OnboardingSuccess (wallet-ready screen).
+ * OptinMetrics or directly from the final action in a path.
  *
- * No-ops when `successFlow` is undefined so that callers who still navigate to
- * OnboardingSuccess can preserve attribution until that screen's "Done" handler
- * invokes this function with a concrete successFlow.
+ * No-ops when `successFlow` is undefined so callers can defer completion until
+ * the path has a concrete completion outcome.
  *
  * When eligible, tracks ONBOARDING_COMPLETED, marks wallet-home onboarding steps,
  * and discovers accounts. Clears attribution at the end.

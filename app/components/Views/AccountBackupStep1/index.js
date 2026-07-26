@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
@@ -38,12 +38,24 @@ import {
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 import { AppThemeKey } from '../../../util/theme/models';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 
 const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
   const { themeAppearance } = useTheme();
   const { isEnabled: isAnalyticsEnabled } = useAnalytics();
   const tw = useTailwind();
+  const dispatch = useDispatch();
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const track = (event, properties) => {
     const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
@@ -77,31 +89,35 @@ const AccountBackupStep1 = (props) => {
   const skip = async () => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     const resetAction = CommonActions.reset({
-      index: 1,
-      routes: [
-        {
-          name: Routes.ONBOARDING.SUCCESS_FLOW,
-          params: {
-            screen: Routes.ONBOARDING.SUCCESS,
-            params: {
-              ...props.route.params,
-              successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-            },
-          },
-        },
-      ],
+      index: 0,
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
     endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
     endTrace({ name: TraceName.OnboardingJourneyOverall });
 
     if (isAnalyticsEnabled()) {
+      finalizeOnboardingCompletion({
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+        accountType: AccountType.Metamask,
+        isBasicFunctionalityEnabled,
+        walletSetupAttributionProps,
+        dispatch,
+        discoverAccountsLogContext: 'AccountBackupStep1',
+        needsQrProvisioning,
+      });
       navigation.dispatch(resetAction);
     } else {
       navigation.navigate('OptinMetrics', {
         onContinue: () => {
-          navigation.dispatch(resetAction);
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            }),
+          );
         },
         accountType: AccountType.Metamask,
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       });
     }
   };
@@ -150,7 +166,7 @@ const AccountBackupStep1 = (props) => {
           </Text>
           <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 mb-2.5">
             <Text
-              variant={TextVariant.DisplayMd}
+              variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
               twClassName="text-left self-start mb-4"
             >

@@ -55,7 +55,7 @@ import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
-import ManualBackupStep3 from '../../Views/ManualBackupStep3';
+import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
@@ -529,16 +529,8 @@ const SettingsFlow = () => {
         component={AccountBackupStep1B}
       />
       <NativeStack.Screen
-        name="ManualBackupStep1"
-        component={ManualBackupStep1}
-      />
-      <NativeStack.Screen
-        name="ManualBackupStep2"
-        component={ManualBackupStep2}
-      />
-      <NativeStack.Screen
-        name="ManualBackupStep3"
-        component={ManualBackupStep3}
+        name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
+        component={OnboardingInterestQuestionnaire}
       />
       <NativeStack.Screen
         name="EnterPasswordSimple"
@@ -951,10 +943,6 @@ const SetPasswordFlow = () => (
     <NativeStack.Screen
       name="ManualBackupStep2"
       component={ManualBackupStep2}
-    />
-    <NativeStack.Screen
-      name="ManualBackupStep3"
-      component={ManualBackupStep3}
     />
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
   </NativeStack.Navigator>

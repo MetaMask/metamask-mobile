@@ -10,17 +10,29 @@ export const createStyles = (colors: any) =>
       flexDirection: 'column',
       rowGap: 16,
       justifyContent: 'flex-start',
-      alignItems: 'flex-start',
+      alignItems: 'stretch',
       width: '100%',
       padding: 16,
+    },
+    forgotPasswordHeaderContainer: {
+      flexDirection: 'column',
+      rowGap: 8,
+      alignItems: 'stretch',
+      width: '100%',
+    },
+    forgotPasswordHeading: {
+      textAlign: 'center',
+    },
+    forgotPasswordDescription: {
+      textAlign: 'center',
     },
     forgotPasswordPointsContainer: {
       flexDirection: 'column',
       rowGap: 16,
       justifyContent: 'flex-start',
-      alignItems: 'flex-start',
+      alignItems: 'stretch',
       width: '100%',
-      marginVertical: 8,
+      marginVertical: 16,
     },
     forgotPasswordPoint: {
       flexDirection: 'row',
@@ -29,8 +41,21 @@ export const createStyles = (colors: any) =>
       alignItems: 'flex-start',
       width: '100%',
     },
+    forgotPasswordPointIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.background.alternative,
+    },
+    forgotPasswordSeparator: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.border.default,
+      marginLeft: 56,
+    },
     forgotPasswordPointText: {
-      width: '90%',
+      flex: 1,
     },
     container: {
       flexDirection: 'column',
@@ -60,8 +85,16 @@ export const createStyles = (colors: any) =>
       width: '100%',
     },
     iconEmptyContainer: {
-      width: 24,
-      height: 24,
+      width: 40,
+      height: 40,
+    },
+    backButtonCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.background.alternative,
     },
     warningIcon: {
       alignSelf: 'center',

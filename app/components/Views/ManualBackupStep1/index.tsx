@@ -4,9 +4,11 @@ import {
   KeyboardAvoidingView,
   FlatList,
   Platform,
+  Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -31,6 +33,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
+  AccountType,
   MANUAL_BACKUP_STEPS,
   SEED_PHRASE,
   CONFIRM_PASSWORD,
@@ -53,6 +56,10 @@ import {
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
 import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -61,7 +68,16 @@ const ManualBackupStep1 = () => {
   const navigation = useNavigation();
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
   const tw = useTailwind();
+  const { fontScale } = useWindowDimensions();
+  const phraseColumnCount = fontScale >= 1.5 ? 1 : fontScale >= 1.2 ? 2 : 3;
 
   const saveOnboardingEvent = useCallback(
     (event: ITrackingEvent) => {
@@ -203,8 +219,27 @@ const ManualBackupStep1 = () => {
       isMetricsEnabled,
       track,
       successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      onFinalize: () =>
+        finalizeOnboardingCompletion({
+          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+          accountType: AccountType.Metamask,
+          isBasicFunctionalityEnabled,
+          walletSetupAttributionProps,
+          dispatch,
+          discoverAccountsLogContext: 'ManualBackupStep1',
+          needsQrProvisioning,
+        }),
     });
-  }, [navigation, route.params, isMetricsEnabled, track]);
+  }, [
+    dispatch,
+    isBasicFunctionalityEnabled,
+    navigation,
+    needsQrProvisioning,
+    route.params,
+    isMetricsEnabled,
+    track,
+    walletSetupAttributionProps,
+  ]);
 
   const showRemindLater = useCallback(async () => {
     if (hasFunds) return;
@@ -326,67 +361,65 @@ const ManualBackupStep1 = () => {
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
       <Box
-        twClassName="flex-1 flex-col gap-4"
+        twClassName="flex-1 flex-col"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
-          {strings('manual_backup_step_1.action')}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('manual_backup_step_1.info-1')}{' '}
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.PrimaryDefault}
+        <Box twClassName="gap-2">
+          <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
+            {strings('manual_backup_step_1.action')}
+          </Text>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('manual_backup_step_1.description')}
+          </Text>
+          <Pressable
             onPress={showWhatIsSeedphrase}
+            accessibilityRole="button"
+            style={tw.style('self-start min-h-11 justify-center -my-1 pr-4')}
           >
-            {strings('manual_backup_step_1.info-2')}{' '}
-          </Text>
-          {strings('manual_backup_step_1.info-3')}{' '}
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {strings('manual_backup_step_1.info-4')}
-          </Text>
-        </Text>
-        {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
-            {renderSeedPhraseConcealer()}
-          </Box>
-        ) : (
-          <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
-            <FlatList
-              data={words}
-              numColumns={3}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item, index }) => (
-                <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    maxFontSizeMultiplier={1}
-                  >
-                    {index + 1}.
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    key={index}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
-                    style={tw.style('flex-1')}
-                    testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                    maxFontSizeMultiplier={1}
-                  >
-                    {item}
-                  </Text>
-                </Box>
-              )}
-            />
-          </Box>
-        )}
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.PrimaryDefault}
+            >
+              {strings('manual_backup_step_1.what_is_srp')}
+            </Text>
+          </Pressable>
+        </Box>
+        <Box twClassName="mt-4">
+          {seedPhraseHidden ? (
+            <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+              {renderSeedPhraseConcealer()}
+            </Box>
+          ) : (
+            <Box twClassName="p-4 bg-muted rounded-[10px]">
+              <FlatList
+                key={`phrase-columns-${phraseColumnCount}`}
+                data={words}
+                numColumns={phraseColumnCount}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item, index }) => (
+                  <Box twClassName="flex-row items-center min-h-10 border border-muted rounded-lg px-2 py-2 bg-default flex-1 m-1 gap-x-1.5">
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {index + 1}.
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                      key={index}
+                      style={tw.style('flex-1')}
+                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+                    >
+                      {item}
+                    </Text>
+                  </Box>
+                )}
+              />
+            </Box>
+          )}
+        </Box>
       </Box>
       <Box
         twClassName={`px-0 gap-4 flex justify-center items-center ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}

@@ -56,27 +56,15 @@ export const createTrackFunction =
   };
 
 /**
- * Creates a navigation reset action for onboarding success
- * @param routeParams - Current route params to pass through
+ * Creates a navigation reset action for home after onboarding completion.
  * @returns CommonActions.reset action
  */
-export const createOnboardingSuccessResetAction = (
-  routeParams: RouteParams,
-): ReturnType<typeof CommonActions.reset> =>
+export const createOnboardingHomeResetAction = (): ReturnType<
+  typeof CommonActions.reset
+> =>
   CommonActions.reset({
     index: 0,
-    routes: [
-      {
-        name: Routes.ONBOARDING.SUCCESS_FLOW,
-        params: {
-          screen: Routes.ONBOARDING.SUCCESS,
-          params: {
-            ...routeParams,
-            successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-          },
-        },
-      },
-    ],
+    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
   });
 
 /**
@@ -88,6 +76,7 @@ interface HandleSkipBackupParams {
   isMetricsEnabled: () => boolean;
   track: TrackFunction;
   successFlow?: ONBOARDING_SUCCESS_FLOW;
+  onFinalize?: () => void;
 }
 
 /**
@@ -96,22 +85,21 @@ interface HandleSkipBackupParams {
  */
 export const handleSkipBackup = async ({
   navigation,
-  routeParams,
   isMetricsEnabled,
   track,
   successFlow,
+  onFinalize,
 }: HandleSkipBackupParams): Promise<void> => {
   track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED, {
     wallet_setup_type: 'new',
   });
 
-  const resetAction = createOnboardingSuccessResetAction(routeParams);
-
   endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
   endTrace({ name: TraceName.OnboardingJourneyOverall });
 
   if (isMetricsEnabled()) {
-    navigation.dispatch(resetAction);
+    onFinalize?.();
+    navigation.dispatch(createOnboardingHomeResetAction());
   } else {
     navigation.navigate('OptinMetrics', {
       accountType: AccountType.Metamask,

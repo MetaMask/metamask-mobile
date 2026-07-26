@@ -13,10 +13,7 @@ import type { NetworkDetailsViewParams } from '../../../Views/NetworksManagement
 import type { ContactFormParams } from '../../../Views/Settings/Contacts/ContactForm.types';
 import type { NotificationSettingsSectionProps } from '../../../Views/Settings/NotificationsSettings/NotificationSettingsSection';
 import type { RegionSelectorParams } from '../../../Views/Modals/Modals.types';
-import type {
-  AccountBackupParams,
-  ManualBackupStep3Params,
-} from '../../../Views/AccountBackup/AccountBackup.types';
+import type { AccountBackupParams } from '../../../Views/AccountBackup/AccountBackup.types';
 import type {
   ManualBackupStep1Params,
   ManualBackupStep2Params,
@@ -100,7 +97,6 @@ export type SettingsStackParamList = {
   AccountBackupStep1B: AccountBackupParams | undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
-  ManualBackupStep3: ManualBackupStep3Params;
   EnterPasswordSimple: undefined;
   NotificationsSettings: undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
@@ -149,7 +145,6 @@ export type SetPasswordFlowParamList = {
   AccountBackupStep1B: AccountBackupParams | undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
-  ManualBackupStep3: ManualBackupStep3Params;
   OptinMetrics: OptinMetricsRouteParams | undefined;
 };
 

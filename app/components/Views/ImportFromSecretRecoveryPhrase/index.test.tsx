@@ -120,6 +120,10 @@ const initialState = {
   },
 };
 
+// A valid 12-word BIP39 mnemonic used across the happy-path tests.
+const VALID_SEED_PHRASE =
+  'say devote wasp video cool lunch brief add fever uncover novel offer';
+
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
@@ -148,6 +152,25 @@ function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
   ReduxService.store = result.store as unknown as ReduxStore;
   return result;
 }
+
+/**
+ * Confirms the wallet import from the password step.
+ *
+ * The redesigned step-1 CTA no longer imports directly. It opens a warning
+ * BottomSheet; the actual import happens when the user taps "I understand".
+ */
+const confirmImportFromWarning = async (
+  getByTestId: (id: string) => Parameters<typeof fireEvent.press>[0],
+  getByText: (text: string) => Parameters<typeof fireEvent.press>[0],
+) => {
+  await act(async () => {
+    fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+  });
+
+  await act(async () => {
+    fireEvent.press(getByText(strings('import_from_seed.i_understand')));
+  });
+};
 
 describe('ImportFromSecretRecoveryPhrase', () => {
   afterEach(() => {
@@ -202,6 +225,33 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders the seed phrase text area with the short placeholder', () => {
+      const { getByTestId, getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID),
+      ).toBeOnTheScreen();
+      expect(
+        getByPlaceholderText(strings('import_from_seed.srp_placeholder_short')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the SRP footnote below the input', () => {
+      const { getByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      expect(
+        getByText(strings('import_from_seed.srp_footnote')),
+      ).toBeOnTheScreen();
+    });
+
     it('renders continue button disabled initially', () => {
       const { getByRole } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -213,7 +263,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(continueButton).toBeDisabled();
     });
 
-    it('renders paste button when no seed phrase is entered', () => {
+    it('renders paste pill in the keyboard accessory bar when the keyboard is visible', async () => {
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: true }),
+      );
+
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -223,106 +278,43 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       jest.mocked(Clipboard.getString).mockResolvedValue('test');
       const pasteButton = getByText(strings('import_from_seed.paste'));
       expect(pasteButton).toBeOnTheScreen();
-      fireEvent.press(pasteButton);
+      await act(async () => {
+        fireEvent.press(pasteButton);
+      });
       jest.mocked(Clipboard.getString).mockResolvedValue('');
     });
 
-    it('renders show all and Paste button when no seed phrase is entered', () => {
-      const { getByText } = renderScreen(
+    it('populates the seed phrase text area when a 12 word phrase is entered', async () => {
+      const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
-    });
-
-    it('enter 12 length seed phrase and check the input fields are rendered', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
 
       await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
+        fireEvent.changeText(input, VALID_SEED_PHRASE);
       });
 
-      const getInput = (index: number) =>
-        getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-        );
-
-      for (let i = 0; i < 12; i++) {
-        expect(getInput(i)).toBeOnTheScreen();
-      }
-
-      expect(getInput(0).props.value).toBe('say');
-      await act(() => {
-        fireEvent(getInput(0), 'onFocus');
-      });
-      await waitFor(() => {
-        expect(getInput(0).props.value).toBe('say');
-      });
-    });
-
-    it('renders clear all button when seed phrase is entered on click clear the input fields and paste button is rendered', async () => {
-      const { getByText, getByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      expect(input).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'test test test test test test test test test test test test',
-        );
-      });
-
-      const clearAllButton = getByText(strings('import_from_seed.clear_all'));
-      expect(clearAllButton).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.press(clearAllButton);
-      });
-
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
+      expect(input.props.value).toBe(VALID_SEED_PHRASE);
     });
 
     it('on valid seed phrase entered, continue button is enabled', async () => {
-      const { getByPlaceholderText, getByRole } = renderScreen(
+      const { getByTestId, getByRole } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a valid 12-word seed phrase
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
-      fireEvent.changeText(
-        input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
-      );
+      fireEvent.changeText(input, VALID_SEED_PHRASE);
 
       const continueButton = getByRole('button', { name: 'Continue' });
-      // Wait for continue button to be enabled
       await waitFor(
         () => {
           expect(continueButton).toBeEnabled();
@@ -331,80 +323,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('on submit editing, keyboard dismisses without creating new input', async () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
+    it('renders qr code button when the keyboard is visible', () => {
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: true }),
       );
 
-      // Enter a word
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(input, 'say');
-      });
-
-      // Wait for the first grid input to be created
-      await waitFor(() => {
-        const firstGridInput = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-        );
-        expect(firstGridInput).toBeOnTheScreen();
-      });
-
-      // Get the first grid input
-      const firstGridInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-
-      await act(async () => {
-        fireEvent(firstGridInput, 'onSubmitEditing');
-      });
-
-      // Verify no new input was created (keyboard just dismisses)
-      await waitFor(() => {
-        expect(
-          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeNull();
-      });
-    });
-
-    it('on enter key press at the last input field with correct length, the new input field value is not created', async () => {
-      const { getByPlaceholderText, queryByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Enter a valid 12-word seed phrase
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      fireEvent.changeText(
-        input,
-        'frame midnight talk absent spy release check below volume industry advance neglect ',
-      );
-
-      await act(async () => {
-        fireEvent(input, 'onSubmitEditing', {
-          nativeEvent: { key: 'Enter' },
-          index: 11,
-        });
-      });
-
-      await waitFor(() => {
-        const secondInput = queryByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_12`,
-        );
-        expect(secondInput).not.toBeOnTheScreen();
-      });
-    });
-
-    it('renders qr code button', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -418,20 +342,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on valid seed phrase clicking continue button, it navigates to step 2 i.e. Create password', async () => {
-      const { getByText, getByPlaceholderText, getByRole } = renderScreen(
+      const { getByText, getByTestId, getByRole } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a valid 12-word seed phrase
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
-      fireEvent.changeText(
-        input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
-      );
+      fireEvent.changeText(input, VALID_SEED_PHRASE);
 
       const continueButton = getByRole('button', { name: 'Continue' });
 
@@ -439,7 +359,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      // Wait for password screen to appear and verify
       await waitFor(
         () => {
           expect(
@@ -450,50 +369,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('on backspace key press, the input field value is updated', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
+    it('on entering a 12 word seed phrase, continue button is enabled', async () => {
+      const { getByTestId, getByRole } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
 
-      await act(async () => {
-        fireEvent.changeText(input, 'test word ');
-      });
-
-      await act(async () => {
-        fireEvent(input, 'keyPress', {
-          nativeEvent: { key: 'Backspace' },
-          index: 1,
-        });
-      });
-
-      const secondInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-      );
-
-      await waitFor(() => {
-        expect(secondInput).toBeOnTheScreen();
-        expect(secondInput.props.value).toBe('word');
-      });
-    });
-
-    it('on entering a valid seed phrase, continue button is enabled', async () => {
-      const { getByPlaceholderText, getByRole } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      // Enter multiple words
       await act(async () => {
         fireEvent.changeText(
           input,
@@ -501,150 +387,58 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         );
       });
 
-      // Verify continue button is still disabled (since it's not a complete seed phrase)
       const continueButton = getByRole('button', { name: 'Continue' });
       expect(continueButton).toBeEnabled();
     });
 
-    it('on backspace key press, the input field length is updated', async () => {
-      const { getByTestId, getByPlaceholderText } = renderScreen(
+    it('on entering an invalid seed phrase and pressing continue, an error message is shown', async () => {
+      const { getByTestId, getByRole, getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
 
-      // Enter multiple words
-      await act(async () => {
-        fireEvent.changeText(input, 'word1 word2 word3');
-      });
-
-      // Get all input fields after they are created
-      const inputFields = await waitFor(() => {
-        const fields = [];
-        for (let i = 0; i < 3; i++) {
-          const field = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
-          );
-          fields.push(field);
-        }
-        return fields;
-      });
-
-      // Verify initial state
-      expect(inputFields[0].props.value).toBe('word1');
-      expect(inputFields[1].props.value).toBe('word2');
-      expect(inputFields[2].props.value).toBe('word3');
-
-      // Simulate backspace press on the third input field
-      fireEvent(inputFields[2], 'keyPress', {
-        nativeEvent: { key: 'Backspace' },
-      });
-
-      // Wait for the component to update and verify the input values
-      await waitFor(() => {
-        const updatedFields = [];
-        for (let i = 0; i < 2; i++) {
-          const field = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
-          );
-          updatedFields.push(field);
-        }
-        expect(updatedFields[0].props.value).toBe('word1');
-        expect(updatedFields[1].props.value).toBe('word2');
-      });
-
-      // Simulate backspace press on the second input field
-      fireEvent(inputFields[1], 'keyPress', {
-        nativeEvent: { key: 'Backspace' },
-      });
-
-      // Wait for the component to update and verify the final input value
-      await waitFor(() => {
-        const finalField = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-        );
-        expect(finalField.props.value).toBe('word1');
-      });
-    });
-
-    it('on entering an invalid seed phrase, spellcheck error message is shown', async () => {
-      const { getByPlaceholderText, getAllByText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Test case 1: Invalid length (less than 12 words)
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      // Invalid mnemonic
+      // 12 words (valid length) but an invalid mnemonic.
       const invalidMnemonic = 'invalid '.repeat(12).trim();
 
-      // Enter invalid mnemonic
       await act(async () => {
         fireEvent.changeText(input, invalidMnemonic);
       });
 
+      const continueButton = getByRole('button', { name: 'Continue' });
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
       await waitFor(() => {
-        const errorMessages = getAllByText(
-          strings('import_from_seed.spellcheck_error'),
-        );
-        expect(errorMessages.length).toBeGreaterThan(0);
-        expect(errorMessages[0]).toBeOnTheScreen();
+        expect(
+          getByText(strings('import_from_seed.invalid_seed_phrase')),
+        ).toBeOnTheScreen();
       });
     });
 
     it('on entering a valid seed phrase, continue button is enabled and it navigates to create password UI', async () => {
-      const { getByText, getByPlaceholderText, getByRole, getByTestId } =
-        renderScreen(
-          ImportFromSecretRecoveryPhrase,
-          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-          { state: initialState },
-        );
+      const { getByText, getByTestId, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
 
-      // Test case 1: Invalid length (less than 12 words)
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
       const continueButton = getByRole('button', { name: 'Continue' });
 
-      // Valid 12-word mnemonic
-      const validMnemonic =
-        'say devote wasp video cool lunch brief add fever uncover novel offer';
-
-      // Enter valid mnemonic
       await act(async () => {
-        fireEvent.changeText(input, validMnemonic);
+        fireEvent.changeText(input, VALID_SEED_PHRASE);
       });
 
-      // Get all input fields after they are created
-      const inputFields = await waitFor(() => {
-        const fields = [];
-        for (let i = 0; i < 12; i++) {
-          const field = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
-          );
-          fields.push(field);
-        }
-        return fields;
-      });
+      expect(input.props.value).toBe(VALID_SEED_PHRASE);
 
-      // Verify initial state
-      expect(inputFields[0].props.value).toBe('say');
-      await act(() => {
-        fireEvent(inputFields[0], 'onFocus');
-      });
-      await waitFor(() => {
-        expect(inputFields[0].props.value).toBe('say');
-      });
-
-      // Press continue and verify password screen
       fireEvent.press(continueButton);
 
       await waitFor(() => {
@@ -652,59 +446,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           getByText(strings('import_from_seed.metamask_password')),
         ).toBeOnTheScreen();
       });
-    });
-
-    it('on entering a new word, the next input field is rendered', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Enter invalid seed phrase
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(input, 'horse one');
-      });
-
-      const getInput = (index: number) =>
-        getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-        );
-
-      const input0 = getInput(0);
-      const input1 = getInput(1);
-
-      expect(input0).toBeOnTheScreen();
-      expect(input1).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.changeText(input1, 'one invalid2');
-      });
-      const input2 = getInput(2);
-      expect(input2).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.changeText(input2, 'invalid2 invalid3');
-      });
-      const input3 = getInput(3);
-      expect(input3).toBeOnTheScreen();
-    });
-
-    it('show seedphrase modal when srp link is pressed', () => {
-      const { getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-      const srpLink = getByTestId(
-        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID,
-      );
-      expect(srpLink).toBeOnTheScreen();
-      fireEvent.press(srpLink);
     });
 
     it('calls navigation.goBack when back button is pressed on step 0', () => {
@@ -741,300 +482,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('update focused index on blur', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Enter a seed phrase to create multiple input fields
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
-      });
-
-      // Wait for the individual input fields to be created
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-      });
-
-      const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-      const input1 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-      );
-
-      // Test case 1: Focus on input 0, then blur from the same input
-      // This should set the focused index to null
-      fireEvent(input0, 'focus');
-      fireEvent(input0, 'blur');
-
-      // The input should handle the blur event without crashing
-      expect(input0).toBeOnTheScreen();
-
-      // Test case 2: Focus on input 0, then blur from a different input
-      // This should not change the focused index
-      fireEvent(input0, 'focus');
-      fireEvent(input1, 'blur');
-
-      // Both inputs should still be on screen and functional
-      expect(input0).toBeOnTheScreen();
-      expect(input1).toBeOnTheScreen();
-    });
-
-    it('valid seed word on blur', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Enter a seed phrase to create multiple input fields
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-      });
-
-      const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-
-      // Test blur with a valid word ("say" is a valid BIP39 word)
-      fireEvent.changeText(input0, 'say');
-      fireEvent(input0, 'focus');
-      fireEvent(input0, 'blur');
-
-      // Should handle blur without issues
-      expect(input0).toBeOnTheScreen();
-      expect(input0.props.value).toBe('say');
-    });
-
-    it('invalid seed word on blur', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Enter a seed phrase to create multiple input fields
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-      });
-
-      const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-
-      // Test blur with an invalid word
-      fireEvent.changeText(input0, 'invalidword');
-      fireEvent(input0, 'focus');
-      fireEvent(input0, 'blur');
-
-      // Should handle blur without issues even with invalid word
-      expect(input0).toBeOnTheScreen();
-      expect(input0.props.value).toBe('invalidword');
-    });
-
-    it('empty word on blur', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Enter a seed phrase to create multiple input fields
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-      });
-
-      const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-
-      // Test blur with empty word
-      fireEvent.changeText(input0, '');
-      fireEvent(input0, 'focus');
-      fireEvent(input0, 'blur');
-
-      // Should handle blur without issues even with empty word
-      expect(input0).toBeOnTheScreen();
-      expect(input0.props.value).toBe('');
-    });
-
-    it('shows "Paste" button initially and "Clear All" when user starts typing', async () => {
-      const { getByText, getByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Initially should show "Paste" button
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
-
-      // Type something to trigger hasStartedTyping
-      const textArea = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(textArea, 'test');
-      });
-
-      // Should now show "Clear All" button
-      const clearAllButton = getByText(strings('import_from_seed.clear_all'));
-      expect(clearAllButton).toBeOnTheScreen();
-    });
-
-    it('switches back to "Paste" button when all content is cleared', async () => {
-      const { getByText, getByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Start with TextArea and type something
-      const textArea = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(textArea, 'test');
-      });
-
-      // Verify "Clear All" button is shown
-      const clearAllButton = getByText(strings('import_from_seed.clear_all'));
-      expect(clearAllButton).toBeOnTheScreen();
-
-      // Click "Clear All"
-      fireEvent.press(clearAllButton);
-
-      // Should switch back to "Paste" button
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
-    });
-
-    it('switches back to TextArea when all individual fields are cleared', async () => {
-      const { getByPlaceholderText, getByTestId, getByText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Start with TextArea and type something
-      const textArea = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      expect(textArea).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.changeText(textArea, 'test');
-      });
-
-      // Verify individual inputs are shown
-      const firstInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}`,
-      );
-      expect(firstInput).toBeOnTheScreen();
-
-      // Clear the input
-      await act(async () => {
-        fireEvent.changeText(firstInput, '');
-      });
-
-      // Should switch back to TextArea
-      const textAreaAfterClear = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-      expect(textAreaAfterClear).toBeOnTheScreen();
-
-      // Should show "Paste" button
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
-    });
-
-    it('should not navigate to next field if only spaces are entered', async () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Start with TextArea and type something
-      const textArea = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(textArea, 'test test1 text2   ');
-      });
-
-      const input4 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_3`,
-      );
-
-      expect(input4).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.changeText(input4, '   ');
-      });
-
-      const input5 = queryByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_4`,
-      );
-
-      expect(input5).not.toBeOnTheScreen();
-    });
-
     describe('onQrCodePress', () => {
       let customRender: (
         children: React.ReactElement,
@@ -1042,6 +489,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       let navigationSpy: jest.SpyInstance;
 
       beforeEach(() => {
+        // The QR pill lives in the keyboard accessory bar, which only renders
+        // when the keyboard is visible.
+        mockUseKeyboardState.mockImplementation(
+          (selector: (state: { isVisible: boolean }) => boolean) =>
+            selector({ isVisible: true }),
+        );
+
         const Stack = createNativeStackNavigator();
         customRender = (children: React.ReactElement) =>
           renderWithProvider(
@@ -1090,7 +544,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         });
       });
 
-      it('calls handleClear and handleSeedPhraseChangeAtIndex when onScanSuccess is called with seed', async () => {
+      it('populates the seed phrase text area when onScanSuccess is called with a seed', async () => {
         const { getByTestId } = customRender(
           <ImportFromSecretRecoveryPhrase />,
         );
@@ -1113,19 +567,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         });
 
         await waitFor(() => {
-          const firstInput = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+          const input = getByTestId(
+            ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
           );
-          const secondInput = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-          );
-          const thirdInput = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`,
-          );
-
-          expect(firstInput.props.value).toBe('abandon');
-          expect(secondInput.props.value).toBe('ability');
-          expect(thirdInput.props.value).toBe('able');
+          expect(input.props.value).toBe(scannedSeed);
         });
       });
 
@@ -1158,67 +603,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         mockAlert.mockRestore();
       });
     });
-
-    it('handles backspace key press when input is empty and index > 0', async () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(input, 'word1 word2 word3');
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeOnTheScreen();
-      });
-
-      // Clear the second input field
-      const input1 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-      );
-      await act(async () => {
-        fireEvent.changeText(input1, '');
-      });
-
-      // Simulate backspace key press on empty input field at index 1
-      await act(async () => {
-        fireEvent(input1, 'keyPress', {
-          nativeEvent: { key: 'Backspace' },
-        });
-      });
-
-      // Should focus on the previous input field (index 0) and remove the current empty field
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeNull();
-      });
-    });
   });
 
   describe('QR sync import flow', () => {
-    const qrSyncMnemonic =
-      'say devote wasp video cool lunch brief add fever uncover novel offer';
+    const qrSyncMnemonic = VALID_SEED_PHRASE;
 
     const qrSyncImportState = {
       ...initialState,
@@ -1264,7 +652,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('import_from_seed.import_wallet_from_extension')),
+        getByText(strings('import_from_seed.import_from_extension_row')),
       ).toBeOnTheScreen();
     });
 
@@ -1283,7 +671,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       expect(
-        queryByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+        queryByPlaceholderText(
+          strings('import_from_seed.srp_placeholder_short'),
+        ),
       ).toBeNull();
     });
 
@@ -1334,7 +724,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       expect(
-        getByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+        getByPlaceholderText(strings('import_from_seed.srp_placeholder_short')),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
@@ -1352,7 +742,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce();
 
-      const { getByTestId } = renderScreen(
+      const { getByTestId, getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: qrSyncImportState },
@@ -1373,8 +763,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
         'StrongPass123!',
       );
-      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
-      fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(() => {
         expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
@@ -1396,15 +786,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
     // Enter valid seed phrase and continue to step 2
-    const input = getByPlaceholderText(
-      strings('import_from_seed.srp_placeholder'),
-    );
+    const input = getByTestId(ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID);
 
     await act(async () => {
-      fireEvent.changeText(
-        input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
-      );
+      fireEvent.changeText(input, VALID_SEED_PHRASE);
     });
 
     const continueButton = getByRole('button', { name: 'Continue' });
@@ -1427,8 +812,22 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(
           getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
         ).toBeOnTheScreen();
+      });
+    });
+
+    it('renders the password fields with the new placeholders', async () => {
+      const { getByPlaceholderText } = await renderCreatePasswordUI();
+
+      await waitFor(() => {
         expect(
-          getByText(strings('import_from_seed.confirm_password')),
+          getByPlaceholderText(
+            strings('import_from_seed.new_password_placeholder'),
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          getByPlaceholderText(
+            strings('import_from_seed.confirm_password_placeholder'),
+          ),
         ).toBeOnTheScreen();
       });
     });
@@ -1711,17 +1110,39 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('renders learn more checkbox', async () => {
-      const { getByTestId } = await renderCreatePasswordUI();
+    it('opens the password warning bottom sheet when the CTA is pressed', async () => {
+      const { getByText, getByTestId } = await renderCreatePasswordUI();
 
-      const learnMoreCheckbox = getByTestId(
-        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
-      expect(learnMoreCheckbox).toBeOnTheScreen();
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.password_warning_title')),
+        ).toBeOnTheScreen();
+        expect(
+          getByText(strings('import_from_seed.i_understand')),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('error message is shown when passcode is not set', async () => {
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByText } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1736,31 +1157,18 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 
-      // Check learn more checkbox
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-
       // Mock Authentication.newWalletAndRestore to throw passcode error
       jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockRejectedValueOnce(new Error('Error: Passcode not set.'));
 
-      // Try to import
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
-
-      // await waitFor(() => {
-      //   expect(getByText('Unlock with Face ID?')).toBeOnTheScreen();
-      // });
+      // Try to import through the warning sheet
+      await confirmImportFromWarning(getByTestId, getByText);
     });
 
     it('Import seed phrase with optin metrics flow', async () => {
       mockIsEnabled.mockReturnValue(false);
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByText } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1772,11 +1180,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
 
-      // Check learn more checkbox
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
       jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
@@ -1786,11 +1189,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Mock Authentication.newWalletAndRestore
       jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
-      // Try to import
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
+
+      // Try to import through the warning sheet
+      await confirmImportFromWarning(getByTestId, getByText);
     });
 
     it('reports to Sentry when wallet import fails with metrics enabled', async () => {
@@ -1809,7 +1210,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockRejectedValueOnce(importError);
 
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByText } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1817,17 +1218,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-      fireEvent.press(confirmButton);
+
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(() => {
         expect(mockCaptureException).toHaveBeenCalledWith(importError, {
@@ -1855,7 +1250,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockRejectedValueOnce(importError);
 
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByText } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1863,17 +1258,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-      fireEvent.press(confirmButton);
+
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(() => {
         expect(mockCaptureException).not.toHaveBeenCalled();
@@ -1927,21 +1316,18 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       mockTrace.mockReturnValue(mockTraceCtx);
 
-      const { getByPlaceholderText, getByRole, unmount } = renderScreen(
+      const { getByTestId, getByRole, unmount } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
         { onboardingTraceCtx: mockOnboardingTraceCtx },
       );
 
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
       await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
+        fireEvent.changeText(input, VALID_SEED_PHRASE);
       });
 
       const continueButton = getByRole('button', { name: 'Continue' });
@@ -1963,20 +1349,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('does not start trace and end trace when moving to password setup step without onboardingTraceCtx', async () => {
-      const { getByPlaceholderText, getByRole, unmount } = renderScreen(
+      const { getByTestId, getByRole, unmount } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
       await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
+        fireEvent.changeText(input, VALID_SEED_PHRASE);
       });
 
       const continueButton = getByRole('button', { name: 'Continue' });
@@ -2004,7 +1387,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId } = await renderCreatePasswordUI(
+      const { getByTestId, getByText } = await renderCreatePasswordUI(
         mockOnboardingTraceCtx,
       );
 
@@ -2014,18 +1397,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
 
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(
         () => {
@@ -2060,7 +1436,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByText } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -2068,18 +1444,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
 
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(() => {
         expect(mockTrace).not.toHaveBeenCalledWith(
@@ -2105,7 +1474,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByText } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -2113,18 +1482,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
 
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(() => {
         expect(mockCaptureException).not.toHaveBeenCalled();
@@ -2134,8 +1496,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
   });
 
-  describe('SRP Word Suggestions Feature', () => {
-    it('renders SRP input grid with word suggestions support', () => {
+  describe('SRP TextArea input', () => {
+    it('renders the seed phrase text area', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {
@@ -2153,7 +1515,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(srpInput).toBeTruthy();
     });
 
-    it('passes onCurrentWordChange callback to SrpInputGrid', async () => {
+    it('updates the seed phrase value on change', async () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {
@@ -2172,83 +1534,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(srpInput, 'ab');
       });
 
-      expect(srpInput).toBeTruthy();
-    });
-
-    it('renders with KeyboardProvider wrapper', () => {
-      const { getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        {
-          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        },
-        {
-          state: initialState,
-        },
-      );
-
-      const srpInput = getByTestId(
-        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
-      );
-
-      expect(srpInput).toBeTruthy();
-    });
-
-    it('renders KeyboardStickyView with SrpWordSuggestions when keyboard is visible', async () => {
-      // Arrange
-      mockUseKeyboardState.mockImplementation(
-        (selector: (state: { isVisible: boolean }) => boolean) =>
-          selector({ isVisible: true }),
-      );
-
-      const { getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        {
-          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        },
-        {
-          state: initialState,
-        },
-      );
-
-      // Act
-      const srpInput = getByTestId(
-        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
-      );
-      await act(async () => {
-        fireEvent.changeText(srpInput, 'ab');
-      });
-
-      // Assert
-      expect(getByTestId('srp-word-suggestions')).toBeTruthy();
-    });
-
-    it('does not render KeyboardStickyView when keyboard is not visible', async () => {
-      // Arrange
-      mockUseKeyboardState.mockImplementation(
-        (selector: (state: { isVisible: boolean }) => boolean) =>
-          selector({ isVisible: false }),
-      );
-
-      const { getByTestId, queryByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        {
-          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        },
-        {
-          state: initialState,
-        },
-      );
-
-      // Act
-      const srpInput = getByTestId(
-        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
-      );
-      await act(async () => {
-        fireEvent.changeText(srpInput, 'ab');
-      });
-
-      // Assert
-      expect(queryByTestId('srp-word-suggestions')).toBeNull();
+      expect(srpInput.props.value).toBe('ab');
     });
   });
 
@@ -2299,15 +1585,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           params,
         );
 
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
+      const input = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
 
       await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
+        fireEvent.changeText(input, VALID_SEED_PHRASE);
       });
 
       const continueButton = getByRole('button', { name: 'Continue' });
@@ -2328,9 +1611,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         });
       jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
 
-      const { getByTestId } = await renderCreatePasswordUIWithParams({
-        oauthLoginSuccess: false,
-      });
+      const { getByTestId, getByText } = await renderCreatePasswordUIWithParams(
+        {
+          oauthLoginSuccess: false,
+        },
+      );
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -2342,15 +1627,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
 
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(() => {
         expect(mockTrace).toHaveBeenCalledWith(
@@ -2377,9 +1654,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         });
       jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
 
-      const { getByTestId } = await renderCreatePasswordUIWithParams({
-        oauthLoginSuccess: true,
-      });
+      const { getByTestId, getByText } = await renderCreatePasswordUIWithParams(
+        {
+          oauthLoginSuccess: true,
+        },
+      );
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -2391,15 +1670,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
 
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
+      await confirmImportFromWarning(getByTestId, getByText);
 
       await waitFor(() => {
         expect(mockTrace).toHaveBeenCalledWith(

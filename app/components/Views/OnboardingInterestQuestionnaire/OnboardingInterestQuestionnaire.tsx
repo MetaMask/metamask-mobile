@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   BackHandler,
   Keyboard,
+  Pressable,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
@@ -17,8 +18,8 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { InterestSelectionIndicator } from './InterestSelectionIndicator';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
@@ -220,26 +221,10 @@ const OnboardingInterestQuestionnaire = () => {
       style={tw.style('flex-1 bg-default')}
       testID={OnboardingInterestQuestionnaireTestIds.SCREEN}
     >
-      <HeaderCompactStandard
-        includesTopInset
-        twClassName="mb-2"
-        endAccessory={
-          <Text
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            onPress={onSkip}
-            testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
-            style={tw.style('pr-4')}
-          >
-            {strings('onboarding_interest_questionnaire.skip')}
-          </Text>
-        }
-      />
-
+      <HeaderStandard includesTopInset />
       <Box twClassName="mx-4 mb-4 flex flex-col gap-y-2">
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Bold}
         >
@@ -257,7 +242,6 @@ const OnboardingInterestQuestionnaire = () => {
       >
         {INTEREST_OPTIONS.map((option) => {
           const isSelected = selectedIds.has(option.id);
-          const isOtherOption = option.id === 'other';
           return (
             <TouchableOpacity
               key={option.id}
@@ -287,18 +271,6 @@ const OnboardingInterestQuestionnaire = () => {
                 >
                   {strings(option.labelKey)}
                 </Text>
-                {isOtherOption && otherText?.length > 0 ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    twClassName="flex-shrink mr-2"
-                  >
-                    {otherText}
-                  </Text>
-                ) : null}
               </Box>
               <InterestSelectionIndicator isSelected={isSelected} />
             </TouchableOpacity>
@@ -306,7 +278,7 @@ const OnboardingInterestQuestionnaire = () => {
         })}
       </ScrollView>
 
-      <Box twClassName="px-4 py-2">
+      <Box twClassName="px-4 pt-2 pb-4 flex flex-col items-center gap-y-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -315,8 +287,22 @@ const OnboardingInterestQuestionnaire = () => {
           style={tw.style('w-full')}
           testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
         >
-          {strings('onboarding_interest_questionnaire.done')}
+          {strings('onboarding_interest_questionnaire.continue')}
         </Button>
+        <Pressable
+          onPress={onSkip}
+          testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
+          accessibilityRole="button"
+          hitSlop={12}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings('onboarding_interest_questionnaire.skip')}
+          </Text>
+        </Pressable>
       </Box>
 
       {isOtherBottomSheetVisible ? (

@@ -106,6 +106,12 @@ const Settings = () => {
     navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
 
+  const onPressDefaultSettingsPreview = () => {
+    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
+    });
+  };
+
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
@@ -214,13 +220,20 @@ const Settings = () => {
           />
         )}
         {process.env.METAMASK_ENVIRONMENT !== 'production' && (
-          <SettingsDrawer
-            title={strings('app_settings.feature_flag_override.title')}
-            description={strings(
-              'app_settings.feature_flag_override.description',
-            )}
-            onPress={onPressFeatureFlagOverride}
-          />
+          <>
+            <SettingsDrawer
+              title="Preview onboarding default settings"
+              description="Development only. Opens the onboarding default settings screen."
+              onPress={onPressDefaultSettingsPreview}
+            />
+            <SettingsDrawer
+              title={strings('app_settings.feature_flag_override.title')}
+              description={strings(
+                'app_settings.feature_flag_override.description',
+              )}
+              onPress={onPressFeatureFlagOverride}
+            />
+          </>
         )}
       </ScrollView>
     </SafeAreaView>

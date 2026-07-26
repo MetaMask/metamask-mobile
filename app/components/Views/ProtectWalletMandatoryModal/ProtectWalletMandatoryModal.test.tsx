@@ -365,23 +365,6 @@ describe('ProtectWalletMandatoryModal', () => {
     });
   });
 
-  it('does not show modal when on ManualBackupStep3 route', async () => {
-    mockGetState.mockReturnValue({
-      routes: [{ name: 'ManualBackupStep3' }],
-    });
-
-    const store = createMockStore(true, false);
-
-    const { queryByTestId } = renderWithTheme(
-      <ProtectWalletMandatoryModal />,
-      store,
-    );
-
-    await waitFor(() => {
-      expect(queryByTestId('modal-container')).toBeNull();
-    });
-  });
-
   it('does not show modal when on Webview route', async () => {
     mockGetState.mockReturnValue({
       routes: [{ name: 'Webview' }],

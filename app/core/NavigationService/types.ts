@@ -62,7 +62,6 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
-import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
@@ -183,10 +182,7 @@ import type {
 } from '../../components/Views/NetworkSelector/NetworkSelector.types';
 
 // Account backup params
-import type {
-  AccountBackupParams,
-  ManualBackupStep3Params,
-} from '../../components/Views/AccountBackup/AccountBackup.types';
+import type { AccountBackupParams } from '../../components/Views/AccountBackup/AccountBackup.types';
 
 // Reveal credential params
 import type {
@@ -635,7 +631,6 @@ export type RootStackParamList = {
   // Onboarding routes
   OnboardingRootNav: undefined;
   OnboardingSuccessFlow: undefined;
-  OnboardingSuccess: undefined;
   DefaultSettings: undefined;
   GeneralSettings: undefined;
   AssetsSettings: undefined;
@@ -648,14 +643,12 @@ export type RootStackParamList = {
   SocialLoginSuccessNewUser: SocialLoginRouteParams | undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
-  ManualBackupStep3: ManualBackupStep3Params;
   ImportFromSecretRecoveryPhrase:
     | ImportFromSecretRecoveryPhraseParams
     | undefined;
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
   OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
-  OnboardingCryptoExperienceQuestionnaire: OnboardingCryptoExperienceQuestionnaireRouteParams;
   SocialLoginSuccessExistingUser: SocialLoginRouteParams | undefined;
   AccountAlreadyExists: AccountStatusParams | undefined;
   AccountNotFound: AccountStatusParams | undefined;

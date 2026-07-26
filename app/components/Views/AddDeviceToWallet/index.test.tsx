@@ -41,11 +41,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   Theme: { Light: 'light', Dark: 'dark' },
 }));
 
-jest.mock(
-  '../../../images/add_wallet_to_device.png',
-  () => 'add_wallet_to_device_image',
-);
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     QrSyncController: {
@@ -139,33 +134,45 @@ describe('AddDeviceToWallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders instruction point 1', () => {
+    it('renders step 1 title and description', () => {
       const { getByText } = renderComponent();
 
       expect(
-        getByText(strings('app_settings.add_device.points.one')),
+        getByText(strings('app_settings.add_device.points.one_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.one_desc')),
       ).toBeOnTheScreen();
     });
 
-    it('renders instruction points 3 and 4', () => {
+    it('renders steps 3 and 4 titles and descriptions', () => {
       const { getByText } = renderComponent();
 
       expect(
-        getByText(strings('app_settings.add_device.points.three')),
+        getByText(strings('app_settings.add_device.points.three_title')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('app_settings.add_device.points.four')),
+        getByText(strings('app_settings.add_device.points.three_desc')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.four_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.four_desc')),
       ).toBeOnTheScreen();
     });
 
-    it('renders point 2 bold text fragments', () => {
-      const { getByText } = renderComponent();
+    it('renders step 2 title and bold subtitle fragments', () => {
+      const { getByText, getAllByText } = renderComponent();
 
+      // `two_title` and `two_bold_two` both resolve to "Add device", so it
+      // appears twice on the screen (as the step title and the bold subtitle
+      // fragment).
+      expect(
+        getAllByText(strings('app_settings.add_device.points.two_title')),
+      ).toHaveLength(2);
       expect(
         getByText(strings('app_settings.add_device.points.two_bold_one')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('app_settings.add_device.points.two_bold_two')),
       ).toBeOnTheScreen();
     });
 
@@ -280,36 +287,24 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('reports manual QR submit failures to Sentry in dev', async () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = true;
-      mockHandleScannedQrPayload.mockRejectedValueOnce(
-        new Error('manual submit failed'),
+    it('submits the scanned payload via QrSyncController on scan success', async () => {
+      const { getByText } = renderComponent();
+
+      fireEvent.press(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
       );
 
-      try {
-        const { getByPlaceholderText, getByText } = renderComponent();
+      const onScanSuccess = mockNavigate.mock.calls[0][1].onScanSuccess as (
+        data: { content?: string },
+        content?: string,
+      ) => void;
+      onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
 
-        fireEvent.changeText(
-          getByPlaceholderText('Paste QR payload'),
-          'metamask://connect/mwp?p=manual',
+      await waitFor(() => {
+        expect(mockHandleScannedQrPayload).toHaveBeenCalledWith(
+          'metamask://connect/mwp?p=test',
         );
-        fireEvent.press(getByText('Submit QR data'));
-
-        await waitFor(() => {
-          expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-            expect.any(Error),
-            {
-              surface: QrSyncSurfaces.SCANNER,
-              operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
-              source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
-            },
-          );
-        });
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
+      });
     });
   });
 
@@ -353,38 +348,24 @@ describe('AddDeviceToWallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('does not render the manual QR input outside dev', () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = false;
+    it('does not render the manual QR input', () => {
+      const { queryByText, queryByPlaceholderText } = renderComponent();
 
-      try {
-        const { queryByText } = renderComponent();
-
-        expect(queryByText('Enter QR data manually')).not.toBeOnTheScreen();
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
+      expect(queryByText('Enter QR data manually')).not.toBeOnTheScreen();
+      expect(queryByPlaceholderText('Paste QR payload')).not.toBeOnTheScreen();
+      expect(queryByText('Submit QR data')).not.toBeOnTheScreen();
     });
 
-    it('shows sync error message when the session fails in dev', () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = true;
+    it('shows sync error message when the session fails', () => {
+      const { getByText } = renderComponent({
+        phase: QrSyncPhases.FAILED,
+        error: {
+          code: 'SYNC_FAILED',
+          message: 'Sync failed',
+        },
+      });
 
-      try {
-        const { getByText } = renderComponent({
-          phase: QrSyncPhases.FAILED,
-          error: {
-            code: 'SYNC_FAILED',
-            message: 'Sync failed',
-          },
-        });
-
-        expect(getByText('Sync failed')).toBeOnTheScreen();
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
+      expect(getByText('Sync failed')).toBeOnTheScreen();
     });
   });
 

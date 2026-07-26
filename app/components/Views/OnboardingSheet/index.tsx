@@ -137,12 +137,14 @@ const OnboardingSheet = () => {
             onPress={onPressContinueWithGoogleAction}
             testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
             startAccessory={
-              <GoogleIcon
-                fill="currentColor"
-                width={24}
-                height={24}
-                name={'google'}
-              />
+              <Box twClassName="mr-2">
+                <GoogleIcon
+                  fill="currentColor"
+                  width={24}
+                  height={24}
+                  name={'google'}
+                />
+              </Box>
             }
             isFullWidth
             size={ButtonSize.Lg}
@@ -160,21 +162,23 @@ const OnboardingSheet = () => {
             onPress={onPressContinueWithAppleAction}
             testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
             startAccessory={
-              isDark ? (
-                <AppleIcon
-                  fill="currentColor"
-                  width={24}
-                  height={24}
-                  name={'apple'}
-                />
-              ) : (
-                <AppleWhiteIcon
-                  fill="currentColor"
-                  width={24}
-                  height={24}
-                  name={'apple-white'}
-                />
-              )
+              <Box twClassName="mr-2">
+                {isDark ? (
+                  <AppleIcon
+                    fill="currentColor"
+                    width={24}
+                    height={24}
+                    name={'apple'}
+                  />
+                ) : (
+                  <AppleWhiteIcon
+                    fill="currentColor"
+                    width={24}
+                    height={24}
+                    name={'apple-white'}
+                  />
+                )}
+              </Box>
             }
             isFullWidth
             size={ButtonSize.Lg}
@@ -193,11 +197,13 @@ const OnboardingSheet = () => {
               onPress={onPressContinueWithTelegramAction}
               testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
               startAccessory={
-                <Icon
-                  name={IconName.Telegram}
-                  size={IconSize.Lg}
-                  style={tw.style({ color: commonColors.telegramBlue })}
-                />
+                <Box twClassName="mr-2">
+                  <Icon
+                    name={IconName.Telegram}
+                    size={IconSize.Lg}
+                    style={tw.style({ color: commonColors.telegramBlue })}
+                  />
+                </Box>
               }
               isFullWidth
               size={ButtonSize.Lg}
@@ -249,8 +255,8 @@ const OnboardingSheet = () => {
         <Box alignItems={BoxAlignItems.Center} twClassName="mt-6">
           <Text
             variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
             style={tw.style('text-center')}
           >
             {strings('onboarding.by_continuing')}{' '}
@@ -273,6 +279,7 @@ const OnboardingSheet = () => {
             >
               {strings('onboarding.privacy_notice')}
             </Text>
+            {'.'}
           </Text>
         </Box>
       </Box>

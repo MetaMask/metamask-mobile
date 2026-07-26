@@ -16,13 +16,11 @@ import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
-import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
-import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
@@ -103,7 +101,6 @@ import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnect
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
-import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
@@ -219,20 +216,13 @@ const OnboardingSuccessFlow = () => {
 
   return (
     <NativeStack.Navigator
-      initialRouteName={Routes.ONBOARDING.SUCCESS}
+      initialRouteName={Routes.ONBOARDING.DEFAULT_SETTINGS}
       screenOptions={{
         contentStyle: { backgroundColor: colors.background.default },
         headerStyle: { backgroundColor: colors.background.default },
         headerShadowVisible: false,
       }}
     >
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess}
-        options={{
-          headerShown: false,
-        }}
-      />
       <NativeStack.Screen
         name={Routes.ONBOARDING.DEFAULT_SETTINGS}
         component={DefaultSettings}
@@ -298,11 +288,6 @@ const OnboardingNav = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
-        name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
         name="ManualBackupStep1"
         component={ManualBackupStep1}
         options={{ headerShown: false }}
@@ -310,11 +295,6 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name="ManualBackupStep2"
         component={ManualBackupStep2}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name="ManualBackupStep3"
-        component={ManualBackupStep3}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -335,11 +315,6 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
         component={OnboardingInterestQuestionnaire}
-        options={{ headerShown: false, gestureEnabled: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
-        component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <NativeStack.Screen

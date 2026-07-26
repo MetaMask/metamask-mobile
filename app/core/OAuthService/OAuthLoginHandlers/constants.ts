@@ -11,8 +11,7 @@ import {
   selectLegacyIosGoogleConfigEnabled,
 } from '../../../selectors/featureFlagController/legacyIosGoogleConfig';
 
-export const SEEDLESS_ONBOARDING_ENABLED =
-  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
+export const SEEDLESS_ONBOARDING_ENABLED = true;
 
 /**
  * Mapping of old Build Type to new BuildType formatting for oauth config

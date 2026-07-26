@@ -36,6 +36,10 @@ const SeedPhraseConcealer = ({
         onPress={onReveal}
         style={tw.style(FILL_STYLE)}
         testID={testID}
+        accessibilityRole="button"
+        accessibilityLabel={strings('manual_backup_step_1.reveal')}
+        accessibilityHint={strings('manual_backup_step_1.watching')}
+        activeOpacity={0.72}
       >
         <ImageBackground
           source={
@@ -44,7 +48,7 @@ const SeedPhraseConcealer = ({
           style={tw.style(FILL_STYLE, 'opacity-50')}
           resizeMode="cover"
         />
-        <Box twClassName="items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1">
+        <Box twClassName="items-center justify-center rounded-lg px-6 py-[45px] gap-y-3 h-full flex-1">
           <Icon
             name={IconName.EyeSlash}
             size={IconSize.Xl}
@@ -54,6 +58,7 @@ const SeedPhraseConcealer = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
+            twClassName="bg-default rounded-full px-5 py-3 overflow-hidden"
           >
             {strings('manual_backup_step_1.reveal')}
           </Text>

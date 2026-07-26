@@ -93,9 +93,6 @@ jest.mock('../../Views/Login', () => () => <MockView testID="mock-login" />);
 jest.mock('../../Views/SimpleWebview', () => () => (
   <MockView testID="mock-webview" />
 ));
-jest.mock('../../Views/OnboardingSuccess', () => () => (
-  <MockView testID="mock-onboarding-success" />
-));
 jest.mock('../../Views/OnboardingSuccess/DefaultSettings', () => () => (
   <MockView testID="mock-default-settings" />
 ));
@@ -123,9 +120,6 @@ jest.mock('../../Views/ManualBackupStep1', () => () => (
 jest.mock('../../Views/ManualBackupStep2', () => () => (
   <MockView testID="mock-manual-backup-2" />
 ));
-jest.mock('../../Views/ManualBackupStep3', () => () => (
-  <MockView testID="mock-manual-backup-3" />
-));
 jest.mock('../../Views/OAuthRehydration', () => () => (
   <MockView testID="mock-oauth" />
 ));
@@ -138,12 +132,6 @@ jest.mock('../../UI/OptinMetrics', () => () => (
 jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
   <MockView testID="mock-onboarding-interest-questionnaire" />
 ));
-jest.mock(
-  '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire',
-  () => () => (
-    <MockView testID="mock-onboarding-crypto-experience-questionnaire" />
-  ),
-);
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
@@ -865,10 +853,6 @@ describe('App', () => {
       expect(Routes.ONBOARDING.SUCCESS_FLOW).toBeDefined();
     });
 
-    it('has onboarding success route defined', () => {
-      expect(Routes.ONBOARDING.SUCCESS).toBeDefined();
-    });
-
     it('has onboarding default settings route defined', () => {
       expect(Routes.ONBOARDING.DEFAULT_SETTINGS).toBeDefined();
     });
@@ -1079,7 +1063,6 @@ describe('App', () => {
 
   describe('Flow navigators', () => {
     it('has onboarding success flow screens defined', () => {
-      expect(Routes.ONBOARDING.SUCCESS).toBeDefined();
       expect(Routes.ONBOARDING.DEFAULT_SETTINGS).toBeDefined();
       expect(Routes.ONBOARDING.GENERAL_SETTINGS).toBeDefined();
       expect(Routes.ONBOARDING.ASSETS_SETTINGS).toBeDefined();
@@ -1766,42 +1749,6 @@ describe('App', () => {
       });
     });
 
-    it('renders OnboardingCryptoExperienceQuestionnaire when it is the active OnboardingNav route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [
-          {
-            name: 'OnboardingRootNav',
-            state: {
-              index: 0,
-              routes: [
-                {
-                  name: 'OnboardingNav',
-                  state: {
-                    index: 0,
-                    routes: [
-                      {
-                        name: Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
-                        params: { onComplete: jest.fn() },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      };
-
-      const { getByTestId } = renderAppAtRoute(routeState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId('mock-onboarding-crypto-experience-questionnaire'),
-        ).toBeOnTheScreen();
-      });
-    });
-
     it('renders VaultRecoveryFlow', async () => {
       const routeState = {
         index: 0,
@@ -1906,7 +1853,7 @@ describe('App', () => {
       const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('mock-onboarding-success')).toBeTruthy();
+        expect(getByTestId('mock-default-settings')).toBeTruthy();
       });
     });
 

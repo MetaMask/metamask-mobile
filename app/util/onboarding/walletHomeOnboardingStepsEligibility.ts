@@ -10,8 +10,8 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
  * settings backup on an empty account).
  *
  * `undefined` is treated as ineligible so new call sites cannot accidentally opt in
- * by omitting `successFlow`. Pass an explicit {@link ONBOARDING_SUCCESS_FLOW} from
- * the screen (see {@link OnboardingSuccess} route defaults and ManualBackupStep3).
+ * by omitting `successFlow`. Pass an explicit {@link ONBOARDING_SUCCESS_FLOW} when
+ * directly finishing an onboarding path.
  */
 export function shouldMarkWalletHomeOnboardingStepsEligible(
   successFlow: ONBOARDING_SUCCESS_FLOW | undefined,

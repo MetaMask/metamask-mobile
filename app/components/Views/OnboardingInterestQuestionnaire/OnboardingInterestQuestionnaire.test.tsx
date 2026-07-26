@@ -168,7 +168,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the Skip button', () => {
+    it('renders a Skip link below Continue', () => {
       renderComponent();
 
       expect(
@@ -316,7 +316,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       expect(screen.getByTestId('mock-other-bottom-sheet')).toBeOnTheScreen();
     });
 
-    it('displays entered text below Other after Done', () => {
+    it('does not display entered text in the Other row after Done', () => {
       renderComponent();
 
       fireEvent.press(
@@ -326,9 +326,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       );
       fireEvent.press(screen.getByTestId('mock-other-done'));
 
-      expect(
-        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
-      ).toHaveTextContent('Custom usage');
+      expect(screen.queryByText('Custom usage')).not.toBeOnTheScreen();
     });
   });
 
@@ -432,7 +430,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('does not display the other text when Done is called with an empty string', () => {
+    it('does not display the other text in the row when Done is called with an empty string', () => {
       renderComponent();
 
       fireEvent.press(
@@ -442,9 +440,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       );
       fireEvent.press(screen.getByTestId('mock-other-done-empty'));
 
-      expect(
-        screen.queryByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
-      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('Custom usage')).not.toBeOnTheScreen();
     });
 
     it('passes the previously entered text as initialValue when Other is reopened', () => {
@@ -469,8 +465,8 @@ describe('OnboardingInterestQuestionnaire', () => {
     });
   });
 
-  describe('Skip button behaviour', () => {
-    it('fires Submitted with skipped=true and completes onboarding on Skip', async () => {
+  describe('optional answer behaviour', () => {
+    it('fires Submitted with skipped=true from Skip and completes onboarding with no selections', async () => {
       renderComponent();
 
       await act(async () => {

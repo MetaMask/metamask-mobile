@@ -69,7 +69,7 @@ describe('SeedphraseModal', () => {
     expect(wrapper.toJSON()).not.toBeNull();
   });
 
-  it('renders all title and explanation text', () => {
+  it('renders the recovery phrase guidance', () => {
     const { wrapper } = setupTest();
     const title = wrapper.getByText(
       strings('account_backup_step_1.what_is_seedphrase_title'),
@@ -79,12 +79,18 @@ describe('SeedphraseModal', () => {
       strings('account_backup_step_1.what_is_seedphrase_text_1'),
     );
     expect(explanationText).toBeTruthy();
-    const listItem = wrapper.getByText(
-      strings('account_backup_step_1.what_is_seedphrase_text_4'),
+    const warningText = wrapper.getByText(
+      `${strings(
+        'account_backup_step_1.what_is_seedphrase_warning_title',
+      )}. ${strings('account_backup_step_1.what_is_seedphrase_text_2')}`,
     );
-    expect(listItem).toBeTruthy();
-    const bullet = wrapper.getAllByText('•');
-    expect(bullet.length).toBe(3);
+    expect(warningText).toBeTruthy();
+    const storageGuidance = wrapper.getByText(
+      `${strings(
+        'account_backup_step_1.what_is_seedphrase_storage_title',
+      )}. ${strings('account_backup_step_1.what_is_seedphrase_text_3')}`,
+    );
+    expect(storageGuidance).toBeTruthy();
   });
 
   it('renders Got it button', () => {

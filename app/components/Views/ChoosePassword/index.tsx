@@ -6,7 +6,13 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
+import {
+  Pressable,
+  TouchableOpacity,
+  Platform,
+  Keyboard,
+  TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
@@ -23,7 +29,6 @@ import {
   FontWeight,
   ButtonVariant,
   ButtonSize,
-  Label,
   TextField,
   Icon,
   IconName,
@@ -32,6 +37,9 @@ import {
   Checkbox,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -76,7 +84,6 @@ import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
-import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation, {
   type FoxRiveLoaderAnimationRef,
@@ -105,6 +112,10 @@ import { selectGeolocationLocation } from '../../../selectors/geolocationControl
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 
 interface KeyringState {
   type: string;
@@ -191,6 +202,8 @@ const ChoosePassword = () => {
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
+  const [showPasswordWarning, setShowPasswordWarning] = useState(false);
+  const passwordWarningSheetRef = useRef<BottomSheetRef>(null);
 
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
@@ -199,6 +212,13 @@ const ChoosePassword = () => {
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const onboardingCompletionAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
   const { shouldShowQuestionnaire } =
     useOnboardingInterestQuestionnaireEligibility();
 
@@ -356,9 +376,7 @@ const ChoosePassword = () => {
 
   const validatePasswordSubmission = useCallback(() => {
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = getOauth2LoginSuccess()
-      ? passwordsMatch
-      : passwordsMatch && isSelected;
+    const canSubmit = passwordsMatch;
     const oauthProvider = route.params?.provider;
     const socialAccountType = oauthProvider
       ? getSocialAccountType(oauthProvider, false)
@@ -392,15 +410,7 @@ const ChoosePassword = () => {
     }
 
     return { valid: true, shouldTrack: true };
-  }, [
-    password,
-    confirmPassword,
-    loading,
-    isSelected,
-    getOauth2LoginSuccess,
-    route.params?.provider,
-    track,
-  ]);
+  }, [password, confirmPassword, loading, route.params?.provider, track]);
 
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
@@ -422,25 +432,31 @@ const ChoosePassword = () => {
   );
 
   const onContinueNavigation = useCallback(() => {
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      accountType: reduxAccountType,
+      isBasicFunctionalityEnabled,
+      walletSetupAttributionProps: onboardingCompletionAttributionProps,
+      dispatch,
+      discoverAccountsLogContext: 'ChoosePassword',
+      needsQrProvisioning,
+    });
+
     navigation.reset({
       index: 0,
-      routes: [
-        {
-          name: Routes.ONBOARDING.SUCCESS_FLOW,
-          params: {
-            screen: Routes.ONBOARDING.SUCCESS,
-            params: {
-              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-            },
-          },
-        },
-      ],
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  }, [navigation]);
+  }, [
+    dispatch,
+    isBasicFunctionalityEnabled,
+    navigation,
+    needsQrProvisioning,
+    reduxAccountType,
+    onboardingCompletionAttributionProps,
+  ]);
 
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData, isMarketingOptedIn: boolean) => {
-      dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
       if (!authType.oauth2Login) {
@@ -454,9 +470,14 @@ const ChoosePassword = () => {
           backupFlow: false,
           settingsBackup: false,
         });
+        // Keep onboarding visible until the recovery phrase route is ready.
+        // Committing authenticated app state before the async export completes
+        // briefly exposes the wallet home screen between these two steps.
+        dispatch(passwordSetAction());
         return;
       }
 
+      dispatch(passwordSetAction());
       endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -690,21 +711,15 @@ const ChoosePassword = () => {
     [confirmPassword],
   );
 
-  const learnMore = useCallback(() => {
-    track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
-      text: 'Learn More',
-      location: 'choose_password',
-      url_domain: RESET_PASSWORD_GUIDE_URL,
-    });
+  const dismissPasswordWarning = (cb?: () => void) =>
+    passwordWarningSheetRef.current?.onCloseBottomSheet(cb);
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: RESET_PASSWORD_GUIDE_URL,
-        title: 'support.metamask.io',
-      },
+  const onConfirmPasswordWarning = () => {
+    dismissPasswordWarning(() => {
+      setShowPasswordWarning(false);
+      onPressCreate();
     });
-  }, [navigation, track]);
+  };
 
   const toggleShowPassword = useCallback((index: number) => {
     setShowPasswordIndex((prev) => {
@@ -726,7 +741,9 @@ const ChoosePassword = () => {
 
   const checkError = useCallback(
     () =>
-      password !== '' && confirmPassword !== '' && password !== confirmPassword,
+      password !== '' &&
+      confirmPassword.length >= MIN_PASSWORD_LENGTH &&
+      password !== confirmPassword,
     [password, confirmPassword],
   );
 
@@ -784,280 +801,330 @@ const ChoosePassword = () => {
         password.length >= MIN_PASSWORD_LENGTH &&
         isGeolocationResolved;
     } else {
-      canSubmit =
-        passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+      canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
     }
 
     return (
-      <SafeAreaView
-        edges={{ bottom: 'additive' }}
-        style={tw.style('flex-1 bg-background-default')}
-      >
-        <HeaderStandard
-          includesTopInset
-          onBack={loading ? undefined : () => navigation.goBack()}
-          backButtonProps={
-            loading
-              ? undefined
-              : { testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID }
-          }
-        />
-        {loading ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Start}
-            twClassName="flex-1 px-4"
-            gap={6}
-          >
-            {!hasTestOverrides && (
-              <FoxRiveLoaderAnimation ref={foxRiveLoaderRef} />
-            )}
-          </Box>
-        ) : (
-          <KeyboardAwareScrollView
-            contentContainerStyle={tw.style('flex-1 px-4')}
-            keyboardShouldPersistTaps="handled"
-          >
+      <>
+        <SafeAreaView
+          edges={{ bottom: 'additive' }}
+          style={tw.style('flex-1 bg-background-default')}
+        >
+          <HeaderStandard
+            includesTopInset
+            onBack={loading ? undefined : () => navigation.goBack()}
+            backButtonProps={
+              loading
+                ? undefined
+                : { testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID }
+            }
+          />
+          {loading ? (
             <Box
-              flexDirection={BoxFlexDirection.Column}
-              twClassName="flex-1"
-              gap={4}
-              testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Start}
+              twClassName="flex-1 px-4"
+              gap={6}
             >
-              <Box flexDirection={BoxFlexDirection.Column} gap={1}>
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('choose_password.title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {getOauth2LoginSuccess() ? (
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {Platform.OS === 'ios' && getOauth2LoginSuccess()
-                        ? strings(
-                            'choose_password.description_social_login_update_ios',
-                          )
-                        : strings(
-                            'choose_password.description_social_login_update',
-                          )}
-                      {Platform.OS === 'android' && (
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          color={TextColor.WarningDefault}
-                        >
-                          {' '}
-                          {strings(
-                            'choose_password.description_social_login_update_bold',
-                          )}
-                        </Text>
-                      )}
-                    </Text>
-                  ) : (
-                    strings('choose_password.description')
-                  )}
-                </Text>
-              </Box>
-
+              {!hasTestOverrides && (
+                <FoxRiveLoaderAnimation ref={foxRiveLoaderRef} />
+              )}
+            </Box>
+          ) : (
+            <KeyboardAwareScrollView
+              contentContainerStyle={tw.style('flex-1 px-4')}
+              keyboardShouldPersistTaps="handled"
+            >
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="relative"
-                gap={2}
+                twClassName="flex-1"
+                gap={6}
+                testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
               >
-                <Label
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="-mb-1"
-                >
-                  {strings('choose_password.password')}
-                </Label>
-                <TextField
-                  autoFocus
-                  value={password}
-                  onChangeText={onPasswordChange}
-                  onFocus={() => setIsPasswordFieldFocused(true)}
-                  onBlur={() => setIsPasswordFieldFocused(false)}
-                  isError={isPasswordTooShort}
-                  endAccessory={
-                    <TouchableOpacity
-                      testID={
-                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
-                      }
-                      onPress={() => toggleShowPassword(0)}
-                    >
-                      <Icon
-                        name={
-                          showPasswordIndex.includes(0)
-                            ? IconName.Eye
-                            : IconName.EyeSlash
-                        }
-                        size={IconSize.Lg}
-                        color={IconColor.IconAlternative}
-                      />
-                    </TouchableOpacity>
-                  }
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(0),
-                    testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    onSubmitEditing: jumpToConfirmPassword,
-                    autoComplete: 'password-new',
-                    returnKeyType: 'next',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={
-                    isPasswordTooShort
-                      ? TextColor.ErrorDefault
-                      : TextColor.TextAlternative
-                  }
-                >
-                  {strings('choose_password.must_be_at_least', {
-                    number: MIN_PASSWORD_LENGTH,
-                  })}
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="relative"
-                gap={2}
-              >
-                <Label
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="-mb-1"
-                >
-                  {strings('choose_password.confirm_password')}
-                </Label>
-                <TextField
-                  inputRef={confirmPasswordInputRef}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPasswordValue}
-                  endAccessory={
-                    <TouchableOpacity
-                      testID={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
-                      }
-                      disabled={password === ''}
-                      onPress={() => toggleShowPassword(1)}
-                    >
-                      <Icon
-                        name={
-                          showPasswordIndex.includes(1)
-                            ? IconName.Eye
-                            : IconName.EyeSlash
-                        }
-                        size={IconSize.Lg}
-                        color={IconColor.IconAlternative}
-                      />
-                    </TouchableOpacity>
-                  }
-                  isDisabled={password === ''}
-                  isError={checkError()}
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(1),
-                    testID:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    autoComplete: 'password-new',
-                    onSubmitEditing: Keyboard.dismiss,
-                    returnKeyType: 'done',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                {checkError() && (
+                <Box flexDirection={BoxFlexDirection.Column} gap={1}>
                   <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.ErrorDefault}
-                  >
-                    {strings('choose_password.password_error')}
-                  </Text>
-                )}
-              </Box>
-
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                justifyContent={BoxJustifyContent.Start}
-                gap={2}
-                twClassName="mt-2 bg-section rounded-lg p-4"
-              >
-                <Checkbox
-                  onChange={setSelection}
-                  isSelected={marketingOptInChecked}
-                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                  accessibilityLabel={
-                    ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                  }
-                />
-                <TouchableOpacity
-                  onPress={setSelection}
-                  testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
-                  style={tw.style(
-                    'flex-row items-start justify-start flex-wrap w-[90%] -mt-1.5',
-                  )}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
+                    variant={TextVariant.HeadingLg}
                     color={TextColor.TextDefault}
                   >
+                    {strings('choose_password.create_password_title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
                     {getOauth2LoginSuccess() ? (
-                      strings('choose_password.marketing_opt_in_description')
-                    ) : (
                       <Text
-                        variant={TextVariant.BodySm}
+                        variant={TextVariant.BodyMd}
                         color={TextColor.TextAlternative}
                       >
-                        {strings('choose_password.loose_password_description')}
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.PrimaryDefault}
-                          onPress={learnMore}
-                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                        >
-                          {' '}
-                          {strings('reset_password.learn_more')}
-                        </Text>
+                        {Platform.OS === 'ios' && getOauth2LoginSuccess()
+                          ? strings(
+                              'choose_password.description_social_login_update_ios',
+                            )
+                          : strings(
+                              'choose_password.description_social_login_update',
+                            )}
+                        {Platform.OS === 'android' && (
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.WarningDefault}
+                          >
+                            {' '}
+                            {strings(
+                              'choose_password.description_social_login_update_bold',
+                            )}
+                          </Text>
+                        )}
                       </Text>
+                    ) : (
+                      strings('choose_password.description')
                     )}
                   </Text>
-                </TouchableOpacity>
-              </Box>
+                </Box>
 
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="w-full mt-auto"
-                gap={4}
-                style={tw.style(Platform.OS === 'android' ? 'mb-6' : 'mb-4')}
-              >
-                <Button
-                  variant={ButtonVariant.Primary}
-                  onPress={onPressCreate}
-                  isDisabled={!canSubmit}
-                  isFullWidth
-                  size={ButtonSize.Lg}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+                <Box
+                  flexDirection={BoxFlexDirection.Column}
+                  twClassName="relative"
+                  gap={2}
                 >
-                  {strings('choose_password.create_password_cta')}
+                  <TextField
+                    autoFocus
+                    placeholder={strings(
+                      'choose_password.new_password_placeholder',
+                    )}
+                    value={password}
+                    onChangeText={onPasswordChange}
+                    onFocus={() => setIsPasswordFieldFocused(true)}
+                    onBlur={() => setIsPasswordFieldFocused(false)}
+                    isError={isPasswordTooShort}
+                    endAccessory={
+                      <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                        }
+                        onPress={() => toggleShowPassword(0)}
+                      >
+                        <Icon
+                          name={
+                            showPasswordIndex.includes(0)
+                              ? IconName.Eye
+                              : IconName.EyeSlash
+                          }
+                          size={IconSize.Lg}
+                          color={IconColor.IconAlternative}
+                        />
+                      </TouchableOpacity>
+                    }
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(0),
+                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
+                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      onSubmitEditing: jumpToConfirmPassword,
+                      autoComplete: 'password-new',
+                      returnKeyType: 'next',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={
+                      isPasswordTooShort
+                        ? TextColor.ErrorDefault
+                        : TextColor.TextAlternative
+                    }
+                  >
+                    {strings('choose_password.must_be_at_least', {
+                      number: MIN_PASSWORD_LENGTH,
+                    })}
+                  </Text>
+                </Box>
+
+                <Box
+                  flexDirection={BoxFlexDirection.Column}
+                  twClassName="relative"
+                  gap={2}
+                >
+                  <TextField
+                    inputRef={confirmPasswordInputRef}
+                    placeholder={strings(
+                      'choose_password.confirm_password_placeholder',
+                    )}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPasswordValue}
+                    endAccessory={
+                      <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                        }
+                        disabled={password === ''}
+                        onPress={() => toggleShowPassword(1)}
+                      >
+                        <Icon
+                          name={
+                            showPasswordIndex.includes(1)
+                              ? IconName.Eye
+                              : IconName.EyeSlash
+                          }
+                          size={IconSize.Lg}
+                          color={IconColor.IconAlternative}
+                        />
+                      </TouchableOpacity>
+                    }
+                    isDisabled={password === ''}
+                    isError={checkError()}
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(1),
+                      testID:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      autoComplete: 'password-new',
+                      onSubmitEditing: Keyboard.dismiss,
+                      returnKeyType: 'done',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
+                  />
+                  {checkError() && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.ErrorDefault}
+                    >
+                      {strings('choose_password.password_error')}
+                    </Text>
+                  )}
+                </Box>
+
+                {getOauth2LoginSuccess() && (
+                  <Pressable
+                    onPress={setSelection}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: marketingOptInChecked }}
+                    accessibilityLabel={strings(
+                      'choose_password.marketing_opt_in_description',
+                    )}
+                    style={({ pressed }) =>
+                      tw.style(
+                        'mt-2 bg-background-muted border border-muted rounded-xl p-4',
+                        pressed && 'bg-background-muted-hover',
+                      )
+                    }
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                  >
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Start}
+                      justifyContent={BoxJustifyContent.Between}
+                      gap={4}
+                    >
+                      <Box
+                        twClassName="flex-1"
+                        testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
+                      >
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextDefault}
+                        >
+                          {strings(
+                            'choose_password.marketing_opt_in_description',
+                          )}
+                        </Text>
+                      </Box>
+                      <Checkbox
+                        isSelected={marketingOptInChecked}
+                        accessible={false}
+                        pointerEvents="none"
+                      />
+                    </Box>
+                  </Pressable>
+                )}
+
+                <Box
+                  flexDirection={BoxFlexDirection.Column}
+                  twClassName="w-full mt-auto"
+                  gap={4}
+                  style={tw.style(Platform.OS === 'android' ? 'mb-6' : 'mb-4')}
+                >
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    onPress={
+                      getOauth2LoginSuccess()
+                        ? onPressCreate
+                        : () => {
+                            Keyboard.dismiss();
+                            setShowPasswordWarning(true);
+                          }
+                    }
+                    isDisabled={!canSubmit}
+                    isFullWidth
+                    size={ButtonSize.Lg}
+                    testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+                  >
+                    {strings('choose_password.create_password_cta')}
+                  </Button>
+                </Box>
+              </Box>
+            </KeyboardAwareScrollView>
+          )}
+        </SafeAreaView>
+        {showPasswordWarning && (
+          <BottomSheet
+            ref={passwordWarningSheetRef}
+            onClose={() => setShowPasswordWarning(false)}
+          >
+            <Box twClassName="items-center gap-4 px-4 py-2">
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Xl}
+                color={IconColor.ErrorDefault}
+              />
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.TextDefault}
+                twClassName="text-center"
+              >
+                {strings('import_from_seed.password_warning_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+              >
+                {strings('import_from_seed.password_warning_desc_1')}{' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Bold}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('import_from_seed.password_warning_desc_bold')}
+                </Text>{' '}
+                {strings('import_from_seed.password_warning_desc_2')}
+              </Text>
+              <Box twClassName="w-full gap-3 mt-2">
+                <Button
+                  isFullWidth
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={onConfirmPasswordWarning}
+                >
+                  {strings('import_from_seed.i_understand')}
+                </Button>
+                <Button
+                  isFullWidth
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={() => dismissPasswordWarning()}
+                >
+                  {strings('login.cancel')}
                 </Button>
               </Box>
             </Box>
-          </KeyboardAwareScrollView>
+          </BottomSheet>
         )}
-      </SafeAreaView>
+      </>
     );
   };
 

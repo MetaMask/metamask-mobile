@@ -19,7 +19,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
@@ -39,6 +39,11 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -52,6 +57,15 @@ const ManualBackupStep2 = ({
 
   const tw = useTailwind();
   const { width: innerWidth, height: windowHeight } = useWindowDimensions();
+  const dispatch = useDispatch();
+  const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
@@ -72,47 +86,35 @@ const ManualBackupStep2 = ({
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
+  const resetToHome = useCallback(() => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
+  }, [navigation]);
+
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
       if (backupFlow || settingsBackup) {
-        const resetAction = CommonActions.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: backupFlow
-                    ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
-                    : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
-                },
-              },
-            },
-          ],
-        });
-        navigation.dispatch(resetAction);
+        resetToHome();
       } else {
-        const resetAction = CommonActions.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-                },
-              },
-            },
-          ],
-        });
         endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
         if (isMetricsEnabled()) {
-          navigation.dispatch(resetAction);
+          finalizeOnboardingCompletion({
+            successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+            accountType: reduxAccountType ?? AccountType.Metamask,
+            isBasicFunctionalityEnabled,
+            walletSetupAttributionProps,
+            dispatch,
+            discoverAccountsLogContext: 'ManualBackupStep2',
+            needsQrProvisioning,
+          });
+          resetToHome();
         } else {
           navigation.navigate('OptinMetrics', {
             successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
@@ -386,18 +388,7 @@ const ManualBackupStep2 = ({
         ).build(),
         saveOnboardingEvent,
       );
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('manual_backup_step_2.success-title'),
-          description: strings('manual_backup_step_2.success-description'),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: () => goNext(),
-          onPrimaryButtonPress: () => goNext(),
-          closeOnPrimaryButtonPress: true,
-        },
-      });
+      goNext();
     } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -451,7 +442,7 @@ const ManualBackupStep2 = ({
               style={{ height: windowHeight - 290 }}
             >
               <Text
-                variant={TextVariant.DisplayMd}
+                variant={TextVariant.HeadingLg}
                 color={TextColor.TextDefault}
               >
                 {strings('manual_backup_step_2.action')}

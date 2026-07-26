@@ -13,9 +13,29 @@ import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockStore = configureMockStore();
-const store = mockStore({ user: { appTheme: AppThemeKey.light } });
+const store = mockStore({
+  user: { appTheme: AppThemeKey.light },
+  settings: {
+    basicFunctionalityEnabled: true,
+  },
+  security: {
+    dataCollectionForMarketing: false,
+  },
+  attribution: {
+    attribution: null,
+  },
+  engine: {
+    backgroundState: {
+      QrSyncController: {
+        provisioningStatus: null,
+        provisioningMetadata: null,
+      },
+    },
+  },
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -45,6 +65,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
   useTheme: () => 'light',
   Theme: { Light: 'light', Dark: 'dark' },
+}));
+
+jest.mock('../../../util/onboarding/finalizeOnboardingCompletion', () => ({
+  finalizeOnboardingCompletion: jest.fn(),
 }));
 
 const { mockTheme } = jest.requireActual('../../../util/theme');
@@ -258,7 +282,9 @@ describe('ManualBackupStep1', () => {
     it('opens the seedphrase definition modal', async () => {
       const { wrapper, navigate } = renderComponent();
 
-      const srpText = wrapper.getByText(strings('manual_backup_step_1.info-2'));
+      const srpText = wrapper.getByText(
+        strings('manual_backup_step_1.what_is_srp'),
+      );
       fireEvent.press(srpText);
 
       expect(navigate).toHaveBeenCalledWith('RootModalFlow', {
@@ -475,7 +501,7 @@ describe('ManualBackupStep1', () => {
           payload: expect.objectContaining({
             index: 0,
             routes: expect.arrayContaining([
-              expect.objectContaining({ name: 'OnboardingSuccessFlow' }),
+              expect.objectContaining({ name: Routes.ONBOARDING.HOME_NAV }),
             ]),
           }),
         }),

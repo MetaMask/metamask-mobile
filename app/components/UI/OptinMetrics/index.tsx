@@ -5,8 +5,6 @@ import {
   Alert,
   Pressable,
   Platform,
-  Image,
-  StatusBar,
   NativeScrollEvent,
   NativeSyntheticEvent,
   LayoutChangeEvent,
@@ -51,8 +49,6 @@ import {
   discardBufferedTraces,
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
-import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
-import Device from '../../../util/device';
 import { HOWTO_MANAGE_METAMETRICS } from '../../../constants/urls';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
@@ -107,15 +103,6 @@ const OptinMetrics = () => {
 
   const { shouldShowQuestionnaire } =
     useOnboardingInterestQuestionnaireEligibility();
-
-  const isMediumDevice = useMemo(() => Device.isMediumDevice(), []);
-  const illustrationSize = useMemo(
-    () =>
-      isMediumDevice
-        ? { width: 160, height: 120 }
-        : { width: 200, height: 180 },
-    [isMediumDevice],
-  );
 
   /**
    * Temporary disabling the back button so users can't go back
@@ -384,14 +371,7 @@ const OptinMetrics = () => {
     [isEndReached],
   );
 
-  const rootStyle = useMemo(
-    () =>
-      tw.style('flex-1 bg-default', {
-        paddingTop:
-          Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
-      }),
-    [tw],
-  );
+  const rootStyle = useMemo(() => tw.style('flex-1 bg-default'), [tw]);
 
   const goToDefaultSettings = () => {
     navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
@@ -400,7 +380,7 @@ const OptinMetrics = () => {
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
+    <SafeAreaView edges={['top', 'bottom']} style={rootStyle}>
       <ScrollView
         style={tw.style('flex-1')}
         scrollEventThrottle={150}
@@ -409,25 +389,11 @@ const OptinMetrics = () => {
         onScroll={onScroll}
         testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
-        <Box twClassName="mx-5 flex-1 gap-y-4 pb-20">
-          <Box
-            alignItems={BoxAlignItems.Center}
-            twClassName={isMediumDevice ? 'my-2' : 'my-3'}
-          >
-            <Image
-              source={PrivacyIllustration}
-              style={tw.style('self-center', {
-                width: illustrationSize.width,
-                height: illustrationSize.height,
-              })}
-              resizeMode="contain"
-            />
-          </Box>
+        <Box twClassName="mx-4 flex-1 gap-y-3 pb-20">
           <Text
-            variant={TextVariant.DisplayMd}
+            variant={TextVariant.HeadingLg}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
-            twClassName="mt-2"
             testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
           >
             {strings('privacy_policy.description_title')}
@@ -445,11 +411,16 @@ const OptinMetrics = () => {
             <Pressable
               style={({ pressed }) =>
                 tw.style(
-                  'bg-background-alternative rounded-xl p-4 mb-4',
-                  pressed && 'opacity-70',
+                  'bg-background-muted border border-muted rounded-xl p-4 mb-3',
+                  pressed && 'bg-background-muted-hover',
                 )
               }
               onPress={handleBasicUsageToggle}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: isBasicUsageChecked }}
+              accessibilityLabel={strings(
+                'privacy_policy.gather_basic_usage_title',
+              )}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
               }
@@ -470,10 +441,9 @@ const OptinMetrics = () => {
                   </Text>
                 </Box>
                 <Checkbox
-                  onPress={handleBasicUsageToggle}
                   isChecked={isBasicUsageChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
+                  accessible={false}
+                  pointerEvents="none"
                 />
               </Box>
               <Text
@@ -495,16 +465,33 @@ const OptinMetrics = () => {
               </Text>
             </Pressable>
 
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
+              twClassName="mt-3 mb-2"
+            >
+              {strings('privacy_policy.marketing_updates_value')}
+            </Text>
+
             <Pressable
               style={({ pressed }) =>
                 tw.style(
-                  'bg-background-alternative rounded-xl p-4 mb-4',
+                  'bg-background-muted border border-muted rounded-xl p-4 mb-3',
                   isMarketingDisabled && 'opacity-50',
-                  pressed && !isMarketingDisabled && 'opacity-70',
+                  pressed &&
+                    !isMarketingDisabled &&
+                    'bg-background-muted-hover',
                 )
               }
               onPress={handleMarketingToggle}
               disabled={isMarketingDisabled}
+              accessibilityRole="checkbox"
+              accessibilityState={{
+                checked: isMarketingChecked,
+                disabled: isMarketingDisabled,
+              }}
+              accessibilityLabel={strings('privacy_policy.checkbox_marketing')}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
               }
@@ -529,11 +516,10 @@ const OptinMetrics = () => {
                   </Text>
                 </Box>
                 <Checkbox
-                  onPress={handleMarketingToggle}
                   isChecked={isMarketingChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                  disabled={isMarketingDisabled}
+                  accessible={false}
+                  pointerEvents="none"
+                  isDisabled={isMarketingDisabled}
                 />
               </Box>
               <Text

@@ -26,6 +26,23 @@ const initialState = {
   onboarding: {
     events: [],
   },
+  settings: {
+    basicFunctionalityEnabled: true,
+  },
+  security: {
+    dataCollectionForMarketing: false,
+  },
+  attribution: {
+    attribution: null,
+  },
+  engine: {
+    backgroundState: {
+      QrSyncController: {
+        provisioningStatus: null,
+        provisioningMetadata: null,
+      },
+    },
+  },
 };
 const store = mockStore(initialState);
 
@@ -44,6 +61,10 @@ jest.mock('../../../util/theme', () => {
     useTheme: () => mockTheme,
   };
 });
+
+jest.mock('../../../util/onboarding/finalizeOnboardingCompletion', () => ({
+  finalizeOnboardingCompletion: jest.fn(),
+}));
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -171,9 +192,8 @@ describe('ManualBackupStep2', () => {
       };
     };
 
-    const setupSuccessFlow = (
+    const completePhraseConfirmation = (
       wrapper: ReturnType<typeof setupTest>['wrapper'],
-      mockNavigate: jest.Mock,
     ) => {
       const getMissingWords = (index: number) =>
         wrapper.getByTestId(
@@ -210,29 +230,6 @@ describe('ManualBackupStep2', () => {
       );
 
       fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SuccessErrorSheet',
-        params: {
-          title: expect.any(String),
-          description: expect.any(String),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: expect.any(Function),
-          onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-
-      // Get the success onPrimaryButtonPress function and call it
-      const successCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' && call[1].screen === 'SuccessErrorSheet',
-      );
-      const onPrimaryButtonPress = successCall[1].params.onPrimaryButtonPress;
-      return {
-        onPrimaryButtonPress,
-      };
     };
 
     it('updates grid item style when a word is selected on Android', () => {
@@ -287,8 +284,8 @@ describe('ManualBackupStep2', () => {
       mockNavigation.mockRestore();
     });
 
-    it('opens success sheet and navigates to onboarding success when words match', async () => {
-      const { wrapper, mockNavigate, mockNavigationDispatch } = setupTest();
+    it('navigates to onboarding success when words match', async () => {
+      const { wrapper, mockNavigationDispatch } = setupTest();
 
       const missingWordOne = wrapper.getByTestId(
         `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
@@ -342,42 +339,9 @@ describe('ManualBackupStep2', () => {
 
       fireEvent.press(continueButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SuccessErrorSheet',
-        params: {
-          title: expect.any(String),
-          description: expect.any(String),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: expect.any(Function),
-          onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-
-      // Get the success onPrimaryButtonPress function and call it
-      const successCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' && call[1].screen === 'SuccessErrorSheet',
-      );
-      const onPrimaryButtonPress = successCall[1].params.onPrimaryButtonPress;
-
-      // Call the success button press function
-      onPrimaryButtonPress();
-
       const resetAction = CommonActions.reset({
         index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.SUCCESS_FLOW,
-            params: {
-              screen: Routes.ONBOARDING.SUCCESS,
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-              },
-            },
-          },
-        ],
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
@@ -391,12 +355,7 @@ describe('ManualBackupStep2', () => {
       // setup test
       const { wrapper, mockNavigate, mockDispatch } = setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      completePhraseConfirmation(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
 
@@ -406,111 +365,63 @@ describe('ManualBackupStep2', () => {
       });
     });
 
-    it('navigates to onboarding success flow when analytics is enabled', async () => {
+    it('resets to Home when analytics is enabled', async () => {
       mockRoute.mockReturnValue({ params: { ...defaultRouteParams } });
       mockMetricsIsEnabled.mockReturnValue(true);
 
       // setup test
-      const { wrapper, mockNavigate, mockNavigationDispatch, mockDispatch } =
-        setupTest();
+      const { wrapper, mockNavigationDispatch, mockDispatch } = setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      completePhraseConfirmation(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
 
       const resetAction = CommonActions.reset({
         index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.SUCCESS_FLOW,
-            params: {
-              screen: Routes.ONBOARDING.SUCCESS,
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-              },
-            },
-          },
-        ],
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
       });
     });
 
-    it('navigates to onboarding success with reminder backup flow', async () => {
+    it('resets to Home with reminder backup flow', async () => {
       mockRoute.mockReturnValue({
         params: { ...defaultRouteParams, backupFlow: true },
       });
       mockMetricsIsEnabled.mockReturnValue(true);
 
       // setup test
-      const { wrapper, mockNavigate, mockNavigationDispatch, mockDispatch } =
-        setupTest();
+      const { wrapper, mockNavigationDispatch, mockDispatch } = setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      completePhraseConfirmation(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
 
       const resetAction = CommonActions.reset({
         index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.SUCCESS_FLOW,
-            params: {
-              screen: Routes.ONBOARDING.SUCCESS,
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP,
-              },
-            },
-          },
-        ],
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
       });
     });
 
-    it('navigates to onboarding success with settings backup flow', async () => {
+    it('resets to Home with settings backup flow', async () => {
       mockRoute.mockReturnValue({
         params: { ...defaultRouteParams, settingsBackup: true },
       });
       mockMetricsIsEnabled.mockReturnValue(true);
 
       // setup test
-      const { wrapper, mockNavigate, mockDispatch, mockNavigationDispatch } =
-        setupTest();
+      const { wrapper, mockDispatch, mockNavigationDispatch } = setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      completePhraseConfirmation(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
       const resetAction = CommonActions.reset({
         index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.SUCCESS_FLOW,
-            params: {
-              screen: Routes.ONBOARDING.SUCCESS,
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
-              },
-            },
-          },
-        ],
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
       expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
     });
@@ -764,14 +675,14 @@ describe('ManualBackupStep2', () => {
     });
   });
 
-  describe('success sheet onClose callback', () => {
+  describe('successful phrase confirmation', () => {
     beforeEach(() => {
       Platform.OS = 'ios';
       global.Math = mockMath;
       mockMetricsIsEnabled.mockReturnValue(true);
     });
 
-    it('dispatches navigation reset when success sheet onClose is called', () => {
+    it('dispatches navigation reset without opening a success sheet', () => {
       const mockNavigate = jest.fn();
       const mockNavigationDispatch = jest.fn();
       const mockSetOptions = jest.fn();
@@ -817,16 +728,11 @@ describe('ManualBackupStep2', () => {
       );
       fireEvent.press(continueButton);
 
-      const successCall = mockNavigate.mock.calls.find(
+      const successSheetCall = mockNavigate.mock.calls.find(
         (call) =>
           call[0] === 'RootModalFlow' && call[1]?.params?.type === 'success',
       );
-      expect(successCall).not.toBeUndefined();
-
-      const { onClose } = successCall[1].params;
-      expect(onClose).toEqual(expect.any(Function));
-      onClose();
-
+      expect(successSheetCall).toBeUndefined();
       expect(mockNavigationDispatch).toHaveBeenCalled();
     });
   });

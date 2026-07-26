@@ -1,59 +1,46 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
-import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
+import React, { useEffect } from 'react';
+import { View, Image, StyleSheet } from 'react-native';
 
-import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
-import { hasTestOverrides } from '../../../util/test/utils';
-import Logger from '../../../util/Logger';
-
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
+
+const LOGO_WIDTH = Device.isMediumDevice() ? 160 : 200;
+// Wordmark PNG is ~2:1 (1799x891), so keep height at half the width.
+const LOGO_HEIGHT = LOGO_WIDTH / 2;
 
 const createStyles = () =>
   StyleSheet.create({
     image: {
       alignSelf: 'center',
-      width: Device.isMediumDevice() ? 180 : 240,
-      height: Device.isMediumDevice() ? 180 : 240,
+      width: LOGO_WIDTH,
+      height: LOGO_HEIGHT,
     },
-    largeFoxWrapper: {
-      width: Device.isMediumDevice() ? 180 : 240,
-      height: Device.isMediumDevice() ? 180 : 240,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginHorizontal: 'auto',
-      padding: Device.isMediumDevice() ? 30 : 40,
+    // Static resting position of the wordmark (previously the end state of the
+    // build-up animation: the centered logo shifted up by 180px). Centered
+    // horizontally with its vertical midpoint 180px above screen center.
+    logoWrapper: {
       position: 'absolute',
       top: '50%',
-      left: '50%',
-      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
-      marginTop: -(Device.isMediumDevice() ? 90 : 120),
+      left: 0,
+      right: 0,
+      height: LOGO_HEIGHT,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: -(LOGO_HEIGHT / 2) - 180,
     },
+    // Buttons resting at the vertical midpoint (createWrapper's marginTop 180
+    // minus the 180px upward shift).
     createWrapper: {
       flexDirection: 'column',
-      rowGap: Device.isMediumDevice() ? 12 : 16,
+      rowGap: 16,
       marginBottom: 16,
       position: 'absolute',
       top: '50%',
-      left: Device.isMediumDevice() ? 26 : 36,
-      right: Device.isMediumDevice() ? 26 : 36,
-      marginTop: 180,
+      left: 16,
+      right: 16,
+      marginTop: 0,
       alignItems: 'stretch',
-    },
-    titleWrapper: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-      flex: 1,
-      rowGap: Device.isMediumDevice() ? 24 : 32,
     },
   });
 
@@ -66,115 +53,30 @@ const OnboardingAnimation = ({
   startOnboardingAnimation: boolean;
   setStartFoxAnimation: (value: boolean) => void;
 }) => {
-  const logoRef = useRef<RiveRef>(null);
-  const logoPosition = useMemo(() => new Animated.Value(0), []);
-  const buttonsOpacity = useMemo(
-    () => new Animated.Value(hasTestOverrides ? 1 : 0),
-    [],
-  );
-
-  const { themeAppearance } = useAppThemeFromContext();
+  const { colors } = useAppThemeFromContext();
   const styles = createStyles();
 
-  const [isPlaying, setIsPlaying] = useState(hasTestOverrides);
-
-  const moveLogoUp = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(logoPosition, {
-        toValue: -180,
-        duration: 1200,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonsOpacity, {
-        toValue: 1,
-        duration: 1200,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [logoPosition, buttonsOpacity]);
-
-  const startRiveAnimation = useCallback(() => {
-    if (hasTestOverrides) {
-      logoPosition.setValue(-180);
-      buttonsOpacity.setValue(1);
-      setStartFoxAnimation(true);
-      return;
-    }
-
-    try {
-      if (logoRef.current) {
-        const isDarkMode = themeAppearance === 'dark';
-        logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
-        logoRef.current.fireState('WordmarkBuildUp', 'Start');
-        setTimeout(() => {
-          moveLogoUp();
-        }, 1000);
-
-        setTimeout(() => {
-          setStartFoxAnimation(true);
-        }, 1200);
-      }
-    } catch (error) {
-      Logger.error(error as Error, 'Error triggering Rive animation');
-    }
-  }, [
-    themeAppearance,
-    moveLogoUp,
-    logoRef,
-    setStartFoxAnimation,
-    logoPosition,
-    buttonsOpacity,
-  ]);
-
+  // The wordmark build-up animation has been removed; trigger the fox animation
+  // as soon as onboarding is ready so downstream behavior is preserved.
   useEffect(() => {
-    if (startOnboardingAnimation && isPlaying) {
-      startRiveAnimation();
+    if (startOnboardingAnimation) {
+      setStartFoxAnimation(true);
     }
-  }, [startRiveAnimation, startOnboardingAnimation, isPlaying]);
+  }, [startOnboardingAnimation, setStartFoxAnimation]);
 
   return (
     <>
-      <View style={styles.titleWrapper} pointerEvents="box-none">
-        <Animated.View
-          style={[
-            styles.largeFoxWrapper,
-            {
-              transform: [{ translateY: logoPosition }],
-            },
-          ]}
-          pointerEvents="none"
-        >
-          {!hasTestOverrides && (
-            <Rive
-              ref={logoRef}
-              style={styles.image}
-              source={MetaMaskWordmarkAnimation}
-              fit={Fit.Contain}
-              alignment={Alignment.Center}
-              stateMachineName="WordmarkBuildUp"
-              testID="metamask-wordmark-animation"
-              onPlay={() => {
-                setIsPlaying(true);
-              }}
-            />
-          )}
-        </Animated.View>
+      <View style={styles.logoWrapper} pointerEvents="none">
+        <Image
+          source={METAMASK_NAME}
+          style={[styles.image, { tintColor: colors.icon.default }]}
+          resizeMode="contain"
+          testID="metamask-wordmark-logo"
+        />
       </View>
-
-      <Animated.View
-        style={[
-          styles.createWrapper,
-          {
-            opacity: buttonsOpacity,
-            transform: [{ translateY: logoPosition }],
-          },
-        ]}
-        pointerEvents="box-none"
-      >
+      <View style={styles.createWrapper} pointerEvents="box-none">
         {children}
-      </Animated.View>
+      </View>
     </>
   );
 };

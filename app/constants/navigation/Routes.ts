@@ -186,7 +186,6 @@ const Routes = {
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
-    SUCCESS: 'OnboardingSuccess',
     DEFAULT_SETTINGS: 'DefaultSettings',
     GENERAL_SETTINGS: 'GeneralSettings',
     ASSETS_SETTINGS: 'AssetsSettings',
@@ -199,7 +198,6 @@ const Routes = {
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
-      STEP_3: 'ManualBackupStep3',
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
@@ -210,7 +208,6 @@ const Routes = {
     WALLET_CREATION_ERROR: 'WalletCreationError',
     ADD_DEVICE_TO_WALLET: 'AddDeviceToWallet',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
-    CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -520,7 +517,6 @@ const Routes = {
     ROOT: 'SetPasswordFlow',
     MANUAL_BACKUP_STEP_1: 'ManualBackupStep1',
     MANUAL_BACKUP_STEP_2: 'ManualBackupStep2',
-    MANUAL_BACKUP_STEP_3: 'ManualBackupStep3',
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',

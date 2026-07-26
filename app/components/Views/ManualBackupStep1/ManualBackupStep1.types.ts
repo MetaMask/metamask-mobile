@@ -32,7 +32,6 @@ export interface BackupFlowParamList {
   ManualBackupStep2: ManualBackupStep2Params;
   RootModalFlow: { screen: string };
   OptinMetrics: { onContinue?: () => void; accountType?: string };
-  OnboardingSuccessFlow: undefined;
 }
 
 /**

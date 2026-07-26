@@ -60,7 +60,6 @@ const ProtectWalletMandatoryModal = () => {
           'AccountBackupStep1B',
           'ManualBackupStep1',
           'ManualBackupStep2',
-          'ManualBackupStep3',
           'Webview',
           Routes.LOCK_SCREEN,
         ].includes(route)

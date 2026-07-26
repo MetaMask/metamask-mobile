@@ -12,7 +12,10 @@ import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { InteractionManager, Platform } from 'react-native';
-import { AccountType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -32,6 +35,10 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
+}));
+
+jest.mock('../../../util/onboarding/finalizeOnboardingCompletion', () => ({
+  finalizeOnboardingCompletion: jest.fn(),
 }));
 
 const mockIsAnalyticsEnabled = jest.fn().mockReturnValue(true);
@@ -117,6 +124,15 @@ describe('AccountBackupStep1', () => {
     const initialState = {
       engine: {
         backgroundState,
+      },
+      settings: {
+        basicFunctionalityEnabled: true,
+      },
+      security: {
+        dataCollectionForMarketing: false,
+      },
+      attribution: {
+        attribution: null,
       },
     };
 
@@ -319,7 +335,7 @@ describe('AccountBackupStep1', () => {
   });
 
   describe('skip functionality', () => {
-    it('navigates to OnboardingSuccess when onboarding', async () => {
+    it('opens skip confirmation when onboarding', async () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -370,10 +386,10 @@ describe('AccountBackupStep1', () => {
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
 
-      // Verify navigation to OnboardingSuccess
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
         accountType: AccountType.Metamask,
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       });
 
       // Get the onConfirm function from the modal params
@@ -409,7 +425,6 @@ describe('AccountBackupStep1', () => {
       // Call the onConfirm function (skip)
       await modalParams.onCancel();
 
-      // Verify navigation to OnboardingSuccess
       expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
     });
   });

@@ -151,7 +151,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           </Box>
 
           <Text
-            variant={TextVariant.DisplayMd}
+            variant={TextVariant.HeadingLg}
             color={TextColor.TextDefault}
             testID={
               isUserTypeNew
