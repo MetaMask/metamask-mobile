@@ -11,7 +11,6 @@ export const MoneyBalanceCardTestIds = {
   BALANCE_ERROR: 'money-balance-card-balance-error',
   BALANCE_RETRY: 'money-balance-card-balance-retry',
   BALANCE_UNAVAILABLE: 'money-balance-card-balance-unavailable',
-  BALANCE_NO_ACCOUNT: 'money-balance-card-balance-no-account',
   APY_TAG: 'money-balance-card-apy-tag',
   APY_TAG_SKELETON: 'money-balance-card-apy-tag-skeleton',
   ADD_BUTTON: 'money-balance-card-add-button',

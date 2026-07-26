@@ -1,9 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useActivityAmountsFiat } from './useActivityAmountsFiat';
-import type {
-  ActivityFee,
-  ActivityListItem,
+import {
+  GAS_FEE_SPONSORED,
+  type ActivityFee,
+  type ActivityListItem,
 } from '../../../../util/activity-adapters';
 
 jest.mock('react-redux', () => ({
@@ -202,6 +203,39 @@ describe('useActivityAmountsFiat', () => {
       { label: 'Bridge fee', value: '0.5' },
     ]);
     expect(result.current.totalFiat).toBeUndefined();
+  });
+
+  it('renders sponsored gas as Paid by MetaMask and excludes it from the fiat total', () => {
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: 2,
+      contractExchangeRates: {
+        [tokenAddress]: {
+          price: 3,
+        },
+      },
+      multichainAssetRates: {},
+    });
+
+    const sponsoredFee = { type: GAS_FEE_SPONSORED };
+    const { result } = renderHook(() =>
+      useActivityAmountsFiat({
+        ...activityWithTokenAndFees,
+        data: {
+          ...activityWithTokenAndFees.data,
+          fees: [sponsoredFee],
+        },
+      }),
+    );
+
+    expect(result.current.feeRows).toStrictEqual([
+      {
+        label: 'Network fee',
+        value: 'Paid by MetaMask',
+        fee: sponsoredFee,
+      },
+    ]);
+    expect(result.current.totalFiat).toBe('$6');
   });
 
   it('hides zero token and fee amounts instead of rendering fiat zeroes', () => {

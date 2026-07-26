@@ -257,6 +257,13 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     .asPriority(1000)
     .thenCallback(createRpcCallback());
 
+  // Public Linea RPC fallback used by BaanxProvider.getOnChainAssets
+  // (LINEA_PUBLIC_RPC_URL) when Infura is unavailable.
+  await mockServer
+    .forPost('https://rpc.linea.build')
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
   // Mock Linea Tenderly RPC through the mobile proxy
   await mockServer
     .forPost('/proxy')
@@ -273,6 +280,16 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return url.includes('linea-mainnet.infura.io');
+    })
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
+  // Public Linea RPC through the mobile proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return url.includes('rpc.linea.build');
     })
     .asPriority(1000)
     .thenCallback(createRpcCallback());

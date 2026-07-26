@@ -1157,6 +1157,31 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
         mockAlert.mockRestore();
       });
+
+      it('restores seed phrase visibility when onScanError is called', async () => {
+        const { getByTestId } = customRender(
+          <ImportFromSecretRecoveryPhrase />,
+        );
+
+        const qrButton = getByTestId(
+          ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+        );
+        await act(async () => {
+          fireEvent.press(qrButton);
+        });
+
+        const [, params] = navigationSpy.mock.calls[0];
+        const { onScanError } = params;
+
+        await act(async () => {
+          onScanError(new Error('scan failed'));
+        });
+
+        // Screen remains mounted and interactive after scan error handling.
+        expect(
+          getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('handles backspace key press when input is empty and index > 0', async () => {
@@ -1266,6 +1291,54 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(
         getByText(strings('import_from_seed.import_wallet_from_extension')),
       ).toBeOnTheScreen();
+    });
+
+    it('navigates to AddDeviceToWallet when import-from-extension link is pressed', () => {
+      const mockNavigate = jest.fn();
+      const Stack = createNativeStackNavigator();
+      const stateWithAddDeviceSync = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                addDeviceSyncEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="TestScreen">
+              {({ navigation }) => {
+                jest
+                  .spyOn(navigation, 'navigate')
+                  .mockImplementation(mockNavigate);
+                return (
+                  <ImportFromSecretRecoveryPhrase
+                    navigation={navigation}
+                    route={{ params: {} }}
+                  />
+                );
+              }}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>,
+        { state: stateWithAddDeviceSync },
+        false,
+      );
+
+      fireEvent.press(
+        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      );
     });
 
     it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
@@ -1721,6 +1794,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('error message is shown when passcode is not set', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert');
       const { getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
@@ -1730,32 +1804,157 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
 
-      // Enter valid passwords
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 
-      // Check learn more checkbox
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
       fireEvent.press(learnMoreCheckbox);
 
-      // Mock Authentication.newWalletAndRestore to throw passcode error
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+      // Error.message "Passcode not set." → toString() matches PASSCODE_NOT_SET_ERROR
       jest
         .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(new Error('Error: Passcode not set.'));
+        .mockRejectedValueOnce(new Error('Passcode not set.'));
 
-      // Try to import
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith(
+          'Security Alert',
+          'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
+        );
+      });
+
+      mockAlert.mockRestore();
+    });
+
+    it('tracks setup failure when password does not meet requirements', async () => {
+      const passwordUtils = jest.requireActual('../../../util/password') as {
+        passwordRequirementsMet: (password: string) => boolean;
+      };
+      const passwordRequirementsMetSpy = jest
+        .spyOn(passwordUtils, 'passwordRequirementsMet')
+        .mockReturnValue(false);
+
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+          'StrongPass123!',
+        );
+        fireEvent.changeText(
+          getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
+          'StrongPass123!',
+        );
+      });
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
+
+      const newWalletAndRestoreSpy = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
       );
-      fireEvent.press(confirmButton);
 
-      // await waitFor(() => {
-      //   expect(getByText('Unlock with Face ID?')).toBeOnTheScreen();
-      // });
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      expect(newWalletAndRestoreSpy).not.toHaveBeenCalled();
+      passwordRequirementsMetSpy.mockRestore();
+    });
+
+    it('tracks setup failure when imported seed phrase is invalid', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+          'StrongPass123!',
+        );
+        fireEvent.changeText(
+          getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
+          'StrongPass123!',
+        );
+      });
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
+
+      const validators = jest.requireActual('../../../util/validators') as {
+        failedSeedPhraseRequirements: (seed: string) => boolean;
+        isValidMnemonic: (seed: string) => boolean;
+      };
+      const failedSeedSpy = jest
+        .spyOn(validators, 'failedSeedPhraseRequirements')
+        .mockReturnValue(false);
+      const invalidMnemonicSpy = jest
+        .spyOn(validators, 'isValidMnemonic')
+        .mockReturnValue(false);
+
+      const newWalletAndRestoreSpy = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      expect(newWalletAndRestoreSpy).not.toHaveBeenCalled();
+      failedSeedSpy.mockRestore();
+      invalidMnemonicSpy.mockRestore();
+    });
+
+    it('tracks setup failure when seed phrase requirements fail', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+          'StrongPass123!',
+        );
+        fireEvent.changeText(
+          getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
+          'StrongPass123!',
+        );
+      });
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
+
+      const validators = jest.requireActual('../../../util/validators') as {
+        failedSeedPhraseRequirements: (seed: string) => boolean;
+      };
+      const failedSeedSpy = jest
+        .spyOn(validators, 'failedSeedPhraseRequirements')
+        .mockReturnValue(true);
+
+      const newWalletAndRestoreSpy = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      expect(newWalletAndRestoreSpy).not.toHaveBeenCalled();
+      failedSeedSpy.mockRestore();
     });
 
     it('Import seed phrase with optin metrics flow', async () => {
