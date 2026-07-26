@@ -134,7 +134,9 @@ describe('useTransactionPayMetrics', () => {
   const useIsTransactionPayQuoteLoadingMock = jest.mocked(
     useIsTransactionPayQuoteLoading,
   );
-  const useTransactionPayQuoteErrorMock = jest.mocked(useTransactionPayQuoteError);
+  const useTransactionPayQuoteErrorMock = jest.mocked(
+    useTransactionPayQuoteError,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -1616,7 +1618,10 @@ describe('useTransactionPayMetrics', () => {
 
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
+      const errors = lastProps()?.mm_pay_quote_errors as Record<
+        string,
+        unknown
+      >[];
       expect(errors?.[0]).toMatchObject({
         amount_input_type: '50%',
       });
@@ -1643,7 +1648,10 @@ describe('useTransactionPayMetrics', () => {
 
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
+      const errors = lastProps()?.mm_pay_quote_errors as Record<
+        string,
+        unknown
+      >[];
       expect(errors?.[0]).toMatchObject({
         amount_input_type: null,
       });
@@ -1739,7 +1747,10 @@ describe('useTransactionPayMetrics', () => {
       rerender({});
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
+      const errors = lastProps()?.mm_pay_quote_errors as Record<
+        string,
+        unknown
+      >[];
       expect(errors).toHaveLength(1);
       expect(errors?.[0]).toMatchObject({
         pay_token: {
@@ -1766,7 +1777,9 @@ describe('useTransactionPayMetrics', () => {
       rerender({});
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as { error_message: string }[] | undefined;
+      const errors = lastProps()?.mm_pay_quote_errors as
+        | { error_message: string }[]
+        | undefined;
       expect(errors).toHaveLength(1);
       expect(errors?.[0].error_message).toBe('Insufficient balance');
     });
