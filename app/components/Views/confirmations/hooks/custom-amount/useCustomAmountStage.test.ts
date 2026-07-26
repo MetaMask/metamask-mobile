@@ -1,9 +1,9 @@
 import { act } from 'react';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
-  CustomAmountInfoStage,
-  useCustomAmountInfoStage,
-} from './useCustomAmountInfoStage';
+  CustomAmountStage,
+  useCustomAmountStage,
+} from './useCustomAmountStage';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -53,7 +53,7 @@ function setupState({
   } as unknown as ReturnType<typeof useAlerts>);
 }
 
-type HookOptions = Parameters<typeof useCustomAmountInfoStage>[0];
+type HookOptions = Parameters<typeof useCustomAmountStage>[0];
 
 const DEFAULT_OPTIONS: HookOptions = {
   amountFiat: '10',
@@ -74,7 +74,7 @@ function runHook(options: Partial<HookOptions> = {}) {
   };
 
   const view = renderHookWithProvider(
-    () => useCustomAmountInfoStage(props.current),
+    () => useCustomAmountStage(props.current),
     { state: {} },
   );
 
@@ -86,7 +86,7 @@ function runHook(options: Partial<HookOptions> = {}) {
   return { ...view, setOptions };
 }
 
-describe('useCustomAmountInfoStage', () => {
+describe('useCustomAmountStage', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     setupState();
@@ -96,19 +96,19 @@ describe('useCustomAmountInfoStage', () => {
     it('starts in AmountInput for a plain flow (no prefill, not add-mUSD)', () => {
       const { result } = runHook();
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.AmountInput);
+      expect(result.current.stage).toBe(CustomAmountStage.AmountInput);
     });
 
     it('starts in Loading for an add-mUSD intent', () => {
       const { result } = runHook({ isAddMusdIntent: true });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
 
     it('starts in Loading when deposit prefill is enabled', () => {
       const { result } = runHook({ isDepositPrefillEnabled: true });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
 
     it('starts in AmountInput when prefill is enabled but skipped', () => {
@@ -117,7 +117,7 @@ describe('useCustomAmountInfoStage', () => {
         skipDepositPrefill: true,
       });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.AmountInput);
+      expect(result.current.stage).toBe(CustomAmountStage.AmountInput);
     });
   });
 
@@ -137,7 +137,7 @@ describe('useCustomAmountInfoStage', () => {
 
       const { result } = runDerived();
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
 
     it('derives ShowTotals once quotes are present', () => {
@@ -145,7 +145,7 @@ describe('useCustomAmountInfoStage', () => {
 
       const { result } = runDerived();
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.ShowTotals);
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
     it('derives NoQuote when the fetch settled with no quotes', () => {
@@ -157,7 +157,7 @@ describe('useCustomAmountInfoStage', () => {
 
       const { result } = runDerived();
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.NoQuote);
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
     });
 
     it('derives Loading while a prefill result is awaited', () => {
@@ -166,7 +166,7 @@ describe('useCustomAmountInfoStage', () => {
         isDepositPrefillLoading: true,
       });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
   });
 
@@ -184,7 +184,7 @@ describe('useCustomAmountInfoStage', () => {
 
       const { result } = runDerived();
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
 
     it('leaves Loading for NoQuote when the fetch fails (no-quotes alert set)', () => {
@@ -198,7 +198,7 @@ describe('useCustomAmountInfoStage', () => {
 
       // Regression: the add-mUSD term must not force an infinite loader once
       // the fetch has settled with no quotes.
-      expect(result.current.stage).toBe(CustomAmountInfoStage.NoQuote);
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
     });
 
     it('shows totals once a quote arrives', () => {
@@ -206,7 +206,7 @@ describe('useCustomAmountInfoStage', () => {
 
       const { result } = runDerived();
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.ShowTotals);
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
   });
 
@@ -217,10 +217,10 @@ describe('useCustomAmountInfoStage', () => {
       const { result } = runHook();
 
       act(() => {
-        result.current.setStage(CustomAmountInfoStage.Loading);
+        result.current.setStage(CustomAmountStage.Loading);
       });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
 
     it('clears a no-op Loading re-commit immediately (amount unchanged)', () => {
@@ -232,7 +232,7 @@ describe('useCustomAmountInfoStage', () => {
 
       // First commit at '10' arms and records the amount.
       act(() => {
-        result.current.setStage(CustomAmountInfoStage.Loading);
+        result.current.setStage(CustomAmountStage.Loading);
       });
       act(() => {
         result.current.setStage(null);
@@ -240,17 +240,17 @@ describe('useCustomAmountInfoStage', () => {
 
       // Re-commit the same amount: the override is dropped straight away.
       act(() => {
-        result.current.setStage(CustomAmountInfoStage.Loading);
+        result.current.setStage(CustomAmountStage.Loading);
       });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.ShowTotals);
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
     it('leaves the Loading override once the composite loading takes over', () => {
       const { result, setOptions } = runHook();
 
       act(() => {
-        result.current.setStage(CustomAmountInfoStage.Loading);
+        result.current.setStage(CustomAmountStage.Loading);
       });
 
       // The real fetch starts: derived Loading takes over, so the override
@@ -260,7 +260,7 @@ describe('useCustomAmountInfoStage', () => {
         setOptions({});
       });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
   });
 
@@ -272,13 +272,13 @@ describe('useCustomAmountInfoStage', () => {
       });
 
       // Starts in Loading (prefill expected).
-      expect(result.current.stage).toBe(CustomAmountInfoStage.Loading);
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
 
       act(() => {
         setOptions({ skipDepositPrefill: true });
       });
 
-      expect(result.current.stage).toBe(CustomAmountInfoStage.AmountInput);
+      expect(result.current.stage).toBe(CustomAmountStage.AmountInput);
     });
   });
 });

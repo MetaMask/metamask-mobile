@@ -9,7 +9,7 @@ import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
 
 /** Mutually-exclusive UI stages of the custom amount info screen. */
-export enum CustomAmountInfoStage {
+export enum CustomAmountStage {
   AmountInput = 'amountInput',
   Loading = 'loading',
   ShowTotals = 'showTotals',
@@ -36,7 +36,7 @@ export enum CustomAmountInfoStage {
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
  * @returns The current stage and a setter to override it.
  */
-export function useCustomAmountInfoStage({
+export function useCustomAmountStage({
   amountFiat,
   hasAccountNoFunds,
   isAddMusdIntent,
@@ -53,16 +53,15 @@ export function useCustomAmountInfoStage({
   isDepositPrefilled: boolean;
   skipDepositPrefill: boolean;
 }): {
-  stage: CustomAmountInfoStage;
-  setStage: Dispatch<SetStateAction<CustomAmountInfoStage | null>>;
+  stage: CustomAmountStage;
+  setStage: Dispatch<SetStateAction<CustomAmountStage | null>>;
 } {
   // `null` = derive the stage. Initial override opens the keyboard unless a
   // deposit prefill is expected to resolve first.
-  const [stageOverride, setStage] = useState<CustomAmountInfoStage | null>(
-    () =>
-      !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill)
-        ? CustomAmountInfoStage.AmountInput
-        : CustomAmountInfoStage.Loading,
+  const [stageOverride, setStage] = useState<CustomAmountStage | null>(() =>
+    !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill)
+      ? CustomAmountStage.AmountInput
+      : CustomAmountStage.Loading,
   );
 
   const isQuotesLoading = useIsTransactionPayLoading();
@@ -97,7 +96,7 @@ export function useCustomAmountInfoStage({
    * the gap and briefly derive `NoQuote`.
    */
   useEffect(() => {
-    if (stageOverride !== CustomAmountInfoStage.Loading) {
+    if (stageOverride !== CustomAmountStage.Loading) {
       wasLoadingRef.current = false;
       return;
     }
@@ -134,7 +133,7 @@ export function useCustomAmountInfoStage({
     quotesLastUpdated,
   ]);
 
-  const isKeyboardVisible = stageOverride === CustomAmountInfoStage.AmountInput;
+  const isKeyboardVisible = stageOverride === CustomAmountStage.AmountInput;
 
   const isAwaitingPrefillResult =
     !hasAccountNoFunds &&
@@ -151,9 +150,9 @@ export function useCustomAmountInfoStage({
   useEffect(() => {
     if (isDepositPrefillEnabled && skipDepositPrefill) {
       setStage((prev) =>
-        prev === CustomAmountInfoStage.AmountInput
+        prev === CustomAmountStage.AmountInput
           ? prev
-          : CustomAmountInfoStage.AmountInput,
+          : CustomAmountStage.AmountInput,
       );
     }
   }, [isDepositPrefillEnabled, skipDepositPrefill]);
@@ -172,12 +171,12 @@ export function useCustomAmountInfoStage({
     isAwaitingPrefillResult ||
     (isAddMusdIntent && !showPaymentDetails && !hasNoQuotesAlert)
   ) {
-    return { setStage, stage: CustomAmountInfoStage.Loading };
+    return { setStage, stage: CustomAmountStage.Loading };
   }
 
   if (showPaymentDetails) {
-    return { setStage, stage: CustomAmountInfoStage.ShowTotals };
+    return { setStage, stage: CustomAmountStage.ShowTotals };
   }
 
-  return { setStage, stage: CustomAmountInfoStage.NoQuote };
+  return { setStage, stage: CustomAmountStage.NoQuote };
 }

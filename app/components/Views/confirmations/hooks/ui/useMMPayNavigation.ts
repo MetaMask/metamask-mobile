@@ -8,17 +8,17 @@ import {
 } from 'react';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { CustomAmountInfoStage } from '../custom-amount/useCustomAmountInfoStage';
+import { CustomAmountStage } from '../custom-amount/useCustomAmountStage';
 
 const useMMPayNavigation = (
-  stage: CustomAmountInfoStage,
-  setStage: Dispatch<SetStateAction<CustomAmountInfoStage | null>>,
+  stage: CustomAmountStage,
+  setStage: Dispatch<SetStateAction<CustomAmountStage | null>>,
   skipBackToAmountInput = false,
 ) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
 
-  const isAmountInput = stage === CustomAmountInfoStage.AmountInput;
+  const isAmountInput = stage === CustomAmountStage.AmountInput;
 
   // Track whether the amount input has ever been shown, so the back gesture is
   // allowed to leave the screen before the user has had a chance to edit.
@@ -28,7 +28,7 @@ const useMMPayNavigation = (
   }
 
   useEffect(() => {
-    const showAmountInput = () => setStage(CustomAmountInfoStage.AmountInput);
+    const showAmountInput = () => setStage(CustomAmountStage.AmountInput);
     const neverShown = !wasAmountInputVisibleRef.current;
 
     const allowBack = isAmountInput || skipBackToAmountInput || neverShown;

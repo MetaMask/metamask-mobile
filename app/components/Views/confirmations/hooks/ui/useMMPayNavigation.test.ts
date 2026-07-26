@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import useMMPayNavigation from './useMMPayNavigation';
-import { CustomAmountInfoStage } from '../custom-amount/useCustomAmountInfoStage';
+import { CustomAmountStage } from '../custom-amount/useCustomAmountStage';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -13,8 +13,8 @@ jest.mock('../../context/confirmation-context', () => ({
   useConfirmationContext: jest.fn(),
 }));
 
-const AMOUNT_INPUT = CustomAmountInfoStage.AmountInput;
-const QUOTE = CustomAmountInfoStage.ShowTotals;
+const AMOUNT_INPUT = CustomAmountStage.AmountInput;
+const QUOTE = CustomAmountStage.ShowTotals;
 
 describe('useMMPayNavigation', () => {
   const mockSetOptions = jest.fn();

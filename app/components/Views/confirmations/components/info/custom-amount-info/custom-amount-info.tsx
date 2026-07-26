@@ -27,9 +27,9 @@ import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import {
-  CustomAmountInfoStage,
-  useCustomAmountInfoStage,
-} from '../../../hooks/custom-amount/useCustomAmountInfoStage';
+  CustomAmountStage,
+  useCustomAmountStage,
+} from '../../../hooks/custom-amount/useCustomAmountStage';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
@@ -204,7 +204,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
 
-    const { stage, setStage } = useCustomAmountInfoStage({
+    const { stage, setStage } = useCustomAmountStage({
       amountFiat,
       hasAccountNoFunds,
       isAddMusdIntent,
@@ -237,7 +237,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
-      isKeyboardVisible: stage === CustomAmountInfoStage.AmountInput,
+      isKeyboardVisible: stage === CustomAmountStage.AmountInput,
       pendingTokenAmount: amountHumanDebounced,
       pendingFiatAmount: amountFiatDebounced,
     });
@@ -251,7 +251,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
       isAmountUpdateInProgressRef.current = true;
       // Enter the loading stage: keyboard hidden, totals skeletons shown.
-      setStage(CustomAmountInfoStage.Loading);
+      setStage(CustomAmountStage.Loading);
 
       try {
         await updateTokenAmount();
@@ -285,7 +285,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           ),
         );
         // Reopen the keyboard so the user can retry; do not advance the flow.
-        setStage(CustomAmountInfoStage.AmountInput);
+        setStage(CustomAmountStage.AmountInput);
         return;
       } finally {
         isAmountUpdateInProgressRef.current = false;
@@ -328,7 +328,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
       // (true → false → true) during background state changes, which resets
       // the guard above and would otherwise dismiss the keyboard mid-edit.
-      if (stage === CustomAmountInfoStage.AmountInput) {
+      if (stage === CustomAmountStage.AmountInput) {
         return;
       }
 
@@ -348,7 +348,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           // Max defers the commit to the effect below once the amount lands;
           // show the loading skeleton through that gap rather than the derived
           // stage, matching the direct-commit path.
-          setStage(CustomAmountInfoStage.Loading);
+          setStage(CustomAmountStage.Loading);
         }
       },
       [updatePendingAmountPercentage, setStage],
@@ -362,7 +362,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [amountFiat, handleDone]);
 
     const handleAmountPress = useCallback(() => {
-      setStage(CustomAmountInfoStage.AmountInput);
+      setStage(CustomAmountStage.AmountInput);
     }, [setStage]);
 
     const isAccountSelectionNeeded =
@@ -372,7 +372,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hideBuyForNoFunds =
       Boolean(accountOverride) &&
-      (hasAccountNoFunds || stage === CustomAmountInfoStage.Loading);
+      (hasAccountNoFunds || stage === CustomAmountStage.Loading);
 
     const { headlessBuyError } = useConfirmationContext();
 
@@ -389,12 +389,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               (isPrefillPending || isDepositPrefillLoading)
             }
             onPress={
-              stage === CustomAmountInfoStage.Loading
+              stage === CustomAmountStage.Loading
                 ? undefined
                 : handleAmountPress
             }
             disabled={!hasPaymentOption}
-            showCursor={stage === CustomAmountInfoStage.AmountInput}
+            showCursor={stage === CustomAmountStage.AmountInput}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -413,10 +413,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={styles.bottomBlock}
         >
-          {stage !== CustomAmountInfoStage.Loading && (
+          {stage !== CustomAmountStage.Loading && (
             <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           )}
-          {stage === CustomAmountInfoStage.AmountInput && !isAddMusdIntent && (
+          {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
@@ -429,10 +429,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
             </>
           )}
-          {stage !== CustomAmountInfoStage.AmountInput && (
+          {stage !== CustomAmountStage.AmountInput && (
             <View
               pointerEvents={
-                stage === CustomAmountInfoStage.Loading ? 'none' : 'auto'
+                stage === CustomAmountStage.Loading ? 'none' : 'auto'
               }
               testID={CustomAmountInfoTestIds.REVIEW_ROWS}
             >
@@ -463,7 +463,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {stage === CustomAmountInfoStage.AmountInput &&
+          {stage === CustomAmountStage.AmountInput &&
             (hasPaymentOption || hasAccountNoFunds) && (
               <DepositKeyboard
                 hidePercentageButtons={
@@ -485,11 +485,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
             !isDepositPrefillEnabled && <BuySection />}
-          {stage !== CustomAmountInfoStage.AmountInput && (
+          {stage !== CustomAmountStage.AmountInput && (
             <ConfirmButton
               alertTitle={alertTitle}
               isDisabled={
-                stage !== CustomAmountInfoStage.ShowTotals ||
+                stage !== CustomAmountStage.ShowTotals ||
                 disableConfirm ||
                 isAccountSelectionNeeded ||
                 isPrefillPending
@@ -656,13 +656,13 @@ function Quote({
 }: Readonly<{
   amountFiat: string;
   canSelectWithdrawToken: boolean;
-  stage: CustomAmountInfoStage;
+  stage: CustomAmountStage;
 }>) {
-  if (stage === CustomAmountInfoStage.Loading) {
+  if (stage === CustomAmountStage.Loading) {
     return <PaymentDetailsSkeleton />;
   }
 
-  if (stage === CustomAmountInfoStage.NoQuote) {
+  if (stage === CustomAmountStage.NoQuote) {
     return null;
   }
 
