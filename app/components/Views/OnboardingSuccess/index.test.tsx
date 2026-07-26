@@ -160,6 +160,10 @@ describe('OnboardingSuccessComponent', () => {
     setupSelectorMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders correctly when successFlow is BACKED_UP_SRP', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
@@ -309,27 +313,30 @@ describe('OnboardingSuccessComponent', () => {
     const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
       // Do nothing
     });
-    mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
-    const onDone = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <OnboardingSuccessComponent
-        onDone={onDone}
-        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
-      />,
-    );
-    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
-
-    await waitFor(() => {
-      expect(onDone).toHaveBeenCalled();
-    });
-    await waitFor(() => {
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.any(Error),
-        'OnboardingSuccess: discoverAccounts failed',
+    try {
+      mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+      const onDone = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={onDone}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
       );
-    });
-    loggerSpy.mockRestore();
-    mockDiscoverAccounts.mockResolvedValue(0);
+      fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+      await waitFor(() => {
+        expect(onDone).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(loggerSpy).toHaveBeenCalledWith(
+          expect.any(Error),
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      });
+    } finally {
+      loggerSpy.mockRestore();
+      mockDiscoverAccounts.mockResolvedValue(0);
+    }
   });
 
   it('does not mark steps eligible for SETTINGS_BACKUP flow when Done is pressed', () => {
@@ -450,6 +457,10 @@ describe('OnboardingSuccess', () => {
     setupSelectorMocks();
     mockDiscoverAccounts.mockResolvedValue(0);
     mockRouteParams = {};
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
