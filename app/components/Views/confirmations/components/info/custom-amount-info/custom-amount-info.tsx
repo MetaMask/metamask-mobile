@@ -206,12 +206,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { stage, setStage } = useCustomAmountInfoStage({
       amountFiat,
+      hasAccountNoFunds,
       isAddMusdIntent,
       isDepositPrefillEnabled,
       isDepositPrefillLoading,
       isDepositPrefilled,
       skipDepositPrefill,
-      hasAccountNoFunds,
     });
 
     // React batches rapid presses before the state update rerenders, so keep a
@@ -488,10 +488,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {stage !== CustomAmountInfoStage.AmountInput && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={
-                disableConfirm || isAccountSelectionNeeded || isPrefillPending
+              isDisabled={
+                stage !== CustomAmountInfoStage.ShowTotals ||
+                disableConfirm ||
+                isAccountSelectionNeeded ||
+                isPrefillPending
               }
-              isAmountUpdating={stage === CustomAmountInfoStage.Loading}
               onContinue={trackContinue}
             />
           )}
@@ -689,27 +691,19 @@ function PaymentDetailsSkeleton() {
 
 function ConfirmButton({
   alertTitle,
-  disableConfirm,
-  isAmountUpdating,
+  isDisabled,
   onContinue,
 }: Readonly<{
   alertTitle: string | undefined;
-  disableConfirm?: boolean;
-  isAmountUpdating?: boolean;
+  isDisabled: boolean;
   onContinue?: () => void;
 }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
-  const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
-  const disabled =
-    hasBlockingAlerts ||
-    isLoading ||
-    Boolean(disableConfirm) ||
-    isAmountUpdating ||
-    isHeadlessBuyInProgress;
+  const disabled = isDisabled || hasBlockingAlerts || isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
 
   const handleConfirm = useCallback(async () => {
@@ -736,7 +730,7 @@ function ConfirmButton({
       onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
-      {isAmountUpdating ? buttonLabel : (alertTitle ?? buttonLabel)}
+      {alertTitle ?? buttonLabel}
     </Button>
   );
 }

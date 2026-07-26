@@ -61,30 +61,30 @@ export enum CustomAmountInfoStage {
  * detect a no-op commit (the user re-commits without changing the amount): when
  * the shell sets the `Loading` override but `amountFiat` is unchanged since the
  * last commit, no quote fetch will follow, so the override is ignored.
+ * @param options.hasAccountNoFunds - Whether the account-no-funds alert is set.
  * @param options.isAddMusdIntent - Whether this is an add-mUSD intent.
  * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
  * @param options.isDepositPrefilled - Whether a deposit prefill has resolved.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
- * @param options.hasAccountNoFunds - Whether the account-no-funds alert is set.
  * @returns The current stage and its setter.
  */
 export function useCustomAmountInfoStage({
   amountFiat,
+  hasAccountNoFunds,
   isAddMusdIntent,
   isDepositPrefillEnabled,
   isDepositPrefillLoading,
   isDepositPrefilled,
   skipDepositPrefill,
-  hasAccountNoFunds,
 }: {
   amountFiat: string;
+  hasAccountNoFunds: boolean;
   isAddMusdIntent: boolean;
   isDepositPrefillEnabled: boolean;
   isDepositPrefillLoading: boolean;
   isDepositPrefilled: boolean;
   skipDepositPrefill: boolean;
-  hasAccountNoFunds: boolean;
 }): {
   stage: CustomAmountInfoStage;
   setStage: Dispatch<SetStateAction<CustomAmountInfoStage | null>>;
