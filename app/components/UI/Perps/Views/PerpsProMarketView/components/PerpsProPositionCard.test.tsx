@@ -48,6 +48,22 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText('Share')).toBeOnTheScreen();
   });
 
+  it('derives mark price and notional from positionValue', () => {
+    render(
+      <PerpsProPositionCard
+        position={{
+          ...position,
+          // Live-enriched notional at mark $3,000 → mark display + header value
+          positionValue: '4500',
+          size: '1.5',
+        }}
+      />,
+    );
+
+    expect(screen.getByText(/1\.5 ETH • \$4,500/)).toBeOnTheScreen();
+    expect(screen.getByText('$3,000')).toBeOnTheScreen();
+  });
+
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
 

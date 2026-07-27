@@ -117,7 +117,9 @@ const PerpsProPositionCard = ({
       ? strings('perps.pro_positions_panel.card.isolated')
       : strings('perps.pro_positions_panel.card.cross');
 
-  // Mark price is not stored on the position; derive it from the live notional.
+  // Mark price is not stored on the position; derive it from notional.
+  // With useLivePnl, enrichPositionsWithLivePnL keeps positionValue in sync
+  // with the live mark so this stays consistent with unrealized PnL.
   const markPriceNum =
     absoluteSize > 0 ? parseFloat(position.positionValue) / absoluteSize : NaN;
   const markPriceDisplay = Number.isFinite(markPriceNum)
