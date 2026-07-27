@@ -8,6 +8,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HelpText,
+  HelpTextSeverity,
   Text,
   TextColor,
   TextField,
@@ -372,11 +374,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           }}
         />
         {hasInputError ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+          <HelpText severity={HelpTextSeverity.Danger} showIcon>
             {exceedsMaxDeviation
               ? strings('perps.order.limit_price_modal.limit_price_too_far')
               : limitPriceWarning}
-          </Text>
+          </HelpText>
         ) : (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {getPerpsDisplaySymbol(asset)}-USD{' '}
