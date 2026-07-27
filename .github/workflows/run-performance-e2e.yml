@@ -251,7 +251,8 @@ jobs:
 
           # PRs: run the AI-selected performance tests on Android low profile only.
           # Pushes keep the previous low-device behavior to control cost and flakes.
-          # Schedule and workflow_dispatch use the full device matrix.
+          # TestMu PoC (workflow_dispatch / schedule on this branch): Pixel 8 Pro only
+          # so BrowserStack vs TestMu comparisons stay on one device across many runs.
           if [ -n "$PR_NUMBER" ]; then
             ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
             IOS_MATRIX='[]'
@@ -261,9 +262,9 @@ jobs:
             IOS_MATRIX=$(jq '[.ios_devices[] | select(.category == "low")]' "$FILE")
             echo "Push mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           else
-            ANDROID_MATRIX=$(jq ".android_devices" "$FILE")
-            IOS_MATRIX=$(jq ".ios_devices" "$FILE")
-            echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
+            ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Pixel"))]' "$FILE")
+            IOS_MATRIX='[]'
+            echo "PoC mode: Google Pixel only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           fi
 
           {
