@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
@@ -43,6 +43,14 @@ jest.mock('../../../core', () => ({
   Authentication: {
     deleteWallet: jest.fn().mockResolvedValue(undefined),
   },
+}));
+
+const mockOpenSupportWithConsent = jest.fn();
+
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 import { Authentication } from '../../../core';
@@ -249,12 +257,14 @@ describe('SRPErrorScreen', () => {
   });
 
   describe('handleCopyError', () => {
-    it('copies error report to clipboard when Copy is pressed', () => {
+    it('copies error report to clipboard when Copy is pressed', async () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
+      });
 
       expect(Clipboard.setString).toHaveBeenCalledWith(
         'View: ChoosePassword\nError: WalletCreationError\nTest wallet creation error',
@@ -266,11 +276,11 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
+
+      expect(getByText('Copied')).toBeOnTheScreen();
     });
 
     it('reverts to Copy text after 2 seconds', async () => {
@@ -278,25 +288,23 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
+
+      expect(getByText('Copied')).toBeOnTheScreen();
 
       act(() => {
         jest.advanceTimersByTime(2000);
       });
 
-      await waitFor(() => {
-        expect(queryByText('Copied')).toBeNull();
-        expect(getByText('Copy')).toBeTruthy();
-      });
+      expect(queryByText('Copied')).not.toBeOnTheScreen();
+      expect(getByText('Copy')).toBeOnTheScreen();
     });
   });
 
   describe('handleContactSupport', () => {
-    it('opens support URL when MetaMask Support is pressed', () => {
+    it('calls openSupportWithConsent with an opener and the support base URL when MetaMask Support is pressed', () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
@@ -312,8 +320,26 @@ describe('SRPErrorScreen', () => {
         }),
         expect.any(Function),
       );
-      expect(Linking.openURL).toHaveBeenCalledWith(
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
         AppConstants.REVIEW_PROMPT.SUPPORT,
+      );
+    });
+
+    // Covers only the call-site opener wiring: invoking the opener passed to
+    // openSupportWithConsent opens the URL via Linking. The consent modal
+    // internals are covered by the core support-consent tests.
+    it('opens the support URL via Linking when the opener callback is invoked', () => {
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      fireEvent.press(getByText('MetaMask Support'));
+      const [open] = mockOpenSupportWithConsent.mock.calls[0];
+      open('https://support.metamask.io/');
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://support.metamask.io/',
       );
     });
   });
@@ -355,11 +381,11 @@ describe('SRPErrorScreen', () => {
       );
 
       // Trigger copy to start a timeout
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
+
+      expect(getByText('Copied')).toBeOnTheScreen();
 
       // Unmount component
       unmount();
@@ -375,13 +401,15 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
 
-      fireEvent.press(getByText('Copied'));
+      expect(getByText('Copied')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByText('Copied'));
+      });
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       clearTimeoutSpy.mockRestore();
