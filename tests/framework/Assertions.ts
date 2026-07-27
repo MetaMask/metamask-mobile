@@ -183,6 +183,14 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectElementNotToHaveText(
+        asPlaywrightElement(elem),
+        text,
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element does not have text "${text}"`,
