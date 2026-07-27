@@ -65,7 +65,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
     expect(getByText('Create ETH price alert')).toBeOnTheScreen();
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-    ).toBeDisabled();
+    ).not.toBeDisabled();
   });
 
   it('enables the Set button after keypad input and completes POST via nock', async () => {
@@ -135,9 +135,6 @@ describeForPlatforms('CreatePriceAlertView', () => {
       false,
     );
 
-    // Enter a target price so the save button is enabled
-    fireEvent.press(getByTestId('keypad-key-1'));
-
     await act(async () => {
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
     });
@@ -159,7 +156,10 @@ describeForPlatforms('CreatePriceAlertView', () => {
       },
     });
 
-    // Type "3000" on keypad
+    // Clear the pre-filled current price, then type "3000"
+    for (let i = 0; i < 4; i++) {
+      fireEvent.press(getByTestId('keypad-delete-button'));
+    }
     fireEvent.press(getByTestId('keypad-key-3'));
     fireEvent.press(getByTestId('keypad-key-0'));
     fireEvent.press(getByTestId('keypad-key-0'));

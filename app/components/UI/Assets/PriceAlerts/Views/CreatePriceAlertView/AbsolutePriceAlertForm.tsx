@@ -47,7 +47,9 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
 }) => {
   const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(
-    editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
+    editingAlert
+      ? toKeypadString(editingAlert.threshold)
+      : toKeypadString(currentPrice),
   );
   const [isRecurring, setIsRecurring] = useState(
     editingAlert?.recurring ?? true,
@@ -90,13 +92,13 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   }, [currentPrice, hasInput, targetPrice]);
 
   const displayText = useMemo(() => {
-    if (!hasInput) {
-      return formatPriceWithSubscriptNotation(currentPrice, currentCurrency);
-    }
     const currencySymbol =
       CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
+    if (!hasInput) {
+      return `${currencySymbol}0`;
+    }
     return `${currencySymbol}${targetAmount}`;
-  }, [currentCurrency, currentPrice, hasInput, targetAmount]);
+  }, [currentCurrency, hasInput, targetAmount]);
 
   const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
 
