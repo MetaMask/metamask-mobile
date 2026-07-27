@@ -5834,6 +5834,9 @@
     "erc1155_received_title": "NFT received",
     "default_message_title": "MetaMask",
     "default_message_description": "Tap to view",
+    "feature_gate": {
+      "title": "Enable notifications"
+    },
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",
     "pending_deposit_message": "Waiting for deposit to complete",

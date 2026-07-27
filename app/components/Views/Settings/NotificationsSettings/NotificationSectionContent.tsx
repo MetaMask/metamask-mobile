@@ -173,12 +173,14 @@ export interface NotificationSectionContentProps {
   type: NotificationPreferenceSection;
   title?: string;
   description?: string;
+  disabled?: boolean;
 }
 
 export const NotificationSectionContent = ({
   type,
   title,
   description,
+  disabled,
 }: NotificationSectionContentProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
@@ -286,6 +288,7 @@ export const NotificationSectionContent = ({
         <Switch
           value={push.value}
           onValueChange={push.onValueChange}
+          disabled={disabled}
           trackColor={{
             true: theme.colors.primary.default,
             false: theme.colors.border.muted,
@@ -310,6 +313,7 @@ export const NotificationSectionContent = ({
         <Switch
           value={inApp.value}
           onValueChange={inApp.onValueChange}
+          disabled={disabled}
           trackColor={{
             true: theme.colors.primary.default,
             false: theme.colors.border.muted,

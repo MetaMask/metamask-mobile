@@ -60,6 +60,7 @@ import {
 import useInFlightIds from '../../hooks/useInFlightIds';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -460,6 +461,11 @@ const ManagePriceAlertsView: React.FC = () => {
             </Button>
           </View>
         )}
+
+        <FeatureNotificationsGate
+          feature="priceAlerts"
+          onDismiss={handleBack}
+        />
       </Box>
     </SafeAreaView>
   );

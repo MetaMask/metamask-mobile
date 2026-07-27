@@ -27,6 +27,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
+import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
@@ -122,6 +123,11 @@ const CreatePriceAlertView: React.FC = () => {
           value={alertType}
           onChange={setAlertType}
           isDisabled={isEditing}
+        />
+
+        <FeatureNotificationsGate
+          feature="priceAlerts"
+          onDismiss={handleBack}
         />
 
         {alertType === 'percent_change' ? (
