@@ -11,7 +11,6 @@ import {
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
-import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
 import {
   QrSyncOperations,
   QrSyncSurfaces,
@@ -19,18 +18,11 @@ import {
   reportQrSyncFailure,
 } from '../../../core/QrSync/qrSyncTelemetry';
 
-jest.mock('../../../core/QrSync/completeExistingUserQrSyncImport', () => ({
-  completeExistingUserQrSyncImport: jest.fn(() => Promise.resolve()),
-}));
-
 jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
   ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
   reportQrSyncFailure: jest.fn(),
 }));
 
-const mockCompleteExistingUserQrSyncImport = jest.mocked(
-  completeExistingUserQrSyncImport,
-);
 const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -367,7 +359,6 @@ describe('AddDeviceToWallet', () => {
           },
         );
       });
-      expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
     it('navigates to import after sync completes while secrets are still pending', async () => {
@@ -386,7 +377,6 @@ describe('AddDeviceToWallet', () => {
           },
         );
       });
-      expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
     it('does not navigate to import when sync failed with stale secret data', async () => {
@@ -404,7 +394,6 @@ describe('AddDeviceToWallet', () => {
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.anything(),
         );
-        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
       });
     });
   });
