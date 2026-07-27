@@ -1,12 +1,18 @@
 package.json
   s_72cfd07d56d873::t_66cd1ed737fabc 276
   s_128683cd199bd2::t_6056eded80328c 100
+  h_d6a04d82b61d5e 99
 ---
 {
   "schema_version": "authorship/3.0.0",
   "git_ai_version": "1.6.16",
   "base_commit_sha": "36e6103dd91234260b9c3fb396e05879f0d8bfca",
   "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
   "sessions": {
     "s_128683cd199bd2": {
       "agent_id": {
