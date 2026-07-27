@@ -204,8 +204,9 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
 export default MOCK_MONEY_TRANSACTIONS;
 
 /**
- * Mock Accounts-API activity for QA: a card spend (outflow, under Purchases) and
- * a cashback reward (inflow, under Deposits). These come from the Accounts API,
+ * Mock Accounts-API activity for QA: a card spend, a cashback reward and a
+ * refund — all card activity, so all under Purchases regardless of direction.
+ * These come from the Accounts API,
  * a separate source from on-chain txns, so they aren't part of
  * MOCK_MONEY_TRANSACTIONS — MoneyActivityView merges them in when mock data is
  * enabled.

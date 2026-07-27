@@ -85,6 +85,11 @@ function safeItems(
   return items.filter((item) => item.time > watermark);
 }
 
+/** Drops Accounts-API rows, keeping only locally-known on-chain activity. */
+function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
+  return items.filter((item) => item.kind === 'onchain');
+}
+
 /**
  * Merge local on-chain Money transactions with Accounts-API activity (card
  * spends and cashback) into a single source-tagged, time-descending list.
@@ -115,33 +120,27 @@ export function buildMoneyActivityBuckets(
   apiActivity: AccountsApiActivity[],
   watermark: number = Number.NEGATIVE_INFINITY,
 ): MoneyActivityBuckets {
-  const cards = apiActivity.filter((a) => a.kind === 'card');
-  const cashback = apiActivity.filter((a) => a.kind === 'cashback');
-  const refunds = apiActivity.filter((a) => a.kind === 'refund');
   return {
     [MoneyActivityFilter.All]: safeItems(
       mergeMoneyActivity(onchain.all, apiActivity),
       watermark,
     ),
-    [MoneyActivityFilter.Deposits]: safeItems(
-      mergeMoneyActivity(onchain.deposits, cashback),
-      watermark,
+    // Deposits (inflows the user funded) and Sends (outflows they initiated,
+    // including Perps/Predict funding) are on-chain only. Every Accounts-API
+    // row — card spend, cashback, refund — belongs to Purchases instead. The
+    // API rows are still merged in here so their hashes dedupe any on-chain
+    // twin, then dropped from the rendered rows.
+    [MoneyActivityFilter.Deposits]: onchainOnly(
+      safeItems(mergeMoneyActivity(onchain.deposits, apiActivity), watermark),
     ),
-    // Sends are outflows the user initiated from the Money account: transfers
-    // to other accounts and funding of Perps/Predict. Card spends are outflows
-    // too, but they belong to Purchases — they're still merged in here so their
-    // hashes dedupe any on-chain twin, then dropped from the rendered rows.
-    [MoneyActivityFilter.Transfers]: safeItems(
-      mergeMoneyActivity(onchain.transfers, cards).filter(
-        (item) => item.kind === 'onchain',
-      ),
-      watermark,
+    [MoneyActivityFilter.Transfers]: onchainOnly(
+      safeItems(mergeMoneyActivity(onchain.transfers, apiActivity), watermark),
     ),
     // Purchases is API-only, but the strict gate still applies: a fetched row
     // at exactly the watermark may have same-timestamp siblings on the next
     // page that would sort above it, so it's withheld like everything else.
     [MoneyActivityFilter.Purchases]: safeItems(
-      mergeMoneyActivity([], [...cards, ...cashback, ...refunds]),
+      mergeMoneyActivity([], apiActivity),
       watermark,
     ),
   };

@@ -108,7 +108,7 @@ describe('buildMoneyActivityBuckets', () => {
   const cashback = cashbackTx('0xback' as Hex, 300);
   const refund = refundTx('0xrefund' as Hex, 250);
 
-  it('keeps card spends out of Sends and routes cashback to Deposits; both into All', () => {
+  it('keeps card spends and cashback out of Deposits and Sends; both into All', () => {
     const buckets = buildMoneyActivityBuckets(onchain, [card, cashback]);
 
     const ids = (filter: MoneyActivityFilter) =>
@@ -118,25 +118,30 @@ describe('buildMoneyActivityBuckets', () => {
     expect(ids(MoneyActivityFilter.All)).toEqual(
       expect.arrayContaining(['0xback', '0xcard', 'all']),
     );
-    // Deposits: cashback inflow, not the card spend.
-    expect(ids(MoneyActivityFilter.Deposits)).toContain('0xback');
-    expect(ids(MoneyActivityFilter.Deposits)).not.toContain('0xcard');
-    // Sends: user-initiated on-chain outflows only. Card spends are outflows
-    // too, but they belong to Purchases.
+    // Deposits and Sends are on-chain only — every API row is a Purchase,
+    // cashback included.
+    expect(ids(MoneyActivityFilter.Deposits)).toEqual(['dep']);
     expect(ids(MoneyActivityFilter.Transfers)).toEqual(['xfer']);
   });
 
-  it('still dedupes an on-chain card spend out of Sends when the API returns it', () => {
-    // A card spend that also landed in the local TransactionController would
-    // otherwise render as a plain send; the API hash must suppress it.
-    const shared = '0xCaRd' as Hex;
-    const buckets = buildMoneyActivityBuckets(
-      { ...onchain, transfers: [onchainTx('dup', 200, shared)] },
-      [cardTx('0xcard' as Hex, 200)],
-    );
+  it.each([
+    ['Sends', MoneyActivityFilter.Transfers, 'transfers'],
+    ['Deposits', MoneyActivityFilter.Deposits, 'deposits'],
+  ] as const)(
+    'still dedupes an on-chain API-sourced row out of %s',
+    (_label, filter, key) => {
+      // A card spend or cashback credit that also landed in the local
+      // TransactionController would otherwise render as a plain send/deposit;
+      // the API hash must suppress it.
+      const shared = '0xCaRd' as Hex;
+      const buckets = buildMoneyActivityBuckets(
+        { ...onchain, [key]: [onchainTx('dup', 200, shared)] },
+        [cardTx('0xcard' as Hex, 200)],
+      );
 
-    expect(buckets[MoneyActivityFilter.Transfers]).toEqual([]);
-  });
+      expect(buckets[filter]).toEqual([]);
+    },
+  );
 
   it('groups all card activity (spend, cashback, refund) into Purchases without on-chain rows', () => {
     const buckets = buildMoneyActivityBuckets(onchain, [
@@ -175,11 +180,9 @@ describe('buildMoneyActivityBuckets', () => {
       '0xback',
       '0xcard',
     ]);
-    expect(buckets[MoneyActivityFilter.Deposits].map((i) => i.id)).toEqual([
-      '0xback',
-    ]);
-    // Sends holds only on-chain rows, and its one row (30) is below the
-    // watermark.
+    // Deposits and Sends hold only on-chain rows, and theirs (40/30) are both
+    // below the watermark.
+    expect(buckets[MoneyActivityFilter.Deposits]).toEqual([]);
     expect(buckets[MoneyActivityFilter.Transfers]).toEqual([]);
   });
 
