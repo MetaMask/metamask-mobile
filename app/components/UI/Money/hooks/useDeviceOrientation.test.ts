@@ -3,7 +3,7 @@ import {
   accelerationToPitch,
   accelerationToRoll,
   accelerationToTilt,
-  trackNeutralPitch,
+  trackNeutralAngle,
   useDeviceOrientation,
 } from './useDeviceOrientation';
 
@@ -33,15 +33,21 @@ const FOUR_GB = 4 * 1024 * 1024 * 1024;
 const G = 9.81;
 const DEG = Math.PI / 180;
 
+interface Acceleration {
+  x: number;
+  y: number;
+  z: number;
+}
+
 /** Gravity vector for a device pitched `degrees` back from horizontal. */
-const gravityAtPitch = (degrees: number) => ({
+const gravityAtPitch = (degrees: number): Acceleration => ({
   x: 0,
   y: G * Math.sin(degrees * DEG),
   z: G * Math.cos(degrees * DEG),
 });
 
 /** Gravity vector for a device rolled `degrees` around its long axis. */
-const gravityAtRoll = (degrees: number) => ({
+const gravityAtRoll = (degrees: number): Acceleration => ({
   x: G * Math.sin(degrees * DEG),
   y: 0,
   z: G * Math.cos(degrees * DEG),
@@ -51,10 +57,23 @@ const gravityAtRoll = (degrees: number) => ({
  * Gravity vector for a device pitched `thetaDegrees` back from horizontal and
  * rolled `phiDegrees` around its long axis — i.e. a real holding posture.
  */
-const gravityAtPitchAndRoll = (thetaDegrees: number, phiDegrees: number) => ({
+const gravityAtPitchAndRoll = (
+  thetaDegrees: number,
+  phiDegrees: number,
+): Acceleration => ({
   x: G * Math.cos(thetaDegrees * DEG) * Math.sin(phiDegrees * DEG),
   y: G * Math.sin(thetaDegrees * DEG),
   z: G * Math.cos(thetaDegrees * DEG) * Math.cos(phiDegrees * DEG),
+});
+
+/**
+ * The raw reading iOS CoreMotion reports for the posture Android reports as
+ * `reading`: gravity as a negative vector rather than proper acceleration.
+ */
+const asIosReading = (reading: Acceleration): Acceleration => ({
+  x: -reading.x,
+  y: -reading.y,
+  z: -reading.z,
 });
 
 const rollAt = (thetaDegrees: number, phiDegrees: number) => {
@@ -64,7 +83,44 @@ const rollAt = (thetaDegrees: number, phiDegrees: number) => {
 
 const tiltAt = (pitchDegrees: number, neutralDegrees: number) => {
   const { x, y, z } = gravityAtPitch(pitchDegrees);
-  return accelerationToTilt(x, y, z, neutralDegrees * DEG);
+  return accelerationToTilt(x, y, z, { pitch: neutralDegrees * DEG, roll: 0 });
+};
+
+type OrientationHook = typeof useDeviceOrientation;
+
+const hooksByPlatform = new Map<string, OrientationHook>();
+
+// Resolved from the outer registry, so the isolated one below reuses this
+// instance rather than instantiating a second React.
+const outerReact = jest.requireActual('react');
+
+/**
+ * Loads a copy of the hook with `Platform.OS` set to the requested platform.
+ * The platform's gravity sign is resolved once, when the module is first
+ * imported, so the platform has to be in place before the module is loaded.
+ *
+ * React is pinned to the copy the test renderer already uses: an isolated
+ * module registry would otherwise hand the hook a second React and every hook
+ * call inside it would be an invalid one. All of the hook's state lives in
+ * refs, so a loaded module is safe to reuse across tests.
+ */
+const loadHookForPlatform = (os: 'ios' | 'android'): OrientationHook => {
+  const cached = hooksByPlatform.get(os);
+  if (cached) return cached;
+
+  let loaded: OrientationHook | undefined;
+  jest.doMock('react', () => outerReact);
+  jest.isolateModules(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+    const { Platform } = require('react-native');
+    Platform.OS = os;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+    loaded = require('./useDeviceOrientation').useDeviceOrientation;
+  });
+  jest.dontMock('react');
+
+  hooksByPlatform.set(os, loaded as OrientationHook);
+  return loaded as OrientationHook;
 };
 
 describe('accelerationToPitch', () => {
@@ -194,7 +250,7 @@ describe('accelerationToTilt', () => {
   it('reports a positive roll when tilted right', () => {
     const { x, y, z } = gravityAtRoll(15);
 
-    const tilt = accelerationToTilt(x, y, z, 0);
+    const tilt = accelerationToTilt(x, y, z, { pitch: 0, roll: 0 });
 
     expect(tilt.x).toBeCloseTo(15 / 30);
   });
@@ -202,7 +258,7 @@ describe('accelerationToTilt', () => {
   it('reports a negative roll when tilted left', () => {
     const { x, y, z } = gravityAtRoll(-15);
 
-    const tilt = accelerationToTilt(x, y, z, 0);
+    const tilt = accelerationToTilt(x, y, z, { pitch: 0, roll: 0 });
 
     expect(tilt.x).toBeCloseTo(-15 / 30);
   });
@@ -211,41 +267,81 @@ describe('accelerationToTilt', () => {
     const right = gravityAtRoll(75);
     const left = gravityAtRoll(-75);
 
-    expect(accelerationToTilt(right.x, right.y, right.z, 0).x).toBe(1);
-    expect(accelerationToTilt(left.x, left.y, left.z, 0).x).toBe(-1);
+    expect(
+      accelerationToTilt(right.x, right.y, right.z, { pitch: 0, roll: 0 }).x,
+    ).toBe(1);
+    expect(
+      accelerationToTilt(left.x, left.y, left.z, { pitch: 0, roll: 0 }).x,
+    ).toBe(-1);
   });
 
   it('reports a near-full roll for a 30 degree roll at a 75 degree holding pitch', () => {
     const right = gravityAtPitchAndRoll(75, 30);
     const left = gravityAtPitchAndRoll(75, -30);
 
-    expect(accelerationToTilt(right.x, right.y, right.z, 0).x).toBeGreaterThan(
-      0.9,
-    );
-    expect(accelerationToTilt(left.x, left.y, left.z, 0).x).toBeLessThan(-0.9);
+    expect(
+      accelerationToTilt(right.x, right.y, right.z, { pitch: 0, roll: 0 }).x,
+    ).toBeGreaterThan(0.9);
+    expect(
+      accelerationToTilt(left.x, left.y, left.z, { pitch: 0, roll: 0 }).x,
+    ).toBeLessThan(-0.9);
   });
 
   it('leaves the roll unchanged when the neutral pitch changes', () => {
     const { x, y, z } = gravityAtRoll(15);
 
-    const atZeroNeutral = accelerationToTilt(x, y, z, 0);
-    const atUprightNeutral = accelerationToTilt(x, y, z, 90 * DEG);
+    const atZeroNeutral = accelerationToTilt(x, y, z, { pitch: 0, roll: 0 });
+    const atUprightNeutral = accelerationToTilt(x, y, z, {
+      pitch: 90 * DEG,
+      roll: 0,
+    });
 
     expect(atUprightNeutral.x).toBe(atZeroNeutral.x);
   });
-});
 
-describe('trackNeutralPitch', () => {
-  it('adopts the measured pitch when there is no neutral yet', () => {
-    const pitch = 0.42;
+  it('reports no roll offset when the reading matches the neutral roll', () => {
+    const { x, y, z } = gravityAtRoll(20);
 
-    const neutral = trackNeutralPitch(null, pitch, 60);
+    const tilt = accelerationToTilt(x, y, z, {
+      pitch: 0,
+      roll: accelerationToRoll(x, y, z),
+    });
 
-    expect(neutral).toBe(pitch);
+    expect(tilt.x).toBeCloseTo(0);
   });
 
-  it('moves a small fraction of the way from the neutral towards the pitch', () => {
-    const neutral = trackNeutralPitch(0, 1, 60);
+  it('reports a roll offset measured from the neutral roll', () => {
+    const { x, y, z } = gravityAtRoll(25);
+
+    const tilt = accelerationToTilt(x, y, z, { pitch: 0, roll: 15 * DEG });
+
+    expect(tilt.x).toBeCloseTo(10 / 30);
+  });
+
+  it('leaves the pitch unchanged when the neutral roll changes', () => {
+    const { x, y, z } = gravityAtPitch(15);
+
+    const atZeroNeutral = accelerationToTilt(x, y, z, { pitch: 0, roll: 0 });
+    const atRolledNeutral = accelerationToTilt(x, y, z, {
+      pitch: 0,
+      roll: 30 * DEG,
+    });
+
+    expect(atRolledNeutral.y).toBe(atZeroNeutral.y);
+  });
+});
+
+describe('trackNeutralAngle', () => {
+  it('adopts the measured angle when there is no neutral yet', () => {
+    const angle = 0.42;
+
+    const neutral = trackNeutralAngle(null, angle, 60);
+
+    expect(neutral).toBe(angle);
+  });
+
+  it('moves a small fraction of the way from the neutral towards the angle', () => {
+    const neutral = trackNeutralAngle(0, 1, 60);
 
     expect(neutral).toBeGreaterThan(0);
     expect(neutral).toBeLessThan(1);
@@ -257,26 +353,31 @@ describe('trackNeutralPitch', () => {
     let atSixtyHz = 0;
 
     for (let i = 0; i < 2; i++)
-      atThirtyHz = trackNeutralPitch(atThirtyHz, 1, 30);
-    for (let i = 0; i < 4; i++) atSixtyHz = trackNeutralPitch(atSixtyHz, 1, 60);
+      atThirtyHz = trackNeutralAngle(atThirtyHz, 1, 30);
+    for (let i = 0; i < 4; i++) atSixtyHz = trackNeutralAngle(atSixtyHz, 1, 60);
 
     expect(atThirtyHz).toBeCloseTo(atSixtyHz, 3);
   });
 
-  it('converges on the pitch when applied repeatedly', () => {
+  it('converges on the angle when applied repeatedly', () => {
     let neutral = 0;
 
-    for (let i = 0; i < 5000; i++) neutral = trackNeutralPitch(neutral, 1, 60);
+    for (let i = 0; i < 5000; i++) neutral = trackNeutralAngle(neutral, 1, 60);
 
     expect(neutral).toBeCloseTo(1, 5);
   });
 });
 
 describe('useDeviceOrientation', () => {
+  let useOrientation: OrientationHook;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubscribe.mockReturnValue({ unsubscribe: mockUnsubscribe });
     mockGetTotalMemorySync.mockReturnValue(FOUR_GB);
+    // Readings below are in the Android convention, so the hook is loaded with
+    // the matching platform. Cross-platform normalization has its own block.
+    useOrientation = loadHookForPlatform('android');
   });
 
   const lastEmission = (onOrientation: jest.Mock): [number, number] =>
@@ -286,26 +387,26 @@ describe('useDeviceOrientation', () => {
     ];
 
   it('subscribes to the accelerometer when enabled', () => {
-    renderHook(() => useDeviceOrientation(jest.fn(), { enabled: true }));
+    renderHook(() => useOrientation(jest.fn(), { enabled: true }));
 
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('subscribes by default when no options are provided', () => {
-    renderHook(() => useDeviceOrientation(jest.fn()));
+    renderHook(() => useOrientation(jest.fn()));
 
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('does not subscribe when disabled', () => {
-    renderHook(() => useDeviceOrientation(jest.fn(), { enabled: false }));
+    renderHook(() => useOrientation(jest.fn(), { enabled: false }));
 
     expect(mockSubscribe).not.toHaveBeenCalled();
   });
 
   it('subscribes when enabled flips from false to true', () => {
     const { rerender } = renderHook(
-      ({ enabled }) => useDeviceOrientation(jest.fn(), { enabled }),
+      ({ enabled }) => useOrientation(jest.fn(), { enabled }),
       { initialProps: { enabled: false } },
     );
 
@@ -318,7 +419,7 @@ describe('useDeviceOrientation', () => {
 
   it('unsubscribes when enabled flips from true to false', () => {
     const { rerender } = renderHook(
-      ({ enabled }) => useDeviceOrientation(jest.fn(), { enabled }),
+      ({ enabled }) => useOrientation(jest.fn(), { enabled }),
       { initialProps: { enabled: true } },
     );
 
@@ -329,7 +430,7 @@ describe('useDeviceOrientation', () => {
 
   it('emits a centred tilt for an unchanging upright reading', () => {
     const onOrientation = jest.fn();
-    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    renderHook(() => useOrientation(onOrientation, { enabled: true }));
     const observer = mockSubscribe.mock.calls[0][0];
     const upright = gravityAtPitch(90);
 
@@ -342,7 +443,7 @@ describe('useDeviceOrientation', () => {
 
   it('emits a positive pitch once the device tilts up from its reference orientation', () => {
     const onOrientation = jest.fn();
-    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    renderHook(() => useOrientation(onOrientation, { enabled: true }));
     const observer = mockSubscribe.mock.calls[0][0];
     const tiltedUp = gravityAtPitch(45);
 
@@ -355,7 +456,7 @@ describe('useDeviceOrientation', () => {
 
   it('emits a negative pitch once the device tilts down from its reference orientation', () => {
     const onOrientation = jest.fn();
-    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    renderHook(() => useOrientation(onOrientation, { enabled: true }));
     const observer = mockSubscribe.mock.calls[0][0];
     const tiltedDown = gravityAtPitch(0);
 
@@ -368,7 +469,7 @@ describe('useDeviceOrientation', () => {
 
   it('emits a smaller magnitude on the first sample after a tilt than once converged', () => {
     const onOrientation = jest.fn();
-    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    renderHook(() => useOrientation(onOrientation, { enabled: true }));
     const observer = mockSubscribe.mock.calls[0][0];
     const tiltedUp = gravityAtPitch(45);
     observer.next(gravityAtPitch(0));
@@ -386,7 +487,7 @@ describe('useDeviceOrientation', () => {
   it('re-centres on the current orientation after the subscription is re-established', () => {
     const onOrientation = jest.fn();
     const { rerender } = renderHook(
-      ({ enabled }) => useDeviceOrientation(onOrientation, { enabled }),
+      ({ enabled }) => useOrientation(onOrientation, { enabled }),
       { initialProps: { enabled: true } },
     );
     const firstObserver = mockSubscribe.mock.calls[0][0];
@@ -404,7 +505,7 @@ describe('useDeviceOrientation', () => {
 
   it('unsubscribes on unmount', () => {
     const { unmount } = renderHook(() =>
-      useDeviceOrientation(jest.fn(), { enabled: true }),
+      useOrientation(jest.fn(), { enabled: true }),
     );
 
     unmount();
@@ -415,7 +516,7 @@ describe('useDeviceOrientation', () => {
   it('uses a 60Hz interval on a standard device', () => {
     mockGetTotalMemorySync.mockReturnValue(FOUR_GB);
 
-    renderHook(() => useDeviceOrientation(jest.fn(), { enabled: true }));
+    renderHook(() => useOrientation(jest.fn(), { enabled: true }));
 
     expect(mockSetUpdateIntervalForType).toHaveBeenCalledWith(
       'accelerometer',
@@ -426,7 +527,7 @@ describe('useDeviceOrientation', () => {
   it('uses a 30Hz interval on a low-end device', () => {
     mockGetTotalMemorySync.mockReturnValue(TWO_GB);
 
-    renderHook(() => useDeviceOrientation(jest.fn(), { enabled: true }));
+    renderHook(() => useOrientation(jest.fn(), { enabled: true }));
 
     expect(mockSetUpdateIntervalForType).toHaveBeenCalledWith(
       'accelerometer',
@@ -438,7 +539,7 @@ describe('useDeviceOrientation', () => {
     const { rerender } = renderHook<
       void,
       { cb: (x: number, y: number) => void }
-    >(({ cb }) => useDeviceOrientation(cb, { enabled: true }), {
+    >(({ cb }) => useOrientation(cb, { enabled: true }), {
       initialProps: { cb: jest.fn() },
     });
 
@@ -451,7 +552,7 @@ describe('useDeviceOrientation', () => {
     const first = jest.fn();
     const second = jest.fn();
     const { rerender } = renderHook(
-      ({ cb }) => useDeviceOrientation(cb, { enabled: true }),
+      ({ cb }) => useOrientation(cb, { enabled: true }),
       { initialProps: { cb: first } },
     );
 
@@ -465,10 +566,196 @@ describe('useDeviceOrientation', () => {
   });
 
   it('ignores sensor errors without throwing', () => {
-    renderHook(() => useDeviceOrientation(jest.fn(), { enabled: true }));
+    renderHook(() => useOrientation(jest.fn(), { enabled: true }));
 
-    const observer = mockSubscribe.mock.calls[0][0];
+    expect(() => mockSubscribe.mock.calls[0][0].error()).not.toThrow();
+  });
 
-    expect(() => observer.error()).not.toThrow();
+  describe('roll neutral', () => {
+    // A habitual grip roll used to sit at its full offset forever, pinning the
+    // X axis at ±1 and leaving no travel for an actual roll gesture.
+    it('re-centres on a sustained grip roll rather than staying pinned', () => {
+      const onOrientation = jest.fn();
+      renderHook(() => useOrientation(onOrientation, { enabled: true }));
+      const observer = mockSubscribe.mock.calls[0][0];
+      const gripped = gravityAtPitchAndRoll(60, 45);
+
+      observer.next(gravityAtPitchAndRoll(60, 0));
+      observer.next(gripped);
+      const [pinnedX] = lastEmission(onOrientation);
+      for (let i = 0; i < 3000; i++) observer.next(gripped);
+
+      const [settledX] = lastEmission(onOrientation);
+      expect(pinnedX).toBeGreaterThan(0);
+      expect(settledX).toBeCloseTo(0, 2);
+    });
+
+    it('still reports a further roll once the roll neutral has settled', () => {
+      const onOrientation = jest.fn();
+      renderHook(() => useOrientation(onOrientation, { enabled: true }));
+      const observer = mockSubscribe.mock.calls[0][0];
+      const gripped = gravityAtPitchAndRoll(60, 20);
+      for (let i = 0; i < 3000; i++) observer.next(gripped);
+
+      for (let i = 0; i < 30; i++) observer.next(gravityAtPitchAndRoll(60, 40));
+      const [rolledRightX] = lastEmission(onOrientation);
+      for (let i = 0; i < 60; i++) observer.next(gravityAtPitchAndRoll(60, 0));
+
+      const [rolledLeftX] = lastEmission(onOrientation);
+      expect(rolledRightX).toBeGreaterThan(0.3);
+      expect(rolledLeftX).toBeLessThan(-0.3);
+    });
+
+    it('resets the roll neutral when the subscription is re-established', () => {
+      const onOrientation = jest.fn();
+      const { rerender } = renderHook(
+        ({ enabled }) => useOrientation(onOrientation, { enabled }),
+        { initialProps: { enabled: true } },
+      );
+      const firstObserver = mockSubscribe.mock.calls[0][0];
+      firstObserver.next(gravityAtPitchAndRoll(60, 0));
+      firstObserver.next(gravityAtPitchAndRoll(60, 30));
+      expect(lastEmission(onOrientation)[0]).toBeGreaterThan(0);
+
+      rerender({ enabled: false });
+      rerender({ enabled: true });
+      onOrientation.mockClear();
+      mockSubscribe.mock.calls[1][0].next(gravityAtPitchAndRoll(60, 30));
+
+      const [x] = onOrientation.mock.calls[0];
+      expect(x).toBeCloseTo(0);
+    });
+  });
+
+  describe('non-finite readings', () => {
+    it.each([
+      ['NaN', NaN],
+      ['Infinity', Infinity],
+      ['-Infinity', -Infinity],
+    ])('emits nothing for a sample containing %s', (_label, component) => {
+      const onOrientation = jest.fn();
+      renderHook(() => useOrientation(onOrientation, { enabled: true }));
+      const observer = mockSubscribe.mock.calls[0][0];
+      observer.next(gravityAtPitch(0));
+      onOrientation.mockClear();
+
+      observer.next({ x: component, y: 0, z: G });
+      observer.next({ x: 0, y: component, z: G });
+      observer.next({ x: 0, y: 0, z: component });
+
+      expect(onOrientation).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['NaN', NaN],
+      ['Infinity', Infinity],
+    ])(
+      'keeps tracking the orientation after a sample containing %s',
+      (_label, component) => {
+        const onOrientation = jest.fn();
+        renderHook(() => useOrientation(onOrientation, { enabled: true }));
+        const observer = mockSubscribe.mock.calls[0][0];
+        const tiltedUp = gravityAtPitch(45);
+
+        observer.next(gravityAtPitch(0));
+        observer.next({ x: component, y: component, z: component });
+        for (let i = 0; i < 50; i++) observer.next(tiltedUp);
+
+        const [x, y] = lastEmission(onOrientation);
+        expect(Number.isFinite(x)).toBe(true);
+        expect(y).toBeGreaterThan(0.9);
+      },
+    );
+  });
+});
+
+describe('useDeviceOrientation platform normalization', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSubscribe.mockReturnValue({ unsubscribe: mockUnsubscribe });
+    mockGetTotalMemorySync.mockReturnValue(FOUR_GB);
+  });
+
+  /**
+   * Feeds `readings` to a copy of the hook loaded for `os` and returns the last
+   * emitted tilt.
+   */
+  const emitFor = (
+    os: 'ios' | 'android',
+    readings: Acceleration[],
+  ): [number, number] => {
+    const useOrientation = loadHookForPlatform(os);
+    const onOrientation = jest.fn();
+    renderHook(() => useOrientation(onOrientation, { enabled: true }));
+    const observer =
+      mockSubscribe.mock.calls[mockSubscribe.mock.calls.length - 1][0];
+
+    readings.forEach((reading) => observer.next(reading));
+
+    return onOrientation.mock.calls[onOrientation.mock.calls.length - 1] as [
+      number,
+      number,
+    ];
+  };
+
+  const repeat = (reading: Acceleration, times: number): Acceleration[] =>
+    Array.from({ length: times }, () => reading);
+
+  // Without normalization the two platforms mirror each other, so the Y
+  // inversion only ever reads correctly on one of them.
+  it('emits the same pitch on both platforms for the same posture', () => {
+    const androidReadings = [
+      gravityAtPitch(0),
+      ...repeat(gravityAtPitch(45), 50),
+    ];
+
+    const [, androidY] = emitFor('android', androidReadings);
+    const [, iosY] = emitFor('ios', androidReadings.map(asIosReading));
+
+    expect(androidY).toBeGreaterThan(0.9);
+    expect(iosY).toBeGreaterThan(0.9);
+    expect(iosY).toBeCloseTo(androidY, 10);
+  });
+
+  it('emits the same negative pitch on both platforms for the same posture', () => {
+    const androidReadings = [
+      gravityAtPitch(45),
+      ...repeat(gravityAtPitch(0), 50),
+    ];
+
+    const [, androidY] = emitFor('android', androidReadings);
+    const [, iosY] = emitFor('ios', androidReadings.map(asIosReading));
+
+    expect(androidY).toBeLessThan(-0.9);
+    expect(iosY).toBeLessThan(-0.9);
+    expect(iosY).toBeCloseTo(androidY, 10);
+  });
+
+  it('emits the same roll on both platforms for the same posture', () => {
+    const androidReadings = [
+      gravityAtPitchAndRoll(60, 0),
+      ...repeat(gravityAtPitchAndRoll(60, 25), 30),
+    ];
+
+    const [androidX] = emitFor('android', androidReadings);
+    const [iosX] = emitFor('ios', androidReadings.map(asIosReading));
+
+    expect(androidX).toBeGreaterThan(0.3);
+    expect(iosX).toBeGreaterThan(0.3);
+    expect(iosX).toBeCloseTo(androidX, 10);
+  });
+
+  it('emits the same negative roll on both platforms for the same posture', () => {
+    const androidReadings = [
+      gravityAtPitchAndRoll(60, 0),
+      ...repeat(gravityAtPitchAndRoll(60, -25), 30),
+    ];
+
+    const [androidX] = emitFor('android', androidReadings);
+    const [iosX] = emitFor('ios', androidReadings.map(asIosReading));
+
+    expect(androidX).toBeLessThan(-0.3);
+    expect(iosX).toBeLessThan(-0.3);
+    expect(iosX).toBeCloseTo(androidX, 10);
   });
 });

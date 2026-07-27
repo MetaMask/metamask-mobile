@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import {
   accelerometer,
   SensorTypes,
@@ -7,6 +8,14 @@ import {
 import { getTotalMemorySync } from 'react-native-device-info';
 
 const DEG = Math.PI / 180;
+// react-native-sensors forwards raw platform readings without normalizing them,
+// and the two platforms disagree on sign: CoreMotion reports gravity as a
+// negative vector (flat device reads z = -1g) while Android reports proper
+// acceleration (flat device reads z = +9.81). Left unhandled, every axis is
+// mirrored between platforms. iOS is flipped into Android's convention here —
+// the axis pointing up reads positive. Magnitude differences (g vs m/s²) need
+// no handling: every reading below is either an atan2 or a ratio.
+const GRAVITY_SIGN = Platform.OS === 'ios' ? -1 : 1;
 // Rotation away from neutral (per axis) that maps to a full ±1 tilt.
 const PITCH_TRAVEL = 30 * DEG;
 const ROLL_TRAVEL = 30 * DEG;
@@ -36,22 +45,23 @@ export function accelerationToPitch(x: number, y: number, z: number): number {
 }
 
 /**
- * Advances the neutral pitch towards the pitch currently being measured, so the
+ * Advances a neutral angle towards the angle currently being measured, so the
  * neutral follows the posture the device is actually held in and the response
- * never saturates at an extreme. Tracking is deliberately slow: an intentional
- * tilt still reads as a tilt before it decays back to rest.
+ * never saturates at an extreme. Applied per axis: a habitual holding pitch or
+ * a habitual grip roll both settle back to centre. Tracking is deliberately
+ * slow: an intentional tilt still reads as a tilt before it decays to rest.
  *
  * Dividing by the sample rate keeps the tracking speed identical at 30Hz and
  * 60Hz. A `null` neutral means this is the first sample, so it adopts the
- * current pitch rather than sliding in from a fixed angle.
+ * current angle rather than sliding in from a fixed one.
  */
-export function trackNeutralPitch(
+export function trackNeutralAngle(
   neutral: number | null,
-  pitch: number,
+  angle: number,
   hz: number,
 ): number {
-  if (neutral === null) return pitch;
-  return neutral + (pitch - neutral) / (NEUTRAL_TRACKING_SECONDS * hz);
+  if (neutral === null) return angle;
+  return neutral + (angle - neutral) / (NEUTRAL_TRACKING_SECONDS * hz);
 }
 
 /**
@@ -75,18 +85,18 @@ export function accelerationToRoll(x: number, y: number, z: number): number {
 /**
  * Converts a gravity vector (accelerometer reading) into a normalized,
  * clamped [-1, 1] tilt per axis, measured as pitch/roll relative to the
- * supplied neutral pitch. Pure so it can be unit-tested directly.
+ * supplied neutral angles. Pure so it can be unit-tested directly.
  */
 export function accelerationToTilt(
   x: number,
   y: number,
   z: number,
-  neutralPitch: number,
+  neutral: { pitch: number; roll: number },
 ): { x: number; y: number } {
   return {
-    x: clamp(accelerationToRoll(x, y, z) / ROLL_TRAVEL, -1, 1),
+    x: clamp((accelerationToRoll(x, y, z) - neutral.roll) / ROLL_TRAVEL, -1, 1),
     y: clamp(
-      (accelerationToPitch(x, y, z) - neutralPitch) / PITCH_TRAVEL,
+      (accelerationToPitch(x, y, z) - neutral.pitch) / PITCH_TRAVEL,
       -1,
       1,
     ),
@@ -100,8 +110,9 @@ interface UseDeviceOrientationOptions {
 /**
  * Reports device tilt as a normalized, clamped [-1, 1] value per axis, derived
  * from the accelerometer's absolute orientation (gravity), relative to an
- * adaptive neutral that follows the posture the device is held in. Unlike
- * integrating the gyroscope, this is drift-free.
+ * adaptive neutral that follows the posture the device is held in on both
+ * axes. Readings are normalized across platforms first. Unlike integrating the
+ * gyroscope, this is drift-free.
  *
  * @param onOrientation - receives (x, y) roll/pitch in the [-1, 1] range.
  */
@@ -113,6 +124,7 @@ export function useDeviceOrientation(
   const onOrientationRef = useRef(onOrientation);
   const smoothed = useRef({ x: 0, y: 0 });
   const neutralPitch = useRef<number | null>(null);
+  const neutralRoll = useRef<number | null>(null);
 
   useEffect(() => {
     onOrientationRef.current = onOrientation;
@@ -128,16 +140,36 @@ export function useDeviceOrientation(
 
     smoothed.current = { x: 0, y: 0 };
     neutralPitch.current = null;
+    neutralRoll.current = null;
 
     const subscription = accelerometer.subscribe({
-      next: ({ x, y, z }) => {
+      next: (sample) => {
+        // A single non-finite sample would otherwise poison the neutral and the
+        // smoothing accumulators for the life of the subscription.
+        if (
+          !Number.isFinite(sample.x) ||
+          !Number.isFinite(sample.y) ||
+          !Number.isFinite(sample.z)
+        ) {
+          return;
+        }
+
+        const x = sample.x * GRAVITY_SIGN;
+        const y = sample.y * GRAVITY_SIGN;
+        const z = sample.z * GRAVITY_SIGN;
+
         const pitch = accelerationToPitch(x, y, z);
-        neutralPitch.current = trackNeutralPitch(
+        const roll = accelerationToRoll(x, y, z);
+        neutralPitch.current = trackNeutralAngle(
           neutralPitch.current,
           pitch,
           hz,
         );
-        const tilt = accelerationToTilt(x, y, z, neutralPitch.current);
+        neutralRoll.current = trackNeutralAngle(neutralRoll.current, roll, hz);
+        const tilt = accelerationToTilt(x, y, z, {
+          pitch: neutralPitch.current,
+          roll: neutralRoll.current,
+        });
         smoothed.current = {
           x: smoothed.current.x + SMOOTHING * (tilt.x - smoothed.current.x),
           y: smoothed.current.y + SMOOTHING * (tilt.y - smoothed.current.y),
