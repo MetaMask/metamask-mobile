@@ -267,12 +267,10 @@ describe('BrowserTab', () => {
         state: mockInitialState,
       });
 
-      await waitFor(() =>
-        expect(screen.getByTestId('browser-webview')).toBeVisible(),
-      );
-
-      const webView = screen.getByTestId('browser-webview');
-      expect(webView.props.originWhitelist).toEqual(['*']);
+      await waitFor(() => {
+        const webView = screen.getByTestId('browser-webview');
+        expect(webView.props.originWhitelist).toEqual(['*']);
+      });
     });
   });
 
@@ -393,13 +391,16 @@ describe('BrowserTab', () => {
       const fullUrl = 'https://shared-host.example/view/test-path';
 
       // Flag the URL so onLoadStart cancels the load (early return).
-      (getPhishingTestResultAsync as jest.Mock).mockResolvedValueOnce({
+      jest.mocked(getPhishingTestResultAsync).mockResolvedValueOnce({
         result: true,
         name: '',
       });
 
-      const result = await webView.props.onLoadStart({
-        nativeEvent: { url: fullUrl },
+      let result: boolean | undefined;
+      await act(async () => {
+        result = await webView.props.onLoadStart({
+          nativeEvent: { url: fullUrl },
+        });
       });
 
       // The full URL (with path) must be forwarded to the scanner, not the origin.
@@ -438,8 +439,10 @@ describe('BrowserTab', () => {
 
       const { onOpenWindow } = screen.getByTestId('browser-webview').props;
 
-      onOpenWindow({
-        nativeEvent: { targetUrl: 'https://stake.lido.fi' },
+      await act(async () => {
+        onOpenWindow({
+          nativeEvent: { targetUrl: 'https://stake.lido.fi' },
+        });
       });
 
       await waitFor(() => {
@@ -463,8 +466,10 @@ describe('BrowserTab', () => {
 
       const { onOpenWindow } = screen.getByTestId('browser-webview').props;
 
-      onOpenWindow({
-        nativeEvent: { targetUrl: "https://example.com/path?q='test'" },
+      await act(async () => {
+        onOpenWindow({
+          nativeEvent: { targetUrl: "https://example.com/path?q='test'" },
+        });
       });
 
       await waitFor(() => {
@@ -487,8 +492,10 @@ describe('BrowserTab', () => {
       const initialUri = webView.props.source.uri;
       const { onOpenWindow } = webView.props;
 
-      onOpenWindow({
-        nativeEvent: { targetUrl: '' },
+      await act(async () => {
+        onOpenWindow({
+          nativeEvent: { targetUrl: '' },
+        });
       });
 
       expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
@@ -508,8 +515,10 @@ describe('BrowserTab', () => {
 
       const { onOpenWindow } = screen.getByTestId('browser-webview').props;
 
-      onOpenWindow({
-        nativeEvent: { targetUrl: mockProps.initialUrl },
+      await act(async () => {
+        onOpenWindow({
+          nativeEvent: { targetUrl: mockProps.initialUrl },
+        });
       });
 
       expect(mockReload).toHaveBeenCalledTimes(1);
@@ -661,13 +670,15 @@ describe('BrowserTab', () => {
 
       mockNavigation.setParams.mockClear();
 
-      onNavigationStateChange({
-        url: 'https://example.org/page',
-        title: 'Example Org',
-        loading: false,
-        canGoBack: true,
-        canGoForward: false,
-        navigationType: 'backforward',
+      await act(async () => {
+        onNavigationStateChange({
+          url: 'https://example.org/page',
+          title: 'Example Org',
+          loading: false,
+          canGoBack: true,
+          canGoForward: false,
+          navigationType: 'backforward',
+        });
       });
 
       expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
@@ -675,17 +686,19 @@ describe('BrowserTab', () => {
 
       const requestId = extractRequestIdFromInjectScript();
 
-      onMessage({
-        nativeEvent: {
-          data: JSON.stringify({
-            type: DOCUMENT_URL_FOR_URL_BAR,
-            payload: {
-              requestId,
-              url: 'https://example.com/page',
-              title: 'Example',
-            },
-          }),
-        },
+      await act(async () => {
+        onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: DOCUMENT_URL_FOR_URL_BAR,
+              payload: {
+                requestId,
+                url: 'https://example.com/page',
+                title: 'Example',
+              },
+            }),
+          },
+        });
       });
 
       await waitFor(() =>
@@ -762,7 +775,7 @@ describe('BrowserTab', () => {
     });
 
     it('injects the share result back into the WebView to settle navigator.share()', async () => {
-      (handleWebShare as jest.Mock).mockResolvedValueOnce({
+      jest.mocked(handleWebShare).mockResolvedValueOnce({
         status: 'cancelled',
       });
 
@@ -779,16 +792,18 @@ describe('BrowserTab', () => {
 
       mockInjectJavaScript.mockClear();
 
-      onMessage({
-        nativeEvent: {
-          data: JSON.stringify({
-            type: WEB_SHARE_MESSAGE_TYPE,
-            payload: {
-              id: 'mm-share-123',
-              url: 'https://example.com',
-            },
-          }),
-        },
+      await act(async () => {
+        onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: WEB_SHARE_MESSAGE_TYPE,
+              payload: {
+                id: 'mm-share-123',
+                url: 'https://example.com',
+              },
+            }),
+          },
+        });
       });
 
       await waitFor(() => {
