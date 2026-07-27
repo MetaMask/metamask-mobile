@@ -171,7 +171,8 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
         state: {},
       });
 
-      const result = await options.clientConfigApiService.fetchRemoteFeatureFlags();
+      const result =
+        await options.clientConfigApiService.fetchRemoteFeatureFlags();
 
       expect(result).toStrictEqual({
         cacheTimestamp: 123,
@@ -197,7 +198,8 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
         state: {},
       });
 
-      const result = await options.clientConfigApiService.fetchRemoteFeatureFlags();
+      const result =
+        await options.clientConfigApiService.fetchRemoteFeatureFlags();
 
       expect(result.remoteFeatureFlags).toStrictEqual({
         defaultOnlyFlag: true,

@@ -11,9 +11,9 @@ describe('getDefaultFeatureFlags', () => {
   });
 
   it('includes known boolean defaults such as assetsDefiPositionsEnabled', () => {
-    expect(getDefaultFeatureFlags()[FeatureFlagNames.assetsDefiPositionsEnabled]).toBe(
-      true,
-    );
+    expect(
+      getDefaultFeatureFlags()[FeatureFlagNames.assetsDefiPositionsEnabled],
+    ).toBe(true);
   });
 
   it('includes structured object defaults such as mobileMinimumVersions', () => {
