@@ -157,15 +157,3 @@ export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.predictDeposit,
   TransactionType.predictDepositAndOrder,
 ] as const;
-
-/**
- * Pay transaction types confirmed from the Perps and Predict screens, which
- * own their pre-submit validation. They can reach publish with no MetaMask Pay
- * state at all, for example an order funded from an existing Perps balance,
- * where the payment token is left unset on purpose. Publish cannot tell that
- * apart from a broken flow, so it must not reject them.
- */
-export const SELF_VALIDATED_PAY_TRANSACTION_TYPES = [
-  TransactionType.perpsDepositAndOrder,
-  TransactionType.predictDepositAndOrder,
-] as const;

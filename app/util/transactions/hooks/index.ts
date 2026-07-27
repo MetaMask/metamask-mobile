@@ -42,7 +42,6 @@ import { Delegation7702PublishHook } from './delegation-7702-publish';
 import {
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
-  SELF_VALIDATED_PAY_TRANSACTION_TYPES,
 } from '../../../components/Views/confirmations/constants/confirmations';
 import {
   getPostQuoteTransactionType,
@@ -271,20 +270,6 @@ function validateRequiredQuote(
   const executableQuotes = quotes.filter((quote) => !isNoOpQuote(quote));
 
   if (executableQuotes.length) {
-    return;
-  }
-
-  // Orders placed from the Perps and Predict screens can be funded from a
-  // balance this controller knows nothing about, which leaves no payment token
-  // and no fiat method behind. The owning feature validates those, so there is
-  // nothing here to check. Once either is set the user is paying through
-  // MetaMask Pay and the usual rules below apply.
-  const isUnusedPayFlow =
-    hasTransactionType(transactionMeta, SELF_VALIDATED_PAY_TRANSACTION_TYPES) &&
-    !data?.paymentToken &&
-    !data?.fiatPayment?.selectedPaymentMethodId;
-
-  if (isUnusedPayFlow) {
     return;
   }
 
