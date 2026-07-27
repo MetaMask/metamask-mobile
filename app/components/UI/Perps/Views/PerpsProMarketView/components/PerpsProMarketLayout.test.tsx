@@ -1,14 +1,17 @@
 import React from 'react';
 import { View } from 'react-native';
-import { render, within } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
 
-const renderLayout = () =>
+const renderLayout = (
+  props: Partial<React.ComponentProps<typeof PerpsProMarketLayout>> = {},
+) =>
   render(
     <PerpsProMarketLayout
       orderForm={<View testID="mock-order-form" />}
       orderBook={<View testID="mock-order-book" />}
+      {...props}
     />,
   );
 
@@ -38,5 +41,26 @@ describe('PerpsProMarketLayout', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
     ).toHaveStyle({ width: 24 });
+  });
+
+  it('hides the order book and shows expand when collapsed', () => {
+    const onExpandOrderBook = jest.fn();
+    const { getByTestId, queryByTestId } = renderLayout({
+      isOrderBookCollapsed: true,
+      onExpandOrderBook,
+    });
+
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
+    ).not.toBeOnTheScreen();
+    expect(getByTestId('mock-order-form')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON),
+    );
+    expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
   });
 });

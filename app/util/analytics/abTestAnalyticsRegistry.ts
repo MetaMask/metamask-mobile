@@ -3,6 +3,7 @@ import { CARD_BUTTON_BADGE_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI
 import { NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
 import { TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
+import { SWAPS_HAPTICS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/haptics/abTestConfig';
 import {
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING,
@@ -27,6 +28,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Swaps
   NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING,
   SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING,
+  SWAPS_HAPTICS_AB_TEST_ANALYTICS_MAPPING,
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING,
 
   // Homepage
