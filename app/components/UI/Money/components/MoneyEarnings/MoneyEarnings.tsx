@@ -47,10 +47,12 @@ interface MoneyEarningsProps {
   privacyMode?: boolean;
 }
 
-const UNDERLINE_HEIGHT = 4;
-const UNDERLINE_GAP = 1;
-/** Extra width so the underline sits slightly past the text edges. */
-const UNDERLINE_OVERFLOW = 2;
+const UNDERLINE_HEIGHT = 2;
+/** Pull the underline closer to the label baseline. */
+const UNDERLINE_GAP = -1;
+const UNDERLINE_STROKE_WIDTH = 1.5;
+/** Extra left inset so round stroke caps don't peek past the first letter. */
+const UNDERLINE_START_INSET = 1.5;
 
 const styles = StyleSheet.create({
   labelPressable: {
@@ -111,7 +113,7 @@ const DottedInfoLabel = ({
     setTextWidth((current) => (current === nextWidth ? current : nextWidth));
   }, []);
 
-  const underlineWidth = textWidth > 0 ? textWidth + UNDERLINE_OVERFLOW * 2 : 0;
+  const underlineWidth = textWidth;
 
   return (
     <Pressable
@@ -134,15 +136,16 @@ const DottedInfoLabel = ({
           <Svg
             width={underlineWidth}
             height={UNDERLINE_HEIGHT}
-            style={[styles.underline, { marginLeft: -UNDERLINE_OVERFLOW }]}
+            style={styles.underline}
           >
             <Line
-              x1={0}
+              // Inset so round caps stay flush with the glyph edges.
+              x1={UNDERLINE_STROKE_WIDTH / 2 + UNDERLINE_START_INSET}
               y1={UNDERLINE_HEIGHT / 2}
-              x2={underlineWidth}
+              x2={underlineWidth - UNDERLINE_STROKE_WIDTH / 2}
               y2={UNDERLINE_HEIGHT / 2}
               stroke={colors.text.alternative}
-              strokeWidth={1.5}
+              strokeWidth={UNDERLINE_STROKE_WIDTH}
               // Zero-length dashes + round caps render as fine circular dots.
               strokeDasharray="0, 3"
               strokeLinecap="round"
