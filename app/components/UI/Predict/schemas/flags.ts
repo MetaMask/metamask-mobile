@@ -4,7 +4,6 @@ import {
   defaulted,
   literal,
   enums,
-  literal,
   number,
   object,
   optional,
