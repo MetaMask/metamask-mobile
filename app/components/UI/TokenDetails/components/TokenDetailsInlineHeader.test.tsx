@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
@@ -301,6 +302,27 @@ describe('TokenDetailsInlineHeader', () => {
       const { queryByTestId } = renderHeader();
 
       expect(queryByTestId('share-button')).toBeNull();
+    });
+
+    it('renders end-accessory icons left-to-right as price alert, share, then star', () => {
+      const { getByTestId, toJSON } = renderHeader({
+        onPriceAlertPress: jest.fn(),
+        onSharePress: jest.fn(),
+        starButton: <Text testID="watchlist-star-button">★</Text>,
+      });
+
+      expect(getByTestId('token-price-alert-button')).toBeOnTheScreen();
+      expect(getByTestId('share-button')).toBeOnTheScreen();
+      expect(getByTestId('watchlist-star-button')).toBeOnTheScreen();
+
+      const serialized = JSON.stringify(toJSON());
+      const alertIndex = serialized.indexOf('token-price-alert-button');
+      const shareIndex = serialized.indexOf('share-button');
+      const starIndex = serialized.indexOf('watchlist-star-button');
+
+      expect(alertIndex).toBeGreaterThanOrEqual(0);
+      expect(shareIndex).toBeGreaterThan(alertIndex);
+      expect(starIndex).toBeGreaterThan(shareIndex);
     });
   });
 });

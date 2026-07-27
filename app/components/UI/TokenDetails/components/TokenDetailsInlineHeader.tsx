@@ -124,11 +124,23 @@ export const TokenDetailsInlineHeader = ({
     isStockToken,
   ]);
 
+  // Left → right: price alert, share, watchlist star.
+  // Matches design (ASSETS-3772) and the visual order HeaderSubpage used to
+  // produce via endButtonIconProps (which reverses before render).
   const endAccessory = useMemo(() => {
     const buttons: ReactNode[] = [];
 
-    if (starButton) {
-      buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
+    if (onPriceAlertPress) {
+      buttons.push(
+        <ButtonIcon
+          key="alert"
+          iconName={IconName.Notification}
+          size={ButtonIconSize.Md}
+          onPress={onPriceAlertPress}
+          testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
+          accessibilityLabel="Create price alert"
+        />,
+      );
     }
     if (onSharePress) {
       buttons.push(
@@ -142,17 +154,8 @@ export const TokenDetailsInlineHeader = ({
         />,
       );
     }
-    if (onPriceAlertPress) {
-      buttons.push(
-        <ButtonIcon
-          key="alert"
-          iconName={IconName.Notification}
-          size={ButtonIconSize.Md}
-          onPress={onPriceAlertPress}
-          testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
-          accessibilityLabel="Create price alert"
-        />,
-      );
+    if (starButton) {
+      buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
     }
 
     if (buttons.length === 0) return undefined;
@@ -161,7 +164,7 @@ export const TokenDetailsInlineHeader = ({
         {buttons}
       </Box>
     );
-  }, [starButton, onSharePress, onPriceAlertPress]);
+  }, [onPriceAlertPress, onSharePress, starButton]);
 
   const inlineDescription = useMemo(() => {
     if (!contractAddress) {
