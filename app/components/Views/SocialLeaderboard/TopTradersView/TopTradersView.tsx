@@ -31,7 +31,10 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -125,7 +128,7 @@ export interface TopTradersViewProps {
 const TopTradersView: React.FC<TopTradersViewProps> = ({
   embeddedInTabs = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const tw = useTailwind();
   const { colors } = useTheme();

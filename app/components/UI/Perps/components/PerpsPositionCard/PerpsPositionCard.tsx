@@ -475,10 +475,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <SectionDivider />
         <SectionHeader title={strings('perps.position.card.details_title')} />
-        <Box
-          testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}
-          twClassName="px-4"
-        >
+        <Box testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
             keyLabel={strings('perps.position.card.direction_label')}

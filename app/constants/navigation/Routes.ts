@@ -189,6 +189,8 @@ const Routes = {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
+    FIRST_PREDICT_ON_US_SPLASH: 'FirstPredictOnUsSplash',
+    FIRST_PREDICT_ON_US_ORDER_SHEET: 'FirstPredictOnUsOrderSheet',
     DEFAULT_SETTINGS: 'DefaultSettings',
     GENERAL_SETTINGS: 'GeneralSettings',
     ASSETS_SETTINGS: 'AssetsSettings',
@@ -242,7 +244,6 @@ const Routes = {
     REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
-    ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
@@ -503,6 +504,7 @@ const Routes = {
   },
   IMPORT_PRIVATE_KEY_VIEW: 'ImportPrivateKeyView',
   MULTICHAIN_ACCOUNTS: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',

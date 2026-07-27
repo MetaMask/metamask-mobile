@@ -8027,6 +8027,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_payment_method": "Select payment method",
       "select_token": "Select token",
       "from": "From",
       "to": "To",
