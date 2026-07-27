@@ -181,10 +181,12 @@ test('buildScenarioComment includes marker and delta table when baseline exists'
   });
 
   assert.match(md, /## 🔬 App Profiling Check: Cold Start Login/);
-  assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
-  assert.match(md, new RegExp(COMMENT_MARKER));
-  assert.match(md, /run 222/);
-});
+      assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
+      assert.match(md, /Disclaimer — allowed variance/);
+      assert.match(md, /\+10%/);
+      assert.match(md, new RegExp(COMMENT_MARKER));
+      assert.match(md, /run 222/);
+    });
 
 test('buildScenarioComment explains missing baseline', () => {
   const md = buildScenarioComment({

@@ -566,7 +566,9 @@ function buildScenarioComment({
     md += ` @ \`${baselineSha}\``;
   }
   md += '\n\n';
-  md += `> Variance margin: **Current** and **%** are highlighted only when Current > Baseline + 10%.\n\n`;
+  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
+  md += `> - If \`Current <= Baseline + 10%\`, the change is treated as acceptable noise (no highlight).\n`;
+  md += `> - If \`Current > Baseline + 10%\`, **Current** and the **variance %** are highlighted and marked with ⚠️.\n\n`;
 
   const rows = getMetricRows(
     baseline.artifact.profilingSummary,
