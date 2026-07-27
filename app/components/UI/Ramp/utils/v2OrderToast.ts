@@ -61,6 +61,10 @@ export function buildV2OrderToastOptions(
           label: strings('ramps_v2.notifications.track'),
           onPress: () => {
             ToastService.closeToast();
+            if (!NavigationService.isReady()) {
+              return;
+            }
+
             NavigationService.navigation.navigate(
               Routes.RAMP.RAMPS_ORDER_DETAILS,
               { orderId, showCloseButton: true },

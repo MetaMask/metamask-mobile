@@ -29,6 +29,7 @@ describe('NavigationService', () => {
       reset: jest.fn(),
       goBack: jest.fn(),
       dispatch: jest.fn(),
+      isReady: jest.fn(() => true),
       getState: jest.fn(() => ({
         routes: [{ name: 'Home' }],
         index: 0,
@@ -85,6 +86,28 @@ describe('NavigationService', () => {
 
       expect(navigation1).toBeDefined();
       expect(navigation2).toBeDefined();
+    });
+  });
+
+  describe('isReady', () => {
+    it('returns false when navigation has not been set', () => {
+      const isReady = (
+        NavigationService as unknown as { isReady: () => boolean }
+      ).isReady();
+
+      expect(isReady).toBe(false);
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('returns navigation readiness when navigation has been set', () => {
+      NavigationService.navigation = mockNavigation;
+
+      const isReady = (
+        NavigationService as unknown as { isReady: () => boolean }
+      ).isReady();
+
+      expect(isReady).toBe(true);
+      expect(mockNavigation.isReady).toHaveBeenCalled();
     });
   });
 
