@@ -256,7 +256,14 @@ describe('PerpsCancelAllOrdersView', () => {
     const onClose = jest.fn();
     const cancelOrders = Engine.context.PerpsController
       .cancelOrders as jest.Mock;
-    cancelOrders.mockRejectedValue(new Error('Network timeout'));
+
+    let rejectCancel: (reason?: unknown) => void = () => undefined;
+    cancelOrders.mockImplementation(
+      () =>
+        new Promise((_, reject) => {
+          rejectCancel = reject;
+        }),
+    );
 
     const OverlayCancelAll = () => {
       const sheetRef = useRef<BottomSheetRef | null>(null);
@@ -275,6 +282,15 @@ describe('PerpsCancelAllOrdersView', () => {
 
     await waitFor(() => {
       expect(cancelOrders).toHaveBeenCalledWith({ cancelAll: true });
+    });
+
+    rejectCancel(new Error('Network timeout'));
+
+    // Wait until cancel finishes (confirm re-enabled) before asserting no close.
+    await waitFor(() => {
+      expect(
+        screen.getByText(strings('perps.cancel_all_modal.confirm')),
+      ).toBeEnabled();
     });
     expect(onClose).not.toHaveBeenCalled();
     expect(
@@ -286,11 +302,18 @@ describe('PerpsCancelAllOrdersView', () => {
     const onClose = jest.fn();
     const cancelOrders = Engine.context.PerpsController
       .cancelOrders as jest.Mock;
-    cancelOrders.mockResolvedValue({
-      success: false,
-      successCount: 0,
-      failureCount: 2,
-    });
+
+    let resolveCancel: (value: {
+      success: boolean;
+      successCount: number;
+      failureCount: number;
+    }) => void = () => undefined;
+    cancelOrders.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCancel = resolve;
+        }),
+    );
 
     const OverlayCancelAll = () => {
       const sheetRef = useRef<BottomSheetRef | null>(null);
@@ -309,6 +332,19 @@ describe('PerpsCancelAllOrdersView', () => {
 
     await waitFor(() => {
       expect(cancelOrders).toHaveBeenCalledWith({ cancelAll: true });
+    });
+
+    resolveCancel({
+      success: false,
+      successCount: 0,
+      failureCount: 2,
+    });
+
+    // Wait until cancel finishes (confirm re-enabled) before asserting no close.
+    await waitFor(() => {
+      expect(
+        screen.getByText(strings('perps.cancel_all_modal.confirm')),
+      ).toBeEnabled();
     });
     expect(onClose).not.toHaveBeenCalled();
   });
