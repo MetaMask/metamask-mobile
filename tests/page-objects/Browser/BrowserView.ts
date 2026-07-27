@@ -388,6 +388,7 @@ class Browser {
   /**
    * Closes every open in-app browser tab so WebView/Chromedriver only sees the
    * upcoming navigation target (CI emulators can accumulate stale tabs).
+   * Always leaves the tabs overview so callers resume on single-tab browser UI.
    */
   async closeAllBrowserTabsIfOpen(): Promise<void> {
     await this.dismissUrlEditorIfOpen();
@@ -398,7 +399,14 @@ class Browser {
     );
     if (canCloseAll) {
       await this.tapCloseTabsButton();
+      if (await Utilities.isElementVisible(this.noTabsMessage, 3_000)) {
+        await this.tapOpenNewTabButton();
+      }
+      return;
     }
+
+    // Close-all was unavailable — select an existing tab to exit the overview.
+    await this.tapFirstTabButton();
   }
 
   async tapCloseSecondTabButton(): Promise<void> {

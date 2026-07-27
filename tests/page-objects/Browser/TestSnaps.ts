@@ -18,7 +18,7 @@ import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapAp
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities, { stripJsonKeys } from '../../framework/Utilities';
+import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import { RetryOptions, EncapsulatedElementType } from '../../framework';
@@ -198,22 +198,11 @@ class TestSnaps {
 
       return Utilities.executeWithRetry(async () => {
         const actualText = await webElement.getText();
-        let actualJson: Json;
-        try {
-          actualJson = JSON.parse(actualText);
-        } catch (error) {
-          throw new Error(
-            `Failed to parse JSON from result span: ${actualText}`,
-          );
-        }
-
-        if (
-          typeof expectedJson === 'object' &&
-          expectedJson !== null &&
-          !Array.isArray(expectedJson)
-        ) {
-          await Assertions.checkIfJsonEqual(actualJson, expectedJson);
-        }
+        await Assertions.checkParsedJsonEqual(
+          actualText,
+          expectedJson,
+          `result span "${selector}"`,
+        );
       }, options);
     });
   }
@@ -244,18 +233,11 @@ class TestSnaps {
 
       return Utilities.executeWithRetry(async () => {
         const actualText = await webElement.getText();
-        let actualJson: Json;
-        try {
-          actualJson = JSON.parse(actualText);
-        } catch (error) {
-          throw new Error(
-            `Failed to parse JSON from result span: ${actualText}`,
-          );
-        }
-
-        await Assertions.checkIfJsonEqual(
-          stripJsonKeys(actualJson, excludedKeys),
-          stripJsonKeys(expectedJson, excludedKeys),
+        await Assertions.checkParsedJsonEqualExcluding(
+          actualText,
+          expectedJson,
+          excludedKeys,
+          `result span "${selector}"`,
         );
       }, options);
     });

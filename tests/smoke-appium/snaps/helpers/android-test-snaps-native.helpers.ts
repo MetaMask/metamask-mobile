@@ -2,7 +2,7 @@ import type { Json } from '@metamask/utils';
 import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Assertions from '../../../framework/Assertions';
 import Matchers from '../../../framework/Matchers';
-import Utilities, { stripJsonKeys } from '../../../framework/Utilities';
+import Utilities from '../../../framework/Utilities';
 import {
   fillAndroidWebId,
   readAndroidWebIdText,
@@ -129,18 +129,11 @@ export async function assertAndroidTestSnapsJsonExcluding(
   await Utilities.executeWithRetry(
     async () => {
       const actualText = await readAndroidWebIdText(webId, scrollOptions);
-      let actualJson: Json;
-      try {
-        actualJson = JSON.parse(actualText) as Json;
-      } catch {
-        throw new Error(
-          `Failed to parse JSON from native result "${webId}": ${actualText}`,
-        );
-      }
-
-      await Assertions.checkIfJsonEqual(
-        stripJsonKeys(actualJson, excludedKeys),
-        stripJsonKeys(expectedJson, excludedKeys),
+      await Assertions.checkParsedJsonEqualExcluding(
+        actualText,
+        expectedJson,
+        excludedKeys,
+        `native result "${webId}"`,
       );
     },
     {
@@ -161,16 +154,11 @@ export async function assertAndroidTestSnapsJson(
   await Utilities.executeWithRetry(
     async () => {
       const actualText = await readAndroidWebIdText(webId, scrollOptions);
-      let actualJson: Json;
-      try {
-        actualJson = JSON.parse(actualText) as Json;
-      } catch {
-        throw new Error(
-          `Failed to parse JSON from native result "${webId}": ${actualText}`,
-        );
-      }
-
-      await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+      await Assertions.checkParsedJsonEqual(
+        actualText,
+        expectedJson,
+        `native result "${webId}"`,
+      );
     },
     {
       timeout: options.timeout ?? 5_000,
