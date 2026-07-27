@@ -5,7 +5,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import {
-  usePerpsLiveAccount,
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
@@ -36,6 +35,10 @@ interface PerpsProPositionsPanelProps {
  * across all assets, falling back to an empty state when there are none.
  * The `$TICKER only` checkbox filters positions (not orders) to the current
  * market. The Orders tab shows the user's open orders as read-only cards.
+ *
+ * Summary P&L and position cards always share one data flow: derive
+ * `visiblePositions`, compute `aggregateTotals` from that array, and render
+ * both from those results so filter state never swaps data freshness sources.
  */
 const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
@@ -46,7 +49,6 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
   });
   const { orders, isInitialLoading: areOrdersInitiallyLoading } =
     usePerpsLiveOrders({ throttleMs: 1000 });
-  const { account } = usePerpsLiveAccount({ throttleMs: 1000 });
 
   const visiblePositions = useMemo(
     () =>
@@ -56,6 +58,11 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
           )
         : positions,
     [isTickerOnly, positions, symbol],
+  );
+
+  const aggregateTotals = useMemo(
+    () => calculatePositionAggregateTotals(visiblePositions),
+    [visiblePositions],
   );
 
   const openPositionsCount = visiblePositions.length;
@@ -89,11 +96,6 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     },
   ];
 
-  const filteredTotals = useMemo(
-    () => calculatePositionAggregateTotals(visiblePositions),
-    [visiblePositions],
-  );
-
   const hasPositions = visiblePositions.length > 0;
   const hasAnyPositions = positions.length > 0;
 
@@ -102,16 +104,8 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.POSITIONS_LIST}>
           <PerpsProUnrealizedPnl
-            unrealizedPnl={
-              isTickerOnly
-                ? filteredTotals.unrealizedPnl
-                : (account?.unrealizedPnl ?? filteredTotals.unrealizedPnl)
-            }
-            returnOnEquity={
-              isTickerOnly
-                ? filteredTotals.returnOnEquity
-                : (account?.returnOnEquity ?? filteredTotals.returnOnEquity)
-            }
+            unrealizedPnl={aggregateTotals.unrealizedPnl}
+            returnOnEquity={aggregateTotals.returnOnEquity}
           />
           {visiblePositions.map((position, index) => (
             <PerpsProPositionCard

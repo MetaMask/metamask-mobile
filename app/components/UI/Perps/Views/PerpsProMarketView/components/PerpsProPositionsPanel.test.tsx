@@ -4,7 +4,6 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import {
-  usePerpsLiveAccount,
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
@@ -14,12 +13,10 @@ import PerpsProPositionsPanel from './PerpsProPositionsPanel';
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 
 jest.mock('../../../hooks/stream', () => ({
-  usePerpsLiveAccount: jest.fn(),
   usePerpsLiveOrders: jest.fn(),
   usePerpsLivePositions: jest.fn(),
 }));
 
-const mockUsePerpsLiveAccount = jest.mocked(usePerpsLiveAccount);
 const mockUsePerpsLiveOrders = jest.mocked(usePerpsLiveOrders);
 const mockUsePerpsLivePositions = jest.mocked(usePerpsLivePositions);
 
@@ -70,17 +67,6 @@ const expectTabLabel = (label: string) => {
 describe('PerpsProPositionsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: {
-        unrealizedPnl: '1000',
-        returnOnEquity: '10',
-        totalBalance: '10000',
-        marginUsed: '10000',
-        spendableBalance: '0',
-        withdrawableBalance: '0',
-      },
-      isInitialLoading: false,
-    } as ReturnType<typeof usePerpsLiveAccount>);
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [],
       isInitialLoading: false,
@@ -156,6 +142,29 @@ describe('PerpsProPositionsPanel', () => {
     expectTabLabel('Positions (1)');
     expect(screen.getByText('SOL')).toBeOnTheScreen();
     expect(screen.queryByText('BTC')).toBeNull();
+  });
+
+  it('derives summary P&L from the same visiblePositions used by the cards', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', unrealizedPnl: '1000' }),
+        makePosition({ symbol: 'SOL', unrealizedPnl: '50' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    // Aggregate of all live-enriched positions (not an account-stream total).
+    expect(screen.getByText('+$1,050.00 (+10.0%)')).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    // Aggregate of the filtered subset only (card may show the same amount).
+    expect(screen.getAllByText('+$50.00 (+10.0%)').length).toBeGreaterThan(0);
+    expect(screen.queryByText('+$1,050.00 (+10.0%)')).toBeNull();
   });
 
   it('does not filter orders when ticker-only is enabled on the positions tab', () => {
