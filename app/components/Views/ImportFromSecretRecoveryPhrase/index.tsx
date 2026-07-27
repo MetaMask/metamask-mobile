@@ -196,6 +196,26 @@ interface ImportFromSecretRecoveryPhraseRouteParams {
   oauthLoginSuccess?: boolean;
 }
 
+interface PasswordVisibilityToggleProps {
+  isVisible: boolean;
+  onToggle: () => void;
+  testID: string;
+}
+
+const PasswordVisibilityToggle = ({
+  isVisible,
+  onToggle,
+  testID,
+}: PasswordVisibilityToggleProps) => (
+  <TouchableOpacity onPress={onToggle} testID={testID}>
+    <Icon
+      name={isVisible ? IconName.Eye : IconName.EyeSlash}
+      size={IconSize.Lg}
+      color={IconColor.IconAlternative}
+    />
+  </TouchableOpacity>
+);
+
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -770,22 +790,13 @@ const ImportFromSecretRecoveryPhrase = () => {
                   onBlur={() => setIsPasswordFieldFocused(false)}
                   isError={isPasswordTooShort}
                   endAccessory={
-                    <TouchableOpacity
-                      onPress={() => toggleShowPassword(0)}
+                    <PasswordVisibilityToggle
+                      isVisible={showPasswordIndex.includes(0)}
+                      onToggle={() => toggleShowPassword(0)}
                       testID={
                         ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
                       }
-                    >
-                      <Icon
-                        name={
-                          showPasswordIndex.includes(0)
-                            ? IconName.Eye
-                            : IconName.EyeSlash
-                        }
-                        size={IconSize.Lg}
-                        color={IconColor.IconAlternative}
-                      />
-                    </TouchableOpacity>
+                    />
                   }
                   inputProps={{
                     secureTextEntry: showPasswordIndex.includes(0),
@@ -828,22 +839,13 @@ const ImportFromSecretRecoveryPhrase = () => {
                   value={confirmPassword}
                   isError={isError}
                   endAccessory={
-                    <TouchableOpacity
-                      onPress={() => toggleShowPassword(1)}
+                    <PasswordVisibilityToggle
+                      isVisible={showPasswordIndex.includes(1)}
+                      onToggle={() => toggleShowPassword(1)}
                       testID={
                         ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
                       }
-                    >
-                      <Icon
-                        name={
-                          showPasswordIndex.includes(1)
-                            ? IconName.Eye
-                            : IconName.EyeSlash
-                        }
-                        size={IconSize.Lg}
-                        color={IconColor.IconAlternative}
-                      />
-                    </TouchableOpacity>
+                    />
                   }
                   isDisabled={password === ''}
                   inputProps={{
