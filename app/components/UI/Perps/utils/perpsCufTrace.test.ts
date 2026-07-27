@@ -29,8 +29,11 @@ import {
   PERPS_CUF_TAG,
   PERPS_CUF_VARIANT,
   PERPS_CUF_BOUNDARY,
+  PERPS_CUF_END_REASON,
 } from '../constants/perpsCufTags';
 import {
+  getPerpsLifecycleContext,
+  handlePerpsAppStateChange,
   markPerpsForegroundSettled,
   resetPerpsLifecycleContextForTests,
   PERPS_LIFECYCLE_CONTEXT,
@@ -150,6 +153,41 @@ describe('perpsCufTrace', () => {
     endPerpsCufTrace({ id: opId });
 
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not settle background_resume when a reconnect trace fails', () => {
+    handlePerpsAppStateChange('active', 'unknown');
+    handlePerpsAppStateChange('active', 'background');
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+
+    endPerpsCufTrace({
+      id: opId,
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.DISCONNECTED,
+      },
+    });
+
+    expect(getPerpsLifecycleContext()).toBe(
+      PERPS_LIFECYCLE_CONTEXT.BACKGROUND_RESUME,
+    );
+  });
+
+  it('settles background_resume when a reconnect trace succeeds', () => {
+    handlePerpsAppStateChange('active', 'unknown');
+    handlePerpsAppStateChange('active', 'background');
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+
+    endPerpsCufTrace({
+      id: opId,
+      data: { [PERPS_CUF_TAG.SUCCESS]: true },
+    });
+
+    expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
   });
 
   it('scheduled fallback ends its own span when nothing else does', () => {
