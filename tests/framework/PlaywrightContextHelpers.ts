@@ -49,6 +49,24 @@ export default class PlaywrightContextHelpers {
         `[webview-trace] switchContext({ url }) succeeded for ${dappUrl} in ${Date.now() - switchStart}ms`,
       );
       await this.warmWebViewContext();
+      // MECHANISM PROBE (LavaMoat CDP-wedge diagnosis): a trivial Runtime.evaluate.
+      // If this hangs on a scuttled realm, it proves the WebView cannot service
+      // CDP evaluate calls after attach — the root cause of the getContexts wedge.
+      try {
+        const probeStart = Date.now();
+        const probeResult = await withTimeout(
+          getDriver().execute('return 1'),
+          10_000,
+          'webview CDP probe (execute return 1)',
+        );
+        logger.info(
+          `[webview-trace] CDP probe execute('return 1') => ${JSON.stringify(probeResult)} in ${Date.now() - probeStart}ms`,
+        );
+      } catch (probeErr) {
+        logger.info(
+          `[webview-trace] CDP probe execute('return 1') FAILED/HUNG: ${this.getErrorMessage(probeErr).slice(0, 200)}`,
+        );
+      }
       // NOTE: Do NOT call switchToMatchingWebviewWindow here. A successful
       // switchContext({ url }) has already selected the matching WebView
       // window by URL. Re-enumerating via getContexts() while attached to the

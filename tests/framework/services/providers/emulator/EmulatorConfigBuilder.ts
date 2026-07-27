@@ -86,6 +86,11 @@ export class EmulatorConfigBuilder {
               'appium:adbExecTimeout': androidAdbExecTimeoutMs,
               // Fail Chromedriver attach faster than the default when WebView is stuck.
               'appium:androidWebviewConnectTimeout': 60_000,
+              // EXPERIMENT (LavaMoat CDP-wedge diagnosis): skip per-page CDP
+              // probing during webview enumeration — that probe does a
+              // Runtime.evaluate round-trip which hangs on a scuttled realm.
+              'appium:ensureWebviewsHavePages': false,
+              'appium:chromeOptions': { pageLoadStrategy: 'none' },
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
