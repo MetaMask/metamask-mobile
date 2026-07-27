@@ -1,5 +1,7 @@
 import { type Observable } from 'rxjs';
 import { type DiscoveredDevice } from '@ledgerhq/device-management-kit';
+import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { createHardwareWalletError } from '../HardwareWallet/errors';
 import { withLedgerKeyring } from './Ledger';
 
 /**
@@ -32,9 +34,11 @@ const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
     return;
   }
 
-  const error = new Error('Ledger operation aborted');
-  error.name = 'LedgerOperationAbortedError';
-  throw error;
+  throw createHardwareWalletError(
+    ErrorCode.UserCancelled,
+    HardwareWalletType.Ledger,
+    'Ledger operation aborted',
+  );
 };
 
 /**
@@ -72,13 +76,19 @@ export const connectLedgerDmkHardware = async (
     keyring.setDeviceId(deviceId);
     const ledgerBridge = keyring.bridge as Partial<LedgerDmkSessionBridge>;
     if (typeof ledgerBridge.updateSessionId !== 'function') {
-      throw new Error(
+      throw createHardwareWalletError(
+        ErrorCode.Unknown,
+        HardwareWalletType.Ledger,
         'Ledger bridge does not support DMK session binding (missing updateSessionId)',
       );
     }
     const sessionBound = await ledgerBridge.updateSessionId(sessionId);
     if (!sessionBound) {
-      throw new Error('Failed to bind DMK session to Ledger bridge');
+      throw createHardwareWalletError(
+        ErrorCode.DeviceInvalidSession,
+        HardwareWalletType.Ledger,
+        'Failed to bind DMK session to Ledger bridge',
+      );
     }
     return ledgerBridge as LedgerDmkSessionBridge;
   });

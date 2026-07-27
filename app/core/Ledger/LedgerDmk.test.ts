@@ -1,6 +1,11 @@
 import { of } from 'rxjs';
 import type { DiscoveredDevice } from '@ledgerhq/device-management-kit';
 import {
+  ErrorCode,
+  HardwareWalletError,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
+import {
   connectLedgerDmkDevice,
   connectLedgerDmkHardware,
   disconnectLedgerDmkSession,
@@ -14,6 +19,10 @@ import {
 } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import type { Keyring } from '@metamask/keyring-api/v2';
+
+jest.mock('../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -90,7 +99,7 @@ function createRestrictedControllerMock(
 
 describe('LedgerDmk', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
     const mockKeyringController = MockEngine.context.KeyringController;
     mockKeyringController.state.keyrings = [
@@ -189,8 +198,13 @@ describe('LedgerDmk', () => {
       );
       const error = await resultPromise.catch((caughtError) => caughtError);
 
+      expect(error).toBeInstanceOf(HardwareWalletError);
       expect(error).toMatchObject({
-        name: 'LedgerOperationAbortedError',
+        code: ErrorCode.UserCancelled,
+        message: 'Ledger operation aborted',
+        metadata: expect.objectContaining({
+          walletType: HardwareWalletType.Ledger,
+        }),
       });
 
       expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
@@ -206,8 +220,10 @@ describe('LedgerDmk', () => {
         abortController.signal,
       ).catch((caughtError) => caughtError);
 
+      expect(error).toBeInstanceOf(HardwareWalletError);
       expect(error).toMatchObject({
-        name: 'LedgerOperationAbortedError',
+        code: ErrorCode.UserCancelled,
+        message: 'Ledger operation aborted',
       });
 
       expect(
@@ -237,24 +253,36 @@ describe('LedgerDmk', () => {
       const updateSessionId = mockBridge.updateSessionId;
       delete (mockBridge as { updateSessionId?: unknown }).updateSessionId;
 
-      await expect(
-        connectLedgerDmkHardware(mockSessionId, 'bar'),
-      ).rejects.toThrow(
-        'Ledger bridge does not support DMK session binding (missing updateSessionId)',
-      );
+      try {
+        const error = await connectLedgerDmkHardware(
+          mockSessionId,
+          'bar',
+        ).catch((caughtError) => caughtError);
 
-      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
-
-      mockBridge.updateSessionId = updateSessionId;
+        expect(error).toBeInstanceOf(HardwareWalletError);
+        expect(error).toMatchObject({
+          code: ErrorCode.Unknown,
+          message:
+            'Ledger bridge does not support DMK session binding (missing updateSessionId)',
+        });
+        expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
+      } finally {
+        mockBridge.updateSessionId = updateSessionId;
+      }
     });
 
     it('throws when updateSessionId fails to bind the session and skips app metadata request', async () => {
       mockBridge.updateSessionId.mockResolvedValueOnce(false);
 
-      await expect(
-        connectLedgerDmkHardware(mockSessionId, 'bar'),
-      ).rejects.toThrow('Failed to bind DMK session to Ledger bridge');
+      const error = await connectLedgerDmkHardware(mockSessionId, 'bar').catch(
+        (caughtError) => caughtError,
+      );
 
+      expect(error).toBeInstanceOf(HardwareWalletError);
+      expect(error).toMatchObject({
+        code: ErrorCode.DeviceInvalidSession,
+        message: 'Failed to bind DMK session to Ledger bridge',
+      });
       expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
     });
   });
