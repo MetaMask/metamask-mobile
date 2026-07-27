@@ -28,7 +28,7 @@ import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
 
-interface DeFiProtocolPositionDetailsParams {
+export interface DeFiProtocolPositionDetailsParams {
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
   networkIconAvatar: ImageSourcePropType | undefined;
 }

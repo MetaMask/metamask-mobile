@@ -10,7 +10,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, type RouteProp } from '@react-navigation/native';
-import type { RootStackParamList } from '../../../core/NavigationService/types';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../core/NavigationService/types';
 
 // External dependencies.
 import Cell, {
@@ -135,7 +138,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [searchString, setSearchString] = useState('');
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const theme = useTheme();
   const { colors } = theme;
