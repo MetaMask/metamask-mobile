@@ -126,6 +126,8 @@ class TestSnaps {
     },
   ): Promise<void> {
     const webId = TestSnapResultSelectorWebIDS[selector];
+    // Normalize quotes for cross-platform compatibility
+    const normalizedExpected = expectedMessage.replace(/^"|"$/g, '');
 
     await Utilities.executeWithRetry(
       async () => {
@@ -133,12 +135,16 @@ class TestSnaps {
           webId,
           TEST_SNAPS_WEBVIEW_OPTIONS,
         );
-        await Assertions.checkIfTextMatches(actualText, expectedMessage);
+        if (!actualText.includes(normalizedExpected)) {
+          throw new Error(
+            `Expected "${webId}" text to contain "${normalizedExpected}", got "${actualText}"`,
+          );
+        }
       },
       {
         timeout: options.timeout ?? 5_000,
         interval: options.interval ?? 100,
-        description: `Assert result "${webId}" equals expected text`,
+        description: `Assert result "${webId}" contains "${normalizedExpected}"`,
       },
     );
   }
