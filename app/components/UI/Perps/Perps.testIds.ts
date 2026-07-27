@@ -374,6 +374,7 @@ export const getPerpsCandlePeriodBottomSheetSelector = {
 
 // Helper functions for PerpsCandlePeriodSelector dynamic selectors
 export const getPerpsCandlePeriodSelector = {
+  group: (baseTestID: string) => `${baseTestID}-group`,
   periodButton: (baseTestID: string, period: string) =>
     `${baseTestID}-period-${period}`,
   moreButton: (baseTestID: string) => `${baseTestID}-more-button`,
@@ -452,11 +453,20 @@ export const PerpsProMarketViewSelectorsIDs = {
   HEADER: 'perps-pro-market-header',
   HEADER_SYMBOL: 'perps-pro-market-header-symbol',
   MARKET_SUMMARY: 'perps-pro-market-summary',
+  MARKET_PRICE: 'perps-pro-market-price',
+  MARKET_PRICE_CHANGE: 'perps-pro-market-price-change',
   CHART_PANEL: 'perps-pro-market-chart-panel',
   CHART_CONTENT: 'perps-pro-market-chart-content',
-  PRICE_HEADER: 'perps-pro-market-price-header',
-  PRICE: 'perps-pro-market-price',
-  PRICE_CHANGE: 'perps-pro-market-price-change',
+  CHART_OHLCV: 'perps-pro-market-chart-ohlcv',
+  CHART_SKELETON: 'perps-pro-market-chart-skeleton',
+  CHART_LIGHTWEIGHT: 'perps-pro-market-chart-lightweight',
+  CHART_PERIOD_SELECTOR: 'perps-pro-market-chart-period-selector',
+  CHART_MORE_PERIODS_SHEET: 'perps-pro-market-chart-more-periods-sheet',
+  CHART_FULLSCREEN_BUTTON: 'perps-pro-market-chart-fullscreen-button',
+  CHART_PRICE_DEVIATION_WARNING:
+    'perps-pro-market-chart-price-deviation-warning',
+  CHART_SERVICE_INTERRUPTION_BANNER:
+    'perps-pro-market-chart-service-interruption-banner',
   STATS_BAR: 'perps-pro-market-stats-bar',
   STATS_BAR_SCROLL: 'perps-pro-market-stats-bar-scroll',
   STATS_BAR_FUNDING_RATE: 'perps-pro-market-stats-funding-rate',

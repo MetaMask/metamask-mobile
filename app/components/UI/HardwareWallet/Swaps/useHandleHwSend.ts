@@ -9,10 +9,10 @@ import {
 import { HardwareWalletsSwapsEventType } from './HardwareWalletsSwaps.state';
 import { Flow } from './flowStrategy';
 import { isHardwareAccount } from '../../../../util/address';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import { useSelectedGasFeeToken } from '../../../Views/confirmations/hooks/gas/useGasFeeToken';
