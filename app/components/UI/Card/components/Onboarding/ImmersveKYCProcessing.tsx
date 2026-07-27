@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -9,7 +10,9 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
@@ -44,6 +47,7 @@ const POLLING_TIMEOUT_MS = 30000;
  */
 const ImmersveKYCProcessing = () => {
   const navigation = useNavigation();
+  const tw = useTailwind();
   const { countryKey, kycUrl } = useParams<{
     countryKey?: string;
     kycUrl?: string;
@@ -69,7 +73,13 @@ const ImmersveKYCProcessing = () => {
       fundingSourceId: fundingSourceId ?? undefined,
       kycRegion: countryKey,
       kycRedirectUrl: KYC_REDIRECT_URL,
+      pollIntervalMs: 2000,
     });
+
+  const ctaHint = nextAction?.type === 'kyc' ? nextAction.ctaHint : undefined;
+  const isInfoNeeded = ctaHint === 'KYC_INFORMATION_NEEDED';
+  const promptHint = ctaHint === 'KYC_NOT_COMPLETED' || isInfoNeeded;
+  const isExpiring = ctaHint === 'KYC_EXPIRING';
 
   useEffect(() => {
     trackEvent(
@@ -109,16 +119,24 @@ const ImmersveKYCProcessing = () => {
     }
     const { type } = nextAction;
     if (type === 'kyc') {
-      // Auto-open the webview the first time only; after the user has been there
-      // once, a re-poll that still returns kyc means they closed it without
-      // finishing → the reopen prompt (below) takes over instead of re-opening.
-      if (!hasOpenedWebview.current) {
+      // Auto-open the webview the first time only, and only when the backend
+      // hasn't told us to prompt instead (KYC_NOT_COMPLETED / KYC_INFORMATION_NEEDED
+      // ⇒ show the button, never silently reopen; KYC_EXPIRING ⇒ error).
+      if (!hasOpenedWebview.current && !promptHint && !isExpiring) {
         openKycWebview(nextAction.url ?? '');
       }
     } else if (type === 'funding' || type === 'active' || type === 'rejected') {
       route(nextAction, { countryKey });
     }
-  }, [nextAction, navigation, route, countryKey, openKycWebview]);
+  }, [
+    nextAction,
+    navigation,
+    route,
+    countryKey,
+    openKycWebview,
+    promptHint,
+    isExpiring,
+  ]);
 
   // 30s cutoff only while background checks are pending (not during the webview).
   useEffect(() => {
@@ -135,36 +153,39 @@ const ImmersveKYCProcessing = () => {
   }, [nextAction?.type, navigation]);
 
   // User came back from the webview with KYC still outstanding ⇒ prompt to reopen
-  // (never auto-reopen — they may have closed it deliberately). Gated on !isLoading
-  // so the in-flight re-poll after a *completed* KYC shows the spinner, not a flash
-  // of this prompt.
+  // (never auto-reopen — they may have closed it deliberately). The backend
+  // ctaHint (promptHint) forces the prompt even on a fresh mount; !isLoading gates
+  // the in-flight re-poll after a *completed* KYC so it shows the spinner, not a
+  // flash of this prompt.
   const isReopenPrompt =
-    !isLoading && nextAction?.type === 'kyc' && hasOpenedWebview.current;
+    !isLoading &&
+    nextAction?.type === 'kyc' &&
+    (hasOpenedWebview.current || promptHint) &&
+    !isExpiring;
+
+  const errorMessage =
+    error ??
+    (isExpiring
+      ? strings('card.card_onboarding.immersve_kyc_processing.expiring_error')
+      : null);
 
   const renderFormFields = () => (
     <Box twClassName="flex flex-1 items-center justify-center">
-      {error ? (
+      {errorMessage ? (
         <Text
           variant={TextVariant.BodyMd}
           twClassName="text-center text-error-default px-4"
           testID="immersve-kyc-processing-error"
         >
-          {error}
+          {errorMessage}
         </Text>
       ) : isReopenPrompt ? (
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={() =>
-            openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '')
-          }
-          testID="immersve-kyc-processing-reopen-button"
-        >
-          {strings(
-            'card.card_onboarding.immersve_kyc_processing.continue_button',
-          )}
-        </Button>
+        <Image
+          source={MM_CARD_VERIFY_IDENTITY}
+          resizeMode="contain"
+          style={tw.style('w-full h-full')}
+          testID="immersve-kyc-processing-illustration"
+        />
       ) : (
         <>
           <AnimatedSpinner testID="immersve-kyc-processing-spinner" />
@@ -181,20 +202,43 @@ const ImmersveKYCProcessing = () => {
     </Box>
   );
 
+  const renderActions = () =>
+    isReopenPrompt ? (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={() =>
+          openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '')
+        }
+        testID="immersve-kyc-processing-reopen-button"
+      >
+        {strings(
+          isInfoNeeded
+            ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
+            : 'card.card_onboarding.immersve_kyc_processing.continue_button',
+        )}
+      </Button>
+    ) : null;
+
+  const titleKey = isReopenPrompt
+    ? isInfoNeeded
+      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
+      : 'card.card_onboarding.immersve_kyc_processing.incomplete_title'
+    : 'card.card_onboarding.immersve_kyc_processing.title';
+
+  const descriptionKey = isReopenPrompt
+    ? isInfoNeeded
+      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
+      : 'card.card_onboarding.immersve_kyc_processing.incomplete_description'
+    : 'card.card_onboarding.immersve_kyc_processing.description';
+
   return (
     <OnboardingStep
-      title={strings(
-        isReopenPrompt
-          ? 'card.card_onboarding.immersve_kyc_processing.incomplete_title'
-          : 'card.card_onboarding.immersve_kyc_processing.title',
-      )}
-      description={strings(
-        isReopenPrompt
-          ? 'card.card_onboarding.immersve_kyc_processing.incomplete_description'
-          : 'card.card_onboarding.immersve_kyc_processing.description',
-      )}
+      title={strings(titleKey)}
+      description={strings(descriptionKey)}
       formFields={renderFormFields()}
-      actions={null}
+      actions={renderActions()}
       headerMode="close-direct"
     />
   );

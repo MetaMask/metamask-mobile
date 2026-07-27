@@ -61,9 +61,6 @@ const styleSheet = (params: { theme: Theme }) => {
     baseWithCloseIconButton: {
       paddingRight: 8,
     },
-    label: {
-      color: colors.text.default,
-    },
     description: {
       marginTop: 2,
     },
@@ -79,6 +76,10 @@ const styleSheet = (params: { theme: Theme }) => {
     pressableContent: {
       flex: 1,
       flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    pressableContentTopAligned: {
       alignItems: 'flex-start',
     },
   });

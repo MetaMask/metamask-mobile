@@ -10,7 +10,7 @@ TARGET_FILE="tests/framework/fixtures/json/default-fixture.json"
 if [ ! -f "$REPORT_FILE" ]; then
   echo "Error: $REPORT_FILE not found."
   echo "Run the fixture validation test first:"
-  echo "  yarn detox test tests/smoke/fixtures/fixture-validation.spec.ts -c <config>"
+  echo "  yarn appium-smoke:ios --grep FixtureValidation tests/smoke-appium/fixtures/fixture-validation.spec.ts"
   exit 1
 fi
 

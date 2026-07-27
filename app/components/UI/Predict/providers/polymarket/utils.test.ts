@@ -15,6 +15,7 @@ import {
 import {
   buildMarketListQueryParams,
   calculateConservativeBuyMarketFee,
+  calculateConservativeSellMarketFee,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
   createApiKey,
@@ -2244,6 +2245,30 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('calculateConservativeSellMarketFee', () => {
+    it('uses the maximum fee in the sell slippage interval', () => {
+      const preview: OrderPreview = {
+        ...buyPreview,
+        side: Side.SELL,
+        maxAmountSpent: 20,
+        minAmountReceived: 12,
+        slippage: 0.5,
+      };
+
+      const fee = calculateConservativeSellMarketFee({
+        preview,
+        marketInfo: {
+          fd: {
+            r: 0.05,
+            e: 1,
+          },
+        },
+      });
+
+      expect(fee).toBe(0.25);
+    });
+  });
+
   it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -2406,11 +2431,22 @@ describe('polymarket utils', () => {
     );
   });
 
-  it('does not fetch CLOB market info for sell previews', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue(orderBook),
-    });
+  it('previews sell orders with the CLOB market fee', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.05,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
 
     const preview = await previewOrder({
       marketId: 'market-1',
@@ -2427,12 +2463,20 @@ describe('polymarket utils', () => {
         outcomeTokenId: 'token-1',
         feeRateBps: '0',
         side: Side.SELL,
+        fees: expect.objectContaining({
+          marketFee: 0.12495,
+        }),
       }),
     );
-    expect(preview.fees).toBeDefined();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
+      { method: 'GET' },
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       { method: 'GET' },
     );
   });
