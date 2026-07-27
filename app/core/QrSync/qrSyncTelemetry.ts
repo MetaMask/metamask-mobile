@@ -28,8 +28,6 @@ export type QrSyncSurface =
 export const QrSyncOperations = {
   CLASSIFY_SCAN_CONTENT: 'classify_scan_content',
   SUBMIT_SCANNED_PAYLOAD: 'submit_scanned_payload',
-  SUBMIT_MANUAL_PAYLOAD: 'submit_manual_payload',
-  EXISTING_USER_MNEMONIC_IMPORT: 'existing_user_mnemonic_import',
   IMPORT_REMAINING_SECRETS: 'import_remaining_secrets',
   EXISTING_USER_IMPORT_NAVIGATION: 'existing_user_import_navigation',
   PROVISION_FROM_METADATA: 'provision_from_metadata',
@@ -48,8 +46,6 @@ export type QrSyncOperation =
 export const QrSyncTelemetrySources = {
   QR_SCANNER_ADD_DEVICE: 'QRScanner.addDevice',
   ADD_DEVICE_ON_SCAN_SUCCESS: 'AddDeviceToWallet.onScanSuccess',
-  ADD_DEVICE_MANUAL_SUBMIT: 'AddDeviceToWallet.triggerManualQrSubmit',
-  COMPLETE_EXISTING_USER_IMPORT: 'completeExistingUserQrSyncImport',
   FINISH_EXISTING_USER_WITHOUT_MNEMONIC:
     'finishExistingUserSyncWithoutMnemonic',
   USE_QR_SYNC_IMPORT_NAVIGATION: 'useQrSyncImportNavigation',

@@ -8,15 +8,24 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  PerpsHomeViewSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
+} from '../../Perps.testIds';
+import {
+  HOME_SCREEN_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -59,6 +68,26 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+// Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
+// (its analytics/design-system internals are covered by its own unit tests).
+jest.mock('../../components/PerpsModeToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  const { PerpsModeToggleSelectorsIDs: SelectorsIDs } = jest.requireActual(
+    '../../Perps.testIds',
+  );
+  return {
+    __esModule: true,
+    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: SelectorsIDs.CONTAINER,
+        // Simulate the user switching to Pro from the stubbed toggle.
+        onPress: () => onChange?.('pro'),
+      }),
+    PerpsMode: { Lite: 'lite', Pro: 'pro' },
+  };
+});
+
 // Mock Redux - default feedback disabled
 const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
@@ -91,6 +120,7 @@ const mockNavigateToMarketList = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockSetPerpsMode = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -115,6 +145,10 @@ jest.mock('../../hooks', () => ({
     handleSectionLayout: jest.fn(() => jest.fn()),
     handleScroll: jest.fn(),
     resetTracking: jest.fn(),
+  })),
+  usePerpsMode: jest.fn(() => ({
+    mode: 'lite',
+    setMode: mockSetPerpsMode,
   })),
 }));
 
@@ -194,6 +228,13 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
 
 // Use real BigNumber library - mocking it causes issues with module initialization
 
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
@@ -215,7 +256,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
-  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const { TouchableOpacity } = jest.requireActual('react-native');
   const React = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
@@ -226,13 +267,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       onPress?: () => void;
     }) => React.createElement(TouchableOpacity, { testID, onPress }),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
     Box: 'Box',
   };
 });
@@ -430,21 +464,6 @@ jest.mock(
     selectWhatsHappeningEnabled: jest.fn(),
   }),
 );
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: 'Text',
-  TextVariant: {
-    HeadingLG: 'HeadingLG',
-    HeadingSM: 'HeadingSM',
-    BodyMD: 'BodyMD',
-    BodyMDMedium: 'BodyMDMedium',
-    BodySM: 'BodySM',
-  },
-  TextColor: {
-    Default: 'Default',
-    Alternative: 'Alternative',
-  },
-}));
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: 'Icon',
@@ -566,6 +585,78 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+  });
+
+  it('renders the Lite/Pro toggle in the header when the Pro mode flag is enabled', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert - back/search remain and the toggle is shown centered
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(
+      getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
+    // Arrange
+    mockUseSelector.mockReturnValue(false);
+
+    // Act
+    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
+  });
+
+  it('navigates to the default Pro market when the header toggle switches to Pro', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Act - stubbed toggle switches to Pro on press
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    // Assert - persists the new mode and lands on the default (BTC) market
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PERPS.MARKET_DETAILS,
+      expect.objectContaining({
+        market: expect.objectContaining({ symbol: 'BTC' }),
+      }),
+    );
+  });
+
+  it('routes first-time users to the Perps tutorial when the header toggle switches mode', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectPerpsProModeEnabledFlag ||
+        selector === selectIsFirstTimePerpsUser,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Act
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    // Assert - mode is persisted, but onboarding is not skipped
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MARKET_DETAILS,
+      expect.anything(),
+    );
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {
@@ -961,6 +1052,43 @@ describe('PerpsHomeView', () => {
         params: {
           url: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
           title: 'perps.feedback.title',
+        },
+      });
+    });
+  });
+
+  describe('Contact Support', () => {
+    beforeEach(() => {
+      mockOpenSupportWithConsent.mockClear();
+    });
+
+    it('shows the support consent sheet with the support URL when the support button is pressed', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        SUPPORT_CONFIG.Url,
+        expect.any(Function),
+      );
+    });
+
+    // Covers only the call-site opener glue: invoking the opener passed to
+    // openSupportWithConsent navigates to the webview. The consent modal
+    // behavior itself is covered by the core support-consent tests.
+    it('navigates to the SimpleWebview when the provided opener is invoked', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+      const [open] = mockOpenSupportWithConsent.mock.calls[0];
+      open(SUPPORT_CONFIG.Url);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: SUPPORT_CONFIG.Url,
+          title: 'perps.support.title',
         },
       });
     });

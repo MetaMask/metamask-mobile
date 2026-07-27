@@ -1,12 +1,20 @@
+import { useSelector } from 'react-redux';
+import { PerpsMode } from '@metamask/perps-controller';
+import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
+import { selectPerpsMode } from '../../selectors/perpsController';
+
 /**
- * Temporary gate for the Perps Pro-mode layout.
+ * Whether the Perps Pro-mode market layout should render for the current user.
  *
- * TODO(TAT-3551): replace this placeholder once the mobile feature-flag and
- * mode selectors land. The Pro view should render only when the feature flag
- * is enabled and the persisted controller mode is `PerpsMode.Pro`. Until then
- * this always returns `false`, so every user keeps the lite
- * `PerpsMarketDetailsView` and the Pro layout is not user-reachable.
+ * Returns true only when the remote Pro-mode feature flag is enabled and the
+ * persisted controller mode is `PerpsMode.Pro`. Otherwise the lite
+ * `PerpsMarketDetailsView` is used.
  *
  * @returns Whether the Perps Pro-mode layout is enabled for the current user.
  */
-export const usePerpsProModeEnabled = (): boolean => false;
+export const usePerpsProModeEnabled = (): boolean => {
+  const isFeatureEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const mode = useSelector(selectPerpsMode);
+
+  return isFeatureEnabled && mode === PerpsMode.Pro;
+};

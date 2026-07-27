@@ -14,6 +14,8 @@ import {
   useFocusEffect,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   BottomSheetRef,
   Button,
@@ -22,6 +24,7 @@ import {
   TextColor,
   Box,
   BoxFlexDirection,
+  HeaderStandard,
   HeaderStandardAnimated,
   IconName,
   useHeaderStandardAnimated,
@@ -46,6 +49,7 @@ import {
   usePerpsNavigation,
   usePerpsMeasurement,
   usePerpsHomeSectionTracking,
+  usePerpsMode,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
@@ -65,7 +69,11 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
+import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -79,6 +87,7 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
+  selectIsFirstTimePerpsUser,
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
@@ -96,6 +105,7 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
@@ -153,11 +163,12 @@ const PerpsHomeView = ({
 }: PerpsHomeViewProps) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
@@ -172,6 +183,31 @@ const PerpsHomeView = ({
     selectPerpsRecentlyAddedEnabledFlag,
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const handleModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      setPerpsMode(nextMode);
+      // First-time users must still go through onboarding (same as Trade sheet):
+      // routing straight into the Pro market would skip the tutorial otherwise,
+      // so no mode-switch flash is shown here.
+      if (isFirstTimePerpsUser) {
+        navigation.navigate(Routes.PERPS.TUTORIAL);
+        return;
+      }
+      // Flash the destination mode on top of the current screen.
+      showPerpsModeFlash(nextMode);
+      // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
+      if (nextMode === PerpsMode.Pro) {
+        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+          market: buildDefaultProMarket(),
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        });
+      }
+    },
+    [isFirstTimePerpsUser, navigation, setPerpsMode],
+  );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
   // one recently listed market — see useHasNewMarkets).
@@ -577,13 +613,24 @@ const PerpsHomeView = ({
   }, [navigation, trackEvent, createEventBuilder]);
 
   const navigateToContactSupport = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: SUPPORT_CONFIG.Url,
-        title: strings(SUPPORT_CONFIG.TitleKey),
+    openSupportWithConsent(
+      (url) =>
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings(SUPPORT_CONFIG.TitleKey),
+          },
+        }),
+      SUPPORT_CONFIG.Url,
+      () => {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+          ).build(),
+        );
       },
-    });
+    );
     // Track contact support interaction for Perps analytics
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
@@ -595,11 +642,7 @@ const PerpsHomeView = ({
         })
         .build(),
     );
-    // Also track the general navigation event
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
-    );
-  }, [createEventBuilder, navigation, trackEvent]);
+  }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
   const handleGiveFeedback = useCallback(() => {
     // Track feedback button click
@@ -1045,28 +1088,59 @@ const PerpsHomeView = ({
   return (
     <View style={styles.container}>
       {/* Header */}
-      {!hideHeader && (
-        <HeaderStandardAnimated
-          includesTopInset
-          scrollY={headerScrollY}
-          titleSectionHeight={titleSectionHeightSv}
-          title={perpsScreenTitle}
-          onBack={handleBackPress}
-          backButtonProps={{
-            accessibilityLabel: 'Back',
-            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Search,
-              onPress: handleSearchToggle,
-              accessibilityLabel: 'Search',
-              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-            },
-          ]}
-          testID="perps-home"
-        />
-      )}
+      {!hideHeader &&
+        (isPerpsProModeEnabled ? (
+          // Pro mode: persistent centered Lite/Pro toggle in the top nav
+          // (the animated compact title would only appear on scroll).
+          // h-16 (64px) matches the Figma header so the 40px toggle keeps its
+          // 12px of breathing room above/below (HeaderBase defaults to 56px).
+          <HeaderStandard
+            includesTopInset
+            twClassName="h-16"
+            title={
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={handleModeChange}
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+              />
+            }
+            onBack={handleBackPress}
+            backButtonProps={{
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleSearchToggle,
+                accessibilityLabel: 'Search',
+                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+              },
+            ]}
+            testID="perps-home"
+          />
+        ) : (
+          <HeaderStandardAnimated
+            includesTopInset
+            scrollY={headerScrollY}
+            titleSectionHeight={titleSectionHeightSv}
+            title={perpsScreenTitle}
+            onBack={handleBackPress}
+            backButtonProps={{
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleSearchToggle,
+                accessibilityLabel: 'Search',
+                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+              },
+            ]}
+            testID="perps-home"
+          />
+        ))}
 
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView

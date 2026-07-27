@@ -6,8 +6,11 @@ import {
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
   selectRecentlyViewedMarkets,
+  selectPerpsMode as selectPerpsModeCore,
+  DEFAULT_PERPS_MODE,
   InitializationState,
   type PerpsActiveProviderMode,
+  type PerpsMode,
 } from '@metamask/perps-controller';
 
 const selectPerpsControllerState = (state: RootState) =>
@@ -159,6 +162,26 @@ const selectPerpsInitializationState = createSelector(
     InitializationState.Uninitialized,
 );
 
+/**
+ * Current Perps interface mode (Lite ⇄ Pro).
+ *
+ * Wraps the core `selectPerpsMode` from `@metamask/perps-controller` (TAT-3582),
+ * defaulting to `DEFAULT_PERPS_MODE` when controller state is missing/partial
+ * (e.g. before Engine init, rehydration, or minimal E2E fixtures).
+ */
+const selectPerpsMode = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): PerpsMode => {
+    try {
+      return perpsControllerState
+        ? selectPerpsModeCore(perpsControllerState)
+        : DEFAULT_PERPS_MODE;
+    } catch {
+      return DEFAULT_PERPS_MODE;
+    }
+  },
+);
+
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) => {
@@ -185,4 +208,5 @@ export {
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,
   selectPerpsPayWithToken,
+  selectPerpsMode,
 };

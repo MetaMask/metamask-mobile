@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   SectionDivider,
@@ -42,7 +43,7 @@ const WatchlistSection = forwardRef<
   WatchlistSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { data, isLoading, refetch } = useTokenWatchlistQuery();
 
@@ -62,7 +63,7 @@ const WatchlistSection = forwardRef<
   const itemCount = displayTokens.length;
 
   const handleSectionPress = useCallback(() => {
-    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW as never);
+    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
   }, [navigation]);
 
   const refresh = useCallback(async () => {
