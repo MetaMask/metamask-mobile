@@ -3960,6 +3960,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsProModeEnabled: {
+    name: 'perpsProModeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsHip3AllowlistMarkets: {
     name: 'perpsHip3AllowlistMarkets',
     type: FeatureFlagType.Remote,
@@ -4645,6 +4656,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialAiTSA901AbtestTopTradersBuyAction: {
+    name: 'socialAiTSA901AbtestTopTradersBuyAction',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 0.5,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   solanaOnboardingModal: {
     name: 'solanaOnboardingModal',
     type: FeatureFlagType.Remote,
@@ -5117,16 +5151,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU470AbtestTrendingSections: {
-    name: 'homeTMCU470AbtestTrendingSections',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   homeTMCU725AbtestHomepagePerpsPillsEmptyState: {
     name: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
     type: FeatureFlagType.Remote,
@@ -5581,29 +5605,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU828AbtestOnboardingChecklistStepper: {
-    name: 'homeTMCU828AbtestOnboardingChecklistStepper',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 0.5,
-          type: 'percentage_rollout',
-        },
-      },
-      {
-        scope: {
-          value: 1,
-          type: 'percentage_rollout',
-        },
-        name: 'treatment',
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   predictHomeRedesign: {
     name: 'predictHomeRedesign',
     type: FeatureFlagType.Remote,
@@ -5611,6 +5612,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictFeedBanner: {
+    name: 'predictFeedBanner',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+      id: '',
+      title: '',
+      description: '',
+      position: 'after-world-cup-banner',
+      severity: 'info',
+      dismissible: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5647,14 +5665,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  swapsSWAPS4543AbtestPostTradeModal: {
-    name: 'swapsSWAPS4543AbtestPostTradeModal',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [],
-    status: FeatureFlagStatus.Active,
-  },
-
   swapsSWAPS4635AbtestVerified2: {
     name: 'swapsSWAPS4635AbtestVerified2',
     type: FeatureFlagType.Remote,
@@ -5674,16 +5684,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  priceAlertsEnabled: {
-    name: 'priceAlertsEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.81.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
   agentic_cli_notifications_enabled: {
     name: 'agentic_cli_notifications_enabled',
     type: FeatureFlagType.Remote,

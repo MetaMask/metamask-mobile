@@ -76,6 +76,11 @@ export function useTransactionCustomAmount({
   const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
   const hasPrefilled = useRef(false);
   const depositMaxHumanRef = useRef<string | null>(null);
+  const userHasEditedRef = useRef(false);
+  // Dispatching the metric per keystroke triggers a store-wide selector sweep;
+  // only dispatch when the input type actually changes.
+  const lastAmountInputTypeRef = useRef<string | null>(null);
+  const amountChangeTimeRef = useRef<number>(0);
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -110,6 +115,7 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     depositMaxHumanRef.current = null;
+    userHasEditedRef.current = false;
   }, [payToken?.address, payToken?.chainId]);
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -118,7 +124,15 @@ export function useTransactionCustomAmount({
 
   const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
   useEffect(() => {
+    // Skip if the user has manually typed on the keypad — a transient
+    // hasPrefilled toggle (from tokenKey changes) must not overwrite
+    // their input. The ref resets when the pay token genuinely changes.
+    if (userHasEditedRef.current) {
+      prevHasPrefilled.current = depositPrefill.hasPrefilled;
+      return;
+    }
     if (depositPrefill.hasPrefilled) {
+      amountChangeTimeRef.current = Date.now();
       setAmountFiat(depositPrefill.prefillAmount ?? '0');
     } else if (prevHasPrefilled.current) {
       setAmountFiat('0');
@@ -227,12 +241,18 @@ export function useTransactionCustomAmount({
       }
 
       depositMaxHumanRef.current = null;
+      userHasEditedRef.current = true;
+      amountChangeTimeRef.current = Date.now();
 
-      setConfirmationMetric({
-        properties: {
-          mm_pay_amount_input_type: 'manual',
-        },
-      });
+      if (lastAmountInputTypeRef.current !== 'manual') {
+        lastAmountInputTypeRef.current = 'manual';
+
+        setConfirmationMetric({
+          properties: {
+            mm_pay_amount_input_type: 'manual',
+          },
+        });
+      }
 
       setAmountFiat(newAmount);
     },
@@ -257,6 +277,9 @@ export function useTransactionCustomAmount({
           .multipliedBy(balanceUsd)
           .decimalPlaces(2, BigNumber.ROUND_DOWN),
       );
+
+      lastAmountInputTypeRef.current = `${percentage}%`;
+      amountChangeTimeRef.current = Date.now();
 
       setConfirmationMetric({
         properties: {
@@ -330,11 +353,17 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
-      setConfirmationMetric({
-        properties: {
-          mm_pay_quote_requested: true,
-        },
-      });
+      const properties: Record<string, unknown> = {
+        mm_pay_quote_requested: true,
+      };
+
+      if (amountChangeTimeRef.current > 0) {
+        properties.mm_pay_time_to_request_quote_ms = Math.round(
+          Date.now() - amountChangeTimeRef.current,
+        );
+      }
+
+      setConfirmationMetric({ properties });
       setIsTokenAmountUpdated(false);
     }
   }, [

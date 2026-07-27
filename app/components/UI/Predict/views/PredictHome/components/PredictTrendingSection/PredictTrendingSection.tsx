@@ -5,7 +5,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
@@ -13,7 +14,6 @@ import SectionHeader from '../../../../../../../component-library/components-tem
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
 import { PredictEventValues } from '../../../../constants/eventNames';
-import type { PredictNavigationParamList } from '../../../../types/navigation';
 import { PREDICT_TRENDING_SECTION_TEST_IDS } from './PredictTrendingSection.testIds';
 import {
   TRENDING_DISPLAY_LIMIT,
@@ -37,8 +37,7 @@ interface PredictTrendingSectionProps {
 const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
   testID = PREDICT_TRENDING_SECTION_TEST_IDS.SECTION,
 }) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { markets, isLoading, showEmptyState } = usePredictTrendingSection();
 
   const handleSeeAll = useCallback(() => {

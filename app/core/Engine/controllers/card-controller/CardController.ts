@@ -27,12 +27,18 @@ import {
   type CardAuthStep,
   type CardAuthTokens,
   type CardCredentials,
+  type CardContactDetails,
+  type CardCreateResult,
   type CardDetails,
   type CardFundingAsset,
+  type CardFundingSourceResult,
   type CardHomeData,
   type CardProviderCapabilities,
   type CardSecureView,
   type CardSecureViewParams,
+  type CardSensitiveDetails,
+  type CardSpendingPrerequisitesParams,
+  type CardSpendingPrerequisitesResult,
   type CashbackWalletResponse,
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
@@ -68,12 +74,27 @@ import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import {
+  deriveCountryProviderMap,
+  getProviderForCountry,
+} from './provider-map';
+import {
+  ImmersveProvider,
+  type CardResumeInfo,
+} from './providers/ImmersveProvider';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
+  // Temporary: internal-testing override for Immersve cardProgramId.
+  selectedCardProgramId: {
     persist: true,
     includeInDebugSnapshot: true,
     includeInStateLogs: true,
@@ -131,6 +152,7 @@ const metadata: StateMetadata<CardControllerState> = {
 
 export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
+  selectedCardProgramId: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
   lastUnauthenticatedReason: null,
@@ -334,6 +356,66 @@ export class CardController extends BaseController<
     });
   }
 
+  setSelectedCountry(country: string): void {
+    const providerId = this.#resolveProviderForCountry(country);
+    const providerChanged =
+      Boolean(providerId) && providerId !== this.state.activeProviderId;
+
+    this.update((s) => {
+      s.selectedCountry = country;
+      if (providerId) {
+        s.activeProviderId = providerId;
+      }
+      if (providerChanged) {
+        s.cardHomeData = null;
+        s.cardHomeDataStatus = 'idle';
+      }
+    });
+
+    if (providerChanged) {
+      this.invalidateFetch();
+    }
+  }
+
+  /**
+   * Temporary: persist the Immersve cardProgramId chosen on SignUp for
+   * internal multi-program testing. Overlayed onto the feature flag in
+   * card-controller/index.ts. Easy to remove.
+   */
+  setSelectedCardProgramId(id: string | null): void {
+    this.update((s) => {
+      s.selectedCardProgramId = id;
+    });
+  }
+
+  #resolveProviderForCountry(country: string): string {
+    const featureState = this.messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+
+    const cardFeature = resolveCardFeatureFlag(
+      featureState.remoteFeatureFlags?.cardFeature as
+        | CardFeatureFlag
+        | undefined,
+    );
+
+    if (cardFeature.immersve?.enabled) {
+      const immersveCountries = cardFeature.immersveCountries ?? [];
+      const map = deriveCountryProviderMap(
+        Object.fromEntries(
+          immersveCountries.map((c) => [c, true] as [string, boolean]),
+        ),
+        'immersve',
+      );
+      const provider = getProviderForCountry(country, map);
+      if (provider) {
+        return provider;
+      }
+    }
+
+    return DEFAULT_CARD_PROVIDER_ID;
+  }
+
   /**
    * Checks which CAIP-10 account IDs are MetaMask Card holders and stores
    * the result in controller state. Processes up to 150 accounts (3 × 50).
@@ -512,8 +594,11 @@ export class CardController extends BaseController<
     }
   }
 
-  async initiateAuth(country: string): Promise<void> {
-    this.currentSession = await this.getActiveProvider().initiateAuth(country);
+  async initiateAuth(country: string, address?: string): Promise<void> {
+    this.currentSession = await this.getActiveProvider().initiateAuth(
+      country,
+      address ? { address } : undefined,
+    );
   }
 
   getCurrentAuthStep(): CardAuthStep | null {
@@ -890,7 +975,15 @@ export class CardController extends BaseController<
         provider.getCardHomeData(address, validTokens),
       );
     }
-    return provider.getOnChainAssets?.(address) ?? emptyCardHomeData();
+
+    const onChainProvider =
+      provider.getOnChainAssets != null
+        ? provider
+        : this.providers[DEFAULT_CARD_PROVIDER_ID];
+    return (
+      (await onChainProvider?.getOnChainAssets?.(address)) ??
+      emptyCardHomeData()
+    );
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(
@@ -1009,6 +1102,95 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
+  }
+
+  async getCardSensitiveDetails(): Promise<CardSensitiveDetails> {
+    const provider = this.getActiveProvider();
+    const getCardSensitiveDetails =
+      provider.getCardSensitiveDetails?.bind(provider);
+    if (!getCardSensitiveDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card sensitive details not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCardSensitiveDetails(tokens));
+  }
+
+  async createFundingSource(): Promise<CardFundingSourceResult> {
+    const provider = this.getActiveProvider();
+    const createFundingSource = provider.createFundingSource?.bind(provider);
+    if (!createFundingSource) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Funding source creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createFundingSource(tokens));
+  }
+
+  async getFundingSources(): Promise<CardFundingSourceResult[]> {
+    const provider = this.getActiveProvider();
+    const getFundingSources = provider.getFundingSources?.bind(provider);
+    if (!getFundingSources) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Listing funding sources not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getFundingSources(tokens));
+  }
+
+  async getResumeCardInfo(): Promise<CardResumeInfo | null> {
+    const provider = this.providers.immersve;
+    if (!(provider instanceof ImmersveProvider)) {
+      return null;
+    }
+    return this.#withAuthRetry((tokens) => provider.getResumeCardInfo(tokens));
+  }
+
+  async getSpendingPrerequisites(
+    fundingSourceId: string,
+    params: CardSpendingPrerequisitesParams,
+  ): Promise<CardSpendingPrerequisitesResult> {
+    const provider = this.getActiveProvider();
+    const getSpendingPrerequisites =
+      provider.getSpendingPrerequisites?.bind(provider);
+    if (!getSpendingPrerequisites) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Spending prerequisites not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      getSpendingPrerequisites(fundingSourceId, params, tokens),
+    );
+  }
+
+  async createCard(fundingSourceId: string): Promise<CardCreateResult> {
+    const provider = this.getActiveProvider();
+    const createCard = provider.createCard?.bind(provider);
+    if (!createCard) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
+  }
+
+  async patchContactDetails(details: CardContactDetails): Promise<void> {
+    const provider = this.getActiveProvider();
+    const patchContactDetails = provider.patchContactDetails?.bind(provider);
+    if (!patchContactDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Contact details update not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      patchContactDetails(details, tokens),
+    );
   }
 
   async updateAssetPriority(

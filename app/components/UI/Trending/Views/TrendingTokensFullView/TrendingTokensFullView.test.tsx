@@ -20,7 +20,6 @@ import {
   PriceChangeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { mockTheme } from '../../../../../util/theme';
 
 import { useTrendingRequest } from '../../hooks/useTrendingRequest/useTrendingRequest';
@@ -31,43 +30,9 @@ const TEST_IDS = {
   skeleton: 'trending-tokens-skeleton',
   emptySearchResult: 'empty-search-result-state',
   emptyErrorState: 'empty-error-trending-state',
-  watchlistEmptyState: 'trending-watchlist-empty-state',
   tokensList: 'trending-tokens-list',
   retryButton: 'empty-error-trending-state--retry-button',
-  watchlistFilter: 'trending-watchlist-filter-watchlist',
 } as const;
-
-let mockIsWatchlistEnabled = false;
-const mockRefetchWatchlist = jest.fn();
-const mockUseTokenWatchlistQuery = jest.fn();
-
-jest.mock('../../../Assets/selectors/featureFlags', () => ({
-  selectTokenWatchlistEnabled: jest.fn(),
-}));
-
-jest.mock('../../../Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
-  useTokenWatchlistQuery: () => mockUseTokenWatchlistQuery(),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: (state: unknown) => unknown) => {
-    const { selectTokenWatchlistEnabled } = jest.requireMock(
-      '../../../Assets/selectors/featureFlags',
-    );
-    if (selector === selectTokenWatchlistEnabled) return mockIsWatchlistEnabled;
-    return jest.requireActual('react-redux').useSelector(selector);
-  },
-}));
-
-jest.mock(
-  '../../../../../images/watchlist-empty-dark.svg',
-  () => 'WatchlistEmptyDark',
-);
-jest.mock(
-  '../../../../../images/watchlist-empty-light.svg',
-  () => 'WatchlistEmptyLight',
-);
 
 const initialMetrics: Metrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
@@ -100,19 +65,8 @@ jest.mock(
   '../../components/TrendingTokensList/TrendingTokensList',
   (): typeof TrendingTokensList => {
     const { View, Text, ScrollView } = jest.requireActual('react-native');
-    return ({
-      trendingTokens,
-      refreshControl,
-      tokenDetailsSource,
-    }: {
-      trendingTokens: TrendingAsset[];
-      refreshControl?: React.ReactElement;
-      tokenDetailsSource?: string;
-    }) => (
+    return ({ trendingTokens, refreshControl }) => (
       <ScrollView testID="trending-tokens-list" refreshControl={refreshControl}>
-        {tokenDetailsSource ? (
-          <Text testID="token-details-source">{tokenDetailsSource}</Text>
-        ) : null}
         {trendingTokens.map((token, index) => (
           <View key={token.assetId || index} testID={`token-${index}`}>
             <Text>{token.name}</Text>
@@ -194,12 +148,6 @@ describe('TrendingTokensData', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsWatchlistEnabled = false;
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: mockRefetchWatchlist,
-    });
   });
 
   // Test table for different states
@@ -233,30 +181,6 @@ describe('TrendingTokensData', () => {
         search: { searchResults: [], searchQuery: 'nonexistent' },
       },
       elemsRendered: [TEST_IDS.emptySearchResult],
-    },
-    {
-      testName:
-        'watchlist empty state when watchlist filter is active and empty',
-      overrideProps: {
-        trendingTokens: [],
-        isWatchlistFilterActive: true,
-        search: { searchResults: [], searchQuery: '' },
-      },
-      elemsRendered: [TEST_IDS.watchlistEmptyState],
-    },
-    {
-      testName:
-        'watchlist tokens when watchlist filter is active and trending results are empty',
-      overrideProps: {
-        isWatchlistFilterActive: true,
-        search: { searchResults: [], searchQuery: '' },
-      },
-      elemsRendered: [TEST_IDS.tokensList],
-      actAssert: async (testUtils) => {
-        const { getByText, queryByTestId } = testUtils;
-        expect(getByText('Token 1')).toBeOnTheScreen();
-        expect(queryByTestId(TEST_IDS.emptyErrorState)).not.toBeOnTheScreen();
-      },
     },
     {
       testName: 'empty error state when there is an error on main token view',
@@ -327,12 +251,6 @@ describe('TrendingTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRoute.mockReturnValue({ params: undefined });
-    mockIsWatchlistEnabled = false;
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: mockRefetchWatchlist,
-    });
     const mocks = arrangeMocks();
     mocks.setTrendingRequestMock({ results: [createMockToken()] });
     mocks.setTrendingSearchMock({ data: [createMockToken()] });
@@ -452,7 +370,7 @@ describe('TrendingTokensFullView', () => {
     });
   });
 
-  it('calls refetch when pull-to-refresh is triggered', async () => {
+  it('calls refetch when pull-to-refresh is triggered', () => {
     const mockTokens = [
       createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
     ];
@@ -466,9 +384,7 @@ describe('TrendingTokensFullView', () => {
     expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
     const { RefreshControl } = jest.requireActual('react-native');
     const refreshControl = UNSAFE_getByType(RefreshControl);
-    await act(async () => {
-      fireEvent(refreshControl, 'refresh');
-    });
+    fireEvent(refreshControl, 'refresh');
 
     expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
@@ -743,190 +659,6 @@ describe('TrendingTokensFullView', () => {
       expect(getByText('Token X')).toBeOnTheScreen();
       expect(getByText('Token Y')).toBeOnTheScreen();
       expect(queryByTestId('empty-search-result-state')).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('watchlist filter', () => {
-    it('does not render watchlist filter when feature flag is off', () => {
-      mockIsWatchlistEnabled = false;
-      const { queryByTestId } = renderTrendingFullView();
-
-      expect(queryByTestId(TEST_IDS.watchlistFilter)).not.toBeOnTheScreen();
-    });
-
-    it('renders watchlist star filter when feature flag is on', () => {
-      mockIsWatchlistEnabled = true;
-      const { getByTestId } = renderTrendingFullView();
-
-      expect(getByTestId(TEST_IDS.watchlistFilter)).toBeOnTheScreen();
-    });
-
-    it('toggles watchlist filter off when star is pressed again', async () => {
-      mockIsWatchlistEnabled = true;
-      mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [],
-        isLoading: false,
-        refetch: mockRefetchWatchlist,
-      });
-
-      const { getByTestId, queryByTestId } = renderTrendingFullView();
-
-      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
-      expect(getByTestId(TEST_IDS.watchlistEmptyState)).toBeOnTheScreen();
-
-      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
-      expect(queryByTestId(TEST_IDS.watchlistEmptyState)).not.toBeOnTheScreen();
-    });
-
-    it('shows watchlist empty state when watchlist filter is active and empty', async () => {
-      mockIsWatchlistEnabled = true;
-      mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [],
-        isLoading: false,
-        refetch: mockRefetchWatchlist,
-      });
-
-      const { getByTestId, getByText } = renderTrendingFullView();
-
-      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
-
-      expect(getByTestId(TEST_IDS.watchlistEmptyState)).toBeOnTheScreen();
-      expect(
-        getByText(strings('token_watchlist.home_empty_title')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('token_watchlist.home_empty_subtitle')),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows watchlist tokens when watchlist filter is active', async () => {
-      mockIsWatchlistEnabled = true;
-      mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [
-          {
-            assetId: 'eip155:1/slip44:60',
-            name: 'Ethereum',
-            symbol: 'ETH',
-            decimals: 18,
-            marketData: {
-              price: 2170.28,
-              marketCap: 260_000_000_000,
-              totalVolume: 15_000_000_000,
-              pricePercentChange24h: 0.2,
-            },
-          },
-        ],
-        isLoading: false,
-        refetch: mockRefetchWatchlist,
-      });
-
-      const { getByTestId, getByText } = renderTrendingFullView();
-
-      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
-
-      expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
-      expect(getByText('Ethereum')).toBeOnTheScreen();
-    });
-
-    it('shows watchlist tokens and enables price filter when trending results are empty', async () => {
-      mockIsWatchlistEnabled = true;
-      const mocks = arrangeMocks();
-      mocks.setTrendingSearchMock({ data: [] });
-      mocks.setTrendingRequestMock({ results: [] });
-      mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [
-          {
-            assetId: 'eip155:1/slip44:60',
-            name: 'Ethereum',
-            symbol: 'ETH',
-            decimals: 18,
-            marketData: {
-              price: 2170.28,
-              marketCap: 260_000_000_000,
-              totalVolume: 15_000_000_000,
-              pricePercentChange24h: 0.2,
-            },
-          },
-        ],
-        isLoading: false,
-        refetch: mockRefetchWatchlist,
-      });
-
-      const { getByTestId, getByText, queryByTestId } =
-        renderTrendingFullView();
-
-      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
-
-      expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
-      expect(getByText('Ethereum')).toBeOnTheScreen();
-      expect(queryByTestId(TEST_IDS.emptyErrorState)).not.toBeOnTheScreen();
-      expect(
-        getByTestId('price-change-button').props.accessibilityState?.disabled,
-      ).toBe(false);
-    });
-
-    it('passes explore_watchlist_filter source when watchlist filter is active', async () => {
-      mockIsWatchlistEnabled = true;
-      mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [
-          {
-            assetId: 'eip155:1/slip44:60',
-            name: 'Ethereum',
-            symbol: 'ETH',
-            decimals: 18,
-            marketData: {
-              price: 2170.28,
-              marketCap: 260_000_000_000,
-              totalVolume: 15_000_000_000,
-              pricePercentChange24h: 0.2,
-            },
-          },
-        ],
-        isLoading: false,
-        refetch: mockRefetchWatchlist,
-      });
-
-      const { getByTestId } = renderTrendingFullView();
-
-      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
-
-      expect(getByTestId('token-details-source')).toHaveTextContent(
-        TokenDetailsSource.ExploreWatchlistFilter,
-      );
-    });
-
-    it('refetches watchlist data on pull-to-refresh in watchlist mode', async () => {
-      mockIsWatchlistEnabled = true;
-      mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [
-          {
-            assetId: 'eip155:1/slip44:60',
-            name: 'Ethereum',
-            symbol: 'ETH',
-            decimals: 18,
-            marketData: {
-              price: 2170.28,
-              marketCap: 260_000_000_000,
-              totalVolume: 15_000_000_000,
-              pricePercentChange24h: 0.2,
-            },
-          },
-        ],
-        isLoading: false,
-        refetch: mockRefetchWatchlist,
-      });
-
-      const { getByTestId, UNSAFE_getByType } = renderTrendingFullView();
-
-      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
-
-      const { RefreshControl } = jest.requireActual('react-native');
-      const refreshControl = UNSAFE_getByType(RefreshControl);
-      await act(async () => {
-        fireEvent(refreshControl, 'refresh');
-      });
-
-      expect(mockRefetchWatchlist).toHaveBeenCalledTimes(1);
     });
   });
 });

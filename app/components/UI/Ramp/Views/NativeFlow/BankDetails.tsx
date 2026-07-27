@@ -16,6 +16,7 @@ import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import styleSheet from './BankDetails.styles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -57,7 +58,7 @@ const TERMINAL_STATUSES = new Set([
  * and fetches deposit-specific data (paymentDetails) from TransakService.
  */
 const V2BankDetails = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const {

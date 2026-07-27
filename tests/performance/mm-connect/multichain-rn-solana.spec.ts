@@ -89,7 +89,7 @@ test.describe(Performance, () => {
     //
     await loginToAppPlaywright();
     await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(WalletView.container),
+      asPlaywrightElement(WalletView.container),
       { timeout: 15000 },
     );
 

@@ -158,4 +158,8 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   );
 };
 
-export default PredictCryptoUpDownChart;
+// Memoized: the parent details screen re-renders on every live price tick
+// (which this chart itself triggers via `onCurrentPriceChange`). The chart
+// re-renders from its own hook state; parent-driven re-renders with unchanged
+// props would only re-serialize chart props for the WebView.
+export default React.memo(PredictCryptoUpDownChart);

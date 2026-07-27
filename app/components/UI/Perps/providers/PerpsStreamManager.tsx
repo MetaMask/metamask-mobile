@@ -43,6 +43,7 @@ import {
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import {
+  buildPerpsCufStartTags,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
 } from '../utils/perpsCufTrace';
@@ -630,6 +631,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       name: TraceName.PerpsWebSocketFirstPrice,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
     this.wsConnectionStartTime = performance.now();
 
@@ -809,6 +811,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           name: TraceName.PerpsWebSocketFirstPrice,
           id: this.firstDataTraceId,
           op: TraceOperation.PerpsOperation,
+          tags: buildPerpsCufStartTags(),
         });
         this.wsConnectionStartTime = performance.now();
 
@@ -1647,6 +1650,7 @@ class TopOfBookStreamChannel extends StreamChannel<
       name: TraceName.PerpsWebSocketFirstOrderBook,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
     this.wsConnectionStartTime = performance.now();
 

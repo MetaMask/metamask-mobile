@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -17,20 +19,20 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -81,7 +83,7 @@ const MAX_INPUT_LENGTH = 20;
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // State
   const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
@@ -385,7 +387,7 @@ const PerpsWithdrawView: React.FC = () => {
               marginBottom={2}
             >
               <Text
-                variant={TextVariant.DisplayMD}
+                variant={TextVariant.DisplayMd}
                 style={tw.style(
                   'text-[54px] leading-[70px] font-medium mb-2 text-default',
                   withdrawAmount === '0' && 'text-alternative',
@@ -404,8 +406,8 @@ const PerpsWithdrawView: React.FC = () => {
               />
             </Box>
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
               testID={PerpsWithdrawViewSelectorsIDs.AVAILABLE_BALANCE_TEXT}
             >
               {strings('perps.withdrawal.available_balance', {
@@ -427,7 +429,10 @@ const PerpsWithdrawView: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             twClassName="gap-2"
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.withdrawal.receive')}
             </Text>
             <Pressable
@@ -464,7 +469,7 @@ const PerpsWithdrawView: React.FC = () => {
                 size={AvatarSize.Sm}
               />
             </BadgeWrapper>
-            <Text variant={TextVariant.BodyMD}>{USDC_SYMBOL}</Text>
+            <Text variant={TextVariant.BodyMd}>{USDC_SYMBOL}</Text>
           </Box>
         </Box>
 
@@ -479,8 +484,8 @@ const PerpsWithdrawView: React.FC = () => {
                   twClassName="gap-2"
                 >
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings('perps.withdrawal.provider_fee')}
                   </Text>
@@ -500,8 +505,8 @@ const PerpsWithdrawView: React.FC = () => {
             value={{
               label: (
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
                 >
                   {formattedQuoteData?.networkFee || '$1.00'}
@@ -522,8 +527,8 @@ const PerpsWithdrawView: React.FC = () => {
                   twClassName="gap-2"
                 >
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings('perps.withdrawal.estimated_time')}
                   </Text>
@@ -533,8 +538,8 @@ const PerpsWithdrawView: React.FC = () => {
             value={{
               label: (
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
                 >
                   {formattedQuoteData?.estimatedTime}
@@ -548,15 +553,16 @@ const PerpsWithdrawView: React.FC = () => {
         <Box twClassName="px-5 py-2">
           <KeyValueRow
             field={{
-              label: {
-                text: strings('perps.withdrawal.you_will_receive'),
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text variant={TextVariant.BodyMd}>
+                  {strings('perps.withdrawal.you_will_receive')}
+                </Text>
+              ),
             }}
             value={{
               label: (
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMd}
                   testID={PerpsWithdrawViewSelectorsIDs.RECEIVE_VALUE}
                 >
                   {formatReceiveAmount}
@@ -574,8 +580,8 @@ const PerpsWithdrawView: React.FC = () => {
           {/* Error Message - Always present, visibility controlled */}
           <Box twClassName="mb-4">
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Error}
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
               style={tw.style(
                 'text-center',
                 // Control visibility - opacity 0 when no error
@@ -608,7 +614,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     10%
@@ -625,7 +632,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     25%
@@ -642,7 +650,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     50%
@@ -659,7 +668,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     Max
