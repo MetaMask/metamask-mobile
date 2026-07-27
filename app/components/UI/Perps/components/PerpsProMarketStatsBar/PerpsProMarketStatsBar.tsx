@@ -2,34 +2,94 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  KeyValueColumn,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { calculateFundingCountdown } from '@metamask/perps-controller';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
-import { formatFundingRate } from '../../utils/formatUtils';
-import FundingCountdown from '../FundingCountdown';
+import {
+  formatFundingRate,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import { createStyles } from './PerpsProMarketStatsBar.styles';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
+
+interface StatItemProps {
+  label: string;
+  value: string;
+  testID?: string;
+  valueTestID?: string;
+}
+
+/**
+ * Compact inline label+value pair matching Figma "KeyValue/Base".
+ *
+ * MMDS KeyValueRow forces full-width padding and a fixed height, which is wrong
+ * for this dense horizontal stats strip — so we compose Text directly with the
+ * Figma typography (BodyMd Regular label / BodyMd Medium value) and gap-2.
+ */
+const StatItem: React.FC<StatItemProps> = ({
+  label,
+  value,
+  testID,
+  valueTestID,
+}) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="gap-2"
+    testID={testID}
+  >
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Regular}
+      color={TextColor.TextAlternative}
+      numberOfLines={1}
+    >
+      {label}
+    </Text>
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+      numberOfLines={1}
+      testID={valueTestID}
+    >
+      {value}
+    </Text>
+  </Box>
+);
+
+const formatLivePrice = (rawPrice: string | undefined): string => {
+  if (!rawPrice) {
+    return '-';
+  }
+  const parsed = Number.parseFloat(rawPrice);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return '-';
+  }
+  return formatPerpsFiat(parsed, { ranges: PRICE_RANGES_UNIVERSAL });
+};
 
 /**
  * Pro-mode market stats bar.
  *
- * Renders funding rate (with countdown), 24h volume, open interest and 24h
- * high/low as a horizontally scrollable row of key/value items, sitting
- * between the chart and the order-form/order-book columns.
+ * Renders Funding, 24h vol, Open interest, Mark price and Oracle price as a
+ * horizontally scrollable row of inline key/value items (Figma 10041:12992),
+ * sitting between the chart and the order-form/order-book columns.
  *
- * Data comes from `usePerpsMarketStats` (same hook that backs the lite
- * `PerpsMarketStatisticsCard`), plus a live funding-rate subscription that
- * mirrors the card's WebSocket-first / stats fallback behaviour. No lite
+ * Volume/OI come from `usePerpsMarketStats`; funding, mark and oracle come from
+ * the live price stream (same sources as the lite statistics card). No lite
  * behaviour or shared components are changed by this component.
  */
 const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
@@ -41,64 +101,53 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const { styles } = useStyles(createStyles, {});
   const marketStats = usePerpsMarketStats(symbol);
 
-  // Live funding rate, throttled to match PerpsMarketStatisticsCard.
+  // Live funding + mark/oracle, throttled to match PerpsMarketStatisticsCard.
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
     throttleMs: 2000,
   });
-  const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
+  const livePriceUpdate = symbol ? livePrices[symbol] : undefined;
+  const liveFunding = livePriceUpdate?.funding;
 
   // Prefer the live WebSocket funding value, fall back to the stats hook, then
   // to the zero display — identical precedence to PerpsMarketStatisticsCard.
-  const fundingRateData = useMemo(() => {
-    let fundingValue: number;
-    let displayText: string;
-
+  const fundingRateDisplay = useMemo(() => {
     if (liveFunding !== undefined) {
-      fundingValue = liveFunding;
-      displayText = formatFundingRate(liveFunding);
-    } else if (
+      return formatFundingRate(liveFunding);
+    }
+    if (
       marketStats.fundingRate &&
       marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
     ) {
-      fundingValue =
-        parseFloat(marketStats.fundingRate.replace('%', '')) /
-        FUNDING_RATE_CONFIG.PercentageMultiplier;
-      displayText = marketStats.fundingRate;
-    } else {
-      fundingValue = 0;
-      displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
+      return marketStats.fundingRate;
     }
-
-    return {
-      displayText,
-      color:
-        fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-    };
+    return FUNDING_RATE_CONFIG.ZeroDisplay;
   }, [liveFunding, marketStats.fundingRate]);
 
-  const fundingValueContent = useMemo(
-    () => (
-      <View style={styles.fundingValue}>
-        <Text variant={TextVariant.BodyMd} color={fundingRateData.color}>
-          {fundingRateData.displayText}
-        </Text>
-        <FundingCountdown
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          nextFundingTime={nextFundingTime}
-          fundingIntervalHours={fundingIntervalHours}
-          testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_FUNDING_COUNTDOWN}
-        />
-      </View>
-    ),
-    [
-      fundingRateData,
-      nextFundingTime,
-      fundingIntervalHours,
-      styles.fundingValue,
-    ],
+  // Funding countdown — same calculator as FundingCountdown, formatted as
+  // "rate / HH:MM:SS" to match the Figma value (not the parenthesized lite form).
+  const [fundingCountdown, setFundingCountdown] = useState(() =>
+    calculateFundingCountdown({ nextFundingTime, fundingIntervalHours }),
   );
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      setFundingCountdown(
+        calculateFundingCountdown({ nextFundingTime, fundingIntervalHours }),
+      );
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [nextFundingTime, fundingIntervalHours]);
+
+  const fundingValue = `${fundingRateDisplay} / ${fundingCountdown}`;
+
+  // PriceUpdate exposes a single markPrice field. Lite's statistics card uses
+  // it as "Oracle price"; Pro Figma shows both Mark and Oracle, so both read
+  // markPrice until a distinct oraclePx is streamed.
+  const markPriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
+  const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
 
   return (
     <Box testID={testID} twClassName="border-t border-b border-border-muted">
@@ -109,40 +158,39 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
         keyboardShouldPersistTaps="handled"
         testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_SCROLL}
       >
+        {/* Figma: px-4 py-2 gap-4 between KeyValue/Base items */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-2 gap-6"
+          twClassName="px-4 py-2 gap-4"
         >
-          <KeyValueColumn
-            style={styles.item}
-            keyLabel={strings('perps.market.funding_rate')}
-            value={fundingValueContent}
+          <StatItem
+            label={strings('perps.market.funding')}
+            value={fundingValue}
             testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_FUNDING_RATE}
+            valueTestID={
+              PerpsProMarketViewSelectorsIDs.STATS_BAR_FUNDING_COUNTDOWN
+            }
           />
-          <KeyValueColumn
-            style={styles.item}
-            keyLabel={strings('perps.market.24h_volume')}
+          <StatItem
+            label={strings('perps.market.24h_vol')}
             value={marketStats.volume24h}
             testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_VOLUME}
           />
-          <KeyValueColumn
-            style={styles.item}
-            keyLabel={strings('perps.market.open_interest')}
+          <StatItem
+            label={strings('perps.market.open_interest')}
             value={marketStats.openInterest}
             testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_OPEN_INTEREST}
           />
-          <KeyValueColumn
-            style={styles.item}
-            keyLabel={strings('perps.market.24h_high')}
-            value={marketStats.high24h}
-            testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_HIGH}
+          <StatItem
+            label={strings('perps.market.mark_price')}
+            value={markPriceDisplay}
+            testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_MARK_PRICE}
           />
-          <KeyValueColumn
-            style={styles.item}
-            keyLabel={strings('perps.market.24h_low')}
-            value={marketStats.low24h}
-            testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_LOW}
+          <StatItem
+            label={strings('perps.market.oracle_price')}
+            value={oraclePriceDisplay}
+            testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE}
           />
         </Box>
       </ScrollView>
