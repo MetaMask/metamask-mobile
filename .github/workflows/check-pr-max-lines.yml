@@ -2,7 +2,7 @@ name: 'Check PR Max Lines'
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, edited]
 
 permissions:
   contents: read
@@ -10,6 +10,9 @@ permissions:
 
 jobs:
   check-pr-max-lines:
+    # Re-run on base retargets (e.g. unstacking a PR onto main), but skip
+    # re-runs for unrelated edits (title/body) which don't affect the diff.
+    if: github.event.action != 'edited' || github.event.changes.base != null
     runs-on: ubuntu-latest
     steps:
       - name: Check PR lines changed
