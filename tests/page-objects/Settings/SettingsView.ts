@@ -1,12 +1,15 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class SettingsView {
   get title(): EncapsulatedElementType {
@@ -61,9 +64,17 @@ class SettingsView {
   }
 
   get alertButton(): EncapsulatedElementType {
-    return PlatformDetector.isAndroid()
-      ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
-      : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
+    // Match "YES" button case-insensitively across platforms
+    const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&',
+    );
+    const appiumYesPattern = new RegExp(`(?i)^${yes}$`);
+    return encapsulated({
+      detox: () => Matchers.getElementByText(new RegExp(`^${yes}$`, 'i')),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(appiumYesPattern, false),
+    });
   }
 
   get scrollViewIdentifier(): Promise<DetoxMatcher> {
