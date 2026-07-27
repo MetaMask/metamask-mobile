@@ -49,7 +49,6 @@ export function getRampsControllerMessenger(
       'UserStorageController:getState',
       'UserStorageController:performGetStorageAllFeatureEntries',
       'UserStorageController:performBatchSetStorage',
-      'UserStorageController:listEntropySources',
       'AuthenticationController:isSignedIn',
     ],
     events: [],
