@@ -121,8 +121,9 @@ export default class WebView {
 
     let webElement: PlaywrightElement | WebElement | undefined;
     await this.withContext(options.pageUrl, async () => {
-      webElement = await this.getElementById(webId, options);
-      await Gestures.scrollToWebViewPort(webElement);
+      const resolved = await this.getElementById(webId, options);
+      await Gestures.scrollToWebViewPort(resolved);
+      webElement = resolved;
     });
     if (!webElement) {
       throw new Error(`WebView.scrollIntoView failed for id "${webId}"`);
