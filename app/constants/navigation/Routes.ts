@@ -240,7 +240,6 @@ const Routes = {
     NETWORK_DETAILS: 'NetworkDetails',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
     REGION_SELECTOR: 'SettingsRegionSelector',
-    AUTH_DEBUGGING: 'AuthDebugging',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',

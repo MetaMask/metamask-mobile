@@ -7,8 +7,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-namespace -- override isTestEnvironment in tests
-import * as testUtils from '../../../util/test/utils';
 
 // Mock Authentication module
 jest.mock('../../../core', () => ({
@@ -233,73 +231,6 @@ describe('Settings', () => {
       );
 
       expect(featureFlagOverrideTitle).toBeDefined();
-    });
-  });
-
-  describe('Auth Debugging', () => {
-    const originalEnv = process.env.METAMASK_ENVIRONMENT;
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      if (originalEnv !== undefined) {
-        process.env.METAMASK_ENVIRONMENT = originalEnv;
-      } else {
-        delete process.env.METAMASK_ENVIRONMENT;
-      }
-    });
-
-    afterEach(() => {
-      if (originalEnv !== undefined) {
-        process.env.METAMASK_ENVIRONMENT = originalEnv;
-      } else {
-        delete process.env.METAMASK_ENVIRONMENT;
-      }
-    });
-
-    it('renders auth debugging drawer in test environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'test';
-
-      const { getByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(
-        getByTestId(SettingsViewSelectorsIDs.AUTH_DEBUGGING),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates to auth debugging screen when drawer is pressed', () => {
-      process.env.METAMASK_ENVIRONMENT = 'test';
-
-      const { getByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      fireEvent.press(getByTestId(SettingsViewSelectorsIDs.AUTH_DEBUGGING));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.AUTH_DEBUGGING);
-    });
-
-    it('does not render auth debugging drawer when isTestEnvironment is false', () => {
-      Object.defineProperty(testUtils, 'isTestEnvironment', {
-        value: false,
-        writable: true,
-        configurable: true,
-      });
-
-      const { queryByTestId } = renderWithProvider(<Settings />, {
-        state: initialState,
-      });
-
-      expect(
-        queryByTestId(SettingsViewSelectorsIDs.AUTH_DEBUGGING),
-      ).not.toBeOnTheScreen();
-
-      Object.defineProperty(testUtils, 'isTestEnvironment', {
-        value: true,
-        writable: true,
-        configurable: true,
-      });
     });
   });
 });

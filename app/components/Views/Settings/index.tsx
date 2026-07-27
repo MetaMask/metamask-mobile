@@ -99,10 +99,6 @@ const Settings = () => {
     navigation.navigate('AesCryptoTestForm');
   };
 
-  const onPressAuthDebugging = () => {
-    navigation.navigate(Routes.SETTINGS.AUTH_DEBUGGING);
-  };
-
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
   };
@@ -208,23 +204,6 @@ const Settings = () => {
               )}
               onPress={onPressAesCryptoTestForm}
               testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
-            />
-          )
-        }
-        {
-          /**
-           * This drawer is only visible in local development / test mode.
-           * It exposes the current MetaMask authentication session (profile
-           * ID and mm-auth JWT) for debugging purposes.
-           *
-           * If this is shown in production, it is a bug.
-           */
-          isTestEnvironment && (
-            <SettingsDrawer
-              title={strings('app_settings.auth_debugging.title')}
-              description={strings('app_settings.auth_debugging.description')}
-              onPress={onPressAuthDebugging}
-              testID={SettingsViewSelectorsIDs.AUTH_DEBUGGING}
             />
           )
         }
