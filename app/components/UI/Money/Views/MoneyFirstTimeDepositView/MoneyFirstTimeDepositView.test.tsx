@@ -4,14 +4,39 @@ import { BackHandler } from 'react-native';
 import MoneyFirstTimeDepositView from './MoneyFirstTimeDepositView';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useReduceMotion } from '../../hooks/useReduceMotion';
+import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import { SCREEN_NAMES } from '../../constants/moneyEvents';
 import { MoneyFirstTimeDepositViewTestIds } from './MoneyFirstTimeDepositView.testIds';
+import { PARALLAX_REST_VALUE } from '../../utils/parallax';
 
 const mockNavigate = jest.fn();
 const mockTrackScreenViewed = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+
+let mockParallaxFlagEnabled = true;
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => {
+    const {
+      selectMoneyParallaxAnimationEnabledFlag,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+    } = require('../../selectors/featureFlags');
+    if (selector === selectMoneyParallaxAnimationEnabledFlag) {
+      return mockParallaxFlagEnabled;
+    }
+    return undefined;
+  },
+}));
+
+jest.mock('../../hooks/useReduceMotion', () => ({
+  useReduceMotion: jest.fn(),
+}));
+
+jest.mock('../../hooks/useDeviceOrientation', () => ({
+  useDeviceOrientation: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -25,45 +50,61 @@ jest.mock('../../hooks/useMountEffect', () => ({
 
 let mockTriggerCallbacks: Record<string, () => void> = {};
 const mockSetString = jest.fn();
+const mockSetNumber = jest.fn();
+const mockViewTag = jest.fn();
+let mockRiveInstanceReady = true;
 let mockOnError: ((error: { message: string }) => void) | undefined;
 
-jest.mock('rive-react-native', () => {
-  const mockRiveRef = {};
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: jest.fn(({ onError, ...props }) => {
+    mockOnError = onError;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { View } = require('react-native');
+    return <View {...props} />;
+  }),
+  useRive: () => [
+    jest.fn(),
+    mockRiveInstanceReady
+      ? { setNumber: mockSetNumber, viewTag: mockViewTag }
+      : null,
+  ],
+  useRiveString: () => [undefined, mockSetString],
+  useRiveTrigger: (_riveRef: unknown, path: string, callback?: () => void) => {
+    if (callback) {
+      mockTriggerCallbacks[path] = callback;
+    }
+  },
+  AutoBind: (value: boolean) => ({ type: 'autobind', value }),
+  Fit: { Layout: 'layout' },
+  RNRiveError: class {},
+}));
 
-  return {
-    __esModule: true,
-    default: jest.fn(({ onError, ...props }) => {
-      mockOnError = onError;
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { View } = require('react-native');
-      return <View {...props} />;
-    }),
-    useRive: () => [jest.fn(), mockRiveRef],
-    useRiveString: () => [undefined, mockSetString],
-    useRiveTrigger: (
-      _riveRef: unknown,
-      path: string,
-      callback?: () => void,
-    ) => {
-      if (callback) {
-        mockTriggerCallbacks[path] = callback;
-      }
-    },
-    AutoBind: (value: boolean) => ({ type: 'autobind', value }),
-    Fit: { Layout: 'layout' },
-    RNRiveError: class {},
-  };
-});
+/** Runs the tilt callback the view handed to `useDeviceOrientation`. */
+const emitTilt = (x: number, y: number) => {
+  const [onOrientation] = (useDeviceOrientation as jest.Mock).mock.calls[0];
+  onOrientation(x, y);
+};
+
+/** The `enabled` option the view passed to `useDeviceOrientation`. */
+const tiltSubscriptionEnabled = (): boolean => {
+  const [, options] = (useDeviceOrientation as jest.Mock).mock.calls[0];
+  return options.enabled;
+};
 
 describe('MoneyFirstTimeDepositView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTriggerCallbacks = {};
     mockOnError = undefined;
+    mockParallaxFlagEnabled = true;
+    mockRiveInstanceReady = true;
+    mockViewTag.mockReturnValue(1);
 
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackScreenViewed: mockTrackScreenViewed,
     });
+    (useReduceMotion as jest.Mock).mockReturnValue(false);
   });
 
   describe('Rendering', () => {
@@ -154,6 +195,73 @@ describe('MoneyFirstTimeDepositView', () => {
 
       expect(result).toBe(true);
       expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Parallax', () => {
+    it('subscribes to device tilt when the flag is on and motion is allowed', () => {
+      render(<MoneyFirstTimeDepositView />);
+
+      expect(tiltSubscriptionEnabled()).toBe(true);
+    });
+
+    it('does not subscribe to device tilt when the parallax flag is off', () => {
+      mockParallaxFlagEnabled = false;
+
+      render(<MoneyFirstTimeDepositView />);
+
+      expect(tiltSubscriptionEnabled()).toBe(false);
+    });
+
+    it('does not subscribe to device tilt when reduce motion is enabled', () => {
+      (useReduceMotion as jest.Mock).mockReturnValue(true);
+
+      render(<MoneyFirstTimeDepositView />);
+
+      expect(tiltSubscriptionEnabled()).toBe(false);
+    });
+
+    it('centres both parallax axes for a device at rest', () => {
+      render(<MoneyFirstTimeDepositView />);
+
+      emitTilt(0, 0);
+
+      expect(mockSetNumber).toHaveBeenCalledWith('xValue', PARALLAX_REST_VALUE);
+      expect(mockSetNumber).toHaveBeenCalledWith('yValue', PARALLAX_REST_VALUE);
+    });
+
+    it('drives the horizontal axis in the same direction as the roll', () => {
+      render(<MoneyFirstTimeDepositView />);
+
+      emitTilt(1, 0);
+
+      expect(mockSetNumber).toHaveBeenCalledWith('xValue', 100);
+    });
+
+    it('drives the vertical axis opposite to the pitch, matching the artboard travel', () => {
+      render(<MoneyFirstTimeDepositView />);
+
+      emitTilt(0, 1);
+
+      expect(mockSetNumber).toHaveBeenCalledWith('yValue', 0);
+    });
+
+    it('does not dispatch before the Rive instance exists', () => {
+      mockRiveInstanceReady = false;
+      render(<MoneyFirstTimeDepositView />);
+
+      emitTilt(1, 1);
+
+      expect(mockSetNumber).not.toHaveBeenCalled();
+    });
+
+    it('does not dispatch to a detached Rive view', () => {
+      mockViewTag.mockReturnValue(null);
+      render(<MoneyFirstTimeDepositView />);
+
+      emitTilt(1, 1);
+
+      expect(mockSetNumber).not.toHaveBeenCalled();
     });
   });
 
