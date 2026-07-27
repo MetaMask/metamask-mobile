@@ -394,6 +394,7 @@ describe('BrowserTab', () => {
       jest.mocked(getPhishingTestResultAsync).mockResolvedValueOnce({
         result: true,
         name: '',
+        type: 'DAPP_SCANNING',
       });
 
       let result: boolean | undefined;
@@ -570,6 +571,12 @@ describe('BrowserTab', () => {
       );
 
       fireEvent.press(screen.getByTestId('browser-url-display-text'));
+      // RNTL does not fire TextInput onFocus from ref.focus(); focus explicitly
+      // so isUrlBarFocused is true for deferred-hide assertions (MCWP-748).
+      fireEvent(screen.getByTestId('browser-modal-url-input'), 'focus');
+      expect(
+        screen.queryByTestId('browser-tab-close-button'),
+      ).not.toBeOnTheScreen();
 
       const recentResult = await screen.findByText('Example', {
         includeHiddenElements: true,
