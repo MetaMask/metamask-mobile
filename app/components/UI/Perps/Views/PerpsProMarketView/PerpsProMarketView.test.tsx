@@ -25,6 +25,22 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// PerpsProPositionsPanel uses live stream hooks; avoid PerpsStreamProvider requirement.
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: null,
+    isInitialLoading: false,
+  })),
+  usePerpsLiveOrders: jest.fn(() => ({
+    orders: [],
+    isInitialLoading: false,
+  })),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
+}));
+
 const renderView = () =>
   renderWithProvider(<PerpsProMarketView />, {
     state: { engine: { backgroundState } },

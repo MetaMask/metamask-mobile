@@ -1541,6 +1541,8 @@
         "trigger_condition": "Trigger condition",
         "take_profit": "Take profit",
         "stop": "Stop",
+        "open_limit": "Open limit",
+        "close_limit": "Close limit",
         "cancel": "Cancel"
       }
     },

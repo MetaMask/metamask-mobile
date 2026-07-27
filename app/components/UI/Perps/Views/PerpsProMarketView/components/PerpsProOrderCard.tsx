@@ -28,8 +28,10 @@ import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   formatPerpsFiat,
   formatPositionSize,
+  formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
+import { isClosingOrder } from '../../../utils/orderDirection';
 import {
   getOrderPositionDirection,
   getValidOrderPrice,
@@ -70,24 +72,6 @@ const KeyValueItem = ({
   </Box>
 );
 
-const formatOrderTimestamp = (timestamp: number): string => {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).formatToParts(new Date(timestamp));
-  const value = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? '';
-
-  return `${value('day')} ${value('month')} ${value('year')} • ${value(
-    'hour',
-  )}:${value('minute')}:${value('second')}`;
-};
-
 const formatOptionalPrice = (price?: string): string => {
   const parsedPrice = Number.parseFloat(price ?? '');
   return Number.isFinite(parsedPrice) && parsedPrice > 0
@@ -103,9 +87,12 @@ const getOrderTypeLabel = (order: Order): string => {
   if (detailedType.includes('stop')) {
     return strings('perps.pro_positions_panel.order_card.stop');
   }
-  return order.orderType === 'limit'
-    ? strings('perps.order.limit')
-    : strings('perps.order.market');
+  if (order.orderType === 'limit') {
+    return isClosingOrder(order)
+      ? strings('perps.pro_positions_panel.order_card.close_limit')
+      : strings('perps.pro_positions_panel.order_card.open_limit');
+  }
+  return strings('perps.order.market');
 };
 
 /**
@@ -132,22 +119,25 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
       : formatPerpsFiat(validOrderPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
-  const triggerConditionKey =
-    validTriggerPrice === null
-      ? undefined
-      : inferTriggerConditionKey({
-          detailedOrderType: order.detailedOrderType,
-          side: order.side,
-          triggerPrice: order.triggerPrice,
-          price: order.price,
-        });
-  const triggerCondition = triggerConditionKey
-    ? strings(triggerConditionKey, {
-        price: formatPerpsFiat(validTriggerPrice as number, {
+  // Figma (Stop card): "Price below $101.00". Non-trigger: fallback display.
+  let triggerCondition = PERPS_CONSTANTS.FallbackPriceDisplay;
+  if (order.isTrigger && validTriggerPrice !== null) {
+    const conditionKey = inferTriggerConditionKey({
+      detailedOrderType: order.detailedOrderType,
+      side: order.side,
+      triggerPrice: order.triggerPrice,
+      price: order.price,
+    });
+    if (conditionKey) {
+      triggerCondition = strings(conditionKey, {
+        price: formatPerpsFiat(validTriggerPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
+          minimumDecimals: 2,
+          stripTrailingZeros: false,
         }),
-      })
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
+      });
+    }
+  }
   const tpSl = `${formatOptionalPrice(
     order.takeProfitPrice,
   )} / ${formatOptionalPrice(order.stopLossPrice)}`;
@@ -189,7 +179,7 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
-              {formatOrderTimestamp(order.timestamp)}
+              {formatProOrderCardTimestamp(order.timestamp)}
             </Text>
           </Box>
         </Box>
