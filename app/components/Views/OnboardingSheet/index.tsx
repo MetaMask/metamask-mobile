@@ -127,21 +127,71 @@ const OnboardingSheet = () => {
         twClassName="p-4 gap-y-4"
         testID={OnboardingSheetSelectorIDs.CONTAINER_ID}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          justifyContent={BoxJustifyContent.End}
-          twClassName="gap-4 w-full"
+        <Button
+          variant={ButtonVariant.Secondary}
+          onPress={onPressContinueWithGoogleAction}
+          testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
+          startAccessory={
+            <GoogleIcon
+              fill="currentColor"
+              width={24}
+              height={24}
+              name={'google'}
+            />
+          }
+          isFullWidth
+          size={ButtonSize.Lg}
+          style={tw.style('border border-muted', {
+            backgroundColor: colors.text.default,
+          })}
+          textProps={{ style: { color: colors.background.default } }}
         >
-          <Button
-            variant={ButtonVariant.Secondary}
-            onPress={onPressContinueWithGoogleAction}
-            testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
-            startAccessory={
-              <GoogleIcon
+          {createWallet
+            ? strings('onboarding.continue_with_google')
+            : strings('onboarding.sign_in_with_google')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          onPress={onPressContinueWithAppleAction}
+          testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
+          startAccessory={
+            isDark ? (
+              <AppleIcon
                 fill="currentColor"
                 width={24}
                 height={24}
-                name={'google'}
+                name={'apple'}
+              />
+            ) : (
+              <AppleWhiteIcon
+                fill="currentColor"
+                width={24}
+                height={24}
+                name={'apple-white'}
+              />
+            )
+          }
+          isFullWidth
+          size={ButtonSize.Lg}
+          style={tw.style('border border-muted', {
+            backgroundColor: colors.text.default,
+          })}
+          textProps={{ style: { color: colors.background.default } }}
+        >
+          {createWallet
+            ? strings('onboarding.continue_with_apple')
+            : strings('onboarding.sign_in_with_apple')}
+        </Button>
+        {onPressContinueWithTelegram ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={onPressContinueWithTelegramAction}
+            testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+            startAccessory={
+              <Icon
+                name={IconName.Telegram}
+                size={IconSize.Lg}
+                style={tw.style({ color: commonColors.telegramBlue })}
               />
             }
             isFullWidth
@@ -152,66 +202,10 @@ const OnboardingSheet = () => {
             textProps={{ style: { color: colors.background.default } }}
           >
             {createWallet
-              ? strings('onboarding.continue_with_google')
-              : strings('onboarding.sign_in_with_google')}
+              ? strings('onboarding.continue_with_telegram')
+              : strings('onboarding.sign_in_with_telegram')}
           </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            onPress={onPressContinueWithAppleAction}
-            testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
-            startAccessory={
-              isDark ? (
-                <AppleIcon
-                  fill="currentColor"
-                  width={24}
-                  height={24}
-                  name={'apple'}
-                />
-              ) : (
-                <AppleWhiteIcon
-                  fill="currentColor"
-                  width={24}
-                  height={24}
-                  name={'apple-white'}
-                />
-              )
-            }
-            isFullWidth
-            size={ButtonSize.Lg}
-            style={tw.style('border border-muted', {
-              backgroundColor: colors.text.default,
-            })}
-            textProps={{ style: { color: colors.background.default } }}
-          >
-            {createWallet
-              ? strings('onboarding.continue_with_apple')
-              : strings('onboarding.sign_in_with_apple')}
-          </Button>
-          {onPressContinueWithTelegram ? (
-            <Button
-              variant={ButtonVariant.Secondary}
-              onPress={onPressContinueWithTelegramAction}
-              testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
-              startAccessory={
-                <Icon
-                  name={IconName.Telegram}
-                  size={IconSize.Lg}
-                  style={tw.style({ color: commonColors.telegramBlue })}
-                />
-              }
-              isFullWidth
-              size={ButtonSize.Lg}
-              style={tw.style('border border-muted', {
-                backgroundColor: colors.text.default,
-              })}
-              textProps={{ style: { color: colors.background.default } }}
-            >
-              {createWallet
-                ? strings('onboarding.continue_with_telegram')
-                : strings('onboarding.sign_in_with_telegram')}
-            </Button>
-          ) : null}
-        </Box>
+        ) : null}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -229,52 +223,44 @@ const OnboardingSheet = () => {
           </Text>
           <Box twClassName="flex-1 h-px bg-border-muted" />
         </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          justifyContent={BoxJustifyContent.End}
-          twClassName="gap-4 w-full"
+        <Button
+          variant={ButtonVariant.Secondary}
+          onPress={createWallet ? onPressCreateAction : onPressImportAction}
+          testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
+          isFullWidth
+          size={ButtonSize.Lg}
         >
-          <Button
-            variant={ButtonVariant.Secondary}
-            onPress={createWallet ? onPressCreateAction : onPressImportAction}
-            testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
-            isFullWidth
-            size={ButtonSize.Lg}
-          >
-            {createWallet
-              ? strings('onboarding.continue_with_srp')
-              : strings('onboarding.import_srp')}
-          </Button>
-        </Box>
-        <Box alignItems={BoxAlignItems.Center} twClassName="mt-6">
+          {createWallet
+            ? strings('onboarding.continue_with_srp')
+            : strings('onboarding.import_srp')}
+        </Button>
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          twClassName="mt-6 text-center"
+        >
+          {strings('onboarding.by_continuing')}{' '}
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            style={tw.style('text-center')}
+            color={TextColor.PrimaryDefault}
+            onPress={onPressTermsOfUse}
+            testID="terms-of-use-link"
           >
-            {strings('onboarding.by_continuing')}{' '}
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.PrimaryDefault}
-              onPress={onPressTermsOfUse}
-              testID="terms-of-use-link"
-            >
-              {strings('onboarding.terms_of_use')}
-            </Text>{' '}
-            {strings('onboarding.and')}{' '}
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.PrimaryDefault}
-              onPress={onPressPrivacyNotice}
-              testID="privacy-notice-link"
-            >
-              {strings('onboarding.privacy_notice')}
-            </Text>
+            {strings('onboarding.terms_of_use')}
+          </Text>{' '}
+          {strings('onboarding.and')}{' '}
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.PrimaryDefault}
+            onPress={onPressPrivacyNotice}
+            testID="privacy-notice-link"
+          >
+            {strings('onboarding.privacy_notice')}
           </Text>
-        </Box>
+        </Text>
       </Box>
     </BottomSheet>
   );
