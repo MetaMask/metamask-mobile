@@ -1335,6 +1335,53 @@ describe('OAuthRehydration', () => {
         );
       });
     });
+
+    it('ends OnboardingJourneyOverall before navigation so a successful social login is not recorded as abandoned', async () => {
+      const journeyCtx = { traceId: 'journey' };
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: journeyCtx,
+        },
+      });
+
+      // Simulate unlockWallet: run onBeforeNavigate first, then reset navigation
+      // to home (which is what unmounts the Onboarding screen in production).
+      mockUnlockWallet.mockImplementation(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+
+      const journeyEndCall = endTraceMock.mock.calls.find(
+        ([request]: [{ name?: string }]) =>
+          request?.name === 'OnboardingJourneyOverall',
+      );
+      // Journey span must be ended, and never with a failure/abandoned marker.
+      expect(journeyEndCall).toBeDefined();
+      expect(journeyEndCall?.[0]?.data?.success).not.toBe(false);
+
+      // Journey span must be closed BEFORE navigation resets/unmounts onboarding,
+      // otherwise the Onboarding unmount cleanup wins and records success: false.
+      const journeyEndOrder =
+        endTraceMock.mock.invocationCallOrder[
+          endTraceMock.mock.calls.indexOf(journeyEndCall)
+        ];
+      expect(journeyEndOrder).toBeLessThan(
+        mockReplace.mock.invocationCallOrder[0],
+      );
+    });
   });
 
   describe('Component lifecycle', () => {
