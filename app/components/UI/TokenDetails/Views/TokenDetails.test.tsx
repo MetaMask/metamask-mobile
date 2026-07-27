@@ -15,7 +15,6 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import Routes from '../../../../constants/navigation/Routes';
 import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
@@ -310,10 +309,6 @@ jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
   selectDepositMinimumVersionFlag: jest.fn(() => null),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
-  selectPriceAlertsEnabled: jest.fn(() => false),
-}));
-
 const mockUseIsPriceAlertsChainSupported = jest.fn<
   boolean,
   [string | null | undefined, { enabled?: boolean }?]
@@ -472,7 +467,6 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectPriceAlertsEnabled) return false;
       return undefined;
     });
   });
@@ -662,6 +656,10 @@ describe('TokenDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
+      if (selector === selectNetworkConfigurations)
+        return { '0x1': { nativeCurrency: 'ETH' } };
+      if (selector === selectCurrencyRates)
+        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
@@ -772,28 +770,8 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('price alert button gating', () => {
-    const enablePriceAlerts = () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectNetworkConfigurationByChainId)
-          return { name: 'Ethereum' };
-        if (selector === selectNetworkConfigurations)
-          return { '0x1': { nativeCurrency: 'ETH' } };
-        if (selector === selectCurrencyRates)
-          // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
-          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-        if (selector === selectPerpsEnabledFlag) return false;
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
-        if (selector === getRampNetworks) return [];
-        if (selector === selectDepositActiveFlag) return false;
-        if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
-        return undefined;
-      });
-    };
-
-    it('passes onPriceAlertPress to the header when the flag is enabled and currentPrice > 0', () => {
-      enablePriceAlerts();
+  describe('price alert button', () => {
+    it('passes onPriceAlertPress to the header when currentPrice > 0', () => {
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -808,17 +786,7 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('passes undefined onPriceAlertPress when the flag is disabled', () => {
-      // Flag disabled — default mockUseSelector returns false for selectPriceAlertsEnabled
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ onPriceAlertPress: undefined }),
-      );
-    });
-
-    it('passes undefined onPriceAlertPress when currentPrice is 0, even if flag is enabled', () => {
-      enablePriceAlerts();
+    it('passes undefined onPriceAlertPress when currentPrice is 0', () => {
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 0,
@@ -832,7 +800,6 @@ describe('TokenDetails', () => {
     });
 
     it('passes undefined onPriceAlertPress when CAIP-19 asset id cannot be resolved', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -850,7 +817,6 @@ describe('TokenDetails', () => {
     });
 
     it('passes undefined onPriceAlertPress when the chain is not supported for price alerts', () => {
-      enablePriceAlerts();
       mockUseIsPriceAlertsChainSupported.mockReturnValue(false);
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
@@ -877,7 +843,6 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -893,7 +858,6 @@ describe('TokenDetails', () => {
     });
 
     it('shows the price alert button for a Solana token when the chain is supported', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 150,
@@ -915,7 +879,6 @@ describe('TokenDetails', () => {
     });
 
     it('shows the price alert button for a Bitcoin token using the native currency CAIP-19 fallback', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 60000,
@@ -940,7 +903,6 @@ describe('TokenDetails', () => {
     });
 
     it('navigates with the Bitcoin native CAIP-19 asset id when the price alert button is pressed', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 60000,
@@ -986,7 +948,6 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1020,7 +981,6 @@ describe('TokenDetails', () => {
     });
 
     it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 2500,

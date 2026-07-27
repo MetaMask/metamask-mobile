@@ -17,6 +17,7 @@ import {
 import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
@@ -309,7 +310,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
   const [searchQuery, setSearchQuery] = useState(
