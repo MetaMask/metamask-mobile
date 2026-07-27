@@ -13,6 +13,7 @@ import {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -52,7 +53,7 @@ import ErrorBoundary from '../ErrorBoundary';
 
 const ActivityScreen = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);

@@ -102,6 +102,29 @@ describe('useBridgeConfirm', () => {
       });
     });
 
+    it('forwards the quote fetched with custom slippage unchanged', async () => {
+      const customSlippageQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          slippage: 3.5,
+        },
+      };
+      const { result } = renderHook({
+        ...defaultParams,
+        activeQuote: customSlippageQuote,
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+        quoteResponse: customSlippageQuote,
+        location: MetaMetricsSwapsEventSource.MainView,
+      });
+    });
+
     it('passes the location prop through to submitBridgeTx', async () => {
       const { result } = renderHook({
         ...defaultParams,
@@ -175,6 +198,26 @@ describe('useBridgeConfirm', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('keeps the slippage override after successful submission', async () => {
+      const state = {
+        bridge: {
+          ...mockBridgeReducerState,
+          slippage: '3.5',
+          isSlippageUserOverride: true,
+        },
+      };
+      const { result, store } = renderHook(defaultParams, state);
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect((store.getState() as RootState).bridge.slippage).toBe('3.5');
+      expect(
+        (store.getState() as RootState).bridge.isSlippageUserOverride,
+      ).toBe(true);
     });
   });
 

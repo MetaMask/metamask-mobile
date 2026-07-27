@@ -2,6 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { View, Text, Linking, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: {
@@ -50,7 +51,7 @@ const Description = (props: DescriptionProps) => {
   } = props;
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(() => {
     if (number === 2) {
