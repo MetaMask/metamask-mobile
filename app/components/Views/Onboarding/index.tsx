@@ -180,7 +180,7 @@ async function isDeviceOffline(): Promise<boolean> {
 
 const styles = StyleSheet.create({
   androidNotificationOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 999,
     elevation: 999,
   },
