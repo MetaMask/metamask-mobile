@@ -28,6 +28,8 @@ jest.mock('../../../../../util/Logger', () => ({
 
 const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
 const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
+const REFRESH_SOCIAL_CACHE_ACTION =
+  'SocialService:refreshNotificationPreferencesCache';
 const CLIENT_TYPE = 'mobile';
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
@@ -178,6 +180,38 @@ describe('useNotificationStoragePreferences', () => {
       CLIENT_TYPE,
     );
     expect(mockCall).not.toHaveBeenCalledWith(GET_ACTION);
+    expect(mockCall).toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
+  });
+
+  it('fires a best-effort Social API cache refresh only after the write succeeds', async () => {
+    const initialPreferences = buildPreferences();
+    queryCache = initialPreferences;
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
+    const persistError = new Error('network down');
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === PUT_ACTION) {
+        throw persistError;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await act(async () => {
+      try {
+        await result.current.updateSectionChannel(
+          'perps',
+          'pushNotificationsEnabled',
+          false,
+        );
+      } catch {
+        // expected — the write failed
+      }
+    });
+
+    // The AUS write failed, so there is nothing to refresh — and crucially no
+    // compensating rollback call is made.
+    expect(mockCall).not.toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
   });
 
   it('accepts a section updater that receives the latest cached section', async () => {

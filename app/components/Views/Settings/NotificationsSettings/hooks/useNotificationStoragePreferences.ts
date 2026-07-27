@@ -13,6 +13,10 @@ const GET_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences' as const;
 const PUT_ACTION =
   'AuthenticatedUserStorageService:putNotificationPreferences' as const;
+// Tells the social API to re-read this user's preferences from AUS and refresh
+// its cache so the change is honoured near-instantly (see @metamask/social-controllers).
+const REFRESH_SOCIAL_CACHE_ACTION =
+  'SocialService:refreshNotificationPreferencesCache' as const;
 
 type NotificationPreferencesResult = Awaited<
   ReturnType<
@@ -166,6 +170,19 @@ export const useNotificationStoragePreferences =
         try {
           await persistWrite;
           lastConfirmedPreferencesRef.current = nextPreferences;
+          // Best-effort: nudge the Social API to refresh its cached copy so
+          // the change is honoured immediately rather than after its cache
+          // TTL. Fire-and-forget — the AUS write above is the source of truth
+          // and has already succeeded, so a failure here must not roll back
+          // the change or surface to the user, hence the swallowed catch.
+          Engine.controllerMessenger
+            .call(REFRESH_SOCIAL_CACHE_ACTION)
+            .catch((refreshError) => {
+              Logger.error(
+                refreshError as Error,
+                'Failed to refresh Social API notification preferences cache',
+              );
+            });
           finishWrite();
         } catch (err) {
           Logger.error(

@@ -6,6 +6,12 @@
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
   },
+  "previewBuilds": {
+    "@metamask/social-controllers": {
+      "type": "non-breaking",
+      "previewVersion": "2.6.0-preview-3d3ef9d3a"
+    }
+  },
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
