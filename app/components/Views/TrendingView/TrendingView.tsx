@@ -12,6 +12,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -82,7 +83,7 @@ const useExploreTabNavigationEffect = (opts: {
   } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
-  const { setParams } = useNavigation();
+  const { setParams } = useNavigation<AppNavigationProp>();
   const initialTabIndex = Object.values(EXPLORE_TAB_INDEX).find(
     (tab) => tab === route.params?.initialTab,
   );
@@ -196,7 +197,7 @@ const ExploreTabs: React.FC<ExploreTabsProps> = ({
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
   const tabsListRef = useRef<TabsListRef>(null);

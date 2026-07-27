@@ -33,6 +33,7 @@ import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import {
+  enrichCaveatValueForEip155,
   getHostname,
   getScopedPermissions,
   hideWCLoadingState,
@@ -637,9 +638,17 @@ export class WC2Manager {
 
       // Let every non-EVM adapter enrich the CAIP-25 caveat value before
       // we persist permissions.
-      const enrichedCaveatValue = enrichCaveatValueByAdapters({
+      const adapterEnrichedCaveatValue = enrichCaveatValueByAdapters({
         proposal: proposal.params,
         caveatValue,
+      });
+
+      // Seed the requested eip155 chains too, so the approval UI pre-selects
+      // EVM networks alongside any adapter namespaces (e.g. Tron) instead of
+      // defaulting to the adapter namespace only.
+      const enrichedCaveatValue = enrichCaveatValueForEip155({
+        proposal: proposal.params,
+        caveatValue: adapterEnrichedCaveatValue,
       });
 
       // Important: Use hostname as the origin for permission request to ensure consistency
