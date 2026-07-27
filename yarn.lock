@@ -36072,6 +36072,7 @@ __metadata:
     "@metamask/design-system-react-native": "npm:^0.38.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
     "@metamask/design-tokens": "npm:^8.7.0"
+    "@metamask/device-mcp": "npm:^0.3.0"
     "@metamask/earn-controller": "npm:^12.1.0"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
