@@ -276,14 +276,14 @@ class NitroWebSocketAdapter {
  * The Android native layer of react-native-nitro-websockets
  * (WebSocketConnection.cpp `connect()`) requests a `nitro-ws` subprotocol
  * (libwebsockets transmits `lws_client_connect_info.protocol` as the
- * `Sec-WebSocket-Protocol` request header) and sends an `Origin` header set
- * to the server's own host on every connection whose caller asked for no
- * subprotocol. Strict servers reject that handshake. The WalletConnect relay
- * is one of them: the socket never opens, `pairing.pair()` never settles, and
- * every WalletConnect connection hangs on the loading sheet (WAPI-1574,
- * regression shipped in 8.3.0 via #32472). Lenient endpoints (e.g.
- * HyperLiquid feeds) ignore the extra headers, which is why other websocket
- * features work.
+ * `Sec-WebSocket-Protocol` request header) on every connection whose caller
+ * asked for no subprotocol, and unconditionally sends an `Origin` header set
+ * to the server's own host. Strict servers reject that handshake. The
+ * WalletConnect relay is one of them: the socket never opens,
+ * `pairing.pair()` never settles, and every WalletConnect connection hangs on
+ * the loading sheet (WAPI-1574, regression shipped in 8.3.0 via #32472).
+ * Lenient endpoints (e.g. HyperLiquid feeds) ignore the extra headers, which
+ * is why other websocket features work.
  *
  * Route these hosts through the built-in WebSocket until the native layer
  * stops fabricating those headers.
@@ -293,13 +293,17 @@ const NITRO_INCOMPATIBLE_HOSTS = new Set([
   'relay.walletconnect.com',
 ]);
 
-// Dependency-free hostname extraction (mirrors the native parseUrl): the URL
-// polyfill may not be installed yet when this module is evaluated.
+// Dependency-free hostname extraction (mirrors the native parseUrl). This
+// runs on every WebSocket construction, so keep it allocation-light and
+// independent of the URL polyfill and its import order.
 function getWsHostname(url: string): string {
   const schemeEnd = url.indexOf('://');
   if (schemeEnd === -1) return '';
   const hostPort = url.slice(schemeEnd + 3).split(/[/?#]/)[0];
-  return hostPort.split(':')[0].toLowerCase();
+  // Strip userinfo (user:pass@host) so credentials are never mistaken for
+  // the hostname.
+  const host = hostPort.split('@').pop() ?? '';
+  return host.split(':')[0].toLowerCase();
 }
 
 function isNitroIncompatibleUrl(url: string): boolean {
@@ -312,8 +316,27 @@ type RNWebSocketConstructor = new (
   options?: unknown,
 ) => WebSocket;
 
+// Marks installed routing constructors so repeated installs (Fast Refresh of
+// this module, direct calls in tests) don't nest wrapper inside wrapper.
+const NITRO_ROUTING_INSTALLED = Symbol.for('metamask.nitroWebSocketRouting');
+
+function isNitroWebSocketInstalled(ctor: unknown): boolean {
+  return (
+    ctor === (NitroWebSocketAdapter as unknown) ||
+    Boolean(
+      (ctor as Record<symbol, unknown> | undefined)?.[NITRO_ROUTING_INSTALLED],
+    )
+  );
+}
+
 // Builds a WebSocket constructor that sends matching URLs to the Nitro
 // adapter and everything else to the built-in implementation.
+//
+// Note: instances are created by the delegated constructors, so nothing is
+// `instanceof global.WebSocket`, subclassing the global is unsupported, and
+// patches to `WebSocket.prototype` will not reach instances. No shipped
+// consumer relies on those patterns today (checked the app and bundled
+// dependencies); revisit if a dependency bump introduces one.
 function createRoutingWebSocket(
   BuiltInWebSocket: RNWebSocketConstructor,
   useNitro: (url: string) => boolean,
@@ -337,6 +360,7 @@ function createRoutingWebSocket(
     OPEN: 1,
     CLOSING: 2,
     CLOSED: 3,
+    [NITRO_ROUTING_INSTALLED]: true,
   });
   return RoutingWebSocket as unknown as typeof WebSocket;
 }
@@ -346,7 +370,18 @@ export function installProductionNitroWebSocket(): void {
     | RNWebSocketConstructor
     | undefined;
 
+  if (isNitroWebSocketInstalled(BuiltInWebSocket)) {
+    return;
+  }
+
   if (!BuiltInWebSocket) {
+    // Unreachable in production: RN's InitializeCore defines global.WebSocket
+    // before the entry module runs. Warn so a regression of that invariant is
+    // visible — the bare adapter reintroduces the relay hang (WAPI-1574).
+    console.warn(
+      '[NitroWebSocketSetup] no built-in WebSocket found; installing the ' +
+        'Nitro adapter without relay routing',
+    );
     global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
     return;
   }
@@ -365,7 +400,15 @@ export function installDevNitroWebSocket(): void {
     | RNWebSocketConstructor
     | undefined;
 
+  if (isNitroWebSocketInstalled(BuiltInWebSocket)) {
+    return;
+  }
+
   if (!BuiltInWebSocket) {
+    console.warn(
+      '[NitroWebSocketSetup] no built-in WebSocket found; installing the ' +
+        'Nitro adapter without relay routing',
+    );
     global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
     return;
   }
