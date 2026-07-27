@@ -1,8 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
-import type { EncapsulatedElementType } from './EncapsulatedElement';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
-import Gestures from './Gestures';
 import { getDriver } from './PlaywrightUtilities';
 import PlaywrightGestures from './PlaywrightGestures';
 import { sleep } from './Utilities';
@@ -19,12 +17,12 @@ export interface AndroidWebViewScrollOptions {
   scrollLabels?: Record<string, string>;
 }
 
+export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
+  description?: string;
+};
+
 function escapeUiAutomatorString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
-
-function asEncapsulated(elem: PlaywrightElement): EncapsulatedElementType {
-  return elem as unknown as EncapsulatedElementType;
 }
 
 async function findNativeWebIdElement(
@@ -190,13 +188,13 @@ export async function scrollAndroidWebIdIntoView(
 
 export async function tapAndroidWebId(
   webId: string,
-  options: AndroidWebViewScrollOptions & { description?: string } = {},
+  options: AndroidWebViewTapOptions = {},
 ): Promise<void> {
   const elem = await scrollAndroidWebIdIntoView(webId, options);
-  await Gestures.tap(asEncapsulated(elem), {
-    elemDescription:
-      options.description ?? `Android native WebView tap: ${webId}`,
-  });
+  logger.debug(options.description ?? `Android native WebView tap: ${webId}`);
+  // Avoid importing Gestures here — Gestures re-exports these helpers and that
+  // would create a circular dependency.
+  await elem.click();
 }
 
 /**
