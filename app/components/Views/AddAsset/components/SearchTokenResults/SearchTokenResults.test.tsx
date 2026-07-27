@@ -136,9 +136,22 @@ describe('SearchTokenResults', () => {
       searchQuery: 'token',
     });
 
-    let rows = getAllByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT);
-    expect(within(rows[0]).getByRole('checkbox')).toBeOnTheScreen();
-    expect(within(rows[1]).queryByRole('checkbox')).toBeNull();
+    const findRowByTokenName = (name: string) => {
+      const row = getAllByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      ).find((candidate) => within(candidate).queryByText(name));
+      if (!row) {
+        throw new Error(`Row for token "${name}" not found`);
+      }
+      return row;
+    };
+
+    expect(
+      within(findRowByTokenName('Token A')).getByRole('checkbox'),
+    ).toBeOnTheScreen();
+    expect(
+      within(findRowByTokenName('Token B')).queryByRole('checkbox'),
+    ).toBeNull();
 
     rerender(
       <SearchTokenResults
@@ -149,8 +162,11 @@ describe('SearchTokenResults', () => {
       />,
     );
 
-    rows = getAllByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT);
-    expect(within(rows[0]).queryByRole('checkbox')).toBeNull();
-    expect(within(rows[1]).getByRole('checkbox')).toBeOnTheScreen();
+    expect(
+      within(findRowByTokenName('Token A')).getByRole('checkbox'),
+    ).toBeOnTheScreen();
+    expect(
+      within(findRowByTokenName('Token B')).queryByRole('checkbox'),
+    ).toBeNull();
   });
 });
