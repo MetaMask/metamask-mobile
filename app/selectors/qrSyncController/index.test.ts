@@ -7,7 +7,6 @@ import {
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
 import type { RootState } from '../../reducers';
 import {
-  selectQrSyncExistingUserImportMnemonic,
   selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
   selectQrSyncShouldNavigateToImport,
@@ -128,48 +127,6 @@ describe('qrSyncController selectors', () => {
           }),
         ),
       ).toBe(false);
-    });
-  });
-
-  describe('selectQrSyncExistingUserImportMnemonic', () => {
-    it('returns the primary mnemonic when flagged', () => {
-      const state = buildState({
-        pendingSecretImports: [
-          {
-            index: 0,
-            value: 'primary mnemonic',
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: true,
-          },
-          {
-            index: 1,
-            value: 'secondary mnemonic',
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: false,
-          },
-        ],
-      });
-
-      expect(selectQrSyncExistingUserImportMnemonic(state)).toBe(
-        'primary mnemonic',
-      );
-    });
-
-    it('falls back to the first mnemonic when isPrimary is absent', () => {
-      const state = buildState({
-        pendingSecretImports: [
-          {
-            index: 0,
-            value: 'extension mnemonic',
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: false,
-          },
-        ],
-      });
-
-      expect(selectQrSyncExistingUserImportMnemonic(state)).toBe(
-        'extension mnemonic',
-      );
     });
   });
 

@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   HeaderStandard,
@@ -34,7 +35,7 @@ import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/co
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const DeveloperOptions = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<{ isFullScreenModal: boolean }>();
   const isFullScreenModal = params?.isFullScreenModal;
 

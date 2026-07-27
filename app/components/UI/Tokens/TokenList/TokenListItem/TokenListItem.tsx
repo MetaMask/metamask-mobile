@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -174,7 +175,7 @@ export const TokenListItem = React.memo(
     tokensInList,
     hideSecondaryPriceRow = false,
   }: TokenListItemProps) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const queryClient = useQueryClient();
     const { colors } = useTheme();
     const styles = createStyles(colors);
