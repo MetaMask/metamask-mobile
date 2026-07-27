@@ -32,6 +32,7 @@ function mockSystem(
   );
   mockedExecFileSync.mockImplementation((file, args) => {
     const values = args as string[];
+    if (typeof file === 'string' && file.endsWith('idb')) return '';
     if (file === 'xcrun' && values[1] === 'help') return '';
     if (file === 'xcrun' && values[1] === 'list') {
       return JSON.stringify({
@@ -136,10 +137,30 @@ describe('validateIOSPrerequisites', () => {
     expect(result.installAction).toBe('reset-and-install');
   });
 
+  it('fails fast when idb is not installed', async () => {
+    mockSystem({ installedApp: INSTALLED_APP });
+    mockedExecFileSync.mockImplementation((file, args) => {
+      const values = args as string[];
+      if (typeof file === 'string' && file.endsWith('idb')) {
+        const error = new Error('spawn ENOENT') as NodeJS.ErrnoException;
+        error.code = 'ENOENT';
+        throw error;
+      }
+      if (file === 'xcrun' && values[1] === 'help') return '';
+      throw new Error(`Unexpected command: ${String(file)}`);
+    });
+
+    await expect(validateIOSPrerequisites({})).rejects.toMatchObject({
+      code: 'MM_IOS_DEPENDENCY_MISSING',
+      remediation: expect.stringContaining('idb-companion'),
+    });
+  });
+
   it('rejects an unavailable simulator', async () => {
     mockSystem();
     mockedExecFileSync.mockImplementation((file, args) => {
       const values = args as string[];
+      if (typeof file === 'string' && file.endsWith('idb')) return '';
       if (file === 'xcrun' && values[1] === 'help') return '';
       if (file === 'xcrun' && values[1] === 'list') {
         return JSON.stringify({ devices: {} });
@@ -147,9 +168,9 @@ describe('validateIOSPrerequisites', () => {
       throw new Error('unexpected');
     });
 
-    await expect(validateIOSPrerequisites({})).rejects.toBeInstanceOf(
-      IOSLaunchError,
-    );
+    await expect(validateIOSPrerequisites({})).rejects.toMatchObject({
+      code: 'MM_IOS_RUNNER_NOT_READY',
+    });
   });
 });
 

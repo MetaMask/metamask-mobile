@@ -32,8 +32,10 @@ iOS Simulator + @metamask/device-mcp
 - Node.js and Yarn versions required by this repository
 - Xcode with command-line tools
 - An iOS Simulator
-- `idb-companion` (`brew install idb-companion`)
+- `idb` and `idb-companion` (`brew tap facebook/fb && brew install idb-companion && pip3 install fb-idb`)
 - MetaMask already installed on the target simulator
+
+Run `yarn mm:doctor` to verify the iOS toolchain (Xcode, `idb`, `idb_companion`, and a booted simulator) before launching. It prints a PASS/FAIL report with install commands for anything missing and exits non-zero when a prerequisite is absent.
 
 `mm launch` does not build MetaMask and does not search local build outputs or Xcode DerivedData. You must install the app separately on the simulator before launching.
 
@@ -120,11 +122,12 @@ NODE_OPTIONS="--experimental-websocket" MM_METRO_PORT=8081 yarn mm launch
 
 ## Troubleshooting
 
-| Error                          | Resolution                                                                      |
-| ------------------------------ | ------------------------------------------------------------------------------- |
-| `MM_IOS_RUNNER_NOT_READY`      | Verify Xcode, boot a simulator, and install MetaMask before launching.          |
-| `MM_IOS_APP_IDENTITY_MISMATCH` | Reuse the installed app or install a matching app outside of the `mm` workflow. |
-| `MM_NO_ACTIVE_SESSION`         | Run `yarn mm launch`.                                                           |
-| `MM_TARGET_NOT_FOUND`          | Run `yarn mm describe-screen` and use fresh refs.                               |
+| Error                          | Resolution                                                                             |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| `MM_IOS_DEPENDENCY_MISSING`    | `idb` is not installed. Run `yarn mm:doctor`, then install with `brew tap facebook/fb && brew install idb-companion && pip3 install fb-idb`. |
+| `MM_IOS_RUNNER_NOT_READY`      | Verify Xcode, boot a simulator, and install MetaMask before launching.                 |
+| `MM_IOS_APP_IDENTITY_MISMATCH` | Reuse the installed app or install a matching app outside of the `mm` workflow.        |
+| `MM_NO_ACTIVE_SESSION`         | Run `yarn mm launch`.                                                                  |
+| `MM_TARGET_NOT_FOUND`          | Run `yarn mm describe-screen` and use fresh refs.                                      |
 
 For the complete agent-facing interaction guide, see `.claude/skills/metamask-mobile-visual-testing/SKILL.md`. Mobile platform support is part of `@metamask/client-mcp-core`; `@metamask/device-mcp` supplies the device backend.

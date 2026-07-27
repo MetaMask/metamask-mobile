@@ -8,6 +8,10 @@ import {
   type ResolvedIOSLaunchOptions,
 } from '../launcher-types';
 import { resolveRepoRoot } from '../resolve-repo-root';
+import {
+  validateIdbAvailable,
+  validateSimctlAvailable,
+} from './environment-checks';
 
 type SimctlDevice = {
   udid: string;
@@ -43,6 +47,7 @@ export async function validateIOSPrerequisites(input: {
   allowFoxCodeMismatch?: boolean;
 }): Promise<ResolvedIOSLaunchOptions> {
   validateSimctlAvailable();
+  validateIdbAvailable();
 
   const simulatorDeviceId = input.simulatorDeviceId
     ? validateSimulatorDevice(input.simulatorDeviceId)
@@ -70,21 +75,6 @@ export async function validateIOSPrerequisites(input: {
     installedAppMetadata,
     installAction,
   };
-}
-
-function validateSimctlAvailable(): void {
-  try {
-    execFileSync('xcrun', ['simctl', 'help'], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-  } catch {
-    throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
-      message: '`xcrun simctl` not available. Is Xcode installed?',
-      remediation:
-        'Install Xcode from the Mac App Store and run `xcode-select --install`.',
-    });
-  }
 }
 
 function validateSimulatorDevice(simulatorDeviceId: string): string {
