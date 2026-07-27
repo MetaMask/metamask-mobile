@@ -1,8 +1,7 @@
 /* eslint-disable dot-notation */
 import {
   Scope,
-  UserFeedback,
-  captureUserFeedback,
+  captureFeedback,
   getClient,
   getGlobalScope,
 } from '@sentry/react-native';
@@ -30,7 +29,7 @@ import Device from '../device';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
-const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
@@ -299,19 +298,14 @@ describe('captureSentryFeedback', () => {
   it('captures Sentry user feedback', async () => {
     const mockSentryId = '123';
     const mockComments = 'Comment';
-    const expectedUserFeedback: UserFeedback = {
-      event_id: mockSentryId,
-      name: '',
-      email: '',
-      comments: mockComments,
-    };
     captureSentryFeedback({
-      sentryId: expectedUserFeedback.event_id,
-      comments: expectedUserFeedback.comments,
+      sentryId: mockSentryId,
+      comments: mockComments,
     });
-    expect(mockedCaptureUserFeedback).toHaveBeenCalledWith(
-      expectedUserFeedback,
-    );
+    expect(mockedCaptureFeedback).toHaveBeenCalledWith({
+      message: mockComments,
+      associatedEventId: mockSentryId,
+    });
   });
 
   describe('maskObject', () => {
