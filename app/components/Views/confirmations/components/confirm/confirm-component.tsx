@@ -27,7 +27,10 @@ import Info from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
 import styleSheet from './confirm-component.styles';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
@@ -37,7 +40,6 @@ import {
 } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 

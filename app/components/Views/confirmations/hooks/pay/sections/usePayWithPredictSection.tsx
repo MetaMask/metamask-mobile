@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
@@ -21,7 +24,6 @@ import {
   PayWithRowConfig,
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
-import { hasTransactionType } from '../../../utils/transaction';
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
 import useApprovalRequest from '../../useApprovalRequest';
 

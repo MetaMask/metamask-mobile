@@ -7,6 +7,7 @@ import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -17,10 +18,7 @@ import {
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import {
-  hasTransactionType,
-  shouldApplyGasFeeSponsorship,
-} from '../../utils/transaction';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
