@@ -866,6 +866,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * `window.location.href`. On iOS this prevents Universal Link handoff to
      * associated native apps; applied on both platforms for a single code path
      * (MCWP-748).
+     *
+     * A two-step source update (`about:blank` then destination) is required on
+     * iOS: RNCWebView's `visitSource` can skip `loadRequest` when only the URI
+     * changes on an already-loaded document, which broke SmokeBrowser iOS E2E
+     * (phishing/security) while Android continued to pass.
      */
     const navigateWebViewToUrl = useCallback((url: string) => {
       const sanitizedUrl = sanitizeUrlInput(url);
@@ -873,15 +878,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         return;
       }
 
-      webviewRef.current?.stopLoading();
-
       if (webViewUriRef.current === sanitizedUrl) {
         webviewRef.current?.reload?.();
         return;
       }
 
       webViewUriRef.current = sanitizedUrl;
-      setWebViewUri(sanitizedUrl);
+      setWebViewUri('about:blank');
+      setTimeout(() => {
+        // Drop stale timeouts if a newer navigation superseded this one.
+        if (webViewUriRef.current !== sanitizedUrl) {
+          return;
+        }
+        setWebViewUri(sanitizedUrl);
+      }, 0);
     }, []);
 
     /**
