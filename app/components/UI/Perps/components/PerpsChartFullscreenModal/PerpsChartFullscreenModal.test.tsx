@@ -161,8 +161,9 @@ jest.mock('../PerpsAdvancedChart/PerpsAdvancedChart', () => {
 
 jest.mock(
   '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector',
-  () =>
-    jest.fn(
+  () => ({
+    __esModule: true,
+    default: jest.fn(
       ({
         onIntervalChange,
         testID,
@@ -182,6 +183,7 @@ jest.mock(
         );
       },
     ),
+  }),
 );
 
 jest.mock('../PerpsOHLCVBar', () =>
