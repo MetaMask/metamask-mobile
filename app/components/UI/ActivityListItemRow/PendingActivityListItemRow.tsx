@@ -90,6 +90,7 @@ export function PendingActivityListItemRow({
           fallbackIconName={fallbackIconName}
           networkImageSource={networkImageSource}
           styles={styles}
+          testIdSuffix={item.hash ?? index}
           tokens={content.avatarTokens}
         />
       }

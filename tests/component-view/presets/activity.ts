@@ -9,7 +9,11 @@ import type { RootState } from '../../../app/reducers';
 
 export const ACTIVITY_CV_ACCOUNT = '0x0000000000000000000000000000000000000001';
 
-const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
+export const ACTIVITY_CV_RECIPIENT =
+  '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
+
+/** Mainnet USDC — used for ERC-20 send/receive Activity CV fixtures. */
+export const ACTIVITY_CV_USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 export const buildConfirmedLocalSendTransaction = (): TransactionMeta =>
   ({
@@ -27,6 +31,199 @@ export const buildConfirmedLocalSendTransaction = (): TransactionMeta =>
     },
     txReceipt: { status: '0x1' },
   }) as unknown as TransactionMeta;
+
+/** Confirmed ERC-20 USDC send (1 USDC) for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalUsdcSendTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-usdc-send',
+    hash: '0xactivitycvconfirmedusdcsend',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_783_000,
+    type: TransactionType.tokenMethodTransfer,
+    transferInformation: {
+      amount: '1000000',
+      contractAddress: ACTIVITY_CV_USDC,
+      decimals: 6,
+      symbol: 'USDC',
+    },
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0x0',
+      nonce: '0x2',
+      data: `0xa9059cbb000000000000000000000000${ACTIVITY_CV_RECIPIENT.slice(
+        2,
+      ).toLowerCase()}00000000000000000000000000000000000000000000000000000000000f4240`,
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+const buildApproveCalldata = (spender: string, amount: bigint): string =>
+  `0x095ea7b3${spender.slice(2).toLowerCase().padStart(64, '0')}${amount
+    .toString(16)
+    .padStart(64, '0')}`;
+
+/** Confirmed USDC approve (100 USDC) for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalUsdcApproveTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-usdc-approve',
+    hash: '0xactivitycvconfirmedusdcapprove',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_785_000,
+    type: TransactionType.tokenMethodApprove,
+    transferInformation: {
+      contractAddress: ACTIVITY_CV_USDC,
+      decimals: 6,
+      symbol: 'USDC',
+    },
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0x0',
+      nonce: '0x4',
+      data: buildApproveCalldata(ACTIVITY_CV_RECIPIENT, 100_000_000n),
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+const MAX_UINT256 = 2n ** 256n - 1n;
+
+/** Confirmed unlimited USDC approve for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalUsdcUnlimitedApproveTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-usdc-unlimited-approve',
+      hash: '0xactivitycvconfirmedusdcunlimited',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_787_000,
+      type: TransactionType.tokenMethodApprove,
+      transferInformation: {
+        contractAddress: ACTIVITY_CV_USDC,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDC,
+        value: '0x0',
+        nonce: '0x6',
+        data: buildApproveCalldata(ACTIVITY_CV_RECIPIENT, MAX_UINT256),
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Confirmed USDC revoke (`approve(spender, 0)`) for ActivityScreen CV. */
+export const buildConfirmedLocalUsdcRevokeTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-usdc-revoke',
+    hash: '0xactivitycvconfirmedusdcrevoke',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_788_000,
+    type: TransactionType.tokenMethodApprove,
+    transferInformation: {
+      contractAddress: ACTIVITY_CV_USDC,
+      decimals: 6,
+      symbol: 'USDC',
+    },
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0x0',
+      nonce: '0x7',
+      data: buildApproveCalldata(ACTIVITY_CV_RECIPIENT, 0n),
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+/** Mainnet NFT collection used for ActivityScreen mint CV. */
+export const ACTIVITY_CV_NFT_CONTRACT =
+  '0x239fd4b0c4db49fa8660e65b97619d43d0e0a79d';
+
+export const ACTIVITY_CV_NFT_COLLECTION_NAME = 'CryptoPunks';
+
+/**
+ * Confirmed zero-value contract interaction for ActivityScreen transaction-row CV.
+ * Uses a non-wrap method id so it stays `contractInteraction` (no token amount).
+ */
+export const buildConfirmedLocalContractInteractionTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-contract-interaction',
+      hash: '0xactivitycvconfirmedcontract',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_786_000,
+      type: TransactionType.contractInteraction,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_RECIPIENT,
+        value: '0x0',
+        nonce: '0x5',
+        data: '0xabcdef12',
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Confirmed cross-token bridge (ETH → USDC) for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalBridgeTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-bridge',
+    hash: '0xactivitycvconfirmedbridge',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_784_000,
+    type: TransactionType.bridge,
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0xde0b6b3a7640000',
+      nonce: '0x3',
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+/**
+ * BridgeStatusController.txHistory entry that enriches
+ * {@link buildConfirmedLocalBridgeTransaction} with ETH → USDC quote legs.
+ * Destination amount is omitted so the row keeps the spent ETH as the primary
+ * (negative) amount while still showing a dual-token avatar stack.
+ */
+export const activityCvBridgeHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-bridge',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: 59144,
+    srcAsset: {
+      symbol: 'ETH',
+      decimals: 18,
+      assetId: 'eip155:1/slip44:60',
+    },
+    destAsset: {
+      symbol: 'USDC',
+      decimals: 6,
+      assetId: `eip155:59144/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`,
+    },
+    srcTokenAmount: '1000000000000000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvconfirmedbridge',
+    },
+    destChain: {
+      chainId: 59144,
+      txHash: '0xactivitycvbridgedest',
+    },
+  },
+  startTime: 1_716_367_784_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
 
 export const buildPendingLocalSendTransaction = (): TransactionMeta =>
   ({
@@ -109,6 +306,10 @@ export const initialStateActivity = () =>
           },
           TokenBalancesController: {
             tokenBalances: {},
+          },
+          NftController: {
+            allNfts: {},
+            allNftContracts: {},
           },
           TokensController: {
             allTokens: {
