@@ -17,6 +17,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { RootState } from '../../../../../reducers';
 
@@ -39,6 +40,12 @@ export function useInsufficientPerpsBalanceAlert({
       state.engine.backgroundState.PerpsController?.accountState
         ?.withdrawableBalance,
   );
+
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
+  );
+  const isMoneyAccountWithdraw =
+    paymentOverride === PaymentOverride.MoneyAccount;
 
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
@@ -84,7 +91,10 @@ export function useInsufficientPerpsBalanceAlert({
         return true;
       }
 
+      // Standard withdrawals deduct fees from the receive amount, so only
+      // money-account withdrawals need balance to cover amount + fees.
       if (
+        isMoneyAccountWithdraw &&
         withdrawableBalance !== undefined &&
         withdrawableBalance !== null &&
         new BigNumber(amountHuman)
@@ -100,6 +110,7 @@ export function useInsufficientPerpsBalanceAlert({
     amountHuman,
     hasQuotes,
     isMoneyPaymentOverride,
+    isMoneyAccountWithdraw,
     isPendingInput,
     isPerpsWithdraw,
     withdrawableBalance,
