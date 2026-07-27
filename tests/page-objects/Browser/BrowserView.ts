@@ -443,9 +443,11 @@ class Browser {
 
   async expectUrlNotEqualTo(text: string, description?: string): Promise<void> {
     // Unfocused URL bar hides TextInput (`browser-modal-url-input`); Appium must
-    // read the visible wrapper (`url-input`) that shows the current URL text.
+    // read the visible display Text (`browser-url-display-text`). The `url-input`
+    // wrapper View often returns empty getText(), which would falsely pass a
+    // not-equal assertion.
     const urlElement = FrameworkDetector.isAppium()
-      ? PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT)
+      ? this.urlBarDisplayText
       : this.urlInputBoxID;
 
     await Assertions.expectElementToNotHaveText(urlElement, text, {
