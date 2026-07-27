@@ -239,7 +239,6 @@ describe('AssetOverviewContent', () => {
   const defaultPerpsPositionResult = {
     position: null,
     hasFundsInPerps: false,
-    accountState: null,
     isLoading: false,
   };
 
@@ -530,7 +529,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
     });
@@ -539,7 +537,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -576,7 +573,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -836,7 +832,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
       tokenDetailsActionsSpy = jest.spyOn(
