@@ -56,15 +56,16 @@ permissions:
 jobs:
   test-appium-mobile:
     name: ${{ inputs.test-suite-name }}
+    # iOS Appium smoke is not put on low-priority: those runners are often
+    # preempted around ~15m wall-clock, which kills the Playwright step before
+    # reports/logs upload (and before shards that no longer fail-fast can finish).
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
          'namespace-profile-metamask-android-build') ||
         (inputs.platform == 'ios' &&
-          (startsWith(github.base_ref, 'release/') &&
-            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') ||
-            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]'))) ||
+          fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
         (startsWith(github.base_ref, 'release/') &&
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
@@ -260,7 +261,15 @@ jobs:
 
       - name: Resolve Appium test grep pattern
         id: appium-grep
-        run: echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+          # FixtureValidation must fail if no tests match; smoke shards keep the
+          # flag because sharding can leave empty shards.
+          if [[ "${{ inputs.test_suite_tag }}" == "FixtureValidation" ]]; then
+            echo "pass_with_no_tests=" >> "$GITHUB_OUTPUT"
+          else
+            echo "pass_with_no_tests=--pass-with-no-tests" >> "$GITHUB_OUTPUT"
+          fi
         shell: bash
 
       - name: Verify Appium runner connectivity (iOS)
@@ -279,7 +288,7 @@ jobs:
           --project android-smoke
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          --pass-with-no-tests
+          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
@@ -309,7 +318,7 @@ jobs:
           --project ios-smoke
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          --pass-with-no-tests
+          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
@@ -394,3 +403,14 @@ jobs:
           fail-on-error: false
           list-suites: all
           list-tests: failed
+
+      - name: Upload fixture validation reports
+        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-validation-results-${{ inputs.test-suite-name }}
+          path: |
+            tests/reports/fixture-validation-result.json
+            tests/reports/fixture-validation-diff.txt
+          if-no-files-found: ignore
+          retention-days: 7

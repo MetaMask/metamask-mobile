@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useMemo, useCallback } from 'react';
 import {
-  type MoneyAccountBalanceResponse,
+  type CanonicalMoneyAccountBalanceResponse,
   type NormalizedVaultApyResponse,
 } from '@metamask/money-account-balance-service';
 import { useQuery } from '@metamask/react-data-query';
@@ -12,7 +12,7 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
-import ReactQueryService from '../../../../core/ReactQueryService';
+import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 import {
   isPersistedMoneyBalanceUsable,
@@ -35,11 +35,20 @@ export const getLiveVedaVaultExchangeRate = async () =>
     .then(({ rate }) => rate);
 
 interface UseMoneyAccountBalanceResult {
-  moneyBalanceQuery: UseQueryResult<MoneyAccountBalanceResponse>;
+  moneyBalanceQuery: UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
   vaultApyQuery: UseQueryResult<NormalizedVaultApyResponse>;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
   isBalanceUnavailable: boolean;
+  /**
+   * True when the canonical balance was served from the fallback source
+   * (primary source failed and failover succeeded).
+   */
+  isBalanceDegraded: boolean;
+  /** Provenance of the last successful balance: Money API or RPC. */
+  balanceSource: 'api' | 'rpc' | undefined;
+  /** Whether the last successful balance used the secondary source. */
+  usedFallback: boolean;
   lastKnownTotalFiatFormatted: string | undefined;
   refetchBalance: () => void;
   tokenTotal: BigNumber | undefined;
@@ -68,12 +77,12 @@ const useMoneyAccountBalance = (
 
   const moneyBalanceQuery = useQuery({
     queryKey: [
-      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+      MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
       moneyAccountAddress as string,
     ],
     enabled: Boolean(moneyAccountAddress),
     refetchInterval,
-  }) as UseQueryResult<MoneyAccountBalanceResponse>;
+  }) as UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
 
   const vaultApyQuery = useQuery({
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
@@ -88,21 +97,21 @@ const useMoneyAccountBalance = (
   /** Any balance fetch failure → full error state. */
   const isBalanceFetchError = moneyBalanceQuery.isError;
 
+  const balanceSource = moneyBalanceQuery.data?.source;
+  const usedFallback = moneyBalanceQuery.data?.usedFallback === true;
+  const isBalanceDegraded = usedFallback;
+
   const refetchBalance = useCallback(
     () =>
-      ReactQueryService.queryClient.invalidateQueries({
-        queryKey: [
-          MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
-          moneyAccountAddress,
-        ],
-        refetchType: 'all',
-      }),
+      moneyAccountAddress
+        ? invalidateMoneyAccountBalanceCaches(moneyAccountAddress)
+        : Promise.resolve(),
     [moneyAccountAddress],
   );
 
   const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
     useMemo(() => {
-      // Total balance (mUSD + vmUSD) from the service's Multicall3 response.
+      // Total balance (mUSD + vmUSD) from the canonical facade response.
       const totalDecimal = moneyBalanceQuery.data?.totalBalance
         ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
             -MUSD_DECIMALS,
@@ -223,6 +232,9 @@ const useMoneyAccountBalance = (
     isBalanceLoading,
     isBalanceFetchError,
     isBalanceUnavailable,
+    isBalanceDegraded,
+    balanceSource,
+    usedFallback,
     lastKnownTotalFiatFormatted,
     refetchBalance,
     tokenTotal,

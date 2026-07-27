@@ -154,6 +154,36 @@ describe('useImmersveFunding', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('executeFunding overrides the approve amount when provided', async () => {
+    const { ethers } = jest.requireActual('ethers');
+    mockAwait.mockImplementation(async ({ submit }) => {
+      await submit();
+      return { txHash: '0xtxhash', transactionMeta: {} };
+    });
+    (mockTx.addTransaction as jest.Mock).mockResolvedValue({
+      result: Promise.resolve('0xtxhash'),
+      transactionMeta: {},
+    });
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await result.current.executeFunding(APPROVE_WRITE, '5000000');
+    });
+
+    const expectedData = new ethers.utils.Interface(
+      APPROVE_WRITE.abi,
+    ).encodeFunctionData('approve', [APPROVE_WRITE.params._spender, '5000000']);
+
+    expect(mockTx.addTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: APPROVE_WRITE.contractAddress,
+        data: expectedData,
+      }),
+      expect.any(Object),
+    );
+  });
+
   it('executeFunding surfaces an error when no account is selected', async () => {
     accountsModule.selectSelectedInternalAccountByScope.mockImplementationOnce(
       () => () => undefined,
