@@ -61,7 +61,7 @@ describe('usePredictFeedMarketList', () => {
         order: 'volume24hr',
         live: true,
       },
-      { enabled: false, filterGames: true },
+      { enabled: false, filterStaleGameMarkets: true },
     );
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
@@ -69,7 +69,7 @@ describe('usePredictFeedMarketList', () => {
         tagSlugs: ['sports'],
         order: 'start_time',
       },
-      { enabled: true, filterGames: true },
+      { enabled: true, filterStaleGameMarkets: true },
     );
     expect(result.current.markets.map((market) => market.id)).toEqual([
       'regular-1',
@@ -86,12 +86,12 @@ describe('usePredictFeedMarketList', () => {
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       1,
       { queryParams, live: true },
-      { enabled: true, filterGames: true },
+      { enabled: true, filterStaleGameMarkets: true },
     );
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
       { queryParams, live: false },
-      { enabled: true, filterGames: true },
+      { enabled: true, filterStaleGameMarkets: true },
     );
   });
 
@@ -113,7 +113,7 @@ describe('usePredictFeedMarketList', () => {
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
       { tagSlugs: ['sports'] },
-      { enabled: true, filterGames: true },
+      { enabled: true, filterStaleGameMarkets: true },
     );
     expect(result.current.markets.map((market) => market.id)).toEqual([
       'shared',
@@ -186,7 +186,7 @@ describe('usePredictFeedMarketList', () => {
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
       { tagSlugs: ['sports'] },
-      { enabled: false, filterGames: true },
+      { enabled: false, filterStaleGameMarkets: true },
     );
     expect(result.current.error).toBe(error);
   });
@@ -268,7 +268,7 @@ describe('usePredictFeedMarketList', () => {
     await waitFor(() => {
       expect(mockUsePredictMarketList).toHaveBeenCalledWith(
         { tagSlugs: ['sports'] },
-        { enabled: true, filterGames: true },
+        { enabled: true, filterStaleGameMarkets: true },
       );
     });
     expect(result.current.markets.map((market) => market.id)).toEqual([

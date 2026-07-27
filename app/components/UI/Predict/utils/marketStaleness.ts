@@ -19,7 +19,7 @@ const PREDICT_GAMES_TAG = 'games';
 
 export interface PredictMarketStalenessOptions {
   now?: Date | number;
-  filterGames?: boolean;
+  filterStaleGameMarkets?: boolean;
 }
 
 const getNowMs = (options?: PredictMarketStalenessOptions): number => {
@@ -269,7 +269,7 @@ export const getVisiblePredictMarket = (
   }
 
   if (isGameMarket(market)) {
-    if (options?.filterGames && !hasVisibleGameOutcomes(market)) {
+    if (options?.filterStaleGameMarkets && !hasVisibleGameOutcomes(market)) {
       return null;
     }
 

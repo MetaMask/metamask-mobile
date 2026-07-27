@@ -337,7 +337,7 @@ describe('marketStaleness', () => {
       expect(
         getVisiblePredictMarket(market, {
           now: NOW,
-          filterGames: true,
+          filterStaleGameMarkets: true,
         }),
       ).toBeNull();
     });
@@ -361,7 +361,7 @@ describe('marketStaleness', () => {
       expect(
         getVisiblePredictMarket(market, {
           now: NOW,
-          filterGames: true,
+          filterStaleGameMarkets: true,
         }),
       ).toEqual(market);
     });
@@ -389,7 +389,7 @@ describe('marketStaleness', () => {
       expect(
         getVisiblePredictMarket(market, {
           now: NOW,
-          filterGames: true,
+          filterStaleGameMarkets: true,
         }),
       ).toBeNull();
     });
@@ -417,7 +417,7 @@ describe('marketStaleness', () => {
       expect(
         getVisiblePredictMarket(market, {
           now: NOW,
-          filterGames: true,
+          filterStaleGameMarkets: true,
         }),
       ).toBeNull();
     });
@@ -445,7 +445,7 @@ describe('marketStaleness', () => {
       expect(
         getVisiblePredictMarket(market, {
           now: NOW,
-          filterGames: true,
+          filterStaleGameMarkets: true,
         }),
       ).toEqual(market);
     });

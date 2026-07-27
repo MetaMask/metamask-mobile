@@ -16,7 +16,7 @@ export interface UsePredictMarketListOptions {
   /** When false, skips fetching (e.g. section mounted while flag/feature off). */
   enabled?: boolean;
   /** Enables stricter game-card filtering for sports feed pages. */
-  filterGames?: boolean;
+  filterStaleGameMarkets?: boolean;
 }
 
 export interface UsePredictMarketListResult {
@@ -47,7 +47,7 @@ export const usePredictMarketList = (
   params: PredictMarketListParams = {},
   options: UsePredictMarketListOptions = {},
 ): UsePredictMarketListResult => {
-  const { enabled = true, filterGames = false } = options;
+  const { enabled = true, filterStaleGameMarkets = false } = options;
 
   const queryResult = useInfiniteQuery<
     PredictMarketListResponse,
@@ -73,7 +73,7 @@ export const usePredictMarketList = (
     for (const page of pages) {
       const visible = getVisiblePredictMarkets(
         filterStandaloneMarkets(page.markets),
-        { filterGames },
+        { filterStaleGameMarkets },
       );
 
       for (const market of visible) {
@@ -86,7 +86,7 @@ export const usePredictMarketList = (
     }
 
     return accumulated;
-  }, [filterGames, queryResult.data]);
+  }, [filterStaleGameMarkets, queryResult.data]);
 
   useEffect(() => {
     if (!queryResult.error) {

@@ -95,7 +95,7 @@ describe('usePredictMarketList', () => {
     await waitFor(() => {
       expect(mockGetVisiblePredictMarkets).toHaveBeenCalledWith(
         expect.arrayContaining([expect.objectContaining({ id: 'a' })]),
-        { filterGames: false },
+        { filterStaleGameMarkets: false },
       );
     });
   });
@@ -158,7 +158,7 @@ describe('usePredictMarketList', () => {
       .mockResolvedValueOnce(createPage(['b'], null));
 
     const { result } = renderHook(
-      () => usePredictMarketList({}, { filterGames: true }),
+      () => usePredictMarketList({}, { filterStaleGameMarkets: true }),
       {
         wrapper: Wrapper,
       },
@@ -177,11 +177,11 @@ describe('usePredictMarketList', () => {
     });
     expect(mockGetVisiblePredictMarkets).toHaveBeenCalledWith(
       expect.arrayContaining([expect.objectContaining({ id: 'a' })]),
-      { filterGames: true },
+      { filterStaleGameMarkets: true },
     );
     expect(mockGetVisiblePredictMarkets).toHaveBeenCalledWith(
       expect.arrayContaining([expect.objectContaining({ id: 'b' })]),
-      { filterGames: true },
+      { filterStaleGameMarkets: true },
     );
   });
 

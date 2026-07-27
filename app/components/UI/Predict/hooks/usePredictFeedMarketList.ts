@@ -141,7 +141,7 @@ export const usePredictFeedMarketList = (
 
   const liveResult = usePredictMarketList(livePhaseParams, {
     enabled: enabled && showLiveFirst,
-    filterGames: true,
+    filterStaleGameMarkets: true,
   });
   const {
     error: liveError,
@@ -191,7 +191,7 @@ export const usePredictFeedMarketList = (
 
   const regularResult = usePredictMarketList(regularPhaseParams, {
     enabled: enabled && (!showLiveFirst || liveExhausted),
-    filterGames: true,
+    filterStaleGameMarkets: true,
   });
   const {
     error: regularError,
