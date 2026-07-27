@@ -17,7 +17,6 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { RootState } from '../../../../../reducers';
 
@@ -50,10 +49,6 @@ export function useInsufficientPerpsBalanceAlert({
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
-
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
-  );
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
 
