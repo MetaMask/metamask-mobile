@@ -7763,6 +7763,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/money-account-utils@npm:0.0.0-preview-9eed894c0":
+  version: 0.0.0-preview-9eed894c0
+  resolution: "@metamask-previews/money-account-utils@npm:0.0.0-preview-9eed894c0"
+  dependencies:
+    "@metamask/transaction-controller": "npm:^68.2.2"
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/a6f9e819d5a3ff89082e52d03ba0bcd5207a0d3353b899b4e446e25337b18b7c0ee5e274c03b16396b359c59ea269bbf0d97f424e32ec0e715d1d2a4724d689a
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^0.5.0":
   version: 0.5.0
   resolution: "@metamask/7715-permission-types@npm:0.5.0"
@@ -35800,6 +35810,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/money-account-utils": "npm:0.0.0-preview-9eed894c0"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.4"
     "@metamask/account-tree-controller": "npm:^7.5.0"
