@@ -16,6 +16,11 @@ export type BrowserUrlBarRef = {
   blur: () => void;
   focus: () => void;
   setNativeProps: (props: object) => void;
+  /**
+   * Skip the next TextInput blur unfocus. Used when tapping autocomplete
+   * results so urlbar stays focused until WebView navigation starts.
+   */
+  suppressNextBlur: () => void;
 };
 
 /**

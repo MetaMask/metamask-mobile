@@ -207,6 +207,9 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         }
         inputRef?.current?.setNativeProps(props);
       },
+      suppressNextBlur: () => {
+        shouldTriggerBlurCallbackRef.current = false;
+      },
     }));
 
     /**

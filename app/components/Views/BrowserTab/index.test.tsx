@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -16,6 +16,8 @@ import { handleWebDownload } from '../../../util/browser/handleWebDownload';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const mockInjectJavaScript = jest.fn();
+const mockStopLoading = jest.fn();
+const mockReload = jest.fn();
 
 jest.mock('@metamask/react-native-webview', () => {
   const { View } = jest.requireActual('react-native');
@@ -25,6 +27,8 @@ jest.mock('@metamask/react-native-webview', () => {
     (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
       ActualReact.useImperativeHandle(ref, () => ({
         injectJavaScript: mockInjectJavaScript,
+        stopLoading: mockStopLoading,
+        reload: mockReload,
       }));
       return <View {...props} />;
     },
@@ -423,7 +427,7 @@ describe('BrowserTab', () => {
       expect(typeof webView.props.onOpenWindow).toBe('function');
     });
 
-    it('calls injectJavaScript with sanitized target URL when onOpenWindow fires', async () => {
+    it('updates WebView source uri when onOpenWindow fires', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
       });
@@ -432,20 +436,23 @@ describe('BrowserTab', () => {
         expect(screen.getByTestId('browser-webview')).toBeVisible(),
       );
 
-      const webView = screen.getByTestId('browser-webview');
-      const { onOpenWindow } = webView.props;
+      const { onOpenWindow } = screen.getByTestId('browser-webview').props;
 
       onOpenWindow({
         nativeEvent: { targetUrl: 'https://stake.lido.fi' },
       });
 
-      expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
-      expect(mockInjectJavaScript).toHaveBeenCalledWith(
-        "window.location.href = 'https://stake.lido.fi'; true;",
+      await waitFor(() => {
+        expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+          'https://stake.lido.fi',
+        );
+      });
+      expect(mockInjectJavaScript).not.toHaveBeenCalledWith(
+        expect.stringContaining('window.location.href'),
       );
     });
 
-    it('sanitizes single quotes in the target URL before injecting', async () => {
+    it('sanitizes single quotes in the target URL before updating source', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
       });
@@ -454,20 +461,20 @@ describe('BrowserTab', () => {
         expect(screen.getByTestId('browser-webview')).toBeVisible(),
       );
 
-      const webView = screen.getByTestId('browser-webview');
-      const { onOpenWindow } = webView.props;
+      const { onOpenWindow } = screen.getByTestId('browser-webview').props;
 
       onOpenWindow({
         nativeEvent: { targetUrl: "https://example.com/path?q='test'" },
       });
 
-      expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
-      expect(mockInjectJavaScript).toHaveBeenCalledWith(
-        "window.location.href = 'https://example.com/path?q=%27test%27'; true;",
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+          'https://example.com/path?q=%27test%27',
+        );
+      });
     });
 
-    it('does not call injectJavaScript when targetUrl is empty', async () => {
+    it('does not update WebView source when targetUrl is empty', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
       });
@@ -477,13 +484,129 @@ describe('BrowserTab', () => {
       );
 
       const webView = screen.getByTestId('browser-webview');
+      const initialUri = webView.props.source.uri;
       const { onOpenWindow } = webView.props;
 
       onOpenWindow({
         nativeEvent: { targetUrl: '' },
       });
 
-      expect(mockInjectJavaScript).not.toHaveBeenCalled();
+      expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+        initialUri,
+      );
+      expect(mockStopLoading).not.toHaveBeenCalled();
+    });
+
+    it('reloads WebView when onOpenWindow targets the current uri', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const { onOpenWindow } = screen.getByTestId('browser-webview').props;
+
+      onOpenWindow({
+        nativeEvent: { targetUrl: mockProps.initialUrl },
+      });
+
+      expect(mockReload).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+        mockProps.initialUrl,
+      );
+    });
+  });
+
+  describe('URL bar navigation', () => {
+    it('updates WebView source uri when URL bar submits a new URL', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-url-display-text'));
+      const urlInput = screen.getByTestId('browser-modal-url-input');
+      fireEvent(urlInput, 'submitEditing', {
+        nativeEvent: { text: 'https://opensea.io' },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+          'https://opensea.io',
+        );
+      });
+      expect(mockInjectJavaScript).not.toHaveBeenCalledWith(
+        expect.stringContaining('window.location.href'),
+      );
+    });
+
+    it('updates WebView source uri when a Recents result is pressed', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: {
+          ...mockInitialState,
+          browser: {
+            ...mockInitialState.browser,
+            history: [{ url: 'https://opensea.io', name: 'OpenSea' }],
+          },
+        },
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-url-display-text'));
+
+      const recentResult = await screen.findByText('OpenSea', {
+        includeHiddenElements: true,
+      });
+      // pressIn suppresses URL-bar blur unfocus before navigation (MCWP-748)
+      fireEvent(recentResult, 'pressIn');
+      fireEvent.press(recentResult);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+          'https://opensea.io',
+        );
+      });
+
+      // Simulate WebView load completing — URL bar should unfocus only after
+      // the page has committed (not onLoadStart), so bottom-bar remount cannot
+      // cancel loadRequest or reset the address to the previous URL (MCWP-748).
+      const webView = screen.getByTestId('browser-webview');
+      const loadEvent = {
+        nativeEvent: {
+          url: 'https://opensea.io',
+          title: 'OpenSea',
+          loading: false,
+          canGoBack: false,
+          canGoForward: false,
+        },
+      };
+      await act(async () => {
+        await webView.props.onLoadStart(loadEvent);
+      });
+      expect(
+        screen.queryByTestId('browser-tab-close-button'),
+      ).not.toBeOnTheScreen();
+
+      await act(async () => {
+        webView.props.onLoadEnd(loadEvent);
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('browser-tab-close-button'),
+        ).toBeOnTheScreen();
+      });
+      expect(mockInjectJavaScript).not.toHaveBeenCalledWith(
+        expect.stringContaining('window.location.href'),
+      );
     });
   });
 
