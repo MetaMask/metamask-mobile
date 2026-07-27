@@ -42,6 +42,27 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   })),
 }));
 
+// The stats bar and the price header both read live prices; mock the stream
+// barrel so the view renders without a PerpsStreamProvider (matches the lite
+// PerpsMarketDetailsView test's approach).
+jest.mock('../../hooks/stream', () => ({
+  ...jest.requireActual('../../hooks/stream'),
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/usePerpsMarketStats', () => ({
+  usePerpsMarketStats: jest.fn(() => ({
+    high24h: '$50,000.00',
+    low24h: '$45,000.00',
+    volume24h: '$1,234,567.89',
+    openInterest: '$987,654.32',
+    fundingRate: '0.0125%',
+    currentPrice: 90000,
+    isLoading: false,
+    refresh: jest.fn(),
+  })),
+}));
+
 const renderView = () =>
   renderWithProvider(<PerpsProMarketView />, {
     state: { engine: { backgroundState } },
@@ -97,7 +118,13 @@ describe('PerpsProMarketView', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_PANEL),
     ).toBeOnTheScreen();
     expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.PRICE_HEADER),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR_SCROLL),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT),

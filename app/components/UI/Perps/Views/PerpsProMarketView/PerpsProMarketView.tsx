@@ -16,7 +16,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
+import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import type { PerpsStackParamList } from '../../types/navigation';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsProMarketHeader from './components/PerpsProMarketHeader';
@@ -25,7 +28,6 @@ import PerpsProMarketSummary from './components/PerpsProMarketSummary';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
-import PerpsProStatsBar from './components/PerpsProStatsBar';
 import { createStyles } from './PerpsProMarketView.styles';
 
 /**
@@ -42,6 +44,13 @@ const PerpsProMarketView = () => {
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const market = route.params?.market;
+  // Live price feed for the header row. Subscribed unconditionally (empty array
+  // when the symbol is missing) so hook order stays stable across the early
+  // return below. LivePriceHeader self-subscribes for the 24h % change.
+  const livePrices = usePerpsLivePrices({
+    symbols: market?.symbol ? [market.symbol] : [],
+    throttleMs: 1000,
+  });
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
 
   const handleCollapseOrderBook = useCallback(() => {
@@ -96,6 +105,15 @@ const PerpsProMarketView = () => {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
   })();
 
+  // Prefer the live streamed price, fall back to the static route price so the
+  // header shows something immediately before the first tick arrives.
+  const livePrice = (() => {
+    const raw = market.symbol ? livePrices[market.symbol]?.price : undefined;
+    const parsed = raw ? Number.parseFloat(raw) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  })();
+  const currentPrice = livePrice ?? marketPrice ?? 0;
+
   return (
     <SafeAreaView
       style={styles.container}
@@ -113,7 +131,26 @@ const PerpsProMarketView = () => {
       >
         <PerpsProMarketSummary />
         <PerpsProChartPanel />
-        <PerpsProStatsBar />
+        {/* Price + 24h change row, reusing the same LivePriceHeader/size combo
+            as the lite market details view, sitting directly above the stats
+            bar per the Figma "Token Info" section. */}
+        <Box
+          twClassName="px-4 pb-2"
+          testID={PerpsProMarketViewSelectorsIDs.PRICE_HEADER}
+        >
+          <LivePriceHeader
+            symbol={market.symbol}
+            testIDPrice={PerpsProMarketViewSelectorsIDs.PRICE}
+            testIDChange={PerpsProMarketViewSelectorsIDs.PRICE_CHANGE}
+            currentPrice={currentPrice}
+            size="large"
+          />
+        </Box>
+        <PerpsProMarketStatsBar
+          symbol={market.symbol}
+          nextFundingTime={market.nextFundingTime}
+          fundingIntervalHours={market.fundingIntervalHours}
+        />
         <PerpsProMarketLayout
           isOrderBookCollapsed={isOrderBookCollapsed}
           onExpandOrderBook={handleExpandOrderBook}
