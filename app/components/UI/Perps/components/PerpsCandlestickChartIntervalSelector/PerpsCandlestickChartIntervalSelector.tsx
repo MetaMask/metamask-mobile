@@ -1,13 +1,14 @@
 import React from 'react';
 import { TouchableOpacity, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { CANDLE_PERIODS, CandlePeriod } from '@metamask/perps-controller';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface PerpsCandlestickChartIntervalSelectorProps {
   selectedInterval: CandlePeriod | string;
@@ -43,11 +44,11 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
           testID={`${testID}-${interval.value}`}
         >
           <Text
-            variant={TextVariant.BodySM}
+            variant={TextVariant.BodySm}
             color={
               selectedInterval === interval.value
-                ? TextColor.Default
-                : TextColor.Muted
+                ? TextColor.TextDefault
+                : TextColor.TextMuted
             }
             style={[
               styles.intervalTabText,

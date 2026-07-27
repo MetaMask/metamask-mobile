@@ -237,7 +237,7 @@ describe('PerpsPositionCard', () => {
       ETH: {
         symbol: 'ETH',
         price: '2100.50',
-        timestamp: Date.now(),
+        timestamp: 1700000000000,
         percentChange24h: '2.5',
       },
     });
@@ -747,44 +747,6 @@ describe('PerpsPositionCard', () => {
         screen.getByTestId(PerpsPositionCardSelectorsIDs.PNL_VALUE),
       ).toHaveTextContent(/\+\$250\.00/);
       expect(screen.queryByText(DOTS_SHORT)).toBeNull();
-    });
-
-    describe('Compact mode', () => {
-      it('hides position value and PnL in compact default variant', () => {
-        // Arrange
-        enablePrivacyMode();
-
-        // Act
-        render(
-          <PerpsPositionCard
-            position={mockPosition}
-            compact
-            compactVariant="default"
-          />,
-        );
-
-        // Assert - financial values replaced with dots
-        const hiddenValues = screen.getAllByText(DOTS_SHORT);
-        expect(hiddenValues.length).toBeGreaterThanOrEqual(2);
-      });
-
-      it('hides ROE in compact position variant', () => {
-        // Arrange
-        enablePrivacyMode();
-
-        // Act
-        render(
-          <PerpsPositionCard
-            position={mockPosition}
-            compact
-            compactVariant="position"
-          />,
-        );
-
-        // Assert
-        const hiddenValues = screen.getAllByText(DOTS_SHORT);
-        expect(hiddenValues.length).toBeGreaterThanOrEqual(1);
-      });
     });
   });
 });

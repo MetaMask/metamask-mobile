@@ -442,6 +442,60 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PRO MARKET VIEW SELECTORS
+// ========================================
+
+export const PerpsProMarketViewSelectorsIDs = {
+  CONTAINER: 'perps-pro-market-view',
+  ERROR: 'perps-pro-market-error',
+  SCROLL_VIEW: 'perps-pro-market-scroll-view',
+  HEADER: 'perps-pro-market-header',
+  HEADER_SYMBOL: 'perps-pro-market-header-symbol',
+  MARKET_SUMMARY: 'perps-pro-market-summary',
+  CHART_PANEL: 'perps-pro-market-chart-panel',
+  CHART_CONTENT: 'perps-pro-market-chart-content',
+  STATS_BAR: 'perps-pro-market-stats-bar',
+  LAYOUT: 'perps-pro-market-layout',
+  LEFT_COLUMN: 'perps-pro-market-left-column',
+  RIGHT_COLUMN: 'perps-pro-market-right-column',
+  VERTICAL_DIVIDER: 'perps-pro-market-vertical-divider',
+  ORDER_FORM_PANEL: 'perps-pro-market-order-form-panel',
+  ORDER_BOOK_PANEL: 'perps-pro-market-order-book-panel',
+  ORDER_BOOK_COLLAPSE_BUTTON: 'perps-pro-market-order-book-collapse',
+  ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
+  POSITIONS_PANEL: 'perps-pro-market-positions-panel',
+};
+
+export const PerpsProOrderFormSelectorsIDs = {
+  CONTAINER: 'perps-pro-order-form',
+  DIRECTION_CONTROL: 'perps-pro-order-form-direction-control',
+  DIRECTION_LONG: 'perps-pro-order-form-direction-long',
+  DIRECTION_SHORT: 'perps-pro-order-form-direction-short',
+  LEVERAGE_BUTTON: 'perps-pro-order-form-leverage',
+  ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
+  LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
+  MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
+  SIZE_INPUT: 'perps-pro-order-form-size-input',
+  SIZE_SLIDER: 'perps-pro-order-form-size-slider',
+  SIZE_UNIT_BUTTON: 'perps-pro-order-form-size-unit',
+  KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
+  AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
+  ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
+  REDUCE_ONLY: 'perps-pro-order-form-reduce-only',
+  TPSL: 'perps-pro-order-form-tpsl',
+  NOTICE: 'perps-pro-order-form-notice',
+  PLACE_ORDER_BUTTON: 'perps-pro-order-form-place-order',
+  SUMMARY: 'perps-pro-order-form-summary',
+  SUMMARY_MARGIN: 'perps-pro-order-form-summary-margin',
+  SUMMARY_LIQUIDATION: 'perps-pro-order-form-summary-liquidation',
+  SUMMARY_SLIPPAGE: 'perps-pro-order-form-summary-slippage',
+  SUMMARY_SLIPPAGE_BUTTON: 'perps-pro-order-form-summary-slippage-button',
+  SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
+  SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
+  SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+};
+
+// ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================
 
@@ -872,4 +926,23 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+} as const;
+
+// ========================================
+// PERPS MODE TOGGLE SELECTORS
+// ========================================
+
+export const PerpsModeToggleSelectorsIDs = {
+  CONTAINER: 'perps-mode-toggle',
+  LITE_SEGMENT: 'perps-mode-toggle-lite',
+  PRO_SEGMENT: 'perps-mode-toggle-pro',
+} as const;
+
+// ========================================
+// PERPS MODE FLASH SELECTORS
+// ========================================
+
+export const PerpsModeFlashSelectorsIDs = {
+  CONTAINER: 'perps-mode-flash',
+  TITLE: 'perps-mode-flash-title',
 } as const;
