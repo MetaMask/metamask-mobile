@@ -4,11 +4,16 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../../../constants/onboarding';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  markFirstPredictionOnUsOfferViewed,
+  markFirstPredictionOnUsSkipped,
+} from '../../../../../reducers/rewards';
 import type { FirstPredictOnUsDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { PredictMarket } from '../../../Predict/types';
 import FirstPredictOnUsSplashScreen from './FirstPredictOnUsSplashScreen';
 
 const mockReset = jest.fn();
+const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'event' }));
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -55,6 +60,11 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
@@ -123,16 +133,19 @@ describe('FirstPredictOnUsSplashScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('tracks the viewed event on mount', () => {
+  it('tracks the viewed event and marks offer viewed on mount', () => {
     renderWithParams();
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.FIRST_PREDICTION_ON_US_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'event' });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      markFirstPredictionOnUsOfferViewed(),
+    );
   });
 
-  it('tracks skip and resets to OnboardingSuccess', () => {
+  it('tracks skip, marks skipped, and resets to OnboardingSuccess', () => {
     const { getByTestId } = renderWithParams();
 
     fireEvent.press(getByTestId('first-predict-on-us-splash-skip'));
@@ -140,6 +153,7 @@ describe('FirstPredictOnUsSplashScreen', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.FIRST_PREDICTION_ON_US_SKIPPED,
     );
+    expect(mockDispatch).toHaveBeenCalledWith(markFirstPredictionOnUsSkipped());
     expect(mockReset).toHaveBeenCalledWith(expectedSuccessReset);
   });
 

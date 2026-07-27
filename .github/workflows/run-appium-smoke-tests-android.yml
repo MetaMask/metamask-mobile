@@ -175,6 +175,31 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+
+  appium-snaps-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeSnaps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-snaps-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeSnaps
+      split_number: ${{ matrix.split }}
+      total_splits: 3
+      test-timeout-minutes: 60
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
   appium-network-abstractions-android-smoke:
     if: >-
       ${{
@@ -207,15 +232,15 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-wallet-platform-android-smoke
+      test-suite-name: appium-wallet-platform-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: SmokeWalletPlatform
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
