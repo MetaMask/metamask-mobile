@@ -82,8 +82,7 @@ appiumTest.describe(
       },
     );
 
-    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
-    appiumTest.skip(
+    appiumTest(
       'resubscribes after lock and unlock',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
