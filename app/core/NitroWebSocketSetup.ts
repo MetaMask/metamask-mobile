@@ -339,14 +339,16 @@ function isNitroWebSocketInstalled(ctor: unknown): boolean {
 // dependencies); revisit if a dependency bump introduces one.
 function createRoutingWebSocket(
   BuiltInWebSocket: RNWebSocketConstructor,
-  useNitro: (url: string) => boolean,
+  // Not a React Hook — the `use` prefix confuses rules-of-hooks linting
+  // inside the uppercase RoutingWebSocket function, hence `shouldUseNitro`.
+  shouldUseNitro: (url: string) => boolean,
 ): typeof WebSocket {
   function RoutingWebSocket(
     url: string,
     protocols?: string | string[],
     optionsOrHeaders?: unknown,
   ) {
-    if (typeof url === 'string' && useNitro(url)) {
+    if (typeof url === 'string' && shouldUseNitro(url)) {
       return new NitroWebSocketAdapter(
         url,
         protocols,

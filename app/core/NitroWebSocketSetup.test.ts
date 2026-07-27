@@ -264,8 +264,14 @@ describe('NitroWebSocketSetup', () => {
 
     it("pins WalletConnect's exact call shape: (url, [], undefined) reaches the built-in WebSocket", () => {
       // @walletconnect/jsonrpc-ws-connection constructs sockets as
-      // `new WebSocket(url, [], undefined)` on React Native.
-      new global.WebSocket(
+      // `new WebSocket(url, [], undefined)` on React Native. The DOM lib
+      // types only declare two constructor params, so cast to the RN shape.
+      const RNWebSocket = global.WebSocket as unknown as new (
+        url: string,
+        protocols?: string | string[],
+        options?: unknown,
+      ) => WebSocket;
+      new RNWebSocket(
         'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
         [],
         undefined,
