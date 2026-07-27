@@ -26,10 +26,7 @@
  * polyfill has already populated Reflect (always true after the Metro
  * polyfill bootstrap at app startup).
  */
-if (
-  globalThis.Reflect === undefined ||
-  typeof globalThis.Reflect.metadata !== 'function'
-) {
+if (typeof globalThis.Reflect?.metadata !== 'function') {
   // Use the package subpath so this require bypasses the Metro
   // resolveRequest alias (which only matches the bare specifier) and
   // loads the real polyfill.
