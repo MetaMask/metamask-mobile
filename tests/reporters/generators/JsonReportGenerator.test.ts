@@ -158,6 +158,54 @@ describe('JsonReportGenerator', () => {
     );
   });
 
+  it('writes a standalone BrowserStack app profiling JSON artifact', () => {
+    const profilingData = {
+      data: {
+        'io.metamask': {
+          status: 'success',
+          metrics: { cpu: { avg: 12, max: 40 } },
+        },
+      },
+    };
+    const data = makeReportData({
+      metrics: [
+        makeMetricsEntry({
+          testName: 'Predict BTC Up or Down dwell',
+          sessionId: 'abc123def456789',
+          profilingData,
+        }),
+      ],
+    });
+
+    const files = generator.generate(data, '/reports');
+
+    expect(files.some((f) => f.includes('browserstack-app-profiling-'))).toBe(
+      true,
+    );
+
+    const profilingCall = mockWriteFileSync.mock.calls.find((c: unknown[]) =>
+      (c[0] as string).includes('browserstack-app-profiling-'),
+    );
+    expect(profilingCall).toBeDefined();
+    expect(JSON.parse(profilingCall[1] as string)).toEqual(profilingData);
+  });
+
+  it('does not write profiling artifacts when profilingData has an error', () => {
+    const data = makeReportData({
+      metrics: [
+        makeMetricsEntry({
+          profilingData: { error: 'No profiling data returned' },
+        }),
+      ],
+    });
+
+    const files = generator.generate(data, '/reports');
+
+    expect(files.every((f) => !f.includes('browserstack-app-profiling-'))).toBe(
+      true,
+    );
+  });
+
   it('returns array of written file paths', () => {
     const files = generator.generate(makeReportData(), '/reports');
     expect(Array.isArray(files)).toBe(true);
