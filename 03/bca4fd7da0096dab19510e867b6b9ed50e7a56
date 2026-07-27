@@ -1,0 +1,366 @@
+e2e/llm-workflow/capabilities/seeding.ts
+  s_b3e0c605739e28::t_0d136d160d20d9 1-181
+e2e/llm-workflow/ios/metro-watch-attach.ts
+  s_e24792310a1585::t_68fded4704ca4a 1-144
+e2e/llm-workflow/__tests__/fixture.test.ts
+  s_90c91d54c6325c::t_0d091d5f52b0ee 1-233
+tsconfig.json
+  s_128683cd199bd2::t_832d3e10777a9d 75-77
+e2e/llm-workflow/__tests__/mock-server.test.ts
+  s_90c91d54c6325c::t_893f9f5ebbdcef 1-113
+e2e/llm-workflow/stubs/react-native-nitro-modules.cjs
+  s_4127c759d43e37::t_95f07d78f0c3fa 1-26
+e2e/llm-workflow/launcher-types.ts
+  s_e24792310a1585::t_e15050b804ebe1 1-34,36-81
+  s_c9ebb6a7d2dcd0::t_b4f732dd49551a 35
+e2e/llm-workflow/__tests__/prerequisites.test.ts
+  s_90c91d54c6325c::t_d0c7887f52ca64 1-454,456-477,484-485,487-494,501-838
+  s_9ee288ce639c4b::t_11ae4baf311031 455,478-483,486,495-500
+e2e/llm-workflow/__tests__/factory.test.ts
+  s_90c91d54c6325c::t_221a994862e014 1-143
+e2e/llm-workflow/index.ts
+  s_e272eb99a06efa::t_531831bd8c34c7 1-2
+e2e/llm-workflow/__tests__/chain.test.ts
+  s_90c91d54c6325c::t_c156c07c897dcd 1-118
+e2e/llm-workflow/__tests__/seeding.test.ts
+  s_90c91d54c6325c::t_77b77a934b1856 1-174
+babel.config.tests.js
+  s_128683cd199bd2::t_68e1b025a12404 53-54
+e2e/llm-workflow/__tests__/state-snapshot.test.ts
+  s_90c91d54c6325c::t_1be741c56403ab 1-229
+e2e/llm-workflow/daemon-entry.cjs
+  s_4127c759d43e37::t_362bb85a35842d 1-57
+e2e/llm-workflow/stubs/react-native.cjs
+  s_4127c759d43e37::t_b1128182007340 1-8
+e2e/llm-workflow/daemon.ts
+  s_114aac71cd00be::t_f415ddc8ad4b70 57-77,84-89,94
+  s_985883026c6b83::t_bc47b43feba8df 1-10,15-56,78-83,90-93,95-114
+  s_114aac71cd00be::t_71ba974cf4516d 11-14
+e2e/llm-workflow/ios/platform-driver-factory.ts
+  h_d6a04d82b61d5e 4,12,15
+  s_e2165fe88fb400::t_6d8595d4abb193 1-3,5-11,13-14,16-40
+tests/framework/Constants.ts
+  s_757a59155f1476::t_4da7eefa07911a 4
+e2e/llm-workflow/__tests__/metro-watch-attach.test.ts
+  s_90c91d54c6325c::t_4b08e9d3a4eb38 1-122,125-131,134-137,140-166
+  s_ca77f4fd282e18::t_6c87c81200a500 123-124,132-133,138-139
+e2e/llm-workflow/capabilities/state-snapshot.ts
+  s_b3e0c605739e28::t_ac27af71dad491 1-75
+e2e/llm-workflow/utils.ts
+  s_4127c759d43e37::t_e701ff2e64d9ab 1-6,9-20,24,27-28
+  s_4c8a8e7af84ff7::t_4b2e673b58d669 7-8,21-23,25-26
+e2e/llm-workflow/resolve-repo-root.ts
+  s_4127c759d43e37::t_18d757f4aef23c 1-44
+e2e/llm-workflow/__tests__/daemon.test.ts
+  s_dbe946892f607e::t_89679ac98688e7 129,134
+  s_dbe946892f607e::t_deb8ae23e31d95 35
+  s_114aac71cd00be::t_34ca40a8522102 121,126
+  s_114aac71cd00be::t_e7a96abe54fa5c 19
+  s_114aac71cd00be::t_054ef4ff6a7ea4 27-30
+  s_90c91d54c6325c::t_8f019415603d3a 1-18,20-26,31-34,36-120,122-125,127-128,130-133,135-188
+e2e/llm-workflow/capabilities/fixture.ts
+  s_b3e0c605739e28::t_001554f2dd59c0 1-142
+metro.config.js
+  s_128683cd199bd2::t_22a25fd50c3744 97-109
+e2e/llm-workflow/__tests__/metamask-provider.test.ts
+  s_95a80602322a05::t_fbde89022c882a 140
+  s_cffa8e8e11d9de::t_aa4a3b51c10f23 736-753
+  s_114aac71cd00be::t_33cda00a909915 85-97,103-110
+  s_9cc84138b1e403::t_d6f7a5ae329289 114
+  s_18275f8f2392aa::t_b38d3254271008 65-68
+  s_95a80602322a05::t_6a158bed4e54e3 128
+  s_18275f8f2392aa::t_221affedf13629 170-173
+  s_4c8a8e7af84ff7::t_782bc093c34f60 416-424
+  s_4c8a8e7af84ff7::t_db328fa22e4aad 969,975-980,983,989-994
+  s_114aac71cd00be::t_e77f8dcee07526 1009
+  s_90c91d54c6325c::t_aca7b4c9b02217 1-64,69-73,76-84,98-102,111-113,115-127,129-139,141-169,174-415,425-735,754-868,914-968,970-974,981-982,984-988,995-1008,1010-1033
+  s_cffa8e8e11d9de::t_a8c6e51507b0e3 869-913
+  s_9cc84138b1e403::t_98c2575d623e91 74-75
+  s_90c91d54c6325c::t_30487500fff195 1034-1035
+jest.config.llm-workflow.js
+  s_128683cd199bd2::t_8bacd510cc0efd 1-15,17-19
+  s_128683cd199bd2::t_2936cd243d7768 16
+  s_128683cd199bd2::t_b8787a5fb8b29c 20-21
+e2e/llm-workflow/capabilities/factory.ts
+  s_b3e0c605739e28::t_3c6ad85d36ee91 1-95
+e2e/llm-workflow/metamask-provider.ts
+  s_596f94e59e1f32::t_b0ccdddc925fbc 688
+  s_95a80602322a05::t_bbe4d37a228581 628-632
+  s_90c91d54c6325c::t_a87bab6c966ec3 745-776
+  s_e272eb99a06efa::t_3407b4b700e07e 517
+  s_e272eb99a06efa::t_2c5475648cc70d 176,178,194
+  s_cffa8e8e11d9de::t_0789639f1b0874 693-696
+  s_ac914e6a47397d::t_f9c71450b8fa9f 785,788-789
+  s_e272eb99a06efa::t_6ddc93783646ed 195
+  s_596f94e59e1f32::t_f980fa9af8de19 592,596
+  s_9cc84138b1e403::t_7fd8265dd44fc6 45-53
+  s_114aac71cd00be::t_17556af715b411 402,407,412
+  s_e272eb99a06efa::t_38b382a27a3f00 28-29
+  s_596f94e59e1f32::t_d4c47c0084c3e1 507-516
+  s_0d4ae11b85816f::t_7900ee985805fb 268-269
+  s_0d4ae11b85816f::t_dc58c2c589b0ee 690-691
+  s_596f94e59e1f32::t_eaf48f89ab34bb 266
+  s_596f94e59e1f32::t_a19908464661f3 118-120
+  s_95a80602322a05::t_28de89a43bb07b 805-844
+  s_9cc84138b1e403::t_dd63dbd51be873 591
+  s_e272eb99a06efa::t_bff8b4548f94e9 1-27,30,32-39,43-44,54-77,80-99,101-117,121-175,177,179-182,185-193,196-199,210-265,267,270,275-299,301-401,403-406,408-411,413-427,432-494,496-506,518-555,557-559,561-567,569,571-579,581-582,588-590,593-595,597-613,623-627,633-651,660-664,666-668,670-687,689,692,697-744,783,797,799,804,845
+  s_95a80602322a05::t_c9d67d4c2620ff 271-274
+  s_95a80602322a05::t_4d04ddd0ef9575 183-184
+  s_114aac71cd00be::t_a4a247b2fafd3f 428-431
+  s_4c8a8e7af84ff7::t_b6d3ab63b63adc 652-659
+  s_18275f8f2392aa::t_635c188d7e2ccb 200-209
+  s_e272eb99a06efa::t_2591ca14dec405 300
+  s_e272eb99a06efa::t_711fcb7f99fbb2 495
+  s_95a80602322a05::t_cd57f6f4f01e58 40-42
+  s_c9ebb6a7d2dcd0::t_c723d203c7a490 556,560,568,570
+  s_114aac71cd00be::t_4a0fa759bdd1c1 580,583-587
+  s_9cc84138b1e403::t_cd1ff63edb2949 100
+  s_e272eb99a06efa::t_ca816613c8c0cf 777-782,784,786-787,790-796,798,800-803
+  s_4c8a8e7af84ff7::t_ee47416eba71a0 614-622
+  s_114aac71cd00be::t_e04d3f74846b80 665,669
+  s_114aac71cd00be::t_494cec45e5f1df 78-79
+  s_e272eb99a06efa::t_b43c5d15dc066b 31
+  s_e272eb99a06efa::t_a84b8120244220 846-848
+e2e/llm-workflow/ios/prerequisites.ts
+  s_9ee288ce639c4b::t_570b23f23a7871 439-446,449
+  s_e24792310a1585::t_dd06953255223e 1-438,447-448,450-455
+e2e/llm-workflow/capabilities/mock-server.ts
+  s_b3e0c605739e28::t_6920c06db249f7 1-67
+mm-client-cli.config.ts
+  s_128683cd199bd2::t_28e6e9d8e10392 1-6
+shim.js
+  s_95a80602322a05::t_e0527a1df69f5e 111-114,117
+  s_95a80602322a05::t_9f8c41d14661ce 2
+  s_95a80602322a05::t_5437fb76c9dc57 118
+e2e/llm-workflow/capabilities/index.ts
+  s_b3e0c605739e28::t_95314f057e537d 1-26
+e2e/llm-workflow/README.md
+  s_6d398675a2a6f8::t_0db636e1ff9d4d 24,219
+  s_6d398675a2a6f8::t_2b3bc87155052c 28,47
+  s_6d398675a2a6f8::t_08a85d4185e533 60
+  s_6d398675a2a6f8::t_e232f848c8ea59 1-23,25-27,29-36,39-46,48-59,61-218,220-293
+  s_6d398675a2a6f8::t_96b66178b98f2b 37-38
+.gitignore
+  s_128683cd199bd2::t_9b95e363a0cd40 236-240
+e2e/llm-workflow/capabilities/chain.ts
+  s_b3e0c605739e28::t_d37f16907cee3a 1-25,27-47,52-63,65-71
+  s_95a80602322a05::t_24160dc44d4b59 48-51
+  s_596f94e59e1f32::t_e62bce38bd6682 64
+  s_596f94e59e1f32::t_e0afcd9e8da233 26
+e2e/llm-workflow/__tests__/fixture-adapter.test.ts
+  s_c0a0ca22aca2dd::t_8398d85cc281b2 5
+  s_c0a0ca22aca2dd::t_3dbc9e32eef274 176-484
+  s_90c91d54c6325c::t_c06ac9d0f8d038 1-4,6-175
+e2e/llm-workflow/capabilities/fixture-adapter.ts
+  s_95a80602322a05::t_7369eefbfdb308 6-9
+  s_95a80602322a05::t_afb13019feb449 56-61,65-157
+  s_b3e0c605739e28::t_cce505e533ccb5 1-5,10-55,158-177
+  s_95a80602322a05::t_3b6317c07eb6a1 62-64
+tests/seeder/anvil-manager.ts
+  s_757a59155f1476::t_c99555f96bb98c 20-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "03bca4fd7da0096dab19510e867b6b9ed50e7a56",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
+  "sessions": {
+    "s_0d4ae11b85816f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0f659ab37ffe5qkznTVN2eO29j",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_114aac71cd00be": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0ecb275ebffe3KU9M1ls2FTrTv",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_128683cd199bd2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1046afa60ffe9sEAcWbluXW8Ik",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_18275f8f2392aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0f660c768ffeQwtgK5RaxyjeMv",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_4127c759d43e37": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10469c238ffefL0xfIb4C6Ykuw",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_4c8a8e7af84ff7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0eba48979ffet1OPHkHsUoc5Kf",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_596f94e59e1f32": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0eb86b22dffeHLXWmRpvHBBDUf",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_6d398675a2a6f8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_104560772ffeO8bPrfuw4PYofF",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_757a59155f1476": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1045d4ea3ffeYkPJX3gsfDRtmI",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_90c91d54c6325c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1045c364dffemZHUDMb91KUs7V",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_95a80602322a05": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0eca96150ffeoJtGJemqb09x2k",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_985883026c6b83": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1045e3aa6ffetlMIr832rDeQGY",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_9cc84138b1e403": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_104520031ffe8L3waKSB6rq73G",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_9ee288ce639c4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0ebe963e9ffeJsC2jYAZbiIw5C",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_ac914e6a47397d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0fc61f49bffexARFlyQb24wK95",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_b3e0c605739e28": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10468bd5afferEbT8pmAv2HJVO",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_c0a0ca22aca2dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0ec55d456ffeMk5dGHWL5IjqPx",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_c9ebb6a7d2dcd0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0ecaf037effeggxCAFE63U1H8r",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_ca77f4fd282e18": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0ecb1ac1fffevnAlxif1lFyoD5",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_cffa8e8e11d9de": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0ec5ffe1dffeu7ncw4q0wQQH8C",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_dbe946892f607e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0f64852d9ffeszzkq7GPOgNj4O",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_e2165fe88fb400": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10465c244ffeQE3TQKi6ZVaLK8",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_e24792310a1585": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10466e311ffem7g5633j6OSu1z",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_e272eb99a06efa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_10464b229ffeussv6gyJ8QPpbh",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
