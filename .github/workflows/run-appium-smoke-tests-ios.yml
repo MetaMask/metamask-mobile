@@ -187,7 +187,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -195,8 +195,7 @@ jobs:
       platform: ios
       test_suite_tag: SmokeWalletPlatform
       split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 60
+      total_splits: 2
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
