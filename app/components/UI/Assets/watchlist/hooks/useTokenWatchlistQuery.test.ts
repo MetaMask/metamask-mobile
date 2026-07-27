@@ -158,19 +158,16 @@ describe('useTokenWatchlistQuery', () => {
       version: 1,
     });
 
-    let resolveGetTokens:
-      | ((
-          value: {
-            assetId: string;
-            symbol: string;
-            name: string;
-            decimals: number;
-          }[],
-        ) => void)
-      | null = null;
+    interface TokenFixture {
+      assetId: string;
+      symbol: string;
+      name: string;
+      decimals: number;
+    }
+    let resolveGetTokens!: (value: TokenFixture[]) => void;
     mockedGetTokens.mockImplementation(
       () =>
-        new Promise((resolve) => {
+        new Promise<TokenFixture[]>((resolve) => {
           resolveGetTokens = resolve;
         }),
     );
@@ -189,11 +186,7 @@ describe('useTokenWatchlistQuery', () => {
       version: 1,
     });
 
-    await waitFor(() => {
-      expect(resolveGetTokens).not.toBeNull();
-    });
-
-    resolveGetTokens?.([
+    resolveGetTokens([
       {
         assetId: 'eip155:1/slip44:60',
         symbol: 'ETH',
