@@ -1364,8 +1364,9 @@ describe('OAuthRehydration', () => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
 
-      const journeyEndCall = endTraceMock.mock.calls.find(
-        ([request]: [{ name?: string }]) =>
+      const endTraceJestMock = endTraceMock as jest.Mock;
+      const journeyEndCall = endTraceJestMock.mock.calls.find(
+        ([request]: [{ name?: string; data?: { success?: boolean } }]) =>
           request?.name === 'OnboardingJourneyOverall',
       );
       // Journey span must be ended, and never with a failure/abandoned marker.
@@ -1375,8 +1376,8 @@ describe('OAuthRehydration', () => {
       // Journey span must be closed BEFORE navigation resets/unmounts onboarding,
       // otherwise the Onboarding unmount cleanup wins and records success: false.
       const journeyEndOrder =
-        endTraceMock.mock.invocationCallOrder[
-          endTraceMock.mock.calls.indexOf(journeyEndCall)
+        endTraceJestMock.mock.invocationCallOrder[
+          endTraceJestMock.mock.calls.indexOf(journeyEndCall)
         ];
       expect(journeyEndOrder).toBeLessThan(
         mockReplace.mock.invocationCallOrder[0],
