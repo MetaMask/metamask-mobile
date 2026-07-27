@@ -242,3 +242,8 @@ build-env.json
 .tsccheck.log
 predict_tsc.log
 predict_tsc_summary.txt
+
+# mm CLI daemon
+.mm-server
+.mm-daemon.log
+test-artifacts/
