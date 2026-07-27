@@ -206,7 +206,21 @@ describe('PayWithRow', () => {
     const { getByTestId, queryByTestId } = render();
 
     expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
-    expect(getByTestId('pay-with-symbol')).toHaveTextContent('Select token');
+    expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+      'Select payment method',
+    );
+  });
+
+  it('does not re-render on parent re-render with identical props', () => {
+    const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+    const { rerender } = render();
+    const initialRenderCallCount = useTransactionPayTokenMock.mock.calls.length;
+
+    rerender(<PayWithRow />);
+
+    expect(useTransactionPayTokenMock).toHaveBeenCalledTimes(
+      initialRenderCallCount,
+    );
   });
 
   it('disables edit if hardware wallet', async () => {

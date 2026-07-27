@@ -255,15 +255,15 @@ describe('Rewards Utils', () => {
 
       navigateToRewardsRoute(
         { navigate: mockNavigate },
-        'RewardsSettingsView',
+        'RewardsCampaignMechanics',
         {
-          foo: 'bar',
+          campaignId: 'campaign-1',
         },
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: 'RewardsSettingsView',
-        params: { foo: 'bar' },
+        screen: 'RewardsCampaignMechanics',
+        params: { campaignId: 'campaign-1' },
       });
     });
   });

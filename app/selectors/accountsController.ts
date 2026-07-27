@@ -1,7 +1,4 @@
-import {
-  AccountId,
-  AccountsControllerState,
-} from '@metamask/accounts-controller';
+import { AccountId } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -103,20 +100,26 @@ export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
 );
 
 /**
- * A memoized selector that returns the selected internal account from the AccountsController
+ * A memoized selector that returns the selected internal account from the AccountsController.
+ *
+ * Uses reference equality on the two granular inputs it actually depends on — the
+ * `accounts` map and the `selectedAccount` id — instead of a deep-equality check over the
+ * entire AccountsController state. The underlying account object is already reference-stable
+ * (it only changes when the account's own data changes), so this returns the same object
+ * reference whenever the selected account is unchanged, at the cost of two cheap reference
+ * checks rather than a full deep comparison on every call.
  */
-export const selectSelectedInternalAccount = createDeepEqualSelector(
-  selectAccountsControllerState,
-  (
-    accountsControllerState: AccountsControllerState,
-  ): InternalAccount | undefined => {
-    const accountId = accountsControllerState.internalAccounts.selectedAccount;
-    const account =
-      accountsControllerState.internalAccounts.accounts[accountId];
+export const selectSelectedInternalAccount = createSelector(
+  (state: RootState) =>
+    selectAccountsControllerState(state).internalAccounts.accounts,
+  (state: RootState) =>
+    selectAccountsControllerState(state).internalAccounts.selectedAccount,
+  (accounts, selectedAccountId): InternalAccount | undefined => {
+    const account = accounts[selectedAccountId];
 
     if (!account) {
       const err = new Error(
-        `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,
+        `selectSelectedInternalAccount: Account with ID ${selectedAccountId} not found.`,
       );
       captureException(err);
       return undefined;

@@ -35,10 +35,6 @@ import { getMultichainBalancesControllerMessenger } from './multichain-balances-
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getTransactionControllerInitMessenger,
-  getTransactionControllerMessenger,
-} from './transaction-controller-messenger';
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
@@ -104,13 +100,12 @@ import {
   getMoneyAccountControllerMessenger,
 } from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
+import { getMoneyAccountApiDataServiceMessenger } from './money-account-api-data-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
+import { getSentinelApiServiceMessenger } from './sentinel-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
-import {
-  getDelegationControllerInitMessenger,
-  getDelegationControllerMessenger,
-} from './delegation/delegation-controller-messenger';
+import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
@@ -194,6 +189,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getGeolocationApiServiceMessenger,
     getInitMessenger: noop,
   },
+  SentinelApiService: {
+    getMessenger: getSentinelApiServiceMessenger,
+    getInitMessenger: noop,
+  },
   GeolocationController: {
     getMessenger: getGeolocationControllerMessenger,
     getInitMessenger: noop,
@@ -205,10 +204,6 @@ export const MESSENGER_FACTORIES = {
   TokensController: {
     getMessenger: getTokensControllerMessenger,
     getInitMessenger: getTokensControllerInitMessenger,
-  },
-  TransactionController: {
-    getMessenger: getTransactionControllerMessenger,
-    getInitMessenger: getTransactionControllerInitMessenger,
   },
   TransactionPayController: {
     getMessenger: getTransactionPayControllerMessenger,
@@ -418,7 +413,7 @@ export const MESSENGER_FACTORIES = {
   },
   DelegationController: {
     getMessenger: getDelegationControllerMessenger,
-    getInitMessenger: getDelegationControllerInitMessenger,
+    getInitMessenger: noop,
   },
   BackendWebSocketService: {
     getMessenger: getBackendWebSocketServiceMessenger,
@@ -454,6 +449,10 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountBalanceService: {
     getMessenger: getMoneyAccountBalanceServiceMessenger,
+    getInitMessenger: noop,
+  },
+  MoneyAccountApiDataService: {
+    getMessenger: getMoneyAccountApiDataServiceMessenger,
     getInitMessenger: noop,
   },
   SocialService: {

@@ -24,7 +24,7 @@ import {
 } from './constants';
 import {
   getKnownTokenMetadata,
-  getLocalTransactionFees,
+  getLocalActivityFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
   isUnlimitedApprovalAmount,
@@ -60,12 +60,13 @@ export function mapLocalTransaction(
   const nativeSymbol =
     transactionGroup.nativeAssetSymbol ?? nativeAsset?.symbol;
 
-  // Base network (gas) fee in the chain's native token, derived from the tx
-  // receipt. Spread into `data` for types that surface fees in the UI.
-  const fees = getLocalTransactionFees(
+  // Native network fee (from receipt) plus optional ERC-20 gas-token fee when
+  // `selectedGasFeeToken` is set. Spread into `data` for types that surface fees.
+  const fees = getLocalActivityFees(
     transactionGroup,
     nativeAsset,
     nativeSymbol,
+    environment,
   );
 
   const getNativeToken = (
@@ -526,7 +527,10 @@ export function mapLocalTransaction(
     }
     // No asset moves in an upgrade — the only ETH movement is gas, so the row
     // shows the gas paid as a native-asset amount (rendered like any other tx).
-    const gasAmount = fees?.find((fee) => fee.type === 'base')?.amount;
+    // Gasless upgrades may only carry a `gasToken` fee (no native `base`).
+    const gasAmount =
+      fees?.find((fee) => fee.type === 'base')?.amount ??
+      fees?.find((fee) => fee.type === 'gasToken')?.amount;
     return {
       type: 'smartAccountUpgrade',
       chainId,

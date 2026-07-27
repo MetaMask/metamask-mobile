@@ -190,9 +190,17 @@ const fireTrigger = async (path: string) => {
 // Advance to the terminal Notify step the way the Rive would: Trade -> Follow
 // (`next`) -> Notify (`followTopTraders`). Completion triggers are gated on this
 // step, so tests must reach it before firing `gotIt`/`allowNotifications`.
+//
+// Entering the Notify slide pulses the visible button's completion trigger as it
+// animates in (same as the maybe-later transition), which the component swallows
+// exactly once. We reproduce that spurious pulse here so the helper leaves the
+// component in the same state as the real runtime — latch consumed — and the
+// caller's own `gotIt`/`allowNotifications` acts as the user's real tap.
 const advanceToNotifyStep = async () => {
   await fireTrigger(RIVE_TRIGGERS.NEXT);
   await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+  // Spurious entry pulse from the follow-path Notify transition (swallowed).
+  await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 };
 
 const getLastStringValue = (path: string) =>
@@ -256,7 +264,7 @@ describe('SocialLeaderboardOnboarding', () => {
       'Next',
     );
     expect(getLastStringValue(riveStepTextBinding(2, 'primaryButton'))).toBe(
-      'Follow the top three',
+      'Follow the top ten',
     );
     expect(getLastStringValue(riveStepTextBinding(2, 'secondaryButton'))).toBe(
       'Maybe later',
@@ -324,7 +332,7 @@ describe('SocialLeaderboardOnboarding', () => {
         SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION,
       ),
     ).toHaveTextContent(
-      'Tap to follow the top three traders who are up big this week.',
+      'Tap to follow the top ten traders who are up big this week.',
     );
   });
 
@@ -363,7 +371,7 @@ describe('SocialLeaderboardOnboarding', () => {
         SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION,
       ),
     ).toHaveTextContent(
-      'Tap to follow the top three traders who are up big this week.',
+      'Tap to follow the top ten traders who are up big this week.',
     );
 
     // Still on Follow (not a terminal step): a completion trigger must not exit.
@@ -639,6 +647,40 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
+  it('follows up to ten traders while only binding the three displayed cards', async () => {
+    // The Rive artboard only has three trader-card slots, but "Follow the top
+    // ten" must follow the full fetched set. Provide ten traders and assert all
+    // ten are followed while only cards 1..3 receive live name/PnL bindings.
+    mockTraders = Array.from({ length: 10 }, (_, index) =>
+      makeTrader({
+        id: `trader-${index + 1}`,
+        username: `trader${index + 1}`,
+        pnlValue: 100000 - index * 1000,
+        rank: index + 1,
+      }),
+    );
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(10);
+
+    // Only the three displayed cards are bound into the artboard.
+    expect(getLastStringValue(riveTraderBinding(3, 'name'))).toBe('trader3');
+    expect(getLastStringValue(riveTraderBinding(4, 'name'))).toBeUndefined();
+
+    // The pre-selected count reported on completion reflects the full ten.
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
+      expect.objectContaining({
+        traders_followed_count: 10,
+        traders_pre_selected_count: 10,
+      }),
+    );
+  });
+
   it('does not navigate when a terminal trigger fires before the Notify step', async () => {
     renderComponent();
 
@@ -657,7 +699,7 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('tracks follow_top_three interaction with the count of traders followed', async () => {
+  it('tracks follow_top_traders interaction with the count of traders followed', async () => {
     mockTraders[1] = makeTrader({
       id: 'b',
       username: 'raggedand',
@@ -667,12 +709,15 @@ describe('SocialLeaderboardOnboarding', () => {
 
     await fireTrigger(RIVE_TRIGGERS.NEXT);
     await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+    // Spurious entry pulse from the follow-path Notify transition (swallowed).
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+    // The user's real "Got it" tap on the Notify step completes the flow.
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
       expect.objectContaining({
-        interaction_type: 'follow_top_three',
+        interaction_type: 'follow_top_traders',
         nux_step: 'step_2',
         source: 'nux',
       }),
@@ -684,6 +729,56 @@ describe('SocialLeaderboardOnboarding', () => {
         nux_step: 'step_3',
         traders_followed_count: 2,
         traders_pre_selected_count: 3,
+      }),
+    );
+  });
+
+  it('swallows the follow-path completion pulse, then completes on the real tap', async () => {
+    // "Follow the top ten" advances to the Notify slide, whose transition
+    // pulses the visible button's completion trigger as it animates in (observed
+    // on Android; iOS timing hides it). That first pulse must be ignored so the
+    // user is not ejected straight to the leaderboard the moment they follow —
+    // the user's real tap afterwards must still complete the flow.
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+
+    // Spurious entry pulse of the visible completion trigger is swallowed.
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
+      expect.anything(),
+    );
+
+    // The user's real tap afterwards completes the flow.
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+  });
+
+  it('swallows an allowNotifications entry pulse on the follow-path Notify step', async () => {
+    // The follow-path Notify slide shows the two-button ("Allow notifications")
+    // layout while prompting, so its entry pulse can arrive on that trigger too.
+    // It must be swallowed without requesting permission or navigating.
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    expect(mockRequestPushPermission).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+
+    // The real "Allow notifications" tap afterwards still enables and completes.
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    expect(mockRequestPushPermission).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+        source: 'nux',
+        showNotificationsBanner: false,
       }),
     );
   });

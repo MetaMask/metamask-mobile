@@ -15,6 +15,25 @@ import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import UnifiedGestures from '../../../framework/UnifiedGestures';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
+import { FrameworkDetector } from '../../../framework/FrameworkDetector';
+import type { UnifiedGestureOptions } from '../../../framework/GestureStrategy';
+
+/**
+ * Appium iOS: XCTest often reports `isDisplayed() === false` on native-stack
+ * card screens (RevealPrivateCredential after #33670) even when the element
+ * exists. Skip displayed checks and tap by testID (same pattern as
+ * AccountDetails.tapBackButton / SrpQuizModal).
+ */
+const iosAppiumTapOptions = (description: string): UnifiedGestureOptions => {
+  const skipDisplayedChecks =
+    FrameworkDetector.isAppium() && PlatformDetector.isIOS();
+  return {
+    description,
+    checkForDisplayed: !skipDisplayedChecks,
+    // When XCTest lies about displayed, enabled checks can also stall the tap.
+    checkForEnabled: !skipDisplayedChecks,
+  };
+};
 
 class RevealSecretRecoveryPhrase {
   get container(): EncapsulatedElementType {
@@ -131,9 +150,10 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapConfirmButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.confirmButton, {
-      description: 'Confirm button to reveal credential',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.confirmButton,
+      iosAppiumTapOptions('Confirm button to reveal credential'),
+    );
   }
 
   /**
@@ -163,21 +183,24 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapToReveal(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
-      description: 'Reveal secret recovery phrase button',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.revealSecretRecoveryPhraseButton,
+      iosAppiumTapOptions('Reveal secret recovery phrase button'),
+    );
   }
 
   async tapToCopyCredentialToClipboard() {
-    await UnifiedGestures.tap(this.revealCredentialCopyToClipboardButton, {
-      description: 'Reveal credential copy to clipboard button',
-    });
+    await UnifiedGestures.tap(
+      this.revealCredentialCopyToClipboardButton,
+      iosAppiumTapOptions('Reveal credential copy to clipboard button'),
+    );
   }
 
   async tapToRevealPrivateCredentialQRCode(): Promise<void> {
-    await UnifiedGestures.tap(this.revealCredentialQRCodeTab, {
-      description: 'Reveal credential QR code tab',
-    });
+    await UnifiedGestures.tap(
+      this.revealCredentialQRCodeTab,
+      iosAppiumTapOptions('Reveal credential QR code tab'),
+    );
   }
 
   async scrollToDone(): Promise<void> {
@@ -191,9 +214,10 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapDoneButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.doneButton, {
-      description: 'Done button',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.doneButton,
+      iosAppiumTapOptions('Done button'),
+    );
   }
 
   async scrollToCopyToClipboardButton(): Promise<void> {

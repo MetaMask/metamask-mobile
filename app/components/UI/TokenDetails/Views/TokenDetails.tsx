@@ -10,6 +10,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -17,14 +18,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  AppState,
-  Platform,
-  Share,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -36,8 +30,6 @@ import {
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
-import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
@@ -49,13 +41,13 @@ import { selectPerpsEnabledFlag } from '../../Perps';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Transactions from '../../Transactions';
 import {
-  AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import {
   TokenDetailsSource,
@@ -70,7 +62,6 @@ import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 
@@ -175,12 +166,11 @@ const TokenDetails: React.FC<{
   onCtaClicked,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const { themeAppearance } = useTheme();
-  const isLightMode = themeAppearance === AppThemeKey.light;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const [isShareSheetVisible, setIsShareSheetVisible] = useState(false);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
@@ -193,6 +183,9 @@ const TokenDetails: React.FC<{
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
+      if (token.caipAssetId && isCaipAssetType(token.caipAssetId)) {
+        return token.caipAssetId;
+      }
       if (isCaipAssetType(token.address)) {
         return token.address as CaipAssetType;
       }
@@ -210,15 +203,20 @@ const TokenDetails: React.FC<{
     } catch {
       return null;
     }
-  }, [token.address, token.chainId]);
+  }, [token.caipAssetId, token.address, token.chainId]);
 
-  const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+  const shareUrl = useMemo(
+    () =>
+      caip19AssetId
+        ? `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`
+        : null,
+    [caip19AssetId],
+  );
+
   const handleShare = useCallback(() => {
-    if (!caip19AssetId) {
+    if (!shareUrl) {
       return;
     }
-
-    const url = `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SHARED)
@@ -230,11 +228,9 @@ const TokenDetails: React.FC<{
         .build(),
     );
 
-    // Share only the deep link. iOS renders `url` as a rich link preview;
-    // Android needs the link in `message`.
-    Share.share(Platform.OS === 'ios' ? { url } : { message: url });
+    setIsShareSheetVisible(true);
   }, [
-    caip19AssetId,
+    shareUrl,
     createEventBuilder,
     token.address,
     token.chainId,
@@ -242,10 +238,8 @@ const TokenDetails: React.FC<{
     trackEvent,
   ]);
 
-  const isPriceAlertsChainSupported = useIsPriceAlertsChainSupported(
-    caip19AssetId,
-    { enabled: isPriceAlertsFeatureEnabled },
-  );
+  const isPriceAlertsChainSupported =
+    useIsPriceAlertsChainSupported(caip19AssetId);
 
   const {
     securityData,
@@ -286,7 +280,7 @@ const TokenDetails: React.FC<{
   } = useTokenPrice({ token });
 
   const currentPriceUsd = useMemo(() => {
-    if (!isPriceAlertsFeatureEnabled || !Number.isFinite(currentPrice)) {
+    if (!Number.isFinite(currentPrice)) {
       return null;
     }
     return (
@@ -298,7 +292,6 @@ const TokenDetails: React.FC<{
       }) ?? null
     );
   }, [
-    isPriceAlertsFeatureEnabled,
     currentPrice,
     token.chainId,
     networkConfigurationsByChainId,
@@ -311,21 +304,6 @@ const TokenDetails: React.FC<{
   const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
     setChartPricePositive(isPositive);
   }, []);
-
-  const ambientIconColor = useMemo(() => {
-    if (!useAmbientColor || chartPricePositive === null) return undefined;
-
-    const successColor = isLightMode
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
-
-    return chartPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
-  }, [
-    useAmbientColor,
-    chartPricePositive,
-    isLightMode,
-    theme.colors.success.default,
-  ]);
 
   const {
     balance,
@@ -463,15 +441,12 @@ const TokenDetails: React.FC<{
           />
         }
         onPriceAlertPress={
-          isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&
           (currentPriceUsd ?? 0) > 0 &&
           caip19AssetId
             ? handlePriceAlertPress
             : undefined
         }
-        iconColor={ambientIconColor}
-        useAmbientColor={useAmbientColor}
         onCopyAddress={() =>
           trackActionTapped(TokenDetailsAction.CopyTokenAddress)
         }
@@ -510,7 +485,7 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && !(useAmbientColor && chartPricePositive === null) && (
+      {!txLoading && (
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
@@ -519,7 +494,6 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
-          isPricePositive={chartPricePositive}
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
@@ -530,6 +504,19 @@ const TokenDetails: React.FC<{
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
+      {isShareSheetVisible && shareUrl && (
+        <ShareTokenBottomSheet
+          shareUrl={shareUrl}
+          token={token}
+          currentPrice={currentPrice}
+          priceDiff={priceDiff}
+          comparePrice={comparePrice}
+          currentCurrency={currentCurrency}
+          securityData={securityData}
+          networkName={networkName}
+          onClose={() => setIsShareSheetVisible(false)}
         />
       )}
       {quickBuySheet}
@@ -543,7 +530,7 @@ const TokenDetails: React.FC<{
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const token = route.params as TokenDetailsRouteParams;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);

@@ -40,7 +40,11 @@ import type {
   QrSyncControllerGetStateAction,
   QrSyncControllerMarkProvisioningFailedAction,
 } from '../controller-types';
-import { QrSyncProvisioningStatuses, QrSyncSecretTypes } from '../constants';
+import {
+  QrSyncProvisioningStatuses,
+  QrSyncSecretTypes,
+  type QrSyncSyncFlow,
+} from '../constants';
 import type {
   QrSyncAccountGroup,
   QrSyncProvisioningMetadata,
@@ -49,7 +53,12 @@ import type {
   QrSyncSecretImportEntry,
 } from '../types';
 import { toFormattedAddress } from '../../../util/address';
-import Logger from '../../../util/Logger';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../qrSyncTelemetry';
 
 const SERVICE_NAME = 'QrSyncProvisioningService' as const;
 
@@ -127,38 +136,63 @@ export class QrSyncProvisioningService {
   ): Promise<void> {
     for (const secret of secrets) {
       try {
-        if (secret.type === QrSyncSecretTypes.MNEMONIC) {
-          const entropySource = await this.#importMnemonicToVault(secret.value);
-          this.#messenger.call(
-            'QrSyncController:enrichProvisioningEntry',
-            secret.index,
-            { entropySource },
-          );
-        } else if (secret.type === QrSyncSecretTypes.PRIVATE_KEY) {
-          const accountAddress = await this.#importPrivateKeyToVault(
-            secret.value,
-          );
-
-          if (accountAddress) {
-            this.#messenger.call(
-              'QrSyncController:enrichProvisioningEntry',
-              secret.index,
-              { accountAddress },
-            );
-          }
-        } else {
-          Logger.error(
-            new Error('QrSyncProvisioningService: Unknown secret type'),
-            secret.type,
-          );
-        }
+        await this.#importSingleSecretToVault(secret);
       } catch (error) {
-        Logger.error(
-          error as Error,
-          'QrSyncProvisioningService.importSecretsToVault',
+        this.#reportImportSecretsFailure(
+          error,
+          QrSyncOperations.IMPORT_SECRETS_TO_VAULT,
         );
       }
     }
+  }
+
+  async #importSingleSecretToVault(
+    secret: QrSyncSecretImportEntry,
+  ): Promise<void> {
+    if (secret.type === QrSyncSecretTypes.MNEMONIC) {
+      const entropySource = await this.#importMnemonicToVault(secret.value);
+      this.#messenger.call(
+        'QrSyncController:enrichProvisioningEntry',
+        secret.index,
+        { entropySource },
+      );
+      return;
+    }
+
+    if (secret.type === QrSyncSecretTypes.PRIVATE_KEY) {
+      const accountAddress = await this.#importPrivateKeyToVault(secret.value);
+      if (accountAddress) {
+        this.#messenger.call(
+          'QrSyncController:enrichProvisioningEntry',
+          secret.index,
+          { accountAddress },
+        );
+      }
+      return;
+    }
+
+    this.#reportImportSecretsFailure(
+      new Error('QrSyncProvisioningService: Unknown secret type'),
+      QrSyncOperations.IMPORT_SECRETS_UNKNOWN_TYPE,
+      { secretType: String(secret.type) },
+    );
+  }
+
+  #reportImportSecretsFailure(
+    error: unknown,
+    operation:
+      | typeof QrSyncOperations.IMPORT_SECRETS_TO_VAULT
+      | typeof QrSyncOperations.IMPORT_SECRETS_UNKNOWN_TYPE,
+    extras?: Record<string, unknown>,
+  ): void {
+    const syncFlow = this.#getSessionSyncFlow();
+    reportQrSyncFailure(error, {
+      surface: QrSyncSurfaces.IMPORT,
+      operation,
+      source: QrSyncTelemetrySources.PROVISIONING_IMPORT_SECRETS,
+      ...(syncFlow ? { syncFlow } : {}),
+      ...(extras ? { extras } : {}),
+    });
   }
 
   async #importMnemonicToVault(seed: string): Promise<EntropySourceId> {
@@ -426,10 +460,25 @@ export class QrSyncProvisioningService {
     try {
       await this.#messenger.call('AccountTreeController:syncWithUserStorage');
     } catch (error) {
-      Logger.error(
-        error as Error,
-        'QrSyncProvisioningService: user storage reconciliation failed',
-      );
+      const syncFlow = this.#getSessionSyncFlow();
+      reportQrSyncFailure(error, {
+        surface: QrSyncSurfaces.IMPORT,
+        operation: QrSyncOperations.USER_STORAGE_RECONCILIATION,
+        source: QrSyncTelemetrySources.PROVISIONING_RECONCILE,
+        ...(syncFlow ? { syncFlow } : {}),
+      });
+    }
+  }
+
+  /**
+   * Returns the sync flow captured on the controller when the QR session started
+   * (from local onboarding status), not derived from extension payloads.
+   */
+  #getSessionSyncFlow(): QrSyncSyncFlow | undefined {
+    try {
+      return this.#getQrSyncControllerState().syncFlow ?? undefined;
+    } catch {
+      return undefined;
     }
   }
 

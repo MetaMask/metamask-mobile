@@ -314,40 +314,6 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
-  it('injects onboarding checklist stepper assignment on checklist Home Viewed', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
-      .addProperties({
-        interaction_type: 'onboarding_checklist',
-        section_name: 'on_ramp',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      homeTMCU828AbtestOnboardingChecklistStepper: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(
-        'homeTMCU828AbtestOnboardingChecklistStepper',
-        'treatment',
-      ),
-    ]);
-  });
-
-  it('skips onboarding checklist stepper mapping on non-checklist Home Viewed', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
-      .addProperties({
-        section_name: 'tokens',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      homeTMCU828AbtestOnboardingChecklistStepper: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toBeUndefined();
-  });
-
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
       .addProperties({

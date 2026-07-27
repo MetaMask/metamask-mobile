@@ -4,12 +4,17 @@ import React, { useMemo, type ReactNode } from 'react';
 import {
   Box,
   BoxFlexDirection,
+  BoxAlignItems,
   ButtonIcon,
   ButtonIconSize,
   HeaderSubpage,
   IconName,
   IconColor,
   IconSize,
+  Text,
+  TextVariant,
+  FontWeight,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Badge, {
@@ -40,8 +45,6 @@ export const TokenDetailsInlineHeader = ({
   onSharePress,
   starButton,
   onCopyAddress,
-  iconColor,
-  useAmbientColor = false,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -51,9 +54,6 @@ export const TokenDetailsInlineHeader = ({
   /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
   starButton?: ReactNode;
   onCopyAddress?: () => void;
-  /** Hex color string for the back button icon (A/B test). */
-  iconColor?: string;
-  useAmbientColor?: boolean;
 }) => {
   const tw = useTailwind();
   const { isStockToken } = useRWAToken();
@@ -71,15 +71,6 @@ export const TokenDetailsInlineHeader = ({
     contractAddress,
     onCopyAddress,
   );
-
-  const shouldShowEndButtons = !useAmbientColor || iconColor !== undefined;
-
-  const backButtonIconProps = useMemo(() => {
-    if (useAmbientColor && iconColor) {
-      return { twClassName: `text-[${iconColor}]` };
-    }
-    return undefined;
-  }, [useAmbientColor, iconColor]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
@@ -139,7 +130,7 @@ export const TokenDetailsInlineHeader = ({
     if (starButton) {
       buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
     }
-    if (shouldShowEndButtons && onSharePress) {
+    if (onSharePress) {
       buttons.push(
         <ButtonIcon
           key="share"
@@ -151,7 +142,7 @@ export const TokenDetailsInlineHeader = ({
         />,
       );
     }
-    if (shouldShowEndButtons && onPriceAlertPress) {
+    if (onPriceAlertPress) {
       buttons.push(
         <ButtonIcon
           key="alert"
@@ -165,28 +156,40 @@ export const TokenDetailsInlineHeader = ({
     }
 
     if (buttons.length === 0) return undefined;
-    if (buttons.length === 1) return buttons[0];
     return (
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
         {buttons}
       </Box>
     );
-  }, [starButton, shouldShowEndButtons, onSharePress, onPriceAlertPress]);
+  }, [starButton, onSharePress, onPriceAlertPress]);
 
-  const descriptionEndAccessory = useMemo(() => {
+  const inlineDescription = useMemo(() => {
     if (!contractAddress) {
       return undefined;
     }
 
     return (
-      <ButtonIcon
-        iconName={IconName.Copy}
-        size={ButtonIconSize.Xs}
-        onPress={handleCopyContractAddress}
-        iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-        testID="copy-contract-address-button"
-        accessibilityLabel={strings('token.contract_address')}
-      />
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
+          {formatAddress(contractAddress, 'short')}
+        </Text>
+        <ButtonIcon
+          iconName={IconName.Copy}
+          size={ButtonIconSize.Xs}
+          onPress={handleCopyContractAddress}
+          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+          testID="copy-contract-address-button"
+          accessibilityLabel={strings('token.contract_address')}
+        />
+      </Box>
     );
   }, [contractAddress, handleCopyContractAddress]);
 
@@ -199,7 +202,6 @@ export const TokenDetailsInlineHeader = ({
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
           onPress={onBackPress}
-          iconProps={backButtonIconProps}
           testID="back-arrow-button"
         />
       }
@@ -223,10 +225,7 @@ export const TokenDetailsInlineHeader = ({
       }
       title={token.ticker || token.symbol}
       titleEndAccessory={titleEndAccessory}
-      description={
-        contractAddress ? formatAddress(contractAddress, 'short') : undefined
-      }
-      descriptionEndAccessory={descriptionEndAccessory}
+      description={inlineDescription}
     />
   );
 };

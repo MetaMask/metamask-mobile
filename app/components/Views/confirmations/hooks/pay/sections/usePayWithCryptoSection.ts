@@ -25,6 +25,7 @@ import {
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import {
   hasTransactionType,
@@ -154,6 +155,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       chainId: preferredToken.chainId,
     };
     if (isPerpsDepositAndOrder) {
+      // an explicit row press is a selection even when the pay token
+      // is unchanged (re-selecting the current preferred token).
+      markPerpsPaymentTokenSelection();
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);
@@ -183,6 +187,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       chainId: noFeeToken.chainId,
     };
     if (isPerpsDepositAndOrder) {
+      // explicit row press counts as a selection (see above).
+      markPerpsPaymentTokenSelection();
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);

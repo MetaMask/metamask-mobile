@@ -18,6 +18,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useState,
   useRef,
@@ -130,7 +131,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const { goBack, dispatch, addListener } = useNavigation();
+  const { goBack, dispatch, addListener } = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 

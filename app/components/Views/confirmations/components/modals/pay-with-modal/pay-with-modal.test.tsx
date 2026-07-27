@@ -31,6 +31,7 @@ import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
@@ -73,6 +74,7 @@ jest.mock('../../../utils/transaction-pay', () => ({
 }));
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
+jest.mock('../../../../../UI/Perps/utils/perpsPaymentTokenSelection');
 jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
 jest.mock('../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter');
 
@@ -336,6 +338,9 @@ describe('PayWithModal', () => {
           chainId: TOKENS_MOCK[1].chainId,
         }),
       );
+      // Selecting a Perps token via this nested picker must mark the selection
+      // so PerpsPayRow doesn't misread the sheet close as a dismissal.
+      expect(markPerpsPaymentTokenSelection).toHaveBeenCalled();
     });
 
     it('calls onPredictPaymentTokenChange via close callback when type is predictDepositAndOrder', async () => {

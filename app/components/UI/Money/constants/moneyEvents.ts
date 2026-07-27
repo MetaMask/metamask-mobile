@@ -6,6 +6,8 @@ import AppConstants from '../../../../core/AppConstants';
  */
 export enum SCREEN_NAMES {
   WALLET_HOME = 'wallet_home',
+  TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
+  ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
   CARD_HOME = 'card_home',
@@ -112,6 +114,8 @@ export enum COMPONENT_NAMES {
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
   MONEY_FOOTER = 'money_footer',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
+  MONEY_TOKEN_LIST_ITEM_CTA = 'money_token_list_item_cta',
+  MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
 
   // — How It Works / FAQ —
@@ -124,6 +128,7 @@ export enum COMPONENT_NAMES {
  */
 export enum MONEY_BUTTON_INTENTS {
   ADD_MONEY = 'add_money',
+  DISMISS = 'dismiss',
   GET_STARTED = 'get_started',
   GO_TO_MONEY_HOME = 'go_to_money_home',
   GO_TO_MONEY_ONBOARDING = 'go_to_money_onboarding',

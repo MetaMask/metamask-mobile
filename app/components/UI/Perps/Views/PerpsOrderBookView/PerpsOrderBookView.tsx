@@ -22,6 +22,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -99,7 +101,7 @@ import type {
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: OrderBookRouteParams }, 'params'>>();
   const { symbol, marketData: routeMarketData } = route.params || {};
@@ -576,6 +578,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       navigateToClosePosition(
         existingPosition,
         PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+        {
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+        },
       );
     });
   }, [existingPosition, gate, navigateToClosePosition, isEligible, track]);

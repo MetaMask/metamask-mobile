@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  AppState,
-  Platform,
-  Share,
-  type AppStateStatus,
-} from 'react-native';
+import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -21,14 +15,10 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  AMBIENT_NEGATIVE_COLOR,
-  AMBIENT_PRICE_COLOR_AB_KEY,
-} from '../components/abTestConfig';
+import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
@@ -166,6 +156,21 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
     mockTokenDetailsInlineHeader(props),
 }));
 
+const mockShareTokenBottomSheet = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../components/ShareTokenBottomSheet', () => {
+  const ReactLib = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockShareTokenBottomSheet(props);
+      return ReactLib.createElement(View, { testID: 'share-token-sheet' });
+    },
+  };
+});
+
 let mockLastUseAmbientColorProp: boolean | undefined;
 let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
 let mockLatestOnBuy: (() => void) | undefined;
@@ -279,12 +284,13 @@ jest.mock('../../Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => false),
 }));
 
-const mockUsePerpsMarketForAsset = jest.fn((_symbol: string | null) => ({
+const defaultUsePerpsMarketForAssetImpl = (_symbol: string | null) => ({
   hasPerpsMarket: false,
   marketData: null,
   isLoading: false,
   error: null,
-}));
+});
+const mockUsePerpsMarketForAsset = jest.fn(defaultUsePerpsMarketForAssetImpl);
 jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
   usePerpsMarketForAsset: (symbol: string | null) =>
     mockUsePerpsMarketForAsset(symbol),
@@ -301,10 +307,6 @@ jest.mock('../../../../reducers/fiatOrders', () => ({
 jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
   selectDepositActiveFlag: jest.fn(() => false),
   selectDepositMinimumVersionFlag: jest.fn(() => null),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
-  selectPriceAlertsEnabled: jest.fn(() => false),
 }));
 
 const mockUseIsPriceAlertsChainSupported = jest.fn<
@@ -441,6 +443,9 @@ describe('TokenDetails', () => {
       networkModal: null,
     });
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUsePerpsMarketForAsset.mockImplementation(
+      defaultUsePerpsMarketForAssetImpl,
+    );
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -462,14 +467,8 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectPriceAlertsEnabled) return false;
       return undefined;
     });
-  });
-
-  afterEach(() => {
-    mockAutoResolveMarketInsights = true;
-    mockLatestMarketInsightsResolver = undefined;
   });
 
   it('renders loader when txLoading is true', () => {
@@ -657,6 +656,10 @@ describe('TokenDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
+      if (selector === selectNetworkConfigurations)
+        return { '0x1': { nativeCurrency: 'ETH' } };
+      if (selector === selectCurrencyRates)
+        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
@@ -738,9 +741,6 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
 
       expect(mockLastUseAmbientColorProp).toBeFalsy();
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
     });
 
     it('passes useAmbientColor=true in treatment variant', () => {
@@ -751,94 +751,27 @@ describe('TokenDetails', () => {
       expect(mockLastUseAmbientColorProp).toBe(true);
     });
 
-    it('keeps iconColor undefined until chart reports direction', () => {
-      enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        priceDiff: 10,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
-    });
-
-    it('applies success green when chart reports positive direction', () => {
+    it('does not pass iconColor or useAmbientColor to the inline header', () => {
       enableAmbientColor();
 
       render(<TokenDetails />);
-      act(() => {
-        mockLatestPriceDirectionChange?.(true);
-      });
 
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: LIGHT_MODE_SUCCESS_GREEN }),
-      );
+      const headerProps = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0];
+      expect(headerProps).not.toHaveProperty('iconColor');
+      expect(headerProps).not.toHaveProperty('useAmbientColor');
     });
 
-    it('applies negative color when chart reports negative direction', () => {
-      enableAmbientColor();
-
-      render(<TokenDetails />);
-      act(() => {
-        mockLatestPriceDirectionChange?.(false);
-      });
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          iconColor: AMBIENT_NEGATIVE_COLOR,
-        }),
-      );
-    });
-
-    it('returns undefined iconColor when treatment + price is loading', () => {
-      enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        isLoading: true,
-        priceDiff: 0,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
-    });
-
-    it('hides sticky footer while chart direction is unresolved', () => {
+    it('always shows sticky footer regardless of chart direction', () => {
       enableAmbientColor();
 
       const { queryByTestId } = render(<TokenDetails />);
 
-      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+      expect(queryByTestId('bottomsheetfooter')).toBeTruthy();
     });
   });
 
-  describe('price alert button gating', () => {
-    const enablePriceAlerts = () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectNetworkConfigurationByChainId)
-          return { name: 'Ethereum' };
-        if (selector === selectNetworkConfigurations)
-          return { '0x1': { nativeCurrency: 'ETH' } };
-        if (selector === selectCurrencyRates)
-          // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
-          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-        if (selector === selectPerpsEnabledFlag) return false;
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
-        if (selector === getRampNetworks) return [];
-        if (selector === selectDepositActiveFlag) return false;
-        if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
-        return undefined;
-      });
-    };
-
-    it('passes onPriceAlertPress to the header when the flag is enabled and currentPrice > 0', () => {
-      enablePriceAlerts();
+  describe('price alert button', () => {
+    it('passes onPriceAlertPress to the header when currentPrice > 0', () => {
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -853,17 +786,7 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('passes undefined onPriceAlertPress when the flag is disabled', () => {
-      // Flag disabled — default mockUseSelector returns false for selectPriceAlertsEnabled
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ onPriceAlertPress: undefined }),
-      );
-    });
-
-    it('passes undefined onPriceAlertPress when currentPrice is 0, even if flag is enabled', () => {
-      enablePriceAlerts();
+    it('passes undefined onPriceAlertPress when currentPrice is 0', () => {
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 0,
@@ -877,7 +800,6 @@ describe('TokenDetails', () => {
     });
 
     it('passes undefined onPriceAlertPress when CAIP-19 asset id cannot be resolved', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -895,7 +817,6 @@ describe('TokenDetails', () => {
     });
 
     it('passes undefined onPriceAlertPress when the chain is not supported for price alerts', () => {
-      enablePriceAlerts();
       mockUseIsPriceAlertsChainSupported.mockReturnValue(false);
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
@@ -922,7 +843,6 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -938,7 +858,6 @@ describe('TokenDetails', () => {
     });
 
     it('shows the price alert button for a Solana token when the chain is supported', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 150,
@@ -960,7 +879,6 @@ describe('TokenDetails', () => {
     });
 
     it('shows the price alert button for a Bitcoin token using the native currency CAIP-19 fallback', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 60000,
@@ -985,7 +903,6 @@ describe('TokenDetails', () => {
     });
 
     it('navigates with the Bitcoin native CAIP-19 asset id when the price alert button is pressed', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 60000,
@@ -1031,7 +948,6 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1065,7 +981,6 @@ describe('TokenDetails', () => {
     });
 
     it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 2500,
@@ -1101,16 +1016,6 @@ describe('TokenDetails', () => {
   });
 
   describe('share button', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(Share, 'share')
-        .mockResolvedValue({ action: Share.dismissedAction });
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
     const invokeSharePress = async () => {
       const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
       const { onSharePress } = (lastCall?.[0] ?? {}) as {
@@ -1129,28 +1034,20 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('calls Share.share with an encoded CAIP-19 URL when onSharePress is invoked', async () => {
+    it('opens ShareTokenBottomSheet with the share URL when onSharePress is invoked', async () => {
       render(<TokenDetails />);
+      expect(mockShareTokenBottomSheet).not.toHaveBeenCalled();
+
       await invokeSharePress();
 
-      expect(Share.share).toHaveBeenCalledWith(
+      expect(mockShareTokenBottomSheet).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringMatching(
+          shareUrl: expect.stringMatching(
             /^https:\/\/link\.metamask\.io\/asset\?assetId=eip155/,
           ),
+          onClose: expect.any(Function),
         }),
       );
-    });
-
-    it('does not include unencoded colons or slashes in the query param', async () => {
-      render(<TokenDetails />);
-      await invokeSharePress();
-
-      const [{ url }] = (Share.share as jest.Mock).mock.calls[0];
-      const assetId = new URL(url as string).searchParams.get('assetId') ?? '';
-      const queryString = (url as string).split('?')[1] ?? '';
-      expect(decodeURIComponent(encodeURIComponent(assetId))).toBe(assetId);
-      expect(queryString).not.toContain(':');
     });
 
     it('fires TOKEN_DETAILS_SHARED with chain_id, token_symbol and token_address', async () => {
@@ -1170,27 +1067,7 @@ describe('TokenDetails', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('on Android passes message with URL and no separate url field', async () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        configurable: true,
-      });
-      try {
-        render(<TokenDetails />);
-        await invokeSharePress();
-
-        const [args] = (Share.share as jest.Mock).mock.calls[0];
-        expect(args.message).toMatch(/link\.metamask\.io/);
-        expect(args.url).toBeUndefined();
-      } finally {
-        Object.defineProperty(Platform, 'OS', {
-          value: 'ios',
-          configurable: true,
-        });
-      }
-    });
-
-    it('does not share when caip19AssetId cannot be resolved', async () => {
+    it('does not open the share sheet when caip19AssetId cannot be resolved', async () => {
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         chainId: undefined,
@@ -1199,7 +1076,24 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
       await invokeSharePress();
 
-      expect(Share.share).not.toHaveBeenCalled();
+      expect(mockShareTokenBottomSheet).not.toHaveBeenCalled();
+    });
+
+    it('resolves caip19AssetId from route caipAssetId when provided', async () => {
+      const caipAssetId = 'eip155:8453/slip44:60';
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        caipAssetId,
+      });
+
+      render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(mockShareTokenBottomSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          shareUrl: expect.stringContaining(encodeURIComponent(caipAssetId)),
+        }),
+      );
     });
 
     it('resolves caip19AssetId directly when address is already CAIP-19 format', async () => {
@@ -1213,11 +1107,27 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
       await invokeSharePress();
 
-      expect(Share.share).toHaveBeenCalledWith(
+      expect(mockShareTokenBottomSheet).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining(encodeURIComponent(caipAddress)),
+          shareUrl: expect.stringContaining(encodeURIComponent(caipAddress)),
         }),
       );
+    });
+
+    it('closes ShareTokenBottomSheet when onClose is invoked', async () => {
+      const { getByTestId, queryByTestId } = render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(getByTestId('share-token-sheet')).toBeTruthy();
+
+      const { onClose } = (mockShareTokenBottomSheet.mock.calls.at(-1)?.[0] ??
+        {}) as { onClose: () => void };
+
+      act(() => {
+        onClose();
+      });
+
+      expect(queryByTestId('share-token-sheet')).toBeNull();
     });
   });
 

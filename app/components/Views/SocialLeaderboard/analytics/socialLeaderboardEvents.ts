@@ -13,6 +13,7 @@ export const SocialLeaderboardEventProperties = {
   ASSET_NAME: 'asset_name',
   CAIP19: 'caip19',
   PERPS_MARKET: 'perps_market',
+  CHAIN_NAME: 'chain_name',
   CHAIN_FILTER: 'chain_filter',
   CTA_TYPE: 'cta_type',
   FEED_ACTION: 'feed_action',
@@ -29,6 +30,7 @@ export const SocialLeaderboardEventProperties = {
   SCREEN: 'screen',
   SOURCE: 'source',
   TAB: 'tab',
+  TAB_CHANGE_METHOD: 'tab_change_method',
   TRADER_ADDRESS: 'trader_address',
   TRADER_HAS_PROFILE_PICTURE_SET: 'trader_has_profile_picture_set',
   TRADER_RANK: 'trader_rank',
@@ -59,16 +61,21 @@ export const SocialLeaderboardEventValues = {
     TOKENS: 'tokens',
     PERPS: 'perps',
   },
+  FOLLOW_TRADING_INTERACTION_TYPE: {
+    TAB_CHANGED: 'tab_changed',
+  },
+  TRADER_FEED_INTERACTION_TYPE: {
+    AUDIENCE_FILTER_CHANGED: 'audience_filter_changed',
+    TYPE_FILTER_CHANGED: 'type_filter_changed',
+  },
   INTERACTION_TYPE: {
     ALLOW_NOTIFICATIONS: 'allow_notifications',
     BACK: 'back',
     CONTINUE: 'continue',
     DISMISSED: 'dismissed',
-    FOLLOW_TOP_THREE: 'follow_top_three',
+    FOLLOW_TOP_TRADERS: 'follow_top_traders',
     GOT_IT: 'got_it',
     MAYBE_LATER: 'maybe_later',
-    SWIPE: 'swipe',
-    TAP: 'tap',
   },
   NUX_STEP: {
     STEP_1: 'step_1',
@@ -80,6 +87,10 @@ export const SocialLeaderboardEventValues = {
     FEED: 'tab_feed',
     LEADERBOARD: 'tab_leaderboard',
     OPEN: 'open',
+  },
+  TAB_CHANGE_METHOD: {
+    SWIPE: 'swipe',
+    TAP: 'tap',
   },
   TRADE_TYPE: {
     PERPS: 'perps',

@@ -1,8 +1,24 @@
 import { mapFeedItem } from './mapFeedItem';
+import { formatFeedSubHeader } from './formatFeedSubHeader';
 import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: Record<string, string>) => {
+    if (
+      key === 'social_leaderboard.feed.sub_header.size_at_market_cap' &&
+      params
+    ) {
+      return `${params.size} at ${params.marketCap} ${params.abbreviation}`;
+    }
+    if (key === 'social_leaderboard.feed.sub_header.size_at_price' && params) {
+      return `${params.size} at ${params.price}`;
+    }
+    const literals: Record<string, string> = {
+      'social_leaderboard.feed.sub_header.at_connector': 'at',
+      'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
+    };
+    return literals[key] ?? key;
+  },
 }));
 
 describe('mapFeedItem', () => {
@@ -170,6 +186,55 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('sold');
   });
 
+  it('keeps a perp enter fill as "opened" even when the snapshot looks closed', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        // A closed-looking snapshot (Clicker reports currentValueUSD === 0) must
+        // not override the triggering trade's `enter` intent.
+        currentValueUSD: 0,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 5,
+            usdCost: 50600,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('opened');
+  });
+
+  it('keeps a spot enter fill as "bought" even when the snapshot looks closed', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        // Closed-looking spot snapshot (fully sold out) must still defer to the
+        // triggering trade's `enter` intent.
+        positionAmount: 0,
+        soldUsd: 100_000,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1000,
+            usdCost: 120000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('bought');
+  });
+
   it('returns null for a spot trade on an unsupported chain', () => {
     const result = mapFeedItem(mockSpotFeedItem({ chain: 'fantom' }));
 
@@ -180,8 +245,66 @@ describe('mapFeedItem', () => {
     const result = mapFeedItem(mockSpotFeedItem());
 
     // usdCost 120000 -> "$120K"; price 120000/1000 = 120 -> "at $120.00".
-    expect(result?.subHeader).toContain('$120K');
-    expect(result?.subHeader).toContain('at');
+    expect(
+      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
+    ).toContain('$120K');
+    expect(
+      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
+    ).toContain('at');
+  });
+
+  it('composes a sub-header with trade-time market cap for spot trades', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1000,
+            usdCost: 103_000,
+            marketCap: 73_500_000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$103K',
+      contextValueLabel: '$73.5M',
+      contextKind: 'marketCap',
+    });
+    expect(formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' })).toBe(
+      '$103K at $73.5M MC',
+    );
+  });
+
+  it('omits market cap on perp trades even when Clicker provides it', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 5,
+            usdCost: 50_000,
+            marketCap: 73_500_000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader.contextKind).not.toBe('marketCap');
+    expect(
+      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
+    ).not.toContain('MC');
   });
 
   it('leaves value and PnL labels empty when open-position fields are missing', () => {
@@ -278,6 +401,40 @@ describe('mapFeedItem', () => {
     expect(result?.hasValueData).toBe(true);
     expect(result?.hasPnlData).toBe(true);
     expect(result?.valueLabel).toContain('4,659');
+  });
+
+  it('shows realized PnL for a closed perp exit when marginUsd is still non-zero', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        tokenSymbol: 'BTC',
+        currentValueUSD: undefined,
+        pnlValueUsd: undefined,
+        pnlPercent: undefined,
+        realizedPnl: 12_500,
+        marginUsd: 151_400,
+        positionAmount: 2.5,
+        perpPositionType: 'short',
+        perpLeverage: 9,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: -2.5,
+            usdCost: -151_400,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'short',
+            perpLeverage: 9,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('closed');
+    expect(result?.hasValueData).toBe(true);
+    expect(result?.hasPnlData).toBe(true);
+    expect(result?.valueLabel).toContain('12,500');
   });
 
   it('marks negative PnL as not positive', () => {

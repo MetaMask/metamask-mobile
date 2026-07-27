@@ -10,9 +10,11 @@ import type { CaipChainId, Hex } from '@metamask/utils';
 import {
   TransactionStatus,
   TransactionType,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type { TransactionGroup } from './transaction-group';
 import type { ActivityFee, Status, TokenAmount } from '../types';
+import { GAS_FEE_SPONSORED } from '../fees';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
@@ -41,17 +43,69 @@ export function getNetworkFeeAmount(
 }
 
 /**
+ * Determines whether a transaction should display its network fee as sponsored.
+ *
+ * Mirrors the existing transaction-details sponsorship rules: the transaction
+ * must be marked as gas-sponsored, while hardware wallets, revoke-delegation
+ * transactions, terminal transactions with no gas paid, and failed
+ * transactions with no gas used are not shown as paid by MetaMask.
+ */
+export function isTransactionGasFeeSponsored({
+  transaction,
+  isHardwareWalletAccount = false,
+}: {
+  transaction: TransactionMeta | undefined;
+  isHardwareWalletAccount?: boolean;
+}): boolean {
+  if (!transaction) {
+    return false;
+  }
+
+  const { isGasFeeSponsored, status, type } = transaction;
+
+  return Boolean(
+    isGasFeeSponsored &&
+      type !== TransactionType.revokeDelegation &&
+      !isHardwareWalletAccount &&
+      status !== TransactionStatus.rejected &&
+      status !== TransactionStatus.dropped &&
+      !(status === TransactionStatus.failed && !transaction.txReceipt?.gasUsed),
+  );
+}
+
+/**
  * Builds the base network fee (in the chain's native token) for a local
  * transaction from its receipt (`gasUsed × effectiveGasPrice`), falling back to
  * `txParams.gasPrice` while pending. Mirrors the extension's
  * `getLocalTransactionFees` + `buildBaseNetworkFee`.
  */
 export function getLocalTransactionFees(
-  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'>,
+  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'> &
+    Partial<
+      Pick<TransactionGroup, 'initialTransaction' | 'isHardwareWalletAccount'>
+    >,
   nativeAsset: ActivityTokenMetadata | undefined,
   nativeSymbol: string | undefined,
 ): ActivityFee[] | undefined {
-  const { primaryTransaction } = transactionGroup;
+  const {
+    initialTransaction,
+    isHardwareWalletAccount = false,
+    primaryTransaction,
+  } = transactionGroup;
+  const transaction =
+    primaryTransaction.isGasFeeSponsored || !initialTransaction
+      ? primaryTransaction
+      : initialTransaction;
+
+  if (
+    isTransactionGasFeeSponsored({
+      transaction,
+      isHardwareWalletAccount,
+    })
+  ) {
+    return [{ type: GAS_FEE_SPONSORED }];
+  }
+
   const amount = getNetworkFeeAmount(
     primaryTransaction.txReceipt?.gasUsed,
     primaryTransaction.txReceipt?.effectiveGasPrice ??
@@ -71,6 +125,87 @@ export function getLocalTransactionFees(
       ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
     },
   ];
+}
+
+/**
+ * Fee paid with a selected gas fee token (ERC-20). Shown on the primary
+ * Activity row so STX `gas_payment` siblings can be hidden (TMCU-1064).
+ *
+ * Skips the native sentinel (`0x000…000`) — confirmations may select it for
+ * STX while gas is still paid in native — and skips terminal-fail statuses so
+ * quoted unpaid gas is not shown on dropped/rejected/failed sends.
+ */
+export function getLocalGasTokenFee(
+  transaction: TransactionGroup['primaryTransaction'],
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
+): ActivityFee | undefined {
+  const { selectedGasFeeToken, gasFeeTokens, chainId, status } = transaction;
+  if (!selectedGasFeeToken || !gasFeeTokens?.length) {
+    return undefined;
+  }
+
+  if (
+    environment.equalsIgnoreCase(
+      selectedGasFeeToken,
+      environment.nativeTokenAddress,
+    )
+  ) {
+    return undefined;
+  }
+
+  if (
+    status === TransactionStatus.failed ||
+    status === TransactionStatus.dropped ||
+    status === TransactionStatus.rejected ||
+    status === TransactionStatus.cancelled
+  ) {
+    return undefined;
+  }
+
+  const gasFeeToken = gasFeeTokens.find((token) =>
+    environment.equalsIgnoreCase(token.tokenAddress, selectedGasFeeToken),
+  );
+  if (!gasFeeToken?.amount) {
+    return undefined;
+  }
+
+  let amount: string;
+  try {
+    amount = BigInt(gasFeeToken.amount).toString(10);
+  } catch {
+    return undefined;
+  }
+
+  const assetId = environment.toAssetId(gasFeeToken.tokenAddress, chainId);
+
+  return {
+    type: 'gasToken',
+    amount,
+    decimals: gasFeeToken.decimals,
+    ...(gasFeeToken.symbol ? { symbol: gasFeeToken.symbol } : {}),
+    ...(assetId ? { assetId } : {}),
+  };
+}
+
+/**
+ * Fees for local Activity rows. When a gas fee token is selected, only that
+ * fee is shown (native base is omitted — the user paid with the token).
+ * Otherwise returns the native network fee.
+ */
+export function getLocalActivityFees(
+  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'>,
+  nativeAsset: ActivityTokenMetadata | undefined,
+  nativeSymbol: string | undefined,
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
+): ActivityFee[] | undefined {
+  const gasTokenFee = getLocalGasTokenFee(
+    transactionGroup.primaryTransaction,
+    environment,
+  );
+  if (gasTokenFee) {
+    return [gasTokenFee];
+  }
+  return getLocalTransactionFees(transactionGroup, nativeAsset, nativeSymbol);
 }
 
 export function getApiTransactionFees(

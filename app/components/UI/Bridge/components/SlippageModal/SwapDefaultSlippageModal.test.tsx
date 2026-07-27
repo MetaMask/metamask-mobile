@@ -6,7 +6,7 @@ import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import {
   selectSlippage,
-  setSlippage,
+  setSlippageUserOverride,
 } from '../../../../../core/redux/slices/bridge';
 import { SwapDefaultSlippageModal } from './SwapDefaultSlippageModal';
 
@@ -151,6 +151,6 @@ describe('SwapDefaultSlippageModal', () => {
     fireEvent.press(getByText('3%'));
     fireEvent.press(getByText('Submit'));
 
-    expect(mockDispatch).toHaveBeenCalledWith(setSlippage('3'));
+    expect(mockDispatch).toHaveBeenCalledWith(setSlippageUserOverride('3'));
   });
 });

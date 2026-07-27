@@ -78,12 +78,16 @@ jest.mock(
   }),
 );
 
-jest.mock('../../util/Logger', () => ({
-  error: jest.fn(),
-  log: jest.fn(),
-}));
+jest.mock('./qrSyncTelemetry', () => {
+  const actual = jest.requireActual('./qrSyncTelemetry');
+  return {
+    ...actual,
+    reportQrSyncFailure: jest.fn(),
+  };
+});
 
 import Engine from '../Engine';
+import { reportQrSyncFailure } from './qrSyncTelemetry';
 
 const flushAsync = async () => {
   await waitFor(() => {
@@ -299,10 +303,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
   });
 
-  it('logs and resets when existing-user mnemonic import rejects', async () => {
-    const Logger = jest.requireMock('../../util/Logger') as {
-      error: jest.Mock;
-    };
+  it('reports and resets when existing-user mnemonic import rejects', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     mockQrSyncMnemonic = 'seed from redux';
@@ -314,7 +315,7 @@ describe('useQrSyncImportNavigation', () => {
     renderHook(() => useQrSyncImportNavigation({ enabled: true }));
 
     await waitFor(() => {
-      expect(Logger.error).toHaveBeenCalled();
+      expect(reportQrSyncFailure).toHaveBeenCalled();
       expect(mockResetState).toHaveBeenCalled();
     });
   });
