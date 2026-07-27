@@ -36260,7 +36260,7 @@ __metadata:
     redux-thunk: "npm:^2.4.2"
     regenerator-runtime: "npm:0.13.9"
     reselect: "npm:^5.1.1"
-    rive-react-native: "npm:^9.8.5"
+    rive-react-native: "npm:^9.8.0"
     rxjs: "npm:^7.8.1"
     semver: "npm:^7.7.3"
     serve-handler: "npm:^6.1.5"
@@ -42433,7 +42433,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rive-react-native@npm:^9.8.5":
+"rive-react-native@npm:^9.8.0":
   version: 9.8.5
   resolution: "rive-react-native@npm:9.8.5"
   peerDependencies:
