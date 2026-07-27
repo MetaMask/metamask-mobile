@@ -2,8 +2,8 @@ import React, { useCallback } from 'react';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { ImageSourcePropType, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, type ParamListBase } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -28,14 +28,14 @@ import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
 
-interface DeFiProtocolPositionDetailsParams {
+export interface DeFiProtocolPositionDetailsParams {
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
 const DeFiProtocolPositionDetails: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
 
   const { protocolAggregate, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsParams>();

@@ -12,7 +12,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { mockNetworkState } from '../../../../../util/test/network';
-
 // QRAccountDisplay is mocked because it uses the safeview context.
 // This is a workaround to render the component.
 jest.mock('../../../QRAccountDisplay', () => {
@@ -59,6 +58,11 @@ jest.mock('../../../QRAccountDisplay', () => {
   };
 });
 
+jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 let mockAccount = internalAccount1;
@@ -308,6 +312,14 @@ describe('ShareAddress', () => {
       },
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'share_address',
+        url: 'https://etherscan.io',
+      }),
+    );
   });
 
   it('renders different account types correctly', () => {

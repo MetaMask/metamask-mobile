@@ -15,6 +15,7 @@ import { useIsPaidByMetaMask } from './useIsPaidByMetaMask';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from './useTransactionPayData';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
@@ -40,17 +41,26 @@ const nonZeroFeesTotals = {
   },
 } as TransactionPayTotals;
 
-function runHook({ type }: { type?: TransactionType } = {}) {
+function runHook({
+  type,
+  isGasFeeSponsored,
+}: { type?: TransactionType; isGasFeeSponsored?: boolean } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
   );
 
-  (
+  const tx = (
     state.engine.backgroundState
       .TransactionController as TransactionControllerState
-  ).transactions[0].type = type ?? TransactionType.musdConversion;
+  ).transactions[0];
+  tx.type = type ?? TransactionType.musdConversion;
+
+  if (isGasFeeSponsored !== undefined) {
+    (tx as { isGasFeeSponsored?: boolean }).isGasFeeSponsored =
+      isGasFeeSponsored;
+  }
 
   return renderHookWithProvider(useIsPaidByMetaMask, { state });
 }
@@ -61,6 +71,9 @@ describe('useIsPaidByMetaMask', () => {
   );
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
+  const useTransactionPaySourceAmountsMock = jest.mocked(
+    useTransactionPaySourceAmounts,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -70,6 +83,7 @@ describe('useIsPaidByMetaMask', () => {
       {} as TransactionPayQuote<Json>,
     ]);
     useTransactionPayTotalsMock.mockReturnValue(zeroFeesTotals);
+    useTransactionPaySourceAmountsMock.mockReturnValue([]);
   });
 
   it('returns false when there are no quotes', () => {
@@ -88,10 +102,16 @@ describe('useIsPaidByMetaMask', () => {
     expect(result.current).toBe(false);
   });
 
-  it('returns false when the transaction type is not musdConversion', () => {
+  it('returns true for any transaction type when all fees are zero (type-agnostic)', () => {
     const { result } = runHook({ type: TransactionType.perpsDeposit });
 
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
+  });
+
+  it('returns true when all fees are zero and the type is moneyAccountWithdraw', () => {
+    const { result } = runHook({ type: TransactionType.moneyAccountWithdraw });
+
+    expect(result.current).toBe(true);
   });
 
   it('returns false when a fiat payment method is selected', () => {
@@ -131,5 +151,48 @@ describe('useIsPaidByMetaMask', () => {
     const { result } = runHook({ type: TransactionType.musdConversion });
 
     expect(result.current).toBe(false);
+  });
+
+  describe('gas-fee-sponsored short-circuit (mirrors fee row $0 display)', () => {
+    it('returns true when sponsored and there are no source amounts, even without quotes or totals', () => {
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPayTotalsMock.mockReturnValue({} as TransactionPayTotals);
+      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+
+      const { result } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+        isGasFeeSponsored: true,
+      });
+
+      expect(result.current).toBe(true);
+    });
+
+    it('does not short-circuit when sponsored but source amounts exist (falls back to fee check)', () => {
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPaySourceAmountsMock.mockReturnValue([
+        {},
+      ] as unknown as ReturnType<typeof useTransactionPaySourceAmounts>);
+
+      const { result } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+        isGasFeeSponsored: true,
+      });
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false when sponsored with no source amounts but a fiat payment method is selected', () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'apple-pay',
+      } as TransactionFiatPayment);
+      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+
+      const { result } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+        isGasFeeSponsored: true,
+      });
+
+      expect(result.current).toBe(false);
+    });
   });
 });

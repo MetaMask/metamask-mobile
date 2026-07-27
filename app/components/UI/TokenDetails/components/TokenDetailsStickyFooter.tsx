@@ -1,35 +1,37 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 import {
   Button,
   ButtonAnimated,
   ButtonVariant,
+  Icon,
   IconName,
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import type { TokenSecurityData } from '@metamask/assets-controllers';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
-import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
-import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import Routes from '../../../../constants/navigation/Routes';
-import type { BridgeToken } from '../../Bridge/types';
-import type { TokenDetailsRouteParams } from '../constants/constants';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { useTokenChartPreferences } from '../../AssetOverview/Price/hooks/useTokenChartPreferences';
 import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
+import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import type { BridgeToken } from '../../Bridge/types';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
+import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import type { TokenDetailsRouteParams } from '../constants/constants';
+import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
+import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
-import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import FlashFilledIcon from './assets/flash-filled.svg';
 
 const styles = StyleSheet.create({
   footer: {
@@ -86,8 +88,6 @@ interface TokenStickyFooterProps {
   quickBuyTestID?: string;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
-  /** When true, use success (green) accent; when false, use error (red) accent. Null means not yet resolved. */
-  isPricePositive?: boolean | null;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
 }
@@ -107,19 +107,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onQuickBuyPress,
   quickBuyTestID,
   sourcePage,
-  isPricePositive = null,
   useAmbientColor = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
-  const useErrorAccent = useAmbientColor && isPricePositive === false;
+  const { indicators: indicatorsActive } = useTokenChartPreferences();
 
-  const getSuccessClass = (prefix: string, defaultClass: string) => {
+  const geolocation = useSelector(getDetectedGeolocation);
+  const useErrorAccent =
+    useAmbientColor && isAsiaGeolocationLocation(geolocation);
+
+  const getAccentClass = (prefix: string, defaultClass: string) => {
     if (useErrorAccent) {
-      return `${prefix}-[${AMBIENT_NEGATIVE_COLOR}]`;
+      return `${prefix}-error-default`;
     }
     if (isLightMode) {
       return `${prefix}-[${LIGHT_MODE_SUCCESS_GREEN}]`;
@@ -127,12 +130,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     return defaultClass;
   };
 
-  const successBg = getSuccessClass('bg', 'bg-success-default');
-  const successBorder = getSuccessClass('border', 'border-success-default');
-  const successText = getSuccessClass('text', 'text-success-default');
+  const successBg = getAccentClass('bg', 'bg-success-default');
+  const successBorder = getAccentClass('border', 'border-success-default');
+  const successText = getAccentClass('text', 'text-success-default');
 
   const successColorHex = useErrorAccent
-    ? AMBIENT_NEGATIVE_COLOR
+    ? colors.error.default
     : isLightMode
       ? LIGHT_MODE_SUCCESS_GREEN
       : colors.success.default;
@@ -157,7 +160,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
 
-  const geolocation = useSelector(getDetectedGeolocation);
   const isRwaGeoRestricted = useMemo(() => {
     if (!isStockToken(token as BridgeToken)) return false;
     if (__DEV__) return false;
@@ -293,6 +295,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onSwap,
@@ -325,6 +328,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onBuy,
@@ -349,6 +353,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onQuickBuyPress,
@@ -356,11 +361,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               );
             }}
           >
-            <FlashFilledIcon
-              name="FlashFilled"
-              width={20}
-              height={20}
-              fill={successColorHex}
+            <Icon
+              name={IconName.FlashFilled}
+              size={IconSize.Md}
+              twClassName={successText}
             />
           </ButtonAnimated>
         )}

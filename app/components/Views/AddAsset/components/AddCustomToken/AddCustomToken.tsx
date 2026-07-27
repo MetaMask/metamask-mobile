@@ -20,8 +20,8 @@ import {
 import type { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { useNavigation, type ParamListBase } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
@@ -193,7 +193,7 @@ const AddCustomToken = ({
   const symbolInputRef = useRef<TextInput>(null);
   const decimalsInputRef = useRef<TextInput>(null);
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();

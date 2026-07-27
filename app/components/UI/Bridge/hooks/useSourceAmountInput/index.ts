@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FeatureId,
+  formatAddressToCaipReference,
+  getRequestParams,
+  getSwapType,
+  InputPrimaryDenomination,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import Engine from '../../../../../core/Engine';
+import {
+  selectBridgeControllerState,
+  selectDestToken,
+} from '../../../../../core/redux/slices/bridge';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
 import { BridgeToken } from '../../types';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
@@ -15,6 +29,50 @@ import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 
 const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
+const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
+const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
+
+const getFiatToggleEventProperties = ({
+  previousPrimaryDenomination,
+  nextPrimaryDenomination,
+  sourceToken,
+  destToken,
+}: {
+  previousPrimaryDenomination: InputPrimaryDenomination;
+  nextPrimaryDenomination: InputPrimaryDenomination;
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+}) => {
+  const srcChainId = sourceToken?.chainId
+    ? getDecimalChainId(sourceToken.chainId)
+    : undefined;
+  const destChainId = destToken?.chainId
+    ? getDecimalChainId(destToken.chainId)
+    : undefined;
+  const requestParams = sourceToken
+    ? getRequestParams(
+        {
+          srcChainId,
+          srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
+          destChainId,
+          destTokenAddress: destToken
+            ? formatAddressToCaipReference(destToken.address)
+            : undefined,
+        },
+        destToken?.securityData?.type ?? null,
+      )
+    : {};
+
+  return {
+    ...requestParams,
+    swap_type: getSwapType(srcChainId, destChainId),
+    previous_primary_denomination: previousPrimaryDenomination,
+    new_primary_denomination: nextPrimaryDenomination,
+    token_symbol_source: sourceToken?.symbol ?? '',
+    token_symbol_destination: destToken?.symbol ?? null,
+    feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+  };
+};
 
 export const useSourceAmountInput = ({
   isFiatToggleEnabled,
@@ -27,13 +85,56 @@ export const useSourceAmountInput = ({
   sourceToken: BridgeToken | undefined;
   onSourceAmountChange: (value: string | undefined) => void;
 }) => {
-  const [isFiatMode, setIsFiatMode] = useState(false);
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
+  const bridgeControllerState = useSelector(selectBridgeControllerState);
+  const destToken = useSelector(selectDestToken);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const fiatRate = useTokenFiatRate(sourceToken);
+  const inputPrimaryDenomination =
+    bridgeControllerState?.inputPrimaryDenomination ??
+    TOKEN_AMOUNT_DENOMINATION;
   const canToggle = Boolean(isFiatToggleEnabled && fiatRate && fiatRate > 0);
+  // The controller stores the persisted preference, while this local value lets
+  // the input react immediately as controller state propagates through Redux.
+  const [activeInputPrimaryDenomination, setActiveInputPrimaryDenomination] =
+    useState<InputPrimaryDenomination>(inputPrimaryDenomination);
+  const isFiatMode =
+    activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle;
   const amount = isFiatMode ? fiatAmount : sourceAmount;
   const isFiatInputChangeRef = useRef(false);
+
+  useEffect(() => {
+    setActiveInputPrimaryDenomination(inputPrimaryDenomination);
+  }, [inputPrimaryDenomination]);
+
+  const setInputPrimaryDenomination = useCallback(
+    (
+      nextPrimaryDenomination: InputPrimaryDenomination,
+      shouldTrackToggle = false,
+    ) => {
+      const previousPrimaryDenomination = activeInputPrimaryDenomination;
+      setActiveInputPrimaryDenomination(nextPrimaryDenomination);
+      Engine.context.BridgeController.setInputPrimaryDenomination(
+        nextPrimaryDenomination,
+      );
+
+      if (
+        shouldTrackToggle &&
+        previousPrimaryDenomination !== nextPrimaryDenomination
+      ) {
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.FiatCryptoToggleClicked,
+          getFiatToggleEventProperties({
+            previousPrimaryDenomination,
+            nextPrimaryDenomination,
+            sourceToken,
+            destToken,
+          }),
+        );
+      }
+    },
+    [activeInputPrimaryDenomination, destToken, sourceToken],
+  );
 
   const handleAmountChange = useCallback(
     (value: string | undefined) => {
@@ -70,19 +171,6 @@ export const useSourceAmountInput = ({
     maxInputLength: MAX_INPUT_LENGTH,
     onSourceAmountChange: handleAmountChange,
   });
-
-  // If price data disappears while fiat mode is active, fall back to token mode
-  // so the input never accepts fiat values that cannot be converted reliably.
-  useEffect(() => {
-    if (canToggle || !isFiatMode) {
-      return;
-    }
-
-    resetSourceAmountCursorPosition();
-    setIsFiatMode(false);
-    setFiatAmount(undefined);
-    isFiatInputChangeRef.current = false;
-  }, [canToggle, isFiatMode, resetSourceAmountCursorPosition]);
 
   // Keep the visible fiat amount aligned when the canonical token amount
   // changes outside fiat typing, such as Max, presets, token, or rate updates.
@@ -133,10 +221,10 @@ export const useSourceAmountInput = ({
 
   const resetToTokenMode = useCallback(() => {
     resetSourceAmountCursorPosition();
-    setIsFiatMode(false);
+    setInputPrimaryDenomination(TOKEN_AMOUNT_DENOMINATION);
     setFiatAmount(undefined);
     isFiatInputChangeRef.current = false;
-  }, [resetSourceAmountCursorPosition]);
+  }, [resetSourceAmountCursorPosition, setInputPrimaryDenomination]);
 
   const handleToggle = useCallback(() => {
     if (!canToggle) {
@@ -145,7 +233,7 @@ export const useSourceAmountInput = ({
 
     if (isFiatMode) {
       setSourceAmountCursorPositionToEnd(sourceAmount);
-      setIsFiatMode(false);
+      setInputPrimaryDenomination(TOKEN_AMOUNT_DENOMINATION, true);
       setFiatAmount(undefined);
       isFiatInputChangeRef.current = false;
       return;
@@ -154,11 +242,12 @@ export const useSourceAmountInput = ({
     const nextFiatAmount = formatFiatInputAmount(sourceAmount, fiatRate);
     setSourceAmountCursorPositionToEnd(nextFiatAmount);
     setFiatAmount(nextFiatAmount);
-    setIsFiatMode(true);
+    setInputPrimaryDenomination(FIAT_VALUE_DENOMINATION, true);
   }, [
     canToggle,
     fiatRate,
     isFiatMode,
+    setInputPrimaryDenomination,
     setSourceAmountCursorPositionToEnd,
     sourceAmount,
   ]);

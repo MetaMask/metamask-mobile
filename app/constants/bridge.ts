@@ -32,6 +32,8 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [NETWORK_CHAIN_ID.MONAD]: 'Monad',
   [NETWORK_CHAIN_ID.HYPE]: 'HyperEVM',
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: 'MegaETH',
+  [NETWORK_CHAIN_ID.ARC]: 'Arc',
+  [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: 'Robinhood',
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'BTC',
   [TrxScope.Mainnet]: 'Tron',

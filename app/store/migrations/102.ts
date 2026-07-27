@@ -8,7 +8,7 @@ import {
   DepositPaymentMethod,
   DepositPaymentMethodDuration,
   DepositOrderType,
-} from '@consensys/native-ramps-sdk';
+} from '../../components/UI/Ramp/types/legacyDeposit';
 
 const CRYPTO_CURRENCY_MAP: Record<string, DepositCryptoCurrency> = {
   'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA': {

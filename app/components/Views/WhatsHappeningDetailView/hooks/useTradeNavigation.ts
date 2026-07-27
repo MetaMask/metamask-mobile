@@ -1,6 +1,9 @@
 import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import Routes from '../../../../constants/navigation/Routes';
@@ -27,7 +30,10 @@ const useTradeNavigation = (asset: RelatedAsset): UseTradeNavigationResult => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
-        market: { symbol: hlPerpsMarket, name: asset.name || asset.symbol },
+        market: {
+          symbol: hlPerpsMarket,
+          name: asset.name || asset.symbol,
+        } as PerpsMarketData,
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       },
     });

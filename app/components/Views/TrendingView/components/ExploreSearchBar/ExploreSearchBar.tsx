@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -19,15 +19,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
-// px-4 (16) + icon Md (20) + gap-3 (12) = 48 — aligns overlay text with the input cursor
-const styles = StyleSheet.create({
-  placeholderOverlay: { paddingLeft: 48 },
-});
-
 interface ExploreSearchBarButtonProps {
   type: 'button';
   onPress: () => void;
   placeholder?: string;
+  /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
+  rowTwClassName?: string;
 }
 
 interface ExploreSearchBarInteractiveProps {
@@ -36,6 +33,8 @@ interface ExploreSearchBarInteractiveProps {
   onSearchChange: (query: string) => void;
   onCancel: () => void;
   placeholder?: string;
+  /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
+  rowTwClassName?: string;
 }
 
 type ExploreSearchBarProps =
@@ -49,10 +48,12 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     selectBasicFunctionalityEnabled,
   );
   const isButtonMode = props.type === 'button';
+  const rowTwClassName = props.rowTwClassName ?? 'gap-2';
   const placeholder =
-    props.placeholder || isBasicFunctionalityEnabled
+    props.placeholder ??
+    (isBasicFunctionalityEnabled
       ? strings('trending.search_placeholder')
-      : strings('trending.search_sites');
+      : strings('trending.search_sites'));
 
   // Button mode: tappable faux search bar (no text input).
   const searchBarStatic = (
@@ -81,7 +82,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
+      twClassName={rowTwClassName}
     >
       {isButtonMode ? (
         <TouchableOpacity
@@ -101,7 +102,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             <TextFieldSearch
               value={props.searchQuery}
               onChangeText={props.onSearchChange}
-              placeholder=""
+              placeholder={placeholder}
               autoFocus={props.type === 'interactive'}
               onPressClearButton={() => {
                 props.onSearchChange('');
@@ -112,23 +113,6 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
                 testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
               }}
             />
-            {!props.searchQuery && (
-              <View
-                style={[
-                  tw.style('absolute inset-0 justify-center pr-4'),
-                  styles.placeholderOverlay,
-                ]}
-                pointerEvents="none"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  numberOfLines={1}
-                >
-                  {placeholder}
-                </Text>
-              </View>
-            )}
           </Box>
           <TouchableOpacity
             onPress={() => {

@@ -19,6 +19,12 @@ import {
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
 
+/**
+ * Collateral asset shown in market pair labels (e.g. `ETH-USD perp`).
+ * Perps markets are USD-margined, so this is the display quote across the UI.
+ */
+export const PERPS_COLLATERAL_SYMBOL = 'USD';
+
 /** Chain id used for the "Perps balance" payment option. */
 export { ARBITRUM_MAINNET_CHAIN_ID_HEX as PERPS_BALANCE_CHAIN_ID } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import {
@@ -131,6 +137,14 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
   LongPresets: [-1, -2], // Buy below market for long orders
   ShortPresets: [1, 2], // Sell above market for short orders
+
+  // Maximum allowed deviation of the order price from the reference (mark)
+  // price, as a decimal (0.95 = 95%). HyperLiquid rejects orders whose price is
+  // more than 95% away from the reference price ("oracleRejected"). The check is
+  // ratio-based: the smaller of the order price and the reference price must be
+  // at least (1 - 0.95) = 5% of the larger one. We block submission up front
+  // instead of letting the order fail at the exchange.
+  MaxDeviationFromMarket: 0.95,
 } as const;
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
@@ -165,9 +179,9 @@ export const HOME_SCREEN_CONFIG = {
   // Can be controlled via feature flag in the future
   ShowHeaderActionButtons: true,
 
-  // Maximum number of items to show in each carousel
-  PositionsCarouselLimit: 10,
-  OrdersCarouselLimit: 10,
+  // Maximum number of items to show in each carousel.
+  // Note: positions and orders are intentionally uncapped on the home screen —
+  // they render in a vertical ScrollView and must show every open entry.
   TrendingMarketsLimit: 5,
   RecentActivityLimit: 3,
 

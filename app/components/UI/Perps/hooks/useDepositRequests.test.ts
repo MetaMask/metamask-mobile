@@ -816,4 +816,47 @@ describe('useDepositRequests', () => {
       expect(result.current.depositRequests[0].depositId).toBeUndefined();
     });
   });
+
+  describe('selector stability and logging side effects', () => {
+    it('keeps a stable depositRequests reference across unrelated re-renders when contents are unchanged', () => {
+      // usePerpsSelector returns a fresh filtered array on every render, mirroring
+      // a real dispatch. The hook must stabilize it so consumers do not re-render.
+      const { result, rerender } = renderHookWithProvider(
+        () => useDepositRequests({ skipInitialFetch: true }),
+        { state: createMockState() },
+      );
+
+      const firstReference = result.current.depositRequests;
+
+      rerender({});
+
+      expect(result.current.depositRequests).toBe(firstReference);
+    });
+
+    it('does not log inside the perps selector', () => {
+      let capturedSelector:
+        | ((state: PerpsControllerState) => unknown)
+        | undefined;
+
+      mockUsePerpsSelector.mockImplementation((selector) => {
+        capturedSelector = selector as (state: PerpsControllerState) => unknown;
+        return selector({
+          depositRequests: mockPendingDeposits,
+        } as Partial<PerpsControllerState> as PerpsControllerState);
+      });
+
+      renderHookWithProvider(
+        () => useDepositRequests({ skipInitialFetch: true }),
+        { state: createMockState() },
+      );
+
+      mockDevLogger.log.mockClear();
+
+      capturedSelector?.({
+        depositRequests: mockPendingDeposits,
+      } as Partial<PerpsControllerState> as PerpsControllerState);
+
+      expect(mockDevLogger.log).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -11,6 +10,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -18,7 +19,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
@@ -30,16 +30,15 @@ const VISIBLE_TOKENS_COUNT = 5;
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
   /**
-   * APY expressed as a percentage (e.g. 3 for 3%) used together with the
+   * APY expressed as a decimal (e.g. 0.03 for 3%) used together with the
    * shared projection horizon to compute the projected earnings displayed
    * alongside each token and in the description.
    */
-  apy: number | undefined;
+  apyDecimal: number | undefined;
   /**
    * Returns true when the given token qualifies for a subsidised (no-fee)
-   * deposit. Used to render the "No fee" badge on each token row.
-   * Sourced from the `earnMoneyDepositNoFeeTokens` remote feature flag via
-   * useMoneyDepositTokens.
+   * deposit into the Money account. Used to render the "No fee" badge on
+   * each token row.
    */
   isNoFeeToken?: (token: AssetType) => boolean;
   onTokenCardPress?: (
@@ -59,27 +58,27 @@ interface MoneyPotentialEarningsProps {
    * Typically navigates to the Earn-on-your-crypto info bottom sheet.
    */
   onInfoPress?: () => void;
+  /** Whether each token's balance/projected values should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyPotentialEarnings = ({
   tokens,
-  apy,
+  apyDecimal = 0,
   isNoFeeToken = () => false,
   onTokenCardPress,
   onTokenButtonPress,
   onViewAllPress,
   onHeaderPress,
   onInfoPress,
+  privacyMode = false,
 }: MoneyPotentialEarningsProps) => {
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const apyPercent = apy ?? 0;
-
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
   // the visible five would contradict that affordance.
-  const { eligibleTokens, totalAssetsFiat, projectedAmount } =
-    useProjectedEarnings(tokens, apyPercent);
+  const { eligibleTokens, totalAssetsFiat, projectedAmount, currency } =
+    useProjectedEarnings(tokens, apyDecimal);
   const visibleTokens = useMemo(
     () => eligibleTokens.slice(0, VISIBLE_TOKENS_COUNT),
     [eligibleTokens],
@@ -104,6 +103,21 @@ const MoneyPotentialEarnings = ({
     return null;
   }
 
+  const infoIcon = onInfoPress ? (
+    <>
+      {' '}
+      <Text twClassName="align-middle">
+        <Icon
+          testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+          onPress={onInfoPress}
+        />
+      </Text>
+    </>
+  ) : null;
+
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
@@ -122,36 +136,34 @@ const MoneyPotentialEarnings = ({
           >
             {`${strings(
               'money.potential_earnings.description_with_amounts_prefix',
-              {
-                total: moneyFormatFiat(
-                  new BigNumber(totalAssetsFiat),
-                  currentCurrency,
-                ),
-              },
             )} `}
-            <Text
+            <SensitiveText
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              testID={MoneyPotentialEarningsTestIds.TOTAL}
+            >
+              {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
+            </SensitiveText>
+            {` ${strings(
+              'money.potential_earnings.description_with_amounts_middle',
+            )} `}
+            <SensitiveText
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={MoneyPotentialEarningsTestIds.PROJECTED}
             >
-              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
-            </Text>
+              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
+            </SensitiveText>
             {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',
             )}`}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                  onPress={onInfoPress}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         ) : (
           <Text
@@ -160,19 +172,7 @@ const MoneyPotentialEarnings = ({
             color={TextColor.TextAlternative}
           >
             {strings('money.potential_earnings.description')}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  onPress={onInfoPress}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         )}
       </Box>
@@ -183,9 +183,10 @@ const MoneyPotentialEarnings = ({
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyPercent={apyPercent}
+            apyDecimal={apyDecimal}
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
+            privacyMode={privacyMode}
           />
         ))}
 

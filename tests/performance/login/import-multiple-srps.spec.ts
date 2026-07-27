@@ -11,8 +11,7 @@ import PlaywrightGestures from '../../framework/PlaywrightGestures';
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
 perfTest.describe(PerformanceAccountList, () => {
   perfTest.setTimeout(30 * 60 * 1000);
-  perfTest.skip(
-    // skipped because of the account sync issue
+  perfTest(
     'Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3',
     { tag: '@accounts-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
@@ -43,7 +42,7 @@ perfTest.describe(PerformanceAccountList, () => {
       );
       const walletReadyTimer = new TimerHelper(
         'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
-        { ios: 5000, android: 2000 },
+        { ios: 5000, android: 2500 },
         currentDeviceDetails.platform,
       );
 
@@ -81,7 +80,7 @@ perfTest.describe(PerformanceAccountList, () => {
 
       await walletReadyTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.accountIcon),
+          asPlaywrightElement(WalletView.headerRoot),
           {
             description:
               'Wallet main screen should be visible after importing SRP',

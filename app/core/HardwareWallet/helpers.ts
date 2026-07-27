@@ -12,6 +12,8 @@ import { getDeviceId } from '../Ledger/Ledger';
 
 const LEDGER_DEVICE_ID_LOOKUP_TIMEOUT_MS = 5000;
 
+type NoEmptyAddress<T extends string> = T extends '' ? never : T;
+
 const createLedgerDeviceIdLookupTimeoutError = () =>
   new HardwareWalletError('Ledger device id lookup timed out', {
     code: ErrorCode.DeviceUnresponsive,
@@ -88,9 +90,10 @@ export function getHardwareWalletTypeForAddress(
  *
  * Some hardware wallets, like Ledger over BLE, require a persisted device id
  * to reconnect. Others, like QR signers, do not.
+ * @param address - The wallet address to get the device id for. It cannot be an empty string.
  */
 export async function getDeviceIdForAddress(
-  address: string,
+  address: NoEmptyAddress<string>, // !This value cannot be an empty string.
 ): Promise<string | undefined> {
   const walletType = getHardwareWalletTypeForAddress(address);
 

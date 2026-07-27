@@ -1,12 +1,46 @@
 import { AppState, AppStateStatus } from 'react-native';
 import Logger from '../util/Logger';
 import { MetaMetricsEvents } from './Analytics';
-import { AppStateEventListener } from './AppStateEventListener';
+import {
+  AppStateEventListener,
+  trackAppInstallOnce,
+} from './AppStateEventListener';
 import { processAttribution } from './processAttribution';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../util/analytics/analytics';
 import ReduxService, { ReduxStore } from './redux';
 import { saveAttribution } from './redux/slices/attribution';
+import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import branch from 'react-native-branch';
+
+// Default: existing user so trackAppInstallOnce bails early and does not
+// interfere with tests that only care about APP_OPENED / identify.
+let mockSelectExistingUser = true;
+let mockSelectAppInstallEventFired = true;
+
+jest.mock('../reducers/user/selectors', () => ({
+  selectExistingUser: jest.fn(() => mockSelectExistingUser),
+  selectAppInstallEventFired: jest.fn(() => mockSelectAppInstallEventFired),
+}));
+
+jest.mock('../actions/user', () => ({
+  setAppInstallEventFired: jest.fn(() => ({
+    type: 'SET_APP_INSTALL_EVENT_FIRED',
+  })),
+}));
+
+// jest.mock() is hoisted above variable declarations, so the factory must
+// create jest.fn() inline — referencing an outer variable captures undefined.
+// Access the mock via the import after setup.
+jest.mock('react-native-branch', () => ({
+  __esModule: true,
+  default: {
+    getLatestReferringParams: jest.fn(),
+  },
+}));
+
+const mockBranchGetLatestReferringParams =
+  branch.getLatestReferringParams as jest.Mock;
 
 function createMockReduxStore(): ReduxStore {
   return {
@@ -52,11 +86,9 @@ describe('AppStateEventListener', () => {
   let mockAppStateListener: (state: AppStateStatus) => void;
   const mockEventBuilder = {
     addProperties: jest.fn().mockReturnThis(),
-    setSaveDataRecording: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({
       name: 'App Opened',
       properties: {},
-      saveDataRecording: true,
       sensitiveProperties: {},
     }),
   };
@@ -65,6 +97,12 @@ describe('AppStateEventListener', () => {
     jest.clearAllMocks();
     jest.resetModules();
     jest.useFakeTimers();
+    mockSelectExistingUser = true;
+    mockSelectAppInstallEventFired = true;
+    // Prevent a throwing identify implementation from one test bleeding into
+    // the next (clearAllMocks preserves implementations; mockReset clears them).
+    mockAnalytics.identify.mockReset();
+    mockBranchGetLatestReferringParams.mockResolvedValue({});
     (AppState.addEventListener as jest.Mock).mockImplementation(
       (_, listener) => {
         mockAppStateListener = listener;
@@ -122,7 +160,6 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
-    expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(true);
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       mockAttribution,
     );
@@ -178,7 +215,6 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
-    expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(true);
     expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       mockEventBuilder.build(),
     );
@@ -324,5 +360,165 @@ describe('AppStateEventListener', () => {
       missingReduxStoreError,
       appStateManagerErrorMessage,
     );
+  });
+
+  describe('trackAppInstallOnce', () => {
+    let mockStore: ReturnType<typeof createMockReduxStore>;
+
+    beforeEach(() => {
+      mockStore = createMockReduxStore();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+    });
+
+    it('fires APP_INSTALLED and sets install date trait on first install', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': false,
+        '+clicked_branch_link': false,
+      });
+
+      await trackAppInstallOnce();
+
+      expect(mockAnalytics.identify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [UserProfileProperty.INSTALL_DATE_MOBILE]:
+            expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+        }),
+      );
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.APP_INSTALLED,
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('does not add deeplink properties when install is not from a Branch deferred link', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': false,
+        '+clicked_branch_link': false,
+      });
+
+      await trackAppInstallOnce();
+
+      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ install_source: 'deeplink' }),
+      );
+    });
+
+    it('adds install_source and deeplink_path when opened via Branch deferred deeplink', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': true,
+        '+clicked_branch_link': true,
+        $deeplink_path: 'buy',
+      });
+
+      await trackAppInstallOnce();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+        deeplink_path: 'buy',
+      });
+    });
+
+    it('omits deeplink_path when $deeplink_path is absent', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': true,
+        '+clicked_branch_link': true,
+      });
+
+      await trackAppInstallOnce();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+      });
+    });
+
+    it('skips when existingUser is true', async () => {
+      mockSelectExistingUser = true;
+      mockSelectAppInstallEventFired = false;
+
+      await trackAppInstallOnce();
+
+      expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.APP_INSTALLED,
+      );
+    });
+
+    it('skips when event was already fired', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = true;
+
+      await trackAppInstallOnce();
+
+      expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.APP_INSTALLED,
+      );
+    });
+
+    it('logs error and does not throw when Branch call fails', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      const branchError = new Error('Branch unavailable');
+      mockBranchGetLatestReferringParams.mockRejectedValue(branchError);
+
+      await trackAppInstallOnce();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        branchError,
+        'AppStateManager: Error tracking app install event',
+      );
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
+    });
+
+    it('does not mark event fired when trackEvent throws so install can retry', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({});
+      const trackError = new Error('Analytics unavailable');
+      mockAnalytics.trackEvent.mockImplementation(() => {
+        throw trackError;
+      });
+
+      await trackAppInstallOnce();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        trackError,
+        'AppStateManager: Error tracking app install event',
+      );
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
+    });
+
+    it('retries tracking after a prior failure', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({});
+      mockAnalytics.trackEvent
+        .mockImplementationOnce(() => {
+          throw new Error('Analytics unavailable');
+        })
+        .mockImplementation(() => undefined);
+
+      await trackAppInstallOnce();
+      await trackAppInstallOnce();
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
+      expect(mockStore.dispatch).toHaveBeenCalledTimes(1);
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
+    });
   });
 });

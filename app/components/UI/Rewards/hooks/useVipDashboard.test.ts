@@ -87,6 +87,7 @@ describe('useVipDashboard', () => {
       start: '2099-06-01T00:00:00.000Z',
       end: '2099-06-30T23:59:59.999Z',
     },
+    computedAt: '2099-06-30T14:52:00.000Z',
     currentTier: {
       id: 'mock-tier-alpha-3',
       name: 'Mock Tier Alpha 3',
@@ -135,6 +136,7 @@ describe('useVipDashboard', () => {
     localizedText: {
       periodTitle: 'Jun 1 - Jun 30',
       memberIdTitle: 'Member ID',
+      transactionsTitle: 'Transactions',
       swapsFeeTitle: 'Swaps fee',
       perpsFeeTitle: 'Perps fee',
       nextTierSwapsFeeDelta: '↓ 9 bps next tier',

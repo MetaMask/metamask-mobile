@@ -3,6 +3,8 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -33,8 +35,8 @@ import { formatSubscriptNotation } from '../../../../../util/number/subscriptNot
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
-import { hasDepositOrderField } from '../../Deposit/utils';
-import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
+import { hasDepositOrderField } from '../../utils/depositUtils';
+import BankDetailRow from '../../components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
@@ -73,7 +75,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
   order,
   showCloseButton = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const providerName = order.provider?.name ?? '';
@@ -214,8 +216,9 @@ const OrderContent: React.FC<OrderContentProps> = ({
         })
         .build(),
     );
-    navigation.navigate(
-      ...createProcessingInfoModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createProcessingInfoModalNavigationDetails({
         providerName,
         providerSupportUrl,
         statusDescription: order.statusDescription,

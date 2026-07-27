@@ -82,6 +82,11 @@ const config = {
       reasons: ['Detect build configuration changes.'],
     },
     {
+      type: 'dir',
+      filePath: './scripts/inpage-bridge',
+      reasons: ['Detect inpage provider changes bundled into native apps.'],
+    },
+    {
       type: 'file',
       filePath: './scripts/setup.mjs',
       reasons: ['Detect setup script changes.'],

@@ -14,7 +14,7 @@ const TEST_MNEMONIC =
 const TEST_MNEMONIC_SEED = hexToBytes(mnemonicToSeed(TEST_MNEMONIC));
 
 /**
- * Setup the messenger and mock `KeyringController:withKeyring`.
+ * Setup the messenger and mock `KeyringController:withKeyringV2`.
  *
  * @param deserialize - Whether to deserialize the HD keyring state before returning.
  * @returns The messenger.

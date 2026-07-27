@@ -14,10 +14,15 @@ import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { useGasPriceEstimateOption } from './useGasPriceEstimateOption';
 
+const mockPersistGasFeePreference = jest.fn();
+
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useFeeCalculations');
 jest.mock('./useGasFeeEstimates');
+jest.mock('./usePersistGasFeePreference', () => ({
+  usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),
+}));
 
 describe('useGasPriceEstimateOption', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -296,6 +301,12 @@ describe('useGasPriceEstimateOption', () => {
       userFeeLevel: 'medium',
       gasPrice: '0x1',
     });
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      transactionWithGasPriceEstimates,
+      {
+        userFeeLevel: 'medium',
+      },
+    );
     expect(mockHandleCloseModals).toHaveBeenCalled();
   });
 
@@ -349,6 +360,12 @@ describe('useGasPriceEstimateOption', () => {
       maxFeePerGas: '0x1',
       maxPriorityFeePerGas: '0x1',
     });
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      transactionWithGasPriceEstimates,
+      {
+        userFeeLevel: 'medium',
+      },
+    );
     expect(mockHandleCloseModals).toHaveBeenCalled();
   });
 });

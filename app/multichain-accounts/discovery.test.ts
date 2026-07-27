@@ -1,12 +1,10 @@
 import { discoverAccounts } from './discovery';
-
-const mockGetSnapKeyring = jest.fn();
+import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 const mockDiscoverAccounts = jest.fn();
 const mockSyncWithUserStorageAtLeastOnce = jest.fn();
 
 jest.mock('../core/Engine', () => ({
-  getSnapKeyring: jest.fn().mockImplementation(() => mockGetSnapKeyring()),
   context: {
     AccountTreeController: {
       syncWithUserStorageAtLeastOnce: jest
@@ -23,26 +21,27 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
+jest.mock('../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: { DiscoverAccounts: 'Discover Accounts' },
+  TraceOperation: { AccountDiscover: 'account.discover' },
+}));
+
+const mockTrace = jest.mocked(trace);
+const mockEndTrace = jest.mocked(endTrace);
+
 const mockEntropySource = 'mock-entropy-source';
 
 describe('discoverAccounts', () => {
   beforeEach(() => {
-    mockGetSnapKeyring.mockReset();
     mockDiscoverAccounts.mockReset();
-  });
-
-  it('force-init the Snap keyring before discovering anything', async () => {
-    mockDiscoverAccounts.mockResolvedValue({}); // Nothing got discovered.
-
-    await discoverAccounts(mockEntropySource);
-
-    // Required by the service discovery. The Snap keyring is used to create
-    // non-EVM accounts, it has to be ready beforehand.
-    expect(mockGetSnapKeyring).toHaveBeenCalled();
+    mockTrace.mockClear();
+    mockEndTrace.mockClear();
   });
 
   it('ensures account syncing is triggered at least once before discovery', async () => {
-    mockDiscoverAccounts.mockResolvedValue({}); // Nothing got discovered.
+    mockDiscoverAccounts.mockResolvedValue([]); // Nothing got discovered.
 
     await discoverAccounts(mockEntropySource);
 
@@ -59,5 +58,37 @@ describe('discoverAccounts', () => {
     expect(result).toBe(discoveredAccounts);
 
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+  });
+
+  it('emits a backdated trace only when accounts were discovered', async () => {
+    const discoveredAccounts = 3;
+    mockDiscoverAccounts.mockResolvedValue(
+      Array.from({ length: discoveredAccounts }),
+    );
+
+    await discoverAccounts(mockEntropySource);
+
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.DiscoverAccounts,
+        op: TraceOperation.AccountDiscover,
+        startTime: expect.any(Number),
+      }),
+    );
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.DiscoverAccounts,
+      data: { discovered: discoveredAccounts },
+    });
+  });
+
+  it('does not emit a trace when nothing was discovered', async () => {
+    mockDiscoverAccounts.mockResolvedValue([]);
+
+    await discoverAccounts(mockEntropySource);
+
+    expect(mockTrace).not.toHaveBeenCalled();
+    expect(mockEndTrace).not.toHaveBeenCalled();
   });
 });

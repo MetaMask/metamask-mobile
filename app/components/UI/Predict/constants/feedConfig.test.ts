@@ -5,6 +5,7 @@ import {
   resolvePredictFeedConfig,
   resolvePredictFeedDefaultFilter,
   resolvePredictFeedDefaultTab,
+  resolvePredictFeedDynamicFilterConfig,
   type PredictDynamicFilterConfig,
   type PredictFeedFilterConfig,
 } from './feedConfig';
@@ -28,9 +29,9 @@ describe('feedConfig', () => {
       'crypto',
       'live',
       'trending',
-      'popular-today',
     ]);
     expect(isPredictFeedId('world-cup')).toBe(false);
+    expect(isPredictFeedId('popular-today')).toBe(false);
   });
 
   it.each(PREDICT_FEED_IDS)('resolves known feed id %s', (feedId) => {
@@ -94,9 +95,7 @@ describe('feedConfig', () => {
   });
 
   it('represents hidden-tab feeds with exactly one tab', () => {
-    (
-      ['politics', 'crypto', 'live', 'trending', 'popular-today'] as const
-    ).forEach((feedId) => {
+    (['politics', 'crypto', 'live', 'trending'] as const).forEach((feedId) => {
       expect(PREDICT_FEED_REGISTRY[feedId].tabs).toHaveLength(1);
     });
   });
@@ -124,6 +123,20 @@ describe('feedConfig', () => {
     expect(baseTagSlugs).toEqual(
       new Set(['sports', 'politics', 'crypto', 'all']),
     );
+  });
+
+  it('resolves the dynamic filter config for a feed from the registry', () => {
+    expect(resolvePredictFeedDynamicFilterConfig('trending')).toBe(
+      PREDICT_FEED_REGISTRY.trending.tabs[0].filters.dynamic,
+    );
+  });
+
+  it('returns undefined dynamic config for feeds without one, unknown feeds, or unknown tabs', () => {
+    expect(resolvePredictFeedDynamicFilterConfig('live')).toBeUndefined();
+    expect(resolvePredictFeedDynamicFilterConfig('unknown')).toBeUndefined();
+    expect(
+      resolvePredictFeedDynamicFilterConfig('sports', 'unknown-tab'),
+    ).toBeUndefined();
   });
 
   it('keeps static market params category-free', () => {

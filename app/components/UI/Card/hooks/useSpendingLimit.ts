@@ -11,6 +11,8 @@ import {
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
@@ -74,6 +76,7 @@ export interface UseSpendingLimitReturn {
   limitType: LimitType;
   customLimit: string;
   isLoading: boolean;
+  isUiInteractionLocked: boolean;
 
   // Handlers
   setSelectedToken: (token: CardFundingToken | null) => void;
@@ -140,7 +143,7 @@ const useSpendingLimit = ({
   delegationSettings,
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -217,6 +220,8 @@ const useSpendingLimit = ({
   } = useCardDelegation(selectedToken);
 
   const isLoading = isDelegationLoading || isProcessing;
+  const isUiInteractionLocked =
+    isLoading && (!isMoneyAccountSource || isOnboardingFlow);
 
   // Wallet-only token balances for the currently selected MetaMask account.
   // Using this (instead of useAssetBalances) ensures sorting reflects the active
@@ -481,8 +486,9 @@ const useSpendingLimit = ({
 
   // Handlers
   const handleAccountSelect = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         disableAddAccountButton: true,
         onSelectAccount: () => {
           if (!isMoneyAccountSource) return;
@@ -509,8 +515,9 @@ const useSpendingLimit = ({
 
     const excludedTokens = selectedToken ? [selectedToken] : [];
 
-    navigation.navigate(
-      ...createAssetSelectionModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createAssetSelectionModalNavigationDetails({
         selectionOnly: true,
         excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -543,8 +550,9 @@ const useSpendingLimit = ({
   );
 
   const handleLimitSelect = useCallback(() => {
-    navigation.navigate(
-      ...createSpendingLimitOptionsNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createSpendingLimitOptionsNavigationDetails({
         currentLimitType: limitType,
         currentCustomLimit: customLimit,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -620,7 +628,7 @@ const useSpendingLimit = ({
           setTimeout(() => {
             if (isOnboardingFlow) {
               navigateToCardHome();
-            } else {
+            } else if (navigation.isFocused()) {
               navigation.goBack();
             }
           }, 0);
@@ -742,6 +750,7 @@ const useSpendingLimit = ({
     limitType,
     customLimit,
     isLoading,
+    isUiInteractionLocked,
 
     // Handlers
     setSelectedToken,

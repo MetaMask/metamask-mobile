@@ -45,6 +45,7 @@ import {
   AccountType,
   WalletCreationErrorCtaType,
 } from '../../../constants/onboarding';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 
 interface SRPErrorScreenProps {
   error: Error;
@@ -59,6 +60,7 @@ const SRPErrorScreen = ({
 }: SRPErrorScreenProps) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { openSupportWithConsent } = useSupportConsent();
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -164,8 +166,11 @@ const SRPErrorScreen = ({
         .build(),
       saveOnboardingEvent,
     );
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [saveOnboardingEvent, accountType]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  }, [saveOnboardingEvent, accountType, openSupportWithConsent]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
@@ -173,7 +178,7 @@ const SRPErrorScreen = ({
         contentContainerStyle={tw.style('flex-grow p-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="flex-1 items-center pt-12">
+        <Box twClassName="items-center pt-12">
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
@@ -209,33 +214,33 @@ const SRPErrorScreen = ({
             </Text>
           </Box>
 
-          <Box twClassName="w-full mb-6">
-            <Box twClassName="flex-row justify-between items-center mb-2">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('wallet_creation_error.error_report')}
-              </Text>
-              <OldButton
-                variant={ButtonVariants.Link}
-                size={OldButtonSize.Sm}
-                label={
-                  copied
-                    ? strings('wallet_creation_error.copied')
-                    : strings('wallet_creation_error.copy')
-                }
-                onPress={handleCopyError}
-                startIconName={copied ? CLibIconName.Check : CLibIconName.Copy}
-              />
-            </Box>
-            <ScrollView
-              style={tw.style('bg-alternative rounded-lg p-3 max-h-[200px]')}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator
-            >
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {errorReport}
-              </Text>
-            </ScrollView>
+          <Box twClassName="flex-row justify-between items-center mb-2 w-full">
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('wallet_creation_error.error_report')}
+            </Text>
+            <OldButton
+              variant={ButtonVariants.Link}
+              size={OldButtonSize.Sm}
+              label={
+                copied
+                  ? strings('wallet_creation_error.copied')
+                  : strings('wallet_creation_error.copy')
+              }
+              onPress={handleCopyError}
+              startIconName={copied ? CLibIconName.Check : CLibIconName.Copy}
+            />
           </Box>
+          <ScrollView
+            style={tw.style(
+              'bg-alternative rounded-lg p-3 max-h-[200px] mb-6 w-full',
+            )}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+          >
+            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              {errorReport}
+            </Text>
+          </ScrollView>
         </Box>
 
         <Box twClassName="w-full pt-4 pb-6">

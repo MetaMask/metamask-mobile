@@ -20,7 +20,11 @@ import { RootState } from '../../../../../reducers';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
-import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
+import {
+  setSlippage,
+  setSlippageUserOverride,
+  setSourceAmount,
+} from '../../../../../core/redux/slices/bridge';
 import {
   ChainId,
   MetaMetricsSwapsEventSource,
@@ -78,18 +82,29 @@ jest.mock('../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
-jest.mock('../../../../../hooks', () => ({
-  useABTest: jest.fn(() => ({ variant: { showPostTradeModal: true } })),
-}));
-
 // Mock hasMinimumRequiredVersion so that selectBridgeFeatureFlags does not call
 // compareVersions (which requires a real app version string unavailable in tests).
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
+  useHwConnectionMonitoring: jest.fn(() => ({
+    isDisconnectedRef: { current: false },
+    resetHandledError: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
+}));
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -906,6 +921,107 @@ describe('SwapsConfirmButton', () => {
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.accessibilityState?.disabled).toBe(false);
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+    });
+
+    it('shows loading when user slippage changes before quote refresh starts', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      act(() => {
+        store.dispatch(setSlippageUserOverride('3.5'));
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(button.props.accessibilityState?.busy).toBe(true);
+    });
+
+    it('enables confirmation after the custom-slippage quote settles', () => {
+      const customSlippageQuote = {
+        ...mockActiveQuote,
+        quote: {
+          ...mockActiveQuote.quote,
+          slippage: 3.5,
+        },
+      };
+      let quoteData = {
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockActiveQuote,
+        isLoading: false,
+      };
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => quoteData);
+      const state = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          slippage: '3.5',
+          isSlippageUserOverride: true,
+        },
+      };
+      const { getByTestId, rerender } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state },
+      );
+      quoteData = {
+        ...quoteData,
+        isLoading: true,
+      };
+      rerender(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+      );
+      quoteData = {
+        ...quoteData,
+        activeQuote: customSlippageQuote,
+        isLoading: false,
+      };
+
+      rerender(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+          .accessibilityState?.disabled,
+      ).toBe(false);
+    });
+
+    it('keeps confirmation enabled when the backend hydrates slippage', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      act(() => {
+        store.dispatch(setSlippage('0.5'));
+      });
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+          .accessibilityState?.disabled,
+      ).toBe(false);
     });
   });
 

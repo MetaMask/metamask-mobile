@@ -1,17 +1,9 @@
 import React, { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import Card from '../../../../component-library/components/Cards/Card';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const DEFAULT_MAX_ITEMS = 3;
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    padding: 0,
-    marginBottom: 28,
-    borderWidth: 0,
-  },
-});
 
 export interface CardListProps<T> {
   data: T[];
@@ -28,7 +20,7 @@ export interface CardListProps<T> {
 }
 
 /**
- * Card-wrapped vertical list rendering up to `max` items via FlashList.
+ * Vertical list rendering up to `max` items via FlashList.
  * Shows `Skeleton` (rendered `skeletonCount` times) while loading.
  */
 function CardList<T>({
@@ -41,24 +33,29 @@ function CardList<T>({
   listTestId,
   skeletonCount = DEFAULT_MAX_ITEMS,
 }: CardListProps<T>) {
+  const tw = useTailwind();
   const displayData = useMemo(() => data.slice(0, max), [data, max]);
+  const contentInset = tw.style('px-4');
 
-  return (
-    <Card style={styles.cardContainer} disabled>
-      {isLoading &&
-        Array.from({ length: skeletonCount }).map((_, i) => (
+  if (isLoading) {
+    return (
+      <Box testID="explore-card-list" twClassName="px-4">
+        {Array.from({ length: skeletonCount }).map((_, i) => (
           <Skeleton key={`${idPrefix}-skeleton-${i}`} />
         ))}
-      {!isLoading && (
-        <FlashList
-          data={displayData}
-          renderItem={renderItem}
-          keyExtractor={(_, index) => `${idPrefix}-${index}`}
-          keyboardShouldPersistTaps="handled"
-          testID={listTestId}
-        />
-      )}
-    </Card>
+      </Box>
+    );
+  }
+
+  return (
+    <FlashList
+      data={displayData}
+      renderItem={renderItem}
+      keyExtractor={(_, index) => `${idPrefix}-${index}`}
+      keyboardShouldPersistTaps="handled"
+      testID={listTestId ?? 'explore-card-list'}
+      contentContainerStyle={contentInset}
+    />
   );
 }
 

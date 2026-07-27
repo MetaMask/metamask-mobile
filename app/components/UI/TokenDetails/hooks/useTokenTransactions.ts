@@ -22,6 +22,8 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../../selectors/transactionController';
+import { selectIsActivityRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
+import { TransactionType } from '@metamask/transaction-controller';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
 import { isMusdClaimForCurrentView } from '../../Earn/utils/musd';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
@@ -35,7 +37,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { TokenI } from '../../Tokens/types';
-import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import { RootState } from '../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain';
@@ -121,6 +122,9 @@ export const useTokenTransactions = (
   // Selectors
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const evmTransactions = useSelector(selectTransactions);
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
   const swapsTransactions = useSelector(selectSwapsTransactions);
   const tokens = useSelector(selectTokens);
   const conversionRate = useSelector(selectConversionRate);
@@ -155,7 +159,13 @@ export const useTokenTransactions = (
 
   // Get all transactions (EVM or non-EVM)
   const allTransactions = useMemo(() => {
-    let transactions = evmTransactions;
+    // Redesign Activity hides gas_payment siblings and shows the fee on the
+    // primary row; keep token-details lists in sync when that flag is on.
+    let transactions = isActivityRedesignEnabled
+      ? evmTransactions.filter(
+          (tx: Transaction) => tx.type !== TransactionType.gasPayment,
+        )
+      : evmTransactions;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
@@ -259,6 +269,7 @@ export const useTokenTransactions = (
     return transactions;
   }, [
     evmTransactions,
+    isActivityRedesignEnabled,
     asset.chainId,
     asset.address,
     asset.symbol,
@@ -548,7 +559,6 @@ export const useTokenTransactions = (
   // Refresh handler
   const onRefresh = useCallback(async () => {
     setTxState((prev) => ({ ...prev, refreshing: true }));
-    await updateIncomingTransactions();
     setTxState((prev) => ({ ...prev, refreshing: false }));
   }, []);
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import { TextInput, TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -7,18 +8,17 @@ import {
   TextColor,
   FontWeight,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
 
-const styles = StyleSheet.create({
-  amountText: { fontSize: 48, lineHeight: 52 },
-});
-
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
-  usdAmount: string;
+  /** Entered amount preformatted in the user's display currency (e.g. "$20", "20 €"). */
+  fiatAmountLabel: string;
   destSymbol: string;
   /** Estimated amount received in the dest token from the quote. */
   estimatedReceiveAmount: string | undefined;
@@ -44,15 +44,17 @@ interface QuickBuyAmountSectionProps {
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
-  usdAmount,
+  fiatAmountLabel,
   destSymbol,
   estimatedReceiveAmount,
   isQuoteLoading,
   isUnpricedSource = false,
   sourceCryptoAmount,
   sourceSymbol,
+  onAmountAreaPress,
 }) => {
-  const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
+  const tw = useTailwind();
+
   const cryptoAmountLabel = estimatedReceiveAmount
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
@@ -74,7 +76,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
   }
 
-  return (
+  const content = (
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
@@ -83,7 +85,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       testID="quick-buy-amount-area"
     >
       <Text
-        style={styles.amountText}
+        variant={TextVariant.DisplayMd}
         fontWeight={FontWeight.Bold}
         color={TextColor.TextDefault}
       >
@@ -91,18 +93,54 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       </Text>
 
       {isQuoteLoading ? (
-        <ActivityIndicator size="small" />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          testID="quick-buy-amount-loading"
+        >
+          <Skeleton
+            width={88}
+            height={16}
+            style={tw.style('rounded-md')}
+            testID="quick-buy-amount-loading-skeleton"
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID="quick-buy-amount-loading-symbol"
+          >
+            {destSymbol}
+          </Text>
+        </Box>
       ) : (
         <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
+          variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
         >
           {secondaryLabel}
         </Text>
       )}
     </Box>
   );
+
+  // On the keyboard treatment the headline is tappable to (re)open the keypad.
+  // activeOpacity={1} keeps it visually static — no press feedback/caret.
+  if (onAmountAreaPress) {
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onAmountAreaPress}
+        accessibilityRole="button"
+        testID="quick-buy-amount-area-pressable"
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default QuickBuyAmountSection;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import QuickBuyAmountSection from './components/QuickBuyAmountSection';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
@@ -8,7 +8,7 @@ import { useQuickBuyContext } from './useQuickBuyContext';
 const QuickBuyAmount: React.FC = () => {
   const {
     amountDisplayMode,
-    usdAmount,
+    fiatAmountLabel,
     target,
     tradeMode,
     hasSourcePrice,
@@ -21,7 +21,16 @@ const QuickBuyAmount: React.FC = () => {
     hiddenInputRef,
     handleAmountAreaPress,
     handleAmountChange,
+    useKeyboard,
+    setIsKeypadOpen,
   } = useQuickBuyContext();
+
+  // On the keyboard treatment, tapping the headline (re)opens the keypad and
+  // aligns the display mode. Control leaves the headline non-interactive.
+  const handleHeadlinePress = useCallback(() => {
+    setIsKeypadOpen(true);
+    handleAmountAreaPress();
+  }, [setIsKeypadOpen, handleAmountAreaPress]);
 
   const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
 
@@ -39,7 +48,7 @@ const QuickBuyAmount: React.FC = () => {
   return (
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
-      usdAmount={usdAmount}
+      fiatAmountLabel={fiatAmountLabel}
       destSymbol={cryptoSymbol}
       estimatedReceiveAmount={displayedCryptoAmount}
       isQuoteLoading={isBlockingQuoteLoad}
@@ -47,7 +56,7 @@ const QuickBuyAmount: React.FC = () => {
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       hiddenInputRef={hiddenInputRef}
-      onAmountAreaPress={handleAmountAreaPress}
+      onAmountAreaPress={useKeyboard ? handleHeadlinePress : undefined}
       onAmountChange={handleAmountChange}
     />
   );

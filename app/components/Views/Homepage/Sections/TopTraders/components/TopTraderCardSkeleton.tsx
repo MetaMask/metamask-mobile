@@ -18,22 +18,22 @@ const TopTraderCardSkeleton: React.FC = () => {
   return (
     <View
       style={tw.style(
-        `w-[${TOP_TRADER_CARD_WIDTH}px] h-auto rounded-2xl bg-muted p-4`,
+        `w-[${TOP_TRADER_CARD_WIDTH}px] h-auto rounded-xl bg-muted p-4`,
       )}
     >
       <SkeletonPlaceholder
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}
       >
-        <View style={tw.style('gap-1')}>
-          <View style={tw.style('items-center gap-1')}>
-            <View style={tw.style('w-[60px] h-[60px] rounded-full')} />
-            <View style={tw.style('items-center gap-0.5')}>
-              <View style={tw.style('w-24 h-6 rounded')} />
-              <View style={tw.style('w-32 h-[22px] rounded')} />
+        <View style={tw.style('gap-4')}>
+          <View style={tw.style('flex-row items-center gap-2')}>
+            <View style={tw.style('w-10 h-10 rounded-full')} />
+            <View style={tw.style('flex-1 gap-1')}>
+              <View style={tw.style('w-16 h-5 rounded')} />
+              <View style={tw.style('w-20 h-4 rounded')} />
             </View>
           </View>
-          <View style={tw.style('h-10 rounded-xl')} />
+          <View style={tw.style('w-20 h-8 rounded-lg')} />
         </View>
       </SkeletonPlaceholder>
     </View>

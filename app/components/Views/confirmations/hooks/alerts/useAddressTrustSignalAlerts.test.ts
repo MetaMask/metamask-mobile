@@ -13,7 +13,7 @@ import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import {
   isRecognizedPermit,
   parseAndNormalizeSignTypedData,
-  isPermitDaiRevoke,
+  isPermitRevoke,
 } from '../../utils/signature';
 import { extractSpenderFromApprovalData } from '../../../../../lib/address-scanning/address-scan-util';
 
@@ -36,7 +36,7 @@ jest.mock('../signatures/useSignatureRequest', () => ({
 jest.mock('../../utils/signature', () => ({
   isRecognizedPermit: jest.fn(),
   parseAndNormalizeSignTypedData: jest.fn(),
-  isPermitDaiRevoke: jest.fn(),
+  isPermitRevoke: jest.fn(),
 }));
 
 jest.mock('../../../../../lib/address-scanning/address-scan-util', () => ({
@@ -57,7 +57,7 @@ describe('useAddressTrustSignalAlerts', () => {
   const mockParseAndNormalizeSignTypedData = jest.mocked(
     parseAndNormalizeSignTypedData,
   );
-  const mockIsPermitDaiRevoke = jest.mocked(isPermitDaiRevoke);
+  const mockIsPermitRevoke = jest.mocked(isPermitRevoke);
   const mockExtractSpender = jest.mocked(extractSpenderFromApprovalData);
 
   beforeEach(() => {
@@ -81,7 +81,7 @@ describe('useAddressTrustSignalAlerts', () => {
       domain: { verifyingContract: '0x0' },
       message: {},
     });
-    mockIsPermitDaiRevoke.mockReturnValue(false);
+    mockIsPermitRevoke.mockReturnValue(false);
     mockExtractSpender.mockReturnValue(undefined);
   });
 
@@ -781,13 +781,14 @@ describe('useAddressTrustSignalAlerts', () => {
         },
       }) as Parameters<typeof renderHookWithProvider>[1];
 
-    it('returns no alerts for permit signature with value "0" (string)', () => {
+    it('suppresses alerts when the permit is classified as a revoke', () => {
       mockUseSignatureRequest.mockReturnValue(mockSignatureRequest);
       mockIsRecognizedPermit.mockReturnValue(true);
       mockParseAndNormalizeSignTypedData.mockReturnValue({
         domain: { verifyingContract: '0xTokenAddress' },
         message: { value: '0' },
       });
+      mockIsPermitRevoke.mockReturnValue(true);
 
       const { result } = renderHookWithProvider(
         () => useAddressTrustSignalAlerts(),
@@ -797,37 +798,71 @@ describe('useAddressTrustSignalAlerts', () => {
       expect(result.current).toEqual([]);
     });
 
-    it('returns no alerts for permit signature with value 0 (number)', () => {
+    it('forwards the parsed types and primaryType to isPermitRevoke', () => {
       mockUseSignatureRequest.mockReturnValue(mockSignatureRequest);
       mockIsRecognizedPermit.mockReturnValue(true);
-      mockParseAndNormalizeSignTypedData.mockReturnValue({
+      const parsed = {
         domain: { verifyingContract: '0xTokenAddress' },
-        message: { value: 0 },
-      });
+        message: { allowed: false, value: '0' },
+        types: { Permit: [{ name: 'value', type: 'uint256' }] },
+        primaryType: 'Permit',
+      };
+      mockParseAndNormalizeSignTypedData.mockReturnValue(parsed);
 
-      const { result } = renderHookWithProvider(
+      renderHookWithProvider(
         () => useAddressTrustSignalAlerts(),
         createMaliciousAddressState(),
       );
 
-      expect(result.current).toEqual([]);
+      expect(mockIsPermitRevoke).toHaveBeenCalledWith(
+        '0xTokenAddress',
+        false,
+        '0',
+        parsed.types,
+        'Permit',
+      );
     });
 
-    it('returns no alerts for DAI permit with allowed: false', () => {
+    it('does not suppress alerts for a Permit2 PermitBatch with an injected "value": "0" sibling', () => {
+      mockIsPermitRevoke.mockImplementation(
+        jest.requireActual('../../utils/signature').isPermitRevoke,
+      );
       mockUseSignatureRequest.mockReturnValue(mockSignatureRequest);
       mockIsRecognizedPermit.mockReturnValue(true);
       mockParseAndNormalizeSignTypedData.mockReturnValue({
-        domain: { verifyingContract: '0xDAIAddress' },
-        message: { allowed: false, value: '100' },
+        domain: {
+          verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3',
+        },
+        message: {
+          details: [
+            {
+              token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              amount: '1461501637330902918203684832716283019655932542975',
+            },
+          ],
+          spender: '0x4444444444444444444444444444444444444444',
+          // Injected sibling not declared in PermitBatch.
+          value: '0',
+        },
+        types: {
+          PermitBatch: [
+            { name: 'details', type: 'PermitDetails[]' },
+            { name: 'spender', type: 'address' },
+            { name: 'sigDeadline', type: 'uint256' },
+          ],
+        },
+        primaryType: 'PermitBatch',
       });
-      mockIsPermitDaiRevoke.mockReturnValue(true);
 
       const { result } = renderHookWithProvider(
         () => useAddressTrustSignalAlerts(),
         createMaliciousAddressState(),
       );
 
-      expect(result.current).toEqual([]);
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
 
     it('returns alerts for permit signature with non-zero value', () => {

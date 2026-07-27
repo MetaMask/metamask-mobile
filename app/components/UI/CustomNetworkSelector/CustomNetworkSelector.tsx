@@ -5,10 +5,12 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -41,6 +43,7 @@ import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse'
 import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 import {
   CustomNetworkItem,
@@ -62,7 +65,9 @@ const CustomNetworkSelector = ({
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
-  const { navigate } = useNavigation();
+  const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const safeAreaInsets = useSafeAreaInsets();
 
   // Get the currently active network's chain ID in CAIP format
@@ -164,7 +169,7 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
-            style={styles.networkItem}
+            style={tw.style(surfaceClass)}
           >
             {(!isTestNet(chainId) || showFiatOnTestnets) && (
               <AccountGroupBalancePerChain caipChainId={caipChainId} />
@@ -179,9 +184,10 @@ const CustomNetworkSelector = ({
       dismissModal,
       openRpcModal,
       createAvatarProps,
-      styles.networkItem,
       selectedChainIdCaip,
       showFiatOnTestnets,
+      surfaceClass,
+      tw,
     ],
   );
 

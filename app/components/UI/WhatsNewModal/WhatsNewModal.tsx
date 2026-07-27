@@ -20,11 +20,6 @@ import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import Icon, {
   IconColor,
@@ -38,6 +33,7 @@ import { whatsNewList } from './';
 import { WhatsNewModalSelectorsIDs } from './WhatsNewModal.testIds';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import createStyles from './WhatsNewModal.styles';
 import Device from '../../../util/device';
 import { SlideContent, SlideContentType } from './types';
@@ -46,6 +42,9 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 const CAROUSEL_INTERVAL_MS = 4000;
@@ -58,7 +57,7 @@ const WhatsNewModal = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const imageCarouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const imageProgressAnimations = useRef<Animated.Value[]>([]).current;
@@ -360,12 +359,13 @@ const WhatsNewModal = () => {
           return (
             <View style={styles.button}>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={elementInfo.buttonText}
+                isFullWidth
                 onPress={() => callButton(elementInfo.onPress)}
-              />
+              >
+                {elementInfo.buttonText}
+              </Button>
             </View>
           );
       }

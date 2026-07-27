@@ -1,9 +1,101 @@
 #!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 import { execFile } from 'node:child_process';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
+
+const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
+const DEFAULT_IOS_APP_WARM_LAUNCH_SETTLE_MS = 15_000;
+
+/**
+ * @param {string} name
+ * @param {number} fallback
+ * @returns {number}
+ */
+export function parsePositiveIntEnv(name, fallback) {
+  const raw = process.env[name]?.trim();
+  if (!raw) {
+    return fallback;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+/**
+ * Brief pause after `bootstatus -b` so SpringBoard/RN bridge can settle (mirrors
+ * Android `ANDROID_EMULATOR_POST_BOOT_SETTLE_MS`).
+ */
+export async function waitForIosSimulatorPostBootSettle() {
+  const settleMs = parsePositiveIntEnv(
+    'IOS_SIMULATOR_POST_BOOT_SETTLE_MS',
+    DEFAULT_IOS_POST_BOOT_SETTLE_MS,
+  );
+  if (settleMs <= 0) {
+    return;
+  }
+  console.log(
+    `Waiting ${settleMs}ms for iOS simulator post-boot settle (SpringBoard / system UI)…`,
+  );
+  await sleep(settleMs);
+}
+
+/**
+ * Pre-grant common permissions so system sheets are less likely to cover the wallet.
+ * Best-effort — unsupported services are ignored.
+ *
+ * @param {{ udid: string; bundleId: string }} options
+ */
+export async function grantIosAppPermissions({ udid, bundleId }) {
+  const services = ['notifications', 'photos', 'camera', 'microphone'];
+  for (const service of services) {
+    try {
+      await execFileAsync('xcrun', [
+        'simctl',
+        'privacy',
+        udid,
+        'grant',
+        service,
+        bundleId,
+      ]);
+      console.log(`Granted iOS simulator ${service} permission to ${bundleId}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Could not grant ${service} to ${bundleId} (continuing): ${message}`,
+      );
+    }
+  }
+}
+
+/**
+ * Cold-launches the app once so the first Playwright fixture pays less startup cost.
+ *
+ * @param {{ udid: string; bundleId: string }} options
+ */
+export async function warmLaunchIosApp({ udid, bundleId }) {
+  const settleMs = parsePositiveIntEnv(
+    'IOS_APP_WARM_LAUNCH_SETTLE_MS',
+    DEFAULT_IOS_APP_WARM_LAUNCH_SETTLE_MS,
+  );
+  if (settleMs <= 0) {
+    return;
+  }
+
+  console.log(`Warm-launching ${bundleId} on simulator ${udid}…`);
+  await execFileAsync('xcrun', ['simctl', 'launch', udid, bundleId]);
+  console.log(
+    `Warm launch started — waiting ${settleMs}ms before terminate (JS bridge / first frame)…`,
+  );
+  await sleep(settleMs);
+  try {
+    await execFileAsync('xcrun', ['simctl', 'terminate', udid, bundleId]);
+  } catch {
+    // App may already have exited.
+  }
+  console.log('iOS app warm launch complete.');
+}
 
 /**
  * @param {string} deviceName
@@ -93,6 +185,7 @@ export async function bootIosSimulator(deviceName) {
   );
 
   await execFileAsync('xcrun', ['simctl', 'bootstatus', udid, '-b']);
+  await waitForIosSimulatorPostBootSettle();
   console.log(`iOS simulator "${deviceName}" is booted and ready.`);
   return udid;
 }

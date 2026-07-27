@@ -7,12 +7,21 @@ import type {
 import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 
 import Engine from '../../../../../core/Engine';
-import { selectBatchSellDestToken } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBatchSellDestToken,
+  selectBatchSellSourceTokens,
+} from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { getMaybeHexChainId } from '../../../../../util/bridge';
 
 export function useSubmitBatchSellTx() {
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const sourceTokens = useSelector(selectBatchSellSourceTokens);
+  const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
+  const smartTransactionsEnabled = useSelector((state: RootState) =>
+    selectShouldUseSmartTransaction(state, batchSellChainId),
+  );
   const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
   const destToken = useSelector(selectBatchSellDestToken);
 
@@ -48,7 +57,7 @@ export function useSubmitBatchSellTx() {
       >[0]['quoteResponses'],
       accountAddress: walletAddress,
       location,
-      isStxEnabled: stxEnabled,
+      isStxEnabled: smartTransactionsEnabled,
       quotesReceivedContext: undefined,
       tokenSecurityTypeDestination,
     });

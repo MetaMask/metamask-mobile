@@ -125,6 +125,7 @@ function writeBuildEnvJson(buildName) {
     'PORTFOLIO_API_URL',
     'SECURITY_ALERTS_API_URL',
     'DECODING_API_URL',
+    'PRICE_ALERTS_API_URL',
     'COMPLIANCE_API_URL',
     'AUTH_SERVICE_URL',
     'DIGEST_API_URL',

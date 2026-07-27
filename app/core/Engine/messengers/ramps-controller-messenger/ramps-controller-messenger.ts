@@ -39,6 +39,9 @@ export function getRampsControllerMessenger(
   rootMessenger.delegate({
     messenger,
     actions: [
+      // The controller reads the `moneyHeadlessAllProviders` feature flag
+      // itself for quote widening.
+      'RemoteFeatureFlagController:getState',
       'RampsService:getGeolocation',
       'RampsService:getCountries',
       'RampsService:getTokens',

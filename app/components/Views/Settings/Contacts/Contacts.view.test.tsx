@@ -14,8 +14,20 @@ import {
 import { strings } from '../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NETWORK_LIST_BOTTOM_SHEET } from '../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
+import { toChecksumAddress } from '../../../../util/address';
 import { AddContactViewSelectorsIDs } from './AddContactView.testIds';
 import { ContactsViewSelectorIDs } from './ContactsView.testIds';
+
+const ENSUtilsModule = jest.requireActual('../../../../util/ENSUtils') as {
+  doENSLookup: (
+    ensName: string,
+    chainId?: string,
+  ) => Promise<string | undefined>;
+};
+
+const ENS_NAME = 'ibrahim.team.mask.eth';
+const ENS_RESOLVED_ADDRESS = '0x1234567890aBCdef1234567890abCDef12345678';
+const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 
 describeForPlatforms('Contacts component views', () => {
   beforeEach(() => {
@@ -114,5 +126,139 @@ describeForPlatforms('Contacts component views', () => {
     );
 
     expect(await findByTestId(NETWORK_LIST_BOTTOM_SHEET)).toBeOnTheScreen();
+  });
+
+  // --- Migrated from addressbook-ens.spec.ts ---
+
+  it('shows an error for an invalid address format', async () => {
+    const { findByTestId, findByText } = renderContactForm();
+
+    fireEvent.changeText(
+      await findByTestId(AddContactViewSelectorsIDs.ADDRESS_INPUT),
+      INVALID_ADDRESS,
+    );
+
+    expect(
+      await findByText(strings('transaction.invalid_address')),
+    ).toBeOnTheScreen();
+  });
+
+  it('resolves an ENS name and saves the contact with the resolved address', async () => {
+    // Spy on doENSLookup so no live Infura connection is needed.
+    const ensLookupSpy = jest
+      .spyOn(ENSUtilsModule, 'doENSLookup')
+      .mockResolvedValue(ENS_RESOLVED_ADDRESS);
+
+    const setContactSpy = jest.spyOn(
+      Engine.context.AddressBookController,
+      'set',
+    );
+
+    const { findByTestId, getByTestId } = renderContactForm();
+
+    fireEvent.changeText(
+      await findByTestId(AddContactViewSelectorsIDs.NAME_INPUT),
+      'Ibrahim',
+    );
+    fireEvent.changeText(
+      await findByTestId(AddContactViewSelectorsIDs.ADDRESS_INPUT),
+      ENS_NAME,
+    );
+
+    // Wait until the debounced ENS lookup resolves and the add button becomes enabled.
+    await waitFor(() => {
+      expect(getByTestId(AddContactViewSelectorsIDs.ADD_BUTTON)).toBeEnabled();
+    });
+
+    fireEvent.press(getByTestId(AddContactViewSelectorsIDs.ADD_BUTTON));
+
+    await waitFor(() => {
+      // The controller must be called with the resolved ETH address, not the ENS name.
+      expect(setContactSpy).toHaveBeenCalledWith(
+        toChecksumAddress(ENS_RESOLVED_ADDRESS),
+        'Ibrahim',
+        expect.any(String), // chainId
+        null,
+      );
+    });
+
+    ensLookupSpy.mockRestore();
+    setContactSpy.mockRestore();
+  });
+
+  it('shows a "could not resolve ENS" error when ENS lookup returns nothing', async () => {
+    const ensLookupSpy = jest
+      .spyOn(ENSUtilsModule, 'doENSLookup')
+      .mockResolvedValue(undefined);
+
+    const { findByTestId, findByText } = renderContactForm();
+
+    fireEvent.changeText(
+      await findByTestId(AddContactViewSelectorsIDs.ADDRESS_INPUT),
+      ENS_NAME,
+    );
+
+    expect(
+      await findByText(strings('transaction.could_not_resolve_ens')),
+    ).toBeOnTheScreen();
+
+    ensLookupSpy.mockRestore();
+  });
+
+  // --- Migrated from addressbook-send-add-contact.spec.ts ---
+
+  it('deletes a contact through the address book controller', async () => {
+    const deleteContactSpy = jest.spyOn(
+      Engine.context.AddressBookController,
+      'delete',
+    );
+    const onDeleteCallback = jest.fn();
+
+    const { findByTestId, getByTestId } = renderContactForm({
+      stateOptions: {
+        addressBook: syncedContactAddressBook,
+      },
+      routeParams: {
+        mode: 'edit',
+        address: SYNCED_CONTACT.address,
+        name: SYNCED_CONTACT.name,
+        chainId: SYNCED_CONTACT.chainId,
+        onDelete: onDeleteCallback,
+      },
+    });
+
+    // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
+
+    const deleteButton = await findByTestId(
+      AddContactViewSelectorsIDs.DELETE_BUTTON,
+    );
+    expect(deleteButton).toBeOnTheScreen();
+
+    fireEvent.press(deleteButton);
+
+    // Delete opens a confirmation action sheet before calling the controller.
+    await waitFor(() => {
+      expect(
+        getByTestId(
+          AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      getByTestId(
+        AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(deleteContactSpy).toHaveBeenCalledWith(
+        SYNCED_CONTACT.chainId,
+        expect.stringContaining(SYNCED_CONTACT.address.slice(2).toLowerCase()),
+      );
+      expect(onDeleteCallback).toHaveBeenCalled();
+    });
+
+    deleteContactSpy.mockRestore();
   });
 });

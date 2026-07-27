@@ -1,28 +1,30 @@
+import { isFiatDepositAvailable } from '@metamask/ramps-controller';
 import { useRampsProviders } from './useRampsProviders';
+import { useHeadlessAllProvidersEnabled } from './useHeadlessAllProvidersEnabled';
 
 /**
- * Returns whether the fiat deposit flow will run on a NATIVE provider
- * (e.g. Transak Native).
+ * Returns whether headless fiat deposit (MM Pay / Money Account, Perps, Predict)
+ * is available for the current region under the all-providers feature flag.
  *
- * Headless fiat deposit (MM Pay / Money Account, Perps, Predict) is native-only
- * for v0. It is NOT enough for a native provider to merely exist in the region:
- * what matters is the PREFERRED provider that gets selected. The headless quote
- * auto-selects with `restrictToKnownOrNativeProviders`, but `RampsController`
- * resolves the currently selected provider first (see
- * `resolveProviderIdsForQuote`), so an aggregator preferred provider — carried
- * over from order history, or the aggregator `/providers/transak` matched by the
- * loose "transak" name check in `determinePreferredProvider` — would run a
- * non-native deposit experience.
+ * The name is kept for its single consumer (`useIsFiatPaymentAvailable`). All of
+ * the availability logic lives in `RampsController`'s shared
+ * `isFiatDepositAvailable` helper, so this hook only wires the Redux-backed
+ * provider list, selected provider, and flag boolean into it and cannot
+ * disagree with the controller's own flag-aware provider pick. See that helper
+ * for the flag-off native-only semantics.
  *
- * Therefore we gate on the selected (preferred) provider being native, and block
- * the flow whenever the preferred provider is an aggregator or none is native.
- *
- * Read-only — never mutates provider selection or controller state, so it has no
+ * Read-only: never mutates provider selection or controller state, so it has no
  * effect on the standalone Buy flows.
  */
 export function useHasNativeFiatProvider(): boolean {
-  const { selectedProvider } = useRampsProviders();
-  return selectedProvider?.type === 'native';
+  const allProvidersEnabled = useHeadlessAllProvidersEnabled();
+  const { providers, selectedProvider } = useRampsProviders();
+
+  return isFiatDepositAvailable({
+    providers,
+    selectedProvider,
+    allProvidersEnabled,
+  });
 }
 
 export default useHasNativeFiatProvider;

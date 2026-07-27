@@ -19,6 +19,7 @@ import { selectPerpsAccountState } from '../../../../../UI/Perps/selectors/perps
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import useApprovalRequest from '../../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import {
@@ -54,6 +55,9 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
   const clearPaymentOverride = useClearPaymentOverride();
 
   const handleSelect = useCallback(() => {
+    // an explicit row press is a selection even when it does not
+    // change the pay token (e.g. re-selecting the already-selected balance).
+    markPerpsPaymentTokenSelection();
     onPaymentTokenChange(null);
     clearPaymentOverride();
     navigation.goBack();

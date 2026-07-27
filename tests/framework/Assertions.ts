@@ -4,9 +4,13 @@ import { AssertionOptions } from './types.ts';
 import Matchers from './Matchers.ts';
 import {
   asDetoxElement,
+  asPlaywrightElement,
   type EncapsulatedElementType,
 } from './EncapsulatedElement.ts';
 import { Json } from '@metamask/utils';
+import { FrameworkDetector } from './FrameworkDetector.ts';
+import PlaywrightAssertions from './PlaywrightAssertions.ts';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -24,6 +28,14 @@ export default class Assertions {
       | EncapsulatedElementType,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+      return PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(elem as EncapsulatedElementType),
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should be visible',
@@ -63,6 +75,13 @@ export default class Assertions {
       | EncapsulatedElementType,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectElementToNotBeVisible(
+        asPlaywrightElement(elem as EncapsulatedElementType),
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should not visible',
@@ -96,6 +115,14 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectElementText(
+        asPlaywrightElement(elem),
+        text,
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element has text "${text}"`,
@@ -181,6 +208,15 @@ export default class Assertions {
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+      return PlaywrightAssertions.expectElementToHaveLabel(
+        asPlaywrightElement(elem),
+        label,
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element has label "${label}"`,
@@ -205,6 +241,10 @@ export default class Assertions {
     text: string,
     options: AssertionOptions & { allowDuplicates?: boolean } = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectTextDisplayed(text, options);
+    }
+
     const { timeout = BASE_DEFAULTS.timeout, allowDuplicates = false } =
       options;
 
@@ -240,6 +280,10 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectTextNotDisplayed(text, options);
+    }
+
     const { timeout = BASE_DEFAULTS.timeout } = options;
     return Utilities.executeWithRetry(
       async () => {

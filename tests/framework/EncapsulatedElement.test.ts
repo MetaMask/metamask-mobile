@@ -632,13 +632,6 @@ describe('EncapsulatedElement', () => {
       ).toBe(true);
     });
 
-    it('returns true for { custom }', () => {
-      const config: LocatorConfig = {
-        detox: () => createMockDetoxElement(),
-      };
-      expect(isSelector({ custom: config })).toBe(true);
-    });
-
     it('returns false for null', () => {
       expect(isSelector(null)).toBe(false);
     });
@@ -788,6 +781,31 @@ describe('EncapsulatedElement', () => {
       });
     });
 
+    describe('{ detoxTestID, androidAppiumTestID, iosAppiumXPath }', () => {
+      it('calls EncapsulatedElement.create with ios xpath config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({
+          detoxTestID: 'seed-phrase-input',
+          androidAppiumTestID: 'seed-phrase-input',
+          iosAppiumXPath: '//XCUIElementTypeOther[@name="textfield"]',
+        });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).android,
+        ).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).ios,
+        ).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
     describe('{ testID, iosAppiumTestID }', () => {
       it('calls EncapsulatedElement.create with ios-override config', () => {
         FrameworkDetector.setFramework(TestFramework.DETOX);
@@ -802,24 +820,6 @@ describe('EncapsulatedElement', () => {
         expect(spy).toHaveBeenCalledTimes(1);
         const config = spy.mock.calls[0][0] as LocatorConfig;
         expect(typeof config.detox).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ custom }', () => {
-      it('delegates directly to encapsulated() with the provided LocatorConfig', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const mockDetoxElement = createMockDetoxElement();
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(mockDetoxElement);
-        const customConfig: LocatorConfig = {
-          detox: () => mockDetoxElement,
-        };
-
-        resolve({ custom: customConfig });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        expect(spy.mock.calls[0][0]).toBe(customConfig);
         spy.mockRestore();
       });
     });

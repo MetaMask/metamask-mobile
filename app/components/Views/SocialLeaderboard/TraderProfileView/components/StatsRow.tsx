@@ -10,10 +10,10 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import type { TraderStats } from '@metamask/social-controllers';
-import { formatWithThreshold } from '../../../../../util/assets';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
+import { getTraderHeadlineStatsDisplay } from '../utils/getTraderHeadlineStatsDisplay';
 
 export interface StatsRowProps {
   stats: TraderStats;
@@ -42,29 +42,9 @@ function formatHoldTime(minutes: number): string {
   });
 }
 
-function formatPnlWithCents(value: number): string {
-  const sign = value >= 0 ? '+' : '-';
-  const formatted = formatWithThreshold(Math.abs(value), 0, I18n.locale, {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  return `${sign}${formatted}`;
-}
-
 const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
-  const winRate =
-    stats.winRate30d != null
-      ? `${Math.round(stats.winRate30d * 100)}%`
-      : '\u2014';
-  const isWinRatePositive = (stats.winRate30d ?? 0) > 0;
-
-  const hasPnl = stats.pnl30d != null;
-  const pnl =
-    stats.pnl30d != null ? formatPnlWithCents(stats.pnl30d) : '\u2014';
-  const isPnlPositive = stats.pnl30d != null && stats.pnl30d >= 0;
+  const { winRate, isWinRatePositive, pnl, hasPnl, isPnlPositive } =
+    getTraderHeadlineStatsDisplay(stats);
 
   return (
     <Box
@@ -112,7 +92,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
         >
-          {strings('social_leaderboard.trader_profile.pnl_30d')}
+          {strings('social_leaderboard.trader_profile.pnl_7d')}
         </Text>
       </Box>
 

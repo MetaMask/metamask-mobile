@@ -1,16 +1,14 @@
 import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Card,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
+  IconName,
+  ListItem,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
@@ -32,6 +30,7 @@ import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
+import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 
 const PerpsMarketRowItem = ({
   market,
@@ -40,12 +39,15 @@ const PerpsMarketRowItem = ({
   displayMetric = 'volume',
   showBadge = false,
   compact = false,
+  onAddPress,
 }: PerpsMarketRowItemProps) => {
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
     symbols: [market.symbol],
     throttleMs: 3000, // 3 seconds for list view
   });
+
+  const showFullAssetNames = useSelector(selectPerpsShowFullAssetNamesFlag);
 
   // Merge live price into market data
   const displayMarket = useMemo(() => {
@@ -151,87 +153,85 @@ const PerpsMarketRowItem = ({
 
   const badgeType = getMarketBadgeType(displayMarket);
 
+  const assetLabel = useMemo(() => {
+    const label =
+      showFullAssetNames && displayMarket.name
+        ? displayMarket.name
+        : displayMarket.symbol;
+    return getPerpsDisplaySymbol(label);
+  }, [showFullAssetNames, displayMarket.name, displayMarket.symbol]);
+
+  // Only show the ticker alongside the metric text when the row is already
+  // displaying the full name (otherwise the ticker is redundant) and the
+  // name is a genuine name rather than the ticker-fallback value returned
+  // when Terminal API / HyperLiquid name resolution has no real name for
+  // this market.
+  const showTickerSuffix = useMemo(
+    () =>
+      showFullAssetNames &&
+      Boolean(displayMarket.name) &&
+      displayMarket.name !== displayMarket.symbol &&
+      getPerpsDisplaySymbol(displayMarket.symbol) !== displayMarket.name,
+    [showFullAssetNames, displayMarket.name, displayMarket.symbol],
+  );
+
+  const description = showTickerSuffix
+    ? `${getPerpsDisplaySymbol(displayMarket.symbol)} \u00B7 ${displayText}`
+    : displayText;
+
   return (
-    <Card
+    <ListItem
+      isInteractive
       onPress={handlePress}
       testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
-      touchableOpacityProps={{ activeOpacity: 0.7 }}
-      twClassName={`flex-row justify-between items-center border-0 rounded-none bg-transparent px-0 ${compact ? 'py-2' : 'py-3'}`}
-    >
-      {/* Left section: Icon + token info */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="flex-1"
-      >
-        <Box marginRight={4}>
-          <PerpsTokenLogo
-            symbol={displayMarket.symbol}
-            size={iconSize}
-            recyclingKey={displayMarket.symbol}
-            testID={getPerpsMarketRowItemSelector.tokenLogo(
+      avatar={
+        <PerpsTokenLogo
+          symbol={displayMarket.symbol}
+          size={iconSize}
+          recyclingKey={displayMarket.symbol}
+          testID={getPerpsMarketRowItemSelector.tokenLogo(displayMarket.symbol)}
+        />
+      }
+      title={assetLabel}
+      titleProps={{
+        testID: getPerpsMarketRowItemSelector.assetLabel(displayMarket.symbol),
+        numberOfLines: 1,
+      }}
+      titleEndAccessory={
+        <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+      }
+      description={description}
+      descriptionEndAccessory={
+        showBadge && badgeType ? (
+          <PerpsBadge
+            type={badgeType}
+            testID={getPerpsMarketRowItemSelector.badge(displayMarket.symbol)}
+          />
+        ) : undefined
+      }
+      value={displayMarket.price}
+      subvalue={displayMarket.change24hPercent}
+      subvalueProps={{
+        color: isPositiveChange
+          ? TextColor.SuccessDefault
+          : TextColor.ErrorDefault,
+      }}
+      endAccessory={
+        onAddPress ? (
+          <ButtonIcon
+            iconName={IconName.Add}
+            size={ButtonIconSize.Md}
+            variant={ButtonIconVariant.Filled}
+            onPress={() => onAddPress(displayMarket)}
+            testID={getPerpsMarketRowItemSelector.addButton(
               displayMarket.symbol,
             )}
           />
-        </Box>
-
-        <Box twClassName="flex-1">
-          {/* Symbol + leverage */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {getPerpsDisplaySymbol(displayMarket.symbol)}
-            </Text>
-            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
-          </Box>
-
-          {/* Metric row */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-            twClassName="mt-0.5"
-          >
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              numberOfLines={1}
-            >
-              {displayText}
-            </Text>
-            {showBadge && badgeType && (
-              <PerpsBadge
-                type={badgeType}
-                testID={getPerpsMarketRowItemSelector.badge(
-                  displayMarket.symbol,
-                )}
-              />
-            )}
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Right section: Price + change */}
-      <Box
-        alignItems={BoxAlignItems.End}
-        justifyContent={BoxJustifyContent.End}
-        gap={1}
-        twClassName="flex-1"
-      >
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {displayMarket.price}
-        </Text>
-        <Text
-          variant={TextVariant.BodySM}
-          color={isPositiveChange ? TextColor.Success : TextColor.Error}
-        >
-          {displayMarket.change24hPercent}
-        </Text>
-      </Box>
-    </Card>
+        ) : undefined
+      }
+      accessoryGap={onAddPress ? 3 : undefined}
+      twClassName={compact ? 'py-2 min-h-0' : undefined}
+    />
   );
 };
 

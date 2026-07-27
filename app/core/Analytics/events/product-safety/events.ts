@@ -1,0 +1,36 @@
+import {
+  generateOpt,
+  EVENT_NAME as METRICS_EVENT_NAME,
+} from '../../MetaMetrics.events';
+
+enum EVENT_NAME {
+  SECURITY_CHECK_STARTED = 'Security Check Started',
+  SECURITY_CHECK_QUESTION_ANSWERED = 'Security Check Question Answered',
+  SECURITY_CHECK_COMPLETED_CLEAN = 'Security Check Completed Clean',
+  SECURITY_CHECK_DISMISSED = 'Security Check Dismissed',
+  SCAM_WARNING_SHOWN = 'Scam Warning Shown',
+  SCAM_WARNING_STOPPED = 'Scam Warning Stopped',
+  SCAM_WARNING_CONTACT_SUPPORT = 'Scam Warning Contact Support',
+  SCAM_WARNING_PROCEEDED = 'Scam Warning Proceeded',
+}
+
+// This function helps prevent repeat of type conversions
+const createEvent = (name: EVENT_NAME) =>
+  generateOpt(name as unknown as METRICS_EVENT_NAME);
+
+export const PRODUCT_SAFETY_EVENTS = {
+  SECURITY_CHECK_STARTED: createEvent(EVENT_NAME.SECURITY_CHECK_STARTED),
+  SECURITY_CHECK_QUESTION_ANSWERED: createEvent(
+    EVENT_NAME.SECURITY_CHECK_QUESTION_ANSWERED,
+  ),
+  SECURITY_CHECK_COMPLETED_CLEAN: createEvent(
+    EVENT_NAME.SECURITY_CHECK_COMPLETED_CLEAN,
+  ),
+  SECURITY_CHECK_DISMISSED: createEvent(EVENT_NAME.SECURITY_CHECK_DISMISSED),
+  SCAM_WARNING_SHOWN: createEvent(EVENT_NAME.SCAM_WARNING_SHOWN),
+  SCAM_WARNING_STOPPED: createEvent(EVENT_NAME.SCAM_WARNING_STOPPED),
+  SCAM_WARNING_CONTACT_SUPPORT: createEvent(
+    EVENT_NAME.SCAM_WARNING_CONTACT_SUPPORT,
+  ),
+  SCAM_WARNING_PROCEEDED: createEvent(EVENT_NAME.SCAM_WARNING_PROCEEDED),
+};

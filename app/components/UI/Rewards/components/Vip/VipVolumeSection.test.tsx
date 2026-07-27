@@ -1,12 +1,32 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import VipVolumeSection, {
   VIP_VOLUME_SECTION_TEST_IDS,
 } from './VipVolumeSection';
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Pressable } = jest.requireActual('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  return {
+    ...actual,
+    // Replace ButtonIcon with a lightweight stub so the test does not depend
+    // on the full twrnc/reanimated rendering pipeline.
+    ButtonIcon: ({
+      onPress,
+      testID,
+      accessibilityLabel,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+      accessibilityLabel?: string;
+    }) =>
+      ReactActual.createElement(Pressable, {
+        testID,
+        accessibilityLabel,
+        onPress,
+      }),
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -71,5 +91,25 @@ describe('VipVolumeSection', () => {
       getByTestId(VIP_VOLUME_SECTION_TEST_IDS.REFERRALS),
     ).toHaveTextContent(/VIP Referrals/);
     expect(getByText('Volume')).toBeOnTheScreen();
+  });
+
+  it('does not render the swaps volume help icon when no info handler is provided', () => {
+    const { queryByTestId } = render(<VipVolumeSection {...props} />);
+
+    expect(queryByTestId(VIP_VOLUME_SECTION_TEST_IDS.SWAPS_INFO)).toBeNull();
+  });
+
+  it('renders the swaps volume help icon and calls onSwapsVolumeInfoPress when pressed', () => {
+    const onSwapsVolumeInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <VipVolumeSection
+        {...props}
+        onSwapsVolumeInfoPress={onSwapsVolumeInfoPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.SWAPS_INFO));
+
+    expect(onSwapsVolumeInfoPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -22,6 +22,7 @@ import type {
   LineaTokenRewardDto,
   CampaignDto,
   VipDashboardDto,
+  VipRefereeMeDto,
   VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -70,7 +71,7 @@ describe('RewardsDataService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+    delete process.env.REWARDS_API_URL;
 
     // Allow env overrides by default (canChange = true).
     // getRewardsEnvUrl reads canChange from the tuple, so the second element
@@ -210,6 +211,18 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getVipFees',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactions',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:lookupVipTransaction',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactionsLastUpdated',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -1798,6 +1811,7 @@ describe('RewardsDataService', () => {
       referralCode: 'TEST123',
       totalReferees: 5,
       referredByCode: 'REFERRER100',
+      isVipReferee: false,
     };
 
     beforeEach(() => {
@@ -4393,6 +4407,7 @@ describe('RewardsDataService', () => {
         start: '2099-06-01T00:00:00.000Z',
         end: '2099-06-30T23:59:59.999Z',
       },
+      computedAt: '2099-06-30T14:52:00.000Z',
       currentTier: {
         id: 'mock-tier-alpha-3',
         name: 'Mock Tier Alpha 3',
@@ -4441,6 +4456,7 @@ describe('RewardsDataService', () => {
       localizedText: {
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
+        transactionsTitle: 'Transactions',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -4517,6 +4533,71 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getVipRefereeDashboard', () => {
+    const mockSubscriptionId = 'sub-referee';
+    const mockToken = 'test-bearer-token';
+    // Obviously-synthetic fixture — never real VIP codes/figures.
+    const mockRefereeDashboard: VipRefereeMeDto = {
+      referredByCode: 'TESTCODE',
+      points: 1234,
+      swapsVolume: 1000,
+      perpsVolume: 2000,
+      computedAt: '2099-06-30T14:52:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockRefereeDashboard),
+      } as unknown as Response);
+    });
+
+    it('fetches the referee dashboard from the expected endpoint with auth headers', async () => {
+      const result = await service.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/referee/me',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockRefereeDashboard);
+    });
+
+    it('returns null when the user is not a VIP referee', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(
+        service.getVipRefereeDashboard(mockSubscriptionId),
+      ).resolves.toBe(null);
+    });
+
+    it('throws when the referee dashboard response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(
+        service.getVipRefereeDashboard(mockSubscriptionId),
+      ).rejects.toThrow('Get VIP referee dashboard failed: 500');
+    });
+  });
+
   describe('getVipFees', () => {
     const mockSubscriptionId = 'sub-vip-fees';
     const mockToken = 'test-bearer-token';
@@ -4574,6 +4655,126 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('VIP transactions', () => {
+    const subscriptionId = 'sub-vip-transactions';
+    const token = 'vip-transactions-token';
+    const transaction = {
+      id: 'transaction-id',
+      type: 'PERPS' as const,
+      timestamp: '2026-07-20T12:00:00.000Z',
+      feeUsd: '1.00',
+      volumeUsd: '100.00',
+      perps: {
+        coin: 'ETH',
+        feeCoin: 'USDC',
+        rawFee: '1',
+        rawNotionalVolume: '100',
+        tradeId: '123',
+        orderId: '456',
+      },
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token,
+      });
+    });
+
+    it('fetches an encoded page of VIP transactions', async () => {
+      const page = {
+        results: [transaction],
+        has_more: false,
+        cursor: null,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(page),
+      } as unknown as Response);
+
+      const result = await service.getVipTransactions(
+        subscriptionId,
+        'PERPS',
+        'next cursor',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions?type=PERPS&cursor=next%20cursor',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(page);
+    });
+
+    it('looks up a VIP transaction by encoded natural key', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(transaction),
+      } as unknown as Response);
+
+      await expect(
+        service.lookupVipTransaction(subscriptionId, 'quote/id?'),
+      ).resolves.toEqual(transaction);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions/lookup?key=quote%2Fid%3F',
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('returns the VIP transaction last-updated timestamp as a Date', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({
+          lastUpdated: '2026-07-20T12:00:00.000Z',
+        }),
+      } as unknown as Response);
+
+      await expect(
+        service.getVipTransactionsLastUpdated(subscriptionId, 'SWAP'),
+      ).resolves.toEqual(new Date('2026-07-20T12:00:00.000Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions/last-updated?type=SWAP',
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('returns null when no VIP transaction has been recorded', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({ lastUpdated: null }),
+      } as unknown as Response);
+
+      await expect(
+        service.getVipTransactionsLastUpdated(subscriptionId, 'PERPS'),
+      ).resolves.toBeNull();
+    });
+
+    it.each([
+      [
+        'getVipTransactions',
+        () => service.getVipTransactions(subscriptionId, 'PERPS', null),
+      ],
+      [
+        'lookupVipTransaction',
+        () => service.lookupVipTransaction(subscriptionId, '123'),
+      ],
+      [
+        'getVipTransactionsLastUpdated',
+        () => service.getVipTransactionsLastUpdated(subscriptionId, 'PERPS'),
+      ],
+    ])('throws when %s receives an unsuccessful response', async (_, call) => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(call()).rejects.toThrow('failed: 500');
+    });
+  });
+
   describe('postBenefitImpression', () => {
     const mockSubscriptionId = 'sub-benefits';
     const mockBenefitId = 42;
@@ -4614,6 +4815,41 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
+    });
+
+    it('includes the wallet address in the payload when provided', async () => {
+      const mockWalletAddress = '0xabc';
+
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+        mockWalletAddress,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/benefits/impression',
+        expect.objectContaining({
+          body: JSON.stringify({
+            benefitId: mockBenefitId,
+            benefitType: mockBenefitType,
+            walletAddress: mockWalletAddress,
+          }),
+        }),
+      );
+    });
+
+    it('omits the wallet address from the payload when not provided', async () => {
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+
+      const requestBody = JSON.parse(
+        (mockFetch.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(requestBody).not.toHaveProperty('walletAddress');
     });
 
     it('throws when post benefit impression response is not ok', async () => {
@@ -4970,6 +5206,68 @@ describe('RewardsDataService', () => {
 
       await expect(service.getClientVersionRequirements()).rejects.toThrow(
         'Get client version requirements failed: 500',
+      );
+    });
+  });
+
+  describe('getFirstPredictOnUs', () => {
+    const mockFirstPredictOnUs = {
+      name: 'First Predict On Us',
+      image: {
+        lightModeUrl: 'https://images.example.com/light.png',
+        darkModeUrl: 'https://images.example.com/dark.png',
+      },
+      localizedText: {
+        cta: 'Predict now',
+        description: 'Your first prediction is on us.',
+      },
+      usdAmount: 5,
+      markets: [{ eventId: '30615', conditionId: '0xabc' }],
+      termsUrl: 'https://example.com/terms',
+    };
+
+    it('fetches first predict on us from the correct public endpoint', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockFirstPredictOnUs),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getFirstPredictOnUs();
+
+      expect(result).toEqual(mockFirstPredictOnUs);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.UAT}/public/first-predict-on-us`,
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('returns null when no visible entry exists', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      const result = await service.getFirstPredictOnUs();
+
+      expect(result).toBeNull();
+    });
+
+    it('throws when response is not ok and not 404', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(service.getFirstPredictOnUs()).rejects.toThrow(
+        'Get first predict on us failed: 500',
       );
     });
   });

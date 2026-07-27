@@ -9,6 +9,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { POLYGON_PUSD } from '../../../constants/predict';
+import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 import { TransactionSummaryLine } from './transaction-summary-line';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 
@@ -36,6 +37,10 @@ export function ReceiveSummaryLine({
     TransactionType.predictWithdraw,
   ]);
 
+  const isPerpsWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+  ]);
+
   const targetNetworkName = useNetworkName(targetChainId);
   const sourceNetworkName = useNetworkName(sourceChainId ?? '0x0');
 
@@ -52,10 +57,16 @@ export function ReceiveSummaryLine({
     targetSymbol = 'USDC';
     finalTargetNetworkName = 'Hyperliquid';
     receiveChainId = CHAIN_IDS.ARBITRUM;
+  } else if (isPerpsWithdraw) {
+    targetSymbol = 'mUSD';
+    finalTargetNetworkName = sourceNetworkName;
+    receiveChainId = sourceChainId ?? '0x0';
   } else if (isPredictDeposit) {
     targetSymbol = POLYGON_PUSD.symbol;
   } else if (isPredictWithdraw) {
-    targetSymbol = sourceToken?.symbol ?? 'Unknown';
+    targetSymbol =
+      getTokenDisplaySymbol(sourceTokenAddress, sourceToken?.symbol) ??
+      'Unknown';
     finalTargetNetworkName = sourceNetworkName;
     receiveChainId = sourceChainId ?? '0x0';
   }

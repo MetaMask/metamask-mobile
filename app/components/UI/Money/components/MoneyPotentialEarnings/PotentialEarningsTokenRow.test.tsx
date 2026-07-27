@@ -1,8 +1,11 @@
 import React from 'react';
+import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
+import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -24,12 +27,9 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
 jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => 'usd'),
-}));
 
 jest.mock('../../utils/moneyFormatFiat', () => ({
+  ...jest.requireActual('../../utils/moneyFormatFiat'),
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
@@ -53,13 +53,34 @@ const MOCK_USDC = makeToken({
   fiat: { balance: 5000 },
 });
 
+const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
+
 describe('PotentialEarningsTokenRow', () => {
-  it('renders the token symbol', () => {
+  beforeEach(() => {
+    mockMoneyFormatFiat.mockClear();
+  });
+
+  it('renders the token name', () => {
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+      />,
+    );
+
+    expect(getByText('USD Coin')).toBeOnTheScreen();
+  });
+
+  it('falls back to the token symbol when name is empty', () => {
+    const noNameToken = makeToken({ name: '', symbol: 'USDC' });
+    const { getByText } = render(
+      <PotentialEarningsTokenRow
+        token={noNameToken}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -73,7 +94,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -87,7 +108,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -101,7 +122,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={0}
+        apyDecimal={0}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -115,7 +136,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -131,7 +152,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -147,7 +168,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -164,7 +185,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={mockOnPress}
       />,
@@ -181,14 +202,93 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={mockOnPress}
         onButtonPress={jest.fn()}
       />,
     );
 
-    fireEvent.press(getByText('USDC'));
+    fireEvent.press(getByText('USD Coin'));
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('formats the balance using the token fiat currency instead of Money default fiat currency when defined', () => {
+    const eurToken = makeToken({
+      symbol: 'EURC',
+      fiat: { balance: 5000, currency: 'eur' },
+    });
+
+    render(
+      <PotentialEarningsTokenRow
+        token={eurToken}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+      />,
+    );
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'eur',
+    );
+  });
+
+  it('falls back to the Money default currency when the token has no fiat currency', () => {
+    render(
+      <PotentialEarningsTokenRow
+        token={MOCK_USDC}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+      />,
+    );
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'usd',
+    );
+  });
+
+  it('renders the real balance and projected values when privacyMode is false', () => {
+    const { getByTestId } = render(
+      <PotentialEarningsTokenRow
+        token={MOCK_USDC}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+        privacyMode={false}
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('$5000.00');
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.PROJECTED),
+    ).toHaveTextContent('+$1000.00');
+  });
+
+  it('masks the balance and projected values when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <PotentialEarningsTokenRow
+        token={MOCK_USDC}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+        privacyMode
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('•'.repeat(9));
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.PROJECTED),
+    ).toHaveTextContent('•'.repeat(6));
   });
 });

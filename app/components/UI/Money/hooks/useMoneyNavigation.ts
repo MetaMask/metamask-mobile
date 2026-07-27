@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import type { MoneyOnboardingParams } from '../types/navigation';
 
 /**
  * Why NavigationService instead of useNavigation():
@@ -16,21 +18,38 @@ import NavigationService from '../../../../core/NavigationService/NavigationServ
  *
  * See: https://github.com/react-navigation/react-navigation/issues/6472
  */
-export const useMoneyNavigation = () => {
+export const useMoneyOnboardingNavigation = () => {
   const hasSeenOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const isOnboardingEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
 
-  const redirectToOnboarding = useCallback(() => {
+  const redirectToOnboarding = useCallback((params?: MoneyOnboardingParams) => {
+    if (params) {
+      NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING, params);
+      return;
+    }
+
     NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
   }, []);
 
-  const redirectToOnboardingIfNeeded = useCallback(() => {
-    if (hasSeenOnboarding) {
-      return false;
-    }
+  const redirectToOnboardingIfNeeded = useCallback(
+    (params?: MoneyOnboardingParams) => {
+      if (hasSeenOnboarding || !isOnboardingEnabled) {
+        return false;
+      }
 
-    redirectToOnboarding();
-    return true;
-  }, [hasSeenOnboarding, redirectToOnboarding]);
+      redirectToOnboarding(params);
+      return true;
+    },
+    [hasSeenOnboarding, isOnboardingEnabled, redirectToOnboarding],
+  );
+
+  return { redirectToOnboardingIfNeeded };
+};
+
+export const useMoneyNavigation = () => {
+  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
 
   const navigateToMoneyHome = useCallback(() => {
     if (redirectToOnboardingIfNeeded()) {

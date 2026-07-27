@@ -1,16 +1,20 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { usePredictTrading } from '../../../../UI/Predict/hooks/usePredictTrading';
 import { useConfirmNavigation } from '../useConfirmNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PayWithOption } from '../../components/confirm/confirm-component';
+import {
+  ConfirmationLoader,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
 import Logger from '../../../../../util/Logger';
 
 const LOG_TAG = '[MoneyPredictDeposit]';
 
 export function useMoneyPredictDeposit() {
-  const { enableMoneyHomePagePredictTransaction } = useSelector(
+  const { enableMoneyAccountTransactions } = useSelector(
     selectMetaMaskPayFlags,
   );
   const { deposit: depositWithConfirmation } = usePredictTrading();
@@ -18,6 +22,7 @@ export function useMoneyPredictDeposit() {
 
   const initiatePredictDeposit = useCallback(async () => {
     navigateToConfirmation({
+      loader: ConfirmationLoader.CustomAmount,
       stack: Routes.PREDICT.ROOT,
       payWithOption: PayWithOption.MoneyAccount,
     });
@@ -33,7 +38,9 @@ export function useMoneyPredictDeposit() {
   }, [depositWithConfirmation, navigateToConfirmation]);
 
   return {
-    isEnabled: enableMoneyHomePagePredictTransaction,
+    isEnabled: Boolean(
+      enableMoneyAccountTransactions[TransactionType.predictDeposit],
+    ),
     initiatePredictDeposit,
   };
 }

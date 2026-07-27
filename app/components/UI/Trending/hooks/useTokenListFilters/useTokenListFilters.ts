@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -73,8 +73,7 @@ export const useTokenListFilters = (
 ): TokenListFilters => {
   const { timeOption } = options;
 
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, undefined | object>>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId[] | null>(

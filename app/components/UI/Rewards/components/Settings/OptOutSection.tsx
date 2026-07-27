@@ -16,7 +16,7 @@ interface OptOutSectionProps {
 const OptOutSection: React.FC<OptOutSectionProps> = ({ onErasePress }) => (
   <>
     {/* Divider */}
-    <Box twClassName="mt-4 border-b border-border-muted" />
+    <Box twClassName="my-4 border-b border-border-muted" />
 
     <Box testID="opt-out-section" twClassName="gap-4 flex-col px-4">
       <Box twClassName="gap-2 mt-2">

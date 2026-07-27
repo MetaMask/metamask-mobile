@@ -6,6 +6,44 @@ import {
   HardwareWalletsSwapsStepStatus,
 } from './HardwareWalletsSwaps.state';
 
+/**
+ * Number of QR scans in one signing cycle per transaction
+ * (display request + camera-read response).
+ */
+export const QR_SCANS_PER_TRANSACTION = 2;
+
+/**
+ * Total QR scans across the whole signing flow.
+ *
+ * @param transactionSteps - Number of transactions to sign (`progress.totalSteps`).
+ * @returns Total QR scans (transactions × {@link QR_SCANS_PER_TRANSACTION}).
+ */
+export function getTotalQrScans(transactionSteps: number): number {
+  return transactionSteps * QR_SCANS_PER_TRANSACTION;
+}
+
+/**
+ * 1-based scan step for the **display phase** (Phase A) of a transaction:
+ * MetaMask shows the request QR and the user scans it with their wallet.
+ *
+ * @param transactionStep - Zero-based transaction index (`progress.currentStep`).
+ * @returns The 1-based scan number for the display phase.
+ */
+export function getDisplayScanStep(transactionStep: number): number {
+  return transactionStep * QR_SCANS_PER_TRANSACTION + 1;
+}
+
+/**
+ * 1-based scan step for the **camera phase** (Phase B) of a transaction:
+ * MetaMask's camera reads the response QR shown on the wallet.
+ *
+ * @param transactionStep - Zero-based transaction index (`progress.currentStep`).
+ * @returns The 1-based scan number for the camera phase.
+ */
+export function getCameraScanStep(transactionStep: number): number {
+  return (transactionStep + 1) * QR_SCANS_PER_TRANSACTION;
+}
+
 interface StepTitleOptions {
   /** Token amount displayed in the step title. */
   amount?: string;
@@ -41,6 +79,20 @@ export function getStepTitle(
       amount,
       symbol,
     });
+  }
+
+  if (step.kind === HardwareWalletsSwapsStepKind.FeeTransfer) {
+    if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
+      return strings(
+        'bridge.hardware_wallet_progress.network_fee_paid_with_symbol',
+        { amount, symbol },
+      );
+    }
+    // Waiting / Signing / Rejected all use the "paying" form.
+    return strings(
+      'bridge.hardware_wallet_progress.paying_network_fee_with_symbol',
+      { amount, symbol },
+    );
   }
 
   if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
@@ -84,6 +136,12 @@ export function getStepDescription(step: HardwareWalletsSwapsStep) {
         address: step.address,
       });
     }
+    return undefined;
+  }
+
+  // Send-only FeeTransfer step: no description. The gas token's symbol is
+  // already in the title; the gas-token address is intentionally not shown.
+  if (step.kind === HardwareWalletsSwapsStepKind.FeeTransfer) {
     return undefined;
   }
 

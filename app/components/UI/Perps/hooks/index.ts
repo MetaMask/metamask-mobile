@@ -2,7 +2,10 @@
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
-export { usePerpsTopMovers } from './usePerpsTopMovers';
+export {
+  usePerpsTopMovers,
+  isPerpsTopMoversSectionVisible,
+} from './usePerpsTopMovers';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsProvider } from './usePerpsProvider';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
@@ -18,6 +21,7 @@ export { usePerpsMarketListView } from './usePerpsMarketListView';
 export { usePerpsSearch } from './usePerpsSearch';
 export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
+export { usePerpsMode } from './usePerpsMode';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';

@@ -49,12 +49,9 @@ export const getAddressListViewedAccountType = (
 
 /**
  * Track Address List Viewed with the mobile analytics schema.
- * Generic over the event type so callers using either MetricsEventBuilder
- * (ITrackingEvent) or AnalyticsEventBuilder (AnalyticsTrackingEvent) are
- * both accepted without a lossy union parameter.
  *
- * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
- * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
+ * @param trackEvent - trackEvent function from useAnalytics
+ * @param createEventBuilder - createEventBuilder function from AnalyticsEventBuilder
  * @param properties - Address list view properties
  */
 export const trackAddressListViewed = <TEvent>(

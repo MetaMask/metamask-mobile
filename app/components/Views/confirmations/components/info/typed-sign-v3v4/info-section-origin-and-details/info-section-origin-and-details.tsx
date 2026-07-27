@@ -15,6 +15,7 @@ import {
   isRecognizedPermit,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../../../utils/signature';
+import { useIsExternalAppRequest } from '../../../../hooks/useIsExternalAppRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
@@ -31,10 +32,19 @@ import Text, {
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
   const { approvalRequest } = useApprovalRequest();
-  const origin = approvalRequest?.origin as string;
+  // Prefer the dapp URL from the request metadata over `approvalRequest.origin`.
+  // For WalletConnect/SDK connections `origin` is the permission subject
+  // (pairing topic / channelId hex), not the dapp domain.
+  const origin = (approvalRequest?.requestData?.meta?.url ??
+    approvalRequest?.origin) as string;
 
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
+
+  // For requests where we cannot verify the dapp's identity, display a generic
+  // "External app" label rather than the raw origin — same handling as
+  // OriginRow / NetworkAndOriginRow.
+  const isExternalApp = useIsExternalAppRequest();
 
   const parsedData =
     parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
@@ -66,7 +76,13 @@ export const InfoSectionOriginAndDetails = () => {
         label={strings('confirm.label.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
-        <DisplayURL url={origin} />
+        {isExternalApp ? (
+          <Text variant={TextVariant.BodyMD}>
+            {strings('confirm.label.external_app')}
+          </Text>
+        ) : (
+          <DisplayURL url={origin} />
+        )}
       </InfoRow>
       <InfoRow label={strings('transactions.network')}>
         <View style={styles.networkRowContainer}>

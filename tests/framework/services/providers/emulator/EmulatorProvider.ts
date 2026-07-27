@@ -8,6 +8,7 @@ import { EmulatorConfigBuilder } from './EmulatorConfigBuilder';
 import { Platform, type EmulatorConfig } from '../../../types';
 import {
   applyResolvedAndroidAdbToDevice,
+  clearAndroidAdbUdidResolutionCache,
   resolveAndroidAdbUdidForDevice,
 } from './android/resolveAndroidAdbUdid';
 import {
@@ -16,6 +17,7 @@ import {
 } from './reinstallLocalBuildFromPath';
 import {
   startAndroidEmulator,
+  ensureAndroidEmulatorReady,
   ensureIosSimulatorReady,
   getIosSimulatorUdid,
 } from '../../appium/EmulatorHelpers';
@@ -137,6 +139,17 @@ export class EmulatorProvider extends BaseServiceProvider {
   }
 
   /**
+   * Persist adb serial across Playwright tests and retries in the same worker.
+   */
+  private persistAndroidEmulatorSerial(
+    serial: string,
+    emulatorDevice: EmulatorConfig,
+  ): void {
+    emulatorDevice.udid = serial;
+    process.env.ANDROID_DEVICE_UDID = serial;
+  }
+
+  /**
    * Boot the configured device (emulator/simulator) if it is not already
    * running. Controlled by the SKIP_DEVICE_BOOT env var:
    *
@@ -153,14 +166,18 @@ export class EmulatorProvider extends BaseServiceProvider {
     }
 
     if (this.project.use.platform === Platform.ANDROID) {
-      const avdName = (this.project.use.device as EmulatorConfig).name;
-      if (!avdName) {
+      const emulatorDevice = this.project.use.device as EmulatorConfig;
+      const avdName = emulatorDevice.name;
+      if (!avdName && !emulatorDevice.udid) {
         throw new Error(
-          'Android device boot requires `use.device.name` (AVD name) in the project config.',
+          'Android device boot requires `use.device.name` (AVD name) or `use.device.udid` (adb serial) in the project config.',
         );
       }
-      const serial = await startAndroidEmulator(avdName);
-      (this.project.use.device as EmulatorConfig).udid = serial;
+      const serial = await ensureAndroidEmulatorReady(
+        avdName ?? '',
+        emulatorDevice.udid,
+      );
+      this.persistAndroidEmulatorSerial(serial, emulatorDevice);
     } else if (this.project.use.platform === Platform.IOS) {
       const deviceName = this.project.use.device?.name;
       if (!deviceName) {
@@ -246,6 +263,14 @@ export class EmulatorProvider extends BaseServiceProvider {
           'Android local emulator: set `use.device.name` (AVD name) or `use.device.udid` (e.g. emulator-5554).',
         );
       }
+      // Re-ensure the emulator on every session (including Playwright retries).
+      // globalSetup boots once; a failed test can leave adb offline until we wait or reboot.
+      clearAndroidAdbUdidResolutionCache();
+      const serial = await ensureAndroidEmulatorReady(
+        emulatorDevice.name ?? '',
+        emulatorDevice.udid,
+      );
+      this.persistAndroidEmulatorSerial(serial, emulatorDevice);
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
         setAndroidSerialEnv: true,
       });

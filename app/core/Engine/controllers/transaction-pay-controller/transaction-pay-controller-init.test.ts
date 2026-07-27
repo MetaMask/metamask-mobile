@@ -10,9 +10,11 @@ import {
 import { TransactionPayControllerInit } from './transaction-pay-controller-init';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
+import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
+jest.mock('../../../../util/environment');
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -116,5 +118,17 @@ describe('Transaction Pay Controller Init', () => {
 
     expect(createPolymarketCallbacks).toHaveBeenCalledTimes(1);
     expect(polymarket).toBe(polymarketCallbacksMock);
+  });
+
+  it('wires fiat test options through controller options', () => {
+    const fiatOptions = {
+      testAmountOverride: '0.1',
+      testFundingSource: '0x123' as const,
+    };
+    jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue(fiatOptions);
+
+    const result = testConstructorOption('fiatOptions');
+
+    expect(result).toBe(fiatOptions);
   });
 });

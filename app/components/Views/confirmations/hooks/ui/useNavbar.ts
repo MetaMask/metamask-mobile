@@ -8,6 +8,7 @@ import {
 } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const useNavbar = (
   title: string,
@@ -18,6 +19,7 @@ const useNavbar = (
   const { onReject } = useConfirmActions();
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
 
   useEffect(() => {
     if (isFullScreenConfirmation) {
@@ -28,12 +30,14 @@ const useNavbar = (
           addBackButton,
           theme,
           overrides,
+          mmPayRequestInProgressNavHandler,
         }),
       );
     }
   }, [
     addBackButton,
     isFullScreenConfirmation,
+    mmPayRequestInProgressNavHandler,
     navigation,
     onReject,
     overrides,

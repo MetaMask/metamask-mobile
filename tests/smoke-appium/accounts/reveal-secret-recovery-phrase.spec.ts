@@ -8,18 +8,14 @@ import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/S
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { defaultGanacheOptions } from '../../framework/Constants.js';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
+import Assertions from '../../framework/Assertions.js';
 
 appiumTest.describe(
   SmokeAccounts('Secret Recovery Phrase Reveal from Settings'),
   () => {
     appiumTest(
       'navigate to reveal SRP screen and make the quiz',
-      async ({
-        driver: _driver, // required: sets globalThis.driver for Appium page objects
-        currentDeviceDetails,
-      }) => {
+      async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
@@ -35,11 +31,8 @@ appiumTest.describe(
             await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
             await completeSrpQuiz(defaultGanacheOptions.mnemonic);
 
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(
-                SecurityAndPrivacy.securityAndPrivacyHeading,
-              ),
-              { description: 'Security and privacy heading' },
+            await Assertions.expectElementToBeVisible(
+              SecurityAndPrivacy.securityAndPrivacyHeading,
             );
           },
         );

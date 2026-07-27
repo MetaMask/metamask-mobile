@@ -178,7 +178,11 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
+      <TouchableOpacity
+        onPress={onSelectAccount}
+        style={styles.mainTouchable}
+        testID={AccountCellIds.SELECT}
+      >
         {startAccessory}
         <AvatarAccount
           address={evmAddress ?? ''}

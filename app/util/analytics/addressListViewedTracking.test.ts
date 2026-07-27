@@ -48,7 +48,6 @@ describe('addressListViewedTracking', () => {
       name: 'Address List Viewed',
       properties: mockProperties,
       sensitiveProperties: {},
-      saveDataRecording: false,
       isAnonymous: false,
       hasProperties: true,
     } as ITrackingEvent);

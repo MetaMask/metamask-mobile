@@ -5,13 +5,13 @@ import { Hex } from '@metamask/utils';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
-import { useSDKV2Connection } from '../../../../../../hooks/useSDKV2Connection';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
+import { useIsExternalAppRequest } from '../../../../hooks/useIsExternalAppRequest';
 import { MMM_ORIGIN } from '../../../../constants/confirmations';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
@@ -30,14 +30,24 @@ export const NetworkAndOriginRow = () => {
   const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
-  const sdkV2Connection = useSDKV2Connection(origin);
-  const isMMDSDKV2Origin = Boolean(sdkV2Connection?.isV2);
+
+  // For requests where we cannot verify the dapp's identity, display a generic
+  // "External app" label rather than the raw origin. This covers `ethereum:`
+  // deeplinks / scanned QR codes (origin === 'deeplink' / 'qr-code'), MetaMask
+  // SDK and MetaMask Connect (MWP) connections (origin is a bare connection
+  // UUID), and any remote transport whose origin is self-reported and therefore
+  // unverifiable (SDK v1, MWP, WalletConnect) as identified by `request_source`.
+  const isExternalApp = useIsExternalAppRequest();
 
   const isDappOrigin = origin !== MMM_ORIGIN;
 
   if (!transactionMetadata && !signatureRequest) {
     return null;
   }
+
+  const displayedOrigin = isExternalApp
+    ? strings('confirm.label.external_app')
+    : origin;
 
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.NETWORK}>
@@ -49,9 +59,7 @@ export const NetworkAndOriginRow = () => {
           label={strings('transactions.request_from')}
           style={styles.infoRowOverride}
         >
-          <Text variant={TextVariant.BodyMD}>
-            {isMMDSDKV2Origin ? sdkV2Connection?.origin : origin}
-          </Text>
+          <Text variant={TextVariant.BodyMD}>{displayedOrigin}</Text>
         </AlertRow>
       )}
       {signatureRequest && isSIWEMessage && (

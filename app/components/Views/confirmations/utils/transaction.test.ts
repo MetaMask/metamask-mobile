@@ -10,11 +10,13 @@ import {
   getErrorMessage,
   getSeverity,
   hasGasFeeTokenSelected,
+  getTransactionType,
   hasTransactionType,
   isRevokeDelegationTransaction,
   isTransactionMarkedAsGasFeeSponsored,
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
+  resolveTransactionType,
   shouldApplyGasFeeSponsorship,
 } from './transaction';
 import {
@@ -179,6 +181,60 @@ describe('get4ByteCode', () => {
   });
 });
 
+describe('getTransactionType', () => {
+  it('returns undefined for undefined input', () => {
+    expect(getTransactionType(undefined)).toBeUndefined();
+  });
+
+  it('returns direct type for regular transactions', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
+  });
+
+  it('returns nested type when nested transactions exist', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictDeposit }],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.predictDeposit);
+  });
+
+  it('returns direct type when nested transactions have no type', () => {
+    const txMeta = {
+      type: TransactionType.simpleSend,
+      nestedTransactions: [{}],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.simpleSend);
+  });
+
+  it('returns first nested type that has a type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [
+        {},
+        { type: TransactionType.perpsWithdraw },
+        { type: TransactionType.predictWithdraw },
+      ],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsWithdraw);
+  });
+
+  it('returns direct type when nestedTransactions is empty', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+      nestedTransactions: [],
+    } as unknown as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
+  });
+});
+
 describe('hasTransactionType', () => {
   it('returns true if transaction type matches', () => {
     const txMeta = {
@@ -219,6 +275,71 @@ describe('hasTransactionType', () => {
         TransactionType.cancel,
       ]),
     ).toBe(false);
+  });
+});
+
+describe('resolveTransactionType', () => {
+  const enabledTypes = [
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+    TransactionType.moneyAccountDeposit,
+  ];
+
+  it('returns the transaction type for non-batch transactions', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.perpsDeposit,
+    );
+  });
+
+  it('returns the first nested type that appears in the enabled types list', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [
+        { type: TransactionType.simpleSend },
+        { type: TransactionType.predictDeposit },
+        { type: TransactionType.perpsDeposit },
+      ],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.predictDeposit,
+    );
+  });
+
+  it('returns batch when no nested transaction type matches the enabled types list', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.simpleSend }],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.batch,
+    );
+  });
+
+  it('returns batch when nested transactions are missing', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.batch,
+    );
+  });
+
+  it('skips nested transactions without a type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{}, { type: TransactionType.moneyAccountDeposit }],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.moneyAccountDeposit,
+    );
   });
 });
 

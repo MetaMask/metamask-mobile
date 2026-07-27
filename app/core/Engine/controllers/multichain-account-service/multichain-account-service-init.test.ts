@@ -91,21 +91,7 @@ describe('MultichainAccountServiceInit', () => {
     expect(callArgs.providerConfigs).toBeDefined();
   });
 
-  it('enables batched account creation for Solana', () => {
-    multichainAccountServiceInit(getInitRequestMock());
-
-    const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
-    const { providerConfigs } = callArgs;
-
-    expect(providerConfigs).toBeDefined();
-    expect(
-      providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toMatchObject({
-      batched: true,
-    });
-  });
-
-  it('does not enable batched account creation for BTC and TRX', () => {
+  it('does enable batched account creation for bitcoin, tron, and solana', () => {
     multichainAccountServiceInit(getInitRequestMock());
 
     const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
@@ -115,12 +101,17 @@ describe('MultichainAccountServiceInit', () => {
     expect(
       providerConfigs?.[BTC_ACCOUNT_PROVIDER_NAME]?.createAccounts,
     ).toMatchObject({
-      batched: false,
+      batched: true,
     });
     expect(
       providerConfigs?.[TRX_ACCOUNT_PROVIDER_NAME]?.createAccounts,
     ).toMatchObject({
-      batched: false,
+      batched: true,
+    });
+    expect(
+      providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts,
+    ).toMatchObject({
+      batched: true,
     });
   });
 });

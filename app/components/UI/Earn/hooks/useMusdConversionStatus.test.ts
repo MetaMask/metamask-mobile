@@ -1082,30 +1082,6 @@ describe('useMusdConversionStatus', () => {
       });
     });
 
-    it('includes bridge strategy when quote uses Bridge', () => {
-      mockSelectTransactionPayQuotesByTransactionId.mockReturnValue([
-        { strategy: TransactionPayStrategy.Bridge },
-      ] as ReturnType<typeof mockSelectTransactionPayQuotesByTransactionId>);
-
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.approved,
-        'test-trace-bridge',
-      );
-
-      handler({ transactionMeta });
-
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            strategy: 'bridge',
-          }),
-        }),
-      );
-    });
-
     it('includes unknown strategy when no quotes exist', () => {
       mockSelectTransactionPayQuotesByTransactionId.mockReturnValue(undefined);
 

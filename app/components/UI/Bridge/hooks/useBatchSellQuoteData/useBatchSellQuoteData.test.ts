@@ -319,6 +319,7 @@ describe('useBatchSellQuoteData', () => {
       [ethAssetId]: expect.objectContaining({
         key: ethAssetId,
         tokenSymbol: 'ETH',
+        quote: mockBatchSellQuotes.recommendedQuotes[0],
         receivedAmount: '123 USDC',
         receivedAmountFiat: '$123.45',
         isLoading: false,
@@ -328,6 +329,7 @@ describe('useBatchSellQuoteData', () => {
       [uniAssetId]: expect.objectContaining({
         key: uniAssetId,
         tokenSymbol: 'UNI',
+        quote: mockBatchSellQuotes.recommendedQuotes[1],
         receivedAmount: '77 USDC',
         receivedAmountFiat: '$77.89',
         isLoading: false,
@@ -950,11 +952,13 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         tokenSymbol: 'ETH',
+        quote: null,
         isLoading: false,
         isQuoteUnavailable: true,
       }),
       [uniAssetId]: expect.objectContaining({
         tokenSymbol: 'UNI',
+        quote: null,
         isLoading: false,
         isQuoteUnavailable: true,
       }),

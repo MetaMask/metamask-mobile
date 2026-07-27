@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { usePerpsTrading } from '../../../../UI/Perps/hooks/usePerpsTrading';
 import { useConfirmNavigation } from '../useConfirmNavigation';
@@ -10,7 +11,7 @@ import Logger from '../../../../../util/Logger';
 const LOG_TAG = '[MoneyPerpsDeposit]';
 
 export function useMoneyPerpsDeposit() {
-  const { enableMoneyHomePagePerpsTransaction } = useSelector(
+  const { enableMoneyAccountTransactions } = useSelector(
     selectMetaMaskPayFlags,
   );
   const { depositWithConfirmation } = usePerpsTrading();
@@ -33,7 +34,9 @@ export function useMoneyPerpsDeposit() {
   }, [depositWithConfirmation, navigateToConfirmation]);
 
   return {
-    isEnabled: enableMoneyHomePagePerpsTransaction,
+    isEnabled: Boolean(
+      enableMoneyAccountTransactions[TransactionType.perpsDeposit],
+    ),
     initiatePerpsDeposit,
   };
 }

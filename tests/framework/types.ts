@@ -145,6 +145,12 @@ export interface MatcherOptions {
   index?: number;
 }
 
+/** Detox scroll-container matcher; undefined when omitted on Appium. */
+export type ScrollViewMatcher = Promise<Detox.NativeMatcher | undefined>;
+
+/** Scroll container for scrollToElement — testID string or Detox matcher promise. */
+export type ScrollContainer = ScrollViewMatcher | string;
+
 /**
  * The options for the scroll gesture.
  * @param {string} direction - The direction to scroll.
@@ -238,6 +244,8 @@ export enum E2ECommandTypes {
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
   exportState = 'export-state',
+  /** Inject QR sync sync-ready SRP payload (HAS_TEST_OVERRIDES Appium/Detox). */
+  applyQrSyncSyncReady = 'apply-qr-sync-sync-ready',
 }
 
 export enum GanacheHardfork {

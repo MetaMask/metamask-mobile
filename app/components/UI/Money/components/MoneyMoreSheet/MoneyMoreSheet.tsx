@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View, Linking } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -19,9 +19,10 @@ import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   BOTTOM_SHEET_NAMES,
@@ -41,11 +42,11 @@ const MoneyMoreSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
   });
+  const { openSupportWithConsent } = useSupportConsent();
 
   useMountEffect(trackBottomSheetViewed);
 
@@ -71,13 +72,13 @@ const MoneyMoreSheet = () => {
   const handleWhatYouGet = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
     closeAndNavigate(() => {
-      Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+      openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
     });
-  }, [closeAndNavigate, trackSurfaceClicked]);
+  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
 
   const handleContactSupport = useCallback(() => {
     trackSurfaceClicked({
@@ -86,9 +87,17 @@ const MoneyMoreSheet = () => {
     });
 
     closeAndNavigate(() => {
-      Linking.openURL(METAMASK_SUPPORT_URL);
+      openSupportWithConsent(
+        (url) => openInAppBrowser(navigation, url),
+        METAMASK_SUPPORT_URL,
+      );
     });
-  }, [closeAndNavigate, trackSurfaceClicked]);
+  }, [
+    closeAndNavigate,
+    navigation,
+    trackSurfaceClicked,
+    openSupportWithConsent,
+  ]);
 
   const options: MenuOption[] = [
     {
@@ -105,7 +114,7 @@ const MoneyMoreSheet = () => {
     },
     {
       label: strings('money.more_sheet.contact_support'),
-      icon: IconName.MessageQuestion,
+      icon: IconName.Sms,
       onPress: handleContactSupport,
       testID: MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION,
     },
@@ -117,7 +126,6 @@ const MoneyMoreSheet = () => {
       goBack={handleGoBack}
       testID={MoneyMoreSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

@@ -14,6 +14,7 @@ export {
 } from '../helpers/analytics/runAnalyticsExpectations.ts';
 export {
   boxedStep,
+  executeMobileDeepLink,
   getDriver,
   withSnapshotSettings,
   startOverheadTracking,

@@ -26,6 +26,10 @@ const env = {
   CHANGED_FILES: process.env.CHANGED_FILES || '',
   RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
+  // Path to pre-fetched timings written by the prepare-e2e-timings setup job.
+  // When set, shards use this frozen snapshot instead of fetching live from
+  // qa-stats, ensuring the bin-pack result is identical across all attempts.
+  E2E_TIMINGS_PATH: process.env.E2E_TIMINGS_PATH || '',
 };
 // Example of format of CHANGED_FILES: app/components/Foo.tsx tests/e2e/specs/Bar.js
 
@@ -121,13 +125,24 @@ async function shouldSkipFlakinessDetection() {
 }
 
 /**
- * Check if a file is a spec file
+ * Check if a file is a spec file eligible for the Detox runner.
+ *
+ * Excludes:
+ *   - `quarantine/` specs (skipped in CI)
+ *   - `smoke-appium/` specs — these are Playwright + Appium specs run via
+ *     tests/playwright.smoke-appium.config.ts, and are explicitly ignored by
+ *     the Detox Jest config (jest.e2e.detox.config.js `testPathIgnorePatterns`).
+ *     They still carry Smoke* tags, so without this exclusion the tag-based
+ *     selection feeds them to the Detox runner, which then finds 0 matching
+ *     tests and exits 1.
  * @param {*} filePath - The path to the file
  * @returns True if the file is a spec file, false otherwise
  */
 function isSpecFile(filePath) {
+  const segments = filePath.split(path.sep);
   return (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
-    !filePath.split(path.sep).includes('quarantine');
+    !segments.includes('quarantine') &&
+    !segments.includes('smoke-appium');
 }
 
 /**
@@ -145,6 +160,15 @@ function* walk(dir) {
       yield fullPath;
     }
   }
+}
+
+/**
+ * Appium smoke specs live under tests/smoke-appium/ and are sharded by Playwright, not Detox.
+ * This will be changed in the future when Detox is removed and all E2E tests are run by Playwright.
+ * @param {string} filePath
+ */
+function isDetoxSpecFile(filePath) {
+  return !timingLookupKey(filePath).includes('smoke-appium/');
 }
 
 /**
@@ -224,16 +248,33 @@ async function githubRest(url) {
 }
 
 /**
- * Download the `qa-stats` artifact zip from the latest successful QA Stats run
- * on `main`, extract `qa-stats.json`, and return the `e2e_test_times` map.
+ * Return the `e2e_test_times` map used for bin-packing shards.
  *
- * Returns `null` on any failure (no token, no run, no artifact, no entry,
- * network/zip/parse error). All failures degrade gracefully into the
- * alphabetical equal-count fallback.
+ * Source priority:
+ *   1. Frozen timings written by the prepare-e2e-timings setup job
+ *      (E2E_TIMINGS_PATH env var) — stable across all shards and re-runs.
+ *   2. Live fetch from the latest successful qa-stats run on main
+ *      (fallback for runs that predate the setup job).
+ *
+ * Returns `null` on any failure — callers degrade to alphabetical split.
  *
  * @returns {Promise<{ [filePath: string]: { ios?: number, android?: number } } | null>}
  */
 async function fetchE2ETestTimes() {
+  // Use the frozen timings snapshot when available (preferred path).
+  if (env.E2E_TIMINGS_PATH && fs.existsSync(env.E2E_TIMINGS_PATH)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(env.E2E_TIMINGS_PATH, 'utf8'));
+      const times = parsed?.e2e_test_times;
+      if (times && typeof times === 'object' && Object.keys(times).length > 0) {
+        console.log(`⏱️  Using frozen timings from ${env.E2E_TIMINGS_PATH} (${Object.keys(times).length} entries)`);
+        return times;
+      }
+    } catch (e) {
+      console.log(`ℹ️  Failed to read frozen timings (${e?.message || e}) — falling back to live fetch`);
+    }
+  }
+
   if (!env.GITHUB_TOKEN) {
     console.log('ℹ️  qa-stats artifact unavailable (no GITHUB_TOKEN) — falling back to alphabetical split');
     return null;
@@ -570,7 +611,8 @@ async function main() {
 
   // 1) Find all specs files that include the given E2E tags
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
+  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG) // TODO - review this function (!).
+    .filter(isDetoxSpecFile);
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 

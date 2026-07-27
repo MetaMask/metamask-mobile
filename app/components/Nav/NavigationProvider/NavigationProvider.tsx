@@ -1,11 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
   ParamListBase,
   Theme,
 } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
@@ -16,9 +16,10 @@ import {
   TraceName,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
 
-const Stack = createStackNavigator();
+const NativeStack = createNativeStackNavigator();
 
 /**
  * Provides the navigation context to the app
@@ -27,17 +28,19 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
   const dispatch = useDispatch();
-  const hasInitialized = useRef(false);
 
-  // Start trace when navigation provider is initialized
-  if (!hasInitialized.current) {
+  // Start the navigation-init trace exactly once, on first render. A lazy
+  // useState initializer runs a single time and—unlike reading/writing a ref
+  // during render—is compatible with the React Compiler, while preserving the
+  // original "start during the first render" timing.
+  useState(() => {
     trace({
       name: TraceName.NavInit,
       parentContext: getUIStartupSpan(),
       op: TraceOperation.NavInit,
     });
-    hasInitialized.current = true;
-  }
+    return true;
+  });
 
   /**
    * Triggers when the navigation is ready
@@ -68,14 +71,14 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       onReady={onReady}
       ref={setNavigationRef}
     >
-      <Stack.Navigator
-        initialRouteName="NavigationProvider"
-        screenOptions={{ headerShown: false }}
+      <NativeStack.Navigator
+        initialRouteName="NavigationChildren"
+        screenOptions={clearNativeStackNavigatorOptions}
       >
-        <Stack.Screen name="NavigationChildren">
+        <NativeStack.Screen name="NavigationChildren">
           {() => <>{children}</>}
-        </Stack.Screen>
-      </Stack.Navigator>
+        </NativeStack.Screen>
+      </NativeStack.Navigator>
     </NavigationContainer>
   );
 };

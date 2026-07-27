@@ -12,6 +12,13 @@ import {
   createMockSnapInternalAccount,
 } from '../../../../../../util/test/accountsControllerTestUtils';
 
+jest.mock('../../../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual(
+    '../../../../../../util/analytics/externalLinkTracking',
+  ),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../../../util/analytics/externalLinkTracking';
 describe('KeyringAccountListItem', () => {
   const mockInternalAccount = createMockSnapInternalAccount(
     MOCK_ADDRESS_1,
@@ -45,5 +52,13 @@ describe('KeyringAccountListItem', () => {
     fireEvent.press(exportButton);
 
     expect(Linking.openURL).toHaveBeenCalledWith(mockBlockExplorerUrl);
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'snap_keyring_account',
+        url: mockBlockExplorerUrl,
+      }),
+    );
   });
 });

@@ -40,11 +40,6 @@ export const defaultFeatureFlags: Record<string, unknown> = {
     featureVersion: null,
     minimumVersion: null,
   },
-  rewardsEnabled: {
-    enabled: false,
-    featureVersion: null,
-    minimumVersion: null,
-  },
   rewardsAnnouncementModalEnabled: {
     enabled: false,
     featureVersion: null,
@@ -174,7 +169,9 @@ export interface StateFixtureBuilder {
 export function createStateFixture(): StateFixtureBuilder {
   const baseState = {
     engine: { backgroundState: {} },
-    settings: {},
+    settings: {
+      basicFunctionalityEnabled: true,
+    },
   } as unknown as DeepPartial<RootState>;
   let current: DeepPartial<RootState> = baseState;
 
@@ -326,6 +323,7 @@ export function createStateFixture(): StateFixtureBuilder {
                 quotesRefreshCount: 0,
                 quoteFetchError: null,
                 tokenWarnings: [],
+                inputPrimaryDenomination: 'token_amount',
                 quoteStreamComplete: null,
               },
             },
@@ -463,6 +461,7 @@ export function createStateFixture(): StateFixtureBuilder {
                 quotesLastFetched: 0,
                 quotes: [],
                 tokenWarnings: [],
+                inputPrimaryDenomination: 'token_amount',
                 quoteStreamComplete: null,
               },
             },

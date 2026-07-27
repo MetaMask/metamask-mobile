@@ -5,14 +5,19 @@ import {
   encapsulatedAction,
   PlaywrightGestures,
 } from '../framework';
-import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
+import Utilities from '../framework/Utilities';
+import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+import { PerpsOrderViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
 import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
+import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
 import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
+import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
 import WalletView from '../page-objects/wallet/WalletView';
 
 const PERPS_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
+const PERPS_NOTIFICATION_TOOLTIP_WAIT_MS = 15_000;
 
 /**
  * Resolves whether the Perps GTM onboarding tutorial should be handled.
@@ -65,6 +70,52 @@ export const dismissPerpsOnboardingTutorialIfPresent =
     } catch {
       // Tutorial not shown or already dismissed.
     }
+  };
+
+/**
+ * Dismisses the post-order "Turn on notifications" bottom sheet when shown.
+ * Blocks navigation until closed (first successful perps order with push disabled).
+ */
+export const dismissPerpsNotificationTooltipIfPresent =
+  async (): Promise<void> => {
+    const turnOnTestId = PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON;
+
+    await encapsulatedAction({
+      detox: async () => {
+        try {
+          const turnOn = asDetoxElement(
+            PerpsOrderView.turnNotificationsOnButton,
+          );
+          await Assertions.expectElementToBeVisible(turnOn, {
+            timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS,
+            description: 'Perps notification tooltip',
+          });
+          await device.pressBack();
+        } catch {
+          // Tooltip not shown.
+        }
+      },
+      appium: async () => {
+        try {
+          const turnOnEl = await PlaywrightMatchers.getElementById(
+            turnOnTestId,
+            { exact: true },
+          );
+          await turnOnEl
+            .unwrap()
+            .waitForDisplayed({ timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS });
+          await PlaywrightGestures.waitAndTap(turnOnEl, {
+            checkForDisplayed: true,
+            timeout: 10_000,
+          });
+          await turnOnEl
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+        } catch {
+          // Tooltip not shown.
+        }
+      },
+    });
   };
 
 /**
@@ -153,7 +204,7 @@ export const isPlaceOrderButtonVisible = async (): Promise<boolean> => {
  * @returns {Promise<void>} Resolves when the order screen is visible.
  */
 export const waitForOrderScreenVisible = async (
-  timeout = 20000,
+  timeout = 45000,
   interval = 1000,
 ): Promise<void> => {
   const start = Date.now();
@@ -166,21 +217,82 @@ export const waitForOrderScreenVisible = async (
 
 export type PerpsPositionDirection = 'long' | 'short';
 
-export const openPosition = async (
+export type PerpsLimitPricePreset = 'Mid' | 'Bid' | 'Ask' | number;
+
+/**
+ * Opens Perps from the wallet home, selects a watchlist market, and taps Long/Short.
+ */
+export const navigateToPerpsOrderEntry = async (
   symbol: string,
   direction: PerpsPositionDirection,
 ): Promise<void> => {
   await WalletView.scrollAndTapPerpsSection();
-  await PerpsHomeView.tapExploreCryptoIfVisible();
+  await PerpsMarketListView.selectMarketAndTapOrderSide(symbol, direction);
+};
 
-  await PerpsMarketListView.selectMarket(symbol);
-  if (direction === 'long') {
-    await PerpsMarketDetailsView.tapLongButton();
+/**
+ * Opens Perps from the wallet home and taps the Withdraw CTA, retrying until the
+ * MetaMask Pay custom-amount confirmation is reached. The first tap can land
+ * while Perps is still settling; reaching this confirmation (instead of the
+ * legacy PerpsWithdrawView) is what proves the withdraw-to-any-token flow.
+ *
+ * Requires the `confirmations_pay_post_quote` → `perpsWithdraw` flag enabled.
+ */
+export const openPerpsWithdrawPayConfirmation = async (): Promise<void> => {
+  await WalletView.scrollAndTapPerpsSection();
+  await PerpsHomeView.waitForWithdrawButton();
+
+  await Utilities.executeWithRetry(
+    async () => {
+      await PerpsHomeView.tapWithdrawButton();
+      await Assertions.expectElementToBeVisible(
+        TransactionPayConfirmation.keyboardContainer,
+        {
+          description:
+            'MetaMask Pay withdraw confirmation reached after tapping Withdraw',
+          timeout: 5000,
+        },
+      );
+    },
+    { interval: 1000, timeout: 30000 },
+  );
+};
+
+/**
+ * Navigates to order entry, selects Limit, applies a price preset, confirms, and places the order.
+ */
+export const placeLimitOrderAtPreset = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+  preset: PerpsLimitPricePreset = 'Mid',
+): Promise<void> => {
+  await navigateToPerpsOrderEntry(symbol, direction);
+  await waitForOrderScreenVisible();
+  await PerpsOrderView.openOrderTypeSelector();
+  await PerpsOrderView.selectLimitOrderType();
+
+  if (typeof preset === 'number') {
+    await PerpsOrderView.setLimitPricePresetPercent(preset);
+  } else if (preset === 'Mid') {
+    await PerpsOrderView.setLimitPricePreset(preset);
   } else {
-    await PerpsMarketDetailsView.tapShortButton();
+    await PerpsOrderView.setLimitPricePresetNamed(preset);
   }
 
+  await PerpsOrderView.confirmLimitPrice();
   await PerpsOrderView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
+  await PerpsMarketDetailsView.waitForScreenReady();
+  await PerpsMarketDetailsView.expectCompactOpenOrderVisible({ direction });
+};
+
+export const openPosition = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+): Promise<void> => {
+  await navigateToPerpsOrderEntry(symbol, direction);
+  await PerpsOrderView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
   await PerpsMarketDetailsView.waitForScreenReady();
   await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 };

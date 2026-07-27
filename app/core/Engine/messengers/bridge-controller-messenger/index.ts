@@ -1,7 +1,7 @@
 import { BridgeControllerMessenger } from '@metamask/bridge-controller';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -11,22 +11,20 @@ import {
 /**
  * Get the BridgeControllerMessenger for the BridgeController.
  *
- * @param rootExtendedMessenger - The base controller messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The BridgeControllerMessenger.
  */
 export function getBridgeControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): BridgeControllerMessenger {
-  const messenger = new Messenger<
-    'BridgeController',
+  rootMessenger: RootMessenger<
     MessengerActions<BridgeControllerMessenger>,
-    MessengerEvents<BridgeControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<BridgeControllerMessenger>
+  >,
+): BridgeControllerMessenger {
+  const messenger: BridgeControllerMessenger = new Messenger({
     namespace: 'BridgeController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'AccountsController:getAccountByAddress',
       'SnapController:handleRequest',
@@ -49,6 +47,12 @@ type BridgeControllerInitMessengerActions =
   | AnalyticsControllerActions
   | RemoteFeatureFlagControllerGetStateAction;
 
+export type BridgeControllerInitMessenger = Messenger<
+  'BridgeControllerInit',
+  BridgeControllerInitMessengerActions,
+  never
+>;
+
 /**
  * Get the BridgeControllerInitMessenger for the BridgeController.
  * This messenger is used during controller initialization to call other controllers.
@@ -56,24 +60,13 @@ type BridgeControllerInitMessengerActions =
  * @param rootMessenger - The root messenger.
  * @returns The BridgeControllerInitMessenger.
  */
-export type BridgeControllerInitMessenger = ReturnType<
-  typeof getBridgeControllerInitMessenger
->;
-
 export function getBridgeControllerInitMessenger(
-  rootMessenger: RootMessenger,
-): Messenger<
-  'BridgeControllerInit',
-  BridgeControllerInitMessengerActions,
-  never,
-  RootMessenger
-> {
-  const messenger = new Messenger<
-    'BridgeControllerInit',
-    BridgeControllerInitMessengerActions,
-    never,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<BridgeControllerInitMessenger>,
+    MessengerEvents<BridgeControllerInitMessenger>
+  >,
+): BridgeControllerInitMessenger {
+  const messenger: BridgeControllerInitMessenger = new Messenger({
     namespace: 'BridgeControllerInit',
     parent: rootMessenger,
   });

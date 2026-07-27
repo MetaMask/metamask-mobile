@@ -19,6 +19,12 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
+import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
+import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
+import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
+import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -38,12 +44,33 @@ export function useTransactionPayMetrics() {
   const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens, hasTokens } =
+    useTransactionPayAvailableTokens();
+
+  const presentedPaymentMethodRef = useRef<string | null>(null);
+  const fiatPaymentActions = useFiatPaymentHighlightedActions();
+  const selectedFiatMethod = useTransactionPaySelectedFiatPaymentMethod();
 
   const transactionId = transactionMeta?.id ?? '';
   const storedMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, transactionId),
   );
+
+  const accountOverride = useTransactionAccountOverride();
+
+  const hasPayToken = !!payToken;
+  const source = usePaySectionSourceMetrics(hasPayToken);
+  const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
+
+  const isQuoteRequested =
+    (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
+
+  const quoteRequestedAtMs = useRef<number>(0);
+  useEffect(() => {
+    if (isQuoteRequested && quoteRequestedAtMs.current === 0) {
+      quoteRequestedAtMs.current = Date.now();
+    }
+  }, [isQuoteRequested]);
 
   const hasQuotes = (quotes?.length ?? 0) > 0;
 
@@ -56,6 +83,35 @@ export function useTransactionPayMetrics() {
     [tokens],
   );
 
+  const availablePaymentMethods = useMemo(() => {
+    const methods = new Set<string>();
+
+    if (availableTokens.length > 0) {
+      methods.add('crypto');
+    }
+
+    for (const action of fiatPaymentActions) {
+      const method = normalizeMetaMaskPayPaymentMethod(action.paymentType);
+
+      if (method) {
+        methods.add(method);
+      }
+    }
+
+    return [...methods];
+  }, [availableTokens, fiatPaymentActions]);
+
+  const currentPaymentMethodSelection =
+    normalizeMetaMaskPayPaymentMethod(selectedFiatMethod?.paymentType) ??
+    (payToken ? 'crypto' : null);
+
+  if (
+    currentPaymentMethodSelection &&
+    presentedPaymentMethodRef.current === null
+  ) {
+    presentedPaymentMethodRef.current = currentPaymentMethodSelection;
+  }
+
   const primaryRequiredToken = useTransactionPayRequiredTokens().find(
     (t) => !t.skipIfBalance,
   );
@@ -64,6 +120,85 @@ export function useTransactionPayMetrics() {
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
   }
+
+  const needsAccountSelect = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const isInfoLoaded =
+    hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
+
+  const confirmationOpenedAtMs = useRef<number | undefined>(undefined);
+
+  const didDispatchTimeToOpen = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToOpen.current ||
+      typeof transactionMeta?.time !== 'number' ||
+      transactionMeta.time <= 0
+    )
+      return;
+    confirmationOpenedAtMs.current = Date.now();
+    didDispatchTimeToOpen.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_open_ms: Math.round(
+              confirmationOpenedAtMs.current - transactionMeta.time,
+            ),
+          },
+        },
+      }),
+    );
+  }, [transactionMeta?.time, dispatch, transactionId]);
+
+  const didDispatchTimeToLoadInfo = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadInfo.current ||
+      !isInfoLoaded ||
+      confirmationOpenedAtMs.current === undefined
+    )
+      return;
+    didDispatchTimeToLoadInfo.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_load_info_ms: Math.round(
+              Date.now() - confirmationOpenedAtMs.current,
+            ),
+          },
+        },
+      }),
+    );
+  }, [isInfoLoaded, transactionMeta?.time, dispatch, transactionId]);
+
+  const didDispatchTimeToLoadQuote = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadQuote.current ||
+      !hasQuotes ||
+      quoteRequestedAtMs.current === 0
+    )
+      return;
+    didDispatchTimeToLoadQuote.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            mm_pay_time_to_load_quote_ms: Math.round(
+              Date.now() - quoteRequestedAtMs.current,
+            ),
+          },
+        },
+      }),
+    );
+  }, [hasQuotes, dispatch, transactionId]);
 
   const properties: Json = {};
   const sensitiveProperties: Json = {};
@@ -82,12 +217,32 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
+
+    properties.mm_pay_account_type_source_presented = source.presented;
+    properties.mm_pay_account_type_source_selected = source.selected;
+    properties.mm_pay_source_mm_account_switch_count = source.switchCount;
+
+    properties.mm_pay_account_type_recipient_presented = recipient.presented;
+    properties.mm_pay_account_type_recipient_selected = recipient.selected;
+    properties.mm_pay_recipient_mm_account_switch_count = recipient.switchCount;
+
+    properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
+  }
+
+  properties.mm_pay_payment_method_available = availablePaymentMethods;
+
+  if (presentedPaymentMethodRef.current) {
+    properties.mm_pay_payment_method_presented =
+      presentedPaymentMethodRef.current;
   }
 
   if (
     payToken &&
     (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]) ||
       hasTransactionType(transactionMeta, [TransactionType.predictDeposit]) ||
+      hasTransactionType(transactionMeta, [
+        TransactionType.predictDepositAndOrder,
+      ]) ||
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
       ]))
@@ -145,4 +300,46 @@ function useHighestBalanceCaipChainId(): string | undefined {
 
     return highestChainId;
   }, [tokens]);
+}
+
+type MmPayEntryPoint =
+  | 'money_account'
+  | 'perps'
+  | 'predict'
+  | 'money_hub'
+  | 'activity';
+
+const ENTRY_POINT_MAP: [TransactionType[], MmPayEntryPoint][] = [
+  [
+    [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.perpsWithdraw,
+    ],
+    'perps',
+  ],
+  [
+    [
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+      TransactionType.predictWithdraw,
+    ],
+    'predict',
+  ],
+  [
+    [TransactionType.moneyAccountDeposit, TransactionType.moneyAccountWithdraw],
+    'money_account',
+  ],
+  [[TransactionType.musdConversion], 'money_hub'],
+];
+
+function getEntryPoint(
+  transactionMeta: Parameters<typeof hasTransactionType>[0],
+): MmPayEntryPoint | undefined {
+  for (const [types, entryPoint] of ENTRY_POINT_MAP) {
+    if (hasTransactionType(transactionMeta, types)) {
+      return entryPoint;
+    }
+  }
+  return undefined;
 }

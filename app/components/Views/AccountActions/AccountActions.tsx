@@ -7,6 +7,8 @@ import {
   ParamListBase,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
@@ -20,6 +22,7 @@ import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
@@ -64,7 +67,7 @@ const AccountActions = () => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { networkSupporting7702Present } = useEIP7702Networks(
@@ -112,6 +115,11 @@ const AccountActions = () => {
   const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'account_actions',
+          text: `${strings('drawer.view_in')} ${blockExplorer.blockExplorerName}`,
+          url: blockExplorer.url,
+        });
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
       trackEvent(
@@ -150,12 +158,11 @@ const AccountActions = () => {
         ).build(),
       );
 
-      navigate(
+      // Keep runtime payload; avoid widening web3auth-owned param types.
+      navigateWithDetails({ navigate }, [
         Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
-        {
-          account: selectedAccount,
-        },
-      );
+        { account: selectedAccount },
+      ]);
     });
   };
 
@@ -171,7 +178,7 @@ const AccountActions = () => {
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        keyringId,
+        keyringId: keyringId as string,
         popToTopOnDone: true,
       });
     });
@@ -374,7 +381,11 @@ const AccountActions = () => {
   ]);
 
   const goToEditAccountName = () => {
-    navigate(Routes.EDIT_ACCOUNT_NAME, { selectedAccount });
+    // Keep runtime payload; avoid widening accounts-engineers-owned param types.
+    navigateWithDetails({ navigate }, [
+      Routes.EDIT_ACCOUNT_NAME,
+      { selectedAccount },
+    ]);
   };
 
   const isExplorerVisible = Boolean(

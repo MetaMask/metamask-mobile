@@ -38,20 +38,209 @@
 
 ## Framework Architecture
 
-### Core Classes:
+### Core Classes
 
 - **`Assertions`** - Enhanced assertions with auto-retry and detailed error messages
 - **`Gestures`** - Robust user interactions with configurable element state checking
 - **`Matchers`** - Type-safe element selectors with flexible options
 - **`Utilities`** - Core utilities with specialized element state checking
 
-### Key Features:
+### Key Features
 
 - ✅ **Auto-retry** - Handles flaky network/UI conditions
+- ✅ **Cross-framework** - `Gestures`, `Assertions`, and `Matchers` work in both Detox and Appium
 - ✅ **Configurable element state checking** - Control visibility, enabled, and stability checks per interaction
 - ✅ **Performance optimization** - Stability checking disabled by default for better performance
 - ✅ **Better error messages** - Descriptive errors with retry context and timing
 - ✅ **Type safety** - Full TypeScript support with IntelliSense
+
+### Cross-Framework Support
+
+`Gestures`, `Assertions`, and the three common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) automatically route to the correct framework at runtime. Page objects that use them work in both Detox and Appium with no changes.
+
+```
+Page object calls Gestures.waitAndTap(elem)
+        │
+        ├── Detox run  → existing Detox implementation (retry, stability checks)
+        └── Appium run → AppiumGestureStrategy → PlaywrightGestures
+```
+
+This means a Detox smoke test and its Appium counterpart share the same page object calls — only the test runner wrapper and login flow differ between them.
+
+## Writing Page Objects
+
+### Default Pattern — works in both frameworks
+
+Use `Matchers.getElementByID/Text/Label` for getters and `Gestures`/`Assertions` for actions. No framework-specific imports needed.
+
+```typescript
+import Matchers from '../framework/Matchers';
+import Gestures from '../framework/Gestures';
+import Assertions from '../framework/Assertions';
+import { LoginPageSelectors } from './LoginPage.testIds';
+
+class LoginPage {
+  get passwordInput() {
+    return Matchers.getElementByID(LoginPageSelectors.PASSWORD_INPUT);
+  }
+
+  get errorMessage() {
+    return Matchers.getElementByText('Invalid password');
+  }
+
+  async enterPassword(password: string): Promise<void> {
+    await Gestures.typeText(this.passwordInput, password, {
+      elemDescription: 'password input',
+    });
+  }
+
+  async verifyErrorVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.errorMessage);
+  }
+}
+
+export default new LoginPage();
+```
+
+### Edge Case: different selector per framework
+
+When the same element has a different testID or selector strategy between Detox and Appium, use `resolve()` from the framework:
+
+```typescript
+import { resolve } from '../framework';
+
+// Different testID per framework
+get actionButton() {
+  return resolve({
+    detoxTestID: TabBarSelectorIDs.TRADE,
+    appiumTestID: TabBarSelectorIDs.ACTIONS,
+  });
+}
+
+// Different testID on iOS Appium vs everything else
+get container() {
+  return resolve({
+    testID: WalletViewSelectorsIDs.WALLET_CONTAINER,
+    iosAppiumTestID: WalletViewSelectorsIDs.EYE_SLASH_ICON,
+  });
+}
+```
+
+Available `resolve()` shapes:
+
+| Shape                                                   | When to use                                             |
+| ------------------------------------------------------- | ------------------------------------------------------- |
+| `{ testID }`                                            | Same testID works in all frameworks/platforms           |
+| `{ detoxTestID, appiumTestID }`                         | Different testID between Detox and Appium               |
+| `{ detoxTestID, androidAppiumTestID, iosAppiumTestID }` | All three differ                                        |
+| `{ testID, iosAppiumTestID }`                           | Detox + Android Appium share testID; iOS Appium differs |
+| `{ label }`                                             | Match by accessibility label                            |
+| `{ text }`                                              | Match by visible text                                   |
+
+### Edge Case: different selector type per framework
+
+When the selector strategy itself differs (e.g. Detox matches by ID+label, Appium matches by text), use `encapsulated()`:
+
+```typescript
+import { encapsulated } from '../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+
+getAccountElementByName(accountName: string) {
+  return encapsulated({
+    detox: () => Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName),
+    appium: () => PlaywrightMatchers.getElementByText(accountName),
+  });
+}
+```
+
+### Edge Case: different action flow per framework
+
+When the action itself must differ structurally between frameworks (e.g. Appium must scroll before tapping, or must hide the keyboard after typing), use `encapsulatedAction()`:
+
+```typescript
+import { encapsulatedAction } from '../framework/encapsulatedAction';
+
+async enterPassword(password: string): Promise<void> {
+  await encapsulatedAction({
+    detox: async () => {
+      await Gestures.typeText(this.passwordInput, password);
+    },
+    appium: async () => {
+      await Gestures.typeText(this.passwordInput, password);
+      await PlaywrightGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
+    },
+  });
+}
+```
+
+**Only use `encapsulatedAction` when the flow genuinely differs.** If the same `Gestures.*` or `Assertions.*` call works for both, there is no need to branch.
+
+### Selector decision tree
+
+```
+Does the same Matchers.getElementByID/Text/Label call work for both?
+  YES → use it directly, no branching needed
+
+  NO → Does only the testID value differ per framework?
+    YES → resolve({ detoxTestID, appiumTestID, ... })
+
+    NO → Does only the selector type differ (ID vs text vs label)?
+      YES → encapsulated({ detox: ..., appium: ... })
+
+      NO → Does the action flow itself differ?
+        YES → encapsulatedAction({ detox: ..., appium: ... })
+```
+
+## Test Organization — Detox vs Appium Specs
+
+Detox smoke tests live in `tests/smoke/`. Appium equivalents live in `tests/smoke-appium/` with the same folder structure. Because page objects are cross-framework, the test body is nearly identical — only the runner wrapper and login helper differ.
+
+**Running Appium smoke locally:** see [Appium smoke testing](./appium-smoke-testing.md) for builds (`main-e2e-MetaMask.app`), commands (`yarn appium-smoke:ios`), and CI artifact download.
+
+```typescript
+// Detox: tests/smoke/accounts/my-feature.spec.ts
+describe(SmokeAccounts('My feature'), () => {
+  it('does the thing', async () => {
+    await withFixtures(
+      { fixture: new FixtureBuilder().build(), restartDevice: true },
+      async () => {
+        await loginToApp();
+        await SomePage.tapSomething();
+        await Assertions.expectElementToBeVisible(SomePage.result);
+      },
+    );
+  });
+});
+
+// Appium: tests/smoke-appium/accounts/my-feature.spec.ts
+appiumTest.describe(SmokeAccounts('My feature'), () => {
+  appiumTest(
+    'does the thing',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+          currentDeviceDetails,
+        },
+        async () => {
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
+          await SomePage.tapSomething(); // identical
+          await Assertions.expectElementToBeVisible(SomePage.result); // identical
+        },
+      );
+    },
+  );
+});
+```
+
+The only required differences are:
+
+- `import { test as appiumTest }` from the Playwright fixture index
+- `{ driver: _driver, currentDeviceDetails }` fixture args
+- `currentDeviceDetails` passed to `withFixtures`
+- `loginToAppPlaywright(...)` instead of `loginToApp()`
+- Drop any `device.*` (Detox-only) calls
 
 ## Test Atomicity and Coupling
 
@@ -110,52 +299,6 @@ new FixtureBuilder().build();
 ```
 
 ## Framework Best Practices
-
-### Page Object Model (POM) Pattern
-
-- ALWAYS use the Page Object Model pattern for organizing test code
-- Move all element selectors to Page Objects or dedicated selector files
-- When adding one or more testID to a component or view, place it in a dedicated file next to where it is being used with the file extension `.testIds.ts`
-- Access UI elements through Page Object methods, not directly in test specs
-
-#### Page Object Structure Example:
-
-```typescript
-import { LoginPageSelectors } from './LoginPage.selectors';
-
-class LoginPage {
-  // Getter pattern for elements
-  get emailInput() {
-    return Matchers.getElementByID(LoginPageSelectors.EMAIL_INPUT);
-  }
-  get passwordInput() {
-    return Matchers.getElementByID(LoginPageSelectors.PASSWORD_INPUT);
-  }
-  get loginButton() {
-    return Matchers.getElementByID(LoginPageSelectors.LOGIN_BUTTON);
-  }
-
-  // Public methods for actions
-  async login(email: string, password: string): Promise<void> {
-    await Gestures.typeText(this.emailInput, email, {
-      description: 'enter email',
-    });
-    await Gestures.typeText(this.passwordInput, password, {
-      description: 'enter password',
-    });
-    await Gestures.tap(this.loginButton, { description: 'tap login button' });
-  }
-
-  // Public methods for verifications
-  async verifyLoginError(expectedError: string): Promise<void> {
-    await Assertions.expectTextDisplayed(expectedError, {
-      description: 'login error should be displayed',
-    });
-  }
-}
-
-export default new LoginPage();
-```
 
 ### TestIDs location example:
 
@@ -255,6 +398,23 @@ The following patterns are prohibited in test specs:
    await Assertions.expectElementToBeVisible(element);
    ```
 
+4. **Framework-specific imports in page objects when not needed**
+
+   ```typescript
+   // DON'T — unnecessary when the same call works cross-framework:
+   import PlaywrightAssertions from '../framework/PlaywrightAssertions';
+   import { asPlaywrightElement } from '../framework/EncapsulatedElement';
+
+   await PlaywrightAssertions.expectElementToBeVisible(
+     await asPlaywrightElement(this.heading),
+   );
+
+   // DO:
+   import Assertions from '../framework/Assertions';
+
+   await Assertions.expectElementToBeVisible(this.heading);
+   ```
+
 ## Handling Flaky Tests
 
 ### Common Issues and Solutions
@@ -321,7 +481,8 @@ Before submitting E2E tests, ensure:
 - [ ] Element selectors defined once and reused
 - [ ] Framework configuration used appropriately
 - [ ] Error handling for expected failure scenarios
-- [ ] Tests work on both iOS and Android platforms
+- [ ] `Gestures`/`Assertions`/`Matchers` used directly — `PlaywrightAssertions`, `PlaywrightGestures`, `asPlaywrightElement` only imported when the flow genuinely requires framework-specific branching
+- [ ] `encapsulatedAction` only used when Detox and Appium flows structurally differ — not just to call the same method twice
 
 ## Debugging Failed Tests
 

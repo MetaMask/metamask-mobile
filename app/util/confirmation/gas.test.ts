@@ -22,14 +22,14 @@ jest.mock('../conversions', () => ({
   }),
 }));
 
-jest.mock('../number', () => ({
+jest.mock('../number/bigint', () => ({
   addHexPrefix: jest.fn((str: string) =>
     str && !String(str).startsWith('0x') ? `0x${str}` : str,
   ),
 }));
 
 const mockDecGWEIToHexWEI = jest.requireMock('../conversions').decGWEIToHexWEI;
-const mockAddHexPrefix = jest.requireMock('../number').addHexPrefix;
+const mockAddHexPrefix = jest.requireMock('../number/bigint').addHexPrefix;
 
 const ESTIMATES_FEE_MARKET = {
   type: GasFeeEstimateType.FeeMarket,

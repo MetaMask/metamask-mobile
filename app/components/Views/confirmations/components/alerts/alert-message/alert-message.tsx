@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -18,8 +19,11 @@ export const AlertMessage: React.FC<AlertMessageProps> = React.memo((props) => {
   }
 
   return (
-    <Text variant={TextVariant.BodySM} style={styles.message}>
-      {alertMessage}
-    </Text>
+    <View style={styles.container} testID="alert-message-banner">
+      <View style={styles.border} />
+      <Text variant={TextVariant.BodySM} style={styles.message}>
+        {alertMessage}
+      </Text>
+    </View>
   );
 });

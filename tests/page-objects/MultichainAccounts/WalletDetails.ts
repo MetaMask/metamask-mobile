@@ -16,6 +16,16 @@ class WalletDetails {
     return Matchers.getElementByID(WalletDetailsIds.REVEAL_SRP_BUTTON);
   }
 
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(WalletDetailsIds.BACK_BUTTON);
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back Button in Wallet Details',
+    });
+  }
+
   async tapCreateAccount(): Promise<void> {
     await Gestures.waitAndTap(this.createAccountLink, {
       elemDescription: 'Create account link',

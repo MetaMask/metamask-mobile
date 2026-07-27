@@ -22,7 +22,11 @@ import {
   KnownCaipNamespace,
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { TEST_NETWORK_IDS } from '../../constants/network';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+  TEST_NETWORK_IDS,
+} from '../../constants/network';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
@@ -90,10 +94,31 @@ const selectAccountsStateForBalances = createSelector(
     }) as AccountsControllerState,
 );
 
-const selectTokenBalancesStateForBalances = createSelector(
+export const selectTokenBalancesStateForBalances = createSelector(
   [selectAllTokenBalances],
-  (tokenBalances): TokenBalancesControllerState =>
-    ({ tokenBalances }) as TokenBalancesControllerState,
+  (tokenBalances): TokenBalancesControllerState => {
+    // Strip the Arc USDC ERC-20 (0x3600…) so it is excluded from the
+    // aggregated balance — the native token already reflects the USDC balance
+    // on Arc and is the source of truth, so counting both would double it.
+    const filteredTokenBalances = Object.fromEntries(
+      Object.entries(tokenBalances).map(([account, chainMap]) => [
+        account,
+        Object.fromEntries(
+          Object.entries(chainMap).map(([chainId, addressMap]) => [
+            chainId,
+            chainId === NETWORKS_CHAIN_ID.ARC
+              ? Object.fromEntries(
+                  Object.entries(addressMap).filter(
+                    ([address]) => address !== ARC_USDC_TOKEN_ADDRESS,
+                  ),
+                )
+              : addressMap,
+          ]),
+        ),
+      ]),
+    );
+    return { tokenBalances: filteredTokenBalances };
+  },
 );
 
 const selectTokenRatesStateForBalances = createSelector(

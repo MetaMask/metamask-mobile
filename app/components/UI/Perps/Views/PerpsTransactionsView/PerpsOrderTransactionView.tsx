@@ -1,19 +1,20 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
   HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -27,10 +28,13 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,
@@ -70,6 +74,11 @@ const PerpsOrderTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'perps_transaction_details',
+      text: strings('perps.transactions.view_on_explorer'),
+      url: explorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -150,12 +159,15 @@ const PerpsOrderTransactionView: React.FC = () => {
                 ]}
               >
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {detail.label}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                >
                   {detail.value}
                 </Text>
               </View>
@@ -174,12 +186,15 @@ const PerpsOrderTransactionView: React.FC = () => {
                 ]}
               >
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {detail.label}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                >
                   {detail.value}
                 </Text>
               </View>

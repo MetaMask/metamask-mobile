@@ -70,4 +70,19 @@ describe('selectDefaultReceiveToken', () => {
     const options = [usdcBase];
     expect(selectDefaultReceiveToken(options, usdcBase)).toBe(usdcBase);
   });
+
+  it('defaults to the same-chain USDT when selling native TRX on Tron', () => {
+    // Selling native TRX: the native preference resolves back to TRX (the sold
+    // token) and is skipped, so the same-chain USDT stablecoin (ordered first)
+    // is preselected instead of a cross-chain destination.
+    const TRON = 'tron:728126428' as unknown as Hex;
+    const trxNative = token('TRX', 'tron:728126428/slip44:195', TRON);
+    const usdtTron = token(
+      'USDT',
+      'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+      TRON,
+    );
+    const options = [usdtTron, trxNative, usdcBase];
+    expect(selectDefaultReceiveToken(options, trxNative)).toBe(usdtTron);
+  });
 });

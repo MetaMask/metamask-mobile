@@ -9,4 +9,10 @@ export const GEO_BLOCKED_COUNTRIES: Region[] = [
   {
     country: 'RO',
   },
+  {
+    country: 'ES',
+  },
+  {
+    country: 'IN',
+  },
 ];

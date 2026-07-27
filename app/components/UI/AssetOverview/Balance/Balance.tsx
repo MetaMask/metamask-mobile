@@ -32,7 +32,6 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../component-library/components/Texts/SensitiveText';
 import { TokenI } from '../../Tokens/types';
-import { useNavigation } from '@react-navigation/native';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -107,7 +106,6 @@ const Balance = ({
   hidePercentageChange,
 }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
   const { isStockToken } = useRWAToken();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -193,17 +191,6 @@ const Balance = ({
     [asset.chainId, asset.isNative],
   );
 
-  const handlePress = useCallback(
-    () =>
-      !asset.isNative &&
-      navigation.navigate('AssetDetails', {
-        chainId: asset.chainId,
-        address: asset.address,
-        asset,
-      }),
-    [asset, navigation],
-  );
-
   const label = asset.accountType
     ? ACCOUNT_TYPE_LABELS[asset.accountType]
     : undefined;
@@ -225,7 +212,6 @@ const Balance = ({
         }
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
-        onPress={handlePress}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}

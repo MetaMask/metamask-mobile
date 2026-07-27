@@ -64,8 +64,8 @@ jest.mock('../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
     Screen: ({ children }: { children: React.ReactNode }) => children,
   }),
@@ -371,6 +371,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictFeeCollectionFlag: jest.fn(
     () => mockSelectPredictFeeCollectionFlag,
   ),
+  selectNonRegTimeSportsMarketTypes: jest.fn(() => ['soccer_team_to_advance']),
 }));
 
 jest.mock('../../../../Base/TabBar', () => {
@@ -1517,12 +1518,14 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithoutPrice);
 
-      // The component now shows 0% in the action buttons when price is undefined
+      // Each button now shows its own token's price: the Yes token has no
+      // price so it shows 0c, while the No token shows its real 35c (no longer
+      // the synthetic 100 - yes complement).
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
       expect(buttonLabels).toEqual(
-        expect.arrayContaining(['Yes•0¢', 'No•100¢']),
+        expect.arrayContaining(['Yes•0¢', 'No•35¢']),
       );
     });
   });
@@ -2148,9 +2151,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithUndefinedPrice);
 
-      // The component now shows 0% in the action buttons when price is undefined
+      // Yes has no price -> 0c; No shows its own price (35c), not 100 - yes.
       const yesButton = findActionButtonByPrice(0);
-      const noButton = findActionButtonByPrice(100);
+      const noButton = findActionButtonByPrice(35);
 
       expect(yesButton).toBeDefined();
       expect(noButton).toBeDefined();
