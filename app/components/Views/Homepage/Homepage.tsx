@@ -33,22 +33,14 @@ import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 
-interface HomepageProps {
-  /**
-   * When true, skips rendering PerpsConnectionProvider + PerpsStreamProvider
-   * because a parent (e.g. HomepageDiscoveryTabs) already provides them.
-   */
-  perpsProvidersHoisted?: boolean;
-}
-
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
  *
  * This component orchestrates all homepage sections and coordinates
  * their refresh functionality via refs.
  */
-const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
-  ({ perpsProvidersHoisted = false }, ref) => {
+const Homepage = forwardRef<SectionRefreshHandle, Record<string, never>>(
+  (_props, ref) => {
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
@@ -170,24 +162,17 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
           totalSectionsLoaded={totalSectionsLoaded}
         />
-        {isPerpsEnabled &&
-          (perpsProvidersHoisted ? (
-            <HomepagePerpsHomeSlot
-              ref={perpsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-          ) : (
-            <PerpsConnectionProvider suppressErrorView>
-              <PerpsStreamProvider>
-                <HomepagePerpsHomeSlot
-                  ref={perpsSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              </PerpsStreamProvider>
-            </PerpsConnectionProvider>
-          ))}
+        {isPerpsEnabled && (
+          <PerpsConnectionProvider suppressErrorView>
+            <PerpsStreamProvider>
+              <HomepagePerpsHomeSlot
+                ref={perpsSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            </PerpsStreamProvider>
+          </PerpsConnectionProvider>
+        )}
         <PredictionsSection
           ref={predictionsSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
