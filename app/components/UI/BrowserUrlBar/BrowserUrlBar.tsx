@@ -306,6 +306,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             />
             <TouchableWithoutFeedback onPress={onPressUrlText}>
               <Text
+                testID={BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT}
                 style={styles.urlBarText}
                 numberOfLines={1}
                 ellipsizeMode="head"
