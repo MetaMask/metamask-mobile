@@ -5,10 +5,14 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { TokenI } from '../../Tokens/types';
 import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
 import {
+  selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokens,
+  selectMoneyEarnBannerTokens,
 } from '../selectors/featureFlags';
+import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
+import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
 
 const getTokenKey = (address: string, chainId: string) =>
@@ -25,6 +29,11 @@ export const useMoneyCtaVisibility = () => {
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isEarnBannerEnabled = useSelector(selectIsMoneyEarnBannerEnabledFlag);
+  const earnBannerTokens = useSelector(selectMoneyEarnBannerTokens);
+  const earnBannerDismissedTokens = useSelector(
+    selectMoneyEarnBannerDismissedTokens,
+  );
   const { tokens: depositTokens } = useMoneyDepositTokens();
 
   const ctaTokenKeys = useMemo(
@@ -71,5 +80,33 @@ export const useMoneyCtaVisibility = () => {
     ],
   );
 
-  return { shouldShowMoneyTokenListItemCta };
+  const shouldShowMoneyEarnBanner = useCallback(
+    (asset?: TokenI) => {
+      if (
+        !isEarnBannerEnabled ||
+        !isGeoEligible ||
+        !isMoneyAccountReady ||
+        !asset?.address ||
+        !asset.chainId
+      ) {
+        return false;
+      }
+
+      const chainIdHex = safeFormatChainIdToHex(asset.chainId);
+      if (earnBannerDismissedTokens[getTokenKey(asset.address, chainIdHex)]) {
+        return false;
+      }
+
+      return isTokenInWildcardList(asset.symbol, earnBannerTokens, chainIdHex);
+    },
+    [
+      earnBannerDismissedTokens,
+      earnBannerTokens,
+      isEarnBannerEnabled,
+      isGeoEligible,
+      isMoneyAccountReady,
+    ],
+  );
+
+  return { shouldShowMoneyTokenListItemCta, shouldShowMoneyEarnBanner };
 };

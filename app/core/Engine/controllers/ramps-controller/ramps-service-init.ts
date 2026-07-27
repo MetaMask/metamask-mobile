@@ -7,15 +7,22 @@ import {
 } from '@metamask/ramps-controller';
 
 /**
- * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
- * Otherwise (legacy .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
+ * When RAMPS_ENVIRONMENT is set (set by builds.yml), uses it directly.
+ * Otherwise (e.g. Jest, environments without builds.yml), uses METAMASK_ENVIRONMENT switch.
+ *
+ * Mobile `dev` builds map to RAM Development (`on-ramp.dev-api`) so UNIFIED_BUY_2
+ * hits the RAM Dev API instead of Staging/UAT.
  */
 export function getRampsEnvironment(): RampsEnvironment {
-  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
-    const rampsEnv = process.env.RAMPS_ENVIRONMENT;
-    return rampsEnv === 'production'
-      ? RampsEnvironment.Production
-      : RampsEnvironment.Staging;
+  if (process.env.RAMPS_ENVIRONMENT) {
+    switch (process.env.RAMPS_ENVIRONMENT) {
+      case 'production':
+        return RampsEnvironment.Production;
+      case 'development':
+        return RampsEnvironment.Development;
+      default:
+        return RampsEnvironment.Staging;
+    }
   }
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
   switch (metamaskEnvironment) {
@@ -24,6 +31,7 @@ export function getRampsEnvironment(): RampsEnvironment {
     case 'rc':
       return RampsEnvironment.Production;
     case 'dev':
+      return RampsEnvironment.Development;
     case 'exp':
     case 'test':
     case 'e2e':

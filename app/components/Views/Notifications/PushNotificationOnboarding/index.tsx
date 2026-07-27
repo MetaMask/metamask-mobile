@@ -15,7 +15,6 @@ import { usePushPermissionNotificationSetup } from '../../../../util/notificatio
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
 import { isPushPermissionPromptable } from '../../../../util/notifications/services/NotificationService';
-import { TAB_BAR_HEIGHT } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
 
@@ -118,7 +117,6 @@ const PushNotificationOnboarding = ({
             />
           </View>
         ),
-        customBottomOffset: TAB_BAR_HEIGHT,
         hasNoTimeout: false,
       });
     },

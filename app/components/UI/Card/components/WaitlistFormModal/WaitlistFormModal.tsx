@@ -2,6 +2,7 @@ import React, { useCallback, useContext, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -46,7 +47,7 @@ const HUBSPOT_INJECTION = `
 
 const WaitlistFormModal: React.FC = () => {
   const { url } = useParams<WaitlistFormModalParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);

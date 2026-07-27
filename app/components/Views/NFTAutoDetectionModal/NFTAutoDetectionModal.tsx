@@ -19,6 +19,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Engine from '../../../core/Engine';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useSelector } from 'react-redux';
@@ -30,7 +31,7 @@ const walletImage = require('../../../images/wallet-alpha.png');
 const NFTAutoDetectionModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const { identify } = useAnalytics();
 

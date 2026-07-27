@@ -27,6 +27,7 @@ import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
+import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
@@ -162,6 +163,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.WAITLIST_FORM}
       component={WaitlistFormModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.IMMERSVE_KYC}
+      component={ImmersveKYCModal}
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.FORGOT_PASSWORD}

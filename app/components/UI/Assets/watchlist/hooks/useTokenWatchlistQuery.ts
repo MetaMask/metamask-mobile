@@ -19,6 +19,8 @@ export const WATCHLIST_QUERY_STALE_TIME_MS = 60_000;
 export interface UseTokenWatchlistQueryOptions {
   /** When provided, bypass the stored watchlist and hydrate these IDs instead. */
   suggestedTokens?: readonly string[];
+  /** When hydrating suggested tokens, vary the cache key if SpaceX is included. */
+  suggestedIncludeSpaceX?: boolean;
 }
 
 /**
@@ -29,7 +31,7 @@ export interface UseTokenWatchlistQueryOptions {
 export const useTokenWatchlistQuery = (
   options: UseTokenWatchlistQueryOptions = {},
 ): UseQueryResult<WatchlistTokenWithBalance[], Error> => {
-  const { suggestedTokens } = options;
+  const { suggestedTokens, suggestedIncludeSpaceX = false } = options;
 
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
@@ -44,7 +46,7 @@ export const useTokenWatchlistQuery = (
 
   return useQuery({
     queryKey: suggestedTokens
-      ? tokenWatchlistQueryKeys.suggested
+      ? tokenWatchlistQueryKeys.suggested(suggestedIncludeSpaceX)
       : tokenWatchlistQueryKeys.hydrated,
     staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
     enabled: isWatchlistEnabled,

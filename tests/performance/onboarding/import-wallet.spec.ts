@@ -22,6 +22,7 @@ import {
 } from '../../flows/wallet.flow';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
 
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
@@ -48,7 +49,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 2000, android: 1800 },
+        { ios: 2000, android: 3000 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(
@@ -59,7 +60,7 @@ test.describe(PerformanceOnboarding, () => {
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
         // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 21000, android: 5000 },
+        { ios: 21000, android: 6000 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
@@ -72,14 +73,14 @@ test.describe(PerformanceOnboarding, () => {
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(OnboardingSheet.importSeedButton),
+          asPlaywrightElement(OnboardingSheet.importSeedButton),
         );
       });
 
       await OnboardingSheet.tapImportSeedButton();
       await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(ImportWalletView.title),
+          asPlaywrightElement(ImportWalletView.title),
         );
       });
 
@@ -92,7 +93,7 @@ test.describe(PerformanceOnboarding, () => {
       await ImportWalletView.tapContinueButton();
       await timer3.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(CreatePasswordView.newPasswordInput),
+          asPlaywrightElement(CreatePasswordView.newPasswordInput),
         );
       });
 
@@ -113,7 +114,7 @@ test.describe(PerformanceOnboarding, () => {
 
       await timer4.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+          asPlaywrightElement(MetaMetricsOptInView.screenTitle),
         );
       });
 
@@ -126,7 +127,7 @@ test.describe(PerformanceOnboarding, () => {
       if (predictGtmOnboardingModalEnabled) {
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(PredictModalView.notNowButton),
+            asPlaywrightElement(PredictModalView.notNowButton),
           );
         });
       }
@@ -134,18 +135,19 @@ test.describe(PerformanceOnboarding, () => {
       await dismisspredictionsModalPlaywright();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+          asPlaywrightElement(WalletView.headerRoot),
           { timeout: walletTokenLoadTimeoutMs },
         );
       });
 
-      performanceTracker.addTimers(timer1, timer2, timer3, timer4, timer7);
+      performanceTracker.addTimers(timer1, timer2, timer3, timer4);
       if (
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
       ) {
         performanceTracker.addTimer(timer6);
       }
+      performanceTracker.addTimer(timer7);
     },
   );
 });

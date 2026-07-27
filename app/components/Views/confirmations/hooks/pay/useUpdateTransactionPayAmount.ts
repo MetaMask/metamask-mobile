@@ -114,7 +114,7 @@ export function useUpdateTransactionPayAmount() {
         return;
       }
 
-      updateTokenAmount(amountHuman);
+      await updateTokenAmount(amountHuman);
     },
     [
       transactionMeta,

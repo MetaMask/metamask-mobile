@@ -1,5 +1,6 @@
 import { useContext, useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -11,7 +12,6 @@ import { PredictEventValues } from '../constants/eventNames';
 import { usePredictActionGuard } from './usePredictActionGuard';
 import { usePredictPreviewSheet } from '../contexts';
 import type { PredictMarket, PredictPosition } from '../types';
-import type { PredictNavigationParamList } from '../types/navigation';
 
 interface UsePredictCashOutOptions {
   market: PredictMarket;
@@ -22,8 +22,7 @@ export const usePredictCashOut = ({
   market,
   callerName,
 }: UsePredictCashOutOptions) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const { openSellSheet } = usePredictPreviewSheet();
   const { toastRef } = useContext(ToastContext);

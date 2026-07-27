@@ -88,6 +88,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -132,6 +133,9 @@ import Homepage from '../Homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
 import {
+  HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+  HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
   HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
@@ -142,6 +146,8 @@ import {
 } from '../Homepage/abTestConfig';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { HomepageActionButtonsGrid } from '../Homepage/components/HomepageActionButtonsGrid';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -194,6 +200,7 @@ import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
@@ -337,7 +344,8 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
-  const { navigate } = useNavigation();
+  const appNavigation = useNavigation<AppNavigationProp>();
+  const { navigate } = appNavigation;
   const walletRef = useRef(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
@@ -479,17 +487,12 @@ const Wallet = ({
     walletHomePostOnboardingExitInProgressRef.current = false;
   }, [dispatch]);
 
-  const onReceive = useCallback(() => {
-    trackActionButtonClick(trackEvent, createEventBuilder, {
-      action_name: ActionButtonType.RECEIVE,
-      action_position: ActionPosition.FOURTH_POSITION,
-      button_label: strings('asset_overview.receive_button'),
-      location: ActionLocation.HOME,
-    });
-
+  /** Navigation-only receive for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
+  const onReceiveWithoutTracking = useCallback(() => {
     if (selectedAccountGroupId) {
-      navigate(
-        ...createAddressListNavigationDetails({
+      navigateWithDetails(
+        appNavigation,
+        createAddressListNavigationDetails({
           groupId: selectedAccountGroupId as AccountGroupId,
           title: `${strings(
             'multichain_accounts.address_list.receiving_address',
@@ -502,7 +505,18 @@ const Wallet = ({
         new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
       );
     }
-  }, [trackEvent, createEventBuilder, navigate, selectedAccountGroupId]);
+  }, [appNavigation, selectedAccountGroupId]);
+
+  const onReceive = useCallback(() => {
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: strings('asset_overview.receive_button'),
+      location: ActionLocation.HOME,
+    });
+
+    onReceiveWithoutTracking();
+  }, [trackEvent, createEventBuilder, onReceiveWithoutTracking]);
 
   const onSend = useCallback(async () => {
     try {
@@ -531,6 +545,30 @@ const Wallet = ({
   }, [
     trackEvent,
     createEventBuilder,
+    navigateToSendPage,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    sendNonEvmAsset,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
+  /** Navigation-only send for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
+  const onSendWithoutTracking = useCallback(async () => {
+    try {
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      const wasHandledAsNonEvm = await sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
+      if (wasHandledAsNonEvm) {
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      navigateToSendPage({ location: InitSendLocation.HomePage });
+    } catch (error) {
+      console.error('Error initiating send flow:', error);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
+    }
+  }, [
     navigateToSendPage,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
@@ -755,6 +793,12 @@ const Wallet = ({
     HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
     HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
     HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const { variant: actionButtonsGridVariant } = useABTest(
+    HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+    HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
+    HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   );
 
   const isDiscoveryTabsTreatment =
@@ -1021,18 +1065,26 @@ const Wallet = ({
   };
 
   const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
-    <AssetDetailsActions
-      displayBuyButton={displayBuyButton}
-      displaySwapsButton={displaySwapsButton}
-      goToSwaps={goToSwaps}
-      onReceive={onReceive}
-      onSend={onSend}
-      buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-      swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-      sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-      receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
-    />
+    actionButtonsGridVariant.layout === 'eightCircular' ? (
+      <HomepageActionButtonsGrid
+        onSend={onSendWithoutTracking}
+        onReceive={onReceiveWithoutTracking}
+        rowOrder={actionButtonsGridVariant.rowOrder}
+      />
+    ) : (
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
+      />
+    )
   ) : null;
 
   const homepageDiscoveryPills = showDiscoveryPills ? (

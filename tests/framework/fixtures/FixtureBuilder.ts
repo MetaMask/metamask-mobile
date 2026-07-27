@@ -2060,6 +2060,7 @@ class FixtureBuilder {
     merge(this.fixture.state.engine.backgroundState, {
       CardController: {
         selectedCountry: null,
+        selectedCardProgramId: null,
         providerData: {},
         isAuthenticated,
         cardholderAccounts: [`eip155:0:${walletAddress}`],
