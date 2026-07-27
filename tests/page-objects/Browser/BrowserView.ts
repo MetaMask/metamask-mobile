@@ -25,7 +25,6 @@ import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { openUrlInBrowserView } from '../../flows/browser.flow';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -74,24 +73,11 @@ class Browser {
   }
 
   /**
-   * Tap target for the URL bar when it is unfocused. The visible URL text lives
-   * in the `url-input` wrapper; the TextInput testID stays hidden until focused.
-   * On Android Appium, tap the displayed URL text so `onPressUrlText` runs focus().
+   * Visible URL label when the bar is unfocused. Tapping it runs
+   * `onPressUrlText` → `inputRef.focus()` so the TextInput appears.
    */
-  get urlBarTapTarget(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//*[contains(@text,'http') or contains(@text,'localhost')]`,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            BrowserURLBarSelectorsIDs.URL_INPUT,
-          ),
-      },
-    });
+  get urlBarDisplayText(): EncapsulatedElementType {
+    return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT);
   }
 
   /**
@@ -202,33 +188,54 @@ class Browser {
         });
       },
       appium: async () => {
-        await openUrlInBrowserView();
+        await this.focusUrlBarAppium();
       },
     });
   }
 
   /**
-   * `dapp://` deeplinks are upgraded to HTTPS in `handleDappUrl` — local test
-   * dapps are HTTP-only (`http://localhost:8085`), so they must use the URL bar.
+   * Prefer the URL bar when the scheme must be preserved or ENS resolution is
+   * required.
    */
-  private requiresHttpUrlBarNavigation(url: string): boolean {
-    return /^http:\/\//i.test(url);
+  private requiresUrlBarNavigation(url: string): boolean {
+    return /^http:\/\//i.test(url) || !/^https?:\/\//i.test(url);
   }
 
   /**
-   * Navigate via the browser URL bar (preserves `http://` scheme).
+   * Focus the URL editor so `browser-modal-url-input` becomes visible.
+   * Taps the display Text (`browser-url-display-text`).
+   */
+  private async focusUrlBarAppium(): Promise<void> {
+    const input = await asPlaywrightElement(this.urlBarTextInput);
+    const alreadyFocused = await input.isVisible().catch(() => false);
+    if (alreadyFocused) {
+      return;
+    }
+
+    await Gestures.waitAndTap(this.urlBarDisplayText, {
+      elemDescription: 'URL bar display text (focus URL editor)',
+    });
+    await input.waitForDisplayed();
+  }
+
+  /**
+   * Navigate via the browser URL bar (preserves `http://` scheme / ENS names).
    */
   private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
-    await this.tapUrlInputBox();
+    await this.focusUrlBarAppium();
 
     const input = await asPlaywrightElement(this.urlBarTextInput);
-    await input.waitForDisplayed({ timeout: 10_000 });
     await input.clear();
-    // Trailing `\n` triggers React Native `onSubmitEditing` (returnKeyType="go").
-    await PlaywrightGestures.typeText(input, `${url}\n`);
+    await PlaywrightGestures.typeText(input, url);
 
-    const settleMs = process.env.CI === 'true' ? 8_000 : 3_000;
-    await sleep(settleMs);
+    if (PlatformDetector.isAndroid()) {
+      await PlaywrightGestures.submitAndroidUrlBar();
+    } else {
+      await PlaywrightGestures.typeText(input, '\n');
+    }
+
+    // Dismiss the editor so subsequent reads/taps see the page.
+    await this.dismissUrlEditorIfOpen();
   }
 
   /**
@@ -240,16 +247,13 @@ class Browser {
     const deeplink = `dapp://${hostAndPath}`;
 
     await executeMobileDeepLink(deeplink);
-    const isAndroidCi =
-      FrameworkDetector.isAppium() &&
-      PlatformDetector.isAndroid() &&
-      process.env.CI === 'true';
-    const settleMs = isAndroidCi ? 8_000 : 3_000;
+    const settleMs =
+      FrameworkDetector.isAppium() && process.env.CI === 'true' ? 8_000 : 3_000;
     await sleep(settleMs);
   }
 
   private async typeUrlAppium(url: string): Promise<void> {
-    if (this.requiresHttpUrlBarNavigation(url)) {
+    if (this.requiresUrlBarNavigation(url)) {
       await this.navigateToUrlViaUrlBarAppium(url);
       return;
     }
@@ -287,13 +291,31 @@ class Browser {
     // dismiss a modal (e.g. transaction confirmation) the URL bar focus can
     // be restored under RN 0.81 / React 19, leaving the close button missing.
     // Defensively dismiss the URL editor if the Cancel button is visible.
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      await this.dismissUrlEditorIfOpen();
+      const isCloseVisible = await Utilities.isElementVisible(
+        this.closeBrowserButton,
+        3_000,
+      );
+      if (isCloseVisible) {
+        await Gestures.waitAndTap(this.closeBrowserButton, {
+          elemDescription: 'Close browser button',
+        });
+        return;
+      }
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(1_000);
+      }
+    }
+
     await this.dismissUrlEditorIfOpen();
 
     if (FrameworkDetector.isAppium()) {
       const closeBtn = await PlaywrightMatchers.getElementById(
         BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
       );
-      await PlaywrightGestures.waitAndTap(closeBtn, { timeout: 10_000 });
+      await PlaywrightGestures.waitAndTap(closeBtn);
       return;
     }
 
@@ -309,7 +331,7 @@ class Browser {
    * unmounted while the URL editor is focused.
    */
   async dismissUrlEditorIfOpen(): Promise<void> {
-    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000)) {
       await Gestures.waitAndTap(this.cancelUrlInputButton, {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
@@ -368,6 +390,30 @@ class Browser {
     await Gestures.waitAndTap(this.closeAllTabsButton, {
       elemDescription: 'Close all tabs button',
     });
+  }
+
+  /**
+   * Closes every open in-app browser tab so WebView/Chromedriver only sees the
+   * upcoming navigation target (CI emulators can accumulate stale tabs).
+   * Always leaves the tabs overview so callers resume on single-tab browser UI.
+   */
+  async closeAllBrowserTabsIfOpen(): Promise<void> {
+    await this.dismissUrlEditorIfOpen();
+    await this.tapOpenAllTabsButton();
+    const canCloseAll = await Utilities.isElementVisible(
+      this.closeAllTabsButton,
+      3_000,
+    );
+    if (canCloseAll) {
+      await this.tapCloseTabsButton();
+      if (await Utilities.isElementVisible(this.noTabsMessage, 3_000)) {
+        await this.tapOpenNewTabButton();
+      }
+      return;
+    }
+
+    // Close-all was unavailable — select an existing tab to exit the overview.
+    await this.tapFirstTabButton();
   }
 
   async tapCloseSecondTabButton(): Promise<void> {
@@ -435,7 +481,15 @@ class Browser {
   }
 
   async expectUrlNotEqualTo(text: string, description?: string): Promise<void> {
-    await Assertions.expectElementToNotHaveText(this.urlInputBoxID, text, {
+    // Unfocused URL bar hides TextInput (`browser-modal-url-input`); Appium must
+    // read the visible display Text (`browser-url-display-text`). The `url-input`
+    // wrapper View often returns empty getText(), which would falsely pass a
+    // not-equal assertion.
+    const urlElement = FrameworkDetector.isAppium()
+      ? this.urlBarDisplayText
+      : this.urlInputBoxID;
+
+    await Assertions.expectElementToNotHaveText(urlElement, text, {
       description: description ?? `URL input box text is not "${text}"`,
     });
   }

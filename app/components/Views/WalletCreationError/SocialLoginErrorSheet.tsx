@@ -19,6 +19,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
@@ -45,6 +46,7 @@ const SocialLoginErrorSheet = ({
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   useEffect(() => {
     trackEvent(
@@ -87,18 +89,19 @@ const SocialLoginErrorSheet = ({
         })
         .build(),
     );
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [trackEvent, createEventBuilder, accountType]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  }, [trackEvent, createEventBuilder, accountType, openSupportWithConsent]);
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-alternative justify-end')}>
-      <Box twClassName="flex-1 justify-center items-center">
-        <Image
-          source={FOX_LOGO}
-          style={tw.style('w-[120px] h-[120px]')}
-          resizeMode="contain"
-        />
-      </Box>
+    <SafeAreaView style={tw.style('flex-1 bg-alternative')}>
+      <Image
+        source={FOX_LOGO}
+        style={tw.style('flex-1 w-[120px] h-[120px] self-center')}
+        resizeMode="contain"
+      />
 
       <Box twClassName="bg-default rounded-t-2xl p-4 pb-10 items-center">
         <Box twClassName="w-10 h-1 bg-border-muted rounded-full self-center mb-4" />

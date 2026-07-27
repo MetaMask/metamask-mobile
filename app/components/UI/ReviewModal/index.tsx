@@ -9,11 +9,13 @@ import {
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import ReviewManager from '../../../core/ReviewManager';
 import { createStyles } from './styles';
 import { useTheme } from '../../../util/theme';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 
 interface HelpOption {
   label: string;
@@ -39,11 +41,12 @@ const helpOptions: HelpOption[] = [
 const foxImage = require('../../../images/branding/fox.png');
 
 const ReviewModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const modalRef = useRef<ReusableModalRef>(null);
   const [showHelpOptions, setShowHelpOptions] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { openSupportWithConsent } = useSupportConsent();
 
   const dismissModal = (cb?: () => void) => modalRef?.current?.dismissModal(cb);
 
@@ -111,7 +114,12 @@ const ReviewModal = () => {
         <Text style={styles.description}>
           {strings('review_prompt.help_description_1')}
           <Text
-            onPress={() => openUrl(AppConstants.REVIEW_PROMPT.SUPPORT)}
+            onPress={() =>
+              openSupportWithConsent(
+                openUrl,
+                AppConstants.REVIEW_PROMPT.SUPPORT,
+              )
+            }
             style={styles.contactLabel}
             suppressHighlighting
           >
@@ -132,7 +140,7 @@ const ReviewModal = () => {
         })}
       </View>
     ),
-    [openUrl, styles],
+    [openUrl, openSupportWithConsent, styles],
   );
 
   const renderContent = () => {

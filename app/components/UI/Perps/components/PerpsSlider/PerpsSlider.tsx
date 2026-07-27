@@ -1,10 +1,16 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Text } from '@metamask/design-system-react-native';
+import {
+  type AccessibilityActionEvent,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   configureReanimatedLogger,
   ReanimatedLogLevel,
@@ -17,10 +23,8 @@ import {
   ImpactMoment,
   type HapticImpactMoment,
 } from '../../../../../util/haptics';
-import LinearGradient from 'react-native-linear-gradient';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsSlider.styles';
-import { Text } from '@metamask/design-system-react-native';
 
 // Only configure reanimated logger in non-test environments
 if (
@@ -39,10 +43,14 @@ interface PerpsSliderProps {
   minimumValue?: number;
   maximumValue?: number;
   step?: number;
+  showPercentageMarkers?: boolean;
   showPercentageLabels?: boolean;
   disabled?: boolean;
   progressColor?: 'default' | 'gradient';
   quickValues?: number[];
+  variant?: 'default' | 'compact';
+  testID?: string;
+  accessibilityLabel?: string;
 }
 
 const PerpsSlider: React.FC<PerpsSliderProps> = ({
@@ -51,12 +59,19 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   minimumValue = 0,
   maximumValue = 100,
   step = 1,
+  showPercentageMarkers = true,
   showPercentageLabels = true,
   disabled = false,
   progressColor = 'default',
   quickValues,
+  variant = 'default',
+  testID,
+  accessibilityLabel,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {
+    showPercentageLabels,
+    variant,
+  });
 
   // Shared values for animations
   const sliderWidth = useSharedValue(0);
@@ -126,7 +141,17 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   }));
 
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [
+      {
+        translateX:
+          variant === 'compact'
+            ? Math.max(
+                0,
+                Math.min(translateX.value - 8, sliderWidth.value - 16),
+              )
+            : translateX.value,
+      },
+    ],
   }));
 
   // JS callback wrapper
@@ -226,35 +251,93 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     ],
   );
 
+  const handleAccessibilityAction = useCallback(
+    (event: AccessibilityActionEvent) => {
+      if (disabled) {
+        return;
+      }
+
+      const { actionName } = event.nativeEvent;
+      if (actionName !== 'increment' && actionName !== 'decrement') {
+        return;
+      }
+
+      const currentValue = Math.min(
+        maximumValue,
+        Math.max(minimumValue, value),
+      );
+      const delta = actionName === 'increment' ? step : -step;
+      const nextValue = Math.min(
+        maximumValue,
+        Math.max(minimumValue, currentValue + delta),
+      );
+
+      if (nextValue !== currentValue) {
+        onValueChange(nextValue);
+        checkThresholdCrossing(nextValue);
+      }
+    },
+    [
+      checkThresholdCrossing,
+      disabled,
+      maximumValue,
+      minimumValue,
+      onValueChange,
+      step,
+      value,
+    ],
+  );
+
   const percentageSteps = [0, 25, 50, 75, 100];
+  const range = maximumValue - minimumValue;
+  const clampedValue = Math.min(maximumValue, Math.max(minimumValue, value));
+  const percentage =
+    range === 0 ? 0 : Math.round(((clampedValue - minimumValue) / range) * 100);
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.sliderContainer}>
         <View style={styles.trackContainer} onLayout={handleLayout}>
           <GestureDetector gesture={composed}>
-            <Animated.View style={styles.track}>
-              {progressColor === 'gradient' ? (
-                <Animated.View style={progressStyle}>
-                  <LinearGradient
-                    colors={['green', 'yellow', 'red']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.gradientProgress}
-                  />
-                </Animated.View>
-              ) : (
-                <Animated.View style={[styles.progress, progressStyle]} />
-              )}
-              <Animated.View
-                style={[styles.thumb, thumbStyle]}
-                hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
-              />
+            <Animated.View
+              style={styles.interactionArea}
+              testID={testID}
+              accessible
+              accessibilityRole="adjustable"
+              accessibilityLabel={accessibilityLabel}
+              accessibilityState={{ disabled }}
+              accessibilityValue={{
+                min: minimumValue,
+                max: maximumValue,
+                now: clampedValue,
+                text: `${percentage}%`,
+              }}
+              accessibilityActions={[
+                { name: 'increment' },
+                { name: 'decrement' },
+              ]}
+              onAccessibilityAction={handleAccessibilityAction}
+            >
+              <Animated.View style={styles.track}>
+                {progressColor === 'gradient' ? (
+                  <Animated.View style={progressStyle}>
+                    <LinearGradient
+                      colors={['green', 'yellow', 'red']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.gradientProgress}
+                    />
+                  </Animated.View>
+                ) : (
+                  <Animated.View style={[styles.progress, progressStyle]} />
+                )}
+                <Animated.View style={[styles.thumb, thumbStyle]} />
+              </Animated.View>
             </Animated.View>
           </GestureDetector>
 
           {/* Percentage dots positioned on the track */}
-          {showPercentageLabels &&
+          {showPercentageMarkers &&
             percentageSteps.map((percent) => {
               // Don't show dots at 0% and 100%
 
@@ -282,6 +365,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
               return (
                 <View
                   key={`dot-${percent}`}
+                  testID={`perps-slider-marker-${percent}`}
                   style={[styles.percentageDot, dotStyle]}
                 />
               );
@@ -317,6 +401,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
                   style={[styles.percentageWrapper, wrapperStyle]}
                   onPress={() => handlePressPercentage(percent)}
                   disabled={disabled}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${percent}%`}
+                  accessibilityState={{ disabled }}
                 >
                   <Text style={styles.percentageText}>{percent}%</Text>
                 </TouchableOpacity>

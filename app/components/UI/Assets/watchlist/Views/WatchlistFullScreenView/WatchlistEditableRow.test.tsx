@@ -1,31 +1,14 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import WatchlistEditableRow from './WatchlistEditableRow';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
-import { WatchlistAnalytics } from '../../constants/watchlistAnalytics';
 
-const mockMutate = jest.fn();
-const mockTrackEvent = jest.fn();
-const mockBuild = jest.fn().mockReturnValue({ event: 'mock' });
-const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
-const mockCreateEventBuilder = jest
-  .fn()
-  .mockReturnValue({ addProperties: mockAddProperties });
+const mockDrag = jest.fn();
 
-jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
-  useTokenWatchlistRemoveItemMutation: () => ({
-    mutate: mockMutate,
-  }),
-}));
-
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+jest.mock('react-native-reorderable-list', () => ({
+  useReorderableDrag: () => mockDrag,
 }));
 
 jest.mock(
@@ -90,46 +73,38 @@ describe('WatchlistEditableRow', () => {
     expect(getByText('Ethereum')).toBeDefined();
   });
 
-  it('calls remove mutation when unwatch star is pressed in edit mode', () => {
-    const token = createToken();
+  it('renders drag handle in edit mode', () => {
     const { getByTestId } = render(
-      <WatchlistEditableRow token={token} position={1} isEditMode />,
+      <WatchlistEditableRow token={createToken()} position={0} isEditMode />,
     );
 
-    fireEvent.press(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
-    );
-
-    expect(mockMutate).toHaveBeenCalledTimes(1);
-    expect(mockMutate).toHaveBeenCalledWith(token.assetId);
+    expect(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE),
+    ).toBeDefined();
   });
 
-  it('fires WATCHLIST_TOKEN_REMOVED when unwatch star is pressed in edit mode', () => {
-    const token = createToken();
+  it('calls reorderable drag on long press of drag handle in edit mode', () => {
     const { getByTestId } = render(
-      <WatchlistEditableRow token={token} position={1} isEditMode />,
+      <WatchlistEditableRow token={createToken()} position={0} isEditMode />,
     );
 
-    fireEvent.press(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
+    fireEvent(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE),
+      'longPress',
     );
 
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED,
-    );
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
-      asset_type: 'native',
-    });
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockDrag).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call remove mutation when unwatch star is pressed outside edit mode', () => {
+  it('calls onRemoveFromDraft when unwatch star is pressed in edit mode', () => {
+    const token = createToken();
+    const onRemoveFromDraft = jest.fn();
     const { getByTestId } = render(
       <WatchlistEditableRow
-        token={createToken()}
-        position={0}
-        isEditMode={false}
+        token={token}
+        position={1}
+        isEditMode
+        onRemoveFromDraft={onRemoveFromDraft}
       />,
     );
 
@@ -137,6 +112,24 @@ describe('WatchlistEditableRow', () => {
       getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
     );
 
-    expect(mockMutate).not.toHaveBeenCalled();
+    expect(onRemoveFromDraft).toHaveBeenCalledWith(token.assetId);
+  });
+
+  it('does not call onRemoveFromDraft when unwatch star is pressed outside edit mode', () => {
+    const onRemoveFromDraft = jest.fn();
+    const { getByTestId } = render(
+      <WatchlistEditableRow
+        token={createToken()}
+        position={0}
+        isEditMode={false}
+        onRemoveFromDraft={onRemoveFromDraft}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
+    );
+
+    expect(onRemoveFromDraft).not.toHaveBeenCalled();
   });
 });

@@ -484,6 +484,7 @@ jest.mock(
 // Controllable pay-quote state for the trade-quote-received coverage tests.
 let mockIsPayQuoteLoading = false;
 let mockPayTotals: unknown;
+let mockPayRequiredTokens: { amountRaw: string; skipIfBalance: boolean }[] = [];
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
@@ -492,6 +493,7 @@ jest.mock(
     ),
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
     useTransactionPayTotals: () => mockPayTotals,
+    useTransactionPayRequiredTokens: () => mockPayRequiredTokens,
   }),
 );
 
@@ -1863,6 +1865,78 @@ describe('PerpsOrderView', () => {
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
       expect(placeOrderButton).toBeDefined();
+      expect(placeOrderButton).toBeEnabled();
+    });
+  });
+
+  describe('pay amount readiness', () => {
+    beforeEach(() => {
+      mockIsPayQuoteLoading = false;
+      mockPayRequiredTokens = [];
+      // A custom pay token, not the Perps balance: the gate only applies here.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+    });
+
+    afterEach(() => {
+      mockPayRequiredTokens = [];
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+    });
+
+    it('disables place order while the required token amount is still zero', async () => {
+      // The pay controller has not received the deposit amount yet, and no
+      // quote request has started, so nothing else would block the button.
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
+    it('enables place order once the required token amount arrives', async () => {
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('ignores a zero amount on a token that is skipped when the balance covers it', async () => {
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: true }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('leaves place order enabled when paying from the Perps balance', async () => {
+      // Orders funded from the Perps balance never deposit, so a stale pay
+      // amount must not block them.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
       expect(placeOrderButton).toBeEnabled();
     });
   });
