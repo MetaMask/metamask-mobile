@@ -12,6 +12,7 @@ import type { MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
 import MoneyActivityRow from '../MoneyActivityRow/MoneyActivityRow';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 export const MAX_PREVIEW_ITEMS = 5;
 
@@ -25,6 +26,7 @@ interface MoneyActivityListProps {
   onItemPress?: (transaction: TransactionMeta) => void;
   /** Whether the crypto/fiat amounts should be masked. */
   privacyMode?: boolean;
+  cardEnrichmentByHash?: Map<string, CardTransaction>;
 }
 
 const MoneyActivityList = ({
@@ -35,6 +37,7 @@ const MoneyActivityList = ({
   onHeaderPress,
   onItemPress,
   privacyMode = false,
+  cardEnrichmentByHash,
 }: MoneyActivityListProps) => {
   const activityDetailsEnabled = useSelector(
     selectMoneyEnableActivityDetailsFlag,
@@ -62,6 +65,7 @@ const MoneyActivityList = ({
           moneyAddress={moneyAddress}
           onPress={activityDetailsEnabled ? onItemPress : undefined}
           privacyMode={privacyMode}
+          cardEnrichmentByHash={cardEnrichmentByHash}
         />
       ))}
       {hasMoreItems && onViewAllPress && (

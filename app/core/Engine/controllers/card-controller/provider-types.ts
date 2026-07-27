@@ -132,6 +132,11 @@ export interface CardProviderCapabilities {
   supportsCredit: boolean;
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
+  supportsTransactionHistory: boolean;
+  supportsServerSideTransactionSearch: boolean;
+  supportsTransactionDetails: boolean;
+  supportsTransactionReporting: boolean;
+  supportsMoneyAccountLinking: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -421,6 +426,107 @@ export interface CardCreateResult {
   cardId: string;
 }
 
+// -- Transactions --
+
+export enum CardTransactionStatus {
+  Pending = 'pending',
+  Completed = 'completed',
+  Failed = 'failed',
+  Reversed = 'reversed',
+}
+
+export enum CardTransactionType {
+  Purchase = 'purchase',
+  Refund = 'refund',
+  Withdrawal = 'withdrawal',
+  Deposit = 'deposit',
+  Transfer = 'transfer',
+  Adjustment = 'adjustment',
+}
+
+export enum CardMerchantCategory {
+  Subscriptions = 'subscriptions',
+  Food = 'food',
+  Travel = 'travel',
+  Entertainment = 'entertainment',
+  Health = 'health',
+  Atm = 'atm',
+  Utilities = 'utilities',
+  Misc = 'misc',
+}
+
+export interface CardTransactionAmount {
+  value: string;
+  currency: string;
+}
+
+export interface CardTransactionMerchant {
+  name: string;
+  city?: string;
+  countryCode?: string;
+  id?: string;
+  mcc?: string;
+  category?: CardMerchantCategory;
+}
+
+export interface CardTransactionFundingSource {
+  txHash?: string;
+  address?: string;
+  network?: string;
+  chainId?: CaipChainId;
+  amount?: string;
+  currency?: string;
+  fees?: string;
+  swapFee?: string;
+}
+
+export interface CardTransaction {
+  id: string;
+  providerId: CardProviderId;
+  timestamp: number;
+  processedAt?: number;
+  status: CardTransactionStatus;
+  type: CardTransactionType;
+  isDebit: boolean;
+  billingAmount: CardTransactionAmount;
+  originalAmount?: CardTransactionAmount;
+  feeAmount?: CardTransactionAmount;
+  conversionRate?: string;
+  merchant?: CardTransactionMerchant;
+  description?: string;
+  reference?: string;
+  cardLastFour?: string;
+  declineReason?: { code?: string; message?: string };
+  fundingSources: CardTransactionFundingSource[];
+}
+
+export interface CardTransactionDetails extends CardTransaction {
+  cardFirstSix?: string;
+  securityChallengeOutcome?: string;
+  relatedTransactionId?: string;
+}
+
+export type CardTransactionCursor = string;
+
+export interface CardTransactionListParams {
+  limit?: number;
+  cursor?: CardTransactionCursor;
+  searchQuery?: string;
+  fromDate?: number;
+  toDate?: number;
+}
+
+export interface CardTransactionPage {
+  items: CardTransaction[];
+  nextCursor?: CardTransactionCursor;
+}
+
+export interface CardTransactionReport {
+  reason: string;
+  description?: string;
+  contactedMerchant: boolean;
+}
+
 // -- Provider Interface --
 
 export interface ICardProvider {
@@ -531,6 +637,20 @@ export interface ICardProvider {
     fundingSourceId: string,
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult>;
+
+  listTransactions?(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage>;
+  getTransaction?(
+    id: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionDetails>;
+  reportTransaction?(
+    id: string,
+    report: CardTransactionReport,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
 
   getOnChainAssets?(address: string): Promise<CardHomeData>;
 }

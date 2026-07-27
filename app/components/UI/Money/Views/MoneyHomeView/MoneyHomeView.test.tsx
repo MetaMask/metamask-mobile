@@ -114,6 +114,21 @@ jest.mock('../../components/MoneyNextBestActionParallax', () => ({
   PARALLAX_ARTBOARD_CARD: 'Parallax Block 2',
 }));
 
+jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
+  useCardTransactionIndex: () => ({
+    bySettlementHash: new Map(),
+    declined: [],
+    oldestFetchedTime: Number.NEGATIVE_INFINITY,
+    isFetching: false,
+    isSettling: false,
+    isError: false,
+  }),
+}));
+
+jest.mock('../../../Card/hooks/useCardCapabilities', () => ({
+  useCardCapabilities: () => null,
+}));
+
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));

@@ -2438,6 +2438,11 @@ describe('CardController — getCapabilities', () => {
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsTransactionHistory: true,
+    supportsServerSideTransactionSearch: true,
+    supportsTransactionDetails: false,
+    supportsTransactionReporting: false,
+    supportsMoneyAccountLinking: true,
   };
 
   it('returns base capabilities', () => {
@@ -3805,5 +3810,90 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     await expect(
       controller.getSpendingPrerequisites('fs-1', {}),
     ).rejects.toBeInstanceOf(CardProviderError);
+  });
+});
+
+describe('CardController — transactions', () => {
+  function withValidSession(provider: jest.Mocked<ICardProvider>) {
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    return buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+    });
+  }
+
+  it('registers the listTransactions messenger action', () => {
+    const provider = buildMockProvider();
+    const { messenger } = buildControllerWithMockMessenger(provider);
+
+    expect(messenger.registerActionHandler).toHaveBeenCalledWith(
+      'CardController:listTransactions',
+      expect.any(Function),
+    );
+  });
+
+  it('passes listTransactions through withAuthRetry', async () => {
+    const page = { items: [], nextCursor: undefined };
+    const listTransactions = jest.fn().mockResolvedValue(page);
+    const provider = buildMockProvider({ listTransactions });
+    const { controller } = withValidSession(provider);
+
+    await expect(controller.listTransactions({ limit: 10 })).resolves.toEqual(
+      page,
+    );
+    expect(listTransactions).toHaveBeenCalledWith({ limit: 10 }, mockTokenSet);
+  });
+
+  it('throws when listTransactions is unsupported', async () => {
+    const provider = buildMockProvider({ listTransactions: undefined });
+    const { controller } = withValidSession(provider);
+
+    await expect(controller.listTransactions()).rejects.toMatchObject({
+      code: CardProviderErrorCode.Unknown,
+      message: 'listTransactions not supported',
+    });
+  });
+
+  it('uses getTransaction when the provider supports details', async () => {
+    const details = { id: 'tx-1', fundingSources: [] };
+    const getTransaction = jest.fn().mockResolvedValue(details);
+    const provider = buildMockProvider({ getTransaction });
+    const { controller } = withValidSession(provider);
+
+    await expect(controller.getCardTransaction('tx-1')).resolves.toEqual(
+      details,
+    );
+    expect(getTransaction).toHaveBeenCalledWith('tx-1', mockTokenSet);
+  });
+
+  it('falls back to listTransactions when getTransaction is absent', async () => {
+    const match = { id: 'tx-2', fundingSources: [] };
+    const listTransactions = jest
+      .fn()
+      .mockResolvedValue({ items: [match], nextCursor: undefined });
+    const provider = buildMockProvider({
+      getTransaction: undefined,
+      listTransactions,
+    });
+    const { controller } = withValidSession(provider);
+
+    await expect(controller.getCardTransaction('tx-2')).resolves.toEqual(match);
+  });
+
+  it('throws NotFound when the fallback list has no matching id', async () => {
+    const listTransactions = jest
+      .fn()
+      .mockResolvedValue({ items: [], nextCursor: undefined });
+    const provider = buildMockProvider({
+      getTransaction: undefined,
+      listTransactions,
+    });
+    const { controller } = withValidSession(provider);
+
+    await expect(
+      controller.getCardTransaction('missing'),
+    ).rejects.toMatchObject({
+      code: CardProviderErrorCode.NotFound,
+    });
   });
 });

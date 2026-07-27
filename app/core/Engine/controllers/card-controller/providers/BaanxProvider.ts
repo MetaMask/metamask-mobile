@@ -34,6 +34,7 @@ import {
   generateState,
 } from '../../../../../components/UI/Card/util/pkceHelpers';
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
+import { networkToCaipChainId } from '../../../../../components/UI/Card/util/redeemDestination';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
   CardAccountStatus,
@@ -70,7 +71,15 @@ import {
   type DelegationChallengeResponse,
   emptyCardHomeData,
   isCardAuthTokenError,
+  CardTransactionStatus,
+  CardTransactionType,
+  CardMerchantCategory,
+  type CardTransaction,
+  type CardTransactionListParams,
+  type CardTransactionPage,
+  type CardTransactionFundingSource,
 } from '../provider-types';
+import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -87,6 +96,73 @@ const ONBOARDING_ENDPOINTS: Record<string, string> = {
   physical_address: '/v1/auth/register/address',
   consent: '/v2/consent/onboarding',
 };
+
+interface BaanxCursorPayload {
+  pg: number;
+  f?: string;
+}
+
+const BAANX_MIN_FULL_PAGE = 20;
+
+interface BaanxFundingSourceRaw {
+  id?: string;
+  address?: string;
+  network?: string;
+  txHash?: string;
+  currency?: string;
+  amount?: string;
+  fees?: string;
+  swapFee?: string;
+}
+
+interface BaanxTransactionRaw {
+  id: string;
+  cardId?: string;
+  panLast4?: string;
+  transactionId?: string;
+  dateTime: string;
+  sign: 'DEBIT' | 'CREDIT';
+  merchantNameLocation?: string;
+  merchantType?: string;
+  merchantId?: string;
+  mcc?: number;
+  mccCategory?: string;
+  transactionCurrency: string;
+  amountInTransactionCurrency: string;
+  feesInTransactionCurrency?: string;
+  originalCurrency?: string;
+  amountInOriginalCurrency?: string;
+  feesInOriginalCurrency?: string;
+  billingConversionRate?: string;
+  status: 'CONFIRMED' | 'PENDING' | 'DECLINED' | 'REVERTED';
+  declineReason?: string;
+  fundingSources?: BaanxFundingSourceRaw[];
+}
+
+const BAANX_STATUS_MAP: Record<
+  BaanxTransactionRaw['status'],
+  CardTransactionStatus
+> = {
+  PENDING: CardTransactionStatus.Pending,
+  CONFIRMED: CardTransactionStatus.Completed,
+  DECLINED: CardTransactionStatus.Failed,
+  REVERTED: CardTransactionStatus.Reversed,
+};
+
+const BAANX_MCC_CATEGORY_MAP: Record<string, CardMerchantCategory> = {
+  SUBSCRIPTIONS: CardMerchantCategory.Subscriptions,
+  FOOD: CardMerchantCategory.Food,
+  TRAVEL: CardMerchantCategory.Travel,
+  ENTERTAINMENT: CardMerchantCategory.Entertainment,
+  HEALTH: CardMerchantCategory.Health,
+  ATM: CardMerchantCategory.Atm,
+  UTILITIES: CardMerchantCategory.Utilities,
+  MISC: CardMerchantCategory.Misc,
+};
+
+function toDateOnly(epochMs: number): string {
+  return new Date(epochMs).toISOString().slice(0, 10);
+}
 
 function getErrorContext(method: string, extra?: Record<string, unknown>) {
   return {
@@ -254,6 +330,11 @@ export class BaanxProvider implements ICardProvider {
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsTransactionHistory: true,
+    supportsServerSideTransactionSearch: true,
+    supportsTransactionDetails: false,
+    supportsTransactionReporting: false,
+    supportsMoneyAccountLinking: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -534,6 +615,57 @@ export class BaanxProvider implements ICardProvider {
         );
       }
       throw mapApiError(error, 'getCardDetails');
+    }
+  }
+
+  async listTransactions(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage> {
+    try {
+      const cursorPayload = params.cursor
+        ? decodeCardCursor<BaanxCursorPayload>(params.cursor, this.id)
+        : null;
+      const page = cursorPayload?.pg ?? 0;
+      const firstIdOfPage0 = cursorPayload?.f;
+
+      const query = new URLSearchParams();
+      query.set('page', String(page));
+      if (params.searchQuery) {
+        query.set('searchKey', params.searchQuery);
+      }
+      if (params.fromDate != null && params.toDate != null) {
+        query.set('dateFrom', toDateOnly(params.fromDate));
+        query.set('dateTo', toDateOnly(params.toDate));
+      }
+
+      const raw = await this.service.get<BaanxTransactionRaw[]>(
+        `/v1/card/transactions?${query.toString()}`,
+        tokens,
+      );
+      const items = Array.isArray(raw) ? raw : [];
+
+      if (items.length === 0) {
+        return { items: [] };
+      }
+
+      if (page > 0 && firstIdOfPage0 && items[0]?.id === firstIdOfPage0) {
+        return { items: [] };
+      }
+
+      const mapped = items.map((tx) => this.mapBaanxTransaction(tx));
+      if (items.length < BAANX_MIN_FULL_PAGE) {
+        return { items: mapped };
+      }
+
+      const nextCursor = encodeCardCursor(this.id, {
+        pg: page + 1,
+        f: page === 0 ? items[0]?.id : firstIdOfPage0,
+      } satisfies BaanxCursorPayload);
+
+      return { items: mapped, nextCursor };
+    } catch (error) {
+      throw mapApiError(error, 'listTransactions');
     }
   }
 
@@ -1581,6 +1713,106 @@ export class BaanxProvider implements ICardProvider {
       lastFour: response.panLast4,
       holderName: response.holderName,
       isFreezable: response.isFreezable,
+    };
+  }
+
+  private mapBaanxTransaction(raw: BaanxTransactionRaw): CardTransaction {
+    const isDebit = raw.sign === 'DEBIT';
+    const category = raw.mccCategory
+      ? BAANX_MCC_CATEGORY_MAP[raw.mccCategory.toUpperCase()]
+      : undefined;
+    const merchantType = raw.merchantType ?? '';
+    const isAtm =
+      category === CardMerchantCategory.Atm ||
+      merchantType.toUpperCase().includes('ATM');
+
+    let type: CardTransactionType;
+    if (!isDebit) {
+      type = CardTransactionType.Refund;
+    } else if (isAtm) {
+      type = CardTransactionType.Withdrawal;
+    } else {
+      type = CardTransactionType.Purchase;
+    }
+
+    const { name, city } = this.parseMerchantNameLocation(
+      raw.merchantNameLocation,
+    );
+
+    const fundingSources: CardTransactionFundingSource[] = (
+      raw.fundingSources ?? []
+    ).map((fs) => ({
+      txHash: fs.txHash,
+      address: fs.address,
+      network: fs.network,
+      chainId: networkToCaipChainId(fs.network),
+      amount: fs.amount,
+      currency: fs.currency,
+      fees: fs.fees,
+      swapFee: fs.swapFee,
+    }));
+
+    const declineMessage = raw.declineReason?.trim();
+
+    return {
+      id: raw.id,
+      providerId: this.id,
+      timestamp: new Date(raw.dateTime).getTime(),
+      status: BAANX_STATUS_MAP[raw.status] ?? CardTransactionStatus.Completed,
+      type,
+      isDebit,
+      billingAmount: {
+        value: raw.amountInTransactionCurrency,
+        currency: raw.transactionCurrency,
+      },
+      originalAmount:
+        raw.originalCurrency &&
+        raw.amountInOriginalCurrency &&
+        raw.originalCurrency !== raw.transactionCurrency
+          ? {
+              value: raw.amountInOriginalCurrency,
+              currency: raw.originalCurrency,
+            }
+          : undefined,
+      feeAmount:
+        raw.feesInTransactionCurrency && raw.feesInTransactionCurrency !== '0'
+          ? {
+              value: raw.feesInTransactionCurrency,
+              currency: raw.transactionCurrency,
+            }
+          : undefined,
+      conversionRate: raw.billingConversionRate,
+      merchant: name
+        ? {
+            name,
+            city,
+            id: raw.merchantId,
+            mcc: raw.mcc != null ? String(raw.mcc) : undefined,
+            category,
+          }
+        : undefined,
+      description: raw.merchantNameLocation,
+      reference: raw.transactionId,
+      cardLastFour: raw.panLast4,
+      declineReason: declineMessage ? { message: declineMessage } : undefined,
+      fundingSources,
+    };
+  }
+
+  private parseMerchantNameLocation(combined?: string): {
+    name?: string;
+    city?: string;
+  } {
+    if (!combined?.trim()) {
+      return {};
+    }
+    const lastComma = combined.lastIndexOf(',');
+    if (lastComma === -1) {
+      return { name: combined.trim() };
+    }
+    return {
+      name: combined.slice(0, lastComma).trim(),
+      city: combined.slice(lastComma + 1).trim() || undefined,
     };
   }
 

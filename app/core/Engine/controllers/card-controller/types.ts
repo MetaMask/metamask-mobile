@@ -25,11 +25,17 @@ import type {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
+import type {
+  CardTransactionListParams,
+  CardTransactionPage,
+} from './provider-types';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
 /** The provider ID used when no other provider has been selected. */
 export const DEFAULT_CARD_PROVIDER_ID = 'baanx';
+
+export const MONEY_ACCOUNT_LAUNCH_MS = Date.UTC(2026, 4, 1);
 
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 export type CardUnauthenticatedReason = 'onboarding_token_revoked';
@@ -70,10 +76,14 @@ export type CardControllerState = {
   moneyAccountCardLinkInProgress: boolean;
 };
 
-export type CardControllerActions = ControllerGetStateAction<
-  typeof CARD_CONTROLLER_NAME,
-  CardControllerState
->;
+export interface CardControllerListTransactionsAction {
+  type: `${typeof CARD_CONTROLLER_NAME}:listTransactions`;
+  handler: (params?: CardTransactionListParams) => Promise<CardTransactionPage>;
+}
+
+export type CardControllerActions =
+  | ControllerGetStateAction<typeof CARD_CONTROLLER_NAME, CardControllerState>
+  | CardControllerListTransactionsAction;
 
 export type CardControllerEvents = ControllerStateChangeEvent<
   typeof CARD_CONTROLLER_NAME,

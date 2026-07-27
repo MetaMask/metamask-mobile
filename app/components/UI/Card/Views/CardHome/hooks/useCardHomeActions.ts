@@ -564,6 +564,14 @@ export function useCardHomeActions({
     }
   }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
+  const transactionHistoryAction = useCallback(() => {
+    if (isAuthenticated) {
+      navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    }
+  }, [isAuthenticated, navigation]);
+
   return {
     freeze,
     unfreeze,
@@ -588,6 +596,7 @@ export function useCardHomeActions({
     logoutAction,
     orderMetalCardAction,
     cashbackAction,
+    transactionHistoryAction,
     navigateToTravelPage,
     navigateToCardTosPage,
   };

@@ -1,23 +1,27 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
+  IconName,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-
-import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { Box } from '../../../Box/Box';
-import { AlignItems, FlexDirection } from '../../../Box/box.types';
-import { useStyles } from '../../../../hooks/useStyles';
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectCardPrimaryToken } from '../../../../../selectors/cardController';
 
 import {
   findBlockExplorerUrlForChain,
@@ -35,14 +39,20 @@ import { NameType } from '../../../Name/Name.types';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
-import styleSheet from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details.styles';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import MoneyIcon from '../../../../../images/money.png';
+import { getMerchantCategoryLabel } from '../../../Card/utils/merchantCategoryLabel';
+import {
+  cardTransactionDisplayInfo,
+  formatCardTransactionStatus,
+} from '../../../Card/utils/cardTransactionDisplayInfo';
+import { getCardTransactionHeroToken } from '../../../Card/utils/getCardTransactionHeroToken';
+import { getCardDeclineReasonLabel } from '../../../Card/utils/cardDeclineReason';
+import CardTransactionDetailsContent from '../../../Card/components/CardTransactionDetailsContent/CardTransactionDetailsContent';
+import {
+  CardTransactionStatus,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../../Card/util/vedaToken';
 
 const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.api_activity_details.you_spent',
@@ -50,80 +60,226 @@ const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
   refund: 'money.api_activity_details.you_were_refunded',
 };
 
-const iconStyles = StyleSheet.create({
-  moneyIconWrapper: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    overflow: 'hidden' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-  },
-  moneyIcon: { width: 21.33, height: 21.33 },
-  heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
-});
-
-/**
- * Full-screen details for an Accounts-API activity (a card spend or musdback).
- *
- * These settle on-chain and surface from the MetaMask Accounts API rather than
- * the local `TransactionController`, so they share one detail surface that
- * branches its copy on `activity.kind`.
- */
 type ActivityDetailsRoute = RouteProp<
-  { params?: { activity?: AccountsApiActivity } },
+  {
+    params?: {
+      activity?: AccountsApiActivity;
+      enrichment?: CardTransaction;
+      cardTransaction?: CardTransaction;
+    };
+  },
   'params'
 >;
 
 export function MoneyApiActivityDetailsView() {
   const navigation = useNavigation();
-  const activity = useRoute<ActivityDetailsRoute>().params?.activity;
+  const params = useRoute<ActivityDetailsRoute>().params;
+  const activity = params?.activity;
+  const enrichment = params?.enrichment;
+  const cardTransaction = params?.cardTransaction;
 
   useEffect(() => {
-    if (!activity) {
+    if (!activity && !cardTransaction) {
       navigation.goBack();
     }
-  }, [activity, navigation]);
+  }, [activity, cardTransaction, navigation]);
+
+  if (cardTransaction) {
+    return <MoneyCardProviderDetailsContent transaction={cardTransaction} />;
+  }
 
   if (!activity) {
     return null;
   }
 
+  if (activity.kind === 'card') {
+    return (
+      <MoneyCardActivityDetailsContent
+        activity={activity}
+        enrichment={enrichment}
+      />
+    );
+  }
+
   return <MoneyApiActivityDetailsContent activity={activity} />;
 }
 
-function MoneyApiActivityDetailsContent({
-  activity,
-}: {
-  activity: AccountsApiActivity;
-}) {
-  const { styles } = useStyles(styleSheet, {});
+function formatActivityDate(timestamp: number): string {
+  const date = new Date(timestamp);
+  const month = getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+  }).format(date);
+  const timeString = getIntlDateTimeFormatter(I18n.locale, {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  }).format(date);
+  return `${month} ${date.getDate()}, ${date.getFullYear()} at ${timeString}`;
+}
+
+function useCardTransactionExplorerHandler(
+  transaction: CardTransaction | undefined,
+) {
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   );
-  const { networkName, networkImage } = useNetworkInfo(activity.chainId);
 
-  const isCard = activity.kind === 'card';
+  const fundingSource = transaction?.fundingSources.find((fs) => fs.txHash);
+
+  return useCallback(() => {
+    if (
+      !blockExplorerLinkEnabled ||
+      !fundingSource?.txHash ||
+      !fundingSource.chainId
+    ) {
+      return;
+    }
+    const rpcBlockExplorer = findBlockExplorerUrlForChain(
+      fundingSource.chainId,
+      networkConfigurations,
+    );
+    const { url, title } = getBlockExplorerTxUrl(
+      RPC,
+      fundingSource.txHash,
+      rpcBlockExplorer,
+    );
+    if (!url) {
+      return;
+    }
+    navigation.navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: { url, title },
+    });
+  }, [
+    blockExplorerLinkEnabled,
+    fundingSource?.chainId,
+    fundingSource?.txHash,
+    navigation,
+    networkConfigurations,
+  ]);
+}
+
+function MoneyCardProviderDetailsContent({
+  transaction,
+}: {
+  transaction: CardTransaction;
+}) {
+  const navigation = useNavigation();
+  const primaryToken = useSelector(selectCardPrimaryToken);
+  const blockExplorerLinkEnabled = useSelector(
+    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  );
+  const hasExplorerHash = transaction.fundingSources.some((fs) => fs.txHash);
 
   const display = useMemo(
-    () => accountsApiActivityDisplayInfo(activity),
-    [activity],
+    () => cardTransactionDisplayInfo(transaction),
+    [transaction],
   );
 
-  const formattedDate = useMemo(() => {
-    const date = new Date(activity.time);
-    const month = getIntlDateTimeFormatter(I18n.locale, {
-      month: 'short',
-    }).format(date);
-    const timeString = getIntlDateTimeFormatter(I18n.locale, {
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true,
-    }).format(date);
-    return `${month} ${date.getDate()}, ${date.getFullYear()} at ${timeString}`;
-  }, [activity.time]);
+  const categoryLabel = useMemo(
+    () => getMerchantCategoryLabel(transaction.merchant?.category),
+    [transaction.merchant?.category],
+  );
+
+  const locationLabel = useMemo(() => {
+    const merchant = transaction.merchant;
+    if (!merchant) {
+      return undefined;
+    }
+    return [merchant.city, merchant.countryCode].filter(Boolean).join(', ');
+  }, [transaction.merchant]);
+
+  const formattedDate = useMemo(
+    () => formatActivityDate(transaction.processedAt ?? transaction.timestamp),
+    [transaction.processedAt, transaction.timestamp],
+  );
+
+  const heroToken = useMemo(
+    () => getCardTransactionHeroToken(transaction, primaryToken),
+    [transaction, primaryToken],
+  );
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleViewOnExplorer = useCardTransactionExplorerHandler(transaction);
+
+  const transactionId = transaction.reference ?? transaction.id;
+
+  const isFailed = transaction.status === CardTransactionStatus.Failed;
+
+  return (
+    <CardTransactionDetailsContent
+      heroCopy={strings('money.api_activity_details.you_spent')}
+      primaryAmount={display.primaryAmount}
+      fiatAmount={display.fiatAmount || undefined}
+      amountColor={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
+      statusLabel={formatCardTransactionStatus(transaction.status)}
+      statusColor={isFailed ? TextColor.ErrorDefault : TextColor.SuccessDefault}
+      dateLabel={formattedDate}
+      merchantName={transaction.merchant?.name}
+      categoryLabel={categoryLabel}
+      locationLabel={locationLabel}
+      declineReason={getCardDeclineReasonLabel(transaction)}
+      transactionId={transactionId}
+      heroToken={heroToken}
+      onBack={handleBack}
+      onViewOnExplorer={
+        blockExplorerLinkEnabled && hasExplorerHash
+          ? handleViewOnExplorer
+          : undefined
+      }
+    />
+  );
+}
+
+function MoneyCardActivityDetailsContent({
+  activity,
+  enrichment,
+}: {
+  activity: Extract<AccountsApiActivity, { kind: 'card' }>;
+  enrichment?: CardTransaction;
+}) {
+  const navigation = useNavigation();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const blockExplorerLinkEnabled = useSelector(
+    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  );
+
+  const display = useMemo(
+    () => accountsApiActivityDisplayInfo(activity, enrichment),
+    [activity, enrichment],
+  );
+
+  const categoryLabel = useMemo(
+    () => getMerchantCategoryLabel(enrichment?.merchant?.category),
+    [enrichment?.merchant?.category],
+  );
+
+  const locationLabel = useMemo(() => {
+    if (!enrichment?.merchant) {
+      return undefined;
+    }
+    return [enrichment.merchant.city, enrichment.merchant.countryCode]
+      .filter(Boolean)
+      .join(', ');
+  }, [enrichment?.merchant]);
+
+  const formattedDate = useMemo(
+    () => formatActivityDate(activity.time),
+    [activity.time],
+  );
+
+  const heroToken = useMemo(
+    () => ({
+      symbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+      iconSource: MoneyIcon,
+    }),
+    [],
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -149,7 +305,81 @@ function MoneyApiActivityDetailsContent({
   }, [activity.chainId, activity.hash, navigation, networkConfigurations]);
 
   return (
-    <View style={styles.wrapper}>
+    <CardTransactionDetailsContent
+      heroCopy={strings(HERO_COPY_KEY[activity.kind])}
+      primaryAmount={display.primaryAmount}
+      fiatAmount={display.fiatAmount || undefined}
+      amountColor={
+        display.isIncoming ? TextColor.SuccessDefault : TextColor.TextDefault
+      }
+      statusLabel={strings('money.api_activity_details.completed')}
+      statusColor={TextColor.SuccessDefault}
+      dateLabel={formattedDate}
+      merchantName={enrichment?.merchant?.name}
+      categoryLabel={categoryLabel}
+      locationLabel={locationLabel}
+      declineReason={getCardDeclineReasonLabel(enrichment)}
+      transactionId={enrichment?.reference}
+      heroToken={heroToken}
+      heroIconTestID="money-account-hero-icon"
+      onBack={handleBack}
+      onViewOnExplorer={
+        blockExplorerLinkEnabled && activity.hash
+          ? handleViewOnExplorer
+          : undefined
+      }
+    />
+  );
+}
+
+function MoneyApiActivityDetailsContent({
+  activity,
+}: {
+  activity: Exclude<AccountsApiActivity, { kind: 'card' }>;
+}) {
+  const tw = useTailwind();
+  const navigation = useNavigation();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const blockExplorerLinkEnabled = useSelector(
+    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  );
+  const { networkName, networkImage } = useNetworkInfo(activity.chainId);
+
+  const display = useMemo(
+    () => accountsApiActivityDisplayInfo(activity),
+    [activity],
+  );
+
+  const formattedDate = useMemo(
+    () => formatActivityDate(activity.time),
+    [activity.time],
+  );
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleViewOnExplorer = useCallback(() => {
+    const rpcBlockExplorer = findBlockExplorerUrlForChain(
+      activity.chainId,
+      networkConfigurations,
+    );
+    const { url, title } = getBlockExplorerTxUrl(
+      RPC,
+      activity.hash,
+      rpcBlockExplorer,
+    );
+    if (!url) {
+      return;
+    }
+    navigation.navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: { url, title },
+    });
+  }, [activity.chainId, activity.hash, navigation, networkConfigurations]);
+
+  return (
+    <Box twClassName="flex-1 bg-background-default">
       <HeaderStandard
         title={display.label}
         onBack={handleBack}
@@ -157,26 +387,23 @@ function MoneyApiActivityDetailsContent({
         includesTopInset
       />
       <ScrollView>
-        <Box style={styles.container} gap={12}>
-          {/* Hero: "You spent" / "You earned" / "You were refunded" */}
-          <Box gap={4}>
-            <Text color={TextColor.Alternative}>
+        <Box twClassName="gap-3 px-4">
+          <Box twClassName="gap-1">
+            <Text color={TextColor.TextAlternative}>
               {strings(HERO_COPY_KEY[activity.kind])}
             </Text>
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={12}
-            >
+            <Box twClassName="flex-row items-center gap-3">
               <Image
                 source={MoneyIcon}
-                style={iconStyles.heroMoneyIcon}
+                style={tw.style('w-8 h-8 rounded-full')}
                 testID="money-account-hero-icon"
               />
               <Text
-                variant={TextVariant.DisplayMD}
+                variant={TextVariant.DisplayMd}
                 color={
-                  display.isIncoming ? TextColor.Success : TextColor.Default
+                  display.isIncoming
+                    ? TextColor.SuccessDefault
+                    : TextColor.TextDefault
                 }
               >
                 {display.primaryAmount}
@@ -186,89 +413,57 @@ function MoneyApiActivityDetailsContent({
 
           <TransactionDetailDivider />
 
-          {/* Accounts-API activity is an on-chain settlement — it only surfaces
-              after confirmation, so status is always "Completed". */}
           <TransactionDetailsRow label={strings('transactions.status')}>
-            <Text color={TextColor.Success}>
+            <Text color={TextColor.SuccessDefault}>
               {strings('money.api_activity_details.completed')}
             </Text>
           </TransactionDetailsRow>
 
-          {/* Date */}
           <TransactionDetailsRow
             label={strings('money.api_activity_details.date')}
           >
             <Text>{formattedDate}</Text>
           </TransactionDetailsRow>
 
-          {/* Network */}
           {networkName ? (
             <TransactionDetailsRow
               label={strings('transaction_details.label.network')}
             >
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={6}
-              >
+              <Box twClassName="flex-row items-center gap-1.5">
                 <AvatarNetwork
                   name={networkName}
-                  imageSource={networkImage}
-                  size={AvatarSize.Xs}
+                  src={networkImage}
+                  size={AvatarNetworkSize.Xs}
                 />
                 <Text>{networkName}</Text>
               </Box>
             </TransactionDetailsRow>
           ) : null}
 
-          {/* Card spends show the source account only; merchant is not surfaced yet. */}
-          {isCard ? (
-            <TransactionDetailsRow
-              label={strings('transaction_details.label.from')}
-            >
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={6}
-              >
-                <View style={iconStyles.moneyIconWrapper}>
-                  <Image
-                    source={MoneyIcon}
-                    style={iconStyles.moneyIcon}
-                    testID="money-account-icon"
-                  />
-                </View>
-                <Text>
-                  {strings('transaction_details.label.money_account')}
-                </Text>
-              </Box>
-            </TransactionDetailsRow>
-          ) : (
-            <TransactionDetailsRow
-              label={strings('money.api_activity_details.received_from')}
-            >
-              <Name
-                type={NameType.EthereumAddress}
-                value={activity.receivedFrom}
-                variation={activity.chainId}
-              />
-            </TransactionDetailsRow>
-          )}
+          <TransactionDetailsRow
+            label={strings('money.api_activity_details.received_from')}
+          >
+            <Name
+              type={NameType.EthereumAddress}
+              value={activity.receivedFrom}
+              variation={activity.chainId}
+            />
+          </TransactionDetailsRow>
 
-          {/* View on block explorer */}
-          {blockExplorerLinkEnabled && (
+          {blockExplorerLinkEnabled ? (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('transaction_details.view_on_block_explorer')}
+              isFullWidth
               onPress={handleViewOnExplorer}
               startIconName={IconName.Export}
               testID="card-transaction-details-explorer-button"
-            />
-          )}
+            >
+              {strings('transaction_details.view_on_block_explorer')}
+            </Button>
+          ) : null}
         </Box>
       </ScrollView>
-    </View>
+    </Box>
   );
 }

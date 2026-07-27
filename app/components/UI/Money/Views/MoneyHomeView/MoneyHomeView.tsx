@@ -180,6 +180,7 @@ const MoneyHomeView = () => {
     error: activityError,
     moneyAddress,
     mockDataEnabled,
+    cardEnrichmentByHash,
   } = useMoneyActivityItems({
     fill: {
       bucket: MoneyActivityFilter.All,
@@ -780,6 +781,7 @@ const MoneyHomeView = () => {
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
           privacyMode={privacyMode}
+          cardEnrichmentByHash={cardEnrichmentByHash}
         />
       ),
     });

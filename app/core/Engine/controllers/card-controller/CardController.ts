@@ -51,6 +51,10 @@ import {
   type FundingApprovalParams,
   type ICardProvider,
   isCardAuthTokenError,
+  type CardTransactionListParams,
+  type CardTransactionPage,
+  type CardTransactionDetails,
+  type CardTransactionReport,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
@@ -205,6 +209,10 @@ export class CardController extends BaseController<
     });
     this.providers = providers;
     this.#subscribeToEvents();
+    this.messenger.registerActionHandler(
+      `${CARD_CONTROLLER_NAME}:listTransactions`,
+      this.listTransactions.bind(this),
+    );
   }
 
   #subscribeToEvents(): void {
@@ -1678,5 +1686,55 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => withdrawCredit(params, tokens));
+  }
+
+  async listTransactions(
+    params: CardTransactionListParams = {},
+  ): Promise<CardTransactionPage> {
+    const provider = this.getActiveProvider();
+    const listTransactions = provider.listTransactions?.bind(provider);
+    if (!listTransactions) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'listTransactions not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => listTransactions(params, tokens));
+  }
+
+  async getCardTransaction(id: string): Promise<CardTransactionDetails> {
+    const provider = this.getActiveProvider();
+    const getTransaction = provider.getTransaction?.bind(provider);
+    if (getTransaction) {
+      return this.#withAuthRetry((tokens) => getTransaction(id, tokens));
+    }
+
+    const page = await this.listTransactions({ limit: 50 });
+    const match = page.items.find((tx) => tx.id === id);
+    if (!match) {
+      throw new CardProviderError(
+        CardProviderErrorCode.NotFound,
+        `Transaction not found: ${id}`,
+        404,
+      );
+    }
+    return match;
+  }
+
+  async reportTransaction(
+    id: string,
+    report: CardTransactionReport,
+  ): Promise<void> {
+    const provider = this.getActiveProvider();
+    const reportTransaction = provider.reportTransaction?.bind(provider);
+    if (!reportTransaction) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'reportTransaction not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      reportTransaction(id, report, tokens),
+    );
   }
 }

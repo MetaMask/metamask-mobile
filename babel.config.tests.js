@@ -50,6 +50,8 @@ const newOverrides = [
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.test.ts',
       'app/selectors/featureFlagController/moneyAccount/index.ts',
       'app/selectors/featureFlagController/moneyAccount/index.test.ts',
+      'app/selectors/featureFlagController/card/index.ts',
+      'app/selectors/featureFlagController/card/index.test.ts',
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.ts',
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.ts',

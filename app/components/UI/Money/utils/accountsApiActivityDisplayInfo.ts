@@ -5,6 +5,8 @@ import type { AccountsApiActivity } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import { moneyFormatUsd } from './moneyFormatFiat';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
+import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import { formatCardAmount } from '../../Card/utils/cardTransactionAmount';
 
 const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.transaction.purchase',
@@ -14,28 +16,41 @@ const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
 
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
+  enrichment?: CardTransaction,
 ): MoneyTransactionDisplayInfo {
   const isIncoming = activity.kind === 'cashback' || activity.kind === 'refund';
   const sign = isIncoming ? '+' : '-';
 
-  const labelKey = KIND_LABEL_KEY[activity.kind];
-
-  // Card activity amounts are already denominated in USD (mUSD is USD-pegged).
   const usdValue = new BigNumber(activity.amount).dividedBy(
     new BigNumber(10).pow(activity.token.decimals),
   );
 
   const primaryAmount = `${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`;
-
   const fiatAmount = `${sign}${moneyFormatUsd(usdValue)}`;
 
-  return {
+  const base: MoneyTransactionDisplayInfo = {
     description: strings('money.transaction.card'),
-    label: strings(labelKey),
+    label: strings(KIND_LABEL_KEY[activity.kind]),
     primaryAmount,
     fiatAmount,
     isIncoming,
     icon: IconName.Card,
     status: 'confirmed',
+  };
+
+  if (activity.kind !== 'card' || !enrichment) {
+    return base;
+  }
+
+  const original = enrichment.originalAmount;
+  const secondaryAmount =
+    original && original.currency.toUpperCase() !== 'USD'
+      ? formatCardAmount(original, enrichment.isDebit)
+      : fiatAmount;
+
+  return {
+    ...base,
+    description: enrichment.merchant?.name ?? base.description,
+    fiatAmount: secondaryAmount,
   };
 }

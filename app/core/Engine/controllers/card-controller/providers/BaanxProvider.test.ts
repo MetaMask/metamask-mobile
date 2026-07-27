@@ -1037,3 +1037,156 @@ describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', (
     });
   });
 });
+
+describe('BaanxProvider — listTransactions', () => {
+  const tokens = {
+    accessToken: 'a',
+    refreshToken: 'r',
+    accessTokenExpiresAt: Date.now() + 60_000,
+    location: 'international',
+  };
+
+  const sampleTx = {
+    id: 'tx-1',
+    panLast4: '9189',
+    transactionId: '112233',
+    dateTime: '2024-10-14T10:44:36.276Z',
+    sign: 'DEBIT' as const,
+    merchantNameLocation: 'WWW.ALIEXPRESS.COM, LONDON',
+    merchantType: 'OutOfWalletOnline',
+    merchantId: 'm-1',
+    mcc: 5964,
+    mccCategory: 'MISC',
+    transactionCurrency: 'EUR',
+    amountInTransactionCurrency: '0.79',
+    feesInTransactionCurrency: '0',
+    originalCurrency: 'USD',
+    amountInOriginalCurrency: '0.85',
+    billingConversionRate: '0.93',
+    status: 'CONFIRMED' as const,
+    declineReason: '',
+    fundingSources: [
+      {
+        address: '0xabc',
+        network: 'linea',
+        txHash: '0xhash',
+        currency: 'usdc',
+        amount: '0.79',
+        fees: '0',
+        swapFee: '0',
+      },
+    ],
+  };
+
+  it('maps status, type, merchant and funding sources', async () => {
+    const get = jest.fn().mockResolvedValue([sampleTx]);
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const page = await provider.listTransactions({}, tokens);
+
+    expect(page.items[0]).toMatchObject({
+      id: 'tx-1',
+      status: 'completed',
+      type: 'purchase',
+      isDebit: true,
+      billingAmount: { value: '0.79', currency: 'EUR' },
+      merchant: {
+        name: 'WWW.ALIEXPRESS.COM',
+        city: 'LONDON',
+        category: 'misc',
+        mcc: '5964',
+      },
+      fundingSources: [
+        expect.objectContaining({
+          txHash: '0xhash',
+          chainId: 'eip155:59144',
+        }),
+      ],
+    });
+    expect(page.nextCursor).toBeUndefined();
+  });
+
+  it('maps DECLINED to failed and ATM debit to withdrawal', async () => {
+    const get = jest.fn().mockResolvedValue([
+      {
+        ...sampleTx,
+        id: 'tx-declined',
+        status: 'DECLINED',
+        declineReason: 'Insufficient funds',
+        fundingSources: [],
+        mccCategory: 'ATM',
+        merchantType: 'ATM',
+      },
+    ]);
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const page = await provider.listTransactions({}, tokens);
+
+    expect(page.items[0]).toMatchObject({
+      status: 'failed',
+      type: 'withdrawal',
+      declineReason: { message: 'Insufficient funds' },
+    });
+  });
+
+  it('emits nextCursor only when the page looks full', async () => {
+    const fullPage = Array.from({ length: 20 }, (_, i) => ({
+      ...sampleTx,
+      id: `tx-${i}`,
+    }));
+    const get = jest.fn().mockResolvedValue(fullPage);
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const page = await provider.listTransactions({}, tokens);
+
+    expect(page.nextCursor).toBeDefined();
+  });
+
+  it('returns empty when a later page wraps to page 0', async () => {
+    const fullPage = Array.from({ length: 20 }, (_, i) => ({
+      ...sampleTx,
+      id: i === 0 ? 'tx-first' : `tx-${i}`,
+    }));
+    const get = jest
+      .fn()
+      .mockResolvedValueOnce(fullPage)
+      .mockResolvedValueOnce(fullPage);
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const first = await provider.listTransactions({}, tokens);
+    const second = await provider.listTransactions(
+      { cursor: first.nextCursor },
+      tokens,
+    );
+
+    expect(second.items).toEqual([]);
+    expect(second.nextCursor).toBeUndefined();
+  });
+
+  it('passes searchKey and paired date filters', async () => {
+    const get = jest.fn().mockResolvedValue([]);
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+    const fromDate = Date.UTC(2026, 5, 10);
+    const toDate = Date.UTC(2026, 6, 1);
+
+    await provider.listTransactions(
+      { searchQuery: 'PayPal', fromDate, toDate },
+      tokens,
+    );
+
+    const path = get.mock.calls[0][0] as string;
+    expect(path).toContain('searchKey=PayPal');
+    expect(path).toContain('dateFrom=2026-06-10');
+    expect(path).toContain('dateTo=2026-07-01');
+  });
+});

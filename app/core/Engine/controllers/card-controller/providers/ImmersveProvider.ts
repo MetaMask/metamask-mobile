@@ -40,10 +40,19 @@ import {
   FundingAssetStatus,
   ICardProvider,
   isCardAuthTokenError,
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+  type CardTransactionDetails,
+  type CardTransactionListParams,
+  type CardTransactionPage,
 } from '../provider-types';
+import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
+import { minorUnitsToDecimal } from './utils/currencyMinorUnits';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
+const IMMERSVE_SEARCH_PAGE_BUDGET = 5;
 
 const DEFAULT_NETWORK = 'base-sepolia';
 const IMMERSVE_LOCATION = 'international';
@@ -246,6 +255,78 @@ interface ImmersvePanTokenResponse {
   callbackUrl: string;
 }
 
+interface ImmersveCursorPayload {
+  c: string;
+}
+
+interface ImmersveCardAcceptor {
+  name: string;
+  city: string;
+  countryCode: string;
+}
+
+interface ImmersveTransactionRaw {
+  id: string;
+  description: string;
+  accountId: string;
+  status: 'init' | 'holding' | 'cleared' | 'reversed';
+  cardId: string;
+  amount: string;
+  currency: string;
+  acquirerAmount?: string;
+  acquirerCurrency?: string;
+  feeAmount?: string;
+  transactionDate: string;
+  processedDate?: string;
+  reference: string;
+  cardAcceptor: ImmersveCardAcceptor;
+  creditDebitIndicator?: 'credit' | 'debit';
+  paymentType: 'purchase' | 'refund' | 'adjustment';
+  relatedPaymentId?: string;
+  securityChallenge?: { ref?: string; outcome?: string };
+  failureReason?: string;
+  panFirst6?: string;
+  panLast6?: string;
+}
+
+interface ImmersveTransactionListResponse {
+  items?: ImmersveTransactionRaw[];
+  pageInfo?: { nextCursor?: string };
+}
+
+function mapImmersveStatus(
+  status: ImmersveTransactionRaw['status'],
+  failureReason?: string,
+): CardTransactionStatus {
+  if (failureReason) {
+    return CardTransactionStatus.Failed;
+  }
+  switch (status) {
+    case 'init':
+      return CardTransactionStatus.Pending;
+    case 'reversed':
+      return CardTransactionStatus.Reversed;
+    case 'holding':
+    case 'cleared':
+    default:
+      return CardTransactionStatus.Completed;
+  }
+}
+
+function mapImmersveType(
+  paymentType: ImmersveTransactionRaw['paymentType'],
+): CardTransactionType {
+  switch (paymentType) {
+    case 'refund':
+      return CardTransactionType.Refund;
+    case 'adjustment':
+      return CardTransactionType.Adjustment;
+    case 'purchase':
+    default:
+      return CardTransactionType.Purchase;
+  }
+}
+
 export interface CardResumeInfo {
   cardProgramId?: string;
   fundingSourceIds: string[];
@@ -268,6 +349,11 @@ export class ImmersveProvider implements ICardProvider {
     supportsCredit: false,
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
+    supportsTransactionHistory: true,
+    supportsServerSideTransactionSearch: false,
+    supportsTransactionDetails: true,
+    supportsTransactionReporting: false,
+    supportsMoneyAccountLinking: false,
   };
 
   private readonly service: ImmersveService;
@@ -743,6 +829,98 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  async listTransactions(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'listTransactions: missing cardholder account id',
+      );
+    }
+
+    const search = params.searchQuery?.trim().toLowerCase();
+    const limit = params.limit ?? 50;
+    let cursor = params.cursor
+      ? decodeCardCursor<ImmersveCursorPayload>(params.cursor, this.id)?.c
+      : undefined;
+    const collected: CardTransaction[] = [];
+    let pagesFetched = 0;
+    let nextApiCursor: string | undefined;
+
+    try {
+      while (pagesFetched < IMMERSVE_SEARCH_PAGE_BUDGET) {
+        const query = new URLSearchParams({
+          statuses: 'all',
+          limit: String(limit),
+        });
+        if (cursor) {
+          query.set('cursor', cursor);
+        }
+        if (params.fromDate != null) {
+          query.set('fromUTC', new Date(params.fromDate).toISOString());
+        }
+        if (params.toDate != null) {
+          query.set('toUTC', new Date(params.toDate).toISOString());
+        }
+
+        const response =
+          await this.service.get<ImmersveTransactionListResponse>(
+            `/api/accounts/${accountId}/transactions?${query.toString()}`,
+            tokens,
+          );
+
+        const pageItems = (response.items ?? []).map((raw) =>
+          this.mapImmersveTransaction(raw),
+        );
+        const filtered = search
+          ? pageItems.filter((tx) =>
+              (tx.merchant?.name ?? tx.description ?? '')
+                .toLowerCase()
+                .includes(search),
+            )
+          : pageItems;
+
+        collected.push(...filtered);
+        nextApiCursor = response.pageInfo?.nextCursor;
+        cursor = nextApiCursor;
+        pagesFetched += 1;
+
+        if (!search || collected.length >= limit || !nextApiCursor) {
+          break;
+        }
+      }
+
+      const items = collected.slice(0, limit);
+      const nextCursor = nextApiCursor
+        ? encodeCardCursor(this.id, {
+            c: nextApiCursor,
+          } satisfies ImmersveCursorPayload)
+        : undefined;
+
+      return { items, nextCursor };
+    } catch (error) {
+      throw mapApiError(error, 'listTransactions');
+    }
+  }
+
+  async getTransaction(
+    id: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionDetails> {
+    try {
+      const raw = await this.service.get<ImmersveTransactionRaw>(
+        `/api/transactions/${id}`,
+        tokens,
+      );
+      return this.mapImmersveTransactionDetails(raw);
+    } catch (error) {
+      throw mapApiError(error, 'getTransaction');
+    }
+  }
+
   async freezeCard(cardId: string, tokens: CardAuthTokens): Promise<void> {
     try {
       await this.service.post(`/api/cards/${cardId}/freeze`, {}, tokens);
@@ -792,6 +970,70 @@ export class ImmersveProvider implements ICardProvider {
       lastFour: detail.panLast4 ?? '',
       holderName: detail.cardholderName,
       isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
+    };
+  }
+
+  private mapImmersveTransaction(raw: ImmersveTransactionRaw): CardTransaction {
+    const isDebit = raw.creditDebitIndicator !== 'credit';
+    const billingCurrency = raw.currency;
+    const feeValue =
+      raw.feeAmount && raw.feeAmount !== '0'
+        ? minorUnitsToDecimal(raw.feeAmount, billingCurrency)
+        : undefined;
+
+    return {
+      id: raw.id,
+      providerId: this.id,
+      timestamp: new Date(raw.transactionDate).getTime(),
+      processedAt: raw.processedDate
+        ? new Date(raw.processedDate).getTime()
+        : undefined,
+      status: mapImmersveStatus(raw.status, raw.failureReason),
+      type: mapImmersveType(raw.paymentType),
+      isDebit,
+      billingAmount: {
+        value: minorUnitsToDecimal(raw.amount, billingCurrency),
+        currency: billingCurrency,
+      },
+      originalAmount:
+        raw.acquirerCurrency &&
+        raw.acquirerAmount &&
+        raw.acquirerCurrency !== billingCurrency
+          ? {
+              value: minorUnitsToDecimal(
+                raw.acquirerAmount,
+                raw.acquirerCurrency,
+              ),
+              currency: raw.acquirerCurrency,
+            }
+          : undefined,
+      feeAmount: feeValue
+        ? { value: feeValue, currency: billingCurrency }
+        : undefined,
+      merchant: {
+        name: raw.cardAcceptor.name,
+        city: raw.cardAcceptor.city,
+        countryCode: raw.cardAcceptor.countryCode,
+      },
+      description: raw.description,
+      reference: raw.reference,
+      cardLastFour: raw.panLast6?.slice(-4),
+      declineReason: raw.failureReason
+        ? { code: raw.failureReason }
+        : undefined,
+      fundingSources: [],
+    };
+  }
+
+  private mapImmersveTransactionDetails(
+    raw: ImmersveTransactionRaw,
+  ): CardTransactionDetails {
+    return {
+      ...this.mapImmersveTransaction(raw),
+      cardFirstSix: raw.panFirst6,
+      cardLastFour: raw.panLast6?.slice(-4) ?? undefined,
+      securityChallengeOutcome: raw.securityChallenge?.outcome,
+      relatedTransactionId: raw.relatedPaymentId,
     };
   }
 

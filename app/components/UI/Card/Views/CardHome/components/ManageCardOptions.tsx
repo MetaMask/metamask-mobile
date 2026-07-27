@@ -41,6 +41,7 @@ interface ManageCardOptionsProps {
   hasPriorityTokenBalance: boolean;
   onCashback: () => void;
   onTravel: () => void;
+  onTransactionHistory?: () => void;
 }
 
 const ManageCardOptions = ({
@@ -70,6 +71,7 @@ const ManageCardOptions = ({
   hasPriorityTokenBalance,
   onCashback,
   onTravel,
+  onTransactionHistory,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -220,6 +222,15 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
+        {isFullySetUp && !hideManageOptions && onTransactionHistory ? (
+          <ManageCardListItem
+            title={strings('card.transactions.manage_entry_title')}
+            description={strings('card.transactions.manage_entry_description')}
+            rightIcon={IconName.ArrowRight}
+            onPress={onTransactionHistory}
+            testID="card-transaction-history-item"
+          />
+        ) : null}
         {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(

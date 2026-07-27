@@ -8,6 +8,7 @@ import {
   selectGalileoGoogleWalletProvisioningEnabled,
   selectCardForgotPasswordFeatureEnabled,
   selectImmersveOnboardingEnabled,
+  selectCardTransactionHistoryEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -916,5 +917,121 @@ describe('selectImmersveOnboardingEnabled', () => {
 
     expect(selectImmersveOnboardingEnabled(state)).toBe(false);
     expect(selectImmersveOnboardingEnabled(mockedEmptyFlagsState)).toBe(false);
+  });
+});
+
+describe('selectCardTransactionHistoryEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED;
+  });
+
+  it('returns false when feature flag state is empty and env is unset', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectCardTransactionHistoryEnabled(mockedEmptyFlagsState);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when feature flag is enabled and version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardTransactionHistory: {
+                enabled: true,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectCardTransactionHistoryEnabled(state);
+
+    expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when feature flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardTransactionHistory: {
+                enabled: false,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    expect(selectCardTransactionHistoryEnabled(state)).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardTransactionHistory: {
+                enabled: true,
+                minimumVersion: '99.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    expect(selectCardTransactionHistoryEnabled(state)).toBe(false);
+  });
+
+  it('falls back to env when remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED = 'true';
+
+    expect(selectCardTransactionHistoryEnabled.resultFunc({})).toBe(true);
+  });
+
+  it('falls back to env when override is activated (helper returns undefined)', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED = 'true';
+
+    expect(
+      selectCardTransactionHistoryEnabled.resultFunc({
+        cardTransactionHistory: {
+          enabled: false,
+          minimumVersion: '7.0.0',
+        },
+      }),
+    ).toBe(true);
   });
 });

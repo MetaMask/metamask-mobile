@@ -39,6 +39,17 @@ export const selectMoneyEnableActivityDetailsFlag = createSelector(
   },
 );
 
+export const selectMoneyEnableCardActivityEnrichmentFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableCardActivityEnrichment as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 /**
  * Selects whether the tilt-driven parallax animation is shown on the Money
  * onboarding "Next Best Action" card. Defaults to off (opt-in) so the feature

@@ -9170,6 +9170,52 @@
         "change_asset_description": "Select a different token"
       }
     },
+    "transactions": {
+      "title": "Transactions",
+      "search_placeholder": "Search",
+      "empty": "No transactions yet",
+      "load_error": "Can't load transactions",
+      "load_error_more": "Couldn't load more",
+      "retry": "Try again",
+      "end_of_list": "You're all caught up",
+      "pending": "Pending",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "details_title": "Transaction",
+      "status": "Status",
+      "card_number": "Card number",
+      "date": "Date",
+      "reference": "Reference",
+      "tx_hash": "Transaction hash",
+      "fee": "Fee",
+      "rate": "Exchange rate",
+      "merchant": "Merchant",
+      "category": "Category",
+      "location": "Location",
+      "decline_reason": "Decline reason",
+      "decline_reasons": {
+        "insufficient_funds": "Insufficient funds"
+      },
+      "categories": {
+        "subscriptions": "Subscriptions",
+        "food": "Food and drink",
+        "travel": "Travel",
+        "entertainment": "Entertainment",
+        "health": "Health",
+        "atm": "ATM",
+        "utilities": "Utilities",
+        "misc": "Other"
+      },
+      "copied": "Copied to clipboard",
+      "view_on_explorer": "View on block explorer",
+      "report_cta": "Report Transaction",
+      "report_title": "Report transaction",
+      "report_body": "Before filing a report, contact the merchant to try resolving the issue. If that doesn't work, you can file a report with MetaMask Card support.",
+      "report_file": "File Report",
+      "report_back": "Back",
+      "manage_entry_title": "Transaction history",
+      "manage_entry_description": "View your card purchases and activity"
+    },
     "card_spending_limit": {
       "title_change_token": "Change token and network",
       "title_enable_token": "Enable token",

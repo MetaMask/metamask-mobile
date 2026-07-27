@@ -61,6 +61,7 @@ import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/fea
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
+import { useShowCardTransactionHistoryEntry } from '../../hooks/useShowCardTransactionHistoryEntry';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
@@ -107,6 +108,7 @@ const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
+  const showTransactionHistoryEntry = useShowCardTransactionHistoryEntry();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const lastUnauthenticatedReason = useSelector(
     selectCardLastUnauthenticatedReason,
@@ -721,6 +723,11 @@ const CardHome = () => {
             hasPriorityTokenBalance={hasPriorityTokenBalance}
             onCashback={actions.cashbackAction}
             onTravel={actions.navigateToTravelPage}
+            onTransactionHistory={
+              showTransactionHistoryEntry
+                ? actions.transactionHistoryAction
+                : undefined
+            }
           />
         )}
 

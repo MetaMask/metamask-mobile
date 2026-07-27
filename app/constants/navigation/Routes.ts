@@ -545,6 +545,9 @@ const Routes = {
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
     CREDIT_REDEEM: 'CardCreditRedeem',
+    TRANSACTION_HISTORY: 'CardTransactionHistory',
+    TRANSACTION_DETAILS: 'CardTransactionDetails',
+    REPORT_TRANSACTION: 'CardReportTransaction',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',

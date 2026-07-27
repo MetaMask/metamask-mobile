@@ -1,6 +1,9 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
-import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import {
+  validatedVersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
+} from '../../../util/remoteFeatureFlag';
 
 export const defaultCardFeatureFlag: CardFeatureFlag = {
   chains: {
@@ -286,4 +289,16 @@ export const selectCardFiatCreditFeatureEnabled = createSelector(
 export const selectImmersveOnboardingEnabled = createSelector(
   selectCardFeatureFlag,
   (cardFeatureFlag) => Boolean(cardFeatureFlag.immersve?.enabled),
+);
+
+export const selectCardTransactionHistoryEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardTransactionHistory as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );
