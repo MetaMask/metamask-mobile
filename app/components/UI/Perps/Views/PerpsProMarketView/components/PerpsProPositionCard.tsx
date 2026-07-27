@@ -8,6 +8,8 @@ import {
   ButtonVariant,
   FontWeight,
   IconName,
+  SensitiveText,
+  SensitiveTextLength,
   Tag,
   TagSeverity,
   Text,
@@ -20,7 +22,9 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
@@ -46,6 +50,7 @@ interface KeyValueItemProps {
   value: string;
   valueColor?: TextColor;
   labelAccessory?: React.ReactNode;
+  isHidden?: boolean;
 }
 
 const KeyValueItem = ({
@@ -53,6 +58,7 @@ const KeyValueItem = ({
   value,
   valueColor = TextColor.TextDefault,
   labelAccessory,
+  isHidden = false,
 }: KeyValueItemProps) => (
   <Box>
     <Box
@@ -65,13 +71,15 @@ const KeyValueItem = ({
       </Text>
       {labelAccessory}
     </Box>
-    <Text
+    <SensitiveText
       variant={TextVariant.BodyXs}
       fontWeight={FontWeight.Medium}
-      color={valueColor}
+      color={isHidden ? TextColor.TextDefault : valueColor}
+      isHidden={isHidden}
+      length={SensitiveTextLength.Short}
     >
       {value}
-    </Text>
+    </SensitiveText>
   </Box>
 );
 
@@ -89,6 +97,7 @@ const PerpsProPositionCard = ({
   position,
   testID,
 }: PerpsProPositionCardProps) => {
+  const privacyMode = useSelector(selectPrivacyMode);
   const displaySymbol = getPerpsDisplaySymbol(position.symbol);
   const sizeNum = parseFloat(position.size);
   const isLong = sizeNum >= 0;
@@ -199,19 +208,28 @@ const PerpsProPositionCard = ({
                 severity={directionSeverity}
               >{`${position.leverage.value}x ${directionLabel}`}</Tag>
             </Box>
-            <Text
+            <SensitiveText
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
             >
               {`${formatPositionSize(
                 absoluteSize.toString(),
               )} ${displaySymbol} • ${positionValueDisplay}`}
-            </Text>
+            </SensitiveText>
           </Box>
         </Box>
-        <Tag severity={pnlSeverity}>
-          {`${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`}
+        <Tag severity={privacyMode ? TagSeverity.Neutral : pnlSeverity}>
+          <SensitiveText
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+          >
+            {`${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`}
+          </SensitiveText>
         </Tag>
       </Box>
 
@@ -226,10 +244,12 @@ const PerpsProPositionCard = ({
             <KeyValueItem
               label={strings('perps.pro_positions_panel.card.entry_price')}
               value={entryPriceDisplay}
+              isHidden={privacyMode}
             />
             <KeyValueItem
               label={strings('perps.pro_positions_panel.card.margin')}
               value={marginDisplay}
+              isHidden={privacyMode}
               labelAccessory={
                 <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
               }
@@ -239,21 +259,25 @@ const PerpsProPositionCard = ({
             <KeyValueItem
               label={strings('perps.pro_positions_panel.card.mark_price')}
               value={markPriceDisplay}
+              isHidden={privacyMode}
             />
             <KeyValueItem
               label={strings('perps.pro_positions_panel.card.tp_sl')}
               value={tpSlDisplay}
+              isHidden={privacyMode}
             />
           </Box>
           <Box twClassName="gap-6">
             <KeyValueItem
               label={strings('perps.pro_positions_panel.card.liq_price')}
               value={liqPriceDisplay}
+              isHidden={privacyMode}
             />
             <KeyValueItem
               label={strings('perps.pro_positions_panel.card.funding')}
               value={fundingDisplay}
               valueColor={fundingColor}
+              isHidden={privacyMode}
             />
           </Box>
         </Box>

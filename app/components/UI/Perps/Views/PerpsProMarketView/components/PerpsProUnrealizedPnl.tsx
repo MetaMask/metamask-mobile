@@ -7,12 +7,16 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import { formatPercentage, formatPnl } from '../../../utils/formatUtils';
 
 interface PerpsProUnrealizedPnlProps {
@@ -29,10 +33,12 @@ const PerpsProUnrealizedPnl = ({
   unrealizedPnl,
   returnOnEquity,
 }: PerpsProUnrealizedPnlProps) => {
+  const privacyMode = useSelector(selectPrivacyMode);
   const pnl = parseFloat(unrealizedPnl) || 0;
   const roe = parseFloat(returnOnEquity) || 0;
-  const valueColor =
-    pnl > 0
+  const valueColor = privacyMode
+    ? TextColor.TextDefault
+    : pnl > 0
       ? TextColor.SuccessDefault
       : pnl < 0
         ? TextColor.ErrorDefault
@@ -54,10 +60,12 @@ const PerpsProUnrealizedPnl = ({
           >
             {strings('perps.unrealized_pnl')}
           </Text>
-          <Text
+          <SensitiveText
             variant={TextVariant.HeadingSm}
             color={valueColor}
-          >{`${formatPnl(pnl)} (${formatPercentage(roe, 1)})`}</Text>
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+          >{`${formatPnl(pnl)} (${formatPercentage(roe, 1)})`}</SensitiveText>
         </Box>
         <Button
           variant={ButtonVariant.Secondary}

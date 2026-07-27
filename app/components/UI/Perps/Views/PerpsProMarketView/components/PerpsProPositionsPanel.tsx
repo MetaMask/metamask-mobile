@@ -14,6 +14,7 @@ import {
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
+import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations';
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProPositionCard from './PerpsProPositionCard';
@@ -33,7 +34,8 @@ interface PerpsProPositionsPanelProps {
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * The Positions tab shows a read-only list of the user's open positions
  * across all assets, falling back to an empty state when there are none.
- * The Orders tab shows the user's open orders as read-only cards.
+ * The `$TICKER only` checkbox filters positions (not orders) to the current
+ * market. The Orders tab shows the user's open orders as read-only cards.
  */
 const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
@@ -46,7 +48,17 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     usePerpsLiveOrders({ throttleMs: 1000 });
   const { account } = usePerpsLiveAccount({ throttleMs: 1000 });
 
-  const openPositionsCount = positions.length;
+  const visiblePositions = useMemo(
+    () =>
+      isTickerOnly
+        ? positions.filter(
+            (position) => getPerpsDisplaySymbol(position.symbol) === symbol,
+          )
+        : positions,
+    [isTickerOnly, positions, symbol],
+  );
+
+  const openPositionsCount = visiblePositions.length;
   const positionsTabLabel =
     openPositionsCount > 0
       ? strings('perps.pro_positions_panel.positions_with_count', {
@@ -77,34 +89,13 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     },
   ];
 
-  const visiblePositions = useMemo(
-    () =>
-      isTickerOnly
-        ? positions.filter(
-            (position) => getPerpsDisplaySymbol(position.symbol) === symbol,
-          )
-        : positions,
-    [isTickerOnly, positions, symbol],
+  const filteredTotals = useMemo(
+    () => calculatePositionAggregateTotals(visiblePositions),
+    [visiblePositions],
   );
 
-  const filteredTotals = useMemo(() => {
-    const unrealizedPnl = visiblePositions.reduce(
-      (total, position) => total + parseFloat(position.unrealizedPnl || '0'),
-      0,
-    );
-    const marginUsed = visiblePositions.reduce(
-      (total, position) => total + parseFloat(position.marginUsed || '0'),
-      0,
-    );
-
-    return {
-      unrealizedPnl: unrealizedPnl.toString(),
-      returnOnEquity:
-        marginUsed > 0 ? ((unrealizedPnl / marginUsed) * 100).toString() : '0',
-    };
-  }, [visiblePositions]);
-
   const hasPositions = visiblePositions.length > 0;
+  const hasAnyPositions = positions.length > 0;
 
   const renderPositionsTab = () => {
     if (hasPositions) {
@@ -140,7 +131,9 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
 
     return (
       <Box twClassName="items-center justify-center px-4 pt-6">
-        <PerpsProPositionsEmptyState />
+        <PerpsProPositionsEmptyState
+          filteredTicker={isTickerOnly && hasAnyPositions ? symbol : undefined}
+        />
       </Box>
     );
   };

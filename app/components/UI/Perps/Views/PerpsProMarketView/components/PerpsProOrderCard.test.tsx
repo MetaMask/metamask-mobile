@@ -1,11 +1,18 @@
 import { render, screen } from '@testing-library/react-native';
 import type { Order } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import PerpsProOrderCard from './PerpsProOrderCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('PerpsProOrderCard', () => {
+  const DOTS_SHORT = '•'.repeat(6);
   const baseOrder: Order = {
     orderId: 'order-1',
     symbol: 'SOL',
@@ -21,6 +28,11 @@ describe('PerpsProOrderCard', () => {
     reduceOnly: false,
     isTrigger: false,
   };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useSelector as jest.Mock).mockReturnValue(false);
+  });
 
   it('renders stop order details and display-only cancel control', () => {
     render(
@@ -41,8 +53,10 @@ describe('PerpsProOrderCard', () => {
     expect(screen.getByText('Long')).toBeOnTheScreen();
     expect(screen.getByText('Stop')).toBeOnTheScreen();
     expect(screen.getByText('13 SOL')).toBeOnTheScreen();
-    expect(screen.getByText('$2,089.2')).toBeOnTheScreen();
-    expect(screen.getByText('$160.71')).toBeOnTheScreen();
+    // Trigger orders resolve display price from triggerPrice via
+    // resolveOrderDisplayPriceAndLabel ($101), not the leftover order price.
+    expect(screen.getByText('$1,313')).toBeOnTheScreen();
+    expect(screen.getByText('$101')).toBeOnTheScreen();
     expect(screen.getByText('Yes')).toBeOnTheScreen();
     expect(screen.getByText('$220 / $130')).toBeOnTheScreen();
     expect(screen.getByText('Price below $101.00')).toBeOnTheScreen();
@@ -66,6 +80,25 @@ describe('PerpsProOrderCard', () => {
     );
 
     expect(screen.getByText('Price above $220.00')).toBeOnTheScreen();
+  });
+
+  it('does not show trigger condition for non-trigger limit orders that carry a triggerPrice', () => {
+    render(
+      <PerpsProOrderCard
+        order={{
+          ...baseOrder,
+          isTrigger: false,
+          detailedOrderType: 'Limit',
+          orderType: 'limit',
+          triggerPrice: '51000',
+          price: '160.71',
+        }}
+      />,
+    );
+
+    expect(screen.getByText('$160.71')).toBeOnTheScreen();
+    expect(screen.queryByText(/Price (above|below)/)).toBeNull();
+    expect(screen.getByText('$---')).toBeOnTheScreen();
   });
 
   it.each([
@@ -178,4 +211,27 @@ describe('PerpsProOrderCard', () => {
       expect(screen.getByText(reduceOnlyLabel)).toBeOnTheScreen();
     },
   );
+
+  describe('Privacy Mode', () => {
+    it('hides monetary values but keeps size and labels visible', () => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      render(
+        <PerpsProOrderCard
+          order={{
+            ...baseOrder,
+            takeProfitPrice: '220',
+            stopLossPrice: '130',
+          }}
+        />,
+      );
+
+      expect(screen.getByText('13 SOL')).toBeOnTheScreen();
+      expect(screen.getByText('Open limit')).toBeOnTheScreen();
+      expect(screen.getByText('SOL')).toBeOnTheScreen();
+      expect(screen.queryByText('$160.71')).toBeNull();
+      expect(screen.queryByText('$220 / $130')).toBeNull();
+      expect(screen.getAllByText(DOTS_SHORT).length).toBeGreaterThanOrEqual(2);
+    });
+  });
 });

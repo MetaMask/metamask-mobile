@@ -10,6 +10,8 @@ import {
   Icon,
   IconName,
   IconSize,
+  SensitiveText,
+  SensitiveTextLength,
   Tag,
   TagSeverity,
   Text,
@@ -22,7 +24,9 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
@@ -34,9 +38,10 @@ import {
 import { isClosingOrder } from '../../../utils/orderDirection';
 import {
   getOrderPositionDirection,
-  getValidOrderPrice,
   getValidTriggerPrice,
   inferTriggerConditionKey,
+  isTriggerOrder,
+  resolveOrderDisplayPriceAndLabel,
 } from '../../../utils/orderUtils';
 
 interface PerpsProOrderCardProps {
@@ -48,12 +53,14 @@ interface KeyValueItemProps {
   label: string;
   value: string;
   isEditable?: boolean;
+  isHidden?: boolean;
 }
 
 const KeyValueItem = ({
   label,
   value,
   isEditable = false,
+  isHidden = false,
 }: KeyValueItemProps) => (
   <Box>
     <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
@@ -64,9 +71,14 @@ const KeyValueItem = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-1"
     >
-      <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+      <SensitiveText
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Medium}
+        isHidden={isHidden}
+        length={SensitiveTextLength.Short}
+      >
         {value}
-      </Text>
+      </SensitiveText>
       {isEditable && <Icon name={IconName.Edit} size={IconSize.Sm} />}
     </Box>
   </Box>
@@ -99,29 +111,28 @@ const getOrderTypeLabel = (order: Order): string => {
  * Read-only summary of an open perps order in the Pro market view.
  */
 const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
+  const privacyMode = useSelector(selectPrivacyMode);
   const displaySymbol = getPerpsDisplaySymbol(order.symbol);
   const direction = getOrderPositionDirection(order);
   const isLong = direction === 'long';
   const size = formatPositionSize(order.originalSize);
-  const validOrderPrice = getValidOrderPrice(order);
+  const { priceValue } = resolveOrderDisplayPriceAndLabel(order);
   const validTriggerPrice = getValidTriggerPrice(order);
-  const effectivePrice = validOrderPrice ?? validTriggerPrice;
   const orderValue =
-    effectivePrice === null
+    priceValue === null
       ? PERPS_CONSTANTS.FallbackPriceDisplay
-      : formatPerpsFiat(
-          Number.parseFloat(order.originalSize) * effectivePrice,
-          { ranges: PRICE_RANGES_UNIVERSAL },
-        );
+      : formatPerpsFiat(Number.parseFloat(order.originalSize) * priceValue, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        });
   const price =
-    validOrderPrice === null
+    priceValue === null
       ? strings('perps.order.market')
-      : formatPerpsFiat(validOrderPrice, {
+      : formatPerpsFiat(priceValue, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
   // Figma (Stop card): "Price below $101.00". Non-trigger: fallback display.
   let triggerCondition = PERPS_CONSTANTS.FallbackPriceDisplay;
-  if (order.isTrigger && validTriggerPrice !== null) {
+  if (isTriggerOrder(order) && validTriggerPrice !== null) {
     const conditionKey = inferTriggerConditionKey({
       detailedOrderType: order.detailedOrderType,
       side: order.side,
@@ -215,11 +226,13 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
                 'perps.pro_positions_panel.order_card.order_value',
               )}
               value={orderValue}
+              isHidden={privacyMode}
             />
             <KeyValueItem
               label={strings('perps.pro_positions_panel.order_card.tp_sl')}
               value={tpSl}
               isEditable
+              isHidden={privacyMode}
             />
           </Box>
           <Box twClassName="min-w-[120px] gap-6">
@@ -227,12 +240,14 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
               label={strings('perps.pro_positions_panel.order_card.price')}
               value={price}
               isEditable
+              isHidden={privacyMode}
             />
             <KeyValueItem
               label={strings(
                 'perps.pro_positions_panel.order_card.trigger_condition',
               )}
               value={triggerCondition}
+              isHidden={privacyMode}
             />
           </Box>
         </Box>

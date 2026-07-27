@@ -7,16 +7,29 @@ import { useAssetFromTheme } from '../../../../../../util/theme';
 import emptyStatePerpsLight from '../../../../../../images/empty-state-perps-light.png';
 import emptyStatePerpsDark from '../../../../../../images/empty-state-perps-dark.png';
 
+interface PerpsProPositionsEmptyStateProps {
+  /** When set, shows the ticker-filtered empty copy instead of the global one. */
+  filteredTicker?: string;
+}
+
 /**
  * Empty state shown in the Pro-mode Positions tab when the user has no open
- * positions. Renders the themed Perps candlestick illustration with a message.
+ * positions (or none matching the ticker filter).
  */
-const PerpsProPositionsEmptyState = () => {
+const PerpsProPositionsEmptyState = ({
+  filteredTicker,
+}: PerpsProPositionsEmptyStateProps) => {
   const tw = useTailwind();
   const perpsImage = useAssetFromTheme(
     emptyStatePerpsLight,
     emptyStatePerpsDark,
   );
+
+  const description = filteredTicker
+    ? strings('perps.pro_positions_panel.positions_empty_filtered', {
+        ticker: filteredTicker,
+      })
+    : strings('perps.pro_positions_panel.positions_empty');
 
   return (
     <TabEmptyState
@@ -27,7 +40,7 @@ const PerpsProPositionsEmptyState = () => {
           style={tw.style('w-[72px] h-[72px]')}
         />
       }
-      description={strings('perps.pro_positions_panel.positions_empty')}
+      description={description}
     />
   );
 };
