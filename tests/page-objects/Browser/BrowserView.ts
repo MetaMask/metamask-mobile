@@ -215,7 +215,7 @@ class Browser {
     await Gestures.waitAndTap(this.urlBarDisplayText, {
       elemDescription: 'URL bar display text (focus URL editor)',
     });
-    await input.waitForDisplayed({ timeout: 10_000 });
+    await input.waitForDisplayed();
   }
 
   /**
@@ -300,7 +300,7 @@ class Browser {
       const closeBtn = await PlaywrightMatchers.getElementById(
         BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
       );
-      await PlaywrightGestures.waitAndTap(closeBtn, { timeout: 10_000 });
+      await PlaywrightGestures.waitAndTap(closeBtn);
       return;
     }
 

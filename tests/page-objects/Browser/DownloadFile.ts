@@ -4,6 +4,12 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import Utilities from '../../framework/Utilities';
+import {
+  DownloadFileSelectorsAccessibilityIDs,
+  DownloadFileSelectorsIDs,
+  DownloadFileSelectorsText,
+} from '../../selectors/Browser/DownloadFile.selectors';
 
 class DownloadFile {
   async verifyTapjackingAndClickDownloadButton(): Promise<void> {
@@ -13,13 +19,11 @@ class DownloadFile {
     }
 
     await PlaywrightContextHelpers.switchToNativeContext();
-    // RN Alert.alert positive button is the system Dialog button1 resource-id.
-    // Text matchers miss it once the native dialog steals the accessibility tree.
-    const confirmDownloadButton =
-      await PlaywrightMatchers.getElementById('android:id/button1');
-    await PlaywrightGestures.waitAndTap(confirmDownloadButton, {
-      timeout: 15_000,
-    });
+    await PlaywrightGestures.waitAndTap(
+      await PlaywrightMatchers.getElementById(
+        DownloadFileSelectorsIDs.ANDROID_CONFIRM_DOWNLOAD_BUTTON,
+      ),
+    );
   }
 
   async verifySuccessStateVisible(): Promise<void> {
@@ -29,17 +33,30 @@ class DownloadFile {
       // saveToFiles presents UIDocumentPickerViewController (export), not a
       // UIActivityViewController with a top-level "Save" action. Cancel appears
       // in the hierarchy but is not hittable, so only assert presentation.
-      const cancel =
-        await PlaywrightMatchers.getElementByAccessibilityId('Cancel');
-      await cancel.unwrap().waitForExist({ timeout: 20_000 });
+      await Utilities.executeWithRetry(
+        async () => {
+          const cancel = await PlaywrightMatchers.getElementByAccessibilityId(
+            DownloadFileSelectorsAccessibilityIDs.IOS_SAVE_SHEET_CANCEL,
+          );
+          if (!(await cancel.unwrap().isExisting())) {
+            throw new Error(
+              'iOS download Save sheet Cancel control not present',
+            );
+          }
+        },
+        {
+          description: 'Assert iOS download Save sheet is presented',
+        },
+      );
       return;
     }
 
     // Android: handleWebDownload shows a success alert after MediaStore save.
     await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText('Download complete'),
+      Matchers.getElementByText(
+        DownloadFileSelectorsText.ANDROID_DOWNLOAD_COMPLETE,
+      ),
       {
-        timeout: 15_000,
         description: 'Android download complete alert',
       },
     );
