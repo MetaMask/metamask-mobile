@@ -25,6 +25,11 @@ import Engine from '../../../../core/Engine';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectProviders } from '../../../../selectors/rampsController';
+import {
+  startRampsBuyCufTrace,
+  surfaceFromBuyFlowOrigin,
+} from '../utils/rampsBuyCufTrace';
+import type { RampsBuyCufSurface } from '../constants/rampsBuyCufTags';
 
 /**
  * Hook that returns functions to navigate to ramp flows.
@@ -60,11 +65,24 @@ export const useRampNavigation = () => {
       options?: {
         overrideUnifiedRouting?: boolean;
         buyFlowOrigin?: BuyFlowOrigin;
+        /** Buy E2E CUF surface tag (TRAM-3779). Falls back from buyFlowOrigin. */
+        surface?: RampsBuyCufSurface;
       },
     ) => {
       const { overrideUnifiedRouting = false } = options || {};
 
       const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
+
+      const startBuyCufIfUnified = () => {
+        if (!isUnifiedRoutingEnabled) {
+          return;
+        }
+        startRampsBuyCufTrace({
+          surface:
+            options?.surface ??
+            surfaceFromBuyFlowOrigin(options?.buyFlowOrigin),
+        });
+      };
 
       // Resolve the best available geolocation; only the unified path refreshes.
       let location: string | undefined = geolocationLocation;
@@ -162,6 +180,7 @@ export const useRampNavigation = () => {
         } catch {
           // Token may not be in controller's list yet (still loading).
         }
+        startBuyCufIfUnified();
         navigateWithDetails(
           navigation,
           createBuildQuoteNavDetails({
@@ -173,6 +192,7 @@ export const useRampNavigation = () => {
       }
 
       if (!intent?.assetId && !overrideUnifiedRouting) {
+        startBuyCufIfUnified();
         navigateWithDetails(navigation, createTokenSelectionNavDetails());
         return;
       }
