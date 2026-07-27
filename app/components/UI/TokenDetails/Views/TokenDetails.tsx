@@ -639,6 +639,16 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   const tokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
+  // Reset perps market state when the token changes so stale results from a
+  // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
+  const prevTokenKeyRef = useRef<string | null>(null);
+  if (prevTokenKeyRef.current !== tokenKey) {
+    prevTokenKeyRef.current = tokenKey;
+    if (perpsMarket.hasPerpsMarket || !perpsMarket.isLoading) {
+      setPerpsMarket({ hasPerpsMarket: false, isLoading: true });
+    }
+  }
+
   const handleMarketInsightsDisplayResolved = useCallback(
     (payload: { isDisplayed: boolean; severity: string | undefined }) => {
       setPendingInsights({
