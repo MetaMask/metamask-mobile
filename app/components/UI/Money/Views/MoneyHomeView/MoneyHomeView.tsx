@@ -301,20 +301,6 @@ const MoneyHomeView = () => {
     return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyDecimal, formattedZero]);
 
-  const projectedAnnualFallback = useMemo(() => {
-    if (!totalFiatRaw || !apyDecimal) return formattedZero;
-    const balance = new BigNumber(totalFiatRaw);
-    if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = calculateProjectedEarnings(
-      balance.toNumber(),
-      apyDecimal,
-      1,
-    );
-    if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatUsd(new BigNumber(earnings));
-    return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyDecimal, formattedZero]);
-
   const formatInterestEarned = useCallback(
     (value: string | undefined): string | undefined => {
       if (value === undefined) return undefined;
@@ -330,38 +316,23 @@ const MoneyHomeView = () => {
   );
 
   const formattedLast30DaysInterest = useMemo(
-    () =>
-      last30DaysQuery.isError
-        ? undefined
-        : formatInterestEarned(last30DaysQuery.data?.interest_earned_usd),
-    [
-      formatInterestEarned,
-      last30DaysQuery.data?.interest_earned_usd,
-      last30DaysQuery.isError,
-    ],
+    () => formatInterestEarned(last30DaysQuery.data?.interest_earned_usd),
+    [formatInterestEarned, last30DaysQuery.data?.interest_earned_usd],
   );
-
   const formattedSinceInceptionInterest = useMemo(
-    () =>
-      sinceInceptionQuery.isError
-        ? undefined
-        : formatInterestEarned(sinceInceptionQuery.data?.interest_earned_usd),
-    [
-      formatInterestEarned,
-      sinceInceptionQuery.data?.interest_earned_usd,
-      sinceInceptionQuery.isError,
-    ],
+    () => formatInterestEarned(sinceInceptionQuery.data?.interest_earned_usd),
+    [formatInterestEarned, sinceInceptionQuery.data?.interest_earned_usd],
   );
 
   const last30DaysInterest =
     formattedLast30DaysInterest ?? projectedMonthlyFallback;
   const sinceInceptionInterest =
-    formattedSinceInceptionInterest ?? projectedAnnualFallback;
+    formattedSinceInceptionInterest ?? formattedZero;
 
   const isEarningsLoading =
-    last30DaysQuery.isLoading ||
-    sinceInceptionQuery.isLoading ||
-    ((!formattedLast30DaysInterest || !formattedSinceInceptionInterest) &&
+    last30DaysQuery.isInitialLoading ||
+    sinceInceptionQuery.isInitialLoading ||
+    (formattedLast30DaysInterest === undefined &&
       (vaultApyQuery.isLoading || isBalanceLoading));
 
   const handleMenuPress = useCallback(() => {

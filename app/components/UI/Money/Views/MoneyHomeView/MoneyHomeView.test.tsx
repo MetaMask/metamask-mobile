@@ -445,6 +445,7 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '11.37',
         },
         isLoading: false,
+        isInitialLoading: false,
         isError: false,
       },
       sinceInceptionQuery: {
@@ -452,6 +453,7 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '139.02',
         },
         isLoading: false,
+        isInitialLoading: false,
         isError: false,
       },
       refetchInterest: mockRefetchInterest,
@@ -1373,23 +1375,24 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('+$139.02');
     });
 
-    it('falls back per row to the APY projection when an interest request fails', () => {
+    it('falls back monthly to APY projection and lifetime to zero when interest fails', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
+          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
-          data: { interest_earned_usd: '139.02' },
+          data: undefined,
           isLoading: false,
-          isError: false,
+          isInitialLoading: false,
+          isError: true,
         },
         refetchInterest: mockRefetchInterest,
       } as unknown as ReturnType<typeof useMoneyAccountInterest>);
       mockMoneyFormatUsd.mockImplementation((value) => {
         if (String(value) === '0') return '$0.00';
-        if (String(value) === '139.02') return '$139.02';
         return '$0.01';
       });
 
@@ -1400,19 +1403,21 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('+$0.01');
       expect(
         getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
-      ).toHaveTextContent('+$139.02');
+      ).toHaveTextContent(/^\$0\.00$/);
     });
 
-    it('falls back to projections for invalid interest values', () => {
+    it('falls back monthly to projection and lifetime to zero for invalid interest values', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: 'invalid' },
           isLoading: false,
+          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: 'NaN' },
           isLoading: false,
+          isInitialLoading: false,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1428,19 +1433,21 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('+$0.01');
       expect(
         getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
-      ).toHaveTextContent('+$0.01');
+      ).toHaveTextContent(/^\$0\.00$/);
     });
 
-    it('shows skeletons while interest is loading', () => {
+    it('shows skeletons while interest is initially loading', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
+          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
+          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1454,6 +1461,46 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON),
       ).toBeOnTheScreen();
+    });
+
+    it('does not show skeletons while interest is refetching with cached data', () => {
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: { interest_earned_usd: '11.37' },
+          isLoading: true,
+          isInitialLoading: false,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: { interest_earned_usd: '139.02' },
+          isLoading: true,
+          isInitialLoading: false,
+          isError: false,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+      mockMoneyFormatUsd.mockImplementation((value) => {
+        if (String(value) === '11.37') return '$11.37';
+        if (String(value) === '139.02') return '$139.02';
+        return '$0.12';
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyEarningsTestIds.LAST_30_DAYS_SKELETON),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+      ).toHaveTextContent('+$11.37');
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
+      ).toHaveTextContent('+$139.02');
     });
 
     it('drops the + prefix when earnings round to formatted zero', () => {
