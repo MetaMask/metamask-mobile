@@ -321,33 +321,37 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         {strings('perps.close_all_modal.title')}
       </BottomSheetHeader>
 
-      <Box paddingHorizontal={4} twClassName="py-2">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          style={styles.description}
-          testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
-        >
-          {strings('perps.close_all_modal.description')}
-        </Text>
+      <Box twClassName="py-2">
+        <Box paddingHorizontal={4}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.description}
+            testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
+          >
+            {strings('perps.close_all_modal.description')}
+          </Text>
+        </Box>
 
         {isClosing ? (
-          <View
-            style={styles.loadingContainer}
-            testID={PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE}
-          >
-            <ActivityIndicator
-              size="large"
-              color={theme.colors.primary.default}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              style={styles.loadingText}
+          <Box paddingHorizontal={4}>
+            <View
+              style={styles.loadingContainer}
+              testID={PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE}
             >
-              {strings('perps.close_all_modal.closing')}
-            </Text>
-          </View>
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary.default}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={styles.loadingText}
+              >
+                {strings('perps.close_all_modal.closing')}
+              </Text>
+            </View>
+          </Box>
         ) : (
           <PerpsCloseSummary
             totalMargin={calculations.totalMargin}
