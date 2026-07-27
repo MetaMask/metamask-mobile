@@ -21,7 +21,9 @@ buildscript {
 	dependencies {
 		classpath("com.android.tools.build:gradle")
     	classpath("com.facebook.react:react-native-gradle-plugin")
-		classpath("io.sentry:sentry-android-gradle-plugin:4.2.0")
+		// Keep in sync with sentryAndroidGradlePluginVersion pinned by
+		// @sentry/react-native (plugin/build/withSentryAndroidGradlePlugin.js)
+		classpath("io.sentry:sentry-android-gradle-plugin:6.14.0")
     	classpath("com.google.gms:google-services:4.4.2")
 	    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
 	}
