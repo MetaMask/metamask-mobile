@@ -551,6 +551,142 @@ describe('AppStateEventListener', () => {
         source: 'direct',
       });
     });
+
+    // A single push tap reaches handleDeeplink twice, and the second delivery
+    // carries no source. Both orderings occur in the wild: on iOS the Branch
+    // re-delivery of a Braze universal link lands after the tagged JS event
+    // (it needs a network round trip), while on Android the Braze auto-opened
+    // intent and the tagged Braze event race.
+    describe('duplicate push delivery', () => {
+      it('keeps the braze origin when Branch re-delivers the rewritten URI untagged', () => {
+        appStateManager.setCurrentDeeplink(
+          'https://link.metamask.io/AbCd1234',
+          'braze',
+        );
+        appStateManager.setCurrentDeeplink('https://link.metamask.io/swap');
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+        });
+      });
+
+      it('keeps the FCM origin when the same URI is re-delivered untagged', () => {
+        appStateManager.setCurrentDeeplink(
+          'metamask://notification',
+          'push-notification',
+        );
+        appStateManager.setCurrentDeeplink('metamask://notification');
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+        });
+      });
+
+      it('applies the braze origin when the untagged delivery arrives first', () => {
+        appStateManager.setCurrentDeeplink('metamask://promo');
+        appStateManager.setCurrentDeeplink('metamask://promo', 'braze');
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+        });
+      });
+
+      // Same-URI duplicates never reach setCurrentDeeplink — handleDeeplink
+      // suppresses them — so the tagged delivery arrives via promotion instead.
+      it('promotes the origin when the tagged delivery was suppressed as a duplicate', () => {
+        appStateManager.setCurrentDeeplink('metamask://promo');
+        appStateManager.promoteCurrentDeeplinkSource(
+          'metamask://promo',
+          'braze',
+        );
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+        });
+      });
+
+      it('does not promote the origin of a different deeplink', () => {
+        appStateManager.setCurrentDeeplink('metamask://swap');
+        appStateManager.promoteCurrentDeeplinkSource(
+          'metamask://promo',
+          'braze',
+        );
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'deeplink',
+        });
+      });
+
+      it('does not promote when the suppressed duplicate carries no push source', () => {
+        appStateManager.setCurrentDeeplink('metamask://promo');
+        appStateManager.promoteCurrentDeeplinkSource('metamask://promo');
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'deeplink',
+        });
+      });
+
+      it('does not invent an origin when there is no current deeplink', () => {
+        appStateManager.promoteCurrentDeeplinkSource(
+          'metamask://promo',
+          'braze',
+        );
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'direct',
+        });
+      });
+
+      it('does not make a non-push origin sticky', () => {
+        appStateManager.setCurrentDeeplink(
+          'https://link.metamask.io/swap',
+          'deeplink',
+        );
+        appStateManager.setCurrentDeeplink('https://link.metamask.io/send');
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'deeplink',
+        });
+      });
+
+      it('does not carry the push origin past the event it was captured for', () => {
+        appStateManager.setCurrentDeeplink('metamask://promo', 'braze');
+        appStateManager.setCurrentDeeplink('metamask://promo');
+        warmOpen();
+        mockEventBuilder.addProperties.mockClear();
+
+        appStateManager.setCurrentDeeplink('https://link.metamask.io/swap');
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'deeplink',
+        });
+      });
+
+      it('still clears pendingDeeplinkSource on the untagged delivery', () => {
+        appStateManager.setCurrentDeeplink('metamask://promo', 'braze');
+        appStateManager.setCurrentDeeplink('metamask://promo');
+
+        expect(appStateManager.pendingDeeplinkSource).toBeNull();
+      });
+    });
   });
 
   describe('trackAppInstallOnce', () => {

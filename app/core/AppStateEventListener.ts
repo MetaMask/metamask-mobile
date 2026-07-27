@@ -137,8 +137,6 @@ export class AppStateEventListener {
     // Fire App Installed event once on first install
     this.trackAppInstallOnce();
 
-    // Cold start launches straight into 'active' with no state transition,
-    // so the change handler never fires — track it here.
     setTimeout(() => {
       this.processAppStateChange(AppOpenedType.ColdStart);
     }, APP_OPENED_DEEPLINK_DELAY_MS);
@@ -146,9 +144,25 @@ export class AppStateEventListener {
 
   public setCurrentDeeplink(deeplink: string | null, source?: string) {
     this.currentDeeplink = deeplink;
-    this.currentDeeplinkSource = source ?? null;
+    if (source || !this.isPushSource(this.currentDeeplinkSource)) {
+      this.currentDeeplinkSource = source ?? null;
+    }
     this.pendingDeeplink = deeplink;
     this.pendingDeeplinkSource = source ?? null;
+  }
+
+  private isPushSource = (source: string | null): boolean =>
+    source === AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION ||
+    source === AppConstants.DEEPLINKS.ORIGIN_BRAZE;
+
+  public promoteCurrentDeeplinkSource(uri: string, source?: string) {
+    if (
+      this.currentDeeplink === uri &&
+      this.isPushSource(source ?? null) &&
+      !this.isPushSource(this.currentDeeplinkSource)
+    ) {
+      this.currentDeeplinkSource = source ?? null;
+    }
   }
 
   public clearPendingDeeplink() {
@@ -193,17 +207,11 @@ export class AppStateEventListener {
 
   private trackAppInstallOnce = trackAppInstallOnce;
 
-  // Push opens are only detectable via the deeplink on the push payload,
-  // so a push without a deeplink is reported as direct.
   private getAppOpenedSource = (): AppOpenedSource => {
     if (!this.currentDeeplink) {
       return AppOpenedSource.Direct;
     }
-    const isPushSource =
-      this.currentDeeplinkSource ===
-        AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION ||
-      this.currentDeeplinkSource === AppConstants.DEEPLINKS.ORIGIN_BRAZE;
-    return isPushSource
+    return this.isPushSource(this.currentDeeplinkSource)
       ? AppOpenedSource.PushNotification
       : AppOpenedSource.Deeplink;
   };
