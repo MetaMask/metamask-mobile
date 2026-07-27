@@ -64,16 +64,16 @@ class SettingsView {
   }
 
   get alertButton(): EncapsulatedElementType {
-    // Match "YES" button case-insensitively across platforms
+    // Android Material AlertDialog applies textAllCaps ("YES") while locale is
+    // "Yes"; iOS shows sentence case. Match label/text case-insensitively on both.
     const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
       /[.*+?^${}()|[\]\\]/g,
       '\\$&',
     );
-    const appiumYesPattern = new RegExp(`(?i)^${yes}$`);
+    const yesPattern = new RegExp(`^${yes}$`, 'i');
     return encapsulated({
-      detox: () => Matchers.getElementByText(new RegExp(`^${yes}$`, 'i')),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(appiumYesPattern, false),
+      detox: () => Matchers.getElementByText(yesPattern),
+      appium: () => PlaywrightMatchers.getElementByText(yesPattern, false),
     });
   }
 
