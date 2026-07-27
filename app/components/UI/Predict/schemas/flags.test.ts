@@ -23,7 +23,10 @@ describe('PredictFeedCarouselSchema', () => {
     mode: 'custom',
     title: 'Wimbledon',
     deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
-    queryParams: 'tag_slug=tennis&title_search=Wimbledon',
+    contentSource: {
+      queryParams: 'tag_slug=tennis&title_search=Wimbledon',
+      excludedMarketIds: ['market-1'],
+    },
   };
 
   it('returns live defaults when input is undefined', () => {
@@ -45,7 +48,7 @@ describe('PredictFeedCarouselSchema', () => {
   });
 
   it('defaults an omitted content source to top-market query behavior', () => {
-    const { queryParams } = create(
+    const { contentSource } = create(
       {
         enabled: true,
         minimumVersion: '1.0.0',
@@ -55,7 +58,10 @@ describe('PredictFeedCarouselSchema', () => {
       PredictFeedCarouselSchema,
     );
 
-    expect(queryParams).toBe('');
+    expect(contentSource).toStrictEqual({
+      queryParams: '',
+      excludedMarketIds: [],
+    });
   });
 
   it.each([
@@ -63,9 +69,20 @@ describe('PredictFeedCarouselSchema', () => {
     ['minimumVersion', 'not-semver'],
     ['title', 123],
     ['deeplink', false],
-    ['queryParams', ['tag_slug=tennis']],
   ])('throws for unsupported %s value', (field, value) => {
     const input = { ...validFlag, [field]: value };
+
+    expect(() => create(input, PredictFeedCarouselSchema)).toThrow(StructError);
+  });
+
+  it.each([
+    ['queryParams', ['tag_slug=tennis']],
+    ['excludedMarketIds', ['market-1', 2]],
+  ])('throws for unsupported content source %s', (field, value) => {
+    const input = {
+      ...validFlag,
+      contentSource: { ...validFlag.contentSource, [field]: value },
+    };
 
     expect(() => create(input, PredictFeedCarouselSchema)).toThrow(StructError);
   });

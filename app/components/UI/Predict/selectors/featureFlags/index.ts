@@ -291,7 +291,19 @@ export const selectPredictFeedCarouselConfig = createSelector(
       ...parsedFlag,
       title,
       deeplink,
-      queryParams: parsedFlag.queryParams.trim().replace(/^\?/, ''),
+      contentSource: {
+        ...parsedFlag.contentSource,
+        queryParams: parsedFlag.contentSource.queryParams
+          .trim()
+          .replace(/^\?/, ''),
+        excludedMarketIds: [
+          ...new Set(
+            parsedFlag.contentSource.excludedMarketIds
+              .map((id) => id.trim())
+              .filter(Boolean),
+          ),
+        ],
+      },
     };
   },
 );

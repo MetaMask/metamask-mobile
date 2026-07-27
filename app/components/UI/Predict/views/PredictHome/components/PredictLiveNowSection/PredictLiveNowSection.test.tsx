@@ -180,7 +180,10 @@ const createCustomConfig = (
   minimumVersion: '1.0.0',
   mode: 'custom',
   title: 'Wimbledon',
-  queryParams: 'tag_slug=tennis',
+  contentSource: {
+    queryParams: 'tag_slug=tennis',
+    excludedMarketIds: [],
+  },
   ...overrides,
 });
 

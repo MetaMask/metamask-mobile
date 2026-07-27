@@ -2195,7 +2195,10 @@ describe('Predict Feature Flag Selectors', () => {
       mode: 'custom',
       title: '  Wimbledon  ',
       deeplink: '  https://link.metamask.io/predict?feed=sports&tab=tennis  ',
-      queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
+      contentSource: {
+        queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
+        excludedMarketIds: [' market-1 ', 'market-1', ' ', 'market-2'],
+      },
     };
     const createState = (predictFeedCarousel: Json) => ({
       engine: {
@@ -2215,7 +2218,10 @@ describe('Predict Feature Flag Selectors', () => {
         ...validFlag,
         title: 'Wimbledon',
         deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
-        queryParams: 'tag_slug=tennis&order=volume24hr',
+        contentSource: {
+          queryParams: 'tag_slug=tennis&order=volume24hr',
+          excludedMarketIds: ['market-1', 'market-2'],
+        },
       });
     });
 
@@ -2251,7 +2257,17 @@ describe('Predict Feature Flag Selectors', () => {
       { ...validFlag, title: '   ' },
       { ...validFlag, deeplink: 'https://example.com/predict' },
       { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
-      { ...validFlag, queryParams: 123 },
+      {
+        ...validFlag,
+        contentSource: { ...validFlag.contentSource, queryParams: 123 },
+      },
+      {
+        ...validFlag,
+        contentSource: {
+          ...validFlag.contentSource,
+          excludedMarketIds: ['market-1', 2],
+        },
+      },
       { ...validFlag, minimumVersion: 'not-semver' },
       { ...validFlag, minimumVersion: '99.0.0' },
     ])('returns live mode for unavailable or malformed config %#', (flag) => {

@@ -21,8 +21,12 @@ export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
   mode: 'live' | 'custom';
   title: string;
   deeplink?: string;
-  /** Raw Polymarket query params, without a leading `?`. */
-  queryParams: string;
+  contentSource: {
+    /** Raw Polymarket query params, without a leading `?`. */
+    queryParams: string;
+    /** IDs matching `PredictMarket.id` that are removed from custom results. */
+    excludedMarketIds: string[];
+  };
 }
 
 export interface PredictLiveSportsFlag {

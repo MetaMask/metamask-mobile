@@ -54,9 +54,19 @@ export const PredictFeedCarouselSchema = defaulted(
     ),
     title: defaulted(string(), () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.title),
     deeplink: optional(string()),
-    queryParams: defaulted(
-      string(),
-      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.queryParams,
+    contentSource: defaulted(
+      type({
+        queryParams: defaulted(
+          string(),
+          () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource.queryParams,
+        ),
+        excludedMarketIds: defaulted(
+          array(string()),
+          () =>
+            DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource.excludedMarketIds,
+        ),
+      }),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource,
     ),
   }),
   () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,

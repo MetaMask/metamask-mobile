@@ -107,13 +107,19 @@ const setUpDownEnabled = (enabled: boolean) => {
   syncSelectors();
 };
 
-const setCustomConfig = (queryParams = '') => {
+const setCustomConfig = (
+  queryParams = '',
+  excludedMarketIds: string[] = [],
+) => {
   feedCarouselConfig = {
     enabled: true,
     minimumVersion: '1.0.0',
     mode: 'custom',
     title: 'Wimbledon',
-    queryParams,
+    contentSource: {
+      queryParams,
+      excludedMarketIds,
+    },
   };
   syncSelectors();
 };
@@ -185,7 +191,10 @@ describe('usePredictLiveNowSection', () => {
     feedCarouselConfig = {
       ...feedCarouselConfig,
       title: 'NFL Playoffs',
-      queryParams: 'tag_slug=football',
+      contentSource: {
+        queryParams: 'tag_slug=football',
+        excludedMarketIds: ['market-2'],
+      },
     };
     syncSelectors();
     rerender({});
@@ -194,6 +203,9 @@ describe('usePredictLiveNowSection', () => {
       expect.objectContaining({ customQueryParams: 'tag_slug=football' }),
     );
     expect(result.current.config.title).toBe('NFL Playoffs');
+    expect(result.current.config.contentSource.excludedMarketIds).toEqual([
+      'market-2',
+    ]);
   });
 
   it('keeps scoreboard markets and drops regular markets without a game', () => {
@@ -236,6 +248,24 @@ describe('usePredictLiveNowSection', () => {
     );
     expect(mockUseCurrentPredictMarketFromSeries).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('removes excluded markets before applying the custom card limit', () => {
+    setCustomConfig('live=true&order=volume24hr', ['R0', 'R1']);
+    const markets = Array.from(
+      { length: CUSTOM_FEED_CAROUSEL_LIMIT + 2 },
+      (_, index) => createRegularMarket(`R${index}`),
+    );
+    setLiveMarketList({ markets });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual(
+      Array.from(
+        { length: CUSTOM_FEED_CAROUSEL_LIMIT },
+        (_, index) => `R${index + 2}`,
+      ),
     );
   });
 

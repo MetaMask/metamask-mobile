@@ -5642,7 +5642,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '8.6.0',
       mode: 'live',
       title: '',
-      queryParams: '',
+      contentSource: {
+        queryParams: '',
+        excludedMarketIds: [],
+      },
     },
     status: FeatureFlagStatus.Active,
   },

@@ -51,8 +51,9 @@ export interface UsePredictLiveNowSectionResult {
  *
  * Live mode pulls markets with `live: true`, keeps scoreboard-capable results,
  * and preserves the existing crypto interleave. Custom mode uses the configured
- * raw query params and accepts generic market cards; an empty query uses the
- * provider defaults for top open markets by 24-hour volume.
+ * raw query params, removes remotely excluded market IDs, and accepts generic
+ * market cards. An empty query uses the provider defaults for top open markets
+ * by 24-hour volume.
  *
  * Alongside, the BTC 5m / ETH 5m / BTC 15m Up/Down crypto markets are resolved
  * from their series and interleaved (`2 live, 1 crypto, ...`) by
@@ -77,8 +78,8 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
         order: 'volume24hr',
         status: 'open',
         limit: LIVE_NOW_FETCH_LIMIT,
-        ...(config.queryParams
-          ? { customQueryParams: config.queryParams }
+        ...(config.contentSource.queryParams
+          ? { customQueryParams: config.contentSource.queryParams }
           : {}),
       }
     : {
@@ -101,10 +102,13 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     [marketsRaw],
   );
 
-  const customMarkets = useMemo(
-    () => marketsRaw.slice(0, CUSTOM_FEED_CAROUSEL_LIMIT),
-    [marketsRaw],
-  );
+  const customMarkets = useMemo(() => {
+    const excludedMarketIds = new Set(config.contentSource.excludedMarketIds);
+
+    return marketsRaw
+      .filter((market) => !excludedMarketIds.has(market.id))
+      .slice(0, CUSTOM_FEED_CAROUSEL_LIMIT);
+  }, [config.contentSource.excludedMarketIds, marketsRaw]);
 
   const btc5m = useCurrentPredictMarketFromSeries({
     series: BTC_UP_OR_DOWN_5M_SERIES,

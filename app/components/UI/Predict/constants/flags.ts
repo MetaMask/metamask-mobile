@@ -19,7 +19,10 @@ export const DEFAULT_PREDICT_FEED_CAROUSEL_FLAG: PredictFeedCarouselConfig = {
   minimumVersion: '',
   mode: 'live',
   title: '',
-  queryParams: '',
+  contentSource: {
+    queryParams: '',
+    excludedMarketIds: [],
+  },
 };
 
 export const DEFAULT_PREDICT_FEED_BANNER_FLAG: PredictFeedBannerConfig = {
