@@ -10,12 +10,19 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
+  PERPS_CONSTANTS,
   type PriceUpdate,
   type PerpsMarketData,
   type Position,
   type Order,
   type AccountState,
 } from '@metamask/perps-controller';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import { PERPS_CUF_TAG } from '../constants/perpsCufTags';
+import {
+  PERPS_LIFECYCLE_CONTEXT,
+  resetPerpsLifecycleContextForTests,
+} from '../utils/perpsLifecycleContext';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -27,6 +34,11 @@ import {
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 jest.mock('../services/PerpsConnectionManager');
 jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
@@ -51,6 +63,7 @@ const mockPerpsConnectionManager = PerpsConnectionManager as jest.Mocked<
   typeof PerpsConnectionManager
 >;
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
+const mockTrace = trace as jest.Mock;
 const mockSelectPerpsTerminalBackendEnabledFlag =
   selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
 
@@ -91,6 +104,7 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+    resetPerpsLifecycleContextForTests();
 
     // Restore the default Terminal flag state (enabled) after any per-test override.
     mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
@@ -1164,6 +1178,62 @@ describe('PerpsStreamManager', () => {
 
       // Should not reconnect
       expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('first price and order book trace tags', () => {
+    const expectedSharedTags = {
+      [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
+      [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]: PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+    };
+
+    it('starts the first-price trace with shared CUF tags', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: jest.fn(),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstPrice,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+
+    it('starts the first-order-book trace with shared CUF tags', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstOrderBook,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+
+    it('starts the prewarmed first-price trace with shared CUF tags', async () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstPrice,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
     });
   });
 
