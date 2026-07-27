@@ -21,7 +21,6 @@ import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { NotificationChannel } from '../../../../core/Analytics/events/channels';
-import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import Logger from '../../../../util/Logger';
 import { useOptimisticToggleValue } from './hooks/useOptimisticToggleValue';
 
@@ -43,7 +42,6 @@ const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
 
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { profileId } = useSessionProfileId();
   const { preferences, updatePreferencesSection } =
     useNotificationStoragePreferences();
   const {
@@ -85,9 +83,6 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     trackEvent,
     createEventBuilder,
   ]);
-
-  // profileId consumed here to avoid lint warnings — used by parent analytics context
-  void profileId;
 
   return (
     <>

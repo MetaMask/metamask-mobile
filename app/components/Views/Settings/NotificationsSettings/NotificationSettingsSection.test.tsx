@@ -165,7 +165,9 @@ describe('NotificationSettingsSection', () => {
     );
     expect(screen.getByText('Deselect all')).toBeOnTheScreen();
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
     await waitFor(() => {
@@ -206,7 +208,9 @@ describe('NotificationSettingsSection', () => {
     );
     expect(screen.getByText('Select all')).toBeOnTheScreen();
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
     await waitFor(() => {
@@ -420,13 +424,15 @@ describe('NotificationSettingsSection', () => {
       description: 'Buy, sells, transfers, swaps and rewards',
     });
 
-    fireEvent(
-      screen.getByTestId(
-        NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
-      ),
-      'onValueChange',
-      false,
-    );
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+        ),
+        'onValueChange',
+        false,
+      );
+    });
 
     await waitFor(() => {
       expect(
@@ -436,13 +442,15 @@ describe('NotificationSettingsSection', () => {
       ).toBe(false);
     });
 
-    fireEvent(
-      screen.getByTestId(
-        NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
-      ),
-      'onValueChange',
-      true,
-    );
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+        ),
+        'onValueChange',
+        true,
+      );
+    });
 
     // UI shows latest intent immediately while first write is still pending
     await waitFor(() => {
