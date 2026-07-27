@@ -12,6 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   KeyValueRowStubs,
@@ -29,7 +30,7 @@ import {
 } from './components/QuickBuyQuoteDetailRow';
 
 const QuickBuyQuoteDetailsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     sourceToken,
     destToken,

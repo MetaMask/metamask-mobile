@@ -22,13 +22,13 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import Text, {
+  ButtonVariant,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
@@ -433,23 +433,23 @@ const PerpsTutorialCarousel: React.FC = () => {
                   {/* Header Section - Now flexible height */}
                   <View>
                     <Text
-                      variant={TextVariant.HeadingLG}
-                      color={TextColor.Default}
+                      variant={TextVariant.HeadingLg}
+                      color={TextColor.TextDefault}
                       style={styles.title}
                     >
                       {screen.title}
                     </Text>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
                       style={styles.description}
                     >
                       {screen.description}
                     </Text>
                     {screen.subtitle && (
                       <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
                         style={styles.subtitle}
                       >
                         {screen.subtitle}
@@ -479,8 +479,8 @@ const PerpsTutorialCarousel: React.FC = () => {
                 {screen.footerText && (
                   <View style={styles.footerTextContainer}>
                     <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
                       style={styles.footerText}
                     >
                       {screen.footerText}
@@ -524,8 +524,9 @@ const PerpsTutorialCarousel: React.FC = () => {
                 testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
               >
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.tutorial.skip')}
                 </Text>

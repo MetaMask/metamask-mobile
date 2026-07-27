@@ -5,6 +5,7 @@ import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 import {
   buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
   buildCampaignOutcomeToastCompositeKey,
   type CampaignOutcomeToastVariant,
 } from './compositeKeys';
@@ -15,6 +16,7 @@ import type {
   PerpsTradingCampaignVolumeDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchPrizePoolDto,
+  VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
@@ -414,6 +416,15 @@ export const selectOndoCampaignActivityById =
     subscriptionId && campaignId && state.rewards.ondoCampaignActivity
       ? (state.rewards.ondoCampaignActivity[
           buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
+        ] ?? null)
+      : null;
+
+export const selectVipTransactionsById =
+  (subscriptionId: string | undefined, type: VipTransactionType | undefined) =>
+  (state: RootState) =>
+    subscriptionId && type && state.rewards.vipTransactions
+      ? (state.rewards.vipTransactions[
+          buildSubscriptionVipTransactionCompositeKey(subscriptionId, type)
         ] ?? null)
       : null;
 

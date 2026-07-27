@@ -99,7 +99,9 @@ import {
   getMoneyAccountControllerMessenger,
 } from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
+import { getMoneyAccountApiDataServiceMessenger } from './money-account-api-data-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
+import { getSentinelApiServiceMessenger } from './sentinel-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
@@ -184,6 +186,10 @@ export const MESSENGER_FACTORIES = {
   },
   GeolocationApiService: {
     getMessenger: getGeolocationApiServiceMessenger,
+    getInitMessenger: noop,
+  },
+  SentinelApiService: {
+    getMessenger: getSentinelApiServiceMessenger,
     getInitMessenger: noop,
   },
   GeolocationController: {
@@ -438,6 +444,10 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountBalanceService: {
     getMessenger: getMoneyAccountBalanceServiceMessenger,
+    getInitMessenger: noop,
+  },
+  MoneyAccountApiDataService: {
+    getMessenger: getMoneyAccountApiDataServiceMessenger,
     getInitMessenger: noop,
   },
   SocialService: {
