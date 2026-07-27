@@ -153,7 +153,8 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
   // cross-origin redirects (window.location.href) this condition is not
   // reliably satisfied, so the URL bar keeps showing the previous origin.
   // Re-enable once the app fixes URL bar updates after cross-origin
-  // in-page navigations (MCWP-540).
+  // in-page navigations (MCWP-540)
+  // TO-DO: Remove when bug fixed https://github.com/MetaMask/metamask-mobile/issues/33815.
   appiumTest.skip(
     'displays redirected URL after cross-origin redirect',
     async ({ driver: _driver, currentDeviceDetails }) => {
