@@ -33,8 +33,12 @@ export function getKycControllerMessenger(
       'KycService:fetchDisclaimers',
       'KycService:createSession',
       'KycService:checkKycRequired',
+      'KycService:getWrappingKey',
+      'KycService:fetchJwks',
       'KycService:createUkycSession',
-      'KycService:submitWrappedKey',
+      'KycService:fetchApplicantAccessToken',
+      'UserStorageController:performGetStorage',
+      'UserStorageController:performSetStorage',
     ],
     messenger,
   });
