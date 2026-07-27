@@ -23,7 +23,10 @@ import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockAddListener = jest.fn(() => jest.fn());
+type TransitionEndHandler = (event?: { data?: { closing?: boolean } }) => void;
+const mockAddListener = jest.fn<() => void, [string, TransitionEndHandler]>(
+  () => jest.fn(),
+);
 let mockIsFocused = true;
 const mockRouteParams: Record<string, any> = {};
 
@@ -893,9 +896,12 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      const transitionEnd = mockAddListener.mock.calls.find(
+      const transitionEndCall = mockAddListener.mock.calls.find(
         ([event]) => event === 'transitionEnd',
-      )?.[1];
+      );
+      const transitionEnd = transitionEndCall?.[1] as
+        | TransitionEndHandler
+        | undefined;
       act(() => transitionEnd?.({ data: { closing: false } }));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
