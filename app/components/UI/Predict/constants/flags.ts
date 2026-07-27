@@ -133,6 +133,11 @@ const createSportsFeedChip = (
   titleKey: `predict.feed.filters.${id}`,
 });
 
+const createSportsFeedChips = (
+  ...tagSlugs: string[]
+): PredictSportsFeedChipConfig[] =>
+  tagSlugs.map((tagSlug) => createSportsFeedChip(tagSlug, tagSlug));
+
 const createSportsFeedTab = ({
   id,
   chips,
@@ -177,91 +182,67 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
     }),
     createSportsFeedTab({
       id: 'soccer',
-      chips: [
-        createSportsFeedChip('mls', 'mls'),
-        createSportsFeedChip('champions-league', 'champions-league'),
-        createSportsFeedChip('EPL', 'EPL'),
-        createSportsFeedChip('uel', 'uel'),
-        createSportsFeedChip('la-liga', 'la-liga'),
-        createSportsFeedChip('serie-a', 'serie-a'),
-        createSportsFeedChip('bundesliga', 'bundesliga'),
-        createSportsFeedChip('ligue-1', 'ligue-1'),
-        createSportsFeedChip('lib', 'lib'),
-      ],
+      chips: createSportsFeedChips(
+        'mls',
+        'champions-league',
+        'EPL',
+        'uel',
+        'la-liga',
+        'serie-a',
+        'bundesliga',
+        'ligue-1',
+        'lib',
+      ),
     }),
     createSportsFeedTab({
       id: 'baseball',
-      chips: [
-        createSportsFeedChip('mlb', 'mlb'),
-        createSportsFeedChip('kbo', 'kbo'),
-        createSportsFeedChip('npb', 'npb'),
-        createSportsFeedChip('cpbl', 'cpbl'),
-        createSportsFeedChip('awards', 'awards'),
-      ],
+      chips: createSportsFeedChips('mlb', 'kbo', 'npb', 'cpbl', 'awards'),
     }),
     createSportsFeedTab({
       id: 'football',
-      chips: [
-        createSportsFeedChip('nfl', 'nfl'),
-        createSportsFeedChip('nfl-team-futures', 'nfl-team-futures'),
-        createSportsFeedChip('nfl-free-agency', 'nfl-free-agency'),
-        createSportsFeedChip('cfb', 'cfb'),
-        createSportsFeedChip('cfl', 'cfl'),
-      ],
+      chips: createSportsFeedChips(
+        'nfl',
+        'nfl-team-futures',
+        'nfl-free-agency',
+        'cfb',
+        'cfl',
+      ),
     }),
     createSportsFeedTab({
       id: 'basketball',
-      chips: [
-        createSportsFeedChip('nba', 'nba'),
-        createSportsFeedChip('nba-free-agency', 'nba-free-agency'),
-        createSportsFeedChip('wnba', 'wnba'),
-        createSportsFeedChip('ncaa', 'ncaa'),
-      ],
+      chips: createSportsFeedChips('nba', 'nba-free-agency', 'wnba', 'ncaa'),
     }),
     createSportsFeedTab({
       id: 'esports',
-      chips: [
-        createSportsFeedChip('league-of-legends', 'league-of-legends'),
-        createSportsFeedChip('counter-strike-2', 'counter-strike-2'),
-        createSportsFeedChip('valorant', 'valorant'),
-        createSportsFeedChip('dota-2', 'dota-2'),
-        createSportsFeedChip('rainbow-six-siege', 'rainbow-six-siege'),
-      ],
+      chips: createSportsFeedChips(
+        'league-of-legends',
+        'counter-strike-2',
+        'valorant',
+        'dota-2',
+        'rainbow-six-siege',
+      ),
     }),
     createSportsFeedTab({
       id: 'tennis',
-      chips: [
-        createSportsFeedChip('atp', 'atp'),
-        createSportsFeedChip('wta', 'wta'),
-        createSportsFeedChip('itf', 'itf'),
-      ],
+      chips: createSportsFeedChips('atp', 'wta', 'itf'),
     }),
     createSportsFeedTab({
       id: 'cricket',
-      chips: [
-        createSportsFeedChip('international-cricket', 'international-cricket'),
-        createSportsFeedChip('t20-blast', 't20-blast'),
-      ],
+      chips: createSportsFeedChips('international-cricket', 't20-blast'),
     }),
     createSportsFeedTab({
       id: 'golf',
       gamesTitleKey: 'predict.feed.filters.tournaments',
-      chips: [
-        createSportsFeedChip('pga-tour', 'pga-tour'),
-        createSportsFeedChip('liv-golf', 'liv-golf'),
-      ],
+      chips: createSportsFeedChips('pga-tour', 'liv-golf'),
     }),
     createSportsFeedTab({
       id: 'combat',
       gamesTitleKey: 'predict.feed.filters.fights',
-      chips: [
-        createSportsFeedChip('ufc', 'ufc'),
-        createSportsFeedChip('boxing', 'boxing'),
-      ],
+      chips: createSportsFeedChips('ufc', 'boxing'),
     }),
     createSportsFeedTab({
       id: 'hockey',
-      chips: [createSportsFeedChip('nhl', 'nhl')],
+      chips: createSportsFeedChips('nhl'),
     }),
   ],
 };

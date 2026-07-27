@@ -1275,6 +1275,27 @@ const appendCustomQueryParams = (
     : queryParams;
 };
 
+const fetchKeysetEvents = async (
+  endpoint: string,
+  errorMessage: string,
+  malformedMessage = 'Malformed keyset events response',
+): Promise<PolymarketApiEventsKeysetResponse> => {
+  const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error(errorMessage);
+  }
+
+  const responseData =
+    (await response.json()) as PolymarketApiEventsKeysetResponse;
+
+  if (!Array.isArray(responseData.events)) {
+    throw new Error(malformedMessage);
+  }
+
+  return responseData;
+};
+
 export const fetchEventsFromPolymarketApi = async (
   params?: GetMarketsParams,
 ): Promise<FetchEventsResult> => {
@@ -1353,18 +1374,10 @@ export const fetchEventsFromPolymarketApi = async (
   }
 
   const endpoint = `${GAMMA_API_ENDPOINT}/events/keyset?${queryParamsEvents}`;
-
-  const response = await fetch(endpoint);
-
-  if (!response.ok) {
-    throw new Error('Failed to get markets');
-  }
-  const data = await response.json();
-  const responseData = data as PolymarketApiEventsKeysetResponse;
-
-  if (!Array.isArray(responseData.events)) {
-    throw new Error('Malformed keyset events response');
-  }
+  const responseData = await fetchKeysetEvents(
+    endpoint,
+    'Failed to get markets',
+  );
 
   const events: PolymarketApiEvent[] = responseData.events;
 
@@ -1583,19 +1596,10 @@ export const fetchMarketsFromPolymarketApi = async (
   DevLogger.log('Listing markets via Polymarket API:', queryParams.toString());
 
   const endpoint = `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`;
-
-  const response = await fetch(endpoint);
-
-  if (!response.ok) {
-    throw new Error('Failed to list markets');
-  }
-
-  const data = await response.json();
-  const responseData = data as PolymarketApiEventsKeysetResponse;
-
-  if (!Array.isArray(responseData.events)) {
-    throw new Error('Malformed keyset events response');
-  }
+  const responseData = await fetchKeysetEvents(
+    endpoint,
+    'Failed to list markets',
+  );
 
   return {
     events: responseData.events,
@@ -1831,20 +1835,11 @@ export const fetchChildEventsFromGammaApi = async ({
     limit: '100',
   });
 
-  const response = await fetch(
+  const responseData = await fetchKeysetEvents(
     `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
+    'Failed to fetch child events',
+    'Malformed keyset child events response',
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch child events');
-  }
-
-  const responseData =
-    (await response.json()) as PolymarketApiEventsKeysetResponse;
-
-  if (!Array.isArray(responseData.events)) {
-    throw new Error('Malformed keyset child events response');
-  }
 
   return responseData.events;
 };
