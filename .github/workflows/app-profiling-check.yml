@@ -85,8 +85,11 @@ jobs:
 
       - name: Get PR details
         id: pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          PR_NUMBER="${{ github.event.issue.number }}"
+          set -euo pipefail
           IS_FORK=$(gh pr view "${PR_NUMBER}" --json isCrossRepository --jq '.isCrossRepository')
           BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')
           {
@@ -94,8 +97,6 @@ jobs:
             echo "IS_FORK=${IS_FORK}"
             echo "BRANCH=${BRANCH}"
           } >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Parse bot command
         id: parse
@@ -152,23 +153,25 @@ jobs:
           fi
 
           # Use delimited output form so user-controlled values cannot break
-          # GITHUB_OUTPUT or inject extra keys.
+          # GITHUB_OUTPUT or inject extra keys. Random delimiter avoids collisions
+          # if the value itself contains the literal word EOF.
+          OUTPUT_DELIMITER="ghadelim_$(openssl rand -hex 16)"
           {
-            echo "TEST_NAME<<EOF"
+            echo "TEST_NAME<<${OUTPUT_DELIMITER}"
             printf '%s\n' "$TEST_NAME"
-            echo "EOF"
-            echo "PLATFORM<<EOF"
+            echo "${OUTPUT_DELIMITER}"
+            echo "PLATFORM<<${OUTPUT_DELIMITER}"
             printf '%s\n' "$PLATFORM"
-            echo "EOF"
-            echo "DEVICE<<EOF"
+            echo "${OUTPUT_DELIMITER}"
+            echo "DEVICE<<${OUTPUT_DELIMITER}"
             printf '%s\n' "$DEVICE"
-            echo "EOF"
-            echo "RUN_ID<<EOF"
+            echo "${OUTPUT_DELIMITER}"
+            echo "RUN_ID<<${OUTPUT_DELIMITER}"
             printf '%s\n' "$RUN_ID"
-            echo "EOF"
-            echo "COMPARE_ALL<<EOF"
+            echo "${OUTPUT_DELIMITER}"
+            echo "COMPARE_ALL<<${OUTPUT_DELIMITER}"
             printf '%s\n' "$COMPARE_ALL"
-            echo "EOF"
+            echo "${OUTPUT_DELIMITER}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Dispatch workflow on PR branch
