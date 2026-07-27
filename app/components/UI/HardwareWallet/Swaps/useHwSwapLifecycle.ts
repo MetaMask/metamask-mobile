@@ -208,19 +208,21 @@ export function useHwSwapLifecycle({
   const completeSignedFlow = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
 
-    if (strategy.isSendFlow) {
+    const completeWithoutModal = () => {
       hasAutoNavigatedRef.current = true;
       clearCachedSubmission();
       completeHwSwapSuccess({ dispatch, navigation, toastRef });
+    };
+
+    if (strategy.isSendFlow) {
+      completeWithoutModal();
       return;
     }
 
     if (submittedTransaction === null) {
       if (didStartBridgeSubmitRef.current) return;
       // Remount has no local submission metadata; preserve legacy completion.
-      hasAutoNavigatedRef.current = true;
-      clearCachedSubmission();
-      completeHwSwapSuccess({ dispatch, navigation, toastRef });
+      completeWithoutModal();
       return;
     }
     if (
@@ -449,22 +451,10 @@ export function useHwSwapLifecycle({
   );
 
   const handleDone = useCallback(() => {
-    if (!strategy.isSendFlow) {
-      // Do not let Done bypass Bridge settlement and post-trade navigation.
-      completeSignedFlow();
-      return;
-    }
-
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [
-    clearCachedSubmission,
-    completeSignedFlow,
-    dispatch,
-    navigation,
-    strategy.isSendFlow,
-  ]);
+  }, [dispatch, navigation, clearCachedSubmission]);
 
   return {
     isRetrying,

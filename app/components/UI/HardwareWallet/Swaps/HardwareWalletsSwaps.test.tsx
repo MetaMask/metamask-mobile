@@ -690,8 +690,7 @@ describe('HardwareWalletsSwaps', () => {
 
   describe('done', () => {
     it('navigates to transactions', () => {
-      setSendRouteParams({ withApproval: true });
-      const { getByTestId } = renderSendScreen(SUBMITTED_STATE);
+      const { getByTestId } = renderScreen(SUBMITTED_STATE);
 
       fireEvent.press(
         getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
@@ -701,8 +700,7 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('resets hardware wallet swaps state', () => {
-      setSendRouteParams({ withApproval: true });
-      const { getByTestId, store } = renderSendScreen(SUBMITTED_STATE);
+      const { getByTestId, store } = renderScreen(SUBMITTED_STATE);
 
       fireEvent.press(
         getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
@@ -712,8 +710,7 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('treats header close as done after submission', () => {
-      setSendRouteParams({ withApproval: true });
-      const { UNSAFE_getByProps, store } = renderSendScreen(SUBMITTED_STATE);
+      const { UNSAFE_getByProps, store } = renderScreen(SUBMITTED_STATE);
 
       fireEvent.press(UNSAFE_getByProps({ iconName: IconName.Close }));
 
