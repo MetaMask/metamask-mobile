@@ -27,6 +27,11 @@ describe('v2OrderToast', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (NavigationService.isReady as jest.Mock).mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   describe('buildV2OrderToastOptions', () => {
