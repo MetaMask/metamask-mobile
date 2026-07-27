@@ -1,4 +1,5 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import {
   SolScope,
   Transaction,
@@ -6,27 +7,23 @@ import {
   TransactionType,
 } from '@metamask/keyring-api';
 import { measureRenders } from 'reassure';
+import configureStore from '../../../util/test/configureStore';
+import initialRootState from '../../../util/test/initial-root-state';
+import { mockTheme, ThemeContext } from '../../../util/theme';
 import MultichainTransactionsView from './MultichainTransactionsView';
 
 const mockNavigation = {
   navigate: jest.fn(),
 };
+const nativeAsset = {
+  amount: '1',
+  unit: 'SOL',
+  fungible: true,
+  type: `${SolScope.Mainnet}/slip44:501`,
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
-}));
-
-jest.mock('react-redux', () => ({
-  useSelector: () => false,
-}));
-
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      icon: { default: 'icon-default' },
-      primary: { default: 'primary-default' },
-    },
-  }),
 }));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
@@ -45,33 +42,14 @@ jest.mock(
   }),
 );
 
-jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
-  useBridgeHistoryItemBySrcTxHash: () => ({
-    bridgeHistoryItemsBySrcTxHash: {},
-  }),
-}));
-
-jest.mock('../../UI/MultichainTransactionListItem', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({ transaction }: { transaction: Transaction }) =>
-    ReactActual.createElement(Text, null, transaction.id);
-});
-
-jest.mock('../MultichainTransactionsView/MultichainTransactionsFooter', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
 const transactions: Transaction[] = Array.from(
   { length: 100 },
   (_value, index) => ({
     id: `solana-transaction-${index}`,
     chain: SolScope.Mainnet,
     account: 'selected-address',
-    from: [{ address: `sender-${index}`, asset: null }],
-    to: [{ address: `recipient-${index}`, asset: null }],
+    from: [{ address: `sender-${index}`, asset: nativeAsset }],
+    to: [{ address: `recipient-${index}`, asset: nativeAsset }],
     events: [],
     fees: [],
     value: String(index + 1),
@@ -81,6 +59,13 @@ const transactions: Transaction[] = Array.from(
   }),
 );
 
+const store = configureStore(initialRootState);
+const ProvidersWrapper = ({ children }: { children: React.ReactElement }) => (
+  <Provider store={store}>
+    <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
+  </Provider>
+);
+
 test('MultichainTransactionsView mount performance with 100 transactions', async () => {
   await measureRenders(
     <MultichainTransactionsView
@@ -88,5 +73,6 @@ test('MultichainTransactionsView mount performance with 100 transactions', async
       selectedAddress="selected-address"
       chainId={SolScope.Mainnet}
     />,
+    { wrapper: ProvidersWrapper },
   );
 });

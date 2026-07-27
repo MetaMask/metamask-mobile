@@ -1,5 +1,9 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import { measureRenders } from 'reassure';
+import configureStore from '../../../../../../util/test/configureStore';
+import initialRootState from '../../../../../../util/test/initial-root-state';
+import { mockTheme, ThemeContext } from '../../../../../../util/theme';
 import type { PopularToken } from '../hooks/usePopularTokens';
 import PopularTokensList from './PopularTokensList';
 
@@ -28,10 +32,6 @@ jest.mock('../hooks', () => ({
   }),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: () => 'usd',
-}));
-
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: jest.fn(),
@@ -44,12 +44,15 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: () => ({}),
-  }),
-}));
+const store = configureStore(initialRootState);
+const ProvidersWrapper = ({ children }: { children: React.ReactElement }) => (
+  <Provider store={store}>
+    <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
+  </Provider>
+);
 
 test('PopularTokensList mount performance with 20 tokens', async () => {
-  await measureRenders(<PopularTokensList />);
+  await measureRenders(<PopularTokensList />, {
+    wrapper: ProvidersWrapper,
+  });
 });

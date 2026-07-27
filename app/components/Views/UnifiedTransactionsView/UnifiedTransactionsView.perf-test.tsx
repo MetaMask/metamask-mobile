@@ -1,4 +1,5 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import {
   SolScope,
   Transaction as NonEvmTransaction,
@@ -11,11 +12,30 @@ import {
   TransactionType as EvmTransactionType,
 } from '@metamask/transaction-controller';
 import { measureRenders } from 'reassure';
+import configureStore from '../../../util/test/configureStore';
+import initialRootState, {
+  backgroundState,
+} from '../../../util/test/initial-root-state';
+import { mockTheme, ThemeContext } from '../../../util/theme';
 import type { TransactionViewModel } from './types';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 
 const mockSelectedAddress = '0x0000000000000000000000000000000000000abc';
 const mockNavigate = jest.fn();
+const nativeAsset = {
+  amount: '1',
+  unit: 'SOL',
+  fungible: true,
+  type: `${SolScope.Mainnet}/slip44:501`,
+};
+
+jest.mock(
+  '@metamask/sentinel-api-service',
+  () => ({
+    SentinelApiService: class SentinelApiService {},
+  }),
+  { virtual: true },
+);
 
 const mockPendingTransactions: TransactionMeta[] = Array.from(
   { length: 10 },
@@ -92,8 +112,8 @@ const mockNonEvmTransactions: NonEvmTransaction[] = Array.from(
     id: `solana-${index}`,
     chain: SolScope.Mainnet,
     account: 'solana-account-address',
-    from: [{ address: `sender-${index}`, asset: null }],
-    to: [{ address: `recipient-${index}`, asset: null }],
+    from: [{ address: `sender-${index}`, asset: nativeAsset }],
+    to: [{ address: `recipient-${index}`, asset: nativeAsset }],
     events: [],
     fees: [],
     value: String(index + 1),
@@ -107,65 +127,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
-}));
-
-jest.mock('react-redux', () => ({
-  useSelector: (selector: (state: unknown) => unknown) => selector({}),
-}));
-
-jest.mock('../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: () => ({
-    address: mockSelectedAddress,
-  }),
-}));
-
-jest.mock('../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: () => 'usd',
-}));
-
-jest.mock('../../../selectors/multichain/multichain', () => ({
-  selectNonEvmTransactionsForSelectedAccountGroup: () => ({
-    transactions: mockNonEvmTransactions,
-  }),
-}));
-
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupInternalAccounts: () => [
-      {
-        id: 'evm-account',
-        address: mockSelectedAddress,
-        type: 'eip155:eoa',
-      },
-      {
-        id: 'solana-account',
-        address: 'solana-account-address',
-        type: 'solana:data-account',
-      },
-    ],
-  }),
-);
-
-jest.mock('../../../selectors/networkController', () => ({
-  selectEvmNetworkConfigurationsByChainId: () => ({}),
-  selectProviderType: () => undefined,
-}));
-
-jest.mock('../../../selectors/networkEnablementController', () => ({
-  selectEVMEnabledNetworks: () => ['0x1'],
-  selectNonEVMEnabledNetworks: () => [
-    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  ],
-}));
-
-jest.mock('../../../selectors/transactionController', () => ({
-  selectLocalTransactions: () => mockPendingTransactions,
-  selectRelatedChainIdsByTransactionId: () => new Map(),
-}));
-
-jest.mock('../../../selectors/bridgeStatusController', () => ({
-  selectBridgeHistoryForAccount: () => ({}),
 }));
 
 jest.mock('./useTransactionsQuery', () => ({
@@ -205,6 +166,12 @@ jest.mock('./useTransactionAutoScroll', () => ({
   }),
 }));
 
+jest.mock('../confirmations/hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: () => ({
+    gasFeeEstimates: undefined,
+  }),
+}));
+
 jest.mock('../../hooks/useBlockExplorer', () => ({
   __esModule: true,
   default: () => ({
@@ -220,30 +187,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      icon: { default: 'icon-default' },
-      primary: { default: 'primary-default' },
-    },
-  }),
-}));
-
-jest.mock('../../hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      emptyList: {},
-    },
-  }),
-}));
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: () => ({}),
-  }),
-}));
-
 jest.mock(
   '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys',
   () => ({
@@ -253,50 +196,114 @@ jest.mock(
   }),
 );
 
-jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
-  useBridgeHistoryItemBySrcTxHash: () => ({
-    bridgeHistoryItemsBySrcTxHash: {},
-  }),
-}));
-
-jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => ({
-  __esModule: true,
-  default: {
-    Consumer: ({
-      children,
-    }: {
-      children: (value: { isChartBeingTouched: boolean }) => React.ReactNode;
-    }) => children({ isChartBeingTouched: false }),
+const evmAccount = {
+  id: 'evm-account',
+  address: mockSelectedAddress,
+  type: 'eip155:eoa' as const,
+  scopes: ['eip155:0' as const],
+  options: {},
+  methods: [],
+  metadata: {
+    name: 'EVM Account',
+    keyring: { type: 'HD Key Tree' },
   },
-  PriceChartProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+};
 
-jest.mock('../../UI/TransactionElement', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+const solanaAccount = {
+  id: 'solana-account',
+  address: 'solana-account-address',
+  type: 'solana:data-account' as const,
+  scopes: [SolScope.Mainnet],
+  options: {},
+  methods: [],
+  metadata: {
+    name: 'Solana Account',
+    keyring: { type: 'Snap Keyring' },
+  },
+};
 
-  return ({ tx }: { tx: TransactionMeta }) =>
-    ReactActual.createElement(Text, null, tx.id);
+const accountGroupId = 'entropy:wallet/0';
+const store = configureStore({
+  ...initialRootState,
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: {
+        ...backgroundState.AccountsController,
+        internalAccounts: {
+          accounts: {
+            [evmAccount.id]: evmAccount,
+            [solanaAccount.id]: solanaAccount,
+          },
+          selectedAccount: evmAccount.id,
+        },
+      },
+      AccountTreeController: {
+        ...backgroundState.AccountTreeController,
+        accountTree: {
+          wallets: {
+            'entropy:wallet': {
+              id: 'entropy:wallet',
+              type: 'entropy',
+              status: 'ready',
+              metadata: { name: 'Test Wallet' },
+              groups: {
+                [accountGroupId]: {
+                  id: accountGroupId,
+                  type: 'multichain-account',
+                  accounts: [evmAccount.id, solanaAccount.id],
+                  metadata: {
+                    name: 'Account 1',
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: accountGroupId,
+      },
+      TransactionController: {
+        ...backgroundState.TransactionController,
+        transactions: mockPendingTransactions,
+      },
+      MultichainTransactionsController: {
+        nonEvmTransactions: {
+          [solanaAccount.id]: {
+            [SolScope.Mainnet]: {
+              transactions: mockNonEvmTransactions,
+              next: null,
+              lastUpdated: 1_750_000_000,
+            },
+          },
+        },
+      },
+      NetworkEnablementController: {
+        ...backgroundState.NetworkEnablementController,
+        enabledNetworkMap: {
+          eip155: { '0x1': true },
+          solana: { [SolScope.Mainnet]: true },
+          bip122: {},
+          tron: {},
+        },
+      },
+      BridgeStatusController: {
+        ...backgroundState.BridgeStatusController,
+        txHistory: {},
+      },
+    },
+  },
 });
 
-jest.mock('../../UI/MultichainTransactionListItem', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({ transaction }: { transaction: NonEvmTransaction }) =>
-    ReactActual.createElement(Text, null, transaction.id);
-});
-
-jest.mock('../../UI/MultichainBridgeTransactionListItem', () => () => null);
-jest.mock('../../UI/Transactions/TransactionsFooter', () => () => null);
-jest.mock(
-  '../MultichainTransactionsView/MultichainTransactionsFooter',
-  () => () => null,
+const ProvidersWrapper = ({ children }: { children: React.ReactElement }) => (
+  <Provider store={store}>
+    <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
+  </Provider>
 );
-jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => ({
-  CancelSpeedupModal: () => null,
-}));
 
 test('UnifiedTransactionsView mount performance with mixed item kinds', async () => {
-  await measureRenders(<UnifiedTransactionsView />);
+  await measureRenders(<UnifiedTransactionsView />, {
+    wrapper: ProvidersWrapper,
+  });
 });
