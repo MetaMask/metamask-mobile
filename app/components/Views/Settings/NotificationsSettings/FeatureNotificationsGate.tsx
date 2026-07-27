@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -28,13 +29,16 @@ export function useFeatureNotificationsStatus(
   feature: NotificationPreferenceSection,
 ) {
   const isMasterEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
-  const { preferences } = useNotificationStoragePreferences();
+  const { preferences, hasNotificationPreferences, isLoading } =
+    useNotificationStoragePreferences();
   const sectionPrefs = preferences?.[feature];
 
   return {
     isMasterEnabled,
     isPushEnabled: sectionPrefs?.pushNotificationsEnabled ?? false,
     isInAppEnabled: sectionPrefs?.inAppNotificationsEnabled ?? false,
+    hasNotificationPreferences,
+    isPreferencesLoading: isLoading,
   };
 }
 
@@ -77,8 +81,13 @@ export const FeatureNotificationsGate = ({
     navigation.goBack();
   }, [onDismiss, navigation]);
 
-  const { isMasterEnabled, isPushEnabled, isInAppEnabled } =
-    useFeatureNotificationsStatus(feature);
+  const {
+    isMasterEnabled,
+    isPushEnabled,
+    isInAppEnabled,
+    hasNotificationPreferences,
+    isPreferencesLoading,
+  } = useFeatureNotificationsStatus(feature);
 
   const isFeatureBlocked =
     !isMasterEnabled || (!isPushEnabled && !isInAppEnabled);
@@ -99,8 +108,22 @@ export const FeatureNotificationsGate = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isVisible, setIsVisible] = useState(isFeatureBlocked);
   const hasPromptedOsPushRef = useRef(false);
+  const isPushEnabledRef = useRef(isPushEnabled);
+  isPushEnabledRef.current = isPushEnabled;
 
   const channelsDisabled = renderMaster && !isMasterEnabled;
+
+  const promptOsPushIfNeeded = useCallback(() => {
+    if (!isPushEnabledRef.current || hasPromptedOsPushRef.current) {
+      return;
+    }
+
+    hasPromptedOsPushRef.current = true;
+    // Defer so the BottomSheet open animation does not swallow the OS Alert.
+    InteractionManager.runAfterInteractions(() => {
+      void promptOsPushPermissionIfNeeded();
+    });
+  }, []);
 
   useEffect(() => {
     if (isVisible) {
@@ -114,20 +137,31 @@ export const FeatureNotificationsGate = ({
     }
   }, [shouldAutoClose, isVisible]);
 
-  // Prompt for OS push when the in-app push channel is on (at open or after
-  // the user enables it) but the OS permission is not granted.
+  // Reset so turning push off then on again can re-prompt.
   useEffect(() => {
     if (!isPushEnabled) {
       hasPromptedOsPushRef.current = false;
+    }
+  }, [isPushEnabled]);
+
+  // Prompt whenever the push channel is on and prefs are ready — independent of
+  // sheet visibility. Master+push already on means the sheet never opens, but
+  // the user still needs the OS permission prompt to actually get notified.
+  useEffect(() => {
+    if (!hasNotificationPreferences || isPreferencesLoading) {
       return;
     }
-    if (!isVisible || hasPromptedOsPushRef.current) {
+    if (!isPushEnabled) {
       return;
     }
 
-    hasPromptedOsPushRef.current = true;
-    void promptOsPushPermissionIfNeeded();
-  }, [isVisible, isPushEnabled]);
+    promptOsPushIfNeeded();
+  }, [
+    isPushEnabled,
+    hasNotificationPreferences,
+    isPreferencesLoading,
+    promptOsPushIfNeeded,
+  ]);
 
   const handleHeaderClose = () => {
     sheetRef.current?.onCloseBottomSheet();
