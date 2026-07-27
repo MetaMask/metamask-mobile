@@ -20,7 +20,7 @@ const nativeAsset = {
   unit: 'SOL',
   fungible: true,
   type: `${SolScope.Mainnet}/slip44:501`,
-};
+} satisfies Extract<Transaction['from'][number]['asset'], { fungible: true }>;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,

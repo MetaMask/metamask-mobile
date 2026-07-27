@@ -27,7 +27,10 @@ const nativeAsset = {
   unit: 'SOL',
   fungible: true,
   type: `${SolScope.Mainnet}/slip44:501`,
-};
+} satisfies Extract<
+  NonEvmTransaction['from'][number]['asset'],
+  { fungible: true }
+>;
 
 jest.mock(
   '@metamask/sentinel-api-service',
