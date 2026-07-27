@@ -48,14 +48,14 @@ import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ram
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 
 // The native provider code must match the environment that `refreshOrder` /
-// `getOrderFromCallback` poll (from `getRampsEnvironment()`). UAT exposes
-// both `transak-native` and `transak-native-staging`, so trusting
+// `getOrderFromCallback` poll (from `getRampsEnvironment()`). Dev/UAT expose
+// `transak-native-staging` (and may also list `transak-native`), so trusting
 // `selectedProvider.id` or a deposit order's `provider` field can pick the
-// production code against the staging API and return 400.
+// production code against a non-prod API and return 400/500.
 function getFallbackNativeProviderCode(): string {
-  return getRampsEnvironment() === RampsEnvironment.Staging
-    ? 'transak-native-staging'
-    : 'transak-native';
+  return getRampsEnvironment() === RampsEnvironment.Production
+    ? 'transak-native'
+    : 'transak-native-staging';
 }
 
 function resolveNativeProviderCode(provider?: string | null): string {
@@ -624,9 +624,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
       // Same pattern as unified Buy WebView Checkout: leave the webview
       // immediately; OrderDetails resolves the order via callback params.
-      // Always resolve to the env-correct native provider — UAT lists both
-      // `transak-native` and `transak-native-staging`, so selectedProvider
-      // can be the production id against the staging API.
+      // Always resolve to the env-correct native provider — Dev/UAT list
+      // `transak-native-staging` (and may also list `transak-native`), so
+      // selectedProvider can be the production id against a non-prod API.
       const cryptoSymbol = selectedToken?.symbol;
       resetWithRoutes(navigation, {
         index: 0,

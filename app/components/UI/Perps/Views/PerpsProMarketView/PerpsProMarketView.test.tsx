@@ -1,5 +1,12 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
+import { Box, ButtonBase } from '@metamask/design-system-react-native';
+import { CandlePeriod } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -10,12 +17,93 @@ import {
 } from '../../Perps.testIds';
 
 interface MockRouteParams {
-  market?: { symbol: string };
+  market?: { symbol: string; price?: string };
+  source?: string;
+  source_section?: string;
+}
+
+interface MockChartPanelProps {
+  symbol: string;
+  selectedCandlePeriod: CandlePeriod;
+  onMorePress: () => void;
+}
+
+interface MockCandlePeriodBottomSheetProps {
+  isVisible: boolean;
+  selectedPeriod: CandlePeriod;
+  onClose: () => void;
+  onPeriodChange: (period: CandlePeriod) => void;
+  testID?: string;
 }
 
 let mockRouteParams: MockRouteParams | undefined = {
-  market: { symbol: 'BTC' },
+  market: { symbol: 'BTC', price: '$90,000.00' },
 };
+const mockTrack = jest.fn();
+const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
+  track: mockTrack,
+}));
+
+const mockPerpsProChartPanel = jest.fn(
+  ({ symbol, onMorePress }: MockChartPanelProps) => (
+    <>
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
+        twClassName="h-[76px]"
+      />
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
+        accessibilityLabel={symbol}
+      >
+        <Box
+          testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
+          twClassName="h-[344px]"
+        />
+        <ButtonBase testID="mock-pro-chart-more-button" onPress={onMorePress}>
+          <Box />
+        </ButtonBase>
+      </Box>
+    </>
+  ),
+);
+
+const mockCandlePeriodBottomSheet = jest.fn(
+  ({
+    isVisible,
+    onClose,
+    onPeriodChange,
+    testID,
+  }: MockCandlePeriodBottomSheetProps) =>
+    isVisible ? (
+      <Box testID={testID}>
+        <ButtonBase
+          testID="mock-more-period-option"
+          onPress={() => onPeriodChange(CandlePeriod.FourHours)}
+        >
+          <Box />
+        </ButtonBase>
+        <ButtonBase testID="mock-more-period-close" onPress={onClose}>
+          <Box />
+        </ButtonBase>
+      </Box>
+    ) : null,
+);
+
+jest.mock('./components/PerpsProChartPanel', () => ({
+  __esModule: true,
+  default: (props: MockChartPanelProps) => mockPerpsProChartPanel(props),
+}));
+
+jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
+  __esModule: true,
+  default: (props: MockCandlePeriodBottomSheetProps) =>
+    mockCandlePeriodBottomSheet(props),
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: (options?: unknown) =>
+    mockUsePerpsEventTracking(options),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -25,6 +113,39 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// PerpsProPositionsPanel uses live stream hooks; avoid PerpsStreamProvider requirement.
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: null,
+    isInitialLoading: false,
+  })),
+  usePerpsLiveOrders: jest.fn(() => ({
+    orders: [],
+    isInitialLoading: false,
+  })),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
+}));
+
+jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
+  usePerpsLiveOrderBook: jest.fn(() => ({
+    orderBook: null,
+    isLoading: true,
+    error: null,
+    connectionStatus: 'connecting',
+    reconnect: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
+  usePerpsOrderBookGrouping: jest.fn(() => ({
+    savedGrouping: undefined,
+    saveGrouping: jest.fn(),
+  })),
+}));
+
 const renderView = () =>
   renderWithProvider(<PerpsProMarketView />, {
     state: { engine: { backgroundState } },
@@ -32,7 +153,8 @@ const renderView = () =>
 
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
-    mockRouteParams = { market: { symbol: 'BTC' } };
+    jest.clearAllMocks();
+    mockRouteParams = { market: { symbol: 'BTC', price: '$90,000.00' } };
   });
 
   it.each([
@@ -65,6 +187,24 @@ describe('PerpsProMarketView', () => {
       'edges',
       ['top', 'bottom', 'left', 'right'],
     );
+  });
+
+  it('tracks an attributed Pro market screen view', () => {
+    renderView();
+
+    expect(mockUsePerpsEventTracking).toHaveBeenCalledWith({
+      eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      resetKey: expect.stringMatching(/^BTC:/),
+      conditions: [true],
+      properties: expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+        [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: expect.any(String),
+        [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+      }),
+    });
   });
 
   it('renders every top-level scaffold slot', () => {
@@ -130,6 +270,52 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the More candle periods sheet from the chart', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('mounts the More candle periods sheet outside the scroll view', () => {
+    const { getByTestId } = renderView();
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+    const scrollView = getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW);
+
+    const nestedSheet = within(scrollView).queryByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET,
+    );
+
+    expect(nestedSheet).not.toBeOnTheScreen();
+  });
+
+  it('updates the chart period from the More candle periods sheet', () => {
+    const { getByTestId } = renderView();
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+
+    fireEvent.press(getByTestId('mock-more-period-option'));
+
+    expect(mockPerpsProChartPanel).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        selectedCandlePeriod: CandlePeriod.FourHours,
+      }),
+    );
+  });
+
+  it('closes the More candle periods sheet', () => {
+    const { getByTestId, queryByTestId } = renderView();
+    fireEvent.press(getByTestId('mock-pro-chart-more-button'));
+
+    fireEvent.press(getByTestId('mock-more-period-close'));
+
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET),
+    ).not.toBeOnTheScreen();
   });
 
   it('updates the form to Market and closes the order type sheet', () => {
@@ -254,5 +440,31 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
     ).toHaveStyle({ height: 344 });
+  });
+
+  it('collapses the order book so the order form fills the trading area', () => {
+    const { getByTestId, queryByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
+    );
+
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
+    ).toBeOnTheScreen();
   });
 });
