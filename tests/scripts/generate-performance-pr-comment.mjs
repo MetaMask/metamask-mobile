@@ -93,6 +93,24 @@ function getDeviceKey(device) {
   return String(device);
 }
 
+function buildAppProfilingCheckCommand({ testName, platform, device, runId }) {
+  const deviceKey = getDeviceKey(device);
+  const parts = [
+    '@metamaskbot app-profiling-check',
+    `--test "${testName}"`,
+  ];
+  if (platform) {
+    parts.push(`--platform ${platform}`);
+  }
+  if (deviceKey) {
+    parts.push(`--device "${deviceKey}"`);
+  }
+  if (runId) {
+    parts.push(`--run ${runId}`);
+  }
+  return `\`${parts.join(' ')}\``;
+}
+
 function getDeviceLabel(device, fallbackPlatform) {
   if (typeof device === 'object') {
     const name = device?.name ?? fallbackPlatform;
@@ -204,6 +222,7 @@ const passedTestRuns = allTestRuns.filter((test) => test.passed);
 // Failed tests table (one section per team)
 if (uniqueFailedTests > 0) {
   md += `### ❌ Failed Tests (${uniqueFailedTests})\n\n`;
+  md += `> 🔬 To compare BrowserStack app profiling vs the last green run on \`main\`, copy/paste the **App profiling check** command for a failed test as a PR comment.\n\n`;
 
   for (const [, teamData] of Object.entries(failedByTeam)) {
     const teamName = teamData.team?.teamId ?? 'Unknown Team';
@@ -211,8 +230,8 @@ if (uniqueFailedTests > 0) {
     if (tests.length === 0) continue;
 
     md += `**${teamName}**\n\n`;
-    md += `| Test | Platform | Device | Reason | Recording |\n`;
-    md += `|------|----------|--------|--------|-----------|\n`;
+    md += `| Test | Platform | Device | Reason | Recording | App profiling check |\n`;
+    md += `|------|----------|--------|--------|-----------|---------------------|\n`;
 
     for (const t of tests) {
       const device =
@@ -222,9 +241,25 @@ if (uniqueFailedTests > 0) {
 
       const reason = formatReason(t.failureReason);
       const recording = t.recordingLink ? `[📹 Watch](${t.recordingLink})` : '—';
-      md += `| ${t.testName} | ${t.platform} | ${device} | ${reason} | ${recording} |\n`;
+      const profilingCheck = buildAppProfilingCheckCommand({
+        testName: t.testName,
+        platform: t.platform,
+        device: t.device,
+        runId,
+      });
+      md += `| ${escapeMarkdownTable(t.testName)} | ${escapeMarkdownTable(
+        t.platform,
+      )} | ${escapeMarkdownTable(device)} | ${escapeMarkdownTable(
+        reason,
+      )} | ${recording} | ${profilingCheck} |\n`;
     }
     md += '\n';
+  }
+
+  if (runId) {
+    md += `<details>\n<summary>Compare all failed scenarios</summary>\n\n`;
+    md += `\`@metamaskbot app-profiling-check --all --run ${runId}\`\n\n`;
+    md += `</details>\n\n`;
   }
 }
 
