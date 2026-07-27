@@ -1,4 +1,5 @@
 import { PlatformDetector } from '../../../framework/PlatformLocator';
+import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
 import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
@@ -39,22 +40,20 @@ class DownloadFileWebsite {
       // scuttling — tap the button via the native accessibility tree instead.
       await PlaywrightContextHelpers.switchToNativeContext();
 
-      const pageHeading = await this.getAndroidPageHeading();
-      await pageHeading.unwrap().waitForExist({ timeout: 30_000 });
+      await PlaywrightAssertions.expectElementToBeVisible(
+        this.getAndroidPageHeading(),
+      );
 
-      const downloadButton = await this.getAndroidDownloadButton();
-      await PlaywrightGestures.waitAndTap(downloadButton, {
-        timeout: 15_000,
-      });
+      await PlaywrightGestures.waitAndTap(
+        await this.getAndroidDownloadButton(),
+      );
       return;
     }
 
     await PlaywrightWebMatchers.withWebViewAction(pageUrl, async () => {
-      const downloadButton = await this.getWebDownloadButton(pageUrl);
-      await downloadButton.unwrap().waitForExist({ timeout: 30_000 });
-      await PlaywrightGestures.waitAndTap(downloadButton, {
-        timeout: 15_000,
-      });
+      await PlaywrightGestures.waitAndTap(
+        await this.getWebDownloadButton(pageUrl),
+      );
     });
   }
 }

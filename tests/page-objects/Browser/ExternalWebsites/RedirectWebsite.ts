@@ -27,14 +27,12 @@ class RedirectWebsite {
       }
 
       await PlaywrightWebMatchers.withWebViewAction(pageUrl, async () => {
-        const redirectButton = await PlaywrightWebMatchers.getElementByXPath(
-          redirectButtonXpath,
-          pageUrl,
+        await PlaywrightGestures.waitAndTap(
+          await PlaywrightWebMatchers.getElementByXPath(
+            redirectButtonXpath,
+            pageUrl,
+          ),
         );
-        await redirectButton.unwrap().waitForExist({ timeout: 30_000 });
-        await PlaywrightGestures.waitAndTap(redirectButton, {
-          timeout: 15_000,
-        });
       });
       return;
     }

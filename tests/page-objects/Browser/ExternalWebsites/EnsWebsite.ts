@@ -2,6 +2,7 @@ import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/Browse
 import { FrameworkDetector } from '../../../framework/FrameworkDetector';
 import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
+import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
 import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
@@ -28,31 +29,27 @@ class EnsWebsite {
         // Android Chromedriver context switch fails under LavaMoat ShadowRoot
         // scuttling — tap via the native accessibility tree instead.
         await PlaywrightContextHelpers.switchToNativeContext();
-        const pageHeading =
-          await PlaywrightMatchers.getElementByAndroidUIAutomator(
+        await PlaywrightAssertions.expectElementToBeVisible(
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
             EnsWebsiteSelectorsText.PAGE_HEADING,
-          );
-        await pageHeading.unwrap().waitForExist({ timeout: 30_000 });
+          ),
+        );
 
-        const generalLink =
+        await PlaywrightGestures.waitAndTap(
           await PlaywrightMatchers.getElementByAndroidUIAutomator(
             EnsWebsiteSelectorsText.GENERAL_LINK,
-          );
-        await PlaywrightGestures.waitAndTap(generalLink, {
-          timeout: 15_000,
-        });
+          ),
+        );
         return;
       }
 
       await PlaywrightWebMatchers.withWebViewAction(pageUrl, async () => {
-        const generalLink = await PlaywrightWebMatchers.getElementByXPath(
-          EnsWebsiteSelectorsXPath.GENERAL_LINK,
-          pageUrl,
+        await PlaywrightGestures.waitAndTap(
+          await PlaywrightWebMatchers.getElementByXPath(
+            EnsWebsiteSelectorsXPath.GENERAL_LINK,
+            pageUrl,
+          ),
         );
-        await generalLink.unwrap().waitForExist({ timeout: 30_000 });
-        await PlaywrightGestures.waitAndTap(generalLink, {
-          timeout: 15_000,
-        });
       });
       return;
     }

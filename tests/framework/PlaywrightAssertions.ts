@@ -227,20 +227,20 @@ export default class PlaywrightAssertions {
   ): Promise<void> {
     const el = await targetElement;
     const timeout = this.getTimeout(options);
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-      try {
+    const description =
+      options.description ?? `element text is not "${forbidden}"`;
+
+    return Utilities.executeWithRetry(
+      async () => {
         const text = await el.textContent();
-        if (text !== forbidden) {
-          return;
+        if (text === forbidden) {
+          throw new Error(`Element still has forbidden text "${forbidden}"`);
         }
-      } catch {
-        // element not ready yet
-      }
-      await sleep(300);
-    }
-    throw new Error(
-      `Expected element text not to be "${forbidden}" within ${timeout}ms`,
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
     );
   }
 
