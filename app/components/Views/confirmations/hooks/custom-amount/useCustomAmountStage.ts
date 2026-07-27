@@ -1,12 +1,10 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuotesLastUpdated,
+  useTransactionPayQuotesRaw,
 } from '../pay/useTransactionPayData';
-import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
-import { useAlerts } from '../../context/alert-system-context';
-import { AlertKeys } from '../../constants/alerts';
 
 /** Mutually-exclusive UI stages of the custom amount info screen. */
 export enum CustomAmountStage {
@@ -22,8 +20,8 @@ export enum CustomAmountStage {
  * Stage is computed from two layers: a stateful override (`AmountInput` when
  * the keyboard is open, `Loading` while an amount update is in flight) set by
  * the component via `setStage`; and a pure derivation from reactive inputs
- * (quotes, prefill flags, alerts) used whenever the override is `null`.
- * The hook reads quote and alert state itself so the component renders purely
+ * (quotes, prefill flags) used whenever the override is `null`.
+ * The hook reads quote state itself so the component renders purely
  * off the returned `stage`.
  *
  * @param options.amountFiat - Current fiat amount; detects a no-op re-commit
@@ -32,7 +30,6 @@ export enum CustomAmountStage {
  * @param options.isAddMusdIntent - Whether this is an add-mUSD deposit.
  * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
- * @param options.isDepositPrefilled - Whether a deposit prefill has resolved.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
  * @returns The current stage and a setter to override it.
  */
@@ -42,7 +39,6 @@ export function useCustomAmountStage({
   isAddMusdIntent,
   isDepositPrefillEnabled,
   isDepositPrefillLoading,
-  isDepositPrefilled,
   skipDepositPrefill,
 }: {
   amountFiat: string;
@@ -50,7 +46,6 @@ export function useCustomAmountStage({
   isAddMusdIntent: boolean;
   isDepositPrefillEnabled: boolean;
   isDepositPrefillLoading: boolean;
-  isDepositPrefilled: boolean;
   skipDepositPrefill: boolean;
 }): {
   stage: CustomAmountStage;
@@ -64,14 +59,13 @@ export function useCustomAmountStage({
       : CustomAmountStage.Loading,
   );
 
-  const isQuotesLoading = useIsTransactionPayLoading();
+  const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
-  const quotes = useTransactionPayQuotes();
+  const quotes = useTransactionPayQuotesRaw();
   const hasQuotes = Boolean(quotes?.length);
-  const hasSourceAmount = useTransactionPayHasSourceAmount();
-  const { alerts } = useAlerts();
-  const hasNoQuotesAlert = alerts.some(
-    (a) => a.key === AlertKeys.NoPayTokenQuotes,
+  const requiredToken = useTransactionPayPrimaryRequiredToken();
+  const hasAmount = Boolean(
+    requiredToken?.amountRaw && requiredToken.amountRaw !== '0',
   );
 
   // Quote timestamp when Loading began, so we only leave on a genuinely newer
@@ -122,27 +116,22 @@ export function useCustomAmountStage({
       (loadingBaselineRef.current === undefined ||
         quotesLastUpdated > loadingBaselineRef.current);
 
-    if (hasFreshQuote || isQuotesLoading) {
+    if (hasAmount && (hasFreshQuote || isQuotesLoading)) {
       setStage(null);
     }
   }, [
     stageOverride,
     amountFiat,
+    hasAmount,
     hasQuotes,
     isQuotesLoading,
     quotesLastUpdated,
   ]);
 
-  const isKeyboardVisible = stageOverride === CustomAmountStage.AmountInput;
-
   const isAwaitingPrefillResult =
-    !hasAccountNoFunds &&
-    !skipDepositPrefill &&
-    (isDepositPrefillLoading ||
-      (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
+    !hasAccountNoFunds && !skipDepositPrefill && isDepositPrefillLoading;
 
-  const showPaymentDetails =
-    hasQuotes || (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
+  const showTotals = hasQuotes;
 
   // Re-assert the keyboard when prefill is enabled but skipped: nothing to
   // prefill, so the user should be entering an amount. The updater is a no-op
@@ -163,18 +152,13 @@ export function useCustomAmountStage({
   }
 
   // Derive from reactive inputs. Stay in Loading while quotes fetch or a
-  // prefill / add-mUSD preload resolves. The add-mUSD term excludes
-  // `hasNoQuotesAlert` so a failed fetch falls through to NoQuote instead of
-  // spinning forever.
-  if (
-    isQuotesLoading ||
-    isAwaitingPrefillResult ||
-    (isAddMusdIntent && !showPaymentDetails && !hasNoQuotesAlert)
-  ) {
+  // prefill preload resolves; otherwise show totals when quotes exist, or fall
+  // through to NoQuote when a settled fetch produced none.
+  if (isQuotesLoading || isAwaitingPrefillResult) {
     return { setStage, stage: CustomAmountStage.Loading };
   }
 
-  if (showPaymentDetails) {
+  if (showTotals) {
     return { setStage, stage: CustomAmountStage.ShowTotals };
   }
 

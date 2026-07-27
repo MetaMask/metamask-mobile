@@ -28,11 +28,11 @@ import { AssetType } from '../../../types/token';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
+  useTransactionPayPrimaryRequiredToken,
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayQuotesRaw,
   useTransactionPayQuotesLastUpdated,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -75,7 +75,6 @@ jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
 }));
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
-jest.mock('../../../hooks/pay/useTransactionPayHasSourceAmount');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
@@ -301,16 +300,16 @@ describe('CustomAmountInfo', () => {
   );
 
   const useIsTransactionPayLoadingMock = jest.mocked(
-    useIsTransactionPayLoading,
+    useIsTransactionPayQuoteLoading,
   );
 
-  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotesRaw);
   const useTransactionPayQuotesLastUpdatedMock = jest.mocked(
     useTransactionPayQuotesLastUpdated,
   );
 
-  const useTransactionPayHasSourceAmountMock = jest.mocked(
-    useTransactionPayHasSourceAmount,
+  const useTransactionPayPrimaryRequiredTokenMock = jest.mocked(
+    useTransactionPayPrimaryRequiredToken,
   );
 
   const useTransactionCustomAmountAlertsMock = jest.mocked(
@@ -439,7 +438,9 @@ describe('CustomAmountInfo', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayQuotesMock.mockReturnValue([]);
     useTransactionPayQuotesLastUpdatedMock.mockReturnValue(undefined);
-    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+    useTransactionPayPrimaryRequiredTokenMock.mockReturnValue({
+      amountRaw: '1000',
+    } as ReturnType<typeof useTransactionPayPrimaryRequiredToken>);
     useTokenFiatRatesMock.mockReturnValue([1, 1]);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.contractInteraction,
@@ -504,7 +505,6 @@ describe('CustomAmountInfo', () => {
       updateTokenAmount: jest.fn(),
     });
     useIsTransactionPayLoadingMock.mockReturnValue(true);
-    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
 
     const { getByTestId, queryByTestId } = render({
       transactionType: TransactionType.perpsDeposit,
@@ -879,7 +879,10 @@ describe('CustomAmountInfo', () => {
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
+      // A fresh, non-empty quote settles the override into the populated review.
       useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
       view.rerender(
         createCustomAmountInfo({
           transactionType: TransactionType.moneyAccountDeposit,
@@ -1042,7 +1045,10 @@ describe('CustomAmountInfo', () => {
         }),
       );
 
+      // A fresh, non-empty quote settles the override into the populated review.
       useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
       view.rerender(
         createCustomAmountInfo({
           transactionType: TransactionType.moneyAccountDeposit,
@@ -1111,7 +1117,10 @@ describe('CustomAmountInfo', () => {
 
       useIsTransactionPayLoadingMock.mockReturnValue(true);
       view.rerender(createCustomAmountInfo());
+      // A fresh, non-empty quote settles the override into the populated review.
       useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
       view.rerender(createCustomAmountInfo());
 
       expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
@@ -1172,7 +1181,10 @@ describe('CustomAmountInfo', () => {
 
     useIsTransactionPayLoadingMock.mockReturnValue(true);
     view.rerender(createCustomAmountInfo());
+    // A fresh, non-empty quote settles the override into the populated review.
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
     view.rerender(createCustomAmountInfo());
 
     await act(async () => {
@@ -1709,30 +1721,8 @@ describe('CustomAmountInfo', () => {
       ).not.toBeDisabled();
     });
 
-    it('shows fee rows for same-chain payment without quotes', async () => {
-      useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+    it('hides fee rows when the fetch settled with no quotes', async () => {
       useTransactionPayQuotesMock.mockReturnValue([]);
-
-      const view = render();
-      await pressDone(view);
-
-      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
-    });
-
-    it('hides fee rows when no-quotes alert is present', async () => {
-      useTransactionPayHasSourceAmountMock.mockReturnValue(false);
-      useTransactionPayQuotesMock.mockReturnValue([]);
-      useAlertsMock.mockReturnValue({
-        alerts: [
-          {
-            key: AlertKeys.NoPayTokenQuotes,
-            severity: Severity.Danger,
-            isBlocking: true,
-          },
-        ] as Alert[],
-        generalAlerts: [] as Alert[],
-        fieldAlerts: [] as Alert[],
-      } as AlertsContextParams);
 
       const view = render();
       await pressDone(view);
@@ -1741,8 +1731,8 @@ describe('CustomAmountInfo', () => {
     });
 
     it('shows fee rows when quotes exist regardless of source amount', async () => {
-      useTransactionPayHasSourceAmountMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([{} as never]);
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
 
       const view = render();
       await pressDone(view);
@@ -2141,7 +2131,6 @@ describe('CustomAmountInfo', () => {
     // Settle the Loading override into the review.
     useTransactionPayQuotesMock.mockReturnValue([{}] as never);
     useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
-    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
     view.rerender(
       createCustomAmountInfo({
         transactionType: TransactionType.moneyAccountDeposit,

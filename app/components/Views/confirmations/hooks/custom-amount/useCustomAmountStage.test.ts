@@ -5,52 +5,46 @@ import {
   useCustomAmountStage,
 } from './useCustomAmountStage';
 import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuotesLastUpdated,
+  useTransactionPayQuotesRaw,
 } from '../pay/useTransactionPayData';
-import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
-import { useAlerts } from '../../context/alert-system-context';
-import { AlertKeys } from '../../constants/alerts';
 
 jest.mock('../pay/useTransactionPayData');
-jest.mock('../pay/useTransactionPayHasSourceAmount');
-jest.mock('../../context/alert-system-context');
 
-const useIsTransactionPayLoadingMock = jest.mocked(useIsTransactionPayLoading);
-const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+const useIsTransactionPayQuoteLoadingMock = jest.mocked(
+  useIsTransactionPayQuoteLoading,
+);
+const useTransactionPayQuotesRawMock = jest.mocked(useTransactionPayQuotesRaw);
 const useTransactionPayQuotesLastUpdatedMock = jest.mocked(
   useTransactionPayQuotesLastUpdated,
 );
-const useTransactionPayHasSourceAmountMock = jest.mocked(
-  useTransactionPayHasSourceAmount,
+const useTransactionPayPrimaryRequiredTokenMock = jest.mocked(
+  useTransactionPayPrimaryRequiredToken,
 );
-const useAlertsMock = jest.mocked(useAlerts);
 
 interface StateOptions {
   isQuotesLoading?: boolean;
   quotes?: unknown[];
   quotesLastUpdated?: number | undefined;
-  hasSourceAmount?: boolean;
-  hasNoQuotesAlert?: boolean;
+  amountRaw?: string | undefined;
 }
 
 function setupState({
   isQuotesLoading = false,
   quotes = [],
   quotesLastUpdated = undefined,
-  hasSourceAmount = false,
-  hasNoQuotesAlert = false,
+  amountRaw = '1000',
 }: StateOptions = {}) {
-  useIsTransactionPayLoadingMock.mockReturnValue(isQuotesLoading);
-  useTransactionPayQuotesMock.mockReturnValue(
-    quotes as ReturnType<typeof useTransactionPayQuotes>,
+  useIsTransactionPayQuoteLoadingMock.mockReturnValue(isQuotesLoading);
+  useTransactionPayQuotesRawMock.mockReturnValue(
+    quotes as ReturnType<typeof useTransactionPayQuotesRaw>,
   );
   useTransactionPayQuotesLastUpdatedMock.mockReturnValue(quotesLastUpdated);
-  useTransactionPayHasSourceAmountMock.mockReturnValue(hasSourceAmount);
-  useAlertsMock.mockReturnValue({
-    alerts: hasNoQuotesAlert ? [{ key: AlertKeys.NoPayTokenQuotes }] : [],
-  } as unknown as ReturnType<typeof useAlerts>);
+  useTransactionPayPrimaryRequiredTokenMock.mockReturnValue({
+    amountRaw,
+  } as ReturnType<typeof useTransactionPayPrimaryRequiredToken>);
 }
 
 type HookOptions = Parameters<typeof useCustomAmountStage>[0];
@@ -60,7 +54,6 @@ const DEFAULT_OPTIONS: HookOptions = {
   isAddMusdIntent: false,
   isDepositPrefillEnabled: false,
   isDepositPrefillLoading: false,
-  isDepositPrefilled: false,
   skipDepositPrefill: false,
   hasAccountNoFunds: false,
 };
@@ -149,15 +142,26 @@ describe('useCustomAmountStage', () => {
     });
 
     it('derives NoQuote when the fetch settled with no quotes', () => {
-      setupState({
-        isQuotesLoading: false,
-        quotes: [],
-        hasNoQuotesAlert: true,
-      });
+      setupState({ isQuotesLoading: false, quotes: [] });
 
       const { result } = runDerived();
 
       expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
+    });
+
+    it('derives ShowTotals for a no-op route (raw no-op quote present)', () => {
+      // Direct / no-op routes settle with a raw `strategy: None` quote that the
+      // filtered selector strips. Reading raw quotes keeps the stage out of an
+      // infinite loader.
+      setupState({
+        isQuotesLoading: false,
+        quotes: [{ strategy: 'None' }],
+        quotesLastUpdated: 1,
+      });
+
+      const { result } = runDerived();
+
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
     it('derives Loading while a prefill result is awaited', () => {
@@ -171,42 +175,38 @@ describe('useCustomAmountStage', () => {
   });
 
   describe('add-mUSD loader', () => {
-    function runDerived(options: Partial<HookOptions> = {}) {
-      const view = runHook({ isAddMusdIntent: true, ...options });
-      act(() => {
-        view.result.current.setStage(null);
-      });
-      return view;
-    }
-
-    it('holds Loading during the add-mUSD preload (no quotes, none fetching)', () => {
+    it('holds Loading during the add-mUSD preload (initial override)', () => {
+      // The add-mUSD initial override is Loading; it bridges the preload before
+      // any fetch signal is reflected reactively.
       setupState({ isQuotesLoading: false, quotes: [] });
 
-      const { result } = runDerived();
+      const { result } = runHook({ isAddMusdIntent: true });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
 
-    it('leaves Loading for NoQuote when the fetch fails (no-quotes alert set)', () => {
-      setupState({
-        isQuotesLoading: false,
-        quotes: [],
-        hasNoQuotesAlert: true,
+    it('derives NoQuote when the fetch settles with no quotes', () => {
+      setupState({ isQuotesLoading: false, quotes: [] });
+
+      const view = runHook({ isAddMusdIntent: true });
+      act(() => {
+        view.result.current.setStage(null);
       });
 
-      const { result } = runDerived();
-
-      // Regression: the add-mUSD term must not force an infinite loader once
-      // the fetch has settled with no quotes.
-      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
+      // Regression: add-mUSD must not force an infinite loader once the fetch
+      // has settled with no quotes.
+      expect(view.result.current.stage).toBe(CustomAmountStage.NoQuote);
     });
 
     it('shows totals once a quote arrives', () => {
       setupState({ quotes: [{}], quotesLastUpdated: 1 });
 
-      const { result } = runDerived();
+      const view = runHook({ isAddMusdIntent: true });
+      act(() => {
+        view.result.current.setStage(null);
+      });
 
-      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
+      expect(view.result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
   });
 
@@ -246,16 +246,48 @@ describe('useCustomAmountStage', () => {
       expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
-    it('leaves the Loading override once the composite loading takes over', () => {
+    it('holds the Loading override until the required token has an amount', () => {
+      // Prefill flow: the override must not clear on an early loading pulse
+      // before a real amount lands, otherwise the derive path flashes totals
+      // from a stale quote.
+      setupState({
+        isQuotesLoading: true,
+        quotes: [{}],
+        quotesLastUpdated: 1,
+        amountRaw: '0',
+      });
+
+      const { result, setOptions } = runHook({
+        isDepositPrefillEnabled: true,
+      });
+
+      // Still Loading: hasAmount is false, so the override is retained.
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+
+      // A real amount arrives with a fresh quote: the override may now clear.
+      setupState({
+        isQuotesLoading: false,
+        quotes: [{}],
+        quotesLastUpdated: 2,
+        amountRaw: '1000',
+      });
+      act(() => {
+        setOptions({});
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
+    });
+
+    it('leaves the Loading override once the quote fetch takes over', () => {
       const { result, setOptions } = runHook();
 
       act(() => {
         result.current.setStage(CustomAmountStage.Loading);
       });
 
-      // The real fetch starts: derived Loading takes over, so the override
-      // clears and the stage stays Loading via derivation.
-      setupState({ isQuotesLoading: true });
+      // The real fetch starts with a real amount: derived Loading takes over,
+      // so the override clears and the stage stays Loading via derivation.
+      setupState({ isQuotesLoading: true, amountRaw: '1000' });
       act(() => {
         setOptions({});
       });
