@@ -37,7 +37,6 @@ import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
-import { selectPerpsEnabledFlag } from '../../Perps';
 import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -268,8 +267,6 @@ const TokenDetails: React.FC<{
   );
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
 
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-
   const {
     currentPrice,
     priceDiff,
@@ -389,7 +386,6 @@ const TokenDetails: React.FC<{
         timePeriod={timePeriod}
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
-        isPerpsEnabled={isPerpsEnabled}
         currentCurrency={currentCurrency}
         onBuy={handleBuy}
         onSend={handleSend}
@@ -538,11 +534,10 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const token = route.params as TokenDetailsRouteParams;
 
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const [perpsMarket, setPerpsMarket] = useState<{
     hasPerpsMarket: boolean;
     isLoading: boolean;
-  }>({ hasPerpsMarket: false, isLoading: isPerpsEnabled });
+  }>({ hasPerpsMarket: false, isLoading: true });
   const { hasPerpsMarket, isLoading: isPerpsMarketLoading } = perpsMarket;
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
@@ -663,7 +658,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       setPendingInsights(null);
       return;
     }
-    if (isPerpsEnabled && isPerpsMarketLoading) {
+    if (isPerpsMarketLoading) {
       return;
     }
     if (resolvedStickyButtons === undefined) {
@@ -673,14 +668,13 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     trackTokenDetailsOpened({
       isMarketInsightsDisplayed: pendingInsights.isDisplayed,
       severity: pendingInsights.severity,
-      hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
+      hasPerpsMarket,
       stickyButtonsShown: resolvedStickyButtons ?? undefined,
     });
     setPendingInsights(null);
   }, [
     pendingInsights,
     hasPerpsMarket,
-    isPerpsEnabled,
     isPerpsMarketLoading,
     resolvedStickyButtons,
     tokenKey,

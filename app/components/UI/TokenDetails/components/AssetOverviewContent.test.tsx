@@ -184,7 +184,6 @@ const defaultProps: AssetOverviewContentProps = {
   timePeriod: '1d',
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-  isPerpsEnabled: true,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),

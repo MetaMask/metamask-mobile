@@ -158,9 +158,6 @@ export interface AssetOverviewContentProps {
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
 
-  // Feature flags
-  isPerpsEnabled: boolean;
-
   // Currency
   currentCurrency: string;
 
@@ -232,7 +229,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   timePeriod,
   setTimePeriod,
   chartNavigationButtons,
-  isPerpsEnabled,
   currentCurrency,
   onBuy,
   onSend,
@@ -271,7 +267,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isLoading: isPerpsLoading,
     handlePerpsAction,
   } = usePerpsActions({
-    symbol: isPerpsEnabled ? token.symbol : null,
+    symbol: token.symbol,
     fromTokenDetails: true,
     transactionActiveAbTests: token.transactionActiveAbTests,
   });
@@ -344,16 +340,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isButtonsLoading = isBuyableLoading || isPerpsLoading;
 
-  // Check if user has a position for this asset (only if perps is enabled and market exists)
+  // Check if user has a position for this asset (only if market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
-    usePerpsPositionForAsset(
-      isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
-    );
+    usePerpsPositionForAsset(hasPerpsMarket ? token.symbol : null);
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   const showPerpsSection =
-    isPerpsEnabled &&
     hasPerpsMarket &&
     Boolean(marketData) &&
     isTokenTrustworthy &&

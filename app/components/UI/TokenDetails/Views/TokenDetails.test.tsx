@@ -8,7 +8,6 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
-import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import {
@@ -303,10 +302,6 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   })),
 }));
 
-jest.mock('../../Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(() => false),
-}));
-
 jest.mock('../../Earn/selectors/featureFlags', () => ({
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
@@ -472,7 +467,6 @@ describe('TokenDetails', () => {
       if (selector === selectCurrencyRates)
         // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === selectPerpsEnabledFlag) return false;
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
@@ -671,7 +665,6 @@ describe('TokenDetails', () => {
         return { '0x1': { nativeCurrency: 'ETH' } };
       if (selector === selectCurrencyRates)
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
@@ -848,7 +841,6 @@ describe('TokenDetails', () => {
         if (selector === selectNetworkConfigurations)
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates) return {};
-        if (selector === selectPerpsEnabledFlag) return false;
         if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
@@ -953,7 +945,6 @@ describe('TokenDetails', () => {
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates)
           return { ETH: { conversionRate: 2800, usdConversionRate: 3000 } };
-        if (selector === selectPerpsEnabledFlag) return false;
         if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
