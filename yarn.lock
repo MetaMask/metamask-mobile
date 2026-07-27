@@ -8397,6 +8397,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/core-backend@npm:^6.2.1, @metamask/core-backend@npm:^6.2.2, @metamask/core-backend@npm:^6.5.0":
+  version: 6.5.0
+  resolution: "@metamask/core-backend@npm:6.5.0"
+  dependencies:
+    "@metamask/accounts-controller": "npm:^39.0.4"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/keyring-controller": "npm:^27.1.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/profile-sync-controller": "npm:^28.2.0"
+    "@metamask/utils": "npm:^11.11.0"
+    "@tanstack/query-core": "npm:^5.62.16"
+    async-mutex: "npm:^0.5.0"
+    uuid: "npm:^8.3.2"
+  checksum: 10/d728bd8db6f832b479811288f00b8f2fd78561d42046ee08ceee6068632e72bcf2fdd229f3a7077518a2766f9eacef14b3e224dc0bdcc27d3cd5d2f6d81eb55c
+  languageName: node
+  linkType: hard
+
 "@metamask/core-backend@npm:^7.0.0":
   version: 7.0.0
   resolution: "@metamask/core-backend@npm:7.0.0"
@@ -8954,7 +8971,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^26.1.0, @metamask/gas-fee-controller@npm:^26.2.4, @metamask/gas-fee-controller@npm:^26.3.0":
+"@metamask/gas-fee-controller@npm:^26.1.0, @metamask/gas-fee-controller@npm:^26.1.1, @metamask/gas-fee-controller@npm:^26.2.1, @metamask/gas-fee-controller@npm:^26.2.4, @metamask/gas-fee-controller@npm:^26.3.0":
   version: 26.3.0
   resolution: "@metamask/gas-fee-controller@npm:26.3.0"
   dependencies:
@@ -10569,15 +10586,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:69.2.1":
-  version: 69.2.1
-  resolution: "@metamask/transaction-controller@npm:69.2.1"
+"@metamask/transaction-controller@npm:^64.2.0":
+  version: 64.4.0
+  resolution: "@metamask/transaction-controller@npm:64.4.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
     "@ethersproject/wallet": "npm:^5.7.0"
     "@metamask/accounts-controller": "npm:^37.2.0"
     "@metamask/approval-controller": "npm:^9.0.1"
@@ -10682,9 +10700,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^69.0.0, @metamask/transaction-controller@npm:^69.1.0":
-  version: 69.1.0
-  resolution: "@metamask/transaction-controller@npm:69.1.0"
+"@metamask/transaction-controller@npm:^69.0.0, @metamask/transaction-controller@npm:^69.2.1":
+  version: 69.2.1
+  resolution: "@metamask/transaction-controller@npm:69.2.1"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -36060,7 +36078,7 @@ __metadata:
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^69.1.0"
+    "@metamask/transaction-controller": "npm:^69.2.1"
     "@metamask/transaction-pay-controller": "npm:^26.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.33.1"
     "@metamask/utils": "npm:^11.11.0"
