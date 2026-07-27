@@ -1,13 +1,24 @@
 import React, { PureComponent } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { StyleSheet } from 'react-native';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AddressList from '../../confirmations/legacy/components/AddressList';
-import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
@@ -23,9 +34,35 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    content: {
+      flex: 1,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 32,
+      paddingBottom: 88,
+      gap: 16,
+    },
+    emptyStateCopy: {
+      gap: 8,
+      alignItems: 'center',
+    },
+    emptyStateDescription: {
+      textAlign: 'center',
+    },
+    emptyStateButton: {
+      width: '100%',
+      marginTop: 8,
+    },
+    footer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      paddingTop: 12,
+    },
     addContact: {
-      marginHorizontal: 24,
-      marginBottom: 16,
+      width: '100%',
     },
   });
 
@@ -112,12 +149,66 @@ class Contacts extends PureComponent {
     });
   };
 
+  hasContacts = () => {
+    const { addressBook, chainId } = this.props;
+    return Object.keys(addressBook?.[chainId] || {}).length > 0;
+  };
+
+  renderAddContactButton = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        style={styles.addContact}
+        onPress={this.goToAddContact}
+        testID={ContactsViewSelectorIDs.ADD_BUTTON}
+      >
+        {strings('address_book.add_contact')}
+      </Button>
+    );
+  };
+
+  renderEmptyState = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View style={styles.emptyState}>
+        <Icon
+          name={IconName.UserCircleAdd}
+          size={IconSize.Xl}
+          color={IconColor.IconDefault}
+        />
+        <View style={styles.emptyStateCopy}>
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {strings('address_book.no_contacts')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('address_book.no_contacts_description')}
+          </Text>
+        </View>
+        <View style={styles.emptyStateButton}>
+          {this.renderAddContactButton()}
+        </View>
+      </View>
+    );
+  };
+
   render = () => {
     const { reloadAddressList } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance;
     const styles = createStyles(colors);
     const { chainId } = this.props;
+    const hasContacts = this.hasContacts();
 
     return (
       <SafeAreaView
@@ -134,22 +225,23 @@ class Contacts extends PureComponent {
             testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
           }}
         />
-        <AddressList
-          chainId={chainId}
-          onlyRenderAddressBook
-          reloadAddressList={reloadAddressList}
-          onAccountPress={this.onAddressPress}
-          onIconPress={this.onIconPress}
-          onAccountLongPress={this.onAddressLongPress}
-        />
-        <StyledButton
-          type={'confirm'}
-          containerStyle={styles.addContact}
-          onPress={this.goToAddContact}
-          testID={ContactsViewSelectorIDs.ADD_BUTTON}
-        >
-          {strings('address_book.add_contact')}
-        </StyledButton>
+        <View style={styles.content}>
+          {hasContacts ? (
+            <AddressList
+              chainId={chainId}
+              onlyRenderAddressBook
+              reloadAddressList={reloadAddressList}
+              onAccountPress={this.onAddressPress}
+              onIconPress={this.onIconPress}
+              onAccountLongPress={this.onAddressLongPress}
+            />
+          ) : (
+            this.renderEmptyState()
+          )}
+        </View>
+        {hasContacts ? (
+          <View style={styles.footer}>{this.renderAddContactButton()}</View>
+        ) : null}
         <ActionSheet
           ref={this.createActionSheetRef}
           title={strings('address_book.delete_contact')}

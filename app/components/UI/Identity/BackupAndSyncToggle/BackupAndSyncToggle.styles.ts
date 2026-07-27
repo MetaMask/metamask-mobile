@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   setting: {
     marginTop: 0,
+    paddingVertical: 16,
   },
   heading: {
     flexDirection: 'row',

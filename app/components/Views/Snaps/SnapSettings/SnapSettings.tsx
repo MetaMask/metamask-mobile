@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Engine from '../../../../core/Engine';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import {
@@ -33,7 +34,6 @@ import {
   SNAP_SETTINGS_REMOVE_BUTTON,
   SNAP_SETTINGS_SCROLLVIEW,
 } from './SnapSettings.constants';
-import { SNAPS_HEADER_TITLE_PROPS } from '../SnapsSettingsList/SnapsSettingsList.constants';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 import KeyringSnapRemovalWarning from '../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning';
 import { getAccountsBySnapId } from '../../../../core/SnapKeyring/utils/getAccountsBySnapId';
@@ -160,7 +160,6 @@ const SnapSettings = () => {
       >
         <HeaderStandard
           title={snap.manifest.proposedName}
-          titleProps={SNAPS_HEADER_TITLE_PROPS}
           onBack={handleBack}
           includesTopInset
           testID={SNAP_SETTINGS_HEADER}
@@ -173,22 +172,24 @@ const SnapSettings = () => {
           contentContainerStyle={styles.scrollContent}
         >
           <SnapDetails snap={snap} />
-          <View style={styles.itemPaddedContainer}>
-            <SnapDescription
-              snapName={snap.manifest.proposedName}
-              snapDescription={snap.manifest.description}
-            />
-          </View>
+          <View style={styles.sectionBreak} />
+          <SnapDescription snapDescription={snap.manifest.description} />
+          <View style={styles.sectionBreak} />
           <View style={styles.itemPaddedContainer}>
             <SnapPermissions permissions={permissionsFromController} />
           </View>
+          <View style={styles.sectionBreak} />
           <View style={styles.removeSection}>
-            <Text variant={TextVariant.HeadingMD}>
+            <Text variant={TextVariant.BodyMDMedium} style={styles.removeTitle}>
               {strings(
                 'app_settings.snaps.snap_settings.remove_snap_section_title',
               )}
             </Text>
-            <Text variant={TextVariant.BodyMD}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.removeDescription}
+            >
               {strings(
                 'app_settings.snaps.snap_settings.remove_snap_section_description',
               )}

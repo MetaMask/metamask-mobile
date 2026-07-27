@@ -89,10 +89,9 @@ describe('AddActivationKey', () => {
     expect(addButton).toBeDisabled();
   });
 
-  it('navigates back when pressing cancel', () => {
+  it('does not render a cancel button', () => {
     render(ActivationKeyForm);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
   });
 
   it('calls onSubmit with a valid test key', () => {

@@ -33,10 +33,12 @@ import { getFontFamily } from '../../../../component-library/components/Texts/Te
 import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text/Text.types';
 import {
   FontWeight,
+  Box,
   Text,
   TextColor,
   TextVariant,
   HeaderStandard,
+  SectionDivider,
 } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
@@ -54,8 +56,6 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      padding: 16,
-      paddingBottom: 100,
     },
     titleContainer: {
       flexDirection: 'row',
@@ -76,7 +76,7 @@ const createStyles = (colors) =>
       marginTop: 8,
     },
     accessory: {
-      marginTop: 16,
+      marginTop: 12,
     },
     switchLine: {
       flexDirection: 'row',
@@ -86,7 +86,8 @@ const createStyles = (colors) =>
       alignSelf: 'flex-start',
     },
     setting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     firstSetting: {
       marginTop: 0,
@@ -102,6 +103,24 @@ const createStyles = (colors) =>
       textAlign: 'center',
       marginBottom: 20,
     },
+    destructiveSheetContent: {
+      alignItems: 'stretch',
+      paddingBottom: 24,
+      paddingHorizontal: 16,
+      paddingTop: 40,
+      rowGap: 16,
+    },
+    destructiveSheetIcon: {
+      alignSelf: 'center',
+      marginBottom: 8,
+    },
+    destructiveSheetTitle: {
+      textAlign: 'center',
+    },
+    destructiveSheetText: {
+      lineHeight: 24,
+      marginBottom: 8,
+    },
     picker: {
       borderColor: colors.border.default,
       borderRadius: 5,
@@ -109,7 +128,19 @@ const createStyles = (colors) =>
       marginTop: 16,
     },
     inner: {
-      paddingBottom: 48,
+      paddingBottom: 100,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    settingsPageSeparator: {
+      backgroundColor: colors.border.muted,
+      height: 1,
+      opacity: 0.75,
+    },
+    sectionDivider: {
+      backgroundColor: colors.background.muted,
+      height: 6,
+      marginHorizontal: -16,
     },
     ipfsGatewayLoadingWrapper: {
       height: 37,
@@ -356,11 +387,6 @@ class AdvancedSettings extends PureComponent {
             style={styles.inner}
             testID={AdvancedViewSelectorsIDs.CONTAINER}
           >
-            <ResetAccountModal
-              resetModalVisible={resetModalVisible}
-              cancelResetAccount={this.cancelResetAccount}
-              styles={styles}
-            />
             <View style={[styles.setting, styles.firstSetting]}>
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.reset_account')}
@@ -383,6 +409,12 @@ class AdvancedSettings extends PureComponent {
               />
             </View>
 
+            <SectionDivider
+              borderWidth={0}
+              marginVertical={4}
+              style={styles.sectionDivider}
+            />
+
             <SettingsRow
               heading={strings(
                 'app_settings.smart_account_dapp_requests_heading',
@@ -397,6 +429,8 @@ class AdvancedSettings extends PureComponent {
               testId={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
               styles={styles}
             />
+
+            <Box style={styles.settingsPageSeparator} />
 
             <SettingsRow
               heading={strings(
@@ -424,6 +458,12 @@ class AdvancedSettings extends PureComponent {
               styles={styles}
             />
 
+            <SectionDivider
+              borderWidth={0}
+              marginVertical={4}
+              style={styles.sectionDivider}
+            />
+
             <SettingsRow
               heading={strings('app_settings.show_hex_data')}
               description={strings('app_settings.hex_desc')}
@@ -432,7 +472,11 @@ class AdvancedSettings extends PureComponent {
               styles={styles}
             />
 
+            <Box style={styles.settingsPageSeparator} />
+
             <AutoDetectTokensSettings />
+
+            <Box style={styles.settingsPageSeparator} />
 
             <SettingsRow
               heading={strings('app_settings.show_fiat_on_testnets')}
@@ -449,6 +493,12 @@ class AdvancedSettings extends PureComponent {
               }}
               testId={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
               styles={styles}
+            />
+
+            <SectionDivider
+              borderWidth={0}
+              marginVertical={4}
+              style={styles.sectionDivider}
             />
 
             <View style={styles.setting}>
@@ -474,6 +524,11 @@ class AdvancedSettings extends PureComponent {
             </View>
           </View>
         </KeyboardAwareScrollView>
+        <ResetAccountModal
+          resetModalVisible={resetModalVisible}
+          cancelResetAccount={this.cancelResetAccount}
+          styles={styles}
+        />
       </SafeAreaView>
     );
   };

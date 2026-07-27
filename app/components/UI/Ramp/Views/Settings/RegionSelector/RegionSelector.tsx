@@ -16,19 +16,18 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Fuse from 'fuse.js';
 
-import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../component-library/components/List/ListItemColumn';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { IconName as ComponentLibraryIconName } from '../../../../../../component-library/components/Icons/Icon';
 import {
+  ActionListItem,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
+  IconSize,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 
@@ -308,6 +307,49 @@ function RegionSelector() {
 
   const renderRegionItem = useCallback(
     ({ item }: { item: ListItem }) => {
+      const renderStartAccessory = (
+        flag: string | undefined,
+        isSupported: boolean,
+      ) =>
+        flag ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={
+              isSupported ? TextColor.TextDefault : TextColor.TextAlternative
+            }
+            style={styles.emoji}
+          >
+            {flag}
+          </Text>
+        ) : undefined;
+
+      const renderEndAccessory = (
+        hasStates?: boolean,
+        isSelected?: boolean,
+      ) => {
+        if (hasStates) {
+          return (
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          );
+        }
+
+        if (isSelected) {
+          return (
+            <Icon
+              name={IconName.Check}
+              size={IconSize.Md}
+              color={IconColor.PrimaryDefault}
+            />
+          );
+        }
+
+        return undefined;
+      };
+
       if (isGroupedResult(item)) {
         const countryIsSelected = isRegionSelected(item.country);
         const isSupported = isRegionSupported(item.country.supported);
@@ -320,92 +362,53 @@ function RegionSelector() {
 
         return (
           <View>
-            <ListItemSelect
-              isSelected={countryIsSelected}
+            <ActionListItem
+              label={item.country.name}
+              description={
+                showStateName && userRegion.state
+                  ? userRegion.state.name
+                  : undefined
+              }
+              startAccessory={renderStartAccessory(
+                item.country.flag,
+                isSupported,
+              )}
+              endAccessory={renderEndAccessory(
+                Boolean(item.country.states?.length),
+                countryIsSelected,
+              )}
               onPress={() => handleOnRegionPressCallback(item.country)}
               accessibilityRole="button"
               accessible
               isDisabled={!isSupported}
-            >
-              <ListItemColumn widthType={WidthType.Fill}>
-                <View style={styles.region}>
-                  {item.country.flag && (
-                    <View style={styles.emoji}>
-                      <Text
-                        variant={TextVariant.BodyLg}
-                        fontWeight={FontWeight.Medium}
-                        color={
-                          isSupported
-                            ? TextColor.TextDefault
-                            : TextColor.TextAlternative
-                        }
-                      >
-                        {item.country.flag}
-                      </Text>
-                    </View>
-                  )}
-                  <View style={styles.textContainer}>
-                    <Text
-                      variant={TextVariant.BodyLg}
-                      fontWeight={FontWeight.Medium}
-                      color={
-                        isSupported
-                          ? TextColor.TextDefault
-                          : TextColor.TextAlternative
-                      }
-                    >
-                      {item.country.name}
-                    </Text>
-                    {showStateName && userRegion.state && (
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextMuted}
-                      >
-                        {userRegion.state.name}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              </ListItemColumn>
-              {item.country.states && item.country.states.length > 0 && (
-                <ListItemColumn>
-                  <Icon name={IconName.ArrowRight} />
-                </ListItemColumn>
-              )}
-            </ListItemSelect>
+              labelTextProps={{
+                color: isSupported
+                  ? TextColor.TextDefault
+                  : TextColor.TextAlternative,
+              }}
+              style={styles.row}
+            />
             {item.matchingStates.map((state) => {
               const stateIsSelected = isRegionSelected(state, item.country);
               const isStateSupported = isRegionSupported(state.supported);
               return (
-                <ListItemSelect
+                <ActionListItem
                   key={state.stateId || state.name}
-                  isSelected={stateIsSelected}
+                  label={state.name || ''}
+                  endAccessory={renderEndAccessory(false, stateIsSelected)}
                   onPress={() =>
                     handleOnRegionPressCallback(state, item.country)
                   }
                   accessibilityRole="button"
                   accessible
                   isDisabled={!isStateSupported}
-                  style={styles.nestedStateItem}
-                >
-                  <ListItemColumn widthType={WidthType.Fill}>
-                    <View style={[styles.region, styles.nestedStateRegion]}>
-                      <View style={styles.textContainer}>
-                        <Text
-                          variant={TextVariant.BodyLg}
-                          fontWeight={FontWeight.Medium}
-                          color={
-                            isStateSupported
-                              ? TextColor.TextDefault
-                              : TextColor.TextAlternative
-                          }
-                        >
-                          {state.name || ''}
-                        </Text>
-                      </View>
-                    </View>
-                  </ListItemColumn>
-                </ListItemSelect>
+                  labelTextProps={{
+                    color: isStateSupported
+                      ? TextColor.TextDefault
+                      : TextColor.TextAlternative,
+                  }}
+                  style={[styles.row, styles.nestedStateItem]}
+                />
               );
             })}
           </View>
@@ -428,99 +431,56 @@ function RegionSelector() {
           userRegion.state.name;
 
         return (
-          <ListItemSelect
-            isSelected={isSelected}
+          <ActionListItem
+            label={region.name}
+            description={
+              showStateName && userRegion.state
+                ? userRegion.state.name
+                : undefined
+            }
+            startAccessory={renderStartAccessory(region.flag, isSupported)}
+            endAccessory={renderEndAccessory(
+              Boolean(region.states?.length),
+              isSelected,
+            )}
             onPress={() => handleOnRegionPressCallback(region)}
             accessibilityRole="button"
             accessible
             isDisabled={!isSupported}
-          >
-            <ListItemColumn widthType={WidthType.Fill}>
-              <View style={styles.region}>
-                {region.flag && (
-                  <View style={styles.emoji}>
-                    <Text
-                      variant={TextVariant.BodyLg}
-                      fontWeight={FontWeight.Medium}
-                      color={
-                        isSupported
-                          ? TextColor.TextDefault
-                          : TextColor.TextAlternative
-                      }
-                    >
-                      {region.flag}
-                    </Text>
-                  </View>
-                )}
-                <View style={styles.textContainer}>
-                  <Text
-                    variant={TextVariant.BodyLg}
-                    fontWeight={FontWeight.Medium}
-                    color={
-                      isSupported
-                        ? TextColor.TextDefault
-                        : TextColor.TextAlternative
-                    }
-                  >
-                    {region.name}
-                  </Text>
-                  {showStateName && userRegion.state && (
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextMuted}
-                    >
-                      {userRegion.state.name}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </ListItemColumn>
-            {region.states && region.states.length > 0 && (
-              <ListItemColumn>
-                <Icon name={IconName.ArrowRight} />
-              </ListItemColumn>
-            )}
-          </ListItemSelect>
+            labelTextProps={{
+              color: isSupported
+                ? TextColor.TextDefault
+                : TextColor.TextAlternative,
+            }}
+            style={styles.row}
+          />
         );
       }
 
       const isStateSupported = isRegionSupported(region.supported);
       return (
-        <ListItemSelect
-          isSelected={isSelected}
+        <ActionListItem
+          label={region.name || ''}
+          endAccessory={renderEndAccessory(false, isSelected)}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
           isDisabled={!isStateSupported}
-        >
-          <ListItemColumn widthType={WidthType.Fill}>
-            <View style={styles.region}>
-              <View style={styles.textContainer}>
-                <Text
-                  variant={TextVariant.BodyLg}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isStateSupported
-                      ? TextColor.TextDefault
-                      : TextColor.TextAlternative
-                  }
-                >
-                  {region.name || ''}
-                </Text>
-              </View>
-            </View>
-          </ListItemColumn>
-        </ListItemSelect>
+          labelTextProps={{
+            color: isStateSupported
+              ? TextColor.TextDefault
+              : TextColor.TextAlternative,
+          }}
+          style={styles.row}
+        />
       );
     },
     [
       handleOnRegionPressCallback,
       isRegionSelected,
-      styles.region,
+      styles.row,
       styles.emoji,
-      styles.textContainer,
       styles.nestedStateItem,
-      styles.nestedStateRegion,
       userRegion,
       activeView,
       regionInTransit,

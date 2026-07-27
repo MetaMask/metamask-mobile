@@ -37,6 +37,10 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 16,
   },
+  verticalCtaContainer: {
+    flexDirection: 'column',
+    gap: 12,
+  },
   reverseCtaContainer: {
     flexDirection: 'row-reverse',
   },

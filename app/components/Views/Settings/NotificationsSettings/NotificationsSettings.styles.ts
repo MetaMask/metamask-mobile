@@ -10,28 +10,36 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     container: {
       flex: 1,
-      paddingLeft: 16,
-      paddingRight: 16,
-      paddingBottom: 48,
       backgroundColor: params.theme.colors.background.default,
     },
     contentContainer: {
       flexGrow: 1,
+      paddingBottom: 100,
+      paddingHorizontal: 16,
+      paddingTop: 8,
     },
     line: {
-      borderTopWidth: 1,
-      borderTopColor: params.theme.colors.border.muted,
-      marginTop: 16,
+      backgroundColor: params.theme.colors.border.muted,
+      height: 1,
+      opacity: 0.75,
       marginHorizontal: -16,
     },
+    sectionDivider: {
+      backgroundColor: params.theme.colors.background.muted,
+      height: 6,
+      marginHorizontal: -16,
+      marginVertical: 4,
+    },
     heading: {
-      marginTop: 16,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     accessory: {
       marginTop: 16,
     },
     setting: {
-      marginTop: 16,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     productAnnouncementContainer: {
       marginTop: 16,
@@ -67,7 +75,7 @@ const styleSheet = (params: { theme: Theme }) =>
       justifyContent: 'space-between',
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: 16,
+      paddingVertical: 16,
     },
     switch: {
       alignSelf: 'flex-end',

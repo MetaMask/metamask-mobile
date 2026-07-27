@@ -16,10 +16,12 @@ const styleSheet = () =>
       alignSelf: 'flex-start',
     },
     halfSetting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     desc: {
       marginTop: 8,
+      lineHeight: 20,
     },
   });
 

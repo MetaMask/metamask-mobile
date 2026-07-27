@@ -1,5 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
 /**
  *
@@ -8,11 +9,20 @@ import { StyleSheet } from 'react-native';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { colors } = params.theme;
+  return StyleSheet.create({
     section: {
-      paddingTop: 32,
+      paddingVertical: 16,
+    },
+    sectionTitle: {
+      marginBottom: 16,
+    },
+    divider: {
+      backgroundColor: colors.border.muted,
+      height: 1,
     },
   });
+};
 export default styleSheet;
 ///: END:ONLY_INCLUDE_IF

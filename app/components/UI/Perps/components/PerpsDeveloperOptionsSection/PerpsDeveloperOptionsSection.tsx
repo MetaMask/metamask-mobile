@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import { PerpsTestnetToggle } from './PerpsTestnetToggle';
@@ -11,34 +11,28 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-
-const PerpsDeveloperOptionsSectionStyles = () =>
-  StyleSheet.create({
-    container: {
-      marginTop: 8,
-      gap: 8,
-    },
-    heading: {
-      marginTop: 16,
-    },
-  });
+import styleSheet from '../../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 
 export const PerpsDeveloperOptionsSection = () => {
-  const { styles } = useStyles(PerpsDeveloperOptionsSectionStyles, {});
+  const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
+    <View style={styles.sectionCard}>
       <Text
         color={TextColor.TextDefault}
-        variant={TextVariant.HeadingLg}
+        variant={TextVariant.HeadingSm}
         style={styles.heading}
       >
         {strings('perps.perps_trading')}
       </Text>
       <PerpsTestnetToggle />
+      <View style={styles.divider} />
       <PerpsProviderToggle />
-      <PerpsConnectionErrorButton />
-      <PerpsHIP3DebugButton />
+      <View style={styles.divider} />
+      <View style={styles.buttonStack}>
+        <PerpsConnectionErrorButton />
+        <PerpsHIP3DebugButton />
+      </View>
     </View>
   );
 };

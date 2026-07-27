@@ -49,7 +49,7 @@ const RpcFormFields: React.FC<RpcFormFieldsProps> = ({
   placeholderTextColor,
 }) => (
   <>
-    <Box twClassName="gap-1">
+    <Box twClassName="gap-2">
       <Label>{strings('app_settings.network_rpc_url_label')}</Label>
       <RpcUrlInput
         ref={inputRpcURL}
@@ -80,7 +80,7 @@ const RpcFormFields: React.FC<RpcFormFieldsProps> = ({
         warningStyle={styles.warningText}
       />
     </Box>
-    <Box twClassName="gap-1">
+    <Box twClassName="gap-2">
       <Label>{strings('app_settings.network_rpc_name_label')}</Label>
       <TextField
         ref={inputNameRpcURL}

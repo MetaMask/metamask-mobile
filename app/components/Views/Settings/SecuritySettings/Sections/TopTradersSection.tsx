@@ -1,4 +1,4 @@
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { SectionDivider } from '@metamask/design-system-react-native';
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -80,11 +80,11 @@ const TopTradersSection = () => {
 
   return (
     <View testID={SecurityPrivacyViewSelectorsIDs.TOP_TRADERS_SECTION}>
-      <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-        {strings('social_leaderboard.settings.section_title')}
-      </Text>
-      {/* Wrap the toggle in `styles.setting` (marginTop) so the gap below the
-          section heading matches the other sections (e.g. Analytics). */}
+      <SectionDivider
+        borderWidth={0}
+        marginVertical={4}
+        style={styles.sectionBreak}
+      />
       <View style={styles.setting}>
         <SecurityOptionToggle
           title={strings(

@@ -38,6 +38,44 @@ const createStyles = (params: { theme: Theme }) => {
       alignItems: 'stretch' as const,
       paddingBottom: 16,
     },
+    sheetOptionRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 56,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+    },
+    sheetOptionRowSelected: {
+      backgroundColor: colors.background.muted,
+    },
+    sheetOptionTextWrapper: {
+      flex: 1,
+    },
+    sheetOptionTitle: {
+      color: colors.text.default,
+      flex: 1,
+    },
+    sheetOptionSecondaryText: {
+      color: colors.text.alternative,
+      marginTop: 4,
+    },
+    sheetOptionIcon: {
+      marginLeft: 16,
+    },
+    sheetAddRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 56,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+    },
+    sheetAddRowDisabled: {
+      opacity: 0.5,
+    },
+    sheetAddRowText: {
+      color: colors.text.default,
+      marginLeft: 12,
+    },
 
     // ---- RpcUrlInput still uses these for the modal form ---------------------
     input: {

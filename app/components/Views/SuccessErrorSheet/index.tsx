@@ -42,6 +42,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     closeOnPrimaryButtonPress = false,
     closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
+    buttonLayout = 'horizontal',
     descriptionAlign = 'left',
     iconColor,
   } = route.params;
@@ -69,6 +70,40 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       onPrimaryButtonPress();
     }
   };
+
+  const isVerticalButtonLayout = buttonLayout === 'vertical';
+
+  const secondaryButton = secondaryButtonLabel ? (
+    <Button
+      variant={ButtonVariant.Secondary}
+      isFullWidth
+      style={
+        primaryButtonLabel && secondaryButtonLabel && !isVerticalButtonLayout
+          ? styles.statusButton
+          : styles.fullWidthButton
+      }
+      onPress={handleSecondaryButtonPress}
+      size={ButtonSize.Lg}
+    >
+      {secondaryButtonLabel}
+    </Button>
+  ) : null;
+
+  const primaryButton = primaryButtonLabel ? (
+    <Button
+      variant={ButtonVariant.Primary}
+      isFullWidth
+      style={
+        primaryButtonLabel && secondaryButtonLabel && !isVerticalButtonLayout
+          ? styles.statusButton
+          : styles.fullWidthButton
+      }
+      onPress={handlePrimaryButtonPress}
+      size={ButtonSize.Lg}
+    >
+      {primaryButtonLabel}
+    </Button>
+  ) : null;
 
   const getIcon =
     icon || (type === 'success' ? IconName.Confirmation : IconName.CircleX);
@@ -118,38 +153,22 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
           <View
             style={[
               styles.ctaContainer,
-              reverseButtonOrder && styles.reverseCtaContainer,
+              isVerticalButtonLayout && styles.verticalCtaContainer,
+              !isVerticalButtonLayout &&
+                reverseButtonOrder &&
+                styles.reverseCtaContainer,
             ]}
           >
-            {secondaryButtonLabel && (
-              <Button
-                variant={ButtonVariant.Secondary}
-                isFullWidth
-                style={
-                  primaryButtonLabel && secondaryButtonLabel
-                    ? styles.statusButton
-                    : styles.fullWidthButton
-                }
-                onPress={handleSecondaryButtonPress}
-                size={ButtonSize.Lg}
-              >
-                {secondaryButtonLabel}
-              </Button>
-            )}
-            {primaryButtonLabel && (
-              <Button
-                variant={ButtonVariant.Primary}
-                isFullWidth
-                style={
-                  primaryButtonLabel && secondaryButtonLabel
-                    ? styles.statusButton
-                    : styles.fullWidthButton
-                }
-                onPress={handlePrimaryButtonPress}
-                size={ButtonSize.Lg}
-              >
-                {primaryButtonLabel}
-              </Button>
+            {isVerticalButtonLayout ? (
+              <>
+                {primaryButton}
+                {secondaryButton}
+              </>
+            ) : (
+              <>
+                {secondaryButton}
+                {primaryButton}
+              </>
             )}
           </View>
         ) : (

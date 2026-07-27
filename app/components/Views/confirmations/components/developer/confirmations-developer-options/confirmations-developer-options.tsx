@@ -1,8 +1,5 @@
 import React, { useCallback } from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
@@ -11,8 +8,11 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '@react-navigation/native';
+import { useTheme } from '../../../../../../util/theme';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -261,24 +261,24 @@ function DeveloperButton({
   const { styles } = useStyles(styleSheet, { theme });
 
   return (
-    <>
+    <View style={styles.sectionCard}>
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingSm}
         style={styles.heading}
       >
         {title}
       </Text>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={styles.desc}
       >
         {description}
       </Text>
       <Button
         variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+        size={ButtonSize.Md}
         onPress={onPress}
         testID={testID}
         isFullWidth
@@ -286,6 +286,6 @@ function DeveloperButton({
       >
         {buttonLabel}
       </Button>
-    </>
+    </View>
   );
 }

@@ -91,6 +91,38 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
     [minimumVersion],
   );
 
+  const renderFlagMetadata = () => (
+    <>
+      {flag.type === FeatureFlagType.FeatureFlagBooleanWithMinimumVersion && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="mt-2"
+        >
+          <Box
+            twClassName={`w-2 h-2 rounded-full mr-2 ${
+              isVersionSupported ? 'bg-success-default' : 'bg-error-default'
+            }`}
+          />
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {`Minimum Version: ${
+              (localValue as MinimumVersionFlagValue).minimumVersion
+            }`}
+          </Text>
+        </Box>
+      )}
+      {flag.isOverridden && flag.originalValue !== undefined && (
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="mt-2"
+        >
+          Original: {JSON.stringify(flag.originalValue)}
+        </Text>
+      )}
+    </>
+  );
+
   const handleResetOverride = () => {
     // Set resetting flag to prevent onEndEditing from reinstating the override
     // with stale closure values when the input loses focus due to button press
@@ -110,39 +142,24 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
     switch (flag.type) {
       case FeatureFlagType.FeatureFlagBooleanWithMinimumVersion:
         return (
-          <Box twClassName="items-end">
-            <Switch
-              value={(localValue as MinimumVersionFlagValue).enabled}
-              disabled={!isVersionSupported}
-              onValueChange={(newValue: boolean) => {
-                const updatedValue = {
-                  ...(localValue as MinimumVersionFlagValue),
-                  enabled: newValue,
-                };
-                setLocalValue(updatedValue);
-                onToggle(flag.key, updatedValue);
-              }}
-              trackColor={{
-                true: theme.colors.primary.default,
-                false: theme.colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              ios_backgroundColor={theme.colors.border.muted}
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              twClassName="text-right max-w-[100px] flex-wrap"
-            >
-              <Box
-                twClassName={`w-2 h-2 rounded-full flex items-center justify-center ${
-                  isVersionSupported ? 'bg-success-default' : 'bg-error-default'
-                }`}
-              />{' '}
-              Minimum Version:{' '}
-              {(localValue as MinimumVersionFlagValue).minimumVersion}
-            </Text>
-          </Box>
+          <Switch
+            value={(localValue as MinimumVersionFlagValue).enabled}
+            disabled={!isVersionSupported}
+            onValueChange={(newValue: boolean) => {
+              const updatedValue = {
+                ...(localValue as MinimumVersionFlagValue),
+                enabled: newValue,
+              };
+              setLocalValue(updatedValue);
+              onToggle(flag.key, updatedValue);
+            }}
+            trackColor={{
+              true: theme.colors.primary.default,
+              false: theme.colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            ios_backgroundColor={theme.colors.border.muted}
+          />
         );
       case FeatureFlagType.FeatureFlagBoolean:
         return (
@@ -233,7 +250,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case FeatureFlagType.FeatureFlagString:
       case FeatureFlagType.FeatureFlagNumber:
         return (
-          <Box twClassName="flex-1 ml-2">
+          <Box twClassName="flex-1 ml-2 min-w-[160px]">
             <TextInput
               value={String(localValue)}
               onFocus={() => {
@@ -261,11 +278,11 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
                 isEditingRef.current = false;
               }}
               style={[
-                tw.style('border rounded p-2 text-sm'),
+                tw.style('border rounded-xl px-3 py-3 text-sm'),
                 {
-                  borderColor: theme.colors.border.default,
+                  borderColor: theme.colors.border.muted,
                   color: theme.colors.text.default,
-                  backgroundColor: theme.colors.background.default,
+                  backgroundColor: theme.colors.background.alternative,
                 },
               ]}
               placeholder={`Enter ${flag.type} value`}
@@ -278,7 +295,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case FeatureFlagType.FeatureFlagObject:
       case FeatureFlagType.FeatureFlagArray:
         return (
-          <Box twClassName="flex-1 mt-2">
+          <Box twClassName="mt-3">
             <TextInput
               value={jsonText}
               multiline
@@ -309,13 +326,15 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
                 isEditingRef.current = false;
               }}
               style={[
-                tw.style('border rounded p-2 text-sm font-mono min-h-[80px]'),
+                tw.style(
+                  'border rounded-xl px-3 py-3 text-sm font-mono min-h-[92px]',
+                ),
                 {
                   borderColor: jsonError
                     ? theme.colors.error.default
-                    : theme.colors.border.default,
+                    : theme.colors.border.muted,
                   color: theme.colors.text.default,
-                  backgroundColor: theme.colors.background.default,
+                  backgroundColor: theme.colors.background.alternative,
                 },
               ]}
               placeholder={`Enter JSON ${flag.type}`}
@@ -343,35 +362,26 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   };
 
   return (
-    <Box twClassName="p-4 border-b border-border-muted">
+    <Box twClassName="px-4 py-4 border-b border-border-muted">
       <Box
         flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
+        alignItems={BoxAlignItems.Start}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="mb-2"
       >
-        <Box twClassName="flex-1">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="mb-1"
-          >
-            <Text variant={TextVariant.BodyMd}>{flag.key}</Text>
-          </Box>
-          {flag.isOverridden && flag.originalValue !== undefined && (
-            <Text variant={TextVariant.BodyXs} color={TextColor.TextMuted}>
-              Original: {JSON.stringify(flag.originalValue)}
-            </Text>
-          )}
+        <Box twClassName="flex-1 pr-4">
+          <Text variant={TextVariant.BodyMd} twClassName="flex-shrink">
+            {flag.key}
+          </Text>
+          {renderFlagMetadata()}
           {(flag.type === 'object' || flag.type === 'array') &&
             renderValueEditor()}
         </Box>
-        <Box twClassName="ml-4 items-end">
+        <Box twClassName="items-end">
           {flag.type !== 'object' &&
             flag.type !== 'array' &&
             renderValueEditor()}
           {flag.isOverridden && (
-            <Box twClassName="ml-2 px-2 py-1 my-2 bg-warning-muted rounded">
+            <Box twClassName="px-2 py-1 my-2 bg-warning-muted rounded-full">
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.WarningDefault}
@@ -509,76 +519,86 @@ const FeatureFlagOverride: React.FC = () => {
         backButtonProps={{ testID: 'feature-flag-override-header-back' }}
       />
       <Box twClassName="flex-1 bg-background-default">
-        <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            alignItems={BoxAlignItems.Center}
-            twClassName="mb-2"
-          >
-            <Text variant={TextVariant.BodyMd}>Feature Flag Statistics</Text>
-            {(typeFilter !== 'all' || searchQuery) && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                Showing: {filteredFlags.length} flags
-              </Text>
-            )}
-          </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="flex-wrap gap-2"
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
+        <Box twClassName="px-4 pt-4 pb-3">
+          <Box twClassName="rounded-2xl border border-border-muted bg-background-alternative px-4 py-4">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              justifyContent={BoxJustifyContent.Between}
+              alignItems={BoxAlignItems.Center}
+              twClassName="mb-3"
             >
-              Total: {flagStats.total}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
+              <Text variant={TextVariant.BodyMd}>Feature Flag Statistics</Text>
+              {(typeFilter !== 'all' || searchQuery) && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  Showing: {filteredFlags.length} flags
+                </Text>
+              )}
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="flex-wrap gap-2"
             >
-              Boolean: {flagStats.boolean}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Object: {flagStats.object}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              String: {flagStats.string}
-            </Text>
+              <Box twClassName="rounded-full bg-background-default px-3 py-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  Total: {flagStats.total}
+                </Text>
+              </Box>
+              <Box twClassName="rounded-full bg-background-default px-3 py-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  Boolean: {flagStats.boolean}
+                </Text>
+              </Box>
+              <Box twClassName="rounded-full bg-background-default px-3 py-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  Object: {flagStats.object}
+                </Text>
+              </Box>
+              <Box twClassName="rounded-full bg-background-default px-3 py-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  String: {flagStats.string}
+                </Text>
+              </Box>
+            </Box>
           </Box>
         </Box>
 
         {/* Search and controls */}
-        <Box twClassName="p-4 border-b border-border-muted">
+        <Box twClassName="px-4 pb-4 border-b border-border-muted">
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search feature flags..."
             placeholderTextColor={theme.colors.text.muted}
             style={[
-              tw.style('border rounded p-3 mb-3'),
+              tw.style('border rounded-2xl px-4 py-3 mb-3'),
               {
-                borderColor: theme.colors.border.default,
+                borderColor: theme.colors.border.muted,
                 color: theme.colors.text.default,
-                backgroundColor: theme.colors.background.default,
+                backgroundColor: theme.colors.background.alternative,
               },
             ]}
           />
 
-          <Box twClassName="flex-row justify-between items-start">
+          <Box twClassName="flex-row justify-between items-start gap-3">
             {/* Filter Buttons */}
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="gap-2 flex-wrap"
+              twClassName="gap-2 flex-wrap flex-1"
             >
               <Button
                 variant={ButtonVariant.Secondary}

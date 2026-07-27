@@ -7,9 +7,10 @@ const createStyles = () =>
     },
     desc: {
       marginTop: 8,
+      lineHeight: 20,
     },
     setting: {
-      marginVertical: 16,
+      marginVertical: 0,
     },
     switchElement: {
       display: 'flex',
@@ -22,7 +23,6 @@ const createStyles = () =>
       justifyContent: 'space-between',
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: 24,
     },
     switch: {
       alignSelf: 'flex-end',

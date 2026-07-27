@@ -3,13 +3,15 @@ import { StyleSheet } from 'react-native';
 const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     desc: {
       marginTop: 8,
+      lineHeight: 20,
     },
     accessory: {
-      marginTop: 16,
+      marginTop: 12,
     },
     modalView: {
       alignItems: 'center',
@@ -24,6 +26,17 @@ const createStyles = () =>
     },
     modalText: {
       textAlign: 'center',
+    },
+    sheetContent: {
+      paddingBottom: 24,
+      paddingHorizontal: 16,
+    },
+    sheetText: {
+      lineHeight: 20,
+      marginBottom: 16,
+    },
+    sheetSecondaryAction: {
+      marginBottom: 12,
     },
   });
 

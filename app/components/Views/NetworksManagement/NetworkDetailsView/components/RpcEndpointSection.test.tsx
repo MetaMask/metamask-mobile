@@ -489,7 +489,7 @@ describe('RpcEndpointModals', () => {
     expect(formHook.onRpcUrlChangeWithName).not.toHaveBeenCalled();
   });
 
-  it('shows sheet error and skips onRpcUrlDelete when persist returns false', async () => {
+  it('does not render the old row menu delete affordance', () => {
     const formHook = createRpcModalFormHook({
       form: {
         rpcUrl: 'https://rpc1.example.com',
@@ -510,7 +510,7 @@ describe('RpcEndpointModals', () => {
 
     const onUrlSheetMutationCommitted = jest.fn().mockResolvedValue(false);
 
-    const { getAllByTestId, getByTestId } = render(
+    const { queryByTestId } = render(
       <RpcEndpointModals
         formHook={formHook}
         validation={createRpcValidation()}
@@ -523,19 +523,8 @@ describe('RpcEndpointModals', () => {
       />,
     );
 
-    await act(async () => {
-      fireEvent.press(getAllByTestId(BUTTON_TEST_ID)[0]);
-    });
-
-    await waitFor(() => {
-      expect(
-        getByTestId(NetworkDetailsViewSelectorsIDs.RPC_SHEET_SUBMIT_ERROR),
-      ).toBeOnTheScreen();
-    });
-    expect(onUrlSheetMutationCommitted).toHaveBeenCalledWith(
-      expect.any(Object),
-      { skipChainIdSubmitValidation: true },
-    );
+    expect(queryByTestId(BUTTON_TEST_ID)).toBeNull();
+    expect(onUrlSheetMutationCommitted).not.toHaveBeenCalled();
     expect(formHook.onRpcUrlDelete).not.toHaveBeenCalled();
   });
 });

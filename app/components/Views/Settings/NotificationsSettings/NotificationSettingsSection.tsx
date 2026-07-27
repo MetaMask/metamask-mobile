@@ -342,6 +342,8 @@ const NotificationSettingsSection = ({
           </Text>
         </View>
 
+        <View style={styles.sectionDivider} />
+
         <View style={styles.switchElement}>
           <Text
             color={TextColor.TextDefault}
@@ -370,6 +372,8 @@ const NotificationSettingsSection = ({
             }
           />
         </View>
+
+        <View style={styles.line} />
 
         <View style={styles.switchElement}>
           <Text

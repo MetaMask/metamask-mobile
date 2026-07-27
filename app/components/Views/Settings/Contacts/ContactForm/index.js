@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
   Platform,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -10,8 +9,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import StyledButton from '../../../../UI/StyledButton';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -24,7 +34,6 @@ import {
 } from '../../../../../util/address';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
-import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../../util/theme';
 import {
@@ -49,11 +58,6 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -64,29 +68,39 @@ const createStyles = (colors) =>
     },
     scrollWrapper: {
       flex: 1,
-      paddingVertical: 12,
+      paddingTop: 24,
+      gap: 16,
+    },
+    fieldGroup: {
+      gap: 8,
     },
     input: {
       ...fontStyles.normal,
-      flex: 1,
-      fontSize: 12,
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
-      padding: 10,
+      height: 56,
+      fontSize: 16,
+      lineHeight: 22,
+      borderColor: colors.border.muted,
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
+      borderWidth: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 0,
       flexDirection: 'row',
       alignItems: 'center',
       color: colors.text.default,
     },
     networkSelector: {
       ...fontStyles.normal,
-      flex: 1,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      borderRadius: 5,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-      padding: 10,
+      height: 56,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      backgroundColor: colors.background.muted,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      alignItems: 'center',
     },
     networkSelectorNetworkName: {
       flexDirection: 'row',
@@ -96,48 +110,48 @@ const createStyles = (colors) =>
     },
     networkSelectorNetworkNameLabel: {
       color: colors.text.default,
+      fontSize: 16,
+      lineHeight: 22,
     },
     resolvedInput: {
       ...fontStyles.normal,
-      fontSize: 10,
-      color: colors.text.default,
+      fontSize: 12,
+      lineHeight: 18,
+      color: colors.text.alternative,
     },
     informationWrapper: {
       flex: 1,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     label: {
-      fontSize: 14,
-      paddingVertical: 12,
-      color: colors.text.default,
-      ...fontStyles.bold,
+      marginBottom: 0,
     },
     headerEndActionText: {
-      color: colors.primary.default,
-      fontSize: 14,
+      color: colors.text.default,
     },
     buttonsWrapper: {
-      marginVertical: 12,
-      flexDirection: 'row',
-      alignSelf: 'flex-end',
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 16,
+      gap: 12,
     },
     buttonsContainer: {
-      flex: 1,
-      flexDirection: 'column',
-      alignSelf: 'flex-end',
-    },
-    scanIcon: {
-      flexDirection: 'column',
-      alignItems: 'center',
+      gap: 12,
     },
     iconWrapper: {
-      alignItems: 'flex-end',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 44,
+      width: 32,
+      marginRight: -4,
     },
     textInput: {
       ...fontStyles.normal,
       padding: 0,
       paddingRight: 8,
       color: colors.text.default,
+      fontSize: 16,
+      lineHeight: 22,
     },
     inputWrapper: {
       flex: 1,
@@ -145,9 +159,10 @@ const createStyles = (colors) =>
     },
     textInputDisaled: {
       borderColor: colors.transparent,
+      opacity: 0.55,
     },
     actionButton: {
-      marginVertical: 4,
+      width: '100%',
     },
   });
 
@@ -237,7 +252,11 @@ class ContactForm extends PureComponent {
         onPress={this.onEdit}
         testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
       >
-        <Text style={styles.headerEndActionText}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={styles.headerEndActionText}
+        >
           {editMode
             ? strings('address_book.edit')
             : strings('address_book.cancel')}
@@ -511,106 +530,139 @@ class ContactForm extends PureComponent {
         />
         <KeyboardAwareScrollView style={styles.informationWrapper}>
           <View style={styles.scrollWrapper}>
-            <Text style={styles.label}>{strings('address_book.name')}</Text>
-            <TextInput
-              editable={this.state.editable}
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              onChangeText={this.onChangeName}
-              placeholder={strings('address_book.nickname')}
-              placeholderTextColor={colors.text.muted}
-              spellCheck={false}
-              numberOfLines={1}
-              style={[
-                styles.input,
-                inputWidth ? { width: inputWidth } : {},
-                editable ? {} : styles.textInputDisaled,
-              ]}
-              value={name}
-              onSubmitEditing={this.jumpToAddressInput}
-              testID={AddContactViewSelectorsIDs.NAME_INPUT}
-              keyboardAppearance={themeAppearance}
-            />
-            <Text style={styles.label}>{strings('address_book.address')}</Text>
-            <View
-              style={[styles.input, editable ? {} : styles.textInputDisaled]}
-            >
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  editable={isAddMode}
-                  autoCapitalize={'none'}
-                  autoCorrect={false}
-                  onChangeText={this.onChangeAddress}
-                  placeholder={strings('address_book.add_input_placeholder')}
-                  placeholderTextColor={colors.text.muted}
-                  spellCheck={false}
-                  numberOfLines={1}
-                  style={[
-                    styles.textInput,
-                    inputWidth ? { width: inputWidth } : {},
-                    isEditMode
-                      ? {
-                          color: colors.text.alternative,
-                        }
-                      : {},
-                  ]}
-                  value={toEnsName || address}
-                  ref={this.addressInput}
-                  onSubmitEditing={this.jumpToMemoInput}
-                  testID={AddContactViewSelectorsIDs.ADDRESS_INPUT}
-                  keyboardAppearance={themeAppearance}
-                />
-                {toEnsName && toEnsAddress && (
-                  <Text style={styles.resolvedInput}>
-                    {renderShortAddress(toEnsAddress)}
-                  </Text>
+            <View style={styles.fieldGroup}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                style={styles.label}
+              >
+                {strings('address_book.name')}
+              </Text>
+              <TextInput
+                editable={this.state.editable}
+                autoCapitalize={'none'}
+                autoCorrect={false}
+                onChangeText={this.onChangeName}
+                placeholder={strings('address_book.nickname')}
+                placeholderTextColor={colors.text.muted}
+                spellCheck={false}
+                numberOfLines={1}
+                style={[
+                  styles.input,
+                  inputWidth ? { width: inputWidth } : {},
+                  editable ? {} : styles.textInputDisaled,
+                ]}
+                value={name}
+                onSubmitEditing={this.jumpToAddressInput}
+                testID={AddContactViewSelectorsIDs.NAME_INPUT}
+                keyboardAppearance={themeAppearance}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                style={styles.label}
+              >
+                {strings('address_book.address')}
+              </Text>
+              <View
+                style={[styles.input, editable ? {} : styles.textInputDisaled]}
+              >
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    editable={isAddMode}
+                    autoCapitalize={'none'}
+                    autoCorrect={false}
+                    onChangeText={this.onChangeAddress}
+                    placeholder={strings('address_book.add_input_placeholder')}
+                    placeholderTextColor={colors.text.muted}
+                    spellCheck={false}
+                    numberOfLines={1}
+                    style={[
+                      styles.textInput,
+                      inputWidth ? { width: inputWidth } : {},
+                      isEditMode
+                        ? {
+                            color: colors.text.alternative,
+                          }
+                        : {},
+                    ]}
+                    value={toEnsName || address}
+                    ref={this.addressInput}
+                    onSubmitEditing={this.jumpToMemoInput}
+                    testID={AddContactViewSelectorsIDs.ADDRESS_INPUT}
+                    keyboardAppearance={themeAppearance}
+                  />
+                  {toEnsName && toEnsAddress && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      style={styles.resolvedInput}
+                    >
+                      {renderShortAddress(toEnsAddress)}
+                    </Text>
+                  )}
+                </View>
+
+                {isAddMode && (
+                  <TouchableOpacity
+                    onPress={this.onScan}
+                    style={styles.iconWrapper}
+                    accessibilityRole="button"
+                  >
+                    <Icon
+                      name={IconName.Scan}
+                      size={IconSize.Md}
+                      color={IconColor.IconDefault}
+                    />
+                  </TouchableOpacity>
                 )}
               </View>
-
-              {isAddMode && (
-                <TouchableOpacity
-                  onPress={this.onScan}
-                  style={styles.iconWrapper}
-                >
-                  <AntIcon
-                    name="scan1"
-                    size={20}
-                    color={colors.primary.default}
-                    style={styles.scanIcon}
-                  />
-                </TouchableOpacity>
-              )}
             </View>
 
-            <Text style={styles.label}>{strings('address_book.memo')}</Text>
-            <View
-              style={[styles.input, editable ? {} : styles.textInputDisaled]}
-            >
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  multiline
-                  editable={editable}
-                  autoCapitalize={'none'}
-                  autoCorrect={false}
-                  onChangeText={this.onChangeMemo}
-                  placeholder={strings('address_book.memo')}
-                  placeholderTextColor={colors.text.muted}
-                  spellCheck={false}
-                  numberOfLines={1}
-                  style={[
-                    styles.textInput,
-                    inputWidth ? { width: inputWidth } : {},
-                  ]}
-                  value={memo}
-                  ref={this.memoInput}
-                  testID={AddContactViewSelectorsIDs.MEMO_INPUT}
-                  keyboardAppearance={themeAppearance}
-                />
+            <View style={styles.fieldGroup}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                style={styles.label}
+              >
+                {strings('address_book.memo')}
+              </Text>
+              <View
+                style={[styles.input, editable ? {} : styles.textInputDisaled]}
+              >
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    multiline
+                    editable={editable}
+                    autoCapitalize={'none'}
+                    autoCorrect={false}
+                    onChangeText={this.onChangeMemo}
+                    placeholder={strings('address_book.memo')}
+                    placeholderTextColor={colors.text.muted}
+                    spellCheck={false}
+                    numberOfLines={1}
+                    style={[
+                      styles.textInput,
+                      inputWidth ? { width: inputWidth } : {},
+                    ]}
+                    value={memo}
+                    ref={this.memoInput}
+                    testID={AddContactViewSelectorsIDs.MEMO_INPUT}
+                    keyboardAppearance={themeAppearance}
+                  />
+                </View>
               </View>
             </View>
 
-            <>
-              <Text style={styles.label}>
+            <View style={styles.fieldGroup}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                style={styles.label}
+              >
                 {strings('address_book.network')}
               </Text>
               <TouchableOpacity
@@ -637,25 +689,23 @@ class ContactForm extends PureComponent {
                       chainId: contactChainId || this.props.chainId,
                     })}
                   />
-                  <Text style={styles.networkSelectorNetworkNameLabel}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    style={styles.networkSelectorNetworkNameLabel}
+                  >
                     {networkName}
                   </Text>
                 </View>
                 {!!editable && (
-                  <ButtonIcon
-                    iconName={IconName.ArrowDown}
-                    iconColor={IconColor.Default}
-                    onPress={() => {
-                      if (this.state.editable) {
-                        this.setOpenNetworkSelector(true);
-                      }
-                    }}
-                    accessibilityRole="button"
-                    style={styles.buttonIcon}
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
                   />
                 )}
               </TouchableOpacity>
-            </>
+            </View>
           </View>
 
           {addressError && (
@@ -666,35 +716,6 @@ class ContactForm extends PureComponent {
             />
           )}
 
-          {!!editable && (
-            <View style={styles.buttonsWrapper}>
-              <View style={styles.buttonsContainer}>
-                <View style={styles.actionButton}>
-                  <StyledButton
-                    type={'confirm'}
-                    disabled={!addressReady || !name || !!addressError}
-                    onPress={this.saveContact}
-                    testID={AddContactViewSelectorsIDs.ADD_BUTTON}
-                  >
-                    {strings(`address_book.${mode}_contact`)}
-                  </StyledButton>
-                </View>
-                {mode === EDIT && (
-                  <View style={styles.actionButton}>
-                    <StyledButton
-                      style={styles.actionButton}
-                      type={'warning-empty'}
-                      disabled={!addressReady || !name || !!addressError}
-                      onPress={this.onDelete}
-                      testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
-                    >
-                      {strings(`address_book.delete`)}
-                    </StyledButton>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
           <ActionSheet
             ref={this.createActionSheetRef}
             title={strings('address_book.delete_contact')}
@@ -709,6 +730,35 @@ class ContactForm extends PureComponent {
             theme={themeAppearance}
           />
         </KeyboardAwareScrollView>
+        {!!editable && (
+          <View style={styles.buttonsWrapper}>
+            <View style={styles.buttonsContainer}>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDisabled={!addressReady || !name || !!addressError}
+                onPress={this.saveContact}
+                testID={AddContactViewSelectorsIDs.ADD_BUTTON}
+              >
+                {strings(`address_book.${mode}_contact`)}
+              </Button>
+              {mode === EDIT && (
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  isDanger
+                  isFullWidth
+                  isDisabled={!addressReady || !name || !!addressError}
+                  onPress={this.onDelete}
+                  testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
+                >
+                  {strings(`address_book.delete`)}
+                </Button>
+              )}
+            </View>
+          </View>
+        )}
         {this.state.openNetworkSelector ? (
           <NetworkListBottomSheet
             selectedNetwork={this.state.contactChainId}

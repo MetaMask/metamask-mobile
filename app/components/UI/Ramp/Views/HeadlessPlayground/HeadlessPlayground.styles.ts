@@ -8,18 +8,23 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     section: {
-      marginBottom: 8,
+      marginBottom: 16,
     },
-    accordionStack: {
-      marginBottom: 8,
+    sectionTitle: {
+      marginBottom: 12,
     },
-    accordionItem: {
-      marginBottom: 2,
+    currentSetupSection: {
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+      borderRadius: 16,
+      backgroundColor: theme.colors.background.alternative,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
     box: {
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-      borderRadius: 8,
+      borderRadius: 12,
       backgroundColor: theme.colors.background.alternative,
       maxHeight: 140,
       marginTop: 8,
@@ -36,26 +41,56 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
     },
     selectedRow: {
-      paddingVertical: 6,
+      paddingVertical: 8,
     },
     selectedRowLabel: {
+      marginBottom: 2,
+    },
+    configurationSection: {
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+      borderRadius: 16,
+      backgroundColor: theme.colors.background.alternative,
+      overflow: 'hidden',
+    },
+    configurationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 76,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border.muted,
+    },
+    configurationRowPressed: {
+      backgroundColor: theme.colors.background.muted,
+    },
+    configurationRowDisabled: {
+      opacity: 0.5,
+    },
+    configurationRowContent: {
+      flex: 1,
+      paddingRight: 12,
+    },
+    configurationRowValue: {
+      marginTop: 2,
       marginBottom: 2,
     },
     selectableRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 8,
-      paddingVertical: 8,
-      borderRadius: 6,
-      marginVertical: 2,
+      minHeight: 56,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
     },
     selectableRowSelected: {
-      backgroundColor: theme.colors.primary.muted,
+      backgroundColor: theme.colors.background.muted,
     },
     selectableRowLabel: {
-      flexShrink: 1,
-      paddingRight: 8,
+      flex: 1,
+      paddingRight: 16,
     },
     divider: {
       height: 1,
@@ -65,7 +100,7 @@ const styleSheet = (params: { theme: Theme }) => {
     summarySection: {
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-      borderRadius: 8,
+      borderRadius: 12,
       backgroundColor: theme.colors.background.alternative,
       paddingHorizontal: 12,
       paddingVertical: 12,
@@ -80,31 +115,37 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 2,
     },
     amountSection: {
-      marginBottom: 8,
+      marginBottom: 16,
     },
     amountLabel: {
-      marginBottom: 4,
+      marginBottom: 8,
     },
     amountInput: {
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
+      borderRadius: 12,
+      height: 56,
+      paddingHorizontal: 16,
+      paddingVertical: 0,
+      fontSize: 16,
+      lineHeight: 22,
       color: theme.colors.text.default,
       backgroundColor: theme.colors.background.alternative,
     },
     actionsRow: {
-      marginTop: 8,
+      marginBottom: 20,
+    },
+    getQuotesButton: {
+      width: '100%',
     },
     actionsHint: {
-      marginTop: 4,
+      marginTop: 8,
     },
     eventLogSection: {
-      marginTop: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: 8,
+      marginTop: 4,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
       backgroundColor: theme.colors.background.alternative,
     },
     eventLogTitle: {
@@ -168,11 +209,11 @@ const styleSheet = (params: { theme: Theme }) => {
     headlessSection: {
       marginTop: 16,
       marginBottom: 8,
-      borderWidth: 2,
-      borderColor: theme.colors.warning.default,
-      borderRadius: 12,
-      backgroundColor: theme.colors.warning.muted,
-      padding: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+      borderRadius: 16,
+      backgroundColor: theme.colors.background.alternative,
+      padding: 16,
     },
     headlessSectionBadge: {
       alignSelf: 'flex-start',
@@ -183,22 +224,22 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
     },
     headlessSectionTitle: {
-      marginBottom: 4,
+      marginBottom: 8,
     },
     headlessSectionWarning: {
-      marginBottom: 12,
+      marginBottom: 16,
     },
     headlessParamsBox: {
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-      borderRadius: 8,
+      borderRadius: 12,
       backgroundColor: theme.colors.background.default,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      marginBottom: 12,
+      marginBottom: 16,
+      overflow: 'hidden',
     },
     sandboxParamRow: {
-      paddingVertical: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
     },
@@ -208,12 +249,20 @@ const styleSheet = (params: { theme: Theme }) => {
     sandboxParamHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 2,
+      alignItems: 'flex-start',
+      marginBottom: 6,
+      gap: 8,
     },
     sandboxParamReset: {
-      paddingVertical: 4,
+      alignSelf: 'flex-start',
+      paddingVertical: 6,
       paddingHorizontal: 0,
+    },
+    pickerSheetContent: {
+      paddingBottom: 24,
+    },
+    pickerSheetList: {
+      paddingBottom: 8,
     },
   });
 };

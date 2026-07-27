@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { ScrollView, Alert } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { ScrollView, Alert, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -15,6 +15,11 @@ import {
   Text,
   Box,
   ActionListItem,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  BottomSheet,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MainActionButton from '../../../component-library/components-temp/MainActionButton';
@@ -49,6 +54,8 @@ const AccountsMenu = () => {
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const logOutSheetRef = useRef<BottomSheetRef>(null);
+  const [isLogOutSheetVisible, setIsLogOutSheetVisible] = useState(false);
   const { openSupportWithConsent } = useSupportConsent();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
@@ -188,29 +195,21 @@ const AccountsMenu = () => {
     await Authentication.lockApp({ reset: false, locked: false });
   }, []);
 
+  const closeLogOutSheet = useCallback(() => {
+    logOutSheetRef.current?.onCloseBottomSheet(() => {
+      setIsLogOutSheetVisible(false);
+    });
+  }, []);
+
+  const onConfirmLogOut = useCallback(async () => {
+    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_LOGOUT).build());
+    await onPressLock();
+    closeLogOutSheet();
+  }, [closeLogOutSheet, onPressLock, trackEvent, createEventBuilder]);
+
   const onPressLogOut = useCallback(() => {
-    Alert.alert(
-      strings('drawer.lock_title'),
-      '',
-      [
-        {
-          text: strings('drawer.lock_cancel'),
-          onPress: () => null,
-          style: 'cancel',
-        },
-        {
-          text: strings('drawer.lock_ok'),
-          onPress: async () => {
-            trackEvent(
-              createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_LOGOUT).build(),
-            );
-            await onPressLock();
-          },
-        },
-      ],
-      { cancelable: false },
-    );
-  }, [onPressLock, trackEvent, createEventBuilder]);
+    setIsLogOutSheetVisible(true);
+  }, []);
 
   const separator = useMemo(
     () => (
@@ -351,6 +350,48 @@ const AccountsMenu = () => {
     tw,
   ]);
 
+  const renderLogOutSheet = () =>
+    isLogOutSheetVisible ? (
+      <BottomSheet
+        ref={logOutSheetRef}
+        onClose={() => setIsLogOutSheetVisible(false)}
+      >
+        <View style={tw.style('items-center px-4 pt-10 pb-6 gap-6')}>
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={IconColor.ErrorDefault}
+          />
+          <Text
+            variant={TextVariant.HeadingMd}
+            color={TextColor.TextDefault}
+            style={tw.style('text-center')}
+          >
+            {strings('drawer.lock_title')}
+          </Text>
+          <View style={tw.style('w-full gap-3')}>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isDanger
+              isFullWidth
+              onPress={onConfirmLogOut}
+            >
+              {strings('drawer.lock_ok')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={closeLogOutSheet}
+            >
+              {strings('drawer.lock_cancel')}
+            </Button>
+          </View>
+        </View>
+      </BottomSheet>
+    ) : null;
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -441,7 +482,7 @@ const AccountsMenu = () => {
           startAccessory={
             <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
           }
-          label={strings('accounts_menu.permissions')}
+          label={strings('app_settings.manage_sdk_connections_title')}
           endAccessory={arrowRightIcon}
           onPress={onPressPermissions}
           testID={AccountsMenuSelectorsIDs.PERMISSIONS}
@@ -507,6 +548,7 @@ const AccountsMenu = () => {
           testID={AccountsMenuSelectorsIDs.LOCK}
         />
       </ScrollView>
+      {renderLogOutSheet()}
     </SafeAreaView>
   );
 };

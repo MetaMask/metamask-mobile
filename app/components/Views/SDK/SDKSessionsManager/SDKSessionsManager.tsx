@@ -144,7 +144,7 @@ const SDKSessionsManager = () => {
     >
       <HeaderStandard
         title={strings('app_settings.manage_sdk_connections_title')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
+        titleProps={{ color: TextColor.TextDefault }}
         onBack={handleBack}
         includesTopInset
         testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}

@@ -57,11 +57,11 @@ const SupportConsentSheet = () => {
       >
         {strings('support_consent.title')}
       </BottomSheetHeader>
-      <Text variant={TextVariant.BodyMd} twClassName="px-4 pb-4">
+      <Text variant={TextVariant.BodyMd} twClassName="px-6 pb-2">
         {strings('support_consent.description')}
       </Text>
       <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
+        buttonsAlignment={ButtonsAlignment.Vertical}
         primaryButtonProps={{
           children: strings('support_consent.confirm'),
           onPress: handleConfirm,
