@@ -107,6 +107,10 @@ describe('MoneyFirstTimeDepositView', () => {
     (useReduceMotion as jest.Mock).mockReturnValue(false);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('Rendering', () => {
     it('renders the Rive animation component', () => {
       const { getByTestId } = render(<MoneyFirstTimeDepositView />);
