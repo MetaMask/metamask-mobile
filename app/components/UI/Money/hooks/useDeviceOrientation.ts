@@ -8,14 +8,6 @@ import {
 import { getTotalMemorySync } from 'react-native-device-info';
 
 const DEG = Math.PI / 180;
-// react-native-sensors forwards raw platform readings without normalizing them,
-// and the two platforms disagree on sign: CoreMotion reports gravity as a
-// negative vector (flat device reads z = -1g) while Android reports proper
-// acceleration (flat device reads z = +9.81). Left unhandled, every axis is
-// mirrored between platforms. iOS is flipped into Android's convention here —
-// the axis pointing up reads positive. Magnitude differences (g vs m/s²) need
-// no handling: every reading below is either an atan2 or a ratio.
-const GRAVITY_SIGN = Platform.OS === 'ios' ? -1 : 1;
 // Rotation away from neutral (per axis) that maps to a full ±1 tilt.
 const PITCH_TRAVEL = 30 * DEG;
 const ROLL_TRAVEL = 30 * DEG;
@@ -35,6 +27,32 @@ const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
 
 const isLowEndDevice = (): boolean => getTotalMemorySync() <= 2 * ONE_GIGABYTE;
+
+export interface Acceleration {
+  x: number;
+  y: number;
+  z: number;
+}
+
+/**
+ * Normalizes a raw accelerometer reading so the axis pointing up reads
+ * positive, whichever platform produced it. Pure so it can be unit-tested
+ * directly.
+ *
+ * `react-native-sensors` forwards raw platform values, and the platforms
+ * disagree on sign: CoreMotion reports gravity as a negative vector (a flat
+ * device reads z = -1, in g) while Android reports proper acceleration
+ * (z = +9.81, in m/s²). Left unhandled, every axis is mirrored between the two.
+ * Magnitude differences need no handling — every reading below is consumed by
+ * an atan2 or a ratio.
+ */
+export function normalizeReading(
+  sample: Acceleration,
+  os: typeof Platform.OS,
+): Acceleration {
+  const sign = os === 'ios' ? -1 : 1;
+  return { x: sample.x * sign, y: sample.y * sign, z: sample.z * sign };
+}
 
 /**
  * Converts a gravity vector (accelerometer reading) into the device's absolute
@@ -144,20 +162,7 @@ export function useDeviceOrientation(
 
     const subscription = accelerometer.subscribe({
       next: (sample) => {
-        // A single non-finite sample would otherwise poison the neutral and the
-        // smoothing accumulators for the life of the subscription.
-        if (
-          !Number.isFinite(sample.x) ||
-          !Number.isFinite(sample.y) ||
-          !Number.isFinite(sample.z)
-        ) {
-          return;
-        }
-
-        const x = sample.x * GRAVITY_SIGN;
-        const y = sample.y * GRAVITY_SIGN;
-        const z = sample.z * GRAVITY_SIGN;
-
+        const { x, y, z } = normalizeReading(sample, Platform.OS);
         const pitch = accelerationToPitch(x, y, z);
         const roll = accelerationToRoll(x, y, z);
         neutralPitch.current = trackNeutralAngle(
