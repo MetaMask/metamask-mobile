@@ -24,8 +24,6 @@ import {
   type WorkflowContext,
 } from '@metamask/client-mcp-core';
 
-import type { DeviceBackend } from '@metamask/device-mcp';
-
 import {
   createIOSPlatformDriver,
   type CreatedIOSDriver,
