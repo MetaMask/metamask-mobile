@@ -512,7 +512,7 @@ describe('MoneyActivityView', () => {
     expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('buckets card payments into Transfers and All, but not Deposits', () => {
+  it('buckets card payments into Purchases and All, but not Deposits or Sends', () => {
     mockApiActivity({ activity: [CARD_TX] });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
@@ -526,9 +526,28 @@ describe('MoneyActivityView', () => {
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
     expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
 
-    // Transfers: present.
+    // Sends: absent — a card spend is a purchase, not a send.
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
+    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
+
+    // Purchases: present.
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES));
     expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('shows on-chain sends under Sends alongside card activity elsewhere', () => {
+    mockApiActivity({ activity: [CARD_TX] });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
+
+    // Withdrawals/transfers out of the account still render...
+    expect(getByTestId('activity-mock-tx-money-tx-sent')).toBeOnTheScreen();
+    // ...and the card spend does not.
+    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
   });
 
   it('buckets cashback credits into Deposits and All, but not Transfers', () => {

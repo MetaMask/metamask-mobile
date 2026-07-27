@@ -127,8 +127,14 @@ export function buildMoneyActivityBuckets(
       mergeMoneyActivity(onchain.deposits, cashback),
       watermark,
     ),
+    // Sends are outflows the user initiated from the Money account: transfers
+    // to other accounts and funding of Perps/Predict. Card spends are outflows
+    // too, but they belong to Purchases — they're still merged in here so their
+    // hashes dedupe any on-chain twin, then dropped from the rendered rows.
     [MoneyActivityFilter.Transfers]: safeItems(
-      mergeMoneyActivity(onchain.transfers, cards),
+      mergeMoneyActivity(onchain.transfers, cards).filter(
+        (item) => item.kind === 'onchain',
+      ),
       watermark,
     ),
     // Purchases is API-only, but the strict gate still applies: a fetched row
