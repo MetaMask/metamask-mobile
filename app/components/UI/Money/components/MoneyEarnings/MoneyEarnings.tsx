@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable, StyleSheet } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -31,15 +32,25 @@ interface MoneyEarningsProps {
    */
   isLoading?: boolean;
   /**
-   * Handler fired when the info icon next to the section title is tapped.
-   * Opens the Earnings tooltip bottom sheet.
+   * Opens the Monthly earnings info bottom sheet.
    */
-  onInfoPress?: () => void;
+  onMonthlyInfoPress?: () => void;
+  /**
+   * Opens the Lifetime earnings info bottom sheet.
+   */
+  onLifetimeInfoPress?: () => void;
   /**
    * Whether the earnings values should be masked.
    */
   privacyMode?: boolean;
 }
+
+const styles = StyleSheet.create({
+  label: {
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+  },
+});
 
 const ValueText = ({
   children,
@@ -69,15 +80,12 @@ const MoneyEarnings = ({
   last30DaysEarnings,
   sinceInceptionEarnings,
   isLoading = false,
-  onInfoPress,
+  onMonthlyInfoPress,
+  onLifetimeInfoPress,
   privacyMode = false,
 }: MoneyEarningsProps) => (
   <Box twClassName="px-4 pt-7 pb-3" testID={MoneyEarningsTestIds.CONTAINER}>
-    <MoneySectionHeader
-      title={strings('money.earnings.title')}
-      onInfoPress={onInfoPress}
-      infoAccessibilityLabel={strings('money.earnings.info_label')}
-    />
+    <MoneySectionHeader title={strings('money.earnings.title')} />
 
     <Box twClassName="mt-5 gap-4">
       <Box
@@ -86,9 +94,21 @@ const MoneyEarnings = ({
         twClassName="justify-between"
         testID={MoneyEarningsTestIds.LAST_30_DAYS}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.earnings.estimated_monthly')}
-        </Text>
+        <Pressable
+          onPress={onMonthlyInfoPress}
+          accessibilityRole="button"
+          accessibilityLabel={strings('money.earnings.monthly_info_label')}
+          disabled={!onMonthlyInfoPress}
+          testID={MoneyEarningsTestIds.MONTHLY_LABEL}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.label}
+          >
+            {strings('money.earnings.estimated_monthly')}
+          </Text>
+        </Pressable>
         {isLoading ? (
           <Skeleton
             height={24}
@@ -111,9 +131,21 @@ const MoneyEarnings = ({
         twClassName="justify-between"
         testID={MoneyEarningsTestIds.SINCE_INCEPTION}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.earnings.estimated_yearly')}
-        </Text>
+        <Pressable
+          onPress={onLifetimeInfoPress}
+          accessibilityRole="button"
+          accessibilityLabel={strings('money.earnings.lifetime_info_label')}
+          disabled={!onLifetimeInfoPress}
+          testID={MoneyEarningsTestIds.LIFETIME_LABEL}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.label}
+          >
+            {strings('money.earnings.estimated_lifetime')}
+          </Text>
+        </Pressable>
         {isLoading ? (
           <Skeleton
             height={24}

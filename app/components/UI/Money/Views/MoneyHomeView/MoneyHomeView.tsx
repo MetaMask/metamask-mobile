@@ -528,15 +528,29 @@ const MoneyHomeView = () => {
     PreferencesController.setPrivacyMode(!privacyMode);
   }, [PreferencesController, privacyMode]);
 
-  const handleEarningsInfoPress = useCallback(() => {
+  const handleMonthlyEarningsInfoPress = useCallback(() => {
     trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
+      tooltip_name: MONEY_TOOLTIP_NAMES.MONTHLY_EARNINGS,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_ESTIMATED_EARNINGS_SECTION,
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { variant: 'monthly' },
+    });
+  }, [navigation, trackTooltipClicked]);
+
+  const handleLifetimeEarningsInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.LIFETIME_EARNINGS,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION,
+    });
+
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { variant: 'lifetime' },
     });
   }, [navigation, trackTooltipClicked]);
 
@@ -781,7 +795,8 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
-          onInfoPress={handleEarningsInfoPress}
+          onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
+          onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}
         />
       ),

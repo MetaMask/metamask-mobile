@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import MoneyEarnings from './MoneyEarnings';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,7 +20,7 @@ describe('MoneyEarnings', () => {
     expect(getByText(strings('money.earnings.title'))).toBeOnTheScreen();
   });
 
-  it('renders the estimated monthly and yearly labels', () => {
+  it('renders the monthly and lifetime labels', () => {
     const { getByText } = render(
       <MoneyEarnings
         last30DaysEarnings={ZERO_VALUE}
@@ -32,8 +32,38 @@ describe('MoneyEarnings', () => {
       getByText(strings('money.earnings.estimated_monthly')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('money.earnings.estimated_yearly')),
+      getByText(strings('money.earnings.estimated_lifetime')),
     ).toBeOnTheScreen();
+  });
+
+  it('calls onMonthlyInfoPress when the monthly label is pressed', () => {
+    const onMonthlyInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyEarnings
+        last30DaysEarnings={ZERO_VALUE}
+        sinceInceptionEarnings={ZERO_VALUE}
+        onMonthlyInfoPress={onMonthlyInfoPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.MONTHLY_LABEL));
+
+    expect(onMonthlyInfoPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onLifetimeInfoPress when the lifetime label is pressed', () => {
+    const onLifetimeInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyEarnings
+        last30DaysEarnings={ZERO_VALUE}
+        sinceInceptionEarnings={ZERO_VALUE}
+        onLifetimeInfoPress={onLifetimeInfoPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.LIFETIME_LABEL));
+
+    expect(onLifetimeInfoPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders the provided zero values when no real earnings exist', () => {
@@ -89,22 +119,6 @@ describe('MoneyEarnings', () => {
     expect(
       queryByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
     ).not.toBeOnTheScreen();
-  });
-
-  it('renders value text in default color regardless of sign', () => {
-    const { getByTestId } = render(
-      <MoneyEarnings
-        last30DaysEarnings={LAST_30_DAYS_VALUE}
-        sinceInceptionEarnings={SINCE_INCEPTION_VALUE}
-      />,
-    );
-
-    expect(
-      getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
-    ).toHaveTextContent(LAST_30_DAYS_VALUE);
-    expect(
-      getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
-    ).toHaveTextContent(SINCE_INCEPTION_VALUE);
   });
 
   it('renders the real earnings values when privacyMode is false', () => {
