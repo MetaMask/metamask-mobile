@@ -117,7 +117,7 @@ jobs:
             COMPARE_ALL=true
           fi
 
-          # --run <id>
+          # --run <id> (digits only)
           if RUN_MATCH=$(echo "$COMMENT_BODY" | grep -Eo -- '--run[[:space:]]+[0-9]+' | head -n1); then
             RUN_ID=$(echo "$RUN_MATCH" | awk '{print $2}')
           fi
@@ -151,43 +151,65 @@ jobs:
             exit 1
           fi
 
+          # Use delimited output form so user-controlled values cannot break
+          # GITHUB_OUTPUT or inject extra keys.
           {
-            echo "TEST_NAME=${TEST_NAME}"
-            echo "PLATFORM=${PLATFORM}"
-            echo "DEVICE=${DEVICE}"
-            echo "RUN_ID=${RUN_ID}"
-            echo "COMPARE_ALL=${COMPARE_ALL}"
+            echo "TEST_NAME<<EOF"
+            printf '%s\n' "$TEST_NAME"
+            echo "EOF"
+            echo "PLATFORM<<EOF"
+            printf '%s\n' "$PLATFORM"
+            echo "EOF"
+            echo "DEVICE<<EOF"
+            printf '%s\n' "$DEVICE"
+            echo "EOF"
+            echo "RUN_ID<<EOF"
+            printf '%s\n' "$RUN_ID"
+            echo "EOF"
+            echo "COMPARE_ALL<<EOF"
+            printf '%s\n' "$COMPARE_ALL"
+            echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
       - name: Dispatch workflow on PR branch
         if: steps.pr.outputs.IS_FORK == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
+          BRANCH: ${{ steps.pr.outputs.BRANCH }}
+          RUN_ID: ${{ steps.parse.outputs.RUN_ID }}
+          COMPARE_ALL: ${{ steps.parse.outputs.COMPARE_ALL }}
+          TEST_NAME: ${{ steps.parse.outputs.TEST_NAME }}
+          PLATFORM: ${{ steps.parse.outputs.PLATFORM }}
+          DEVICE: ${{ steps.parse.outputs.DEVICE }}
+          ACTIONS_URL: ${{ github.server_url }}/${{ github.repository }}/actions/workflows/app-profiling-check.yml
         run: |
+          set -euo pipefail
+
+          # Pass comment-derived values only via env (never ${{ }} inside the script
+          # body) to avoid shell injection from --test/--device/--platform text.
           ARGS=(
             gh workflow run "App Profiling Check"
-            --ref "${{ steps.pr.outputs.BRANCH }}"
-            -f pr_number="${{ steps.pr.outputs.PR_NUMBER }}"
-            -f current_run_id="${{ steps.parse.outputs.RUN_ID }}"
-            -f compare_all="${{ steps.parse.outputs.COMPARE_ALL }}"
-            -f baseline_branch="main"
+            --ref "${BRANCH}"
+            -f "pr_number=${PR_NUMBER}"
+            -f "current_run_id=${RUN_ID}"
+            -f "compare_all=${COMPARE_ALL}"
+            -f "baseline_branch=main"
           )
 
-          if [ -n "${{ steps.parse.outputs.TEST_NAME }}" ]; then
-            ARGS+=(-f test_name="${{ steps.parse.outputs.TEST_NAME }}")
+          if [ -n "${TEST_NAME}" ]; then
+            ARGS+=(-f "test_name=${TEST_NAME}")
           fi
-          if [ -n "${{ steps.parse.outputs.PLATFORM }}" ]; then
-            ARGS+=(-f platform="${{ steps.parse.outputs.PLATFORM }}")
+          if [ -n "${PLATFORM}" ]; then
+            ARGS+=(-f "platform=${PLATFORM}")
           fi
-          if [ -n "${{ steps.parse.outputs.DEVICE }}" ]; then
-            ARGS+=(-f device="${{ steps.parse.outputs.DEVICE }}")
+          if [ -n "${DEVICE}" ]; then
+            ARGS+=(-f "device=${DEVICE}")
           fi
 
           "${ARGS[@]}"
 
-          gh pr comment "${PR_NUMBER}" --body "🔬 **App profiling check started** for run \`${{ steps.parse.outputs.RUN_ID }}\`. [View workflow runs](${ACTIONS_URL})"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
-          ACTIONS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/workflows/app-profiling-check.yml'
+          gh pr comment "${PR_NUMBER}" --body "🔬 **App profiling check started** for run \`${RUN_ID}\`. [View workflow runs](${ACTIONS_URL})"
 
   # ── workflow_dispatch: actual diff ────────────────────────────────────
   check:
