@@ -659,7 +659,6 @@ describe('App', () => {
     });
 
     it('has sheet routes defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
       expect(Routes.SHEET.NETWORK_SELECTOR).toBeDefined();
       expect(Routes.SHEET.ONBOARDING_SHEET).toBeDefined();
       expect(Routes.SHEET.SDK_LOADING).toBeDefined();
@@ -1180,7 +1179,7 @@ describe('App', () => {
 
   describe('Account management screens', () => {
     it('has account selector route defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
+      expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR).toBeDefined();
     });
 
     it('has address selector route defined', () => {

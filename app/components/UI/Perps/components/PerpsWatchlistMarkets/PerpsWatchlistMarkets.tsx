@@ -7,6 +7,8 @@ import Animated, {
   LinearTransition,
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   Box,
   SectionDivider,
@@ -102,7 +104,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   onMarketPress,
   showLeadingDivider = true,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   const handleMarketPress = useCallback(
@@ -205,7 +207,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   showLeadingDivider = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [expanded, setExpanded] = useState(false);
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
   const { track } = usePerpsEventTracking();

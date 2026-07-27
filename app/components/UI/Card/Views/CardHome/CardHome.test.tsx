@@ -298,6 +298,17 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+const mockResumePendingAction = jest.fn();
+let mockImmersvePendingAction: { type: string } | null = null;
+jest.mock('./hooks/useImmersveCardProvisioning', () => ({
+  useImmersveCardProvisioning: () => ({
+    isProvisioning: false,
+    isReconciling: false,
+    pendingAction: mockImmersvePendingAction,
+    resumePendingAction: mockResumePendingAction,
+  }),
+}));
+
 jest.mock('../../hooks/useCreditBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -1136,6 +1147,8 @@ function render() {
 
 describe('CardHome Component', () => {
   beforeEach(() => {
+    mockImmersvePendingAction = null;
+    mockResumePendingAction.mockClear();
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -1927,6 +1940,23 @@ describe('CardHome Component', () => {
         'mailto:support@metamask.io',
       );
     });
+  });
+
+  it('shows the pending verification warning and continues from the CTA', () => {
+    mockImmersvePendingAction = { type: 'kyc' };
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('confirm-button'));
+    expect(mockResumePendingAction).toHaveBeenCalledTimes(1);
   });
 
   it('displays correct priority token information', async () => {

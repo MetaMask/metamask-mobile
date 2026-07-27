@@ -14,12 +14,14 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import {
   TimePeriod,
@@ -41,7 +43,7 @@ import {
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
+import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
@@ -128,7 +130,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
     } as ViewStyle,
     perpsPositionCardContainer: {
-      paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
     marketClosedActionButtonContainer: {
@@ -251,7 +252,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen } = useRWAToken();
 
@@ -459,10 +460,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   }
 
   const goToBrowserUrl = (url: string) => {
-    const [screen, params] = createWebviewNavDetails({
-      url,
-    });
-    navigation.navigate(screen, params as Record<string, unknown>);
+    navigateWithDetails(navigation, createWebviewNavDetails({ url }));
   };
 
   const handleMarketInsightsPress = useCallback(() => {
@@ -490,7 +488,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: token.symbol,
-      assetIdentifier: marketInsightsCaip19Id,
+      // Handler only fires from the market-insights entry card, which renders
+      // when the id is present; cast preserves the existing runtime value.
+      assetIdentifier: marketInsightsCaip19Id as string,
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
       token,
@@ -713,12 +713,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
-              <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
+              <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
                 {strings('asset_overview.perps_position')}
               </Text>
-              <PerpsPositionCard
+              <PerpsCard
                 position={perpsPosition}
-                compact
                 onPress={handlePerpsDiscoveryPress}
                 testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
               />

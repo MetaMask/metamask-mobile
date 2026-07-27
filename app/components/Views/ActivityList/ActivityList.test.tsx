@@ -21,7 +21,10 @@ import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import Routes from '../../../constants/navigation/Routes';
-import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
+import {
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../constants/on-ramp';
 import decodeTransaction from '../../UI/TransactionElement/utils';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 
@@ -281,6 +284,50 @@ jest.mock('./hooks/useLocalActivityItems', () => ({
 jest.mock('./hooks/useRampActivityItems', () => ({
   useRampActivityItems: jest.fn(),
 }));
+
+const mockGoToBuy = jest.fn();
+jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
+}));
+
+jest.mock('../../UI/Ramp/Aggregator/Views/OrderDetails/OrderDetails', () => {
+  const RoutesActual = jest.requireActual(
+    '../../../constants/navigation/Routes',
+  );
+  return {
+    createOrderDetailsNavDetails: (params: { orderId: string }) => [
+      RoutesActual.default.RAMP.ORDER_DETAILS,
+      params,
+    ],
+  };
+});
+
+jest.mock('../../UI/Ramp/Views/OrderDetails', () => {
+  const RoutesActual = jest.requireActual(
+    '../../../constants/navigation/Routes',
+  );
+  return {
+    createRampsOrderDetailsNavDetails: (params: { orderId: string }) => [
+      RoutesActual.default.RAMP.RAMPS_ORDER_DETAILS,
+      params,
+    ],
+  };
+});
+
+jest.mock(
+  '../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails',
+  () => {
+    const RoutesActual = jest.requireActual(
+      '../../../constants/navigation/Routes',
+    );
+    return {
+      createDepositOrderDetailsNavDetails: (params: { orderId: string }) => [
+        RoutesActual.default.DEPOSIT.ORDER_DETAILS,
+        params,
+      ],
+    };
+  },
+);
 
 jest.mock('./useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
@@ -1145,6 +1192,37 @@ describe('ActivityList', () => {
     expect(legacyCalls).toHaveLength(0);
   });
 
+  it('routes Ramp sell rows to legacy OrderDetails even when the redesign flag is on', () => {
+    selectorValues.isTxRedesign = true;
+    (useRampActivityItems as jest.Mock).mockReturnValue([
+      {
+        ...rampItem,
+        type: 'sell',
+        hash: '0xramp-sell',
+        raw: {
+          ...rampItem.raw,
+          data: {
+            ...rampItem.raw.data,
+            id: 'ramp-sell-order-id',
+            orderType: 'SELL',
+          },
+        },
+      },
+    ]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xramp-sell'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.ORDER_DETAILS, {
+      orderId: 'ramp-sell-order-id',
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.anything(),
+    );
+  });
+
   it('routes Ramp rows to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
     selectorValues.isTxRedesign = true;
     (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
@@ -1202,6 +1280,32 @@ describe('ActivityList', () => {
     });
   });
 
+  it('routes deposit CREATED rows to goToBuy when the redesign flag is off', () => {
+    selectorValues.isTxRedesign = false;
+    (useRampActivityItems as jest.Mock).mockReturnValue([
+      {
+        ...rampItem,
+        hash: '0xdeposit-created',
+        raw: {
+          ...rampItem.raw,
+          data: {
+            ...rampItem.raw.data,
+            id: 'deposit-created-id',
+            provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+            state: FIAT_ORDER_STATES.CREATED,
+          },
+        },
+      },
+    ]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xdeposit-created'));
+
+    expect(mockGoToBuy).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('routes deposit rows to the deposit details screen when the transactions redesign flag is off', () => {
     selectorValues.isTxRedesign = false;
     (useRampActivityItems as jest.Mock).mockReturnValue([
@@ -1214,6 +1318,7 @@ describe('ActivityList', () => {
             ...rampItem.raw.data,
             id: 'deposit-order-id',
             provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+            state: FIAT_ORDER_STATES.COMPLETED,
           },
         },
       },
