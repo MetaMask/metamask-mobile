@@ -273,7 +273,7 @@ export class Engine {
    * Creates a CoreController instance
    */
   constructor(
-    analyticsId: string,
+    canonicalId: string,
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState,
   ) {
@@ -289,7 +289,7 @@ export class Engine {
     this.#wallet = initializeWallet({
       messenger: this.controllerMessenger,
       state: mergedInitialState,
-      analyticsId,
+      id: canonicalId,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -302,7 +302,7 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
-      analyticsId,
+      analyticsId: canonicalId,
       codefiTokenApiV2,
       tokenListService,
     };
@@ -1629,11 +1629,11 @@ export default {
   },
 
   init(
-    analyticsId: string,
+    canonicalId: string,
     state: Partial<EngineState> | undefined = {},
     keyringState?: KeyringControllerState,
   ) {
-    instance = Engine.instance || new Engine(analyticsId, state, keyringState);
+    instance = Engine.instance || new Engine(canonicalId, state, keyringState);
     Object.freeze(instance);
     return instance;
   },

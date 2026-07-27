@@ -120,7 +120,7 @@ jest.mock('../Engine', () => {
 
   const mockEngine = {
     init: (
-      _analyticsId: unknown,
+      _canonicalId: unknown,
       _state: unknown,
       keyringState?: KeyringControllerState | null,
     ) => {

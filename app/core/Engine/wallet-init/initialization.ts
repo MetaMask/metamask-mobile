@@ -24,18 +24,18 @@ import { getTransactionControllerInitMessenger } from './messengers/transaction-
  * @param request - The wallet initialization request.
  * @param request.messenger - The root messenger.
  * @param request.state - The persisted controller state.
- * @param request.analyticsId - Stable anonymous id, reserved for future
+ * @param request.id - Stable anonymous id, reserved for future
  * ID-based A/B bucketing of default feature flags.
  * @returns The constructed `Wallet`.
  */
 export function initializeWallet({
   messenger,
   state,
-  analyticsId,
+  id,
 }: {
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
-  analyticsId?: string;
+  id?: string;
 }) {
   const transactionControllerInitMessenger =
     getTransactionControllerInitMessenger(messenger);
@@ -52,7 +52,7 @@ export function initializeWallet({
     RemoteFeatureFlagController: {
       ...persistedRemoteFeatureFlagState,
       remoteFeatureFlags: {
-        ...getDefaultFeatureFlags({ id: analyticsId }),
+        ...getDefaultFeatureFlags({ id }),
         ...(isObject(persistedRemoteFeatureFlags)
           ? (persistedRemoteFeatureFlags as Record<string, Json>)
           : {}),
