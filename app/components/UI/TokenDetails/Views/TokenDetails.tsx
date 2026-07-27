@@ -38,7 +38,6 @@ import MultichainTransactionsView from '../../../Views/MultichainTransactionsVie
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 import { selectPerpsEnabledFlag } from '../../Perps';
-import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -159,11 +158,16 @@ const TokenDetails: React.FC<{
   }) => void;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
   onCtaClicked?: () => void;
+  onPerpsMarketResolved?: (result: {
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }) => void;
 }> = ({
   token,
   onMarketInsightsDisplayResolved,
   onStickyButtonsResolved,
   onCtaClicked,
+  onPerpsMarketResolved,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -401,6 +405,7 @@ const TokenDetails: React.FC<{
         useAmbientColor={useAmbientColor}
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
+        onPerpsMarketResolved={onPerpsMarketResolved}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -534,8 +539,11 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const token = route.params as TokenDetailsRouteParams;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
-    usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+  const [perpsMarket, setPerpsMarket] = useState<{
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }>({ hasPerpsMarket: false, isLoading: isPerpsEnabled });
+  const { hasPerpsMarket, isLoading: isPerpsMarketLoading } = perpsMarket;
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
@@ -690,6 +698,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
       onStickyButtonsResolved={setResolvedStickyButtons}
       onCtaClicked={handleCtaClicked}
+      onPerpsMarketResolved={setPerpsMarket}
     />
   );
 };
