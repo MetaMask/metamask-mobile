@@ -149,11 +149,14 @@ export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
  * (unless paying with fiat). Confirmation is blocked and publish throws when
  * no payment token is set. Claims and withdraws are excluded because they can
  * legitimately submit without engaging MetaMask Pay.
+ *
+ * Deposit-and-order types are excluded too: they are confirmed from the Perps
+ * and Predict screens, which run their own validation. Those flows can submit
+ * with no pay state at all (e.g. paying from an existing Perps balance), so
+ * there is nothing here to validate against.
  */
 export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
-  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
-  TransactionType.predictDepositAndOrder,
 ] as const;

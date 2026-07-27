@@ -539,6 +539,22 @@ describe('getTransactionControllerHooks', () => {
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
+
+    it.each([
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDepositAndOrder,
+    ])('does not throw for %s when no pay state exists', async (type) => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest(undefined),
+      );
+
+      const result = await hooks.publish?.({
+        ...MOCK_TRANSACTION_META,
+        type,
+      });
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
   });
 
   describe('post-quote withdraw types', () => {
