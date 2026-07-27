@@ -71,7 +71,7 @@ Every domain harness (perps, card, etc.) follows the same shape:
 3. **`build<Domain>IntegrationHarness(options)` factory** that returns `{ instance, mocks, ...helpers }`.
 4. **Header comment** documenting the REAL/MOCKED split — what production code runs, what services are mocked, why.
 
-When the harness pattern doesn't fit a particular flow, that's a signal to **extend the harness** (add a helper, expose a new mock, parameterise differently) — not to bypass it with one-off `jest.mock` calls in the test file. See [`.agents/skills/integration-test/references/harness-extension.md`](../../.agents/skills/integration-test/references/harness-extension.md).
+When the harness pattern doesn't fit a particular flow, that's a signal to **extend the harness** (add a helper, expose a new mock, parameterise differently) — not to bypass it with one-off `jest.mock` calls in the test file. See the central [`integration-test` harness-extension reference](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md).
 
 ### Mocks {#framework-mocks}
 
@@ -146,7 +146,7 @@ const { provider, mocks } = buildPerpsIntegrationHarness();
 mocks.subscription.getCachedPrice.mockReturnValueOnce('60000');
 ```
 
-For the full skill — golden rules, decision tree, file naming, AAA structure, what NOT to do — see [`.agents/skills/integration-test/SKILL.md`](../../.agents/skills/integration-test/SKILL.md).
+For the full skill — golden rules, decision tree, file naming, AAA structure, what NOT to do — use the centrally managed [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test).
 
 ### Run the tests
 
@@ -170,7 +170,7 @@ yarn jest -c jest.config.integration.js
 6. Add a section to this AGENTS.md under "Per-domain harnesses".
 7. (Optional) Add a per-domain use-case file if there's a planned coverage rollout (e.g. `card-use-cases.md`).
 
-For full guidance, see [`.agents/skills/integration-test/references/harness-extension.md`](../../.agents/skills/integration-test/references/harness-extension.md).
+For full guidance, see the central [`integration-test` harness-extension reference](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md).
 
 ---
 
@@ -178,10 +178,10 @@ For full guidance, see [`.agents/skills/integration-test/references/harness-exte
 
 Links to the skill content:
 
-- [`.agents/skills/integration-test/SKILL.md`](../../.agents/skills/integration-test/SKILL.md) — Full workflow, decision tree, golden rules
-- [`.agents/skills/integration-test/references/writing-tests.md`](../../.agents/skills/integration-test/references/writing-tests.md) — Test structure, scenarios, assertions
-- [`.agents/skills/integration-test/references/harness-extension.md`](../../.agents/skills/integration-test/references/harness-extension.md) — Adding or extending a domain harness
-- [`.agents/skills/integration-test/references/reference.md`](../../.agents/skills/integration-test/references/reference.md) — Run commands, self-review checklist, diagnosing failures, what NOT to do
+- [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) — Full workflow, decision tree, golden rules
+- [`writing-tests.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/writing-tests.md) — Test structure, scenarios, assertions
+- [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md) — Adding or extending a domain harness
+- [`reference.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/reference.md) — Run commands, self-review checklist, diagnosing failures, what NOT to do
 
 ---
 
