@@ -17,12 +17,14 @@
  * Environment:
  *   GITHUB_REPOSITORY  owner/repo (required unless --repo is passed)
  *   GH_TOKEN / GITHUB_TOKEN  GitHub token with actions:read + pull_requests:write
+ *   E2E_CLAUDE_API_KEY / E2E_OPENAI_API_KEY / E2E_GEMINI_API_KEY  optional AI triage
  */
 
 import { spawnSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { generateAppProfilingAiReasoning } from './app-profiling-ai.mjs';
 
 const COMMENT_MARKER = '<!-- app-profiling-check -->';
 const DEFAULT_BASELINE_BRANCH = 'main';
@@ -42,6 +44,7 @@ function parseArgs(argv) {
     workflow: DEFAULT_WORKFLOW,
     repo: process.env.GITHUB_REPOSITORY || null,
     dryRun: false,
+    skipAi: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -85,6 +88,9 @@ function parseArgs(argv) {
         break;
       case '--dry-run':
         args.dryRun = true;
+        break;
+      case '--skip-ai':
+        args.skipAi = true;
         break;
       default:
         break;
@@ -221,10 +227,70 @@ function getFailedScenariosFromSummary(summaryDir) {
         testName: test.testName,
         platform: test.platform ?? null,
         device,
+        failureReason: test.failureReason ?? null,
+        qualityGates: test.qualityGates ?? null,
+        qualityGatesViolations: test.qualityGatesViolations ?? null,
+        recordingLink: test.recordingLink ?? null,
+        sessionId: test.sessionId ?? null,
       });
     }
   }
   return scenarios;
+}
+
+function findFailureContext(summaryDir, { testName, device }) {
+  const failed = getFailedScenariosFromSummary(summaryDir);
+  const fromSummary = failed.find(
+    (entry) =>
+      entry.testName === testName &&
+      (!device?.name || devicesMatch(entry.device, device)),
+  );
+  if (fromSummary) {
+    return fromSummary;
+  }
+
+  // Fallback: performance-results.json may still carry failure metadata.
+  const resultsPath = path.join(summaryDir, 'performance-results.json');
+  if (!fs.existsSync(resultsPath)) {
+    return null;
+  }
+  const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+  const match = flattenPerformanceResults(results).find(
+    (entry) =>
+      entry.test.testName === testName &&
+      (!device?.name || devicesMatch(entry.device, device)),
+  );
+  if (!match) {
+    return null;
+  }
+  return {
+    testName: match.test.testName,
+    platform: match.platform,
+    device: match.device,
+    failureReason: match.test.failureReason ?? null,
+    qualityGates: match.test.qualityGates ?? null,
+    qualityGatesViolations:
+      match.test.qualityGatesViolations ??
+      match.test.qualityGates?.violations ??
+      null,
+    recordingLink: match.test.recordingLink ?? null,
+    sessionId: match.test.sessionId ?? null,
+  };
+}
+
+function formatFailureReasonLabel(reason) {
+  switch (reason) {
+    case 'quality_gates_exceeded':
+      return 'Quality gates exceeded';
+    case 'timedOut':
+      return 'Timed out';
+    case 'failed':
+      return 'Failed';
+    case 'test_error':
+      return 'Test error';
+    default:
+      return reason || null;
+  }
 }
 
 function downloadAggregatedReports(runId, destDir, repo) {
@@ -527,6 +593,8 @@ function buildScenarioComment({
   baseline,
   repo,
   baselineBranch = DEFAULT_BASELINE_BRANCH,
+  failureContext = null,
+  aiReasoningMarkdown = '',
 }) {
   const deviceLabel = formatDeviceLabel(device);
   const currentUrl = `https://github.com/${repo}/actions/runs/${currentRunId}`;
@@ -538,35 +606,53 @@ function buildScenarioComment({
   md += '\n\n';
   md += `**Current:** [run ${currentRunId}](${currentUrl})`;
 
+  if (baseline) {
+    const baselineUrl =
+      baseline.run.url ||
+      `https://github.com/${repo}/actions/runs/${baseline.run.databaseId}`;
+    const baselineSha = (baseline.run.headSha || '').slice(0, 7);
+    md += ` · **Baseline (last green on \`${baselineBranch}\`):** [run ${baseline.run.databaseId}](${baselineUrl})`;
+    if (baselineSha) {
+      md += ` @ \`${baselineSha}\``;
+    }
+  }
+  md += '\n';
+
+  if (failureContext?.failureReason) {
+    const reasonLabel = formatFailureReasonLabel(failureContext.failureReason);
+    md += `\n**Scenario failure:** ${reasonLabel}`;
+    if (failureContext.recordingLink) {
+      md += ` · [📹 Recording](${failureContext.recordingLink})`;
+    }
+    md += '\n';
+  }
+
   if (!currentArtifact || !hasUsableProfilingSummary(currentArtifact)) {
-    md += `\n\n⚠️ Current run has no usable \`profilingSummary\` for this scenario.\n`;
+    md += `\n⚠️ Current run has no usable \`profilingSummary\` for this scenario.\n`;
     if (currentArtifact?.apiCallsError) {
       md += `\nAPI calls note: \`${currentArtifact.apiCallsError}\`\n`;
+    }
+    if (aiReasoningMarkdown) {
+      md += `\n${aiReasoningMarkdown}\n`;
     }
     md += `\n${COMMENT_MARKER}\n`;
     return md;
   }
 
   if (!baseline) {
-    md += `\n\n⚠️ No green baseline found on \`${baselineBranch}\` (within recent \`aggregated-reports\` retention) for this scenario + device.\n\n`;
+    md += `\n⚠️ No green baseline found on \`${baselineBranch}\` (within recent \`aggregated-reports\` retention) for this scenario + device.\n\n`;
     md += `### Current profilingSummary\n\n`;
     md += '```json\n';
     md += `${JSON.stringify(currentArtifact.profilingSummary, null, 2)}\n`;
     md += '```\n';
+    if (aiReasoningMarkdown) {
+      md += `\n${aiReasoningMarkdown}\n`;
+    }
     md += `\n${COMMENT_MARKER}\n`;
     return md;
   }
 
-  const baselineUrl =
-    baseline.run.url ||
-    `https://github.com/${repo}/actions/runs/${baseline.run.databaseId}`;
-  const baselineSha = (baseline.run.headSha || '').slice(0, 7);
-  md += ` · **Baseline (last green on \`${baselineBranch}\`):** [run ${baseline.run.databaseId}](${baselineUrl})`;
-  if (baselineSha) {
-    md += ` @ \`${baselineSha}\``;
-  }
-  md += '\n\n';
-  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
+  md += `\n> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
   md += `> - If \`Current <= Baseline + 10%\`, the change is treated as acceptable noise (no highlight).\n`;
   md += `> - If \`Current > Baseline + 10%\`, **Current** and the **variance %** are highlighted and marked with ⚠️.\n\n`;
 
@@ -585,6 +671,10 @@ function buildScenarioComment({
     md += `\n> ℹ️ API calls unavailable on current run: \`${currentArtifact.apiCallsError}\`\n`;
   }
 
+  if (aiReasoningMarkdown) {
+    md += `\n${aiReasoningMarkdown}\n`;
+  }
+
   md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
   md += `**Baseline**\n\n\`\`\`json\n${JSON.stringify(
     baseline.artifact.profilingSummary,
@@ -601,6 +691,40 @@ function buildScenarioComment({
   return md;
 }
 
+async function buildAiReasoningForScenario({
+  testName,
+  platform,
+  device,
+  currentArtifact,
+  baseline,
+  failureContext,
+  skipAi,
+}) {
+  const metricRows =
+    baseline && currentArtifact && hasUsableProfilingSummary(currentArtifact)
+      ? getMetricRows(
+          baseline.artifact.profilingSummary,
+          currentArtifact.profilingSummary,
+        )
+      : [];
+
+  return generateAppProfilingAiReasoning(
+    {
+      testName,
+      platform,
+      deviceLabel: formatDeviceLabel(device),
+      failureContext,
+      metricRows,
+      baselineSummary: baseline?.artifact?.profilingSummary ?? null,
+      currentSummary: currentArtifact?.profilingSummary ?? null,
+      apiCalls: currentArtifact?.apiCalls ?? null,
+      apiCallsError: currentArtifact?.apiCallsError ?? null,
+      hasBaseline: Boolean(baseline),
+    },
+    { skipAi },
+  );
+}
+
 function resolveScenarios(args, currentDir) {
   if (args.all) {
     const failed = getFailedScenariosFromSummary(currentDir);
@@ -614,16 +738,27 @@ function resolveScenarios(args, currentDir) {
     fail('Provide --test "Scenario name" or --all');
   }
 
+  const device = parseDeviceKey(args.device);
+  const failureContext = findFailureContext(currentDir, {
+    testName: args.test,
+    device,
+  });
+
   return [
     {
       testName: args.test,
-      platform: args.platform,
-      device: parseDeviceKey(args.device),
+      platform: args.platform ?? failureContext?.platform ?? null,
+      device: device.name ? device : failureContext?.device ?? device,
+      failureReason: failureContext?.failureReason ?? null,
+      qualityGates: failureContext?.qualityGates ?? null,
+      qualityGatesViolations: failureContext?.qualityGatesViolations ?? null,
+      recordingLink: failureContext?.recordingLink ?? null,
+      sessionId: failureContext?.sessionId ?? null,
     },
   ];
 }
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   if (!args.pr) fail('Missing --pr <number>');
@@ -666,6 +801,24 @@ function main() {
       workRoot,
     });
 
+    const failureContext = {
+      failureReason: scenario.failureReason ?? null,
+      qualityGates: scenario.qualityGates ?? null,
+      qualityGatesViolations: scenario.qualityGatesViolations ?? null,
+      recordingLink: scenario.recordingLink ?? null,
+      sessionId: scenario.sessionId ?? null,
+    };
+
+    const aiReasoningMarkdown = await buildAiReasoningForScenario({
+      testName: scenario.testName,
+      platform: scenario.platform,
+      device: scenario.device,
+      currentArtifact,
+      baseline,
+      failureContext,
+      skipAi: args.skipAi,
+    });
+
     comments.push(
       buildScenarioComment({
         testName: scenario.testName,
@@ -676,6 +829,8 @@ function main() {
         baseline,
         repo: args.repo,
         baselineBranch: args.baselineBranch,
+        failureContext,
+        aiReasoningMarkdown,
       }),
     );
   }
@@ -705,14 +860,15 @@ export {
   hasUsableProfilingSummary,
   findMatchingArtifact,
   findGreenScenarioInDir,
+  getFailedScenariosFromSummary,
+  findFailureContext,
+  formatFailureReasonLabel,
   buildScenarioComment,
   COMMENT_MARKER,
 };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  try {
-    main();
-  } catch (error) {
+  main().catch((error) => {
     fail(error instanceof Error ? error.message : String(error));
-  }
+  });
 }

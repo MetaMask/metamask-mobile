@@ -247,6 +247,10 @@ jobs:
           DEVICE: ${{ inputs.device }}
           COMPARE_ALL: ${{ inputs.compare_all }}
           BASELINE_BRANCH: ${{ inputs.baseline_branch }}
+          # Optional AI triage (same keys as Smart E2E). Diff still posts if missing.
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
+          E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
         run: |
           set -euo pipefail
 

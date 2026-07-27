@@ -181,12 +181,99 @@ test('buildScenarioComment includes marker and delta table when baseline exists'
   });
 
   assert.match(md, /## 🔬 App Profiling Check: Cold Start Login/);
-      assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
-      assert.match(md, /Disclaimer — allowed variance/);
-      assert.match(md, /\+10%/);
-      assert.match(md, new RegExp(COMMENT_MARKER));
-      assert.match(md, /run 222/);
-    });
+  assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
+  assert.match(md, /Disclaimer — allowed variance/);
+  assert.match(md, /\+10%/);
+  assert.match(md, new RegExp(COMMENT_MARKER));
+  assert.match(md, /run 222/);
+});
+
+test('buildScenarioComment includes failure context and AI section', () => {
+  const md = buildScenarioComment({
+    testName: 'Cross-chain swap',
+    platform: 'Android',
+    device: { name: 'Pixel 8', osVersion: '14.0' },
+    currentRunId: '111',
+    currentArtifact: {
+      profilingSummary: {
+        cpu: { avg: 9, max: 20 },
+        memory: { avg: 200, max: 250 },
+        uiRendering: { slowFrames: 15, frozenFrames: 0, anrs: 0 },
+        issues: 1,
+        criticalIssues: 0,
+      },
+    },
+    baseline: {
+      run: {
+        databaseId: 222,
+        headSha: 'abcdef123456',
+        url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/222',
+      },
+      artifact: {
+        profilingSummary: {
+          cpu: { avg: 8, max: 18 },
+          memory: { avg: 190, max: 240 },
+          uiRendering: { slowFrames: 7, frozenFrames: 0, anrs: 0 },
+          issues: 1,
+          criticalIssues: 0,
+        },
+      },
+    },
+    repo: 'MetaMask/metamask-mobile',
+    failureContext: {
+      failureReason: 'quality_gates_exceeded',
+      recordingLink: 'https://example.com/recording',
+    },
+    aiReasoningMarkdown:
+      '<details>\n<summary>🤖 AI triage & failure correlation</summary>\n\ntriage\n\n</details>\n',
+  });
+
+  assert.match(md, /\*\*Scenario failure:\*\* Quality gates exceeded/);
+  assert.match(md, /https:\/\/example\.com\/recording/);
+  assert.match(md, /AI triage & failure correlation/);
+});
+
+test('getFailedScenariosFromSummary preserves failure metadata', async () => {
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const { getFailedScenariosFromSummary } = await import(
+    './diff-app-profiling.mjs'
+  );
+
+  const dir = mkdtempSync(join(tmpdir(), 'profiling-summary-'));
+  try {
+    writeFileSync(
+      join(dir, 'summary.json'),
+      JSON.stringify({
+        failedTestsStats: {
+          failedTestsByTeam: {
+            '@swap-bridge-dev-team': {
+              tests: [
+                {
+                  testName: 'Cross-chain swap',
+                  platform: 'Android',
+                  device: 'Pixel 8+14.0',
+                  failureReason: 'quality_gates_exceeded',
+                  qualityGatesViolations: [{ step: 'swap' }],
+                  recordingLink: 'https://example.com/r',
+                },
+              ],
+            },
+          },
+        },
+      }),
+    );
+
+    const scenarios = getFailedScenariosFromSummary(dir);
+    assert.equal(scenarios.length, 1);
+    assert.equal(scenarios[0].failureReason, 'quality_gates_exceeded');
+    assert.equal(scenarios[0].recordingLink, 'https://example.com/r');
+    assert.deepEqual(scenarios[0].qualityGatesViolations, [{ step: 'swap' }]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test('buildScenarioComment explains missing baseline', () => {
   const md = buildScenarioComment({
