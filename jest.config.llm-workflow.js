@@ -1,6 +1,6 @@
 /* eslint-disable import-x/no-commonjs */
 
-// Lightweight Jest config for e2e/llm-workflow tests.
+// Lightweight Jest config for tests/llm-workflow tests.
 //
 // These tests exercise pure Node.js tooling (daemon, prerequisites, capabilities)
 // and do not depend on React Native. Running them under the base react-native
@@ -9,7 +9,7 @@
 
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/e2e/llm-workflow/__tests__/**/*.test.ts'],
+  testMatch: ['<rootDir>/tests/llm-workflow/__tests__/**/*.test.ts'],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
   },

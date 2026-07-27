@@ -62,7 +62,7 @@ const newOverrides = [
       'app/util/environment.test.ts',
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
-      'e2e/llm-workflow/metamask-provider.ts',
+      'tests/llm-workflow/metamask-provider.ts',
       'app/core/devApiEnv.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
