@@ -192,8 +192,11 @@ export function HwQrScanner() {
     string | null
   >(null);
 
-  const { currentStep = 1, totalSteps = 1, completeOnScan = false } =
-    (route.params as HwQrScannerRouteParams) ?? {};
+  const {
+    currentStep = 1,
+    totalSteps = 1,
+    completeOnScan = false,
+  } = (route.params as HwQrScannerRouteParams) ?? {};
 
   const isLastStep = currentStep >= totalSteps;
 

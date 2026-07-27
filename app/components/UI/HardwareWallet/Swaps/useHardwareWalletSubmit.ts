@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import type { Dispatch, AnyAction } from 'redux';
 import {
   TransactionStatus,
@@ -169,14 +175,12 @@ export function useHardwareWalletSubmit({
 
   // Shared stale-submission guard + TransactionFailed dispatch.
   const runSubmit = useCallback(
-    async <Result,>(submitFn: () => Promise<Result>) => {
+    async <Result>(submitFn: () => Promise<Result>) => {
       const submissionGenerationAtStart = submissionGenerationRef.current;
       try {
         return await submitFn();
       } catch (error) {
-        if (
-          submissionGenerationRef.current !== submissionGenerationAtStart
-        ) {
+        if (submissionGenerationRef.current !== submissionGenerationAtStart) {
           return;
         }
         Logger.error(error as Error, 'HW swap submit failed');
