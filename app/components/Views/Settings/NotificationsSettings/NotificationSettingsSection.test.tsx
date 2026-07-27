@@ -452,7 +452,6 @@ describe('NotificationSettingsSection', () => {
       );
     });
 
-    // UI shows latest intent immediately while first write is still pending
     await waitFor(() => {
       expect(
         screen.getByTestId(
@@ -461,7 +460,6 @@ describe('NotificationSettingsSection', () => {
       ).toBe(true);
     });
 
-    // Resolve first write to unblock the queue; second write fires after
     await act(async () => {
       resolveFirstUpdate();
     });
