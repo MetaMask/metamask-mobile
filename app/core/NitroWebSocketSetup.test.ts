@@ -184,6 +184,69 @@ describe('NitroWebSocketSetup', () => {
 
       expect(MockNitroWebSocket).toHaveBeenCalled();
     });
+
+    it('routes the WalletConnect relay to the built-in WebSocket despite the wss scheme', () => {
+      new global.WebSocket(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+      );
+
+      expect(MockOriginalWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('installProductionNitroWebSocket — WalletConnect relay bypass', () => {
+    let MockBuiltInWebSocket: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      MockBuiltInWebSocket = jest.fn();
+      global.WebSocket = MockBuiltInWebSocket as unknown as typeof WebSocket;
+      installProductionNitroWebSocket();
+    });
+
+    it('routes relay.walletconnect.org to the built-in WebSocket', () => {
+      new global.WebSocket(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+      );
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalledWith(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+        undefined,
+        undefined,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('routes relay.walletconnect.com to the built-in WebSocket', () => {
+      new global.WebSocket('wss://relay.walletconnect.com');
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('keeps other wss hosts on the Nitro adapter', () => {
+      new global.WebSocket('wss://api.hyperliquid.xyz/ws');
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+      expect(MockBuiltInWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('matches the relay by hostname, not by substring in the query string', () => {
+      new global.WebSocket(
+        'wss://api.example.com/?next=relay.walletconnect.org',
+      );
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+      expect(MockBuiltInWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('exposes W3C ready state constants on the routing constructor', () => {
+      expect(global.WebSocket.CONNECTING).toBe(0);
+      expect(global.WebSocket.OPEN).toBe(1);
+      expect(global.WebSocket.CLOSING).toBe(2);
+      expect(global.WebSocket.CLOSED).toBe(3);
+    });
   });
 
   describe('NitroWebSocketAdapter — static constants', () => {
