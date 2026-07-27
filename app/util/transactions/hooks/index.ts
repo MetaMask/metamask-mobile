@@ -42,6 +42,7 @@ import { Delegation7702PublishHook } from './delegation-7702-publish';
 import {
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
+  SELF_VALIDATED_PAY_TRANSACTION_TYPES,
 } from '../../../components/Views/confirmations/constants/confirmations';
 import {
   getPostQuoteTransactionType,
@@ -236,6 +237,14 @@ function validateRequiredQuote(
   messenger: TransactionControllerInitMessenger,
   state: RootState,
 ) {
+  // The owning feature validates these before they ever reach publish, and
+  // their pay state is not something this guard can reason about.
+  if (
+    hasTransactionType(transactionMeta, SELF_VALIDATED_PAY_TRANSACTION_TYPES)
+  ) {
+    return;
+  }
+
   const isQuoteRequiredType = hasTransactionType(
     transactionMeta,
     QUOTE_REQUIRED_TRANSACTION_TYPES,
