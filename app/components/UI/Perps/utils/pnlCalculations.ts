@@ -139,3 +139,48 @@ export function calculateTotalPnLPercentage(params: TotalPnLParams): number {
 
   return totalEntryValue === 0 ? 0 : (totalPnl / totalEntryValue) * 100;
 }
+
+export interface PositionAggregateTotals {
+  /** Σ unrealizedPnl across the given positions */
+  unrealizedPnl: string;
+  /**
+   * Margin-weighted ROE as a percentage string (e.g. `"15"` for 15%).
+   *
+   * Contract (matches Hyperliquid `adaptAccountStateFromSDK`):
+   * `returnOnEquity = (Σ (position.returnOnEquity × marginUsed) / Σ marginUsed) × 100`
+   * where each position's `returnOnEquity` is the protocol decimal (0.10 = 10%).
+   *
+   * This equals Σpnl / Σmargin only when every supplied ROE equals pnl / margin.
+   */
+  returnOnEquity: string;
+}
+
+/**
+ * Aggregate unrealized P&L and margin-weighted ROE for a position subset
+ * (e.g. ticker-filtered Pro positions).
+ */
+export function calculatePositionAggregateTotals(
+  positions: Position[],
+): PositionAggregateTotals {
+  let unrealizedPnl = 0;
+  let weightedReturnOnEquity = 0;
+  let totalMarginUsed = 0;
+
+  positions.forEach((position) => {
+    const pnl = parseFloat(position.unrealizedPnl || '0') || 0;
+    const marginUsed = parseFloat(position.marginUsed || '0') || 0;
+    const returnOnEquity = parseFloat(position.returnOnEquity || '0') || 0;
+
+    unrealizedPnl += pnl;
+    weightedReturnOnEquity += returnOnEquity * marginUsed;
+    totalMarginUsed += marginUsed;
+  });
+
+  return {
+    unrealizedPnl: unrealizedPnl.toString(),
+    returnOnEquity:
+      totalMarginUsed > 0
+        ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toString()
+        : '0',
+  };
+}
