@@ -14,6 +14,7 @@ import {
 import { handleWebShare } from '../../../util/browser/handleWebShare';
 import { handleWebDownload } from '../../../util/browser/handleWebDownload';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import { PhishingDetectorResultType } from '@metamask/phishing-controller';
 
 const mockInjectJavaScript = jest.fn();
 const mockStopLoading = jest.fn();
@@ -394,7 +395,7 @@ describe('BrowserTab', () => {
       jest.mocked(getPhishingTestResultAsync).mockResolvedValueOnce({
         result: true,
         name: '',
-        type: 'DAPP_SCANNING',
+        type: 'DAPP_SCANNING' as PhishingDetectorResultType,
       });
 
       let result: boolean | undefined;
