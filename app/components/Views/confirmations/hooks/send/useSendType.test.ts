@@ -54,10 +54,12 @@ describe('useSendType', () => {
         isSolanaSendType: undefined,
         isBitcoinSendType: undefined,
         isTronSendType: undefined,
+        isStellarSendType: undefined,
         isPredefinedEvm: false,
         isPredefinedSolana: false,
         isPredefinedBitcoin: false,
         isPredefinedTron: false,
+        isPredefinedStellar: false,
       });
     });
   });

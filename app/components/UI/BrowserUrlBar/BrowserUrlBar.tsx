@@ -36,6 +36,7 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import URLParse from 'url-parse';
 import ButtonIcon, {
@@ -68,7 +69,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const accountsLength = useSelector(selectAccountsLength);
     const networkConfigurations = useSelector(selectNetworkConfigurations);
     const { trackEvent, createEventBuilder } = useAnalytics();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const selectedAddress = connectedAccounts?.[0];
     const dappOrigin = useMemo(() => {
       if (!activeUrl) {
