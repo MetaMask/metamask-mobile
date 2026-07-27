@@ -27,7 +27,8 @@ import path from 'path';
 const COMMENT_MARKER = '<!-- app-profiling-check -->';
 const DEFAULT_BASELINE_BRANCH = 'main';
 const DEFAULT_WORKFLOW = 'run-performance-e2e.yml';
-const RELATIVE_WARN_THRESHOLD = 0.1; // 10%
+/** Current may be up to baseline + 10% without being highlighted as a regression. */
+const RELATIVE_WARN_THRESHOLD = 0.1;
 
 function parseArgs(argv) {
   const args = {
@@ -393,16 +394,32 @@ function formatNumber(value, unit = '') {
   return `${value}${unit}`;
 }
 
+function emphasize(text) {
+  return `**${text}**`;
+}
+
+/**
+ * Warn only when current exceeds the allowed margin: baseline + 10%.
+ * Values within that band are treated as acceptable variance.
+ */
 function computeDelta(baseline, current) {
   if (typeof baseline !== 'number' || typeof current !== 'number') {
     return { absolute: null, relative: null, warn: false };
   }
   const absolute = round(current - baseline);
   const relative =
-    baseline === 0 ? (current === 0 ? 0 : null) : round((current - baseline) / Math.abs(baseline), 4);
+    baseline === 0
+      ? current === 0
+        ? 0
+        : null
+      : round((current - baseline) / Math.abs(baseline), 4);
+
+  // Within margin when current <= baseline * 1.1 (relative <= 10%).
+  // Any increase from a zero baseline is outside the margin.
   const warn =
     absolute > 0 &&
-    (relative == null || Math.abs(relative) >= RELATIVE_WARN_THRESHOLD);
+    (relative == null || relative > RELATIVE_WARN_THRESHOLD);
+
   return { absolute, relative, warn };
 }
 
@@ -411,12 +428,16 @@ function formatDelta(delta) {
     return '—';
   }
   const sign = delta.absolute > 0 ? '+' : '';
-  const relativeText =
-    delta.relative == null
-      ? ''
-      : ` (${sign}${round(delta.relative * 100, 1)}%)`;
-  const warn = delta.warn ? ' ⚠️' : '';
-  return `${sign}${delta.absolute}${relativeText}${warn}`;
+  const absoluteText = `${sign}${delta.absolute}`;
+
+  let relativeText = '';
+  if (delta.relative != null) {
+    const percentText = `${sign}${round(delta.relative * 100, 1)}%`;
+    relativeText = ` (${delta.warn ? emphasize(percentText) : percentText})`;
+  }
+
+  const warnIcon = delta.warn ? ' ⚠️' : '';
+  return `${absoluteText}${relativeText}${warnIcon}`;
 }
 
 function getMetricRows(baselineSummary, currentSummary) {
@@ -462,21 +483,18 @@ function getMetricRows(baselineSummary, currentSummary) {
       baseline: baselineSummary?.uiRendering?.anrs,
       current: currentSummary?.uiRendering?.anrs,
       unit: '',
-      warnOnAnyIncrease: true,
     },
     {
       label: 'Issues',
       baseline: baselineSummary?.issues,
       current: currentSummary?.issues,
       unit: '',
-      warnOnAnyIncrease: true,
     },
     {
       label: 'Critical issues',
       baseline: baselineSummary?.criticalIssues,
       current: currentSummary?.criticalIssues,
       unit: '',
-      warnOnAnyIncrease: true,
     },
     {
       label: 'App size',
@@ -488,18 +506,12 @@ function getMetricRows(baselineSummary, currentSummary) {
 
   return rows.map((row) => {
     const delta = computeDelta(row.baseline, row.current);
-    if (
-      row.warnOnAnyIncrease &&
-      typeof row.baseline === 'number' &&
-      typeof row.current === 'number' &&
-      row.current > row.baseline
-    ) {
-      delta.warn = true;
-    }
+    const currentText = formatNumber(round(row.current), row.unit);
+
     return {
       label: row.label,
       baselineText: formatNumber(round(row.baseline), row.unit),
-      currentText: formatNumber(round(row.current), row.unit),
+      currentText: delta.warn ? emphasize(currentText) : currentText,
       deltaText: formatDelta(delta),
       warn: delta.warn,
     };
@@ -554,6 +566,7 @@ function buildScenarioComment({
     md += ` @ \`${baselineSha}\``;
   }
   md += '\n\n';
+  md += `> Variance margin: **Current** and **%** are highlighted only when Current > Baseline + 10%.\n\n`;
 
   const rows = getMetricRows(
     baseline.artifact.profilingSummary,

@@ -70,11 +70,16 @@ test('isScenarioGreen returns true for passed tests', () => {
   );
 });
 
-test('computeDelta flags relative regressions above threshold', () => {
+test('computeDelta flags regressions above the 10% margin', () => {
   const delta = computeDelta(10, 12);
   assert.equal(delta.absolute, 2);
   assert.equal(delta.relative, 0.2);
   assert.equal(delta.warn, true);
+});
+
+test('computeDelta does not warn within the baseline + 10% margin', () => {
+  assert.equal(computeDelta(10, 10.5).warn, false); // +5%
+  assert.equal(computeDelta(10, 11).warn, false); // exactly +10%
 });
 
 test('computeDelta does not warn for improvements', () => {
@@ -82,7 +87,7 @@ test('computeDelta does not warn for improvements', () => {
   assert.equal(delta.warn, false);
 });
 
-test('getMetricRows warns on ANR increases', () => {
+test('getMetricRows highlights current and percent when over margin', () => {
   const rows = getMetricRows(
     {
       cpu: { avg: 10, max: 20 },
@@ -93,16 +98,23 @@ test('getMetricRows warns on ANR increases', () => {
     },
     {
       cpu: { avg: 15, max: 25 },
-      memory: { avg: 110, max: 130 },
+      memory: { avg: 105, max: 130 },
       uiRendering: { slowFrames: 2, frozenFrames: 1, anrs: 1 },
       issues: 2,
       criticalIssues: 1,
     },
   );
 
-  const anrs = rows.find((row) => row.label === 'ANRs');
-  assert.equal(anrs?.warn, true);
-  assert.match(anrs?.deltaText ?? '', /⚠️/);
+  const cpuAvg = rows.find((row) => row.label === 'CPU avg');
+  assert.equal(cpuAvg?.warn, true);
+  assert.match(cpuAvg?.currentText ?? '', /^\*\*.*\*\*$/);
+  assert.match(cpuAvg?.deltaText ?? '', /\*\*.*%\*\*/);
+  assert.match(cpuAvg?.deltaText ?? '', /⚠️/);
+
+  const memoryAvg = rows.find((row) => row.label === 'Memory avg');
+  // +5% stays within the allowed margin
+  assert.equal(memoryAvg?.warn, false);
+  assert.equal(memoryAvg?.currentText?.includes('**'), false);
 });
 
 test('hasUsableProfilingSummary rejects error payloads', () => {
