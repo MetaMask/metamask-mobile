@@ -10,7 +10,8 @@ import mmCardMetal from '../../../../../images/mm_card_metal.png';
 const mockSetXValue = jest.fn();
 const mockSetYValue = jest.fn();
 const mockRefCallback = jest.fn();
-const mockRiveInstance = {};
+const mockViewTag = jest.fn((): number | null => 1);
+const mockRiveInstance = { viewTag: mockViewTag };
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
 const mockRiveProps: { current?: { artboardName?: string } } = {};
 
@@ -59,6 +60,7 @@ describe('MoneyCardTiltAnimation', () => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
     mockRiveProps.current = undefined;
+    mockViewTag.mockReturnValue(1);
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
   });
@@ -183,6 +185,21 @@ describe('MoneyCardTiltAnimation', () => {
 
     expect(mockSetXValue).toHaveBeenCalledWith(75);
     expect(mockSetYValue).toHaveBeenCalledWith(25);
+  });
+
+  it('does not dispatch tilt values while the native Rive view is detached', () => {
+    mockViewTag.mockReturnValue(null);
+    render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+    const applyTilt = mockUseDeviceOrientation.mock.calls[0][0] as (
+      x: number,
+      y: number,
+    ) => void;
+
+    act(() => applyTilt(0.5, -0.5));
+
+    expect(mockSetXValue).not.toHaveBeenCalled();
+    expect(mockSetYValue).not.toHaveBeenCalled();
   });
 
   it('applies the provided testID to the container', () => {
