@@ -63,8 +63,6 @@ ignores:
   - 'eslint-plugin-prettier'
   - 'eslint-plugin-react-native'
 
-  - '@metamask/device-mcp'
-
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
 

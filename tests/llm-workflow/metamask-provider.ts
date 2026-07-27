@@ -251,6 +251,14 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   async cleanup(): Promise<boolean> {
+    if (this.launchInProgress) {
+      throw new IOSLaunchError({
+        code: 'MM_SESSION_ALREADY_RUNNING',
+        message:
+          'A launch is in progress. Wait for it to complete before running `mm cleanup`.',
+      });
+    }
+
     if (!this.hasActiveSession()) {
       return false;
     }

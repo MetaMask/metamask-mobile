@@ -1,4 +1,3 @@
-/* eslint-disable import-x/no-nodejs-modules, import-x/no-extraneous-dependencies */
 import { MobilePlatformDriver } from '@metamask/client-mcp-core';
 import { createBackend } from '@metamask/device-mcp';
 // eslint-disable-next-line no-duplicate-imports

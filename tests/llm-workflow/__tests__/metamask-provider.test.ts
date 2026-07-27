@@ -208,6 +208,29 @@ describe('MetaMaskMobileSessionManager', () => {
     expect(sessionManager.hasActiveSession()).toBe(false);
   });
 
+  it('rejects cleanup while a launch is still in progress', async () => {
+    const pendingState = platformDriver.getAppState() as ReturnType<
+      IPlatformDriver['getAppState']
+    >;
+    let releaseLaunch: () => void = () => undefined;
+    jest.mocked(platformDriver.getAppState).mockReturnValueOnce(
+      new Promise((resolve) => {
+        releaseLaunch = () => resolve(pendingState);
+      }),
+    );
+
+    const launchPromise = sessionManager.launch(createLaunchInput());
+    await Promise.resolve();
+
+    await expect(sessionManager.cleanup()).rejects.toMatchObject({
+      name: 'IOSLaunchError',
+      code: 'MM_SESSION_ALREADY_RUNNING',
+    });
+
+    releaseLaunch();
+    await launchPromise;
+  });
+
   it('tears down a partially launched app when state capture fails', async () => {
     jest
       .mocked(platformDriver.getAppState)
