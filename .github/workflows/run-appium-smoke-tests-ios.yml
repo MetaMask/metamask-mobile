@@ -191,7 +191,7 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-wallet-platform-ios-smoke
+      test-suite-name: appium-wallet-platform-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: SmokeWalletPlatform
       split_number: ${{ matrix.split }}
