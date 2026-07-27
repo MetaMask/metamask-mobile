@@ -78,6 +78,13 @@ require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-com
 //   "// ReadableStream is injected by Metro as a global"
 import 'expo';
 
+// Compression Streams for Hyperliquid `fastAssetCtxs`.
+// Official @nktkas/hyperliquid RN docs require DecompressionStream on Hermes.
+// We only add this package: Web Streams come from Metro, TextDecoder from Expo
+// winter above. Must load after streams/`expo` so global TransformStream exists.
+// @see https://nktkas.gitbook.io/hyperliquid (React Native tab)
+import 'compression-streams-polyfill';
+
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (hasTestOverrides) {
   // eslint-disable-next-line no-console
