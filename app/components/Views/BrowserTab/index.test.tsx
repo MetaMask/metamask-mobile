@@ -541,12 +541,12 @@ describe('BrowserTab', () => {
       fireEvent.press(screen.getByTestId('browser-url-display-text'));
       const urlInput = screen.getByTestId('browser-modal-url-input');
       fireEvent(urlInput, 'submitEditing', {
-        nativeEvent: { text: 'https://opensea.io' },
+        nativeEvent: { text: 'https://example.com' },
       });
 
       await waitFor(() => {
         expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
-          'https://opensea.io',
+          'https://example.com',
         );
       });
       expect(mockInjectJavaScript).not.toHaveBeenCalledWith(
@@ -560,7 +560,7 @@ describe('BrowserTab', () => {
           ...mockInitialState,
           browser: {
             ...mockInitialState.browser,
-            history: [{ url: 'https://opensea.io', name: 'OpenSea' }],
+            history: [{ url: 'https://example.com', name: 'Example' }],
           },
         },
       });
@@ -571,7 +571,7 @@ describe('BrowserTab', () => {
 
       fireEvent.press(screen.getByTestId('browser-url-display-text'));
 
-      const recentResult = await screen.findByText('OpenSea', {
+      const recentResult = await screen.findByText('Example', {
         includeHiddenElements: true,
       });
       // pressIn suppresses URL-bar blur unfocus before navigation (MCWP-748)
@@ -580,7 +580,7 @@ describe('BrowserTab', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
-          'https://opensea.io',
+          'https://example.com',
         );
       });
 
@@ -590,8 +590,8 @@ describe('BrowserTab', () => {
       const webView = screen.getByTestId('browser-webview');
       const loadEvent = {
         nativeEvent: {
-          url: 'https://opensea.io',
-          title: 'OpenSea',
+          url: 'https://example.com',
+          title: 'Example',
           loading: false,
           canGoBack: false,
           canGoForward: false,

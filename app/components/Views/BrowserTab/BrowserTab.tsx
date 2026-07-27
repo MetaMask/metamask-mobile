@@ -194,10 +194,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // URL-bar / autocomplete / deeplink navigation must update WebView
     // `source.uri` (native loadRequest) instead of injecting
     // `window.location.href`. On iOS the latter can trigger Universal Links
-    // and open associated native apps (e.g. OpenSea) instead of keeping the
-    // session in MetaMask's in-app browser. Explore already opens tabs via
-    // `source.uri`; this mirrors that behavior on both platforms for
-    // consistency (MCWP-748).
+    // and open associated native apps instead of keeping the session in
+    // MetaMask's in-app browser. Explore already opens tabs via `source.uri`;
+    // this mirrors that behavior on both platforms for consistency (MCWP-748).
     const [webViewUri, setWebViewUri] = useState(() =>
       prefixUrlWithProtocol(initialUrl),
     );
