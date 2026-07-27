@@ -406,6 +406,8 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
+      isMaxDeposit: false,
+      setIsMaxDeposit: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({
@@ -480,9 +482,33 @@ describe('CustomAmountInfo', () => {
     expect(getByText('Test Alert Message')).toBeDefined();
   });
 
-  it('renders keyboard', () => {
-    const { getByTestId } = render();
-    expect(getByTestId('deposit-keyboard')).toBeDefined();
+  it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '0',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
+      hasInput: false,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
+      isInputChanged: false,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: jest.fn(),
+    });
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+
+    const { getByTestId, queryByTestId } = render({
+      transactionType: TransactionType.perpsDeposit,
+    });
+
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    expect(queryByTestId('bridge-fee-row-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId('bridge-time-row-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId('total-row-skeleton')).not.toBeOnTheScreen();
   });
 
   describe('bottomBlock', () => {
@@ -2053,6 +2079,28 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
   });
 
+  it('shows keyboard immediately when autoSelectFiatPayment is set even with prefill enabled', () => {
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
+      hasInput: true,
+      isDepositPrefillEnabled: true,
+      isDepositPrefilled: false,
+      isInputChanged: false,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: jest.fn(),
+    });
+
+    const { getByTestId } = render({ autoSelectFiatPayment: true });
+
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+  });
+
   it('renders perps buy message when no tokens available for perpsDeposit', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.perpsDeposit,
@@ -2262,6 +2310,139 @@ describe('CustomAmountInfo', () => {
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
       expect(onAmountSubmitMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('skipDepositPrefill – keyboard and loading for fiat flows', () => {
+    function setupDepositPrefillEnabled() {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: jest.fn(),
+      });
+    }
+
+    it('shows keyboard when autoSelectFiatPayment is true and deposit prefill is enabled', () => {
+      setupDepositPrefillEnabled();
+
+      const { getByTestId } = render({ autoSelectFiatPayment: true });
+
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    });
+
+    it('shows keyboard when fiat payment is selected with no pay token', () => {
+      setupDepositPrefillEnabled();
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-apple-pay',
+      } as never);
+
+      const { getByTestId } = render();
+
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    });
+
+    it('shows keyboard when no tokens are available and no pay token is set', () => {
+      setupDepositPrefillEnabled();
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+      useAccountNoFundsAlertMock.mockReturnValue([
+        {
+          key: AlertKeys.AccountNoFunds,
+          title: 'No funds',
+          message: 'No funds',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      const { getByTestId } = render();
+
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    });
+
+    it('does not show amount skeleton when autoSelectFiatPayment is true and prefill is loading', () => {
+      setupDepositPrefillEnabled();
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: true,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: jest.fn(),
+      });
+
+      const { queryByTestId, getByTestId } = render({
+        autoSelectFiatPayment: true,
+      });
+
+      expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+    });
+
+    it('does not show amount skeleton when no tokens and no pay token even if prefill loading', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: true,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: jest.fn(),
+      });
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      const { queryByTestId, getByTestId } = render();
+
+      expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+    });
+
+    it('hides keyboard when deposit prefill is enabled and tokens are available', () => {
+      setupDepositPrefillEnabled();
+
+      const { queryByTestId } = render();
+
+      expect(queryByTestId('deposit-keyboard')).toBeNull();
     });
   });
 });

@@ -13,6 +13,7 @@ import {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -24,19 +25,21 @@ import {
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
-import ActivityTypeFilterSheet, {
+import {
   ACTIVITY_TYPE_FILTER_LABEL_KEY,
+  createActivityTypeFilterNavDetails,
 } from './components/ActivityTypeFilterSheet';
-import PerpsActivityFilterSheet, {
+import {
   PERPS_ACTIVITY_FILTER_LABEL_KEY,
+  createPerpsActivityFilterNavDetails,
 } from './components/PerpsActivityFilterSheet';
+import { createActivityNetworkFilterNavDetails } from './components/ActivityNetworkFilterSheet';
 import AssetListControlBar from './components/AssetListControlBar';
 import ActivityList, {
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
   type ActivityListHandle,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../ActivityList';
-import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import type { CaipChainId } from '@metamask/utils';
 import {
   ActivityTypeFilter,
@@ -46,13 +49,16 @@ import {
   type ActivityScreenParams,
 } from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
-import { useParams } from '../../../util/navigation/navUtils';
+import {
+  navigateWithDetails,
+  useParams,
+} from '../../../util/navigation/navUtils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
 const ActivityScreen = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);
@@ -78,15 +84,12 @@ const ActivityScreen = () => {
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
     resolveInitialActivityTypeFilter(params),
   );
-  const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
   );
-  const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
   const [perpsFilter, setPerpsFilter] = useState<PerpsActivityFilter>(
     () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
   );
-  const [isPerpsSheetOpen, setIsPerpsSheetOpen] = useState(false);
 
   const networkOptions = useNetworkFilterOptions();
 
@@ -94,14 +97,6 @@ const ActivityScreen = () => {
   // const handleClearSearch = useCallback(() => {
   //   setSearchQuery('');
   // }, []);
-
-  const handleOpenTypeSheet = useCallback(() => {
-    setIsTypeSheetOpen(true);
-  }, []);
-
-  const handleCloseTypeSheet = useCallback(() => {
-    setIsTypeSheetOpen(false);
-  }, []);
 
   const handleSelectTypeFilter = useCallback((filter: ActivityTypeFilter) => {
     setTypeFilter(filter);
@@ -170,29 +165,43 @@ const ActivityScreen = () => {
     PERPS_ACTIVITY_FILTER_LABEL_KEY[perpsFilter],
   );
 
-  const handleOpenNetworkSheet = useCallback(() => {
-    setIsNetworkSheetOpen(true);
-  }, []);
-
-  const handleCloseNetworkSheet = useCallback(() => {
-    setIsNetworkSheetOpen(false);
-  }, []);
-
   const handleSelectNetwork = useCallback((chainIds: CaipChainId[] | null) => {
     setNetworkFilter(chainIds);
-  }, []);
-
-  const handleOpenPerpsSheet = useCallback(() => {
-    setIsPerpsSheetOpen(true);
-  }, []);
-
-  const handleClosePerpsSheet = useCallback(() => {
-    setIsPerpsSheetOpen(false);
   }, []);
 
   const handleSelectPerpsFilter = useCallback((filter: PerpsActivityFilter) => {
     setPerpsFilter(filter);
   }, []);
+
+  const handleOpenTypeSheet = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createActivityTypeFilterNavDetails({
+        selected: typeFilter,
+        onSelect: handleSelectTypeFilter,
+      }),
+    );
+  }, [navigation, typeFilter, handleSelectTypeFilter]);
+
+  const handleOpenNetworkSheet = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createActivityNetworkFilterNavDetails({
+        selectedNetwork: networkFilter,
+        onNetworkSelect: handleSelectNetwork,
+      }),
+    );
+  }, [navigation, networkFilter, handleSelectNetwork]);
+
+  const handleOpenPerpsSheet = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createPerpsActivityFilterNavDetails({
+        selected: perpsFilter,
+        onSelect: handleSelectPerpsFilter,
+      }),
+    );
+  }, [navigation, perpsFilter, handleSelectPerpsFilter]);
 
   const typeChip = useMemo(
     () => ({
@@ -344,30 +353,6 @@ const ActivityScreen = () => {
             ) : null}
           </Box>
         </Box>
-
-        {isTypeSheetOpen ? (
-          <ActivityTypeFilterSheet
-            selected={typeFilter}
-            onSelect={handleSelectTypeFilter}
-            onClose={handleCloseTypeSheet}
-          />
-        ) : null}
-
-        {isPerpsSheetOpen ? (
-          <PerpsActivityFilterSheet
-            selected={perpsFilter}
-            onSelect={handleSelectPerpsFilter}
-            onClose={handleClosePerpsSheet}
-          />
-        ) : null}
-
-        <TrendingTokenNetworkBottomSheet
-          isVisible={isNetworkSheetOpen}
-          onClose={handleCloseNetworkSheet}
-          onNetworkSelect={handleSelectNetwork}
-          selectedNetwork={networkFilter}
-          networks={networkOptions}
-        />
       </SafeAreaView>
     </ErrorBoundary>
   );

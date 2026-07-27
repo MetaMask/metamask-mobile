@@ -152,6 +152,58 @@ describe('useBridgeQuoteRequest', () => {
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
   });
 
+  it('includes the custom slippage in quote parameters', async () => {
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        slippage: '3.5',
+        isSlippageUserOverride: true,
+      },
+    });
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    await act(async () => {
+      await result.current();
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+    });
+
+    expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+      expect.objectContaining({
+        slippage: 3.5,
+      }),
+      undefined,
+      0,
+      1,
+    );
+  });
+
+  it('omits slippage from quote parameters for Auto', async () => {
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        slippage: undefined,
+        isSlippageUserOverride: true,
+      },
+    });
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    await act(async () => {
+      await result.current();
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+    });
+
+    expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+      expect.objectContaining({
+        slippage: undefined,
+      }),
+      undefined,
+      0,
+      1,
+    );
+  });
+
   it('skips update when source token is missing', async () => {
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {

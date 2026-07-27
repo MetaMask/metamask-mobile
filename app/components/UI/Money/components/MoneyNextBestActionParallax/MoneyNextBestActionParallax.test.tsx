@@ -4,14 +4,14 @@ import MoneyNextBestActionParallax from './MoneyNextBestActionParallax';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
+import { PARALLAX_REST_VALUE } from './parallax';
 import fallbackImage from '../../../../../images/money-onboarding-stepper-step-1.png';
 
-const mockSetXValue = jest.fn();
-const mockSetYValue = jest.fn();
-const mockRefCallback = jest.fn();
-const mockRiveInstance = {};
+const mockSetNumber = jest.fn();
+const mockViewTag = jest.fn((): number | null => 1);
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
 const mockRiveProps: { current?: { artboardName?: string } } = {};
+const mockMountCount = { current: 0 };
 
 jest.mock('rive-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -20,20 +20,30 @@ jest.mock('rive-react-native', () => {
     __esModule: true,
     AutoBind: jest.fn(() => ({})),
     Fit: { Contain: 'contain' },
-    useRive: () => [mockRefCallback, mockRiveInstance],
-    useRiveNumber: (_instance: unknown, path: string) => [
-      undefined,
-      path === 'xValue' ? mockSetXValue : mockSetYValue,
-    ],
-    default: (props: {
-      testID?: string;
-      artboardName?: string;
-      onError?: (error: { message: string }) => void;
-    }) => {
-      mockOnErrorRef.current = props.onError;
-      mockRiveProps.current = { artboardName: props.artboardName };
-      return ReactActual.createElement(RNView, { testID: props.testID });
-    },
+    default: ReactActual.forwardRef(
+      (
+        props: {
+          testID?: string;
+          artboardName?: string;
+          onError?: (error: { message: string }) => void;
+        },
+        ref: React.Ref<{
+          setNumber: (path: string, value: number) => void;
+          viewTag: () => number | null;
+        }>,
+      ) => {
+        mockOnErrorRef.current = props.onError;
+        mockRiveProps.current = { artboardName: props.artboardName };
+        ReactActual.useImperativeHandle(ref, () => ({
+          setNumber: mockSetNumber,
+          viewTag: mockViewTag,
+        }));
+        ReactActual.useEffect(() => {
+          mockMountCount.current += 1;
+        }, []);
+        return ReactActual.createElement(RNView, { testID: props.testID });
+      },
+    ),
   };
 });
 
@@ -53,11 +63,18 @@ jest.mock('../../hooks/useDeviceOrientation', () => ({
 const mockUseReduceMotion = useReduceMotion as jest.Mock;
 const mockUseDeviceOrientation = useDeviceOrientation as jest.Mock;
 
+const latestApplyTilt = (): ((x: number, y: number) => void) =>
+  mockUseDeviceOrientation.mock.calls[
+    mockUseDeviceOrientation.mock.calls.length - 1
+  ][0];
+
 describe('MoneyNextBestActionParallax', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
     mockRiveProps.current = undefined;
+    mockMountCount.current = 0;
+    mockViewTag.mockReturnValue(1);
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
   });
@@ -183,7 +200,7 @@ describe('MoneyNextBestActionParallax', () => {
     );
   });
 
-  it('drives the bound Rive number properties from mapped tilt values', () => {
+  it('dispatches the mapped roll to the Rive xValue property', () => {
     render(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"
@@ -191,15 +208,104 @@ describe('MoneyNextBestActionParallax', () => {
       />,
     );
 
-    const applyTilt = mockUseDeviceOrientation.mock.calls[0][0] as (
-      x: number,
-      y: number,
-    ) => void;
+    act(() => latestApplyTilt()(0.5, -0.5));
 
-    act(() => applyTilt(0.5, -0.5));
+    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 75);
+  });
 
-    expect(mockSetXValue).toHaveBeenCalledWith(75);
-    expect(mockSetYValue).toHaveBeenCalledWith(25);
+  it('dispatches the inverted pitch to the Rive yValue property', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => latestApplyTilt()(0.5, -0.5));
+
+    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 75);
+  });
+
+  it('drives yValue below the resting value for a positive pitch', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => latestApplyTilt()(0, 0.5));
+
+    const [, yValue] = mockSetNumber.mock.calls.find(
+      ([path]) => path === 'yValue',
+    ) as [string, number];
+    expect(yValue).toBeLessThan(PARALLAX_REST_VALUE);
+  });
+
+  it('does not dispatch tilt values while the native Rive view is detached', () => {
+    mockViewTag.mockReturnValue(null);
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => latestApplyTilt()(0.5, -0.5));
+
+    expect(mockSetNumber).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch tilt values when no Rive view is rendered', () => {
+    mockUseReduceMotion.mockReturnValue(true);
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => latestApplyTilt()(0.5, -0.5));
+
+    expect(mockSetNumber).not.toHaveBeenCalled();
+  });
+
+  it('remounts the Rive view when the artboard changes', () => {
+    const { rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 2"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(mockMountCount.current).toBe(2);
+  });
+
+  it('keeps the Rive view mounted when re-rendered with the same artboard', () => {
+    const { rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+        testID="parallax-block"
+      />,
+    );
+
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+        testID="parallax-block-renamed"
+      />,
+    );
+
+    expect(mockMountCount.current).toBe(1);
   });
 
   it('falls back to the static image when Rive reports an error', () => {
@@ -216,5 +322,27 @@ describe('MoneyNextBestActionParallax', () => {
       getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
     ).toBeOnTheScreen();
     expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
+  });
+
+  it('animates again on a different artboard after the previous one errored', () => {
+    const { getByTestId, queryByTestId, rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+    act(() => mockOnErrorRef.current?.({ message: 'boom' }));
+    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
+
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 2"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.RIVE),
+    ).toBeOnTheScreen();
   });
 });
