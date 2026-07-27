@@ -11,6 +11,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
+import NotificationService, {
+  isPushPermissionGranted,
+  isPushPermissionPromptable,
+  requestPushPermissions,
+} from '../../../../util/notifications/services/NotificationService';
 import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
@@ -31,6 +36,23 @@ export function useFeatureNotificationsStatus(
     isPushEnabled: sectionPrefs?.pushNotificationsEnabled ?? false,
     isInAppEnabled: sectionPrefs?.inAppNotificationsEnabled ?? false,
   };
+}
+
+/**
+ * When the feature push channel is on but the OS has not granted push, prompt
+ * the user: OS dialog if still promptable, otherwise the Settings alert.
+ */
+export async function promptOsPushPermissionIfNeeded(): Promise<void> {
+  if (await isPushPermissionGranted()) {
+    return;
+  }
+
+  if (await isPushPermissionPromptable()) {
+    await requestPushPermissions();
+    return;
+  }
+
+  await NotificationService.requestPushNotificationsPermission();
 }
 
 export interface FeatureNotificationsGateProps {
@@ -76,6 +98,7 @@ export const FeatureNotificationsGate = ({
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isVisible, setIsVisible] = useState(isFeatureBlocked);
+  const hasPromptedOsPushRef = useRef(false);
 
   const channelsDisabled = renderMaster && !isMasterEnabled;
 
@@ -90,6 +113,21 @@ export const FeatureNotificationsGate = ({
       sheetRef.current?.onCloseBottomSheet(() => setIsVisible(false));
     }
   }, [shouldAutoClose, isVisible]);
+
+  // Prompt for OS push when the in-app push channel is on (at open or after
+  // the user enables it) but the OS permission is not granted.
+  useEffect(() => {
+    if (!isPushEnabled) {
+      hasPromptedOsPushRef.current = false;
+      return;
+    }
+    if (!isVisible || hasPromptedOsPushRef.current) {
+      return;
+    }
+
+    hasPromptedOsPushRef.current = true;
+    void promptOsPushPermissionIfNeeded();
+  }, [isVisible, isPushEnabled]);
 
   const handleHeaderClose = () => {
     sheetRef.current?.onCloseBottomSheet();
