@@ -17,7 +17,10 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  HelpText,
+  HelpTextSeverity,
   KeyValueRow,
+  KeyValueRowVariant,
   Label,
   Text,
   TextColor,
@@ -526,6 +529,23 @@ const PerpsTPSLView: React.FC = () => {
 
   const takeProfitHasError = !isValid && Boolean(takeProfitError);
   const stopLossHasError = !isValid && Boolean(stopLossError);
+  const stopLossErrorMessage =
+    !isValid && (stopLossError || stopLossLiquidationError)
+      ? stopLossError || stopLossLiquidationError
+      : undefined;
+
+  const formatExpectedPnL = (pnl: number) =>
+    pnl >= 0
+      ? strings('perps.tpsl.expected_profit', {
+          amount: formatPerpsFiat(Math.abs(pnl), {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          }),
+        })
+      : strings('perps.tpsl.expected_loss', {
+          amount: formatPerpsFiat(Math.abs(pnl), {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          }),
+        });
 
   return (
     <SafeAreaView
@@ -542,15 +562,16 @@ const PerpsTPSLView: React.FC = () => {
       <ScrollView
         ref={scrollViewRef}
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('grow px-4 pt-4 pb-6')}
+        contentContainerStyle={tw.style('grow')}
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="flex-1" testID="scroll-content">
           {/* Current price and liquidation price info */}
-          <Box twClassName={focusedInput ? 'mb-3 gap-2' : 'mt-4 mb-8 gap-2'}>
+          <Box twClassName="mb-3 gap-2">
             {position && (
               <KeyValueRow
+                variant={KeyValueRowVariant.Summary}
                 keyLabel={strings('perps.tpsl.entry_price')}
                 value={entryPriceDisplay}
                 keyTextProps={priceKeyTextProps}
@@ -558,6 +579,7 @@ const PerpsTPSLView: React.FC = () => {
               />
             )}
             <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
               keyLabel={
                 orderType === 'limit' &&
                 limitPrice &&
@@ -570,6 +592,7 @@ const PerpsTPSLView: React.FC = () => {
               valueTextProps={priceValueTextProps}
             />
             <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.tpsl.liquidation_price')}
               value={liquidationPriceDisplay}
               keyTextProps={priceKeyTextProps}
@@ -578,7 +601,7 @@ const PerpsTPSLView: React.FC = () => {
           </Box>
 
           {/* Take Profit Section */}
-          <Box twClassName={focusedInput ? 'mb-0' : 'mb-6'}>
+          <Box twClassName={focusedInput ? 'mb-0 px-4' : 'mb-6 px-4'}>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -683,52 +706,23 @@ const PerpsTPSLView: React.FC = () => {
               />
             </Box>
 
-            {Boolean(takeProfitPrice) &&
-              expectedTakeProfitPnL !== undefined && (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  twClassName="mt-2 text-right"
-                >
-                  {expectedTakeProfitPnL >= 0
-                    ? strings('perps.tpsl.expected_profit', {
-                        amount: formatPerpsFiat(
-                          Math.abs(expectedTakeProfitPnL),
-                          {
-                            ranges: PRICE_RANGES_MINIMAL_VIEW,
-                          },
-                        ),
-                      })
-                    : strings('perps.tpsl.expected_loss', {
-                        amount: formatPerpsFiat(
-                          Math.abs(expectedTakeProfitPnL),
-                          {
-                            ranges: PRICE_RANGES_MINIMAL_VIEW,
-                          },
-                        ),
-                      })}
-                </Text>
-              )}
-            {Boolean(takeProfitPrice) &&
-              expectedTakeProfitPnL === undefined && (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  twClassName="mt-2 text-right"
-                >
-                  {PERPS_CONSTANTS.FallbackDataDisplay}
-                </Text>
-              )}
-
-            {!isValid && Boolean(takeProfitError) && (
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            {takeProfitHasError ? (
+              <HelpText severity={HelpTextSeverity.Danger} showIcon>
                 {takeProfitError}
-              </Text>
+              </HelpText>
+            ) : (
+              Boolean(takeProfitPrice) && (
+                <HelpText>
+                  {expectedTakeProfitPnL !== undefined
+                    ? formatExpectedPnL(expectedTakeProfitPnL)
+                    : PERPS_CONSTANTS.FallbackDataDisplay}
+                </HelpText>
+              )
             )}
           </Box>
 
           {/* Stop Loss Section */}
-          <Box twClassName={focusedInput ? 'mb-0' : 'mb-6'}>
+          <Box twClassName={focusedInput ? 'mb-0 px-4' : 'mb-6 px-4'}>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -832,39 +826,18 @@ const PerpsTPSLView: React.FC = () => {
               />
             </Box>
 
-            {Boolean(stopLossPrice) && expectedStopLossPnL !== undefined && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="mt-2 text-right"
-              >
-                {expectedStopLossPnL >= 0
-                  ? strings('perps.tpsl.expected_profit', {
-                      amount: formatPerpsFiat(Math.abs(expectedStopLossPnL), {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      }),
-                    })
-                  : strings('perps.tpsl.expected_loss', {
-                      amount: formatPerpsFiat(Math.abs(expectedStopLossPnL), {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      }),
-                    })}
-              </Text>
-            )}
-            {Boolean(stopLossPrice) && expectedStopLossPnL === undefined && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="mt-2 text-right"
-              >
-                {PERPS_CONSTANTS.FallbackDataDisplay}
-              </Text>
-            )}
-
-            {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {stopLossError || stopLossLiquidationError}
-              </Text>
+            {stopLossErrorMessage ? (
+              <HelpText severity={HelpTextSeverity.Danger} showIcon>
+                {stopLossErrorMessage}
+              </HelpText>
+            ) : (
+              Boolean(stopLossPrice) && (
+                <HelpText>
+                  {expectedStopLossPnL !== undefined
+                    ? formatExpectedPnL(expectedStopLossPnL)
+                    : PERPS_CONSTANTS.FallbackDataDisplay}
+                </HelpText>
+              )
             )}
           </Box>
         </Box>
