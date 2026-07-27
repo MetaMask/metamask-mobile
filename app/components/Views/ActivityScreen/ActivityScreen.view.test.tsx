@@ -265,9 +265,17 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_unfunded.action',
     );
 
-    const { findByTestId, findByText } = renderActivityScreenViewWithRoutes({
-      state: emptyActivityStateWithGeo().build(),
-      extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
+    const { getAllByText, findByTestId, findByText } =
+      renderActivityScreenViewWithRoutes({
+        state: emptyActivityStateWithGeo().build(),
+        extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
     });
 
     expect(
@@ -313,7 +321,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     );
     const addFundsLabel = strings('activity_view.empty_state.buy_sell.action');
 
-    const { getByTestId, findByTestId, findByText } =
+    const { getByTestId, getAllByText, findByTestId, findByText } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateWithGeo().build(),
         extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
@@ -323,6 +331,13 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     fireEvent.press(
       await findByTestId(optionTestId(ActivityTypeFilter.BuySell)),
     );
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.BuySell))
+          .length,
+      ).toBeGreaterThan(0);
+    });
 
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
