@@ -343,7 +343,7 @@ function PayWithRowEmpty({
         color={TextColor.TextAlternative}
         testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
       >
-        {strings('confirm.label.select_token')}
+        {strings('confirm.label.select_payment_method')}
       </Text>
     </PayWithRowLayout>
   );
