@@ -318,7 +318,7 @@ export function resolvePreferredPayToken({
  * are set only for the flows that need them.
  *
  * Perps/Predict withdraw → MA sets `atomic: false` and `recipient: MA` so the
- * post-Relay transfer to the Money Account runs in `submitPostCompletionBatch`.
+ * post-Relay transfer to the Money Account runs in `submitPostNonAtomic`.
  * Money Account deposits set `refundTo: MA` so failed Relay bridges refund to
  * the MA rather than the funding EOA, and flip `atomic: false` later via
  * `setMoneyAccountDepositMaxAtomic` when the user toggles max amount.
