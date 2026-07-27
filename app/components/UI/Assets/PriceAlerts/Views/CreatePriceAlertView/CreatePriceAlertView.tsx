@@ -125,10 +125,7 @@ const CreatePriceAlertView: React.FC = () => {
           isDisabled={isEditing}
         />
 
-        <FeatureNotificationsGate
-          feature="priceAlerts"
-          onDismiss={handleBack}
-        />
+        <FeatureNotificationsGate feature="priceAlerts" />
 
         {alertType === 'percent_change' ? (
           <PercentChangeAlertForm

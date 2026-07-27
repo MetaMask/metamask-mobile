@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -9,6 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
 import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
@@ -33,7 +35,10 @@ export function useFeatureNotificationsStatus(
 
 export interface FeatureNotificationsGateProps {
   feature: NotificationPreferenceSection;
-  /** Called when user dismisses the sheet without satisfying the gate condition. */
+  /**
+   * Called when user dismisses the sheet without satisfying the gate condition.
+   * Defaults to `navigation.goBack()`.
+   */
   onDismiss?: () => void;
 }
 
@@ -41,55 +46,59 @@ export const FeatureNotificationsGate = ({
   feature,
   onDismiss,
 }: FeatureNotificationsGateProps) => {
+  const navigation = useNavigation<AppStackNavigationProp>();
+  const handleDismiss = useCallback(() => {
+    if (onDismiss) {
+      onDismiss();
+      return;
+    }
+    navigation.goBack();
+  }, [onDismiss, navigation]);
+
   const { isMasterEnabled, isPushEnabled, isInAppEnabled } =
     useFeatureNotificationsStatus(feature);
 
-  // Feature is blocked while master is off OR both channels are off.
-  // Master on + at least one channel on is a valid state for using features.
-  // isMasterEnabled is synchronous Redux so no async race for the master condition.
   const isFeatureBlocked =
     !isMasterEnabled || (!isPushEnabled && !isInAppEnabled);
 
-  // Auto-dismiss has a stricter bar: master AND both channels on.
   const isFullyEnabled = isMasterEnabled && isPushEnabled && isInAppEnabled;
 
-  // Snapshot which sections to render at mount — frozen for the session.
+  // Snapshot which sections to render at mount — frozen for the mount.
   const [renderMaster] = useState(!isMasterEnabled);
   const [renderChannels] = useState(!isPushEnabled && !isInAppEnabled);
+
+  // Master-only sheet: at least one channel was already on at mount, so turning
+  // master on is enough — there is no other toggle left to act on.
+  const isMasterOnlySatisfied =
+    renderMaster && !renderChannels && isMasterEnabled;
+
+  const shouldAutoClose = isFullyEnabled || isMasterOnlySatisfied;
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isVisible, setIsVisible] = useState(isFeatureBlocked);
 
-  // Channels are disabled while the master toggle is also rendered but still off.
   const channelsDisabled = renderMaster && !isMasterEnabled;
 
-  // Open the sheet after it mounts.
   useEffect(() => {
     if (isVisible) {
       sheetRef.current?.onOpenBottomSheet();
     }
   }, [isVisible]);
 
-  // Auto-close only once everything is enabled. With one channel on the sheet
-  // stays open, but dismissing it manually is fine (see handleSheetClosed).
   useEffect(() => {
-    if (isFullyEnabled && isVisible) {
+    if (shouldAutoClose && isVisible) {
       sheetRef.current?.onCloseBottomSheet(() => setIsVisible(false));
     }
-  }, [isFullyEnabled, isVisible]);
+  }, [shouldAutoClose, isVisible]);
 
-  // X button: only start the close animation — dismiss logic lives in handleSheetClosed.
   const handleHeaderClose = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
-  // Fires once after the close animation completes (system or user).
-  // Navigate back only if the feature is still blocked — on a system close it
-  // never is, and a manual dismiss with one channel on is a valid state.
   const handleSheetClosed = () => {
     setIsVisible(false);
     if (isFeatureBlocked) {
-      onDismiss?.();
+      handleDismiss();
     }
   };
 

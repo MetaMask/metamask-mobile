@@ -462,10 +462,7 @@ const ManagePriceAlertsView: React.FC = () => {
           </View>
         )}
 
-        <FeatureNotificationsGate
-          feature="priceAlerts"
-          onDismiss={handleBack}
-        />
+        <FeatureNotificationsGate feature="priceAlerts" />
       </Box>
     </SafeAreaView>
   );
