@@ -140,6 +140,7 @@ e2e/llm-workflow/README.md
   s_6d398675a2a6f8::t_96b66178b98f2b 37-38
 .gitignore
   s_128683cd199bd2::t_9b95e363a0cd40 239,246-249
+  h_d6a04d82b61d5e 245
 e2e/llm-workflow/capabilities/chain.ts
   s_b3e0c605739e28::t_d37f16907cee3a 1-25,27-47,52-63,65-71
   s_95a80602322a05::t_24160dc44d4b59 48-51
@@ -156,6 +157,8 @@ e2e/llm-workflow/capabilities/fixture-adapter.ts
   s_95a80602322a05::t_3b6317c07eb6a1 62-64
 tests/seeder/anvil-manager.ts
   s_757a59155f1476::t_c99555f96bb98c 20-23
+metro.config.js
+  h_d6a04d82b61d5e 118-130
 ---
 {
   "schema_version": "authorship/3.0.0",
