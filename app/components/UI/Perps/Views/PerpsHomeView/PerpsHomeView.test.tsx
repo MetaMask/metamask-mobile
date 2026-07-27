@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
@@ -29,9 +29,20 @@ import Routes from '../../../../../constants/navigation/Routes';
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  const mockUseAnimatedScrollHandler = jest.fn(
+    (handlers: { onScroll: (event: unknown) => void }) => handlers.onScroll,
+  );
   Reanimated.default.ScrollView = jest.requireActual('react-native').ScrollView;
+  Reanimated.useAnimatedScrollHandler = mockUseAnimatedScrollHandler;
   return Reanimated;
 });
+
+jest.mock('react-native-worklets', () => ({
+  scheduleOnRN: jest.fn(
+    (callback: (...args: number[]) => void, ...args: number[]) =>
+      callback(...args),
+  ),
+}));
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -109,6 +120,7 @@ const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 const mockSetPerpsMode = jest.fn();
+const mockUsePerpsHomeSectionTracking = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -129,11 +141,7 @@ jest.mock('../../hooks', () => ({
     isProcessing: false,
     error: null,
   })),
-  usePerpsHomeSectionTracking: jest.fn(() => ({
-    handleSectionLayout: jest.fn(() => jest.fn()),
-    handleScroll: jest.fn(),
-    resetTracking: jest.fn(),
-  })),
+  usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
   usePerpsMode: jest.fn(() => ({
     mode: 'lite',
     setMode: mockSetPerpsMode,
@@ -492,6 +500,13 @@ jest.mock(
 
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
+const mockUseAnimatedScrollHandler = jest.requireMock('react-native-reanimated')
+  .useAnimatedScrollHandler as jest.Mock;
+const mockScrollTracking = () => ({
+  handleSectionLayout: jest.fn(() => jest.fn()),
+  handleScroll: jest.fn(),
+  resetTracking: jest.fn(),
+});
 
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
@@ -524,6 +539,7 @@ describe('PerpsHomeView', () => {
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
       data: [],
       isLoading: false,
@@ -661,6 +677,43 @@ describe('PerpsHomeView', () => {
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
+  });
+
+  it('forwards scroll events to the latest section tracking callback', async () => {
+    const initialTracking = mockScrollTracking();
+    const latestTracking = mockScrollTracking();
+    mockUsePerpsHomeSectionTracking.mockReturnValue(initialTracking);
+
+    const { rerender } = render(<PerpsHomeView />);
+    const scrollHandlers = mockUseAnimatedScrollHandler.mock.calls.map(
+      ([handlers]) =>
+        handlers as {
+          onScroll: (event: {
+            contentOffset: { x: number; y: number };
+            layoutMeasurement: { width: number; height: number };
+          }) => void;
+        },
+    );
+    const event = {
+      contentOffset: { x: 0, y: 240 },
+      layoutMeasurement: { width: 390, height: 844 },
+    };
+
+    mockUsePerpsHomeSectionTracking.mockReturnValue(latestTracking);
+    rerender(<PerpsHomeView />);
+
+    await act(async () => {
+      scrollHandlers.forEach(({ onScroll }) => onScroll(event));
+      await Promise.resolve();
+    });
+
+    expect(initialTracking.handleScroll).not.toHaveBeenCalled();
+    expect(latestTracking.handleScroll).toHaveBeenCalledWith({
+      nativeEvent: {
+        contentOffset: { x: 0, y: 240 },
+        layoutMeasurement: { width: 0, height: 844 },
+      },
+    });
   });
 
   it('carries route transactionActiveAbTests when search opens market list', () => {
