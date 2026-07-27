@@ -21,7 +21,6 @@ import {
   type StateSnapshotCapability,
   type TabRole,
   type TrackedPage,
-  type WalletState,
   type WorkflowContext,
 } from '@metamask/client-mcp-core';
 
@@ -37,13 +36,9 @@ import {
   IOSLaunchError,
   type ResolvedIOSLaunchOptions,
 } from './launcher-types';
-import { rewritePortsInWalletState } from './capabilities/fixture-adapter';
-import type { MetaMaskMobileChainCapability } from './capabilities/chain';
-import type { MetaMaskMobileMockServerCapability } from './capabilities/mock-server';
 import { appendLog } from './utils';
 
 export interface MobileLaunchInput extends SessionLaunchInput {
-  simulatorDeviceId?: string;
   appBundlePath?: string;
   metroPort?: number;
   reinstall?: boolean;
@@ -72,10 +67,6 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   private iosDriver: CreatedIOSDriver | undefined;
 
   private resolved: ResolvedIOSLaunchOptions | undefined;
-
-  private currentContext: 'e2e' | 'prod' = 'prod';
-
-  private e2eContext: WorkflowContext | undefined;
 
   hasActiveSession(): boolean {
     return this.sessionId !== undefined;
@@ -125,25 +116,52 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       });
     }
 
+    // MetaMask Mobile is prod-only and operates on the already-installed
+    // wallet.  The generic core CLI/schema accepts E2E-oriented launch
+    // options (state/fixture/seeding/ports) that have no effect here.
+    // Reject them explicitly so an agent does not mistakenly believe it
+    // has a fresh or seeded test wallet.
+    const unsupported: string[] = [];
+    if (input.stateMode !== undefined && input.stateMode !== 'default') {
+      unsupported.push(`stateMode='${input.stateMode}'`);
+    }
+    if (input.fixturePreset !== undefined) {
+      unsupported.push('fixturePreset');
+    }
+    if (input.fixture !== undefined) {
+      unsupported.push('fixture');
+    }
+    if (input.seedContracts !== undefined && input.seedContracts.length > 0) {
+      unsupported.push('seedContracts');
+    }
+    if (input.ports !== undefined) {
+      unsupported.push('ports');
+    }
+    if (unsupported.length > 0) {
+      throw new IOSLaunchError({
+        code: 'MM_LAUNCH_FAILED',
+        message:
+          'MetaMask Mobile is prod-only and operates on the already-installed wallet. ' +
+          `Unsupported E2E launch option(s): ${unsupported.join(', ')}. ` +
+          'State initialization, fixtures, contract seeding, and port configuration are not available in this workflow.',
+      });
+    }
+
     this.launchInProgress = true;
 
     try {
       const metroPort = this.resolveMetroPort(input.metroPort);
 
-      if (
-        this.currentContext === 'prod' &&
-        (input.reinstall || input.resetAppData)
-      ) {
+      if (input.reinstall || input.resetAppData) {
         process.stderr.write(
           '[mm-mobile] WARNING: Using destructive flags (--reinstall/--reset-app-data) in prod context. Wallet state will be lost.\n',
         );
       }
 
       const resolved = await validateIOSPrerequisites({
-        simulatorDeviceId: input.simulatorDeviceId,
+        simulatorDeviceId: input.deviceId,
         appBundlePath: input.appBundlePath,
         metroPort,
-        context: this.currentContext,
         reinstall: input.reinstall,
         resetAppData: input.resetAppData,
         allowFoxCodeMismatch: input.allowFoxCodeMismatch,
@@ -151,27 +169,9 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
       this.logLaunchMetadata(resolved, { metroPort: input.metroPort });
 
-      // Fail fast: seedContracts requires e2e context with chain + contractSeeding.
-      if (
-        input.seedContracts &&
-        input.seedContracts.length > 0 &&
-        this.currentContext !== 'e2e'
-      ) {
-        throw new IOSLaunchError({
-          code: 'MM_LAUNCH_FAILED',
-          message: 'seedContracts requires the e2e context.',
-        });
-      }
-
       // Store resolved early so the catch block can tear down the runner
       // and app if a later step (capabilities, bind, getAppState) fails.
       this.resolved = resolved;
-
-      appendLog('Starting E2E Capabilities');
-      // Start e2e capabilities (anvil + fixture + mock) BEFORE booting the app.
-      // The app connects to the fixture server on startup to fetch initial state,
-      // so these services must be available before the runner launches.
-      await this.startE2ECapabilities(input);
 
       if (!this.isSimulatorBooted(resolved.simulatorDeviceId)) {
         appendLog('Booting device');
@@ -179,8 +179,6 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       }
 
       this.executeInstallAction(resolved);
-
-      this.injectE2EPortDefaults(resolved);
 
       if (resolved.metroPort !== undefined) {
         appendLog('Attaching metro port');
@@ -217,10 +215,10 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         extensionId: resolved.appBundleId,
         startedAt,
         ports: {
-          anvil: input.ports?.anvil ?? 0,
-          fixtureServer: input.ports?.fixtureServer ?? 0,
+          anvil: 0,
+          fixtureServer: 0,
         },
-        stateMode: input.stateMode ?? 'default',
+        stateMode: 'default',
       };
       this.sessionMetadata = {
         schemaVersion: 1,
@@ -230,10 +228,10 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         flowTags: input.flowTags ?? [],
         tags: input.tags ?? [],
         launch: {
-          stateMode: input.stateMode ?? 'default',
-          fixturePreset: input.fixturePreset ?? null,
+          stateMode: 'default',
+          fixturePreset: null,
           extensionPath: resolved.appBundlePath,
-          ports: input.ports,
+          ports: undefined,
         },
       };
 
@@ -262,24 +260,13 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     const resolved = this.resolved;
     const iosDriver = this.iosDriver;
 
-    if (resolved) {
-      await this.closeAndTerminateApp(resolved, iosDriver);
+    try {
+      if (resolved) {
+        await this.closeAndTerminateApp(resolved, iosDriver);
+      }
+    } finally {
+      this.resetSessionState();
     }
-
-    await this.stopE2ECapabilities();
-
-    if (resolved) {
-      this.clearE2EPortDefaults(resolved);
-    }
-
-    this.sessionId = undefined;
-    this.platformDriver = undefined;
-    this.iosDriver = undefined;
-    this.resolved = undefined;
-    this.sessionState = undefined;
-    this.sessionMetadata = undefined;
-    this.workflowContext = undefined;
-    this.refMap.clear();
 
     return true;
   }
@@ -398,18 +385,15 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   getFixtureCapability(): FixtureCapability | undefined {
-    if (this.currentContext !== 'e2e') return undefined;
-    return this.e2eContext?.fixture;
+    return undefined;
   }
 
   getChainCapability(): ChainCapability | undefined {
-    if (this.currentContext !== 'e2e') return undefined;
-    return this.e2eContext?.chain;
+    return undefined;
   }
 
   getContractSeedingCapability(): ContractSeedingCapability | undefined {
-    if (this.currentContext !== 'e2e') return undefined;
-    return this.e2eContext?.contractSeeding;
+    return undefined;
   }
 
   getStateSnapshotCapability(): StateSnapshotCapability | undefined {
@@ -418,30 +402,23 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
   setWorkflowContext(context: WorkflowContext): void {
     this.workflowContext = context;
-    // currentContext is controlled exclusively by setContext(); do not override here.
   }
 
   getEnvironmentMode(): EnvironmentMode {
-    return this.currentContext;
-  }
-
-  registerE2ECapabilities(context: WorkflowContext): void {
-    this.e2eContext = context;
+    return 'prod';
   }
 
   setContext(
     context: 'e2e' | 'prod',
     _options?: Record<string, unknown>,
   ): void {
-    if (this.hasActiveSession()) {
+    if (context === 'e2e') {
       throw new IOSLaunchError({
         code: 'MM_LAUNCH_FAILED',
         message:
-          'MM_CONTEXT_SWITCH_BLOCKED: Cannot switch context while an iOS session is active. Run `mm cleanup` first.',
+          'MetaMask Mobile supports only the prod context. E2E launch context is not available.',
       });
     }
-
-    this.currentContext = context;
   }
 
   getContextInfo(): {
@@ -452,11 +429,11 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     canSwitchContext: boolean;
   } {
     return {
-      currentContext: this.currentContext,
+      currentContext: 'prod',
       hasActiveSession: this.hasActiveSession(),
       sessionId: this.sessionId ?? null,
       capabilities: { available: this.computeAvailableCapabilities() },
-      canSwitchContext: !this.hasActiveSession(),
+      canSwitchContext: false,
     };
   }
 
@@ -580,113 +557,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   private computeAvailableCapabilities(): string[] {
-    const isE2E = this.currentContext === 'e2e';
-    const e2e = this.e2eContext;
-
-    return [
-      isE2E && e2e?.fixture ? 'fixture' : undefined,
-      isE2E && e2e?.chain ? 'chain' : undefined,
-      isE2E && e2e?.contractSeeding ? 'contractSeeding' : undefined,
-      this.workflowContext?.stateSnapshot ? 'stateSnapshot' : undefined,
-      isE2E && e2e?.mockServer ? 'mockServer' : undefined,
-    ].filter((capability): capability is string => capability !== undefined);
-  }
-
-  private async startE2ECapabilities(input: MobileLaunchInput): Promise<void> {
-    if (this.currentContext !== 'e2e' || !this.e2eContext) {
-      return;
-    }
-
-    const { chain, fixture, mockServer, contractSeeding } = this.e2eContext;
-
-    if (chain) {
-      appendLog('Starting chain capability');
-      await chain.start();
-    }
-
-    if (contractSeeding) {
-      appendLog('Starting contract seeding capability');
-      contractSeeding.initialize();
-    }
-
-    if (fixture) {
-      const stateMode = input.stateMode ?? 'default';
-      let state: WalletState;
-      appendLog('Selecting fixture state');
-      if (stateMode === 'onboarding') {
-        state = fixture.getOnboardingState();
-      } else if (stateMode === 'custom') {
-        if (!input.fixturePreset) {
-          throw new IOSLaunchError({
-            code: 'MM_LAUNCH_FAILED',
-            message:
-              'stateMode "custom" requires a fixturePreset. ' +
-              'Use --preset <name> or set fixturePreset in the launch input.',
-          });
-        }
-        state = fixture.resolvePreset(input.fixturePreset);
-      } else {
-        state = fixture.getDefaultState();
-      }
-
-      state = rewritePortsInWalletState(state, {
-        anvilPort: (
-          chain as MetaMaskMobileChainCapability | undefined
-        )?.getPort(),
-        mockServerPort: (
-          mockServer as MetaMaskMobileMockServerCapability | undefined
-        )?.getPort(),
-      });
-
-      appendLog('Starting fixture capability');
-      await fixture.start(state);
-    }
-
-    if (mockServer) {
-      appendLog('Starting mockServer capability');
-      await mockServer.start();
-    }
-
-    if (input.seedContracts && input.seedContracts.length > 0) {
-      if (!chain || !contractSeeding) {
-        throw new IOSLaunchError({
-          code: 'MM_LAUNCH_FAILED',
-          message:
-            'seedContracts requires the chain and contractSeeding capabilities (e2e context).',
-        });
-      }
-
-      const result = await contractSeeding.deployContracts(input.seedContracts);
-      if (result.failed.length > 0) {
-        const summary = result.failed
-          .map((f) => `${f.name}: ${f.error}`)
-          .join('; ');
-        throw new IOSLaunchError({
-          code: 'MM_LAUNCH_FAILED',
-          message: `Contract seeding failed: ${summary}`,
-        });
-      }
-    }
-  }
-
-  private async stopE2ECapabilities(): Promise<void> {
-    if (!this.e2eContext) {
-      return;
-    }
-    const { chain, fixture, mockServer, contractSeeding } = this.e2eContext;
-    // Reverse order
-    if (contractSeeding) {
-      contractSeeding.clearRegistry();
-    }
-    if (mockServer) {
-      await mockServer.stop().catch(() => undefined);
-    }
-    if (fixture) {
-      await fixture.stop().catch(() => undefined);
-    }
-    if (chain) {
-      await chain.stop().catch(() => undefined);
-    }
+    return this.workflowContext?.stateSnapshot ? ['stateSnapshot'] : [];
   }
 
   private async teardownPartialLaunch(): Promise<void> {
@@ -695,15 +566,17 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       await this.closeAndTerminateApp(resolved, iosDriver);
     }
 
-    await this.stopE2ECapabilities().catch(() => undefined);
+    this.resetSessionState();
+  }
 
-    if (resolved) {
-      this.clearE2EPortDefaults(resolved);
-    }
-
+  private resetSessionState(): void {
+    this.sessionId = undefined;
     this.platformDriver = undefined;
     this.iosDriver = undefined;
     this.resolved = undefined;
+    this.sessionState = undefined;
+    this.sessionMetadata = undefined;
+    this.workflowContext = undefined;
     this.refMap.clear();
   }
 
@@ -746,6 +619,19 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   private errorMessage(error: unknown): string {
+    if (error && typeof error === 'object' && 'stderr' in error) {
+      const { stderr } = error as { stderr?: Buffer | string };
+      const text =
+        typeof stderr === 'string'
+          ? stderr
+          : stderr instanceof Buffer
+            ? stderr.toString('utf8')
+            : '';
+      const trimmed = text.trim();
+      if (trimmed) {
+        return trimmed;
+      }
+    }
     return error instanceof Error ? error.message : 'Unknown error';
   }
 
@@ -759,7 +645,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         ? 'MM_METRO_PORT'
         : 'none';
     const lines = [
-      `[mm-mobile] context=${this.currentContext}`,
+      '[mm-mobile] context=prod',
       `[mm-mobile] simulator=${resolved.simulatorDeviceId}`,
       `[mm-mobile] selectedApp=${resolved.appBundlePath}`,
       `[mm-mobile] bundleId=${resolved.appBundleId}`,
@@ -803,70 +689,17 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   private bootSimulator(udid: string): void {
-    execFileSync('xcrun', ['simctl', 'boot', udid], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-  }
-
-  private injectE2EPortDefaults(resolved: ResolvedIOSLaunchOptions): void {
-    if (this.currentContext !== 'e2e' || !this.e2eContext) {
-      return;
-    }
-
-    const fixture = this.e2eContext.fixture;
-    if (!fixture) {
-      return;
-    }
-
-    const fixturePort =
-      (fixture as { port?: number }).port ??
-      (this.e2eContext.config as { ports?: { fixtureServer?: number } })?.ports
-        ?.fixtureServer;
-
-    if (fixturePort === undefined) {
-      return;
-    }
-
     try {
-      execFileSync(
-        'xcrun',
-        [
-          'simctl',
-          'spawn',
-          resolved.simulatorDeviceId,
-          'defaults',
-          'write',
-          resolved.appBundleId,
-          'fixtureServerPort',
-          '-string',
-          String(fixturePort),
-        ],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
-      );
-    } catch {
-      appendLog(
-        `Failed to inject fixtureServerPort=${fixturePort} into NSUserDefaults`,
-      );
-    }
-  }
-
-  private clearE2EPortDefaults(resolved: ResolvedIOSLaunchOptions): void {
-    try {
-      execFileSync(
-        'xcrun',
-        [
-          'simctl',
-          'spawn',
-          resolved.simulatorDeviceId,
-          'defaults',
-          'delete',
-          resolved.appBundleId,
-          'fixtureServerPort',
-        ],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
-      );
-    } catch {
-      // Key might not exist — best-effort
+      execFileSync('xcrun', ['simctl', 'boot', udid], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (error) {
+      throw new IOSLaunchError({
+        code: 'MM_IOS_RUNNER_NOT_READY',
+        message: `Failed to boot simulator ${udid}: ${this.errorMessage(error)}`,
+        remediation:
+          'Run `xcrun simctl list devices` to verify the UDID and simulator state.',
+      });
     }
   }
 }

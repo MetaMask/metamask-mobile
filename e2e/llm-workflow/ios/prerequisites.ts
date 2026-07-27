@@ -1,6 +1,5 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 
 import {
@@ -22,7 +21,6 @@ type SimctlDevicesResponse = {
 type ResolveAppBundleInput = {
   appBundlePath?: string;
   simulatorDeviceId: string;
-  context: 'prod' | 'e2e';
   reinstall?: boolean;
   resetAppData?: boolean;
   allowFoxCodeMismatch?: boolean;
@@ -40,7 +38,6 @@ export async function validateIOSPrerequisites(input: {
   simulatorDeviceId?: string;
   appBundlePath?: string;
   metroPort?: number;
-  context?: 'prod' | 'e2e';
   reinstall?: boolean;
   resetAppData?: boolean;
   allowFoxCodeMismatch?: boolean;
@@ -50,11 +47,9 @@ export async function validateIOSPrerequisites(input: {
   const simulatorDeviceId = input.simulatorDeviceId
     ? validateSimulatorDevice(input.simulatorDeviceId)
     : resolveBootedSimulatorDevice();
-  const context = input.context ?? 'prod';
   const { appBundlePath, appAlreadyInstalled, selectedAppMetadata, installedAppMetadata, installAction } = resolveAppBundlePath({
     appBundlePath: input.appBundlePath,
     simulatorDeviceId,
-    context,
     reinstall: input.reinstall,
     resetAppData: input.resetAppData,
     allowFoxCodeMismatch: input.allowFoxCodeMismatch,
@@ -144,13 +139,6 @@ function listSimctlDevices(args: string[]): SimctlDevicesResponse {
 }
 
 function resolveAppBundlePath(input: ResolveAppBundleInput): ResolveAppBundleResult {
-  if (input.context === 'prod') {
-    return resolveProdAppBundle(input);
-  }
-  return resolveE2EAppBundle(input);
-}
-
-function resolveProdAppBundle(input: ResolveAppBundleInput): ResolveAppBundleResult {
   const installedMeta = readInstalledAppMetadata(input.simulatorDeviceId);
 
   // Guard: destructive flags without an explicit bundle would uninstall the only
@@ -162,8 +150,7 @@ function resolveProdAppBundle(input: ResolveAppBundleInput): ResolveAppBundleRes
         'Cannot use --reinstall or --reset-app-data without --app-bundle in prod context. ' +
         'The installed app is the only copy and would be destroyed by the uninstall step.',
       remediation:
-        'Provide --app-bundle <path> pointing to a local .app build, ' +
-        'or switch to e2e context where local build candidates are searched automatically.',
+        'Provide --app-bundle <path> pointing to a local .app build.',
     });
   }
 
@@ -200,7 +187,7 @@ function resolveProdAppBundle(input: ResolveAppBundleInput): ResolveAppBundleRes
       throw new IOSLaunchError({
         code: 'MM_IOS_APP_IDENTITY_MISMATCH',
         message: [
-          `Refusing to install app with different fox_code in prod context.`,
+          `Refusing to install app with different fox_code.`,
           `  Installed fox_code: ${installedMeta.foxCode}`,
           `  Requested fox_code: ${requestedMeta.foxCode}`,
           `Installing this bundle may make existing wallet/keychain data unreadable.`,
@@ -248,68 +235,6 @@ function resolveProdAppBundle(input: ResolveAppBundleInput): ResolveAppBundleRes
   };
 }
 
-function resolveE2EAppBundle(input: ResolveAppBundleInput): ResolveAppBundleResult {
-  if (input.appBundlePath) {
-    const resolved = path.resolve(resolveRepoRoot(), input.appBundlePath);
-    assertValidAppBundle(resolved);
-    const selectedMeta = readAppBundleMetadata(resolved);
-    const installedMeta = readInstalledAppMetadata(input.simulatorDeviceId);
-    return {
-      appBundlePath: resolved,
-      appAlreadyInstalled: installedMeta !== null,
-      selectedAppMetadata: selectedMeta,
-      installedAppMetadata: installedMeta,
-      installAction: resolveDestructiveInstallAction(input, 'install-explicit'),
-    };
-  }
-
-  const repoRoot = resolveRepoRoot();
-  const localCandidates = [
-    path.join(repoRoot, 'build/MetaMask.app'),
-    path.join(repoRoot, 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app'),
-    path.join(repoRoot, 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app'),
-    ...findDerivedDataAppBundles(),
-  ];
-  const simulatorCandidates = findSimulatorInstalledApp(input.simulatorDeviceId);
-  const allCandidates = [...localCandidates, ...simulatorCandidates];
-
-  const match = allCandidates.find((candidate) => existsSync(candidate));
-
-  if (!match) {
-    throwAppBundleNotFound(allCandidates[0], input.simulatorDeviceId);
-  }
-
-  assertValidAppBundle(match);
-  const appAlreadyInstalled = simulatorCandidates.includes(match);
-  const selectedMeta = readAppBundleMetadata(match);
-  const installedMeta = appAlreadyInstalled ? selectedMeta : readInstalledAppMetadata(input.simulatorDeviceId);
-
-  // Guard: destructive flags without a local build candidate would uninstall the
-  // simulator-internal copy — the only one available — and then fail to reinstall
-  // because the .app path inside the simulator container is deleted by uninstall.
-  if (appAlreadyInstalled && (input.reinstall || input.resetAppData)) {
-    throw new IOSLaunchError({
-      code: 'MM_LAUNCH_FAILED',
-      message:
-        'Cannot use --reinstall or --reset-app-data in e2e context when the only discovered app ' +
-        'is installed on the simulator. The uninstall step would destroy the only copy.',
-      remediation:
-        'Provide --app-bundle <path> pointing to a local .app build, ' +
-        'or build the app first with `yarn start:ios`.',
-    });
-  }
-
-  const defaultAction = appAlreadyInstalled ? 'reuse-installed' : 'install-new';
-
-  return {
-    appBundlePath: match,
-    appAlreadyInstalled,
-    selectedAppMetadata: selectedMeta,
-    installedAppMetadata: installedMeta,
-    installAction: resolveDestructiveInstallAction(input, defaultAction),
-  };
-}
-
 function resolveDestructiveInstallAction(
   input: ResolveAppBundleInput,
   defaultAction: ResolveAppBundleResult['installAction'],
@@ -317,33 +242,6 @@ function resolveDestructiveInstallAction(
   if (input.resetAppData) return 'reset-and-install';
   if (input.reinstall) return 'reinstall';
   return defaultAction;
-}
-
-function findDerivedDataAppBundles(): string[] {
-  const derivedDataRoot = path.join(os.homedir(), 'Library/Developer/Xcode/DerivedData');
-
-  try {
-    const output = execFileSync(
-      'find',
-      [
-        derivedDataRoot,
-        '-path',
-        '*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app',
-        '-type',
-        'd',
-        '-maxdepth',
-        '6',
-      ],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
-    );
-
-    return output
-      .split('\n')
-      .map((candidate) => candidate.trim())
-      .filter((candidate) => candidate.length > 0);
-  } catch {
-    return [];
-  }
 }
 
 const METAMASK_BUNDLE_ID = 'io.metamask.MetaMask';
@@ -359,11 +257,6 @@ function getInstalledAppPath(simulatorDeviceId: string, bundleId: string = METAM
   } catch {
     return null;
   }
-}
-
-function findSimulatorInstalledApp(simulatorDeviceId: string): string[] {
-  const appPath = getInstalledAppPath(simulatorDeviceId);
-  return appPath ? [appPath] : [];
 }
 
 export function readInstalledAppMetadata(
@@ -383,19 +276,11 @@ function assertValidAppBundle(appBundlePath: string): void {
 
 function throwAppBundleNotFound(
   appBundlePath: string,
-  simulatorDeviceId?: string,
 ): never {
-  const message = simulatorDeviceId
-    ? `MetaMask.app not found. Searched: local build outputs (ios/build/), Xcode DerivedData, and installed apps on simulator ${simulatorDeviceId}.`
-    : `MetaMask.app not found at ${appBundlePath}`;
-  const remediation = simulatorDeviceId
-    ? 'Build the app with `yarn start:ios`, or install a prebuilt .app into the simulator.'
-    : 'Build and run the iOS app first, for example with `yarn start:ios`.';
-
   throw new IOSLaunchError({
     code: 'MM_IOS_RUNNER_NOT_READY',
-    message,
-    remediation,
+    message: `MetaMask.app not found at ${appBundlePath}`,
+    remediation: 'Build and run the iOS app first, for example with `yarn start:ios`.',
   });
 }
 
@@ -452,4 +337,3 @@ export function readAppBundleMetadata(appBundlePath: string): IOSAppBundleMetada
     buildVersion: readPlistKey(appBundlePath, 'CFBundleVersion'),
   };
 }
-
