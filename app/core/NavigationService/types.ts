@@ -249,20 +249,10 @@ import type {
   EarnScreensStackParamList,
 } from '../../components/UI/Earn/types/navigation';
 import type {
+  EarnTokenListParams,
   StakeModalsNavigationParamList,
   StakeScreensStackParamList,
 } from '../../components/UI/Stake/types/navigation';
-
-/** Earn token list sheet params (WalletActions / StakeModals). */
-interface EarnTokenListParams {
-  tokenFilter: {
-    includeReceiptTokens: boolean;
-    includeNativeTokens?: boolean;
-    includeStakingTokens?: boolean;
-    includeLendingTokens?: boolean;
-  };
-  onItemPressScreen: string;
-}
 
 // Modal params
 import type {
@@ -315,14 +305,6 @@ interface OnboardingSuccessFlowParamList {
   GeneralSettings: undefined;
   AssetsSettings: undefined;
   SecuritySettings: undefined;
-}
-
-interface StakeModalsNavigationParamList {
-  LearnMore: LearnMoreModalParams | undefined;
-  TrxLearnMore: undefined;
-  MaxInput: MaxInputModalParams;
-  GasImpact: GasImpactModalParams;
-  EarnTokenList: EarnTokenListParams | undefined;
 }
 
 /** Onboarding social-login screens share AccountStatus params plus trace context. */

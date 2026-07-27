@@ -29,6 +29,17 @@ export type StakeScreensStackParamList = {
   RedesignedConfirmations: StakeRedesignedConfirmationsParams;
 };
 
+/** Earn token list sheet params (WalletActions / StakeModals). */
+export interface EarnTokenListParams {
+  tokenFilter: {
+    includeReceiptTokens: boolean;
+    includeNativeTokens?: boolean;
+    includeStakingTokens?: boolean;
+    includeLendingTokens?: boolean;
+  };
+  onItemPressScreen: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type StakeModalsNavigationParamList = {
   LearnMore: { chainId?: string } | undefined;
@@ -47,10 +58,5 @@ export type StakeModalsNavigationParamList = {
         chainId?: string;
       }
     | undefined;
-  EarnTokenList:
-    | {
-        tokenFilter: { includeReceiptTokens: boolean };
-        onItemPressScreen: string;
-      }
-    | undefined;
+  EarnTokenList: EarnTokenListParams | undefined;
 };
