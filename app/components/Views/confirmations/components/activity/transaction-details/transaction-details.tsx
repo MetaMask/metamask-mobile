@@ -15,12 +15,12 @@ import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsFeeSection } from '../transaction-details-fee-section';
-import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 import { TransactionDetailsToRow } from '../transaction-details-to-row';

@@ -25,11 +25,11 @@ import {
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
+  TransactionType,
   hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';

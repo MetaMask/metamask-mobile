@@ -1,7 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
@@ -26,7 +29,6 @@ import {
   PayWithRowConfig,
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
-import { hasTransactionType } from '../../../utils/transaction';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 export const PAY_WITH_PERPS_SECTION_TEST_ID = 'pay-with-section-perps';

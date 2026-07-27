@@ -1,6 +1,7 @@
+import { hasTransactionType } from '@metamask/transaction-controller';
+
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useHasNativeFiatProvider } from '../../../../UI/Ramp/hooks/useHasNativeFiatProvider';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 

@@ -9,10 +9,12 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
