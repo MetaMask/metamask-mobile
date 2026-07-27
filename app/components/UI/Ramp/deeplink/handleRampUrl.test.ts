@@ -137,6 +137,12 @@ jest.mock('../../../../core/Engine', () => ({
 const mockRefreshGeolocation = Engine.context.GeolocationController
   .refreshGeolocation as jest.Mock;
 
+const mockStartRampsBuyCufTrace = jest.fn();
+jest.mock('../utils/rampsBuyCufTrace', () => ({
+  startRampsBuyCufTrace: (...args: unknown[]) =>
+    mockStartRampsBuyCufTrace(...args),
+}));
+
 describe('handleRampUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -207,6 +213,7 @@ describe('handleRampUrl', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'ELIGIBILITY_FAILED_MODAL_ROUTE',
       );
+      expect(mockStartRampsBuyCufTrace).not.toHaveBeenCalled();
     });
 
     it('continues to TokenSelection when geolocation refresh resolves a known region', async () => {
@@ -224,6 +231,9 @@ describe('handleRampUrl', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'TOKEN_SELECTION_ROUTE',
       );
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'deep_link',
+      });
     });
 
     it('does not refresh geolocation when a known location is already in state', async () => {
