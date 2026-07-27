@@ -157,6 +157,8 @@ const styles = StyleSheet.create({
 export interface HwQrScannerRouteParams {
   currentStep: number;
   totalSteps: number;
+  /** Preserve scanner-owned completion for Send; Bridge returns to its lifecycle. */
+  completeOnScan?: boolean;
 }
 
 /**
@@ -190,7 +192,7 @@ export function HwQrScanner() {
     string | null
   >(null);
 
-  const { currentStep = 1, totalSteps = 1 } =
+  const { currentStep = 1, totalSteps = 1, completeOnScan = false } =
     (route.params as HwQrScannerRouteParams) ?? {};
 
   const isLastStep = currentStep >= totalSteps;
@@ -207,17 +209,14 @@ export function HwQrScanner() {
             cbor: Buffer.from(ur.cbor).toString('hex'),
           });
           setRequestCompleted();
-          // Last-step: complete success here (toast + Redux reset + navigate)
-          // instead of goBack()-ing to HardwareWalletsSwaps. Ledger flows do
-          // this via `useHwSwapLifecycle.navigateOnSuccess`, which is disabled
-          // for QR to avoid two native view insertions in the same frame on
-          // Android (addViewAt crash).
-          if (isLastStep) {
+          if (isLastStep && completeOnScan) {
             if (!hasCompletedOnSuccessRef.current) {
               hasCompletedOnSuccessRef.current = true;
               completeHwSwapSuccess({ dispatch, navigation, toastRef });
             }
           } else {
+            // Bridge returns to its lifecycle, which waits for submit settlement
+            // and this screen's transitionEnd before opening post-trade.
             navigation.goBack();
           }
           return true;
@@ -243,6 +242,7 @@ export function HwQrScanner() {
       pendingScanRequest,
       setRequestCompleted,
       isLastStep,
+      completeOnScan,
       dispatch,
       navigation,
       toastRef,

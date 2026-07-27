@@ -12,12 +12,20 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 
 import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
 import {
+  incrementBridgeBalanceRefreshKey,
+  resetBridgeTokenInputs,
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
 import { ToastContext } from '../../../../component-library/components/Toast';
+import { PostTradeStatus } from '../../Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import {
+  hidePostTradeNotificationSurface,
+  showPostTradeNotificationSurface,
+} from '../../Bridge/utils/postTradeNotifications';
 import { completeHwSwapSuccess } from './hwSwapSuccess';
 import {
   HardwareWalletsSwapsStatus,
@@ -109,8 +117,12 @@ export function useHwSwapLifecycle({
   const retryGenerationRef = useRef(0);
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
+  /** True once this mount starts a bridge submit (distinguishes remount). */
+  const didStartBridgeSubmitRef = useRef(false);
   const retryInProgressRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isQrReturnTransitionEnded, setIsQrReturnTransitionEnded] =
+    useState(true);
 
   // ── Sibling hooks (composed here so refs stay local) ─────────────
   const isEnabled = Boolean(strategy.walletAddress);
@@ -138,6 +150,7 @@ export function useHwSwapLifecycle({
     submit: submitWithDeviceReady,
     canRetry,
     clearCachedSubmission,
+    submittedTransaction,
   } = useHardwareWalletSubmit({
     isSendFlow: strategy.isSendFlow,
     walletAddress: strategy.walletAddress,
@@ -150,6 +163,36 @@ export function useHwSwapLifecycle({
     ensureDeviceReady,
     setPendingOperationAddress,
   });
+
+  // Suppress generic tx notifications while the Bridge HW screen is focused
+  // (BridgeView unregisters its surface when navigating here).
+  useEffect(() => {
+    if (strategy.isSendFlow || !isFocused) {
+      return;
+    }
+    showPostTradeNotificationSurface();
+    return () => {
+      hidePostTradeNotificationSurface();
+    };
+  }, [strategy.isSendFlow, isFocused]);
+
+  // Register before opening the QR scanner so transitionEnd cannot be missed.
+  // This is Bridge-only; Send retains its existing scanner-owned completion.
+  useEffect(() => {
+    if (strategy.isSendFlow || !isQrHardwareWallet) {
+      return;
+    }
+
+    return navigation.addListener('transitionEnd', (e) => {
+      if (!e.data.closing) setIsQrReturnTransitionEnded(true);
+    });
+  }, [isQrHardwareWallet, navigation, strategy.isSendFlow]);
+
+  useEffect(() => {
+    if (!strategy.isSendFlow && isQrHardwareWallet && !isFocused) {
+      setIsQrReturnTransitionEnded(false);
+    }
+  }, [isFocused, isQrHardwareWallet, strategy.isSendFlow]);
 
   // ── Derived ──────────────────────────────────────────────────────
   const allStepsSigned = useMemo(
@@ -164,9 +207,65 @@ export function useHwSwapLifecycle({
   // ── Flow termination ─────────────────────────────────────────────
   const completeSignedFlow = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
+
+    if (strategy.isSendFlow) {
+      hasAutoNavigatedRef.current = true;
+      clearCachedSubmission();
+      completeHwSwapSuccess({ dispatch, navigation, toastRef });
+      return;
+    }
+
+    if (submittedTransaction === null) {
+      if (didStartBridgeSubmitRef.current) return;
+      // Remount has no local submission metadata; preserve legacy completion.
+      hasAutoNavigatedRef.current = true;
+      clearCachedSubmission();
+      completeHwSwapSuccess({ dispatch, navigation, toastRef });
+      return;
+    }
+    if (
+      submittedTransaction === undefined ||
+      (!submittedTransaction.id && !submittedTransaction.hash)
+    ) {
+      dispatch(
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.TransactionFailed,
+        }),
+      );
+      return;
+    }
+
+    if (isQrHardwareWallet && !isQrReturnTransitionEnded) return;
+
     hasAutoNavigatedRef.current = true;
-    completeHwSwapSuccess({ dispatch, navigation, toastRef });
-  }, [dispatch, navigation, toastRef]);
+    clearCachedSubmission();
+
+    dispatch(resetBridgeTokenInputs());
+    Engine.context.BridgeController?.resetState?.();
+    dispatch(incrementBridgeBalanceRefreshKey());
+    dispatch(resetHardwareWalletsSwaps());
+    // Keep BridgeView beneath the modal, not the reset HW progress screen.
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+      params: {
+        ...strategy.submitOptions.submissionParams?.postTradeModalParams,
+        status: PostTradeStatus.InProgress,
+        transactionMetaId: submittedTransaction.id,
+        transactionHash: submittedTransaction.hash,
+      },
+    });
+  }, [
+    clearCachedSubmission,
+    dispatch,
+    isQrHardwareWallet,
+    isQrReturnTransitionEnded,
+    navigation,
+    strategy.isSendFlow,
+    strategy.submitOptions.submissionParams?.postTradeModalParams,
+    submittedTransaction,
+    toastRef,
+  ]);
 
   const reconcileStuckFlowProgress = useCallback(() => {
     const current = progressRef.current;
@@ -181,9 +280,7 @@ export function useHwSwapLifecycle({
 
     const resolution = reconcileStuckProgress(current.steps);
     if (resolution.action === 'navigate') {
-      // All signed but status hasn't transitioned. QR wallets normally
-      // complete on the last HwQrScanner scan; when the user is still on
-      // progress/disconnected, finish here instead.
+      // All signed but status hasn't transitioned.
       completeSignedFlow();
       return;
     }
@@ -192,21 +289,21 @@ export function useHwSwapLifecycle({
   }, [completeSignedFlow, dispatch]);
 
   useEffect(() => {
-    // All device signing steps complete AND a submission was started.
-    // Fires exactly once (guarded by hasAutoNavigatedRef) to show the
-    // success toast, reset HW-swaps state, and navigate to activity view.
+    // Complete after signing; Bridge also waits for submission settlement.
     if (!allStepsSigned) return;
-    // For QR wallets the HwQrScanner screen handles final navigation
-    // directly (it navigates to TRANSACTIONS_VIEW on the last scan
-    // instead of calling goBack()).  Letting this effect also fire would
-    // produce two native view insertions in the same frame, colliding
-    // on Android (java.lang.IllegalStateException / addViewAt).
-    if (isQrHardwareWallet) return;
+    // Send QR retains scanner-owned completion.
+    if (strategy.isSendFlow && isQrHardwareWallet) return;
     if (!isFocused) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
     completeSignedFlow();
-  }, [allStepsSigned, isQrHardwareWallet, isFocused, completeSignedFlow]);
+  }, [
+    allStepsSigned,
+    isFocused,
+    isQrHardwareWallet,
+    strategy.isSendFlow,
+    completeSignedFlow,
+  ]);
 
   // ── Initial submit (first Waiting) ───────────────────────────────
   useEffect(() => {
@@ -225,15 +322,15 @@ export function useHwSwapLifecycle({
 
     hasInitialSubmissionRef.current = true;
 
-    // Race closure: if all steps were already signed before this effect ran
-    // (e.g., remount mid-flow), the all-steps-signed effect above returned
-    // early because the flag was false. Re-check here and navigate straight
-    // to success instead of submitting a no-op.
+    // Never resubmit a remounted flow whose signing steps already completed.
     if (allStepsSigned) {
       completeSignedFlow();
       return;
     }
 
+    if (!strategy.isSendFlow) {
+      didStartBridgeSubmitRef.current = true;
+    }
     submitWithDeviceReady();
   }, [
     progress.currentStep,
@@ -312,6 +409,9 @@ export function useHwSwapLifecycle({
 
       submissionGenerationRef.current += 1;
       hasInitialSubmissionRef.current = true;
+      if (!strategy.isSendFlow) {
+        didStartBridgeSubmitRef.current = true;
+      }
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.Retry,
@@ -335,6 +435,7 @@ export function useHwSwapLifecycle({
     resetHandledError,
     canRetry,
     retryFallback,
+    strategy.isSendFlow,
   ]);
 
   const handleTryAgain = useCallback(
@@ -348,10 +449,22 @@ export function useHwSwapLifecycle({
   );
 
   const handleDone = useCallback(() => {
+    if (!strategy.isSendFlow) {
+      // Do not let Done bypass Bridge settlement and post-trade navigation.
+      completeSignedFlow();
+      return;
+    }
+
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [dispatch, navigation, clearCachedSubmission]);
+  }, [
+    clearCachedSubmission,
+    completeSignedFlow,
+    dispatch,
+    navigation,
+    strategy.isSendFlow,
+  ]);
 
   return {
     isRetrying,
