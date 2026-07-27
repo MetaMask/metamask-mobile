@@ -21,6 +21,8 @@ export function useQrScannerCameraPermission({
 
     try {
       await requestPermission();
+    } catch {
+      // Permission denied or request failed; completion is still set in finally.
     } finally {
       setPermissionCheckCompleted(true);
     }

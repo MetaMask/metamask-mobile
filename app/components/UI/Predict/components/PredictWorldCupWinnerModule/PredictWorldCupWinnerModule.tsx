@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Image, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -62,7 +63,7 @@ const WinnerTile: React.FC<WinnerTileProps> = ({ outcome, onPress }) => {
             width: 32,
             height: 32,
           })}
-          resizeMode="cover"
+          contentFit="cover"
         />
       ) : (
         <View

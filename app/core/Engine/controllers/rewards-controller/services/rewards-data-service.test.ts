@@ -71,7 +71,7 @@ describe('RewardsDataService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+    delete process.env.REWARDS_API_URL;
 
     // Allow env overrides by default (canChange = true).
     // getRewardsEnvUrl reads canChange from the tuple, so the second element

@@ -60,6 +60,8 @@ jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
 }));
 
+jest.mock('./RpcSelectionModal/RpcSelectionModal', () => () => null);
+
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
 }));
@@ -91,6 +93,7 @@ jest.mock('../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
       updateNetwork: jest.fn(),
+      removeNetwork: jest.fn(),
       getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
       findNetworkClientIdByChainId: jest
         .fn()

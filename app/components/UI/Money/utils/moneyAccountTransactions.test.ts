@@ -4,7 +4,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+import {
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../../Earn/constants/musd';
 import {
   applySlippage,
   getSharesForWithdrawal,
@@ -14,6 +17,7 @@ import {
   updateMoneyAccountWithdrawTokenAmount,
   getMoneyAccountDepositTransactionsData,
   getMoneyAccountWithdrawTransactionsData,
+  getMoneyAccountDepositAssetId,
 } from './moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -27,6 +31,12 @@ import {
 jest.mock('../../Earn/constants/musd', () => ({
   MUSD_TOKEN_ADDRESS_BY_CHAIN: {} as Record<string, Hex>,
   MUSD_DECIMALS: 6,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN: {
+    // Monad (0x8f) mUSD CAIP-19 asset id.
+    '0x8f': 'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    // Mainnet (0x1) mUSD CAIP-19 asset id.
+    '0x1': 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  } as Record<string, string>,
 }));
 
 jest.mock('../../../../core/AppConstants', () => ({
@@ -234,6 +244,29 @@ describe('moneyAccountTransactions', () => {
         const assetsOut = (shares * rate) / SHARE_SCALAR;
         expect(assetsOut).toBeGreaterThanOrEqual(amount);
       }
+    });
+  });
+
+  describe('getMoneyAccountDepositAssetId', () => {
+    it('returns the mapped asset id for a known chain', () => {
+      expect(getMoneyAccountDepositAssetId('0x8f' as Hex)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
+      );
+      expect(getMoneyAccountDepositAssetId('0x1' as Hex)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x1'],
+      );
+    });
+
+    it('falls back to the Monad asset id for an unknown chain', () => {
+      expect(getMoneyAccountDepositAssetId('0xdead' as Hex)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
+      );
+    });
+
+    it('falls back to the Monad asset id when chainId is undefined', () => {
+      expect(getMoneyAccountDepositAssetId(undefined)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
+      );
     });
   });
 

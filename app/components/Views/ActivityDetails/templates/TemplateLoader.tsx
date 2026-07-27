@@ -1,5 +1,8 @@
 import React from 'react';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import {
+  isPerpsOrderKind,
+  type ActivityListItem,
+} from '../../../../util/activity-adapters';
 import { ApprovalDetails } from './ApprovalDetails';
 import { BridgeDetails } from './BridgeDetails';
 import { ClaimMusdBonusDetails } from './ClaimMusdBonusDetails';
@@ -25,6 +28,10 @@ export function TemplateLoader({
 }) {
   if (!item) {
     return null;
+  }
+
+  if (isPerpsOrderKind(item.type)) {
+    return <PerpsDetails item={item} />;
   }
 
   switch (item.type) {
@@ -92,11 +99,6 @@ export function TemplateLoader({
     case 'perpsReceivedFundingFees':
     case 'perpsCloseShortTakeProfit':
     case 'perpsCloseLongTakeProfit':
-    case 'marketShort':
-    case 'stopMarketCloseShort':
-    case 'marketCloseShort':
-    case 'limitShort':
-    case 'limitCloseShort':
       return <PerpsDetails item={item} />;
     default:
       return <DefaultDetails item={item} />;

@@ -8,6 +8,7 @@ import {
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
 import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
@@ -41,6 +42,11 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
   const { markets, isLoading, showEmptyState } = usePredictTrendingSection();
 
   const handleSeeAll = useCallback(() => {
+    Engine.context.PredictController.trackHomeSectionInteraction({
+      sectionId: PredictEventValues.SECTION_ID.TRENDING,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.FEED,
       params: {

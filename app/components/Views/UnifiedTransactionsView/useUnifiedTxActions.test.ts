@@ -50,7 +50,7 @@ jest.mock('../../../util/conversions', () => ({
   decGWEIToHexWEI: jest.fn(),
 }));
 
-jest.mock('../../../util/number', () => ({
+jest.mock('../../../util/number/bigint', () => ({
   addHexPrefix: jest.fn(),
 }));
 
@@ -126,7 +126,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 import { decGWEIToHexWEI } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
+import { addHexPrefix } from '../../../util/number/bigint';
 import {
   speedUpTransaction as speedUpTx,
   getPreviousGasFromController,

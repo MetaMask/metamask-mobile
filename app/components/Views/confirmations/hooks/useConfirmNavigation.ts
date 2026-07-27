@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -23,11 +23,12 @@ const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 export type ConfirmNavigateOptions = {
   amount?: string;
   headerShown?: boolean;
+  replace?: boolean;
   stack?: string;
 } & ConfirmationParams;
 
 export function useConfirmNavigation() {
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
   const transactions = useSelector(selectTransactions);
   const [pendingParams, setPendingParams] = useState<ConfirmNavigateOptions>();
   const [transactionsToRemove, setTransactionsToRemove] = useState<string[]>();
@@ -42,7 +43,7 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { headerShown, stack, ...params } = options;
+      const { headerShown, replace = false, stack, ...params } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
@@ -67,13 +68,25 @@ export function useConfirmNavigation() {
       log('Navigating', { route, params, stack });
 
       if (stack) {
-        navigate(stack, { screen: route, params });
+        if (replace) {
+          navigation.dispatch(
+            StackActions.replace(stack, { screen: route, params }),
+          );
+          return;
+        }
+
+        navigation.navigate(stack, { screen: route, params });
         return;
       }
 
-      navigate(route, params);
+      if (replace) {
+        navigation.dispatch(StackActions.replace(route, params));
+        return;
+      }
+
+      navigation.navigate(route, params);
     },
-    [navigate, pendingParams, pendingTransactions],
+    [navigation, pendingParams, pendingTransactions],
   );
 
   useEffect(() => {

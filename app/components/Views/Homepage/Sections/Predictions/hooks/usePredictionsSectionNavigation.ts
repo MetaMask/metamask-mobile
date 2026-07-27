@@ -60,7 +60,6 @@ export const usePredictNavigationHandlers = (): {
         params: {
           marketId: position.marketId,
           entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          headerShown: false,
         },
       });
     },

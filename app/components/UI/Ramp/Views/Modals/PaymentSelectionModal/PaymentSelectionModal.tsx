@@ -123,7 +123,15 @@ function PaymentSelectionModal() {
         })
         .build(),
     );
-    navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+    // Close the payment sheet before opening provider selection. Stacking two
+    // modal screens leaves the amount input on BuildQuote invisible behind the
+    // nested overlays (TRAM-3750).
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.MODALS.ID, {
+        screen: Routes.RAMP.MODALS.PROVIDER_SELECTION,
+        params: { amount },
+      });
+    });
   }, [
     navigation,
     amount,

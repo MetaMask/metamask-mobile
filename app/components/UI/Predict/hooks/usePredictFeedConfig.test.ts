@@ -90,11 +90,23 @@ describe('usePredictFeedConfig', () => {
   });
 
   describe('static-only feeds', () => {
+    it('hides the filter bar for the Live feed', () => {
+      const { result } = renderHook(() => usePredictFeedConfig('live'));
+
+      expect(result.current.showFilterBar).toBe(false);
+    });
+
     it('exposes static filters and disables dynamic fetching', () => {
       const { result } = renderHook(() => usePredictFeedConfig('live'));
 
       expect(ids(result.current.filters)).toEqual(['live']);
       expect(result.current.filters[0].isDynamic).toBe(false);
+      expect(result.current.activeFilter?.params).toEqual({
+        status: 'open',
+        order: 'volume24hr',
+        limit: 10,
+        live: true,
+      });
       expect(result.current.dynamicFilters.status).toBe('idle');
       expect(mockUsePredictFilterOptions).toHaveBeenCalledWith(
         { source: 'related-tags' },

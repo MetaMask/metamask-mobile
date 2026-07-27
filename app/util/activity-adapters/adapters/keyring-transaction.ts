@@ -4,6 +4,11 @@
  * TODO: Replace with shared @metamask/activity-adapters package when published.
  */
 import {
+  isCrossChain,
+  StatusTypes as BridgeStatusTypes,
+} from '@metamask/bridge-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import {
   type Transaction,
   TransactionStatus as KeyringTransactionStatus,
   TransactionType as KeyringTransactionType,
@@ -33,6 +38,19 @@ function mapStatus(status: Transaction['status']): Status {
       return 'failed';
     case KeyringTransactionStatus.Submitted:
     case KeyringTransactionStatus.Unconfirmed:
+    default:
+      return 'pending';
+  }
+}
+
+function mapBridgeStatus(bridgeStatus: BridgeStatusTypes): Status {
+  switch (bridgeStatus) {
+    case BridgeStatusTypes.FAILED:
+      return 'failed';
+    case BridgeStatusTypes.COMPLETE:
+      return 'success';
+    case BridgeStatusTypes.PENDING:
+    case BridgeStatusTypes.SUBMITTED:
     default:
       return 'pending';
   }
@@ -168,8 +186,10 @@ function aggregateMovementAmount(movements: Movement[]) {
 // Converts keyring API transactions into the shared activity item shape
 export function mapKeyringTransaction({
   transaction,
+  bridgeHistory,
 }: {
   transaction: Transaction;
+  bridgeHistory?: BridgeHistoryItem;
 }): ActivityListItem {
   const status = mapStatus(transaction.status);
   const timestamp = mapTimestamp(transaction.timestamp);
@@ -177,6 +197,46 @@ export function mapKeyringTransaction({
   const from = getAddress(transaction.from);
   const to = getAddress(transaction.to);
   const fees = getFees(transaction);
+
+  if (
+    bridgeHistory &&
+    isCrossChain(
+      bridgeHistory.quote.srcChainId,
+      bridgeHistory.quote.destChainId,
+    )
+  ) {
+    const { quote } = bridgeHistory;
+
+    return {
+      type: 'bridge',
+      chainId,
+      status:
+        status === 'failed'
+          ? 'failed'
+          : mapBridgeStatus(bridgeHistory.status.status),
+      timestamp,
+      hash: transaction.id,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        sourceToken: {
+          amount: quote.srcTokenAmount,
+          assetId: quote.srcAsset.assetId,
+          decimals: quote.srcAsset.decimals,
+          direction: 'out',
+          symbol: quote.srcAsset.symbol,
+        },
+        destinationToken: {
+          amount:
+            bridgeHistory.status.destChain?.amount ?? quote.destTokenAmount,
+          assetId: quote.destAsset.assetId,
+          decimals: quote.destAsset.decimals,
+          direction: 'in',
+          symbol: quote.destAsset.symbol,
+        },
+        ...(fees ? { fees } : {}),
+      },
+    };
+  }
 
   if (transaction.type === KeyringTransactionType.Send) {
     const fromToken = getToken(transaction.from, 'out');

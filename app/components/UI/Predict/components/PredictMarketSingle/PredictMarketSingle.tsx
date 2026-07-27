@@ -9,7 +9,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -255,7 +256,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 <Image
                   source={{ uri: getImageUrl() }}
                   style={tw.style('w-full h-full')}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  recyclingKey={getImageUrl()}
                 />
               ) : (
                 <Box twClassName="w-full h-full bg-muted" />

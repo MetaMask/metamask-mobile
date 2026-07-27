@@ -7,9 +7,11 @@ export type {
   ActivityFee,
   ActivityListItem,
   ActivityKind,
+  PerpsOrderKind,
   Status,
   TokenAmount,
 } from './types';
+export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
 export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
 export {
   isNftTransferType,
@@ -25,6 +27,7 @@ export {
   type ActivityAdapterEnvironment,
 } from './adapters/environment';
 export type { TransactionGroup } from './adapters/transaction-group';
+export { GAS_FEE_SPONSORED } from './fees';
 export { getLabelKeys } from './label-keys';
 export {
   calculateFiatFromMarketRates,
@@ -43,7 +46,10 @@ export {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
+  isGasTokenFeeWithAmount,
   isSpendingCapWithAmount,
+  preferLocalOrApiActivityItem,
+  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

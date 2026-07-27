@@ -1,3 +1,7 @@
+import {
+  extractExplicitTypedError,
+  getErrorMessage,
+} from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 import type {
   CloseSessionOptions,
@@ -26,10 +30,6 @@ function isTerminalSessionStatus(status: HeadlessSessionStatus): boolean {
   );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
 function isHeadlessBuyErrorCode(value: unknown): value is HeadlessBuyErrorCode {
   return (
     typeof value === 'string' &&
@@ -37,37 +37,28 @@ function isHeadlessBuyErrorCode(value: unknown): value is HeadlessBuyErrorCode {
   );
 }
 
-function getErrorMessage(error: unknown): string | undefined {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (isRecord(error) && typeof error.message === 'string') {
-    return error.message;
-  }
-  if (typeof error === 'string') {
-    return error;
-  }
-  return undefined;
-}
-
+/**
+ * Normalizes an arbitrary thrown/native error into the public
+ * {@link HeadlessBuyError} shape. The pure extraction (explicit-code detection,
+ * message/details derivation) is shared with `RampsController` via
+ * `extractExplicitTypedError`; only the headless-specific taxonomy and the
+ * `LimitExceededError` domain special-case live here, in precedence order:
+ * explicit valid code first, then the limit-exceeded name, then the fallback.
+ *
+ * @param error - The caught value.
+ * @param fallbackCode - Code used when no more specific code applies.
+ * @returns The typed headless-buy error.
+ */
 export function toHeadlessBuyError(
   error: unknown,
   fallbackCode: HeadlessBuyErrorCode = 'UNKNOWN',
 ): HeadlessBuyError {
-  if (isRecord(error)) {
-    const explicitCode = isHeadlessBuyErrorCode(error.headlessBuyErrorCode)
-      ? error.headlessBuyErrorCode
-      : isHeadlessBuyErrorCode(error.code)
-        ? error.code
-        : undefined;
-
-    if (explicitCode) {
-      return {
-        code: explicitCode,
-        message: getErrorMessage(error),
-        details: isRecord(error.details) ? error.details : undefined,
-      };
-    }
+  const explicit = extractExplicitTypedError<HeadlessBuyErrorCode>(error, {
+    isValidCode: isHeadlessBuyErrorCode,
+    codeProperties: ['headlessBuyErrorCode', 'code'],
+  });
+  if (explicit) {
+    return explicit;
   }
 
   if (error instanceof Error && error.name === 'LimitExceededError') {

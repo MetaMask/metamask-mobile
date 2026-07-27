@@ -87,7 +87,7 @@ import { IconName } from '../../components/Icons/Icon';
 
 ## Design Specifications
 
-- **Background**: `bg-default` on default state, `bg-default-pressed` when pressed
+- **Background**: transparent by default (parent owns surface); `bg-pressed` when pressed
 - **Padding**: 12px vertical, 16px horizontal
 - **Gap**: 16px between start content and end accessory
 - **Label**: Uses `TextVariant.BodyMD` with `TextColor.Default` for strings

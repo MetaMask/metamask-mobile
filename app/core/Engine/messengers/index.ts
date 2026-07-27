@@ -35,10 +35,6 @@ import { getMultichainBalancesControllerMessenger } from './multichain-balances-
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getTransactionControllerInitMessenger,
-  getTransactionControllerMessenger,
-} from './transaction-controller-messenger';
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
@@ -107,10 +103,7 @@ import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
-import {
-  getDelegationControllerInitMessenger,
-  getDelegationControllerMessenger,
-} from './delegation/delegation-controller-messenger';
+import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
@@ -145,6 +138,7 @@ import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-use
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
+import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 import { getConfigRegistryApiServiceMessenger } from './config-registry-api-service-messenger.ts';
@@ -204,10 +198,6 @@ export const MESSENGER_FACTORIES = {
   TokensController: {
     getMessenger: getTokensControllerMessenger,
     getInitMessenger: getTokensControllerInitMessenger,
-  },
-  TransactionController: {
-    getMessenger: getTransactionControllerMessenger,
-    getInitMessenger: getTransactionControllerInitMessenger,
   },
   TransactionPayController: {
     getMessenger: getTransactionPayControllerMessenger,
@@ -417,7 +407,7 @@ export const MESSENGER_FACTORIES = {
   },
   DelegationController: {
     getMessenger: getDelegationControllerMessenger,
-    getInitMessenger: getDelegationControllerInitMessenger,
+    getInitMessenger: noop,
   },
   BackendWebSocketService: {
     getMessenger: getBackendWebSocketServiceMessenger,
@@ -473,6 +463,10 @@ export const MESSENGER_FACTORIES = {
   },
   QrSyncController: {
     getMessenger: getQrSyncControllerMessenger,
+    getInitMessenger: noop,
+  },
+  QrSyncProvisioningService: {
+    getMessenger: getQrSyncProvisioningServiceMessenger,
     getInitMessenger: noop,
   },
   ClientController: {

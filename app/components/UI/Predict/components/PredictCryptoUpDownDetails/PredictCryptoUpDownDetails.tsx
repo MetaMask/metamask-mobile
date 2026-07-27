@@ -5,12 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Image,
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import { RefreshControl, ScrollView, useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -511,7 +507,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                   <Image
                     source={{ uri: selectedMarket.image }}
                     style={tw.style('w-full h-full')}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <Box twClassName="w-full h-full bg-muted" />

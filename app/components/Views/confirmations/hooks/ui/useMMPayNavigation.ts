@@ -12,6 +12,7 @@ const useMMPayNavigation = (
   isKeyboardVisible: boolean,
   setIsKeyboardVisible: Dispatch<SetStateAction<boolean>>,
   keyboardEverShown?: MutableRefObject<boolean>,
+  skipBackToKeyboard = false,
 ) => {
   const navigation = useNavigation();
   const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
@@ -20,10 +21,10 @@ const useMMPayNavigation = (
     const showKeyboard = () => setIsKeyboardVisible(true);
     const neverShown = keyboardEverShown && !keyboardEverShown.current;
 
-    mmPayRequestInProgressNavHandler.current =
-      isKeyboardVisible || neverShown ? false : showKeyboard;
+    const allowBack = isKeyboardVisible || skipBackToKeyboard || neverShown;
+    mmPayRequestInProgressNavHandler.current = allowBack ? false : showKeyboard;
     navigation.setOptions({
-      gestureEnabled: isKeyboardVisible || Boolean(neverShown),
+      gestureEnabled: !!allowBack,
     });
 
     if (isKeyboardVisible || neverShown) {
@@ -50,6 +51,7 @@ const useMMPayNavigation = (
     navigation,
     setIsKeyboardVisible,
     keyboardEverShown,
+    skipBackToKeyboard,
   ]);
 };
 

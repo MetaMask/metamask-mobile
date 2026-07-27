@@ -1,11 +1,18 @@
 import { IconName } from '@metamask/design-system-react-native';
-import type { ActivityKind } from '../../../util/activity-adapters';
+import {
+  isPerpsOrderKind,
+  type ActivityKind,
+} from '../../../util/activity-adapters';
 
 /**
  * Maps an activity kind to the transaction icon family used by
  * `getTransactionIcon`. Shared by the resolved and pending row variants.
  */
 export function resolveIconType(type: ActivityKind): string {
+  if (isPerpsOrderKind(type)) {
+    return 'interaction';
+  }
+
   switch (type) {
     case 'send':
     case 'sell':
@@ -55,11 +62,6 @@ export function resolveIconType(type: ActivityKind): string {
     case 'perpsPaidFundingFees':
     case 'perpsCloseShortTakeProfit':
     case 'perpsCloseLongTakeProfit':
-    case 'marketShort':
-    case 'stopMarketCloseShort':
-    case 'marketCloseShort':
-    case 'limitShort':
-    case 'limitCloseShort':
       return 'interaction';
   }
 }

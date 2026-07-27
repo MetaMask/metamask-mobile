@@ -72,17 +72,18 @@ import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridge
 import {
   getSwapBridgeTxActivityTitle,
   handleUnifiedSwapsTxHistoryItemClick,
+  isBridgeTxHistoryItemBridge,
 } from '../../UI/Bridge/utils/transaction-history';
-import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
-import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
@@ -99,9 +100,11 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
-  isSpendingCapWithAmount,
+  isFailedOrCancelledTransfer,
+  preferLocalOrApiActivityItem,
   type ActivityKind,
   type GroupedActivityListItem,
+  type TransactionGroup,
 } from '../../../util/activity-adapters';
 import {
   isBridgeHistoryForEvmTransaction,
@@ -161,6 +164,20 @@ const generateGroupedKey = (
 
 const noop = () => undefined;
 
+const PERPS_WALLET_TX_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+];
+
+const isPerpsWalletTransactionGroup = (group: TransactionGroup): boolean =>
+  [group.primaryTransaction, group.initialTransaction].some(
+    (meta) =>
+      hasTransactionType(meta, PERPS_WALLET_TX_TYPES) ||
+      (meta?.originalType !== undefined &&
+        PERPS_WALLET_TX_TYPES.includes(meta.originalType)),
+  );
+
 const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
   const prefix = strings('transactions.view_full_history_on');
@@ -172,7 +189,6 @@ interface ActivityListProps {
   header?: React.ReactElement;
   tabLabel?: string;
   chainId?: string; // used by non-EVM list items for explorer links
-  location?: TransactionDetailLocation;
   /**
    * Shared value updated on the UI thread with the list's vertical scroll
    * offset, for driving scroll-linked animations in the parent.
@@ -190,15 +206,7 @@ export interface ActivityListHandle {
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
   (
-    {
-      header,
-      chainId,
-      location,
-      scrollY,
-      typeFilter,
-      networkFilter,
-      subFilterKinds,
-    },
+    { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
     ref,
   ) => {
     const navigation = useNavigation();
@@ -385,18 +393,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (!hash) continue;
         const confirmed = confirmedItemByHash.get(hash);
         if (!confirmed) continue;
-        const localOutCategorizesConfirmed =
-          confirmed.type !== localItem.type &&
-          localItem.type !== 'contractInteraction' &&
-          localItem.type !== 'swapIncomplete';
-        // Same-kind spending caps: the accounts API returns no calldata for an
-        // approve, so its confirmed copy has no cap amount. Prefer the local
-        // copy, which decodes the amount from calldata.
-        const localHasRicherSpendingCap =
-          confirmed.type === localItem.type &&
-          isSpendingCapWithAmount(localItem) &&
-          !isSpendingCapWithAmount(confirmed);
-        if (localOutCategorizesConfirmed || localHasRicherSpendingCap) {
+        if (preferLocalOrApiActivityItem(localItem, confirmed) === localItem) {
           localWinsHashes.add(hash);
         }
       }
@@ -407,6 +404,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const raw = item.raw;
         if (raw?.type !== 'localTransaction') return true;
         const tx = raw.data.primaryTransaction;
+
+        if (isPerpsEnabled && isPerpsWalletTransactionGroup(raw.data)) {
+          return false;
+        }
 
         const txChainId = tx.chainId?.toLowerCase() ?? '';
         const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
@@ -479,7 +480,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           maliciousTokenKeys,
         );
 
-      const nonEvmItems = mapNonEvmTransactions(filteredNonEvmForMalicious);
+      const nonEvmItems = mapNonEvmTransactions(
+        filteredNonEvmForMalicious,
+        getBridgeHistoryItemByHash,
+      );
 
       // Drop confirmed copies whose local copy won above, so the winning local
       // copy isn't rendered alongside a duplicate confirmed row.
@@ -503,8 +507,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       configuredEVMChainIds,
       configuredNonEVMChainIds,
       bridgeHistory,
+      getBridgeHistoryItemByHash,
       relatedChainIdsByTransactionId,
       maliciousTokenKeys,
+      isPerpsEnabled,
     ]);
 
     const data = useMemo<ActivityListItem[]>(() => {
@@ -817,6 +823,27 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       async (item: ActivityListItem) => {
         const { raw } = item;
         if (!raw) return;
+
+        // Non-EVM swaps/bridges submitted from this device carry a
+        // bridge-history entry. Cross-chain bridges keep their dedicated
+        // bridge-status screen, mirroring hasDedicatedDetailScreen for local
+        // EVM bridges; same-chain swaps fall through to the shared detail flows.
+        if (raw.type === 'keyringTransaction') {
+          const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
+            item.hash,
+          );
+          if (
+            keyringBridgeHistoryItem &&
+            isBridgeTxHistoryItemBridge(keyringBridgeHistoryItem)
+          ) {
+            handleUnifiedSwapsTxHistoryItemClick({
+              navigation,
+              multiChainTx: raw.data,
+              bridgeTxHistoryItem: keyringBridgeHistoryItem,
+            });
+            return;
+          }
+        }
 
         if (isTransactionsRedesignEnabled) {
           const detailsRoute = getActivityDetailsRoute(item);
@@ -1141,7 +1168,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter, subFilterKinds]);
+
+      if (scrollY) {
+        scrollY.value = 0;
+      }
+    }, [typeFilter, networkFilter, subFilterKinds, scrollY]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();
@@ -1219,30 +1250,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       }
 
       const { item } = groupedItem;
-      const raw = item.raw;
 
-      // Non-EVM bridge transactions: route to MultichainBridgeTransactionListItem.
-      if (raw?.type === 'keyringTransaction') {
-        const srcTxHash = raw.data.id;
-        const bridgeHistoryItem = getBridgeHistoryItemByHash(srcTxHash);
-        if (bridgeHistoryItem) {
-          return (
-            <MultichainBridgeTransactionListItem
-              transaction={raw.data}
-              bridgeHistoryItem={bridgeHistoryItem}
-              navigation={navigation}
-              index={index}
-              location={location}
-              showDestinationPerspective={
-                !configuredNonEVMChainIds.includes(raw.data.chain)
-              }
-            />
-          );
-        }
-      }
-
-      // All other items (API EVM confirmed, completed local EVM, non-EVM non-bridge):
-      // render from the shared ActivityListItem shape.
+      // All items (API EVM confirmed, completed local EVM, non-EVM) render from
+      // the shared ActivityListItem shape.
       //
       // Preserve the legacy Activity title for swap/bridge rows (e.g.
       // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge

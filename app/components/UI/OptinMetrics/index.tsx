@@ -32,6 +32,7 @@ import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -91,6 +92,7 @@ const OptinMetrics = () => {
   const walletSetupAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -168,6 +170,7 @@ const OptinMetrics = () => {
       walletSetupAttributionProps,
       dispatch,
       discoverAccountsLogContext: 'OptinMetrics',
+      needsQrProvisioning,
     });
 
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
@@ -185,6 +188,7 @@ const OptinMetrics = () => {
     accountType,
     isBasicFunctionalityEnabled,
     walletSetupAttributionProps,
+    needsQrProvisioning,
   ]);
 
   /**

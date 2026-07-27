@@ -1,9 +1,14 @@
-import { QrSyncPhases } from '../../core/QrSync/constants';
+import {
+  QrSyncMessageVersion,
+  QrSyncPhases,
+  QrSyncProvisioningStatuses,
+  QrSyncSecretTypes,
+} from '../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
 import type { RootState } from '../../reducers';
 import {
   selectQrSyncExistingUserImportMnemonic,
-  selectQrSyncHasImportPlan,
+  selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
   selectQrSyncShouldNavigateToImport,
 } from './index';
@@ -23,87 +28,123 @@ const buildState = (
   }) as RootState;
 
 describe('qrSyncController selectors', () => {
-  describe('selectQrSyncHasImportPlan', () => {
-    it('returns true when import plan has entries', () => {
-      const state = buildState({
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
-      });
-
-      expect(selectQrSyncHasImportPlan(state)).toBe(true);
-    });
-
-    it('returns false when import plan is null or empty', () => {
-      expect(selectQrSyncHasImportPlan(buildState({ importPlan: null }))).toBe(
-        false,
-      );
-      expect(selectQrSyncHasImportPlan(buildState({ importPlan: [] }))).toBe(
-        false,
-      );
-    });
-  });
+  const pendingSecretImports = [
+    {
+      index: 0,
+      value: 'word1 word2 word3',
+      type: QrSyncSecretTypes.MNEMONIC,
+      isPrimary: true,
+    },
+  ];
 
   describe('selectQrSyncShouldNavigateToImport', () => {
-    const importPlan = [
-      {
-        index: 0,
-        value: 'word1 word2 word3',
-        type: 'MNEMONIC' as const,
-        accountName: null,
-        hiddenIndexes: [],
-        isPrimary: true,
-      },
-    ];
-
-    it('returns true while reviewing import data', () => {
+    it('returns true when awaiting password with pending secrets', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
-            phase: QrSyncPhases.REVIEWING_IMPORT,
-            importPlan,
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+            pendingSecretImports,
           }),
         ),
       ).toBe(true);
     });
 
-    it('returns true after sync completes with import data still pending', () => {
+    it('returns true after sync completes while secrets are still pending', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
             phase: QrSyncPhases.COMPLETED,
-            importPlan,
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+            pendingSecretImports,
           }),
         ),
       ).toBe(true);
+    });
+
+    it('returns false when provisioning is not awaiting password', () => {
+      expect(
+        selectQrSyncShouldNavigateToImport(
+          buildState({
+            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
+            pendingSecretImports,
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  const provisioningMetadata = {
+    version: QrSyncMessageVersion.V1,
+    entries: [
+      {
+        index: 0,
+        type: QrSyncSecretTypes.MNEMONIC,
+        isPrimary: true,
+        entropySource: 'entropy-1',
+      },
+    ],
+  };
+
+  describe('selectQrSyncNeedsProvisioning', () => {
+    it('returns true when secrets are imported and metadata is present', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
+            provisioningMetadata,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns true when provisioning status is not secrets_imported', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+            provisioningMetadata,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when provisioning metadata is null', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
+            provisioningMetadata: null,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when provisioning is already completed with import data still pending', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: QrSyncProvisioningStatuses.COMPLETED,
+            provisioningMetadata: null,
+          }),
+        ),
+      ).toBe(false);
     });
   });
 
   describe('selectQrSyncExistingUserImportMnemonic', () => {
     it('returns the primary mnemonic when flagged', () => {
       const state = buildState({
-        importPlan: [
+        pendingSecretImports: [
           {
             index: 0,
             value: 'primary mnemonic',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
+            type: QrSyncSecretTypes.MNEMONIC,
             isPrimary: true,
           },
           {
             index: 1,
             value: 'secondary mnemonic',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
+            type: QrSyncSecretTypes.MNEMONIC,
             isPrimary: false,
           },
         ],
@@ -116,13 +157,11 @@ describe('qrSyncController selectors', () => {
 
     it('falls back to the first mnemonic when isPrimary is absent', () => {
       const state = buildState({
-        importPlan: [
+        pendingSecretImports: [
           {
             index: 0,
             value: 'extension mnemonic',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
+            type: QrSyncSecretTypes.MNEMONIC,
             isPrimary: false,
           },
         ],
@@ -135,28 +174,19 @@ describe('qrSyncController selectors', () => {
   });
 
   describe('selectQrSyncPresentation', () => {
-    it('keeps device-linked presentation after sync completes with import data', () => {
+    it('keeps device-linked presentation after sync completes with pending secrets', () => {
       const state = buildState({
         phase: QrSyncPhases.COMPLETED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        pendingSecretImports,
       });
 
       expect(selectQrSyncPresentation(state)).toBe('device-linked');
     });
 
-    it('returns instructions when sync completes without import data', () => {
+    it('returns instructions when sync completes without pending secrets', () => {
       const state = buildState({
         phase: QrSyncPhases.COMPLETED,
-        importPlan: null,
+        pendingSecretImports: null,
       });
 
       expect(selectQrSyncPresentation(state)).toBe('instructions');

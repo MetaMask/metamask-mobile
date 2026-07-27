@@ -10,7 +10,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -212,7 +213,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Image
                     source={{ uri: market.image }}
                     style={tw.style('w-full h-full')}
-                    resizeMode="cover"
+                    contentFit="cover"
+                    recyclingKey={market.image}
                   />
                 </Box>
               )}

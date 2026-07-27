@@ -107,10 +107,14 @@ const PerpsSelectModifyActionView: React.FC<
           break;
 
         case 'reduce_position':
-          // Open close position screen
+          // Open close position screen — this entry is the reduce-exposure CTA.
           navigateToClosePosition(
             position,
             PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+            {
+              buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+              buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+            },
           );
           break;
 

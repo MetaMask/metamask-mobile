@@ -177,6 +177,7 @@ jest.mock('../../Perps.testIds', () => ({
     rowItem: (symbol: string) => `perps-market-row-${symbol}`,
     tokenLogo: (symbol: string) => `perps-market-logo-${symbol}`,
     assetLabel: (symbol: string) => `perps-market-asset-label-${symbol}`,
+    tickerSuffix: (symbol: string) => `perps-market-ticker-suffix-${symbol}`,
     badge: (symbol: string) => `perps-market-badge-${symbol}`,
   },
 }));

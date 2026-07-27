@@ -34,7 +34,7 @@ describe('selectTokenWatchlistEnabled', () => {
   });
 
   it('exposes the LaunchDarkly flag key for registry alignment', () => {
-    expect(ASSET_GLOBAL_WATCHLIST_FLAG_KEY).toBe('assets-global-watchlist-v1');
+    expect(ASSET_GLOBAL_WATCHLIST_FLAG_KEY).toBe('assetsGlobalWatchlistV1');
   });
 
   const testCases: {

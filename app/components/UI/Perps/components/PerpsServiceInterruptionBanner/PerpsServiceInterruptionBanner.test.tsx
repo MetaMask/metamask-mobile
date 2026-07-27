@@ -63,7 +63,7 @@ describe('PerpsServiceInterruptionBanner', () => {
     expect(getByText('Contact support')).toBeOnTheScreen();
   });
 
-  it('navigates to support when support link pressed', () => {
+  it('navigates to support when contact support action button pressed', () => {
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
         return true;
@@ -71,11 +71,9 @@ describe('PerpsServiceInterruptionBanner', () => {
       return undefined;
     });
 
-    const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
+    const { getByText } = render(<PerpsServiceInterruptionBanner />);
 
-    fireEvent.press(
-      getByTestId('perps-service-interruption-banner-support-link'),
-    );
+    fireEvent.press(getByText('Contact support'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });

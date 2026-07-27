@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { act } from 'react-test-renderer';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsChartFullscreenModal from './PerpsChartFullscreenModal';
 import {
   lockAsync,
@@ -14,11 +13,15 @@ import {
   type CandleData,
 } from '@metamask/perps-controller';
 import type { OhlcData, TPSLLines } from '../TradingViewChart/TradingViewChart';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
 } from '../../Perps.testIds';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PERPS_EVENT_PROPERTY as PERPS_CHART_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE as PERPS_CHART_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../../../../util/Logger');
@@ -367,6 +370,53 @@ describe('PerpsChartFullscreenModal', () => {
         expect(mockOnClose).toHaveBeenCalled();
       });
     });
+
+    it('tracks warning chart errors with chart context', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const ComponentErrorBoundary = require('../../../ComponentErrorBoundary');
+      const mockOnError = jest.fn();
+
+      ComponentErrorBoundary.mockImplementationOnce(
+        ({
+          onError,
+          children,
+        }: {
+          onError: () => void;
+          children: React.ReactNode;
+        }) => {
+          mockOnError.mockImplementation(onError);
+          return children;
+        },
+      );
+
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      await act(async () => {
+        mockOnError();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+    });
   });
 
   describe('Interval Selection', () => {
@@ -503,6 +553,7 @@ describe('PerpsChartFullscreenModal', () => {
           tpslLines: mockTpslLines,
           positionSize: '0.5',
           szDecimals: 2,
+          surface: 'full_screen_chart',
           fallbackCandleData: mockCandleData,
         }),
       );
@@ -560,15 +611,19 @@ describe('PerpsChartFullscreenModal', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-        {
+        expect.objectContaining({
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
-        },
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
       );
     });
 
-    it('tracks error and keeps modal open when advanced chart reports an error', () => {
+    it('tracks advanced when a fullscreen advanced render succeeds after parent fallback', () => {
       render(
         <PerpsChartFullscreenModal
           {...defaultProps}
@@ -582,7 +637,94 @@ describe('PerpsChartFullscreenModal', () => {
         mockPerpsAdvancedChart.mock.calls[
           mockPerpsAdvancedChart.mock.calls.length - 1
         ][0];
-      latestAdvancedChartProps.onError();
+      latestAdvancedChartProps.onSkeletonHidden();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+    });
+
+    it('resets fullscreen screen-view tracking when the fullscreen render library changes', () => {
+      const { rerender } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          candleData={mockCandleData}
+          isAdvancedChartEnabled={false}
+          symbol="BTC"
+        />,
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+      mockTrack.mockClear();
+
+      rerender(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          candleData={mockCandleData}
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const updatedAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      updatedAdvancedChartProps.onSkeletonHidden();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+    });
+
+    it('tracks error and keeps modal open when advanced chart reports an error', async () => {
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      await act(async () => {
+        latestAdvancedChartProps.onError();
+      });
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_ERROR,
@@ -594,17 +736,136 @@ describe('PerpsChartFullscreenModal', () => {
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
         }),
       );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-        {
+        expect.objectContaining({
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
-        },
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
       );
       expect(mockOnClose).not.toHaveBeenCalled();
+
+      mockTrack.mockClear();
+      const latestFallbackChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      await act(async () => {
+        latestFallbackChartProps.onError();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+            'Chart rendering error in fullscreen chart modal',
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+    });
+
+    it('tracks lightweight fallback view after advanced screen view was already tracked', async () => {
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAdvancedChartProps.onSkeletonHidden();
+
+      await act(async () => {
+        latestAdvancedChartProps.onError();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+    });
+
+    it('does not reset fallback chart attribution after an interval change', async () => {
+      const { rerender } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+
+      await act(async () => {
+        latestAdvancedChartProps.onError();
+      });
+      mockTrack.mockClear();
+
+      rerender(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          selectedInterval={CandlePeriod.FifteenMinutes}
+          symbol="BTC"
+        />,
+      );
+
+      const latestAfterIntervalChangeProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAfterIntervalChangeProps.onSkeletonHidden();
+
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 

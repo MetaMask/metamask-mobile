@@ -23,6 +23,7 @@ import { buildCampaignOutcomeToastCompositeKey } from '../../../../reducers/rewa
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { navigateToRewardsRoute } from '../utils';
 import useRewardsToast from './useRewardsToast';
+import type { RewardsStackParamList } from '../types/navigation';
 
 export interface CampaignOutcomeToastConfig {
   campaignType: CampaignType;
@@ -120,8 +121,8 @@ export function useCampaignOutcomeToast(
         : getNonWinnerNavigation(targetCampaign);
     navigateToRewardsRoute(
       navigation,
-      nav.route,
-      nav.params as Record<string, unknown>,
+      nav.route as keyof RewardsStackParamList,
+      nav.params as never,
     );
   }, [
     variant,

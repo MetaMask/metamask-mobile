@@ -22,7 +22,11 @@ on:
         type: boolean
         default: false
     secrets:
+      github-token:
+        required: false
       google-application-creds-base64:
+        required: false
+      PR_TOKEN:
         required: false
       GCP_RLS_SHEET_ACCOUNT_BASE64:
         required: false
@@ -105,27 +109,9 @@ jobs:
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
     steps:
-      # Mint a short-lived token via the token-exchange service (OIDC). It needs:
-      # - contents: write       → push the release / version-bump / changelog branches
-      # - pull_requests: write  → open the release PRs
-      # - members: read         → auto-changelog --autoCategorize resolves PR author teams (read:org)
-      # - workflows: write      → the release branch cut here comes from main and can genuinely
-      #                           differ in .github/workflows/* from the previous release branch
-      # OIDC works on every trigger, so no workflow_dispatch vs workflow_call token split is needed.
-      - name: Get token
-        id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
-        with:
-          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
-          permissions: |
-            contents: write
-            pull_requests: write
-            members: read
-            workflows: write
-
       - name: Create Release PR (semver / native version bump)
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: MetaMask/github-tools/.github/actions/create-release-pr@v1.16.0
+        uses: MetaMask/github-tools/.github/actions/create-release-pr@v1
         with:
           platform: mobile
           checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
@@ -133,7 +119,10 @@ jobs:
           semver-version: ${{ inputs.semver-version }}
           previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
           mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-          github-token: ${{ steps.get-token.outputs.token }}
+          # Needs write to metamask-mobile and read to metamask-planning. Prefer PR_TOKEN (workflow scope / bot) over GITHUB_TOKEN.
+          # workflow_dispatch: use secrets.PR_TOKEN directly.
+          # workflow_call: reusable workflows only receive secrets explicitly passed in; auto-create-release-pr maps github-token → PR_TOKEN.
+          github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
 
       # Check PR before checkout/bump/push so retries do not overwrite OTA_VERSION again when a PR already exists.
@@ -144,7 +133,7 @@ jobs:
         env:
           SEMVER: ${{ inputs.semver-version }}
           RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
-          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
         run: |
           set -euo pipefail
           BRANCH="release/${SEMVER}-ota"
@@ -162,7 +151,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: release/${{ inputs.semver-version }}-ota
-          token: ${{ steps.get-token.outputs.token }}
+          token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           fetch-depth: 0
 
       - name: Bump OTA_VERSION and push (OTA hotfix)
@@ -170,7 +159,7 @@ jobs:
         shell: bash
         env:
           SEMVER: ${{ inputs.semver-version }}
-          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
         run: |
           set -euo pipefail
           BRANCH="release/${SEMVER}-ota"
@@ -210,7 +199,7 @@ jobs:
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
+          GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           GIT_AUTHOR_NAME: metamaskbot
           GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
         run: |
@@ -234,7 +223,7 @@ jobs:
         env:
           SEMVER: ${{ inputs.semver-version }}
           RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
-          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
         run: |
           set -euo pipefail
           BRANCH="release/${SEMVER}-ota"

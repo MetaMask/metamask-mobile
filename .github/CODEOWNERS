@@ -109,6 +109,9 @@ app/util/confirmation/                                          @MetaMask/confir
 app/util/transaction-controller/                               @MetaMask/confirmations
 app/util/transactions/                                         @MetaMask/confirmations
 
+# Product Safety Team
+**/product-safety/**                                            @MetaMask/product-safety
+
 # Wallet integrations Team
 app/components/Approvals/WalletConnectApproval/             @MetaMask/wallet-integrations
 app/components/Views/SDK/                                   @MetaMask/wallet-integrations

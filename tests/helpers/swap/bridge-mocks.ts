@@ -157,6 +157,26 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
+  // Token search (POST) — typing in the selector (≥3 chars) hits /getTokens/search
+  await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: /getTokens\/search/i,
+    response: {
+      data: [
+        ...GET_POPULAR_TOKENS_MAINNET_RESPONSE,
+        ...GET_POPULAR_TOKENS_BASE_RESPONSE,
+      ],
+      count:
+        GET_POPULAR_TOKENS_MAINNET_RESPONSE.length +
+        GET_POPULAR_TOKENS_BASE_RESPONSE.length,
+      totalCount:
+        GET_POPULAR_TOKENS_MAINNET_RESPONSE.length +
+        GET_POPULAR_TOKENS_BASE_RESPONSE.length,
+      pageInfo: { hasNextPage: false },
+    },
+    responseCode: 200,
+  });
+
   // Mock getTxStatus with a full response so the BridgeStatusController
   // marks the bridge as complete (srcChain + destChain txHash present)
   await setupMockRequest(mockServer, {
@@ -309,6 +329,26 @@ export const createBridgeQuoteStatusManagerMock = (
         ...GET_POPULAR_TOKENS_MAINNET_RESPONSE,
         ...GET_POPULAR_TOKENS_BASE_RESPONSE,
       ],
+      responseCode: 200,
+    });
+
+    // Token search (POST) — typing in the selector (≥3 chars) hits /getTokens/search
+    await setupMockRequest(mockServer, {
+      requestMethod: 'POST',
+      url: /getTokens\/search/i,
+      response: {
+        data: [
+          ...GET_POPULAR_TOKENS_MAINNET_RESPONSE,
+          ...GET_POPULAR_TOKENS_BASE_RESPONSE,
+        ],
+        count:
+          GET_POPULAR_TOKENS_MAINNET_RESPONSE.length +
+          GET_POPULAR_TOKENS_BASE_RESPONSE.length,
+        totalCount:
+          GET_POPULAR_TOKENS_MAINNET_RESPONSE.length +
+          GET_POPULAR_TOKENS_BASE_RESPONSE.length,
+        pageInfo: { hasNextPage: false },
+      },
       responseCode: 200,
     });
 

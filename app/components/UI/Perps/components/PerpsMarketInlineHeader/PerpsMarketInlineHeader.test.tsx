@@ -77,14 +77,12 @@ describe('PerpsMarketInlineHeader', () => {
     expect(onMorePress).toHaveBeenCalled();
   });
 
-  it('handles favorite and search button presses', () => {
+  it('handles favorite button press', () => {
     const onFavoritePress = jest.fn();
-    const onCategorySearchPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <PerpsMarketInlineHeader
         market={mockMarket}
         onFavoritePress={onFavoritePress}
-        onCategorySearchPress={onCategorySearchPress}
         isFavorite
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
         currentPrice={45000}
@@ -93,12 +91,92 @@ describe('PerpsMarketInlineHeader', () => {
     );
 
     fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
-    fireEvent.press(
-      getByTestId(PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON),
-    );
 
     expect(onFavoritePress).toHaveBeenCalled();
-    expect(onCategorySearchPress).toHaveBeenCalled();
+  });
+
+  describe('useDetailLayout layout', () => {
+    it('renders the full asset name as title and the market pair subtitle', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      // Title shows the full asset name, subtitle shows the [ticker]-[collateral] perp pair
+      expect(getByText('Bitcoin')).toBeTruthy();
+      expect(getByTestId(PerpsMarketHeaderSelectorsIDs.SUBTITLE)).toBeTruthy();
+      expect(getByText('BTC-USD perp')).toBeTruthy();
+
+      // Price/24h change are not rendered inside the header in this layout
+      expect(queryByTestId(PerpsMarketHeaderSelectorsIDs.PRICE)).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE),
+      ).toBeNull();
+    });
+
+    it('falls back to the ticker when the market has no name', () => {
+      const marketWithoutName = {
+        ...mockMarket,
+        name: '',
+      } as unknown as PerpsMarketData;
+
+      const { getByText } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={marketWithoutName}
+          useDetailLayout
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText('BTC')).toBeTruthy();
+    });
+
+    it('opens the market list when the identity box is pressed', () => {
+      const onIdentityPress = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          onIdentityPress={onIdentityPress}
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(onIdentityPress).toHaveBeenCalled();
+    });
+
+    it('does not make the identity a button without an onIdentityPress handler', () => {
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      // Identity content still renders, but not as an interactive button.
+      expect(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.ASSET_NAME),
+      ).toBeTruthy();
+      expect(
+        queryByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      ).toBeNull();
+    });
   });
 
   it('renders endAccessory when provided', () => {

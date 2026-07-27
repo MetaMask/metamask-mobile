@@ -1,15 +1,10 @@
-import React, { useRef, useEffect, memo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import BottomSheet, {
+import React, { useRef, useEffect, useCallback, memo } from 'react';
+import {
+  BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { useTheme } from '../../../../../util/theme';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { createStyles } from './PerpsOrderTypeBottomSheet.styles';
+  ListItemSelect,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -39,8 +34,6 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   direction = 'long',
   sheetRef: externalSheetRef,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { track } = usePerpsEventTracking();
@@ -50,6 +43,10 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       sheetRef.current?.onOpenBottomSheet();
     }
   }, [isVisible, externalSheetRef, sheetRef]);
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, [sheetRef]);
 
   const orderTypes = [
     {
@@ -66,69 +63,58 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
     },
   ];
 
-  const handleSelect = (type: OrderType) => {
-    // Track order type selected only if it's different from current
-    if (type !== currentOrderType) {
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
-        [PERPS_EVENT_PROPERTY.ASSET]: asset,
-        [PERPS_EVENT_PROPERTY.DIRECTION]:
-          direction === 'long'
-            ? PERPS_EVENT_VALUE.DIRECTION.LONG
-            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-        [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
-          type === 'market'
-            ? PERPS_EVENT_VALUE.ORDER_TYPE.MARKET
-            : PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
-      });
-    }
+  const handleSelect = useCallback(
+    (type: OrderType) => {
+      if (type !== currentOrderType) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
+          [PERPS_EVENT_PROPERTY.ASSET]: asset,
+          [PERPS_EVENT_PROPERTY.DIRECTION]:
+            direction === 'long'
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
+            type === 'market'
+              ? PERPS_EVENT_VALUE.ORDER_TYPE.MARKET
+              : PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
+        });
+      }
 
-    onSelect(type);
-    onClose();
-  };
+      onSelect(type);
+      handleClose();
+    },
+    [currentOrderType, track, asset, direction, onSelect, handleClose],
+  );
 
   if (!isVisible) return null;
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack={false} onClose={onClose}>
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.type.title')}
-        </Text>
+    <BottomSheet
+      ref={sheetRef}
+      testID={PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER}
+      goBack={!externalSheetRef ? onClose : undefined}
+      onClose={externalSheetRef ? onClose : undefined}
+    >
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        }}
+      >
+        {strings('perps.order.type.title')}
       </BottomSheetHeader>
-
-      <View style={styles.container}>
-        {orderTypes.map(({ type, title, description, testID }) => (
-          <TouchableOpacity
-            key={type}
-            testID={testID}
-            style={[
-              styles.option,
-              currentOrderType === type && styles.optionSelected,
-            ]}
-            onPress={() => handleSelect(type)}
-          >
-            <View style={styles.optionHeader}>
-              <View style={styles.optionContent}>
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Default}
-                  style={styles.optionTitle}
-                >
-                  {title}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {description}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {orderTypes.map(({ type, title, description, testID }) => (
+        <ListItemSelect
+          key={type}
+          title={title}
+          description={description}
+          isSelected={currentOrderType === type}
+          showSelectedIcon={false}
+          onPress={() => handleSelect(type)}
+          testID={testID}
+        />
+      ))}
     </BottomSheet>
   );
 };

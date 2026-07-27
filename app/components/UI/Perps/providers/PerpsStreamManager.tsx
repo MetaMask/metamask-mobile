@@ -1747,6 +1747,138 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 }
 
+/**
+ * Focused single-symbol price channel with fast activeAssetCtx projection.
+ *
+ * Subscribes with `includeMarketData: true` so the controller projects the
+ * fast activeAssetCtx midPx/markPx onto updates for this subscriber (TAT-3334).
+ * Scoped to a single symbol so it never triggers N² WebSocket connections —
+ * one activeAssetCtx subscription is opened and reference-counted per symbol.
+ *
+ * Intended for detail/ticket screens that need sub-2s price refresh. List/
+ * overview screens continue using PriceStreamChannel (includeMarketData: false).
+ */
+class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
+  private currentSymbol: string | null = null;
+  private cachedPriceUpdate: PriceUpdate | undefined = undefined;
+
+  protected connect() {
+    if (!this.currentSymbol || this.wsSubscription) {
+      return;
+    }
+
+    if (!this.ensureReady()) return;
+
+    DevLogger.log(`FocusedPriceStreamChannel: Subscribing with market data`, {
+      symbol: this.currentSymbol,
+    });
+
+    this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
+      symbols: [this.currentSymbol],
+      includeMarketData: true,
+      callback: (updates: PriceUpdate[]) => {
+        const update = updates.find((u) => u.symbol === this.currentSymbol);
+        if (update) {
+          this.cachedPriceUpdate = update;
+          // Scope dispatch to subscribers registered for this update's symbol.
+          // Prevents a stale subscriber left mounted after navigating to a
+          // different symbol (e.g. React Navigation keeping a prior screen
+          // mounted) from receiving/caching another symbol's price.
+          this.notifySubscribersForSymbols(update, [update.symbol]);
+        }
+      },
+    });
+  }
+
+  protected getCachedData(): PriceUpdate | undefined {
+    return this.cachedPriceUpdate;
+  }
+
+  protected getClearedData(): PriceUpdate | undefined {
+    return undefined;
+  }
+
+  public getSnapshot(): PriceUpdate | undefined | null {
+    return this.cachedPriceUpdate ?? null;
+  }
+
+  public clearCache(): void {
+    this.cachedPriceUpdate = undefined;
+    super.clearCache();
+  }
+
+  public subscribeToSymbol(params: {
+    symbol: string;
+    callback: (update: PriceUpdate | undefined) => void;
+  }): () => void {
+    if (this.currentSymbol && this.currentSymbol !== params.symbol) {
+      DevLogger.log('FocusedPriceStreamChannel: Symbol changed, reconnecting', {
+        currentSymbol: this.currentSymbol,
+        requestedSymbol: params.symbol,
+      });
+      this.disconnect();
+      this.currentSymbol = params.symbol;
+    } else if (!this.currentSymbol) {
+      this.currentSymbol = params.symbol;
+    }
+
+    const unsubscribe = this.subscribe({
+      // Registering the symbol lets the channel scope dispatch (via
+      // notifySubscribersForSymbols) to only the subscriber(s) that
+      // requested it, even while another symbol's subscriber is still
+      // mounted and registered on this same channel.
+      symbols: [params.symbol],
+      callback: params.callback,
+    });
+
+    return () => {
+      unsubscribe();
+      // If unsubscribing left the currently-focused symbol without any
+      // subscribers (e.g. leaving an ETH screen) but another symbol's
+      // subscriber is still mounted below it (e.g. popping back to BTC),
+      // re-point the WebSocket at that surviving symbol instead of leaving
+      // it disconnected until that screen mounts a brand-new subscription.
+      this.refocusToRemainingSymbol();
+    };
+  }
+
+  /**
+   * Re-point the WebSocket subscription to a surviving subscriber's symbol
+   * after an unsubscribe leaves the currently-focused symbol with no
+   * subscribers left, while another symbol is still registered.
+   */
+  private refocusToRemainingSymbol(): void {
+    if (this.subscribers.size === 0) {
+      // No subscribers left at all — the base subscribe() teardown already
+      // called disconnect() when the last one unsubscribed.
+      return;
+    }
+    if (this.currentSymbol && this.symbolSubscribers.has(this.currentSymbol)) {
+      // The focused symbol still has at least one subscriber.
+      return;
+    }
+
+    const nextSymbol = this.symbolSubscribers.keys().next().value;
+    if (!nextSymbol) {
+      return;
+    }
+
+    DevLogger.log(
+      'FocusedPriceStreamChannel: Re-focusing to remaining subscriber symbol',
+      { nextSymbol },
+    );
+    this.disconnect();
+    this.currentSymbol = nextSymbol;
+    this.connect();
+  }
+
+  public disconnect() {
+    this.currentSymbol = null;
+    this.cachedPriceUpdate = undefined;
+    super.disconnect();
+  }
+}
+
 // Market data channel for caching market list data
 class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
@@ -2074,6 +2206,7 @@ export class PerpsStreamManager {
   );
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
+  public readonly focusedPrice = new FocusedPriceStreamChannel();
   public readonly candles = new CandleStreamChannel(
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
@@ -2167,6 +2300,7 @@ export class PerpsStreamManager {
     this.account.pause();
     this.oiCaps.pause();
     this.topOfBook.pause();
+    this.focusedPrice.pause();
     this.candles.pause();
   }
 
@@ -2182,6 +2316,7 @@ export class PerpsStreamManager {
     this.account.resume();
     this.oiCaps.resume();
     this.topOfBook.resume();
+    this.focusedPrice.resume();
     this.candles.resume();
   }
 
@@ -2200,6 +2335,7 @@ export class PerpsStreamManager {
     this.marketData.reconnect();
     this.oiCaps.reconnect();
     this.topOfBook.reconnect();
+    this.focusedPrice.reconnect();
     this.candles.reconnect();
   }
 }

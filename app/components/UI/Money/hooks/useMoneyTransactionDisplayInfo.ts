@@ -29,9 +29,7 @@ import {
   MUSD_DECIMALS,
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
-import { MONEY_WITHDRAW_TOKEN_SYMBOL } from '../constants/moneyTokens';
 import {
-  isMoneyWithdrawTx,
   isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyWithdraw,
   perpsPredictServiceFamily,
@@ -98,7 +96,7 @@ function prettifyFiatProvider(
  * Gets the subtitle for a Money activity row, by kind. An explicit
  * `moneySubtitle` always wins (mock / enriched rows). Otherwise:
  * - converted → "{token} → mUSD"
- * - sent      → "mUSD → {token}" (the withdraw destination token)
+ * - sent      → "mUSD → {token}" for a cross-token withdrawal, else "mUSD"
  * - received  → "From: 0x…" (the sender)
  * - deposited → fiat payment method ("Apple Pay"), else provider ("Transak"), else funding token ("mUSD")
  * - card / added / transferred → the source token symbol, if any
@@ -130,17 +128,14 @@ function deriveSubtitle(
         ? `${sourceTokenSymbol} → ${MUSD_TOKEN.symbol}`
         : undefined;
     case 'sent': {
-      // Prefer the resolved destination token; for a withdrawal (always paid
-      // out in USDC) fall back to that known symbol, since the dest token
-      // usually isn't in the registry.
-      const destSymbol =
-        sourceTokenSymbol ??
-        (isMoneyWithdrawTx(tx) ? MONEY_WITHDRAW_TOKEN_SYMBOL : undefined);
       // A plain mUSD send (destination is mUSD too) collapses to just "mUSD",
       // mirroring the deposit row; only a cross-token withdrawal keeps the
       // "mUSD → X" pair, where the destination token carries real information.
-      return destSymbol && destSymbol !== MUSD_TOKEN.symbol
-        ? `${MUSD_TOKEN.symbol} → ${destSymbol}`
+      // Withdrawals pay out the vault asset (mUSD) unless a cross-token
+      // destination was quoted — in which case the pay token always resolves —
+      // so an unresolvable destination is a plain mUSD send, never USDC.
+      return sourceTokenSymbol && sourceTokenSymbol !== MUSD_TOKEN.symbol
+        ? `${MUSD_TOKEN.symbol} → ${sourceTokenSymbol}`
         : MUSD_TOKEN.symbol;
     }
     case 'received': {

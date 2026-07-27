@@ -1032,10 +1032,58 @@ class WalletView {
   }
 
   async tapOnNewTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'New Tokens Section',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'New Tokens Section',
+        });
+      },
+      appium: async () => {
+        await this.scrollAndTapTokensSection();
+      },
     });
+  }
+
+  /**
+   * Scrolls the wallet homepage until the Tokens section header is tappable.
+   * On long homepages the header can sit below the fold near the tab bar; a plain
+   * tap then hits the tab bar instead of navigating to Tokens Full View.
+   */
+  async scrollAndTapTokensSection(
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
+    if (
+      await this.tapIfAlreadyVisible(this.tokensSectionHeader, 'Tokens section')
+    ) {
+      return;
+    }
+
+    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
+      overshootSwipe: {
+        direction:
+          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
+        percentage: 0.15,
+      },
+      timeout: 60_000,
+    });
+
+    try {
+      await this.scrollAndTapSection(
+        this.tokensSectionHeader,
+        'Tokens section',
+        direction,
+        getScrollOptions(direction),
+      );
+    } catch {
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+      await this.scrollAndTapSection(
+        this.tokensSectionHeader,
+        'Tokens section',
+        fallbackDirection,
+        getScrollOptions(fallbackDirection),
+      );
+    }
   }
 
   async tapOnTokensSection(): Promise<void> {

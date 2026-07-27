@@ -1,7 +1,10 @@
 import type { Position } from '@metamask/social-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import type { ReactNode } from 'react';
-import type { QuickBuySheetSource } from './analytics';
+import type {
+  QuickBuyOriginalEntryPoint,
+  QuickBuySheetSource,
+} from './analytics';
 import { chainNameToId } from '../../../utils/chainMapping';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
@@ -41,6 +44,11 @@ export interface QuickBuyAnalyticsContext {
   traderAddress?: string;
   marketCap?: number;
   source?: QuickBuySheetSource;
+  /**
+   * How the user reached the trade screen before opening Quick Buy. Only set
+   * when Quick Buy is hosted on `TraderPositionView`.
+   */
+  originalEntryPoint?: QuickBuyOriginalEntryPoint;
   traderTradeType?: 'buy' | 'sell';
   /**
    * Latest price of the buy token in the user's display currency, supplied by

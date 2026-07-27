@@ -55,6 +55,8 @@ export interface PredictFeedConfigResult {
   tabs: PredictFeedTabSummary[];
   /** Hidden for single-tab feeds; filters still render for that one tab. */
   showTabBar: boolean;
+  /** Hidden when the active feed has no user-selectable filters. */
+  showFilterBar: boolean;
   activeTabId?: string;
   setActiveTabId: (id: string) => void;
   /** Static + deduped dynamic filters for the active tab. */
@@ -356,6 +358,7 @@ export const usePredictFeedConfig = (
     header: config?.header,
     tabs,
     showTabBar: tabs.length > 1,
+    showFilterBar: config?.showFilterBar ?? true,
     activeTabId: resolvedActiveTabId,
     setActiveTabId,
     filters,
