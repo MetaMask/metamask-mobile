@@ -1,9 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { execFileSync } from 'node:child_process';
-import {
-  collectDoctorReport,
-  formatDoctorReport,
-} from '../ios/doctor';
+import { collectDoctorReport, formatDoctorReport } from '../ios/doctor';
 
 jest.mock('node:child_process', () => ({ execFileSync: jest.fn() }));
 
@@ -87,7 +84,7 @@ describe('collectDoctorReport', () => {
       const name = String(file);
       const values = (args as string[]) ?? [];
       if (name.endsWith('idb_companion')) {
-        const error = new Error('non-zero exit') as NodeJS.ErrnoException;
+        const error = new Error('non-zero exit') as Error & { status: number };
         error.status = 1;
         throw error;
       }
