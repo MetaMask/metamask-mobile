@@ -1,9 +1,5 @@
 /**
  * mUSD Conversion Constants for Earn namespace
- *
- * Shared constants and guards live in `@metamask/money-account-utils` and are
- * re-exported here so existing import paths keep working. Client-specific
- * presentation (icon asset) and configuration stay local.
  */
 
 import { MUSD_TOKEN as MUSD_TOKEN_BASE } from '@metamask/money-account-utils';
