@@ -101,6 +101,7 @@ export const usePerpsMeasurement = ({
   const previousEndState = useRef(false);
   const traceStarted = useRef(false);
   const traceId = useRef<string>(uuidv4()); // Generate new ID on each trace start
+  const activeTraceName = useRef(traceName);
 
   // Note: debugContext is used directly rather than memoized since:
   // 1. It's typically used sparingly for debugging/logging
@@ -179,6 +180,7 @@ export const usePerpsMeasurement = ({
     if (shouldStart && !previousStartState.current && !traceStarted.current) {
       // Generate a new trace ID for this measurement cycle
       traceId.current = uuidv4();
+      activeTraceName.current = traceName;
 
       // Start a Sentry trace using the provided trace name
       // Use unique traceId to prevent conflicts when multiple
@@ -243,4 +245,20 @@ export const usePerpsMeasurement = ({
     actualStartConditions,
     actualEndConditions,
   ]);
+
+  useEffect(
+    () => () => {
+      if (!traceStarted.current) {
+        return;
+      }
+
+      endTrace({
+        name: activeTraceName.current,
+        id: traceId.current,
+        data: { success: false, reason: 'unmounted' },
+      });
+      traceStarted.current = false;
+    },
+    [],
+  );
 };

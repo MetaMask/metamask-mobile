@@ -123,6 +123,9 @@ import type {
   TransactionsViewParams,
   TransactionDetailsParams,
 } from '../../components/Views/TransactionsView/TransactionsView.types';
+import type { ActivityTypeFilterSheetParams } from '../../components/Views/ActivityScreen/components/ActivityTypeFilterSheet';
+import type { PerpsActivityFilterSheetParams } from '../../components/Views/ActivityScreen/components/PerpsActivityFilterSheet';
+import type { ActivityNetworkFilterSheetParams } from '../../components/Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 
 // Asset params
 import type {
@@ -427,6 +430,9 @@ export type RootModalFlowParamList = {
   PermittedNetworksInfoSheet: undefined;
   NetworkSelector: NetworkSelectorParams | undefined;
   TokenSort: undefined;
+  ActivityTypeFilter: ActivityTypeFilterSheetParams;
+  ActivityPerpsFilter: PerpsActivityFilterSheetParams;
+  ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
   ConfirmTurnOnBackupAndSync: undefined;
@@ -807,6 +813,9 @@ export type RootStackParamList = {
   OriginSpamModal: OriginSpamModalParams | undefined;
   tooltipModal: TooltipModalRouteParams | undefined;
   TokenSort: undefined;
+  ActivityTypeFilter: ActivityTypeFilterSheetParams;
+  ActivityPerpsFilter: PerpsActivityFilterSheetParams;
+  ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
