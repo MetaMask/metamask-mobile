@@ -268,6 +268,11 @@ export const PerpsHomeViewSelectorsIDs = {
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  /**
+   * ADR58 POC (DO NOT MERGE) — debug banner when an open ETH Perps position exists.
+   * testID used by recipe proof; remove with the POC.
+   */
+  ADR58_ETH_POSITION_BANNER: 'perps-home-adr58-eth-position-banner',
   /** Per-position card; suffixed with the list index, e.g. `perps-home-position-card-0` */
   POSITION_CARD: 'perps-home-position-card',
   /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
