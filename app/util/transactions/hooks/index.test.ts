@@ -555,6 +555,72 @@ describe('getTransactionControllerHooks', () => {
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
+
+    it.each([
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDepositAndOrder,
+    ])(
+      'does not throw for %s when the order is funded from the feature balance',
+      async (type) => {
+        const hooks = getTransactionControllerHooks(
+          buildPayStateRequest({
+            fiatPayment: {},
+            quotes: [],
+            sourceAmounts: [],
+            tokens: [{ ...REQUIRED_TOKEN, amountRaw: '0' }],
+          }),
+        );
+
+        const result = await hooks.publish?.({
+          ...MOCK_TRANSACTION_META,
+          type,
+        });
+
+        expect(result).toStrictEqual({ transactionHash: undefined });
+      },
+    );
+
+    it.each([
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDepositAndOrder,
+    ])(
+      'throws for %s paying with a token when a required conversion is pending',
+      async (type) => {
+        const hooks = getTransactionControllerHooks(
+          buildPayStateRequest({
+            paymentToken: { address: '0x123', chainId: '0x1' },
+            quotes: [],
+            sourceAmounts: [{ targetTokenAddress: REQUIRED_TOKEN.address }],
+            tokens: [REQUIRED_TOKEN],
+          }),
+        );
+
+        await expect(
+          hooks.publish?.({ ...MOCK_TRANSACTION_META, type }),
+        ).rejects.toThrow('MetaMask Pay: Cannot submit without quote');
+      },
+    );
+
+    it.each([
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDepositAndOrder,
+    ])(
+      'throws for %s when a fiat method is selected but funding is incomplete',
+      async (type) => {
+        const hooks = getTransactionControllerHooks(
+          buildPayStateRequest({
+            fiatPayment: { selectedPaymentMethodId: 'card' },
+            quotes: [],
+            sourceAmounts: [],
+            tokens: [REQUIRED_TOKEN],
+          }),
+        );
+
+        await expect(
+          hooks.publish?.({ ...MOCK_TRANSACTION_META, type }),
+        ).rejects.toThrow('MetaMask Pay: Cannot submit without quote');
+      },
+    );
   });
 
   describe('post-quote withdraw types', () => {
