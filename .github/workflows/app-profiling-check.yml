@@ -185,12 +185,16 @@ jobs:
           TEST_NAME: ${{ steps.parse.outputs.TEST_NAME }}
           PLATFORM: ${{ steps.parse.outputs.PLATFORM }}
           DEVICE: ${{ steps.parse.outputs.DEVICE }}
-          ACTIONS_URL: ${{ github.server_url }}/${{ github.repository }}/actions/workflows/app-profiling-check.yml
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
-          # Pass comment-derived values only via env (never ${{ }} inside the script
-          # body) to avoid shell injection from --test/--device/--platform text.
+          # Pass comment-derived values only via env (never expression
+          # interpolation inside this script body) to avoid shell injection
+          # from --test/--device/--platform text.
+          ACTIONS_URL="${SERVER_URL}/${REPO}/actions/workflows/app-profiling-check.yml"
+
           ARGS=(
             gh workflow run "App Profiling Check"
             --ref "${BRANCH}"
