@@ -56,6 +56,9 @@ import {
 } from '../../../constants/storage';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
@@ -71,11 +74,15 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   BadgeWrapperPositionAnchorShape,
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
   Text as CustomText,
+  Text,
   TextColor,
 } from '@metamask/design-system-react-native';
 
@@ -359,6 +366,8 @@ const Wallet = ({
   const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
 
   const [refreshing, setRefreshing] = useState(false);
+  // TEMP: BottomSheet preview — remove after visual check
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(true);
   /** Pauses checklist Rive while Wallet finishes the coordinated post-onboarding handoff. */
   const [postOnboardingExitAnimating, setPostOnboardingExitAnimating] =
     useState(false);
