@@ -1,0 +1,29 @@
+package.json
+  s_72cfd07d56d873::t_66cd1ed737fabc 255
+  s_128683cd199bd2::t_6056eded80328c 91
+  s_128683cd199bd2::t_e41debd048299e 90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "dd2731c12091c3605a96845f91e602e02662ea4d",
+  "prompts": {},
+  "sessions": {
+    "s_128683cd199bd2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1046afa60ffe9sEAcWbluXW8Ik",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_72cfd07d56d873": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_1046dbb38ffehZwPmiD6qiOi41",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
