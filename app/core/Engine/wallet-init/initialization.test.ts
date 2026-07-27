@@ -90,7 +90,9 @@ describe('initializeWallet', () => {
       state: {
         ...state,
         RemoteFeatureFlagController: {
-          remoteFeatureFlags: { sharedFlag: 'persisted-value' },
+          remoteFeatureFlags: {
+            sharedFlag: 'persisted-value',
+          },
           cacheTimestamp: 999,
         },
       },
