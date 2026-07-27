@@ -1,6 +1,7 @@
 import { loginToAppPlaywright } from './wallet.flow';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import QuoteView from '../page-objects/swaps/QuoteView';
+import PostTradeBottomSheet from '../page-objects/swaps/PostTradeBottomSheet';
 import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
@@ -50,6 +51,8 @@ export async function runEthToBaseBridgeFlow(
   });
 
   await QuoteView.tapConfirmBridge();
+
+  await PostTradeBottomSheet.tapViewActivity();
 
   await Assertions.expectElementToBeVisible(ActivitiesView.title, {
     timeout: 30000,

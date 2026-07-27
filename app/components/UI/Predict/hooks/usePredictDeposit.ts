@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -28,7 +29,7 @@ export const usePredictDeposit = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);

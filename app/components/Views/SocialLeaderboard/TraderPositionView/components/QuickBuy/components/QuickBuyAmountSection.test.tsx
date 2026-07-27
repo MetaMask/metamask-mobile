@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import QuickBuyAmountSection from './QuickBuyAmountSection';
 
 describe('QuickBuyAmountSection', () => {
@@ -36,5 +36,27 @@ describe('QuickBuyAmountSection', () => {
       screen.queryByTestId('quick-buy-amount-loading-icon'),
     ).not.toBeOnTheScreen();
     expect(screen.queryByText('56.52037 GIGA')).not.toBeOnTheScreen();
+  });
+
+  it('is not pressable when no onAmountAreaPress is provided (control)', () => {
+    render(<QuickBuyAmountSection {...baseProps} />);
+
+    expect(
+      screen.queryByTestId('quick-buy-amount-area-pressable'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens the keypad when the headline is tapped (treatment)', () => {
+    const onAmountAreaPress = jest.fn();
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        onAmountAreaPress={onAmountAreaPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('quick-buy-amount-area-pressable'));
+
+    expect(onAmountAreaPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import {
@@ -50,7 +52,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
@@ -319,33 +321,37 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         {strings('perps.close_all_modal.title')}
       </BottomSheetHeader>
 
-      <Box paddingHorizontal={4} twClassName="py-2">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          style={styles.description}
-          testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
-        >
-          {strings('perps.close_all_modal.description')}
-        </Text>
+      <Box twClassName="py-2">
+        <Box paddingHorizontal={4}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.description}
+            testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
+          >
+            {strings('perps.close_all_modal.description')}
+          </Text>
+        </Box>
 
         {isClosing ? (
-          <View
-            style={styles.loadingContainer}
-            testID={PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE}
-          >
-            <ActivityIndicator
-              size="large"
-              color={theme.colors.primary.default}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              style={styles.loadingText}
+          <Box paddingHorizontal={4}>
+            <View
+              style={styles.loadingContainer}
+              testID={PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE}
             >
-              {strings('perps.close_all_modal.closing')}
-            </Text>
-          </View>
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary.default}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={styles.loadingText}
+              >
+                {strings('perps.close_all_modal.closing')}
+              </Text>
+            </View>
+          </Box>
         ) : (
           <PerpsCloseSummary
             totalMargin={calculations.totalMargin}

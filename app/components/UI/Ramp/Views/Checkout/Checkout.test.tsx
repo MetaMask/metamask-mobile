@@ -5,7 +5,15 @@ import Checkout from './Checkout';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
-import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
+
+jest.mock('../../utils/getRampCallbackBaseUrl', () => ({
+  getRampCallbackBaseUrl: jest.fn(
+    () => 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
+  ),
+}));
+
+const callbackBaseUrl = getRampCallbackBaseUrl();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -87,8 +95,6 @@ jest.mock('../../../../../util/browser', () => ({
 }));
 
 jest.mock('../../Aggregator/sdk', () => ({
-  callbackBaseUrl:
-    'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
   useRampSDK: jest.fn(() => null),
 }));
 
@@ -104,8 +110,8 @@ jest.mock('@metamask/react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
   const { View, Button } = require('react-native');
   const getCallbackBaseUrl = () =>
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- resolve mocked sdk at press time (avoids jest hoist / TDZ with outer consts)
-    require('../../Aggregator/sdk').callbackBaseUrl as string;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- resolve mocked helper at press time (avoids jest hoist / TDZ with outer consts)
+    require('../../utils/getRampCallbackBaseUrl').getRampCallbackBaseUrl() as string;
   return {
     WebView: ({
       onNavigationStateChange,
