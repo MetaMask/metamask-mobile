@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,7 +39,7 @@ import {
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const theme = useTheme();
 
   const isDarkMode = useColorScheme() === 'dark';

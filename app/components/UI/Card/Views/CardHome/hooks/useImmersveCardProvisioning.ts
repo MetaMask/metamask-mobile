@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
@@ -18,7 +18,10 @@ import {
   type CardHomeData,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import { KYC_REDIRECT_URL } from '../../../constants';
-import { deriveNextImmersveAction } from '../../../util/immersvePrerequisites';
+import {
+  deriveNextImmersveAction,
+  type ImmersveNextAction,
+} from '../../../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
 
@@ -41,20 +44,36 @@ export function useImmersveCardProvisioning(
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const handled = useRef(false);
-  // The reconcile below can redirect a mid-onboarding user off Card Home while
-  // it stays mounted underneath; gate the poll on focus so it doesn't keep
-  // hitting /cards from the background.
+  // Read via ref so persisting the resolved id does not re-run reconcile and
+  // cancel the in-flight attempt (which previously left handled=true forever).
+  const reduxFundingSourceIdRef = useRef(reduxFundingSourceId);
+  reduxFundingSourceIdRef.current = reduxFundingSourceId;
+  const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
+    null,
+  );
+  const [hasResolvedStatus, setHasResolvedStatus] = useState(false);
+  const isReconciling = isProvisioning && !hasResolvedStatus;
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (!isProvisioning || !isFocused) return undefined;
+    if (!isProvisioning) {
+      setHasResolvedStatus(false);
+      setPendingAction(null);
+      handled.current = false;
+    }
+  }, [isProvisioning]);
+
+  useEffect(() => {
+    if (!isProvisioning || !isFocused || pendingAction || isReconciling) {
+      return undefined;
+    }
 
     const interval = setInterval(() => {
       Engine.context.CardController.fetchCardHomeData().catch(() => undefined);
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isProvisioning, isFocused]);
+  }, [isProvisioning, isFocused, pendingAction, isReconciling]);
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {
@@ -62,15 +81,16 @@ export function useImmersveCardProvisioning(
     }
     handled.current = true;
     let cancelled = false;
+    const existingId = reduxFundingSourceIdRef.current;
     (async () => {
       try {
         const controller = Engine.context.CardController;
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId,
-          existingId: reduxFundingSourceId,
+          existingId,
         });
         if (cancelled) return;
-        if (!reduxFundingSourceId) {
+        if (!existingId) {
           dispatch(setImmersveFundingSourceId(id));
         }
         const { prerequisites } = await controller.getSpendingPrerequisites(
@@ -82,7 +102,7 @@ export function useImmersveCardProvisioning(
         if (action.type === 'active') {
           await controller.createCard(id);
         } else {
-          route(action, { navigateFromRoot: true, countryKey: kycRegion });
+          setPendingAction(action);
         }
       } catch (error) {
         if (
@@ -99,19 +119,27 @@ export function useImmersveCardProvisioning(
             data: { method: 'reconcile' },
           },
         });
+      } finally {
+        if (!cancelled) {
+          setHasResolvedStatus(true);
+        }
       }
     })();
     return () => {
       cancelled = true;
+      handled.current = false;
     };
-  }, [
-    isProvisioning,
-    reduxFundingSourceId,
-    kycRegion,
-    fundingChannelId,
-    route,
-    dispatch,
-  ]);
+  }, [isProvisioning, kycRegion, fundingChannelId, dispatch]);
 
-  return { isProvisioning };
+  const resumePendingAction = useCallback(() => {
+    if (!pendingAction) return;
+    route(pendingAction, { navigateFromRoot: true, countryKey: kycRegion });
+  }, [pendingAction, route, kycRegion]);
+
+  return {
+    isProvisioning,
+    isReconciling,
+    pendingAction,
+    resumePendingAction,
+  };
 }
