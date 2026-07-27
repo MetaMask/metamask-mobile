@@ -282,7 +282,7 @@ export const completeAppleNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('apple');
 
 /**
- * Confirms the native lock alert. On iOS the YES button can go stale before
+ * Confirms the native lock alert. On iOS the confirm button can go stale before
  * XPath-based taps complete, so we use Appium's alert API when available.
  */
 const confirmLockAlert = async (): Promise<void> => {
@@ -310,13 +310,14 @@ const confirmLockAlert = async (): Promise<void> => {
       const buttons = (await appiumDriver.execute('mobile: alert', {
         action: 'getButtons',
       })) as string[];
-      const hasYes = buttons.some(
+      const matched = buttons.find(
         (label) => label.toUpperCase() === yesLabel.toUpperCase(),
       );
-      if (hasYes) {
-        // XCUITest driver supports accept/dismiss — accept maps to the
-        // confirmation button (YES) for RN Alert with cancel + OK ordering.
-        await appiumDriver.execute('mobile: alert', { action: 'accept' });
+      if (matched) {
+        await appiumDriver.execute('mobile: alert', {
+          action: 'accept',
+          buttonLabel: matched,
+        });
         return;
       }
     } catch {
