@@ -5,7 +5,9 @@ import { usePredictMarketList } from './usePredictMarketList';
 import { createChildPage, createPage } from '../testUtils/marketList';
 
 const mockListMarkets = jest.fn();
-const mockGetVisiblePredictMarkets = jest.fn((markets: unknown) => markets);
+const mockGetVisiblePredictMarkets = jest.fn(
+  (markets: unknown, _options?: unknown) => markets,
+);
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
@@ -23,8 +25,8 @@ jest.mock('../../../../util/Logger', () => ({
 // tests; here we make it an identity so we can assert the hook's flatten +
 // cross-page dedupe behaviour deterministically.
 jest.mock('../utils/marketStaleness', () => ({
-  getVisiblePredictMarkets: (...args: unknown[]) =>
-    mockGetVisiblePredictMarkets(...args),
+  getVisiblePredictMarkets: (markets: unknown, options?: unknown) =>
+    mockGetVisiblePredictMarkets(markets, options),
 }));
 
 const createWrapper = () => {
