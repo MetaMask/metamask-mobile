@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SearchTokenResults from './SearchTokenResults';
@@ -113,5 +113,44 @@ describe('SearchTokenResults', () => {
 
     fireEvent.press(listItem);
     expect(mockHandleSelectAsset).not.toHaveBeenCalled();
+  });
+
+  it('keeps selection on the correct token when search results reorder', () => {
+    const tokenA = {
+      ...mockToken,
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      symbol: 'AAA',
+      name: 'Token A',
+    };
+    const tokenB = {
+      ...mockToken,
+      address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      symbol: 'BBB',
+      name: 'Token B',
+      chainId: '0x89' as const,
+    };
+
+    const { getAllByTestId, rerender } = renderComponent({
+      searchResults: [tokenA, tokenB] as ImportAsset[],
+      selectedAsset: [tokenA] as ImportAsset[],
+      searchQuery: 'token',
+    });
+
+    let rows = getAllByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT);
+    expect(within(rows[0]).getByRole('checkbox')).toBeOnTheScreen();
+    expect(within(rows[1]).queryByRole('checkbox')).toBeNull();
+
+    rerender(
+      <SearchTokenResults
+        {...defaultProps}
+        searchResults={[tokenB, tokenA] as ImportAsset[]}
+        selectedAsset={[tokenA] as ImportAsset[]}
+        searchQuery="token"
+      />,
+    );
+
+    rows = getAllByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT);
+    expect(within(rows[0]).queryByRole('checkbox')).toBeNull();
+    expect(within(rows[1]).getByRole('checkbox')).toBeOnTheScreen();
   });
 });
