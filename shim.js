@@ -80,8 +80,9 @@ import 'expo';
 
 // Compression Streams for Hyperliquid `fastAssetCtxs`.
 // Official @nktkas/hyperliquid RN docs require DecompressionStream on Hermes.
-// We only add this package: Web Streams come from Metro, TextDecoder from Expo
-// winter above. Must load after streams/`expo` so global TransformStream exists.
+// We only add this package: Web Streams come from Metro (`expo/virtual/streams`
+// is prepended before any module), TextDecoder from Expo winter above. Kept
+// next to `expo` for readability.
 // @see https://nktkas.gitbook.io/hyperliquid (React Native tab)
 import 'compression-streams-polyfill';
 

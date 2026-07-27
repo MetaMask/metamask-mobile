@@ -6,12 +6,14 @@
  * Mobile already has Web Streams + TextDecoder; this test guards the HL path:
  * deflate-raw round-trip matching the SDK decompress() shape.
  *
+ * Node 18+ ships native DecompressionStream. Delete those globals before
+ * loading the polyfill so the suite exercises fflate (Hermes-like), not Node.
+ *
  * @jest-environment node
  * @see https://nktkas.gitbook.io/hyperliquid
  */
 
 import pako from 'pako';
-import 'compression-streams-polyfill';
 
 /**
  * ASCII-only helpers under the RN ESLint env (no Buffer/TextEncoder globals).
@@ -32,10 +34,12 @@ function encodeUtf8(text) {
 }
 
 /**
+ * Decode ASCII bytes produced by encodeUtf8 (not general UTF-8).
+ *
  * @param {Uint8Array} bytes
  * @returns {string}
  */
-function decodeUtf8(bytes) {
+function decodeAscii(bytes) {
   let result = '';
   for (let i = 0; i < bytes.length; i++) {
     result += String.fromCharCode(bytes[i]);
@@ -44,13 +48,7 @@ function decodeUtf8(bytes) {
 }
 
 /**
- * Mirrors @nktkas/hyperliquid fastAssetCtxs decompress streaming usage.
- *
- * @param {Uint8Array} bytes
- * @returns {Promise<Uint8Array>}
- */
-/**
- * @returns {typeof globalThis.DecompressionStream}
+ * @returns {new (format: string) => { readable: ReadableStream, writable: WritableStream }}
  */
 function getDecompressionStream() {
   const ctor = global.DecompressionStream;
@@ -61,6 +59,8 @@ function getDecompressionStream() {
 }
 
 /**
+ * Mirrors @nktkas/hyperliquid fastAssetCtxs decompress streaming usage.
+ *
  * @param {Uint8Array} bytes
  * @returns {Promise<Uint8Array>}
  */
@@ -92,8 +92,40 @@ async function decompressDeflateRaw(bytes) {
 }
 
 describe('compression-streams-polyfill (Hyperliquid RN path)', () => {
-  it('installs DecompressionStream on the global', () => {
+  let nativeDecompressionStream;
+  let nativeCompressionStream;
+
+  beforeAll(async () => {
+    // Force the polyfill install path (package no-ops when natives exist).
+    nativeDecompressionStream = global.DecompressionStream;
+    nativeCompressionStream = global.CompressionStream;
+    Reflect.deleteProperty(global, 'DecompressionStream');
+    Reflect.deleteProperty(global, 'CompressionStream');
+
+    if (typeof global.TransformStream !== 'function') {
+      throw new Error(
+        'TransformStream must exist before loading compression-streams-polyfill',
+      );
+    }
+
+    await import('compression-streams-polyfill');
+  });
+
+  afterAll(() => {
+    if (nativeDecompressionStream !== undefined) {
+      global.DecompressionStream = nativeDecompressionStream;
+    }
+    if (nativeCompressionStream !== undefined) {
+      global.CompressionStream = nativeCompressionStream;
+    }
+  });
+
+  it('installs DecompressionStream from the polyfill when missing', () => {
     expect(typeof global.DecompressionStream).toBe('function');
+    // When a native constructor was present, polyfill must not be a no-op.
+    if (typeof nativeDecompressionStream === 'function') {
+      expect(global.DecompressionStream).not.toBe(nativeDecompressionStream);
+    }
   });
 
   it('inflates deflate-raw JSON like Hyperliquid fastAssetCtxs', async () => {
@@ -105,6 +137,6 @@ describe('compression-streams-polyfill (Hyperliquid RN path)', () => {
     });
 
     const merged = await decompressDeflateRaw(compressed);
-    expect(JSON.parse(decodeUtf8(merged))).toEqual(payload);
+    expect(JSON.parse(decodeAscii(merged))).toEqual(payload);
   });
 });
