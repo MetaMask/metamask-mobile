@@ -307,7 +307,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows Buy/Sell empty state and Add funds opens ramp token selection', async () => {
+  it('shows unfunded Buy/Sell empty state and Add funds opens ramp token selection', async () => {
     const buySellDescription = strings(
       'activity_view.empty_state.buy_sell.description',
     );
