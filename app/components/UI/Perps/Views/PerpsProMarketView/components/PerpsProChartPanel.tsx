@@ -283,6 +283,7 @@ const PerpsProChartPanel = ({
         symbol={symbol}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
+        fallbackFetchMoreHistory={fetchMoreHistory}
       />
     </>
   );

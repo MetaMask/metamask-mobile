@@ -1954,6 +1954,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         symbol={market?.symbol}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
+        fallbackFetchMoreHistory={fetchMoreHistory}
       />
 
       {/* Market Insights Disclaimer Bottom Sheet */}
