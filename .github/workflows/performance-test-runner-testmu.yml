@@ -203,10 +203,12 @@ jobs:
         if: always()
         with:
           name: testmu-${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          # Do NOT upload tmp/hyperexecute/ — generated YAML may be retained for
+          # debugging locally, but secrets are injected via --job-secret-file
+          # outside the workspace and must never ship as GHA artifacts.
           path: |
             tests/reporters/reports
             tests/test-reports/playwright-report/
-            tmp/hyperexecute/
             artifacts/
           if-no-files-found: ignore
           retention-days: 7
