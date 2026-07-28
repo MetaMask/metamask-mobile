@@ -7914,9 +7914,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^11.1.1, @metamask/assets-controller@npm:^11.2.0":
-  version: 11.2.0
-  resolution: "@metamask/assets-controller@npm:11.2.0"
+"@metamask/assets-controller@npm:^11.1.1, @metamask/assets-controller@npm:^11.2.0, @metamask/assets-controller@npm:^11.2.1":
+  version: 11.2.1
+  resolution: "@metamask/assets-controller@npm:11.2.1"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7948,7 +7948,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/45f420415b569badbbbf36c25851a4e658b45c904ff11411bb610fdc5e258e40fbded13c9f413834f5d38ce2e7aa31449490c8e925c3bf5bc2c7ae6c7c42f675
+  checksum: 10/526387dddd54b4fa4b061174e656f3f538525ef426d1b5f198daf1c3f7ec0948ed84fe0d9b0d5ae7deaa694536abd1a9e35c05403c8d1995f6fa925a10b28c97
   languageName: node
   linkType: hard
 
@@ -9709,7 +9709,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/phishing-controller@npm:^17.2.0, @metamask/phishing-controller@npm:^17.3.0":
+"@metamask/phishing-controller@npm:^17.3.0":
   version: 17.3.0
   resolution: "@metamask/phishing-controller@npm:17.3.0"
   dependencies:
@@ -9857,16 +9857,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^17.0.0":
-  version: 17.0.0
-  resolution: "@metamask/ramps-controller@npm:17.0.0"
+"@metamask/ramps-controller@npm:17.1.0, @metamask/ramps-controller@npm:^17.0.0":
+  version: 17.1.0
+  resolution: "@metamask/ramps-controller@npm:17.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/45980e93d79bf72c00edc44e2cd075a738c44a1c0b3dd695a7bce688f7954f80f28988b56c7a5774b1747e335b66c16f6a7d36833030bf116cefafc7b2e5f223
+  checksum: 10/fa4e17571268e1a171be10f643cc8d0c163b0e59021b3067696968e141d39871b0a192ebb207666cff5f4af9397aec2030e6c50a485679b22a1be0a2748494d1
   languageName: node
   linkType: hard
 
@@ -25409,6 +25409,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"compression-streams-polyfill@npm:^0.1.7":
+  version: 0.1.7
+  resolution: "compression-streams-polyfill@npm:0.1.7"
+  dependencies:
+    fflate: "npm:^0.8.2"
+  checksum: 10/e35103ff95836dc439cada93d52d8104accac6c49dcc5f9719452f71a26e70a5e6900b69b246b4be0a0e6e033d11b09c5239db5974a39f5bc986475a1257a8a0
+  languageName: node
+  linkType: hard
+
 "compression@npm:^1.7.1, compression@npm:^1.7.4":
   version: 1.8.0
   resolution: "compression@npm:1.8.0"
@@ -30168,6 +30177,13 @@ __metadata:
   version: 4.1.1
   resolution: "fetch-retry@npm:4.1.1"
   checksum: 10/c97006c2b604a817cbd4e35085965d07a8f1c51b475bf037f305b98d5748ee742ec98aba119b4df6bf727e61f2f0ee05c5fa714701c4234b91c4b43e0f119bd9
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.8.2":
+  version: 0.8.3
+  resolution: "fflate@npm:0.8.3"
+  checksum: 10/6ebf528dc9c56e78e715eac615b009b25dc33e15c1920b11ebba44e6d76181c647756a81a23e19247907496b93aa99928514c53090579a65109e026ac2824aa7
   languageName: node
   linkType: hard
 
@@ -35820,7 +35836,7 @@ __metadata:
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "npm:^11.1.1"
+    "@metamask/assets-controller": "npm:^11.2.1"
     "@metamask/assets-controllers": "npm:^110.0.0"
     "@metamask/authenticated-user-storage": "npm:^3.0.1"
     "@metamask/auto-changelog": "npm:^5.3.0"
@@ -35903,14 +35919,14 @@ __metadata:
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/perps-controller": "npm:^10.0.0"
-    "@metamask/phishing-controller": "npm:^17.2.0"
+    "@metamask/phishing-controller": "npm:^17.3.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^17.0.0"
+    "@metamask/ramps-controller": "npm:17.1.0"
     "@metamask/react-data-query": "npm:^0.2.2"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
@@ -36075,6 +36091,7 @@ __metadata:
     chromedriver: "npm:^123.0.1"
     cockatiel: "npm:^3.1.2"
     compare-versions: "npm:^3.6.0"
+    compression-streams-polyfill: "npm:^0.1.7"
     content-hash: "npm:2.5.2"
     contentful: "npm:^11.5.22"
     cron-parser: "npm:^4.9.0"

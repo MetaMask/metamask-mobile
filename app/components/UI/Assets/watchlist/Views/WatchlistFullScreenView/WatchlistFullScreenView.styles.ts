@@ -34,6 +34,12 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'flex-start',
     },
+    dragArea: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      minWidth: 0,
+    },
     dragHandle: {
       height: 40,
       marginTop: 8,
