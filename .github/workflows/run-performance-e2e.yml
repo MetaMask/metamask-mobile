@@ -158,19 +158,20 @@ jobs:
     outputs:
       testmu_ready: ${{ steps.resolve.outputs.testmu_ready }}
       lt_username: ${{ steps.resolve.outputs.lt_username }}
-      lt_access_key: ${{ steps.resolve.outputs.lt_access_key }}
     steps:
       - name: Resolve TestMu AI credentials
         id: resolve
         env:
           # PoC: only one secret slot available — username is fixed, key from LT_ACCESS_KEY.
+          # Do NOT put LT_ACCESS_KEY in job outputs: GitHub strips secret-valued outputs
+          # ("Skip output ... since it may contain secret"), which left uploads unauthorized
+          # and forced a fresh Android build fallback.
           SECRET_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
           if [ -n "$SECRET_KEY" ]; then
             echo "Using fixed TestMu AI username javiervera + LT_ACCESS_KEY secret"
             {
               echo "lt_username=javiervera"
-              echo "lt_access_key=$SECRET_KEY"
               echo "testmu_ready=true"
             } >> "$GITHUB_OUTPUT"
           else
@@ -428,7 +429,7 @@ jobs:
         id: upload
         env:
           LT_USERNAME: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-          LT_ACCESS_KEY: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
           FIND_FOUND: ${{ steps.find.outputs.found }}
           SOURCE_RUN_ID: ${{ steps.find.outputs.run_id }}
         run: |
@@ -527,7 +528,7 @@ jobs:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -625,7 +626,7 @@ jobs:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
@@ -778,7 +779,7 @@ jobs:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
