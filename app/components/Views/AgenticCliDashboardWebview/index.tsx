@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import type {
   ShouldStartLoadRequest,
@@ -59,7 +60,7 @@ const redactUrlToken = (url?: string) => {
 const AgenticCliDashboardWebview: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
   const completedRef = useRef(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { requestId, dashboardUrl, dashboardToken } =
     useParams<AgenticCliDashboardWebviewParams>();
@@ -104,7 +105,7 @@ const AgenticCliDashboardWebview: React.FC = () => {
       getHeaderCompactStandardNavbarOptions({
         title: strings('sdk_connect_v2.agentic_cli_dashboard_webview.title'),
         onBack: close,
-        includesTopInset: true,
+        includesTopInset: Platform.OS === 'android',
         twClassName: 'bg-default rounded-t-2xl',
       }),
     );

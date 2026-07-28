@@ -6,6 +6,8 @@ import AppConstants from '../../../../core/AppConstants';
  */
 export enum SCREEN_NAMES {
   WALLET_HOME = 'wallet_home',
+  TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
+  ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
   CARD_HOME = 'card_home',
@@ -17,7 +19,6 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
-  RAMPS_BUY = 'ramps_buy',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -26,7 +27,8 @@ export enum BOTTOM_SHEET_NAMES {
   CARD_AUTH_SHEET = 'card_auth_sheet',
   CARD_LINK_SHEET = 'card_link_sheet',
   MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
-  MONEY_EARNINGS_INFO_SHEET = 'money_earnings_info_sheet',
+  MONEY_MONTHLY_EARNINGS_INFO_SHEET = 'money_monthly_earnings_info_sheet',
+  MONEY_LIFETIME_EARNINGS_INFO_SHEET = 'money_lifetime_earnings_info_sheet',
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
@@ -69,7 +71,7 @@ export enum COMPONENT_NAMES {
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 
   // — Earnings —
-  MONEY_ESTIMATED_EARNINGS_SECTION = 'money_estimated_earnings_section',
+  MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
@@ -113,6 +115,8 @@ export enum COMPONENT_NAMES {
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
   MONEY_FOOTER = 'money_footer',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
+  MONEY_TOKEN_LIST_ITEM_CTA = 'money_token_list_item_cta',
+  MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
 
   // — How It Works / FAQ —
@@ -125,6 +129,7 @@ export enum COMPONENT_NAMES {
  */
 export enum MONEY_BUTTON_INTENTS {
   ADD_MONEY = 'add_money',
+  DISMISS = 'dismiss',
   GET_STARTED = 'get_started',
   GO_TO_MONEY_HOME = 'go_to_money_home',
   GO_TO_MONEY_ONBOARDING = 'go_to_money_onboarding',
@@ -144,7 +149,8 @@ export enum MONEY_BUTTON_TYPES {
 
 export enum MONEY_TOOLTIP_NAMES {
   MONEY_BALANCE = 'money_balance',
-  ESTIMATED_EARNINGS = 'estimated_earnings',
+  MONTHLY_EARNINGS = 'monthly_earnings',
+  LIFETIME_EARNINGS = 'lifetime_earnings',
   EARN_ON_YOUR_CRYPTO = 'earn_on_your_crypto',
   APY = 'apy',
 }

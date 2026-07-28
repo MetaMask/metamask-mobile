@@ -49,6 +49,9 @@ describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
     expect(
       resolveQuickBuyOriginalEntryPointFromPositionSource('profile_position'),
     ).toBe('trader_profile');
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('trader_feed'),
+    ).toBe('trader_feed');
   });
 
   it('returns undefined for unknown sources', () => {

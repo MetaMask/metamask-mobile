@@ -138,13 +138,13 @@ describe('PerpsMarketInlineHeader', () => {
       expect(getByText('BTC')).toBeTruthy();
     });
 
-    it('handles the market list button press', () => {
-      const onMarketListPress = jest.fn();
+    it('opens the market list when the identity box is pressed', () => {
+      const onIdentityPress = jest.fn();
       const { getByTestId } = renderWithProvider(
         <PerpsMarketInlineHeader
           market={mockMarket}
           useDetailLayout
-          onMarketListPress={onMarketListPress}
+          onIdentityPress={onIdentityPress}
           testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
           currentPrice={45000}
         />,
@@ -155,38 +155,24 @@ describe('PerpsMarketInlineHeader', () => {
         getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
       );
 
-      expect(onMarketListPress).toHaveBeenCalled();
+      expect(onIdentityPress).toHaveBeenCalled();
     });
 
-    it('expands the market list button touch target with hitSlop', () => {
-      const { getByTestId } = renderWithProvider(
+    it('does not make the identity a button without an onIdentityPress handler', () => {
+      const { queryByTestId, getByTestId } = renderWithProvider(
         <PerpsMarketInlineHeader
           market={mockMarket}
           useDetailLayout
-          onMarketListPress={jest.fn()}
           testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
           currentPrice={45000}
         />,
         { state: initialState },
       );
 
+      // Identity content still renders, but not as an interactive button.
       expect(
-        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON).props
-          .hitSlop,
-      ).toEqual({ top: 10, bottom: 10, left: 10, right: 10 });
-    });
-
-    it('does not render the market list button without a handler', () => {
-      const { queryByTestId } = renderWithProvider(
-        <PerpsMarketInlineHeader
-          market={mockMarket}
-          useDetailLayout
-          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
-          currentPrice={45000}
-        />,
-        { state: initialState },
-      );
-
+        getByTestId(PerpsMarketHeaderSelectorsIDs.ASSET_NAME),
+      ).toBeTruthy();
       expect(
         queryByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
       ).toBeNull();

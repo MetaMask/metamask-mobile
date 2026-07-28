@@ -60,9 +60,7 @@
       }
     }
   },
-  "DelegationController": {
-    "delegations": {}
-  },
+  "DelegationController": {},
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": {
@@ -531,11 +529,14 @@
       "optionId": "volume",
       "direction": "desc"
     },
+    "mode": "lite",
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
-    "recentlyViewedMarkets": {
-      "mainnet": [],
-      "testnet": []
+    "proLayoutPreferences": {
+      "chartExpanded": false,
+      "orderBookExpanded": false,
+      "orderBookPosition": "left",
+      "orderFormPosition": "right"
     },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
@@ -713,10 +714,8 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
-    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": [],
-    "inputPrimaryDenomination": "token_amount"
+    "tokenWarnings": []
   },
   "BridgeStatusController": {
     "quoteUpdateStatusStore": {},
@@ -724,6 +723,7 @@
   },
   "CardController": {
     "selectedCountry": null,
+    "selectedCardProgramId": null,
     "activeProviderId": "baanx",
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
@@ -734,7 +734,9 @@
     "lastUnauthenticatedReason": null
   },
   "ConfigRegistryController": {
-    "configs": { "networks": {} },
+    "configs": {
+      "networks": {}
+    },
     "etag": null,
     "lastFetched": null,
     "version": null
@@ -839,6 +841,7 @@
     "vipDashboard": {},
     "vipPerpsFees": {},
     "vipRefereeDashboard": {},
+    "vipTransactions": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -861,6 +864,7 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "syncFlow": null,
     "pendingSecretImports": null,
     "provisioningMetadata": null,
     "provisioningStatus": null,
@@ -930,11 +934,12 @@
         "timestamp": 123
       }
     },
-    "orders": [],
-    "providerAutoSelected": false
+    "orders": []
   },
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
-  "MoneyAccountUpgradeController": {}
+  "MoneyAccountUpgradeController": {
+    "upgradedAccounts": {}
+  }
 }

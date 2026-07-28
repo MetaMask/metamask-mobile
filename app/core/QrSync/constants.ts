@@ -30,6 +30,15 @@ export const QrSyncPhases = {
   FAILED: 'failed',
 } as const;
 
+/** Distinguishes new-user vs existing-user QR sync receive paths. */
+export const QrSyncSyncFlows = {
+  NEW_USER: 'new_user',
+  EXISTING_USER: 'existing_user',
+} as const;
+
+export type QrSyncSyncFlow =
+  (typeof QrSyncSyncFlows)[keyof typeof QrSyncSyncFlows];
+
 /**
  * Persisted provisioning pipeline status for QR sync vault import.
  *

@@ -8,9 +8,13 @@ import {
   FeedViewSelectorsIDs,
   getFeedAudienceOptionTestId,
   getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
   getFeedTraderTestId,
-  getFeedTypeOptionTestId,
 } from './FeedView.testIds';
+import {
+  TypeFilterSelectorsIDs,
+  getTypeFilterOptionTestId,
+} from '../components/TypeFilter';
 import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
@@ -27,7 +31,7 @@ const spotItem: FeedItem = {
   traderAddress: '0x1111111111111111111111111111111111111111',
   action: 'bought',
   timestamp: Date.now() - 1000,
-  subHeader: '$120K',
+  subHeader: { sizeLabel: '$120K' },
   valueLabel: '$123,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -55,7 +59,7 @@ const perpItem: FeedItem = {
   traderAddress: '0x2222222222222222222222222222222222222222',
   action: 'closed',
   timestamp: Date.now() - 2000,
-  subHeader: '$88K',
+  subHeader: { sizeLabel: '$88K' },
   valueLabel: '$88,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -119,8 +123,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
-
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
@@ -130,33 +132,19 @@ jest.mock('../analytics', () => {
   };
 });
 
-jest.mock('../TraderPositionView/components/QuickBuy', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    QuickBuy: {
-      Root: ({
-        isVisible,
-        analyticsContext,
-      }: {
-        isVisible: boolean;
-        analyticsContext?: { source?: string };
-      }) => {
-        mockQuickBuyAnalyticsContext = analyticsContext;
-        return isVisible ? <View testID="mock-quick-buy-open" /> : null;
-      },
-    },
-    TOP_TRADERS_QUICK_BUY_FEATURES: {},
-  };
-});
-
 let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
 
-jest.mock('./components/FeedTypeSheet', () => {
+jest.mock('../components/TypeFilter', () => {
   const ReactActual = jest.requireActual('react');
-  const Actual = jest.requireActual('./components/FeedTypeSheet').default;
-  return (props: React.ComponentProps<typeof Actual>) => {
-    handleTypeFilterChange = props.onChange;
-    return ReactActual.createElement(Actual, props);
+  const Actual = jest.requireActual('../components/TypeFilter');
+  return {
+    ...Actual,
+    TypeFilterSheet: (
+      props: React.ComponentProps<typeof Actual.TypeFilterSheet>,
+    ) => {
+      handleTypeFilterChange = props.onChange;
+      return ReactActual.createElement(Actual.TypeFilterSheet, props);
+    },
   };
 });
 
@@ -164,7 +152,6 @@ describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
-    mockQuickBuyAnalyticsContext = undefined;
     handleTypeFilterChange = undefined;
   });
 
@@ -172,7 +159,7 @@ describe('FeedView', () => {
     renderWithProvider(<FeedView />);
 
     expect(
-      screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR),
+      screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.AUDIENCE_TOGGLE),
@@ -216,14 +203,21 @@ describe('FeedView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the QuickBuy sheet with a CTA haptic when a spot Trade is pressed', () => {
-    renderWithProvider(<FeedView />);
+  it('requests QuickBuy with a CTA haptic when a spot Trade is pressed', () => {
+    const onQuickBuy = jest.fn();
+    renderWithProvider(<FeedView onQuickBuy={onQuickBuy} />);
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'trader_feed' });
+    expect(onQuickBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: spotItem.tokenAddress,
+        tokenSymbol: spotItem.tokenSymbol,
+        tokenName: spotItem.tokenName,
+        chain: spotItem.chain,
+      }),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
@@ -239,6 +233,22 @@ describe('FeedView', () => {
         caip19: expect.stringContaining('eip155:1/erc20:'),
       }),
     );
+  });
+
+  it('reports spot availability to the parent', () => {
+    const onSpotAvailabilityChange = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />,
+    );
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(true);
+
+    onSpotAvailabilityChange.mockClear();
+    mockFeedResult = buildResult({ items: [perpItem] });
+    rerender(<FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />);
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(false);
   });
 
   it('navigates to the Perps market detail page when a perps Trade is pressed', () => {
@@ -287,8 +297,8 @@ describe('FeedView', () => {
   it('tracks type filter changes via Trader Feed Interaction', () => {
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('tokens')));
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
@@ -314,6 +324,42 @@ describe('FeedView', () => {
         source: 'trader_feed',
       }),
     );
+  });
+
+  it('navigates to TraderPositionView when a spot position card is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-1')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'pos-feed-1',
+        traderId: 'trader-1',
+        traderAddress: '0x1111111111111111111111111111111111111111',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
+      },
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('navigates to TraderPositionView when a perps position card is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-2')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'pos-feed-2',
+        traderId: 'trader-2',
+        traderAddress: '0x2222222222222222222222222222222222222222',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
+      },
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
   it('tracks chained type filter changes with the correct previous value', () => {
@@ -397,8 +443,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('tokens')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
@@ -422,8 +468,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('perps')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
@@ -443,8 +489,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('perps')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),

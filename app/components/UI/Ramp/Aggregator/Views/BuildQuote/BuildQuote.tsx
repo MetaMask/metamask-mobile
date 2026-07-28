@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import BN4 from 'bnjs4';
 import {
   AvatarToken,
@@ -57,6 +58,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -120,7 +122,7 @@ export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
 
 const BuildQuote = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<BuildQuoteParams>();
   const { showBack } = params;
   const shouldShowBack = showBack !== false;
@@ -297,8 +299,9 @@ const BuildQuote = () => {
       if (shouldShowUnsupportedModal && selectedRegion) {
         // Use requestAnimationFrame to ensure navigation happens after render
         requestAnimationFrame(() => {
-          navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
+          navigateWithDetails(
+            navigation,
+            createUnsupportedRegionModalNavigationDetails({
               regions: regions ?? [],
               region: selectedRegion,
             }),
@@ -483,7 +486,7 @@ const BuildQuote = () => {
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   const handleConfigurationPress = useCallback(() => {
-    navigation.navigate(...createBuySettingsModalNavigationDetails());
+    navigateWithDetails(navigation, createBuySettingsModalNavigationDetails());
   }, [navigation]);
 
   const handleBackPress = useCallback(() => {
@@ -620,8 +623,9 @@ const BuildQuote = () => {
   const handleChangeRegion = useCallback(() => {
     setAmountFocused(false);
     if (regions && regions.length > 0) {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createRegionSelectorModalNavigationDetails({
           regions,
         }),
       );
@@ -634,8 +638,9 @@ const BuildQuote = () => {
 
   const handleAssetSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createTokenSelectModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createTokenSelectModalNavigationDetails({
         tokens: cryptoCurrencies ?? [],
       }),
     );
@@ -647,8 +652,9 @@ const BuildQuote = () => {
 
   const handleFiatSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createFiatSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createFiatSelectorModalNavigationDetails({
         currencies: fiatCurrencies ?? [],
       }),
     );
@@ -660,8 +666,9 @@ const BuildQuote = () => {
 
   const handleShowPaymentMethodsModal = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
         location: screenLocation,
       }),
@@ -673,15 +680,17 @@ const BuildQuote = () => {
    */
   const handleGetQuotePress = useCallback(() => {
     if (!selectedAddress) {
-      navigation.navigate(
-        ...createIncompatibleAccountTokenModalNavigationDetails(),
+      navigateWithDetails(
+        navigation,
+        createIncompatibleAccountTokenModalNavigationDetails(),
       );
       return;
     }
 
     if (selectedAsset && currentFiatCurrency) {
-      navigation.navigate(
-        ...createQuotesNavDetails({
+      navigateWithDetails(
+        navigation,
+        createQuotesNavDetails({
           amount: isBuy ? amountNumber : amount,
           asset: selectedAsset,
           fiatCurrency: currentFiatCurrency,

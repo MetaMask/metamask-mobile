@@ -788,6 +788,8 @@ export interface ConnectionStatus {
   rtdsConnected: boolean;
 }
 
+export type ConnectionStatusCallback = (status: ConnectionStatus) => void;
+
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
 export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;

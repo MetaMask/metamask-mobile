@@ -12,7 +12,7 @@ const MUSD_SYMBOL = MUSD_TOKEN.symbol;
  * Monad mUSD -> Monad mUSD needs no swap or bridge, so the relay fixed-spread
  * flag omits it from its routes; depositing Monad mUSD still incurs no fee, so
  * the FAQ lists it explicitly, first, ahead of the route-derived tokens.
- * Mirrors the `isMonadMusd` no-fee edge case in useMoneyEarnableTokens.
+ * Mirrors the `isMonadMusd` no-fee edge case in useMoneyDepositTokens.
  *
  * Returns a new list and never mutates the input (the input may be the shared
  * MONEY_NO_FEE_TOKENS_FALLBACK constant).

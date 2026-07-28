@@ -54,15 +54,19 @@ export interface QrSyncOffer {
  * - `SYNC_REJECTED` — extension explicitly rejected the sync (peer-originated)
  * - `SYNC_FAILED` — unexpected runtime or wallet-client failure during an active session
  */
+export const QrSyncErrorCodes = {
+  CHANNEL_INIT_FAILED: 'CHANNEL_INIT_FAILED',
+  CHANNEL_DISCONNECTED: 'CHANNEL_DISCONNECTED',
+  INVALID_PAYLOAD: 'INVALID_PAYLOAD',
+  UNSUPPORTED_VERSION: 'UNSUPPORTED_VERSION',
+  SESSION_EXPIRED: 'SESSION_EXPIRED',
+  SYNC_REJECTED: 'SYNC_REJECTED',
+  SYNC_FAILED: 'SYNC_FAILED',
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+} as const;
+
 export type QrSyncErrorCode =
-  | 'CHANNEL_INIT_FAILED'
-  | 'CHANNEL_DISCONNECTED'
-  | 'INVALID_PAYLOAD'
-  | 'UNSUPPORTED_VERSION'
-  | 'SESSION_EXPIRED'
-  | 'SYNC_REJECTED'
-  | 'SYNC_FAILED'
-  | 'UNKNOWN_ERROR';
+  (typeof QrSyncErrorCodes)[keyof typeof QrSyncErrorCodes];
 
 /** Structured QR sync error surfaced to services and UI bridges. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -98,6 +102,14 @@ export interface QrSyncSyncReadyMessage {
   version: QrSyncMessageVersion;
   deadline: number;
   data: QrSyncReadyData[];
+}
+
+/** E2E-only: plaintext SRP sync-ready inject payload (HAS_TEST_OVERRIDES). */
+export interface QrSyncTestSyncReadyPayload {
+  mnemonic: string;
+  isPrimary?: boolean;
+  walletName?: string;
+  accountName?: string;
 }
 
 /** Wire message that marks successful completion of the QR sync flow. */

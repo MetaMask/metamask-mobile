@@ -96,6 +96,7 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -105,6 +106,11 @@ import { selectGeolocationLocation } from '../../../selectors/geolocationControl
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import {
+  resolveFirstPredictOnUsLaunch,
+  type ResolvedFirstPredictOnUsLaunch,
+} from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
+import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
 
 interface KeyringState {
   type: string;
@@ -129,11 +135,45 @@ interface ExtendedKeyringController {
   ) => Promise<string>;
 }
 
+async function exportSimpleKeyPairAccounts(
+  keyringController: ExtendedKeyringController,
+  keychainPassword: string,
+): Promise<string[]> {
+  const simpleKeyrings = keyringController.state.keyrings.filter(
+    (keyring) => keyring.type === 'Simple Key Pair',
+  );
+  const importedAccounts: string[] = [];
+  for (const simpleKeyring of simpleKeyrings) {
+    const simpleKeyringAccounts = await Promise.all(
+      simpleKeyring.accounts.map((account) =>
+        keyringController.exportAccount(
+          { password: keychainPassword },
+          account,
+        ),
+      ),
+    );
+    importedAccounts.push(...simpleKeyringAccounts);
+  }
+  return importedAccounts;
+}
+
+async function reimportPrivateKeyAccounts(
+  keyringController: ExtendedKeyringController,
+  importedAccounts: string[],
+): Promise<void> {
+  for (const importedAccount of importedAccounts) {
+    await keyringController.importAccountWithStrategy(
+      AccountImportStrategy.privateKey,
+      [importedAccount],
+    );
+  }
+}
+
 const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
@@ -158,12 +198,16 @@ const ChoosePassword = () => {
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
-  const mounted = useRef(true);
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
+  // Off-screen resolution of the First Predict On Us onboarding splash. Kicked
+  // off early (for social login) so the result is typically ready by the time
+  // the wallet is created and we navigate into the success flow.
+  const firstPredictOnUsLaunchRef =
+    useRef<Promise<ResolvedFirstPredictOnUsLaunch | null> | null>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
   const { shouldShowQuestionnaire } =
@@ -173,6 +217,13 @@ const ChoosePassword = () => {
     () => route.params?.oauthLoginSuccess,
     [route.params?.oauthLoginSuccess],
   );
+
+  useEffect(() => {
+    if (!isSocialLoginUser || firstPredictOnUsLaunchRef.current) {
+      return;
+    }
+    firstPredictOnUsLaunchRef.current = resolveFirstPredictOnUsLaunch();
+  }, [isSocialLoginUser]);
 
   useEffect(() => {
     if (!isSocialLoginUser) {
@@ -275,23 +326,13 @@ const ChoosePassword = () => {
         password: keychainPassword,
       });
       const seedPhrase = uint8ArrayToMnemonic(seedPhraseUint8, wordlist);
+
       let importedAccounts: string[] = [];
-      // Get imported accounts
       try {
-        const simpleKeyrings = keyringController.state.keyrings.filter(
-          (keyring) => keyring.type === 'Simple Key Pair',
+        importedAccounts = await exportSimpleKeyPairAccounts(
+          keyringController,
+          keychainPassword,
         );
-        for (const simpleKeyring of simpleKeyrings) {
-          const simpleKeyringAccounts = await Promise.all(
-            simpleKeyring.accounts.map((account) =>
-              keyringController.exportAccount(
-                { password: keychainPassword },
-                account,
-              ),
-            ),
-          );
-          importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
-        }
       } catch (e) {
         Logger.error(
           e as Error,
@@ -320,12 +361,7 @@ const ChoosePassword = () => {
 
       // Import imported accounts again
       try {
-        for (const importedAccount of importedAccounts) {
-          await context.KeyringController.importAccountWithStrategy(
-            AccountImportStrategy.privateKey,
-            [importedAccount],
-          );
-        }
+        await reimportPrivateKeyAccounts(keyringController, importedAccounts);
       } catch (e) {
         Logger.error(
           e as Error,
@@ -403,7 +439,34 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
-  const onContinueNavigation = useCallback(() => {
+  const onContinueNavigation = useCallback(async () => {
+    // The First Predict On Us splash is a flat onboarding step shown after any
+    // survey and before the "wallet ready" success screen. Its off-screen gating
+    // was kicked off on mount; if it resolved we reset to the splash (which
+    // dismisses forward to OnboardingSuccess). Otherwise we reset straight to
+    // the success flow. The flow stays linear either way.
+    const firstPredictOnUsLaunch = firstPredictOnUsLaunchRef.current
+      ? await firstPredictOnUsLaunchRef.current
+      : null;
+
+    if (firstPredictOnUsLaunch) {
+      dispatch(markFirstPredictionOnUsOfferViewed());
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.FIRST_PREDICT_ON_US_SPLASH,
+            params: {
+              content: firstPredictOnUsLaunch.content,
+              markets: firstPredictOnUsLaunch.markets,
+              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+            },
+          },
+        ],
+      });
+      return;
+    }
+
     navigation.reset({
       index: 0,
       routes: [
@@ -418,10 +481,10 @@ const ChoosePassword = () => {
         },
       ],
     });
-  }, [navigation]);
+  }, [navigation, dispatch]);
 
   const handlePostWalletCreation = useCallback(
-    async (authType: AuthData, marketingOptInChecked: boolean) => {
+    async (authType: AuthData, isMarketingOptedIn: boolean) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
@@ -442,8 +505,8 @@ const ChoosePassword = () => {
       endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      dispatch(setDataCollectionForMarketing(marketingOptInChecked));
-      OAuthLoginService.updateMarketingOptInStatus(marketingOptInChecked).catch(
+      dispatch(setDataCollectionForMarketing(isMarketingOptedIn));
+      OAuthLoginService.updateMarketingOptInStatus(isMarketingOptedIn).catch(
         (err) => {
           Logger.error(err);
         },
@@ -455,26 +518,28 @@ const ChoosePassword = () => {
           ? getSocialAccountType(oauthProvider, false)
           : undefined;
 
+      const analyticsProperties = {
+        [UserProfileProperty.HAS_MARKETING_CONSENT]:
+          Boolean(isMarketingOptedIn),
+        is_metrics_opted_in: true,
+        location: 'onboarding_choosePassword',
+        updated_after_onboarding: false,
+        ...(socialAccountType && { account_type: socialAccountType }),
+      };
+      const identifyTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+
       try {
         metrics.trackEvent(
           metrics
             .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-            .addProperties({
-              [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-                marketingOptInChecked,
-              ),
-              is_metrics_opted_in: true,
-              location: 'onboarding_choosePassword',
-              updated_after_onboarding: false,
-              ...(socialAccountType && { account_type: socialAccountType }),
-            })
+            .addProperties(analyticsProperties)
             .build(),
         );
 
-        await metrics.identify({
-          ...generateDeviceAnalyticsMetaData(),
-          ...generateUserSettingsAnalyticsMetaData(),
-        });
+        await metrics.identify(identifyTraits);
       } catch (analyticsError) {
         Logger.error(analyticsError as Error);
       }
@@ -486,7 +551,7 @@ const ChoosePassword = () => {
           ...(accountType && { accountType }),
         });
       } else {
-        onContinueNavigation();
+        await onContinueNavigation();
       }
     },
     [
@@ -564,21 +629,12 @@ const ChoosePassword = () => {
     [recreateVault, dispatch, track, route.params, navigation],
   );
 
-  const onPressCreate = useCallback(async () => {
-    const validation = validatePasswordSubmission();
-    if (!validation.valid) return;
-
-    const provider = route.params?.provider;
-    const accountType = provider
-      ? getSocialAccountType(provider, false)
-      : AccountType.Metamask;
-    const isSocialLogin = getOauth2LoginSuccess();
-
-    track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: accountType,
-    });
-
-    try {
+  const runWalletCreation = useCallback(
+    async (
+      accountType: AccountType,
+      isSocialLogin: boolean | undefined,
+      provider: ChoosePasswordRouteParams['provider'],
+    ) => {
       setLoading(true);
       const previous_screen = route.params?.[PREVIOUS_SCREEN];
 
@@ -630,21 +686,45 @@ const ChoosePassword = () => {
       });
 
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
+    },
+    [
+      route.params,
+      biometryType,
+      handleWalletCreation,
+      handlePostWalletCreation,
+      track,
+      marketingOptInChecked,
+    ],
+  );
+
+  const onPressCreate = useCallback(async () => {
+    const validation = validatePasswordSubmission();
+    if (!validation.valid) return;
+
+    const provider = route.params?.provider;
+    const accountType = provider
+      ? getSocialAccountType(provider, false)
+      : AccountType.Metamask;
+    const isSocialLogin = getOauth2LoginSuccess();
+
+    track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
+      account_type: accountType,
+    });
+
+    try {
+      await runWalletCreation(accountType, isSocialLogin, provider);
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
       await handleWalletCreationError(err as Error, metricsEnabled);
     }
   }, [
     validatePasswordSubmission,
-    route.params,
+    route.params?.provider,
     track,
     getOauth2LoginSuccess,
-    biometryType,
-    handleWalletCreation,
-    handlePostWalletCreation,
+    runWalletCreation,
     handleWalletCreationError,
     metrics,
-    marketingOptInChecked,
   ]);
 
   const onPasswordChange = useCallback(
@@ -710,8 +790,13 @@ const ChoosePassword = () => {
       await StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED);
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(authData.currentAuthType));
+      const isDevicePasscodeAuth =
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- still returned by Authentication.getType()
+        authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE;
+
+      if (isDevicePasscodeAuth) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- passcodeType expects PASSCODE
+        setBiometryType(passcodeType(AUTHENTICATION_TYPE.PASSCODE));
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
       }
@@ -720,10 +805,9 @@ const ChoosePassword = () => {
     initBiometrics();
   }, [route.params?.onboardingTraceCtx]);
 
-  //Reset mounted flag and end trace on unmount
+  // End password-setup trace on unmount
   useEffect(
     () => () => {
-      mounted.current = false;
       if (passwordSetupAttemptTraceCtx.current) {
         endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         passwordSetupAttemptTraceCtx.current = null;
@@ -757,9 +841,11 @@ const ChoosePassword = () => {
         <HeaderStandard
           includesTopInset
           onBack={loading ? undefined : () => navigation.goBack()}
-          backButtonProps={{
-            testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID,
-          }}
+          backButtonProps={
+            loading
+              ? undefined
+              : { testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID }
+          }
         />
         {loading ? (
           <Box

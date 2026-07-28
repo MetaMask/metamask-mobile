@@ -3,6 +3,7 @@
 
 'use strict';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
@@ -67,6 +68,13 @@ import AddDeviceScannerRecovery, {
   AddDeviceScannerPermissionDenied,
 } from './AddDeviceScannerRecovery';
 import { EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT } from '../../../core/ExtensionAccountSync/types';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
+import { QrSyncErrorCodes } from '../../../core/QrSync/types';
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -97,7 +105,7 @@ const QRScanner = ({
   origin?: string;
   shouldDismissOnScan?: boolean;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
@@ -258,6 +266,17 @@ const QRScanner = ({
         if (classification !== 'valid') {
           shouldReadBarCodeRef.current = false;
           setIsCameraActive(false);
+          if (classification === 'invalid') {
+            reportQrSyncFailure(
+              new Error('Add-device QR scan classified as invalid'),
+              {
+                surface: QrSyncSurfaces.SCANNER,
+                operation: QrSyncOperations.CLASSIFY_SCAN_CONTENT,
+                errorCode: QrSyncErrorCodes.INVALID_PAYLOAD,
+                source: QrSyncTelemetrySources.QR_SCANNER_ADD_DEVICE,
+              },
+            );
+          }
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
               .addProperties({

@@ -40,8 +40,10 @@ export function useTokenWatchlist(
   });
 
   const assetIdStr = assetId ? String(assetId) : null;
-  const isWatched = assetIdStr
-    ? (blob?.assets.includes(assetIdStr) ?? false)
+  const normalizedAssetId = assetIdStr?.toLowerCase() ?? null;
+  const isWatched = normalizedAssetId
+    ? (blob?.assets.some((id) => id.toLowerCase() === normalizedAssetId) ??
+      false)
     : false;
 
   const isLoading = addMutation.isPending || removeMutation.isPending;

@@ -56,3 +56,48 @@ export const SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappi
       ] as const,
     },
   };
+
+// --- Quick Buy Keyboard vs Slider A/B Test (TSA-905) ---
+
+export const SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY =
+  'socialAiTSA905AbtestQuickBuyKeyboard';
+
+export enum SocialAiQuickBuyKeyboardVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+/**
+ * `useKeyboard` drives the amount-input UI: control keeps the existing
+ * percentage slider, treatment swaps it for the numeric keypad.
+ */
+export const SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS: Record<
+  SocialAiQuickBuyKeyboardVariant,
+  { useKeyboard: boolean }
+> = {
+  [SocialAiQuickBuyKeyboardVariant.Control]: { useKeyboard: false },
+  [SocialAiQuickBuyKeyboardVariant.Treatment]: { useKeyboard: true },
+};
+
+export const SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA: {
+  experimentName: string;
+  variationNames: Partial<Record<SocialAiQuickBuyKeyboardVariant, string>>;
+} = {
+  experimentName: 'Quick Buy Keyboard',
+  variationNames: {
+    [SocialAiQuickBuyKeyboardVariant.Control]: 'Slider',
+    [SocialAiQuickBuyKeyboardVariant.Treatment]: 'Keyboard',
+  },
+};
+
+export const SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
+    validVariants: Object.values(SocialAiQuickBuyKeyboardVariant),
+    // Conversion funnel — enriches the same trade events across every surface
+    // Quick Buy renders on (no source exclusion).
+    eventNames: [
+      EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_SUBMITTED,
+      EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_COMPLETED,
+    ],
+  };

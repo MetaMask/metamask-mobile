@@ -20,14 +20,14 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'SnapController:getRunnableSnaps',
   'PermissionController:getPermissions',
   'PhishingController:bulkScanTokens',
+  'RemoteFeatureFlagController:getState',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
-  'AccountTreeController:stateChanged',
-  'NetworkEnablementController:stateChanged',
+  'AccountTreeController:stateChange',
   'NetworkEnablementController:stateChange',
-  'ClientController:stateChanged',
+  'ClientController:stateChange',
   'KeyringController:lock',
   'KeyringController:unlock',
   'NetworkController:networkDidChange',
@@ -42,12 +42,17 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
   'AccountActivityService:balanceUpdated',
+  'RemoteFeatureFlagController:stateChange',
 ] as const;
 
 const getRootMessenger = () =>
   new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 describe('getAssetsControllerMessenger', () => {
   it('returns a messenger instance', () => {
@@ -114,8 +119,9 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountTreeController:selectedAccountGroupChange',
-          'AccountTreeController:stateChanged',
-          'NetworkEnablementController:stateChanged',
+          'AccountTreeController:stateChange',
+          'NetworkEnablementController:stateChange',
+          'ClientController:stateChange',
         ]),
       }),
     );
@@ -161,6 +167,36 @@ describe('getAssetsControllerMessenger', () => {
           'BackendWebSocketService:findSubscriptionsByChannelPrefix',
           'BackendWebSocketService:addChannelCallback',
           'BackendWebSocketService:removeChannelCallback',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates RemoteFeatureFlagController getState action', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'RemoteFeatureFlagController:getState',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates RemoteFeatureFlagController stateChange event', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining([
+          'RemoteFeatureFlagController:stateChange',
         ]),
       }),
     );

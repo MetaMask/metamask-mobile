@@ -311,6 +311,112 @@ describe('FeaturedCarouselSportCard', () => {
     expect(getByText('40%')).toBeOnTheScreen();
   });
 
+  it('renders UCL outcomes in home-draw-away league order', () => {
+    const market = createMockSportMarket();
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 0)),
+    ).toHaveTextContent('Lakers');
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 2)),
+    ).toHaveTextContent('Celtics');
+  });
+
+  it('renders WNBA outcomes in away-home league order', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        league: 'wnba',
+        score: { away: 49, home: 59, raw: '49-59' },
+        awayTeam: {
+          id: 'portland-fire',
+          name: 'Portland Fire',
+          logo: 'https://example.com/portland-fire.png',
+          abbreviation: 'POR',
+          color: 'orange',
+          alias: 'PortlandFire',
+        },
+        homeTeam: {
+          id: 'connecticut-sun',
+          name: 'Connecticut Sun',
+          logo: 'https://example.com/connecticut-sun.png',
+          abbreviation: 'CONN',
+          color: 'red',
+          alias: 'Sun',
+        },
+      }),
+      outcomes: [
+        createMockOutcome([
+          { id: 'portland-token', title: 'Portland Fire', price: 0.16 },
+          { id: 'connecticut-token', title: 'Connecticut Sun', price: 0.85 },
+        ]),
+      ],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 0)),
+    ).toHaveTextContent('Portland Fire');
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 1)),
+    ).toHaveTextContent('Connecticut Sun');
+  });
+
+  it('opens the WNBA away outcome from the left carousel button', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        league: 'wnba',
+        awayTeam: {
+          id: 'portland-fire',
+          name: 'Portland Fire',
+          logo: 'https://example.com/portland-fire.png',
+          abbreviation: 'POR',
+          color: 'orange',
+          alias: 'PortlandFire',
+        },
+        homeTeam: {
+          id: 'connecticut-sun',
+          name: 'Connecticut Sun',
+          logo: 'https://example.com/connecticut-sun.png',
+          abbreviation: 'CONN',
+          color: 'red',
+          alias: 'Sun',
+        },
+      }),
+      outcomes: [
+        createMockOutcome([
+          { id: 'portland-token', title: 'Portland Fire', price: 0.16 },
+          { id: 'connecticut-token', title: 'Connecticut Sun', price: 0.85 },
+        ]),
+      ],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(0, 0)),
+    );
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcomeToken: expect.objectContaining({
+          id: 'portland-token',
+        }),
+      }),
+    );
+  });
+
   it('renders draw button for UCL leagues', () => {
     const market = createMockSportMarket({
       game: createMockGame({ league: 'ucl' }),

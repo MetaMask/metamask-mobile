@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { PaymentType } from '@consensys/on-ramp-sdk/dist/API';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
@@ -17,7 +18,7 @@ const PAYMENT_METHOD_ICON_SIZE = 20;
 
 export function usePayWithFiatSection(): PayWithSectionConfig | null {
   const fiatItems = useFiatPaymentHighlightedActions();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const iconColor = tw.color('icon-alternative');
   const clearPaymentOverride = useClearPaymentOverride();

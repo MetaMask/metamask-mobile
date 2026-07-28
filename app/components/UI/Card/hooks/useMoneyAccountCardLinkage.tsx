@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -142,7 +143,7 @@ export const useMoneyAccountCardLinkage =
   (): UseMoneyAccountCardLinkageReturn => {
     const { toastRef } = useContext(ToastContext);
     const theme = useTheme();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const dispatch = useDispatch();
     const { trackEvent, createEventBuilder } = useAnalytics();
 
