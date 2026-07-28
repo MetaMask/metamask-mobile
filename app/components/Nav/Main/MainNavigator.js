@@ -939,6 +939,7 @@ const SetPasswordFlow = () => (
     <NativeStack.Screen
       name="ManualBackupStep1"
       component={ManualBackupStep1}
+      options={{ gestureEnabled: false }}
     />
     <NativeStack.Screen
       name="ManualBackupStep2"

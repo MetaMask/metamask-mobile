@@ -565,7 +565,7 @@
     "create_password_title": "Create a password",
     "new_password_placeholder": "New password",
     "confirm_password_placeholder": "Re-enter new password",
-    "description": "Unlocks MetaMask on this device only.",
+    "description": "Use this password to unlock MetaMask on this device. It doesn’t replace your recovery phrase.",
     "description_social_login": "Use this for wallet recovery on all devices.",
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",

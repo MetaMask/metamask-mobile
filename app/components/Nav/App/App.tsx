@@ -290,7 +290,7 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name="ManualBackupStep1"
         component={ManualBackupStep1}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, gestureEnabled: false }}
       />
       <NativeStack.Screen
         name="ManualBackupStep2"

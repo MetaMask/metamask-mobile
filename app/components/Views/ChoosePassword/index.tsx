@@ -461,11 +461,7 @@ const ChoosePassword = () => {
 
       if (!authType.oauth2Login) {
         const seedPhrase = await tryExportSeedPhrase(password);
-        (
-          navigation as unknown as {
-            replace: (screen: string, params?: object) => void;
-          }
-        ).replace('ManualBackupStep1', {
+        navigation.navigate('ManualBackupStep1', {
           seedPhrase,
           backupFlow: false,
           settingsBackup: false,

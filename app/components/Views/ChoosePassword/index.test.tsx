@@ -489,7 +489,7 @@ describe('ChoosePassword', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigation.replace).toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -534,7 +534,7 @@ describe('ChoosePassword', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigation.replace).toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -750,7 +750,7 @@ describe('ChoosePassword', () => {
       await waitForInit();
 
       await waitFor(() => {
-        expect(mockNavigation.replace).toHaveBeenCalledWith(
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
           'ManualBackupStep1',
           {
             seedPhrase: expect.any(Array),

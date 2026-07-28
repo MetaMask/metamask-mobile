@@ -465,7 +465,7 @@ const ManualBackupStep1 = () => {
       ) : null}
       {ready ? (
         <>
-          <Box twClassName="flex-1 px-4">
+          <Box twClassName={`flex-1 px-4 ${showHeader ? '' : 'pt-4'}`}>
             {view === SEED_PHRASE
               ? renderSeedphraseView()
               : renderConfirmPassword()}

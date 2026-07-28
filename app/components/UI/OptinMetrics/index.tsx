@@ -389,7 +389,7 @@ const OptinMetrics = () => {
         onScroll={onScroll}
         testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
-        <Box twClassName="mx-4 flex-1 gap-y-3 pb-20">
+        <Box twClassName="mx-4 flex-1 gap-y-3 pt-4 pb-20">
           <Text
             variant={TextVariant.HeadingLg}
             color={TextColor.TextDefault}
