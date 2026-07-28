@@ -224,9 +224,8 @@ export const buildConfirmedLocalBridgeTransaction = (): TransactionMeta =>
   }) as unknown as TransactionMeta;
 
 /**
- * BridgeStatusController.txHistory entry that enriches
- * {@link buildConfirmedLocalBridgeTransaction} with ETH → USDC quote legs and
- * both token amounts so the row shows +USDC primary and -ETH secondary.
+ * BridgeStatusController.txHistory for
+ * {@link buildConfirmedLocalBridgeTransaction} (ETH → USDC, both amounts).
  */
 export const activityCvBridgeHistoryEntry = {
   txMetaId: 'activity-cv-confirmed-bridge',
@@ -263,9 +262,7 @@ export const activityCvBridgeHistoryEntry = {
 };
 
 /**
- * Confirmed cross-chain swap (ETH on Ethereum → USDC on Linea). Unified swaps
- * keep legs in BridgeStatusController; the activity row still maps as `swap`
- * ("Swapped") with the token pair in the subtitle.
+ * Cross-chain swap (ETH Ethereum → USDC Linea). Maps as `swap` ("Swapped").
  */
 export const buildConfirmedLocalCrossChainSwapTransaction =
   (): TransactionMeta =>
@@ -285,7 +282,7 @@ export const buildConfirmedLocalCrossChainSwapTransaction =
       txReceipt: { status: '0x1' },
     }) as unknown as TransactionMeta;
 
-/** Bridge quote that enriches {@link buildConfirmedLocalCrossChainSwapTransaction}. */
+/** Quote for {@link buildConfirmedLocalCrossChainSwapTransaction}. */
 export const activityCvCrossChainSwapBridgeHistoryEntry = {
   txMetaId: 'activity-cv-confirmed-cross-chain-swap',
   account: ACTIVITY_CV_ACCOUNT,

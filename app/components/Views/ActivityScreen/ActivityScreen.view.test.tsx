@@ -483,8 +483,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     clearAccountsTransactionsApiMocks();
   });
 
-  // Default type filter is Transactions (`All` is off the sheet until data
-  // sources unify). Assert the chip so these rows are clearly under that bucket.
+  // Default type filter is Transactions (`All` is off the sheet for now).
   it('shows Send ETH under Transactions filter with negative primary amount and a single avatar', async () => {
     const sendTransaction = buildConfirmedLocalSendTransaction();
     const sendHash = sendTransaction.hash as string;
@@ -542,8 +541,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
             amount: '1000000000000000000',
             symbol: 'ETH',
             decimal: 18,
-            // Omit native transferType so shouldSkipTransaction does not drop
-            // this inbound row (incoming native transfers are filtered).
+            // Omit transferType so shouldSkipTransaction keeps this inbound row.
           },
         ],
         isError: false,
@@ -629,9 +627,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
             amount: '1000000',
             symbol: 'USDC',
             decimal: 6,
-            // Omit contractAddress so shouldSkipTransaction does not drop this
-            // inbound ERC-20 row (incoming transfers with contractAddress are
-            // filtered when the account only appears in valueTransfers).
+            // Omit contractAddress so shouldSkipTransaction keeps this inbound row.
             name: 'USD Coin',
             transferType: 'ERC20',
           },
@@ -718,13 +714,13 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
       () => findByTestId(activityListRowTitleTestId(swapHash)),
       { timeout: 10000 },
     );
-    // Redesign: title is "Swapped"; pair lives in the subtitle ("ETH → USDC").
+    // Title "Swapped"; pair in subtitle ("ETH → USDC").
     expect(title).toHaveTextContent('Swapped');
     expect(
       await findByTestId(activityListRowSubtitleTestId(swapHash)),
     ).toHaveTextContent('ETH → USDC');
 
-    // Destination (+USDC) is primary; spent ETH is the negative secondary amount.
+    // Destination (+USDC) primary; spent ETH secondary.
     const primaryAmount = await findByTestId(
       activityListRowPrimaryAmountTestId(swapHash),
     );
@@ -767,14 +763,12 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     });
 
     const title = await findByTestId(activityListRowTitleTestId(bridgeHash));
-    // Redesign appends the destination symbol: "Bridged USDC".
     expect(title).toHaveTextContent('Bridged USDC');
-    // Bridge history supplies the chain route subtitle (not the token pair).
     expect(
       await findByTestId(activityListRowSubtitleTestId(bridgeHash)),
     ).toHaveTextContent('Ethereum → Linea');
 
-    // Destination amount present → received USDC primary, spent ETH secondary.
+    // Dest amount present → +USDC primary, -ETH secondary.
     const primaryAmount = await findByTestId(
       activityListRowPrimaryAmountTestId(bridgeHash),
     );
@@ -818,8 +812,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     });
 
     const title = await findByTestId(activityListRowTitleTestId(swapHash));
-    // Cross-chain different-token unified swap still titles as "Swapped";
-    // the pair (not the network route) is the subtitle.
+    // Cross-chain different-token unified swap: "Swapped" + token-pair subtitle.
     expect(title).toHaveTextContent('Swapped');
     expect(
       await findByTestId(activityListRowSubtitleTestId(swapHash)),
@@ -857,7 +850,6 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     });
 
     const title = await findByTestId(activityListRowTitleTestId(approveHash));
-    // Redesign: title is "Approved spending cap"; USDC is the subtitle.
     expect(title).toHaveTextContent('Approved spending cap');
     expect(
       await findByTestId(activityListRowSubtitleTestId(approveHash)),
@@ -931,7 +923,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
       strings('transactions.smart_contract_interaction'),
     );
 
-    // Zero-value interaction has no primary amount (hence no +/- sign).
+    // Zero-value interaction has no primary amount.
     expect(
       queryByTestId(activityListRowPrimaryAmountTestId(contractHash)),
     ).toBeNull();
@@ -1020,8 +1012,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
         hash: mintHash,
         timestamp: new Date().toISOString(),
         chainId: 1,
-        // Top-level from must be the selected account so shouldSkipTransaction
-        // does not drop this as an incoming token transfer.
+        // from = selected account so shouldSkipTransaction does not drop this mint.
         from: ACTIVITY_CV_ACCOUNT,
         to: ACTIVITY_CV_NFT_CONTRACT,
         value: '0',

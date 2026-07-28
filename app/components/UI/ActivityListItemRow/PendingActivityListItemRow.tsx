@@ -46,7 +46,7 @@ export function PendingActivityListItemRow({
     onPress?.(item);
   }, [onPress, item]);
 
-  const testIdSuffix = item.hash ?? index;
+  const testIdSuffix = item.hash ?? index ?? 0;
   const isQueued = item.isEarliestNonce === false;
   const subtitle = content.subtitle
     ? isQueued
@@ -90,7 +90,7 @@ export function PendingActivityListItemRow({
           fallbackIconName={fallbackIconName}
           networkImageSource={networkImageSource}
           styles={styles}
-          testIdSuffix={item.hash ?? index}
+          testIdSuffix={testIdSuffix}
           tokens={content.avatarTokens}
         />
       }

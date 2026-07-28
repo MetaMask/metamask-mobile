@@ -96,7 +96,7 @@ function ResolvedActivityListItemRow({
           iconUrl={content.avatarIconUrl ?? nftImageUrl}
           perpsMarketSymbol={content.perpsMarketSymbol}
           styles={styles}
-          testIdSuffix={item.hash ?? index}
+          testIdSuffix={item.hash ?? index ?? 0}
           tokens={content.avatarTokens}
         />
       }
