@@ -60,7 +60,6 @@ const styles = StyleSheet.create({
 const BALANCE_THRESHOLD_USD = 100;
 
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
-const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
 
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
@@ -142,11 +141,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,
-    [successText],
-  );
-  const secondaryIconProps = useMemo(
-    () =>
-      ({ size: IconSize.Md, twClassName: `${successText} shrink-0` }) as const,
     [successText],
   );
 
@@ -285,10 +279,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
             textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-            startIconName={IconName.SwapVertical}
-            startIconProps={
-              swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-            }
             onPress={() => {
               trackStickyFooterTapped({
                 ctaType: 'swap',
@@ -318,10 +308,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
             textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-            startIconName={IconName.Bank}
-            startIconProps={
-              buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-            }
             onPress={() => {
               trackStickyFooterTapped({
                 ctaType: 'buy',
