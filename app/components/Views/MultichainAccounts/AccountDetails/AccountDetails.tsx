@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import PrivateKeyAccountDetails from './AccountTypes/PrivateKeyAccountDetails';
 import HardwareAccountDetails from './AccountTypes/HardwareAccountDetails';
 import { isHardwareAccount } from '../../../../util/address';
@@ -20,7 +21,7 @@ interface AccountDetailsRouteParams {
 export const AccountDetails = () => {
   const route =
     useRoute<RouteProp<{ params: AccountDetailsRouteParams }, 'params'>>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     account: { address },
   } = route.params;

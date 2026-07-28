@@ -1,10 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  StyleSheet,
-  TouchableOpacity,
-  type LayoutRectangle,
-} from 'react-native';
+import { Animated, Pressable, StyleSheet, type ViewStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -27,138 +22,146 @@ interface SlidingPillToggleProps<T extends string> {
   onChange: (value: T) => void;
   isDisabled?: boolean;
   testID: string;
-  containerTwClassName: string;
-  pillTwClassName: string;
+  /** Uniform gap (px) between the outer border and the inner sliding pill. */
+  inset: number;
+  containerBorderRadius: number;
+  pillBorderRadius: number;
+  containerBorderColor?: string;
   sliderBackgroundColor: string;
-  sliderBorderRadius: number;
-  /** When true, both pills grow equally (`flex: 1`). */
-  equalWidthPills?: boolean;
-  /**
-   * When true, the selected pill uses Medium weight and the other Regular.
-   * When false, both pills stay Medium.
-   */
+  pillPaddingHorizontal: number;
+  pillPaddingVertical: number;
+  /** Pills stretch to fill the container width (use for full-width toggles). */
+  stretchPills?: boolean;
+  /** Selected pill is Medium, unselected is Regular. Both Medium when false. */
   weightBySelection?: boolean;
+  /** Extra styles on the outer container, e.g. margins. */
+  style?: ViewStyle;
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
+    borderWidth: 1,
   },
   slider: {
     position: 'absolute',
   },
-  equalWidthPill: {
+  pill: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stretchPill: {
     flex: 1,
   },
 });
 
-/**
- * Two-option animated sliding-pill toggle. Shared by alert type and period
- * selectors (same spring technique as QuickBuyTradeModeToggle).
- */
 function SlidingPillToggle<T extends string>({
   value,
   options,
   onChange,
   isDisabled = false,
   testID,
-  containerTwClassName,
-  pillTwClassName,
+  inset,
+  containerBorderRadius,
+  pillBorderRadius,
+  containerBorderColor,
   sliderBackgroundColor,
-  sliderBorderRadius,
-  equalWidthPills = false,
+  pillPaddingHorizontal,
+  pillPaddingVertical,
+  stretchPills = false,
   weightBySelection = false,
+  style,
 }: SlidingPillToggleProps<T>) {
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const [firstLayout, setFirstLayout] = useState<LayoutRectangle | null>(null);
-  const [secondWidth, setSecondWidth] = useState(0);
+  const [pillWidth, setPillWidth] = useState(0);
   const [firstOption, secondOption] = options;
 
-  const handlePress = (next: T) => {
-    if (isDisabled) return;
-    if (value !== next) {
-      playSelection();
-      onChange(next);
-    }
-  };
-
   useEffect(() => {
-    if (!firstLayout) return;
+    if (!pillWidth) return;
     Animated.spring(slideAnim, {
-      toValue: value === firstOption.value ? 0 : firstLayout.width,
+      toValue: value === firstOption.value ? 0 : pillWidth,
       useNativeDriver: true,
       tension: 180,
       friction: 20,
     }).start();
-  }, [value, firstLayout, firstOption.value, slideAnim]);
+  }, [value, pillWidth, firstOption.value, slideAnim]);
 
-  const sliderWidth =
-    value === firstOption.value ? (firstLayout?.width ?? 0) : secondWidth;
+  const pillMinWidth = stretchPills ? undefined : pillWidth;
 
-  const renderOption = (
-    option: SlidingPillOption<T>,
-    onLayout: (layout: LayoutRectangle) => void,
-  ) => {
+  const renderOption = (option: SlidingPillOption<T>) => {
     const isSelected = value === option.value;
     return (
-      <TouchableOpacity
+      <Pressable
         key={option.value}
-        onPress={() => handlePress(option.value)}
-        onLayout={(e) => onLayout(e.nativeEvent.layout)}
+        onPress={() => {
+          if (!isDisabled && value !== option.value) {
+            playSelection();
+            onChange(option.value);
+          }
+        }}
+        onLayout={(e) => {
+          const { width } = e.nativeEvent.layout;
+          setPillWidth((prev) => Math.max(prev, width));
+        }}
         disabled={isDisabled}
         accessibilityRole="button"
-        accessibilityState={{
-          selected: isSelected,
-          disabled: isDisabled,
-        }}
+        accessibilityState={{ selected: isSelected, disabled: isDisabled }}
         testID={option.testID}
-        style={equalWidthPills ? styles.equalWidthPill : undefined}
+        style={[
+          styles.pill,
+          stretchPills ? styles.stretchPill : { minWidth: pillMinWidth },
+          {
+            paddingHorizontal: pillPaddingHorizontal,
+            paddingVertical: pillPaddingVertical,
+          },
+        ]}
       >
-        <Box twClassName={`${pillTwClassName} items-center`}>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={
-              weightBySelection
-                ? isSelected
-                  ? FontWeight.Medium
-                  : FontWeight.Regular
-                : FontWeight.Medium
-            }
-            color={TextColor.TextDefault}
-          >
-            {option.label}
-          </Text>
-        </Box>
-      </TouchableOpacity>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={
+            weightBySelection && !isSelected
+              ? FontWeight.Regular
+              : FontWeight.Medium
+          }
+          color={TextColor.TextDefault}
+        >
+          {option.label}
+        </Text>
+      </Pressable>
     );
   };
 
   return (
     <Box
       testID={testID}
-      flexDirection={BoxFlexDirection.Row}
-      twClassName={containerTwClassName}
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          borderRadius: containerBorderRadius,
+          borderColor: containerBorderColor,
+        },
+        style,
+      ]}
     >
-      {firstLayout && sliderWidth > 0 && (
+      {pillWidth > 0 && (
         <Animated.View
           style={[
             styles.slider,
             {
-              left: firstLayout.x,
-              top: firstLayout.y,
-              height: firstLayout.height,
-              width: sliderWidth,
-              borderRadius: sliderBorderRadius,
+              top: inset,
+              bottom: inset,
+              left: inset,
+              width: pillWidth,
+              borderRadius: pillBorderRadius,
               backgroundColor: sliderBackgroundColor,
               transform: [{ translateX: slideAnim }],
             },
           ]}
         />
       )}
-
-      {renderOption(firstOption, setFirstLayout)}
-      {renderOption(secondOption, (layout) => setSecondWidth(layout.width))}
+      <Box flexDirection={BoxFlexDirection.Row} style={{ padding: inset }}>
+        {renderOption(firstOption)}
+        {renderOption(secondOption)}
+      </Box>
     </Box>
   );
 }

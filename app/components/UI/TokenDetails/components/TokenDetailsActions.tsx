@@ -224,7 +224,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
       if (hasBalance) {
         actionButtons.push({
           key: 'send',
-          iconName: IconName.Send,
+          iconName: IconName.Arrow2UpRight,
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
@@ -255,7 +255,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
       if (hasBalance) {
         actionButtons.push({
           key: 'send',
-          iconName: IconName.Send,
+          iconName: IconName.Arrow2UpRight,
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
