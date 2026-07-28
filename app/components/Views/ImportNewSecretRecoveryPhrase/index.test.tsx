@@ -24,6 +24,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { Alert } from 'react-native';
+import { mockTheme } from '../../../util/theme';
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();
@@ -475,7 +476,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
           label: 'Wallet 2 imported',
         },
       ],
-      iconName: IconName.Check,
+      iconName: IconName.Confirmation,
+      iconColor: mockTheme.colors.success.default,
       hasNoTimeout: false,
     });
   });
