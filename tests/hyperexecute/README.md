@@ -38,6 +38,12 @@ Autosplit discovery only emits specs whose describe title can match
 area-only specs are skipped. The per-file runner does **not** use `--pass-with-no-tests`,
 so a mismatched task fails instead of reporting empty success.
 
+## HyperExecute YAML version
+
+Generated configs use **YAML `version: "0.1"`** with custom `testDiscovery` +
+`testRunnerCommand`. YAML `0.2` requires `framework.name` and removes those fields
+(orchestration becomes framework-managed), which does not fit Appium-via-Playwright.
+
 ## Manual local trigger
 
 ```bash
