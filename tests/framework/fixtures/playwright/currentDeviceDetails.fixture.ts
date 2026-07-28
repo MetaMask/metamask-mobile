@@ -6,8 +6,6 @@ import {
   type EmulatorConfig,
   type WebDriverConfig,
 } from '../../types.ts';
-import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
-import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import type { CurrentDeviceDetails } from './types.ts';
 
@@ -56,9 +54,14 @@ export const currentDeviceDetailsFixture = {
       emulatorDevice?.provider === ProviderName.EMULATOR ||
       emulatorDevice?.provider === ProviderName.SIMULATOR;
 
+    // Lazy-load local-only helpers so BrowserStack/TestMu (incl. HyperExecute)
+    // never require() emulator ADB/simctl modules at fixture import time.
     if (platform === Platform.ANDROID && isLocalEmulator && emulatorDevice) {
       logger.debug(
         `Resolving Android ADB serial for "${deviceNameField ?? deviceUdid}"`,
+      );
+      const { applyResolvedAndroidAdbToDevice } = await import(
+        '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts'
       );
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
         setAndroidSerialEnv: true,
@@ -75,8 +78,14 @@ export const currentDeviceDetailsFixture = {
     if (platform === Platform.IOS && isLocalEmulator && deviceNameField) {
       const preferredUdid =
         emulatorDevice?.udid?.trim() || process.env.IOS_SIMULATOR_UDID?.trim();
-      resolvedIosUdid =
-        preferredUdid || (await getIosSimulatorUdid(deviceNameField));
+      if (preferredUdid) {
+        resolvedIosUdid = preferredUdid;
+      } else {
+        const { getIosSimulatorUdid } = await import(
+          '../../services/appium/EmulatorHelpers.ts'
+        );
+        resolvedIosUdid = await getIosSimulatorUdid(deviceNameField);
+      }
     }
 
     const displayName = deviceNameField ?? deviceUdid ?? 'unknown';
