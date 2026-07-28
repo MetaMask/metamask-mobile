@@ -6,7 +6,9 @@
  * Usage:
  * - In your feature's setup (e.g. setupXxxApiMock): call nock.cleanAll() and
  * nock.disableNetConnect() before defining interceptors, then nock('<origin>').get(...).reply(...).persist().
- * - In afterEach: call clearAllNockMocks() (or your feature's clearXxxMocks() which should call this).
+ * - In afterEach: call teardownNock() (or your feature's clearXxxMocks() which
+ * should call it) so disableNetConnect does not leak to later suites in the
+ * same Jest worker.
  *
  * @see tests/component-view/api-mocking/ (e.g. trending.ts) and references/navigation-mocking.md
  */
