@@ -110,6 +110,7 @@ const setUpDownEnabled = (enabled: boolean) => {
 const setCustomConfig = (
   queryParams = '',
   excludedMarketIds: string[] = [],
+  curation: 'generic' | 'live' = 'generic',
 ) => {
   feedCarouselConfig = {
     enabled: true,
@@ -117,6 +118,7 @@ const setCustomConfig = (
     mode: 'custom',
     title: 'Wimbledon',
     contentSource: {
+      curation,
       queryParams,
       excludedMarketIds,
     },
@@ -192,6 +194,7 @@ describe('usePredictLiveNowSection', () => {
       ...feedCarouselConfig,
       title: 'NFL Playoffs',
       contentSource: {
+        curation: 'generic',
         queryParams: 'tag_slug=football',
         excludedMarketIds: ['market-2'],
       },
@@ -266,6 +269,30 @@ describe('usePredictLiveNowSection', () => {
         { length: CUSTOM_FEED_CAROUSEL_LIMIT },
         (_, index) => `R${index + 2}`,
       ),
+    );
+  });
+
+  it('reuses live scoreboard and crypto curation after applying exclusions', () => {
+    setCustomConfig('live=true&order=volume24hr', ['L1', 'BTC5M'], 'live');
+    setUpDownEnabled(true);
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createRegularMarket('R1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('ETH5M'),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual(['L2', 'L3', 'ETH5M']);
+    expect(mockUseCurrentPredictMarketFromSeries).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
     );
   });
 

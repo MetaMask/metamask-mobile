@@ -2196,6 +2196,7 @@ describe('Predict Feature Flag Selectors', () => {
       title: '  Wimbledon  ',
       deeplink: '  https://link.metamask.io/predict?feed=sports&tab=tennis  ',
       contentSource: {
+        curation: 'generic',
         queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
         excludedMarketIds: [' market-1 ', 'market-1', ' ', 'market-2'],
       },
@@ -2219,6 +2220,7 @@ describe('Predict Feature Flag Selectors', () => {
         title: 'Wimbledon',
         deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
         contentSource: {
+          curation: 'generic',
           queryParams: 'tag_slug=tennis&order=volume24hr',
           excludedMarketIds: ['market-1', 'market-2'],
         },
@@ -2257,6 +2259,10 @@ describe('Predict Feature Flag Selectors', () => {
       { ...validFlag, title: '   ' },
       { ...validFlag, deeplink: 'https://example.com/predict' },
       { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
+      {
+        ...validFlag,
+        contentSource: { ...validFlag.contentSource, curation: 'automatic' },
+      },
       {
         ...validFlag,
         contentSource: { ...validFlag.contentSource, queryParams: 123 },

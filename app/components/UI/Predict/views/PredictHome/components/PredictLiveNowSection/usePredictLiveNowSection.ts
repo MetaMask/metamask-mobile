@@ -51,9 +51,10 @@ export interface UsePredictLiveNowSectionResult {
  *
  * Live mode pulls markets with `live: true`, keeps scoreboard-capable results,
  * and preserves the existing crypto interleave. Custom mode uses the configured
- * raw query params, removes remotely excluded market IDs, and accepts generic
- * market cards. An empty query uses the provider defaults for top open markets
- * by 24-hour volume.
+ * raw query params and removes remotely excluded market IDs. Its `live`
+ * curation reuses the PRED-834 scoreboard/crypto behavior, while `generic`
+ * renders query results directly. An empty query uses the provider defaults for
+ * top open markets by 24-hour volume.
  *
  * Alongside, the BTC 5m / ETH 5m / BTC 15m Up/Down crypto markets are resolved
  * from their series and interleaved (`2 live, 1 crypto, ...`) by
@@ -71,7 +72,13 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const config = useSelector(selectPredictFeedCarouselConfig);
   const isCustom = config.mode === 'custom';
-  const includeCrypto = !isCustom && upDownEnabled;
+  const usesLiveCuration =
+    !isCustom || config.contentSource.curation === 'live';
+  const includeCrypto = usesLiveCuration && upDownEnabled;
+  const excludedMarketIds = useMemo(
+    () => new Set(isCustom ? config.contentSource.excludedMarketIds : []),
+    [config.contentSource.excludedMarketIds, isCustom],
+  );
 
   const marketListParams: PredictMarketListParams = isCustom
     ? {
@@ -98,17 +105,18 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     () =>
       marketsRaw
         .filter((market) => Boolean(market.game))
+        .filter((market) => !excludedMarketIds.has(market.id))
         .slice(0, LIVE_NOW_LIVE_LIMIT),
-    [marketsRaw],
+    [excludedMarketIds, marketsRaw],
   );
 
-  const customMarkets = useMemo(() => {
-    const excludedMarketIds = new Set(config.contentSource.excludedMarketIds);
-
-    return marketsRaw
-      .filter((market) => !excludedMarketIds.has(market.id))
-      .slice(0, CUSTOM_FEED_CAROUSEL_LIMIT);
-  }, [config.contentSource.excludedMarketIds, marketsRaw]);
+  const customMarkets = useMemo(
+    () =>
+      marketsRaw
+        .filter((market) => !excludedMarketIds.has(market.id))
+        .slice(0, CUSTOM_FEED_CAROUSEL_LIMIT),
+    [excludedMarketIds, marketsRaw],
+  );
 
   const btc5m = useCurrentPredictMarketFromSeries({
     series: BTC_UP_OR_DOWN_5M_SERIES,
@@ -129,16 +137,24 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     }
     return [btc5m.market, eth5m.market, btc15m.market].filter(
       (market): market is PredictMarket =>
-        Boolean(market) && isCryptoUpDown(market as PredictMarket),
+        market !== undefined &&
+        isCryptoUpDown(market) &&
+        !excludedMarketIds.has(market.id),
     );
-  }, [includeCrypto, btc5m.market, eth5m.market, btc15m.market]);
+  }, [
+    includeCrypto,
+    btc5m.market,
+    eth5m.market,
+    btc15m.market,
+    excludedMarketIds,
+  ]);
 
   const items = useMemo(
     () =>
-      isCustom
-        ? customMarkets
-        : interleaveLiveNowMarkets(liveMarkets, cryptoMarkets),
-    [cryptoMarkets, customMarkets, isCustom, liveMarkets],
+      usesLiveCuration
+        ? interleaveLiveNowMarkets(liveMarkets, cryptoMarkets)
+        : customMarkets,
+    [cryptoMarkets, customMarkets, liveMarkets, usesLiveCuration],
   );
 
   const isCryptoLoading =

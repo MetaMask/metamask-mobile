@@ -22,6 +22,8 @@ export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
   title: string;
   deeplink?: string;
   contentSource: {
+    /** `live` reuses PRED-834 curation; `generic` renders query results directly. */
+    curation: 'generic' | 'live';
     /** Raw Polymarket query params, without a leading `?`. */
     queryParams: string;
     /** IDs matching `PredictMarket.id` that are removed from custom results. */

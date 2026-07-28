@@ -181,6 +181,7 @@ const createCustomConfig = (
   mode: 'custom',
   title: 'Wimbledon',
   contentSource: {
+    curation: 'generic',
     queryParams: 'tag_slug=tennis',
     excludedMarketIds: [],
   },

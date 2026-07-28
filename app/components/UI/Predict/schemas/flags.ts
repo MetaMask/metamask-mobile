@@ -30,6 +30,10 @@ const PredictFeedCarouselModeSchema = union([
   literal('live'),
   literal('custom'),
 ]);
+const PredictFeedCarouselCurationSchema = union([
+  literal('generic'),
+  literal('live'),
+]);
 
 const SemanticVersionSchema = refine(
   string(),
@@ -56,6 +60,10 @@ export const PredictFeedCarouselSchema = defaulted(
     deeplink: optional(string()),
     contentSource: defaulted(
       type({
+        curation: defaulted(
+          PredictFeedCarouselCurationSchema,
+          () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource.curation,
+        ),
         queryParams: defaulted(
           string(),
           () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource.queryParams,

@@ -24,6 +24,7 @@ describe('PredictFeedCarouselSchema', () => {
     title: 'Wimbledon',
     deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
     contentSource: {
+      curation: 'generic',
       queryParams: 'tag_slug=tennis&title_search=Wimbledon',
       excludedMarketIds: ['market-1'],
     },
@@ -59,6 +60,7 @@ describe('PredictFeedCarouselSchema', () => {
     );
 
     expect(contentSource).toStrictEqual({
+      curation: 'generic',
       queryParams: '',
       excludedMarketIds: [],
     });
@@ -76,6 +78,7 @@ describe('PredictFeedCarouselSchema', () => {
   });
 
   it.each([
+    ['curation', 'automatic'],
     ['queryParams', ['tag_slug=tennis']],
     ['excludedMarketIds', ['market-1', 2]],
   ])('throws for unsupported content source %s', (field, value) => {

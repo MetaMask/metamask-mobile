@@ -5643,6 +5643,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       mode: 'live',
       title: '',
       contentSource: {
+        curation: 'generic',
         queryParams: '',
         excludedMarketIds: [],
       },
