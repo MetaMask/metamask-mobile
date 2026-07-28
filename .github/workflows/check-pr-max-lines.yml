@@ -10,10 +10,6 @@ permissions:
 
 jobs:
   check-pr-max-lines:
-    # Always recompute on every trigger, including title/body edits. A job-level
-    # `if` here would post a `skipped` check run for the same head SHA, which
-    # GitHub treats as the latest (authoritative) status and can silently clear
-    # a prior oversized-PR failure. Recomputing is cheap and always accurate.
     runs-on: ubuntu-latest
     steps:
       - name: Check PR lines changed
