@@ -165,11 +165,6 @@ jest.mock('@metamask/design-system-react-native', () => {
         {children}
       </View>
     ),
-    Text: ({ children, testID, ...props }: MockComponentProps) => (
-      <Text testID={testID} {...props}>
-        {children}
-      </Text>
-    ),
     Button: ({
       children,
       onPress,
@@ -205,10 +200,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       Primary: 'primary',
       Secondary: 'secondary',
       Link: 'link',
-    },
-    FontWeight: {
-      Medium: 'medium',
-      Bold: 'bold',
     },
   };
 });

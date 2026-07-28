@@ -217,6 +217,33 @@ export default class PlaywrightAssertions {
     throw new Error(`Expected element text "${expected}" within ${timeout}ms`);
   }
 
+  /**
+   * Polls until an element's text content is not the forbidden value.
+   */
+  static async expectElementNotToHaveText(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    forbidden: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description =
+      options.description ?? `element text is not "${forbidden}"`;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const text = await el.textContent();
+        if (text === forbidden) {
+          throw new Error(`Element still has forbidden text "${forbidden}"`);
+        }
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
   static async expectElementToNotBeVisible(
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
     options: AssertionOptions = {},

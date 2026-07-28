@@ -96,6 +96,7 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -105,6 +106,11 @@ import { selectGeolocationLocation } from '../../../selectors/geolocationControl
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import {
+  resolveFirstPredictOnUsLaunch,
+  type ResolvedFirstPredictOnUsLaunch,
+} from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
+import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
 
 interface KeyringState {
   type: string;
@@ -167,7 +173,7 @@ const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
@@ -197,6 +203,11 @@ const ChoosePassword = () => {
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
+  // Off-screen resolution of the First Predict On Us onboarding splash. Kicked
+  // off early (for social login) so the result is typically ready by the time
+  // the wallet is created and we navigate into the success flow.
+  const firstPredictOnUsLaunchRef =
+    useRef<Promise<ResolvedFirstPredictOnUsLaunch | null> | null>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
   const { shouldShowQuestionnaire } =
@@ -206,6 +217,13 @@ const ChoosePassword = () => {
     () => route.params?.oauthLoginSuccess,
     [route.params?.oauthLoginSuccess],
   );
+
+  useEffect(() => {
+    if (!isSocialLoginUser || firstPredictOnUsLaunchRef.current) {
+      return;
+    }
+    firstPredictOnUsLaunchRef.current = resolveFirstPredictOnUsLaunch();
+  }, [isSocialLoginUser]);
 
   useEffect(() => {
     if (!isSocialLoginUser) {
@@ -421,7 +439,34 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
-  const onContinueNavigation = useCallback(() => {
+  const onContinueNavigation = useCallback(async () => {
+    // The First Predict On Us splash is a flat onboarding step shown after any
+    // survey and before the "wallet ready" success screen. Its off-screen gating
+    // was kicked off on mount; if it resolved we reset to the splash (which
+    // dismisses forward to OnboardingSuccess). Otherwise we reset straight to
+    // the success flow. The flow stays linear either way.
+    const firstPredictOnUsLaunch = firstPredictOnUsLaunchRef.current
+      ? await firstPredictOnUsLaunchRef.current
+      : null;
+
+    if (firstPredictOnUsLaunch) {
+      dispatch(markFirstPredictionOnUsOfferViewed());
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.FIRST_PREDICT_ON_US_SPLASH,
+            params: {
+              content: firstPredictOnUsLaunch.content,
+              markets: firstPredictOnUsLaunch.markets,
+              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+            },
+          },
+        ],
+      });
+      return;
+    }
+
     navigation.reset({
       index: 0,
       routes: [
@@ -436,7 +481,7 @@ const ChoosePassword = () => {
         },
       ],
     });
-  }, [navigation]);
+  }, [navigation, dispatch]);
 
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData, isMarketingOptedIn: boolean) => {
@@ -506,7 +551,7 @@ const ChoosePassword = () => {
           ...(accountType && { accountType }),
         });
       } else {
-        onContinueNavigation();
+        await onContinueNavigation();
       }
     },
     [

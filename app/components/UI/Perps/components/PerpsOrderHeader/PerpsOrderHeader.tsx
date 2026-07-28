@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   HeaderSubpage,
   SelectButton,
@@ -37,7 +39,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   title,
   isLoading,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
   // TAT-3334) — the same source PerpsOrderView already uses for its own
