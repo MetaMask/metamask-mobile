@@ -30,6 +30,7 @@ interface InitialStateIdentityOptions {
   isBackupAndSyncEnabled?: boolean;
   isAccountSyncingEnabled?: boolean;
   isContactSyncingEnabled?: boolean;
+  isRampsSyncingEnabled?: boolean;
   addressBook?: AddressBookState;
 }
 
@@ -46,6 +47,7 @@ export const initialStateIdentity = (
     isBackupAndSyncEnabled = true,
     isAccountSyncingEnabled = true,
     isContactSyncingEnabled = true,
+    isRampsSyncingEnabled = true,
     addressBook = {},
   } = options;
 
@@ -72,6 +74,7 @@ export const initialStateIdentity = (
             isBackupAndSyncEnabled,
             isAccountSyncingEnabled,
             isContactSyncingEnabled,
+            isRampsSyncingEnabled,
             isBackupAndSyncUpdateLoading: false,
           },
           AddressBookController: {

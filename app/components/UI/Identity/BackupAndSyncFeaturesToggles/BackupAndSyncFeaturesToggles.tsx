@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import {
   selectIsAccountSyncingEnabled,
   selectIsContactSyncingEnabled,
+  selectIsRampsSyncingEnabled,
   selectIsBackupAndSyncEnabled,
   selectIsBackupAndSyncUpdateLoading,
 } from '../../../../selectors/identity';
@@ -41,6 +42,14 @@ export const backupAndSyncFeaturesTogglesSections = [
     backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.contactSyncing,
     featureReduxSelector: selectIsContactSyncingEnabled,
     testID: BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_CONTACT_SYNCING,
+  },
+  {
+    id: 'ramps',
+    titleI18NKey: strings('backupAndSync.features.ramps'),
+    iconName: IconName.Card,
+    backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.rampsSyncing,
+    featureReduxSelector: selectIsRampsSyncingEnabled,
+    testID: BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_RAMPS_SYNCING,
   },
 ];
 

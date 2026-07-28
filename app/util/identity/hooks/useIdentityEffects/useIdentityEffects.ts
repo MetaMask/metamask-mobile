@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAccountSyncing } from '../useAccountSyncing';
 import { useContactSyncing } from '../useContactSyncing';
+import { useRampsOrderSyncing } from '../useRampsOrderSyncing';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 import { useBrazeIdentity } from '../../../../core/Braze/hooks';
 import { useCanonicalProfileIdTrait } from '../useCanonicalProfileIdTrait';
@@ -16,6 +17,8 @@ export const useIdentityEffects = () => {
     useAccountSyncing();
   const { dispatchContactSyncing, shouldDispatchContactSyncing } =
     useContactSyncing();
+  const { dispatchRampsOrderSyncing, shouldDispatchRampsOrderSyncing } =
+    useRampsOrderSyncing();
   const { autoSignIn, shouldAutoSignIn } = useAutoSignIn();
   const { autoSignOut, shouldAutoSignOut } = useAutoSignOut();
 
@@ -36,6 +39,12 @@ export const useIdentityEffects = () => {
       dispatchContactSyncing();
     }
   }, [shouldDispatchContactSyncing, dispatchContactSyncing]);
+
+  useEffect(() => {
+    if (shouldDispatchRampsOrderSyncing) {
+      dispatchRampsOrderSyncing();
+    }
+  }, [shouldDispatchRampsOrderSyncing, dispatchRampsOrderSyncing]);
 
   /**
    * Authentication effects

@@ -3,6 +3,7 @@ import {
   selectIsBackupAndSyncUpdateLoading,
   selectIsAccountSyncingEnabled,
   selectIsContactSyncingEnabled,
+  selectIsRampsSyncingEnabled,
   selectIsSignedIn,
   selectCanonicalProfileId,
   selectNeedsProfilePairing,
@@ -20,6 +21,8 @@ describe('Notification Selectors', () => {
         UserStorageController: {
           isBackupAndSyncEnabled: true,
           isAccountSyncingEnabled: true,
+          isContactSyncingEnabled: true,
+          isRampsSyncingEnabled: true,
           isBackupAndSyncUpdateLoading: false,
           isAccountSyncingReadyToBeDispatched: false,
         },
@@ -52,6 +55,13 @@ describe('Notification Selectors', () => {
     expect(selectIsContactSyncingEnabled(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
         .isContactSyncingEnabled,
+    );
+  });
+
+  it('selectIsRampsSyncingEnabled returns correct value', () => {
+    expect(selectIsRampsSyncingEnabled(mockState)).toEqual(
+      mockState.engine.backgroundState.UserStorageController
+        .isRampsSyncingEnabled,
     );
   });
 

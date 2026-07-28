@@ -1,5 +1,15 @@
 {
   "name": "metamask",
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "breaking",
+      "previewVersion": "17.0.0-preview-68ba7f84e"
+    },
+    "@metamask/profile-sync-controller": {
+      "type": "breaking",
+      "previewVersion": "28.3.0-preview-68ba7f84e"
+    }
+  },
   "version": "8.6.0",
   "private": true,
   "repository": {
@@ -236,7 +246,9 @@
     "@react-native/babel-preset@npm:0.83.6": "patch:@react-native/babel-preset@npm%3A0.83.6#~/.yarn/patches/@react-native-babel-preset-npm-0.83.6-90eed53ffb.patch",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@metamask/bridge-controller@npm:^77.7.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
-    "@metamask/bridge-controller@npm:^77.8.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch"
+    "@metamask/bridge-controller@npm:^77.8.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
+    "metamask@workspace:./@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@17.0.0-preview-68ba7f84e",
+    "metamask@workspace:./@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@28.3.0-preview-68ba7f84e"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",

@@ -1409,6 +1409,7 @@ class FixtureBuilder {
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     });
 
     // Enable basic functionality in settings (required for profile syncing)
@@ -1441,6 +1442,7 @@ class FixtureBuilder {
       isBackupAndSyncEnabled: false,
       isAccountSyncingEnabled: false,
       isContactSyncingEnabled: false,
+      isRampsSyncingEnabled: false,
       basicFunctionalityEnabled: false,
     });
 
@@ -1548,12 +1550,14 @@ class FixtureBuilder {
       isBackupAndSyncEnabled: true,
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
+      isRampsSyncingEnabled: true,
     },
   ) {
     const {
       isBackupAndSyncEnabled = true,
       isAccountSyncingEnabled = true,
       isContactSyncingEnabled = true,
+      isRampsSyncingEnabled = true,
     } = options;
 
     // Backup and Sync Settings
@@ -1561,6 +1565,7 @@ class FixtureBuilder {
       isBackupAndSyncEnabled,
       isAccountSyncingEnabled,
       isContactSyncingEnabled,
+      isRampsSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
     };
