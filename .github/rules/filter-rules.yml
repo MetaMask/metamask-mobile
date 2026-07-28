@@ -138,3 +138,9 @@ e2e_smoke_infra:
 
 all_changes:
   - '**'
+
+# Spec files used for flakiness detection (run changed specs twice).
+# Kept separate from all_changes so only this short list is passed through
+# workflow outputs/env vars — the full list overflows ARG_MAX on large PRs.
+e2e_spec_files:
+  - '**/*.spec.{ts,js}'
