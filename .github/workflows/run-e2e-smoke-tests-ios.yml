@@ -8,8 +8,8 @@ on:
         required: false
         type: string
         default: '["ALL"]'
-      changed_files:
-        description: 'Changed files'
+      changed_spec_files:
+        description: 'Space-separated list of changed E2E spec file paths, used to run modified specs twice for flakiness detection'
         required: false
         type: string
         default: ''
@@ -37,7 +37,7 @@ jobs:
       test_suite_tag: 'SmokeConfirmations'
       split_number: ${{ matrix.split }}
       total_splits: 4
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -55,7 +55,7 @@ jobs:
       test_suite_tag: 'SmokePerps'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -73,7 +73,7 @@ jobs:
       test_suite_tag: 'SmokeWalletPlatform'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -91,7 +91,7 @@ jobs:
       test_suite_tag: 'SmokeNetworkAbstractions'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -109,7 +109,7 @@ jobs:
       test_suite_tag: 'SmokeNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -127,7 +127,7 @@ jobs:
       test_suite_tag: 'SmokeMultiChainAPI'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -145,7 +145,7 @@ jobs:
       test_suite_tag: 'SmokeBrowser'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -163,7 +163,7 @@ jobs:
       test_suite_tag: 'SmokeSnaps'
       split_number: ${{ matrix.split }}
       total_splits: 4
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
       bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && matrix.split == 1 && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || '' }}
