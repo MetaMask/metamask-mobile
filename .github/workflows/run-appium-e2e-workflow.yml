@@ -32,7 +32,7 @@ on:
         description: 'Timeout in minutes for the Playwright test step'
         required: false
         type: number
-        default: 25
+        default: 35
       build_type:
         description: 'Build type (main or flask)'
         required: false
