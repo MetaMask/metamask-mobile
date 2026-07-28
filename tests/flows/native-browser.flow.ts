@@ -22,9 +22,19 @@ const CHROME_VIEW_INTENT_SETTLE_MS = 3000;
 /**
  * Dismisses common Chrome first-run / privacy / default-browser dialogs if present.
  * Avoid "More" — it expands FRE options rather than dismissing them.
+ *
+ * Best-effort and self-bounding: each selector is probed with a cheap presence
+ * count (no polling) and only tapped when present, so absent dialogs cost
+ * near nothing. A single absolute deadline caps total time. Deliberately NOT
+ * wrapped in withTimeout by callers — Promise.race cannot cancel WebDriver
+ * commands, so a raced-out dismissal would keep polling the session in the
+ * background and pile up.
+ * @param deadlineMs - Absolute time (Date.now() ms) after which to stop.
  * @returns void
  */
-const dismissChromeAdPrivacyIfPresent = async () => {
+const dismissChromeAdPrivacyIfPresent = async (
+  deadlineMs: number = Date.now() + CHROME_DISMISS_TIMEOUT_MS,
+) => {
   const dismissTexts = [
     'Got it',
     'No thanks',
@@ -35,16 +45,18 @@ const dismissChromeAdPrivacyIfPresent = async () => {
     'Use without an account',
   ];
   for (const text of dismissTexts) {
-    try {
-      const dismissControl = await PlaywrightMatchers.getElementByText(
-        text,
-        true,
-      );
-      await PlaywrightGestures.waitAndTap(dismissControl);
+    if (Date.now() > deadlineMs) {
       return;
-    } catch {
-      // This text not found, try next
     }
+    if ((await PlaywrightMatchers.countElementsByText(text, true)) === 0) {
+      continue;
+    }
+    const dismissControl = await PlaywrightMatchers.getElementByText(
+      text,
+      true,
+    );
+    await PlaywrightGestures.waitAndTap(dismissControl, { timeout: 1500 });
+    return;
   }
 };
 
@@ -54,8 +66,11 @@ const dismissChromeAdPrivacyIfPresent = async () => {
  * @returns void
  */
 const dismissChromeNotificationsIfPresent = async () => {
+  if ((await PlaywrightMatchers.countElementsByText('No thanks')) === 0) {
+    return;
+  }
   const noThanks = await PlaywrightMatchers.getElementByText('No thanks');
-  await PlaywrightGestures.waitAndTap(noThanks);
+  await PlaywrightGestures.waitAndTap(noThanks, { timeout: 1500 });
 };
 
 /**
@@ -83,13 +98,9 @@ const safelyOnboardChromeBrowser = async () => {
     // No "No thanks" dialog or timed out
   }
   try {
-    await withTimeout(
-      dismissChromeAdPrivacyIfPresent(),
-      CHROME_DISMISS_TIMEOUT_MS,
-      'dismissChromeAdPrivacy',
-    );
+    await dismissChromeAdPrivacyIfPresent();
   } catch {
-    // No Enhanced ad privacy dialog or timed out — continue
+    // No Enhanced ad privacy dialog — continue
   }
   try {
     await withTimeout(
@@ -219,11 +230,7 @@ export const navigateToDappAndroid = async (url: string) => {
     PlaywrightUtilities.openUrlInChrome(url);
     await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
     try {
-      await withTimeout(
-        dismissChromeAdPrivacyIfPresent(),
-        CHROME_DISMISS_TIMEOUT_MS,
-        'dismissChromeAfterViewIntent',
-      );
+      await dismissChromeAdPrivacyIfPresent();
     } catch {
       // No post-navigation dialog
     }
