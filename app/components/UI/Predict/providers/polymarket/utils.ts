@@ -31,6 +31,7 @@ import {
 import {
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
+  isSpreadLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import { getTokenImage } from '../../utils/sports';
@@ -710,7 +711,7 @@ function replaceAll(s: string, search: string, replace: string) {
 }
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
-  market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
+  isSpreadLikeMarketType(market.sportsMarketType);
 
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
   isMoneylineLikeMarketType(market.sportsMarketType);
@@ -1094,7 +1095,7 @@ export const parsePolymarketEvents = (
 
       const outcomeGroups =
         outcomesForGroups.length > 0
-          ? buildOutcomeGroups(outcomesForGroups)
+          ? buildOutcomeGroups(outcomesForGroups, eventLeague)
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);

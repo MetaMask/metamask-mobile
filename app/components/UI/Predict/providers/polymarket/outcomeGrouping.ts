@@ -1,4 +1,12 @@
-import type { PredictOutcome, PredictOutcomeGroup } from '../../types';
+import {
+  isLineMarketType,
+  isSpreadLikeMarketType,
+} from '../../constants/sports';
+import type {
+  PredictOutcome,
+  PredictOutcomeGroup,
+  PredictSportsLeague,
+} from '../../types';
 import {
   DEFAULT_GROUP_KEY,
   GROUP_ORDER,
@@ -14,6 +22,23 @@ const SOCCER_PLAYER_GOALS_MARKET_TYPE = 'soccer_player_goals';
 const OVER_UNDER_SUBJECT_PATTERN = /^(.*?)[:]?\s*O\/U\s*[\d.]+\s*$/;
 const PLAYER_GOALS_SUBJECT_PATTERN = /^(.+?):\s*\d+\+\s+goals?\s*$/iu;
 const MAX_PLAYER_GOAL_SUBGROUPS = 16;
+const ESPORTS_NUMBERED_MARKET_TYPE_PATTERN = /_game_([1-5])$/u;
+const ESPORTS_NUMBERED_QUESTION_PATTERN = /\b(?:map|game)\s+([1-5])\b/iu;
+const MAP_BASED_ESPORTS_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
+  'cs2',
+  'val',
+  'r6siege',
+]);
+const GAME_BASED_ESPORTS_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
+  'lol',
+  'dota2',
+]);
+const ESPORTS_MATCH_LEVEL_MARKET_TYPES: ReadonlySet<string> = new Set([
+  'moneyline',
+  'totals',
+  'map_handicap',
+  'map_participant_win_total',
+]);
 
 export const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
@@ -27,11 +52,44 @@ const getSportsMarketTypePriority = (type: string): number =>
   SPORTS_MARKET_TYPE_PRIORITIES[type.toLowerCase()] ?? 3;
 
 const isSpreadOutcomeType = (sportsMarketType?: string): boolean =>
-  sportsMarketType?.toLowerCase().includes('spread') ?? false;
+  isSpreadLikeMarketType(sportsMarketType);
 
 export const isLineOutcomeType = (sportsMarketType?: string): boolean => {
   const normalizedType = normalizeSportsMarketType(sportsMarketType ?? '');
-  return isSpreadOutcomeType(normalizedType) || normalizedType === 'totals';
+  return isLineMarketType(normalizedType);
+};
+
+const getEsportsGroupKey = (
+  outcome: PredictOutcome,
+  league?: PredictSportsLeague,
+): string | undefined => {
+  if (
+    !league ||
+    (!MAP_BASED_ESPORTS_LEAGUES.has(league) &&
+      !GAME_BASED_ESPORTS_LEAGUES.has(league))
+  ) {
+    return undefined;
+  }
+
+  const sportsMarketType = outcome.sportsMarketType?.toLowerCase() ?? '';
+  if (ESPORTS_MATCH_LEVEL_MARKET_TYPES.has(sportsMarketType)) {
+    return DEFAULT_GROUP_KEY;
+  }
+
+  const numberedTypeMatch = sportsMarketType.match(
+    ESPORTS_NUMBERED_MARKET_TYPE_PATTERN,
+  );
+  const marketText = `${outcome.title} ${outcome.groupItemTitle ?? ''}`;
+  const numberedQuestionMatch = marketText.match(
+    ESPORTS_NUMBERED_QUESTION_PATTERN,
+  );
+  const number = numberedTypeMatch?.[1] ?? numberedQuestionMatch?.[1];
+  if (!number) {
+    return DEFAULT_GROUP_KEY;
+  }
+
+  const segment = MAP_BASED_ESPORTS_LEAGUES.has(league) ? 'map' : 'game';
+  return `${segment}_${number}`;
 };
 
 const getDisplayedSpreadLine = (
@@ -235,6 +293,7 @@ export const filterGroupableOutcomes = (
 
 export function buildOutcomeGroups(
   outcomes: PredictOutcome[],
+  league?: PredictSportsLeague,
 ): PredictOutcomeGroup[] {
   if (outcomes.length === 0) {
     return [];
@@ -243,9 +302,10 @@ export function buildOutcomeGroups(
   const groupMap = new Map<string, PredictOutcome[]>();
 
   for (const outcome of outcomes) {
+    const sportsMarketType = outcome.sportsMarketType?.toLowerCase();
     const groupKey =
-      (outcome.sportsMarketType &&
-        SPORTS_MARKET_TYPE_TO_GROUP[outcome.sportsMarketType]) ||
+      getEsportsGroupKey(outcome, league) ||
+      (sportsMarketType && SPORTS_MARKET_TYPE_TO_GROUP[sportsMarketType]) ||
       DEFAULT_GROUP_KEY;
 
     const bucket = groupMap.get(groupKey);

@@ -138,6 +138,7 @@ export const isSoccerLeague = (league: PredictSportsLeague): boolean =>
 
 export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
+  'child_moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
   'soccer_second_half_result',
@@ -148,6 +149,30 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
+
+const ESPORTS_HANDICAP_MARKET_TYPE_PATTERN =
+  /^(?:map_handicap|round_handicap_game_[1-5])$/u;
+const ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN =
+  /^(?:kill_over_under_game|round_over_under_game_[1-5])$/u;
+
+export const isSpreadLikeMarketType = (type?: string): boolean => {
+  const normalizedType = type?.toLowerCase() ?? '';
+  return (
+    normalizedType.includes('spread') ||
+    ESPORTS_HANDICAP_MARKET_TYPE_PATTERN.test(normalizedType)
+  );
+};
+
+export const isLineMarketType = (type?: string): boolean => {
+  const normalizedType = type?.toLowerCase() ?? '';
+  return (
+    isSpreadLikeMarketType(normalizedType) ||
+    normalizedType === 'totals' ||
+    normalizedType.endsWith('_totals') ||
+    ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN.test(normalizedType) ||
+    normalizedType === 'map_participant_win_total'
+  );
+};
 
 export const isTeamToAdvanceMarketType = (type?: string): boolean =>
   type?.toLowerCase() === SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE;

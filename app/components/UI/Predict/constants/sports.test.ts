@@ -1,7 +1,9 @@
 import {
   MONEYLINE_MARKET_TYPES,
   filterSupportedLeagues,
+  isLineMarketType,
   isMoneylineLikeMarketType,
+  isSpreadLikeMarketType,
   isTeamToAdvanceMarketType,
   shouldShowRegTimeTag,
 } from './sports';
@@ -33,12 +35,16 @@ const game: PredictMarketGame = {
 };
 
 describe('MONEYLINE_MARKET_TYPES', () => {
-  it('contains exactly 7 entries', () => {
-    expect(MONEYLINE_MARKET_TYPES.size).toBe(7);
+  it('contains exactly 8 entries', () => {
+    expect(MONEYLINE_MARKET_TYPES.size).toBe(8);
   });
 
   it('contains moneyline', () => {
     expect(MONEYLINE_MARKET_TYPES.has('moneyline')).toBe(true);
+  });
+
+  it('contains child_moneyline', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('child_moneyline')).toBe(true);
   });
 
   it('contains first_half_moneyline', () => {
@@ -69,6 +75,12 @@ describe('MONEYLINE_MARKET_TYPES', () => {
 describe('isMoneylineLikeMarketType', () => {
   it('returns true for moneyline', () => {
     const result = isMoneylineLikeMarketType('moneyline');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for child_moneyline', () => {
+    const result = isMoneylineLikeMarketType('child_moneyline');
 
     expect(result).toBe(true);
   });
@@ -129,6 +141,35 @@ describe('isMoneylineLikeMarketType', () => {
     const result = isMoneylineLikeMarketType(undefined);
 
     expect(result).toBe(false);
+  });
+});
+
+describe('isSpreadLikeMarketType', () => {
+  it.each(['spreads', 'map_handicap', 'round_handicap_game_3'])(
+    'returns true for %s',
+    (type) => {
+      expect(isSpreadLikeMarketType(type)).toBe(true);
+    },
+  );
+
+  it('returns false for an over-under market', () => {
+    expect(isSpreadLikeMarketType('round_over_under_game_3')).toBe(false);
+  });
+});
+
+describe('isLineMarketType', () => {
+  it.each([
+    'map_handicap',
+    'round_handicap_game_1',
+    'round_over_under_game_2',
+    'kill_over_under_game',
+    'map_participant_win_total',
+  ])('returns true for esports line market %s', (type) => {
+    expect(isLineMarketType(type)).toBe(true);
+  });
+
+  it('returns false for an esports binary prop', () => {
+    expect(isLineMarketType('lol_penta_kill')).toBe(false);
   });
 });
 
