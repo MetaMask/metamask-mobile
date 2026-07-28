@@ -254,6 +254,11 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   drawProofTitle: 'Draw proof',
   merkleRootLabel: 'Merkle root',
   formulaLabel: 'Formula',
+  drawFormulaLabel: 'Weighted raffle (Efraimidis–Spirakis)',
+  drawFormulaDescription:
+    'Each day you held at least $100 in your Money Account earned you an entry.',
+  seedBlockLabel: 'Seed block number',
+  seedBlockHashLabel: 'Seed block hash',
   drawProofEntriesLabel: 'Entries',
   winnersLabel: 'Winners',
   reservesLabel: 'Reserves',

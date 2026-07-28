@@ -23,21 +23,19 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     Text: (props: Record<string, unknown>) =>
       ReactActual.createElement(RN.Text, props, props.children),
-    BottomSheet: ({
+    Button: ({
       children,
-      onClose,
+      onPress,
+      testID,
     }: {
       children: React.ReactNode;
-      onClose: () => void;
+      onPress?: () => void;
+      testID?: string;
     }) =>
       ReactActual.createElement(
-        RN.View,
-        { testID: 'draw-proof-sheet' },
-        children,
-        ReactActual.createElement(RN.Pressable, {
-          testID: 'draw-proof-sheet-close',
-          onPress: onClose,
-        }),
+        RN.Pressable,
+        { onPress, testID },
+        ReactActual.createElement(RN.Text, null, children),
       ),
   };
 });
@@ -113,6 +111,11 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   drawProofTitle: 'Draw proof',
   merkleRootLabel: 'Merkle root',
   formulaLabel: 'Formula',
+  drawFormulaLabel: 'Weighted raffle (Efraimidis–Spirakis)',
+  drawFormulaDescription:
+    'Each day you held at least $100 in your Money Account earned you an entry.',
+  seedBlockLabel: 'Seed block number',
+  seedBlockHashLabel: 'Seed block hash',
   drawProofEntriesLabel: 'Entries',
   winnersLabel: 'Winners',
   reservesLabel: 'Reserves',
@@ -132,7 +135,11 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
 
 const drawProof: MoneyAccountSweepstakesDrawProofDto = {
   explanation: {
-    merkleRoot: '0xabc',
+    merkleRoot:
+      '0x8b2a9953c4611296a827abf8c47804d7f15f4f627e174f72b62a8e43b2a2db11',
+    seedBlock: 85_400_000,
+    seedBlockHash:
+      '0x7c1e8ab9d4f2a1b0c3e5f678901234567890abcdef1234567890abcdef123456',
     formula: 'hash(seed)',
     entryCount: 100,
     winnerCount: 3,
@@ -178,6 +185,7 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-01-10T12:00:00.000Z'));
+    jest.clearAllMocks();
     Object.keys(mockDrawProofByCampaignId).forEach((key) => {
       delete mockDrawProofByCampaignId[key];
     });
@@ -258,10 +266,15 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
 
     expect(getByText('Week 1 · Complete')).toBeOnTheScreen();
     expect(getByText('Draw pending')).toBeOnTheScreen();
-    expect(queryByTestId('draw-proof-sheet')).toBeNull();
+    expect(
+      queryByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON,
+      ),
+    ).toBeNull();
   });
 
-  it('opens draw proof sheet for a completed week with proof', () => {
+  it('calls onOpenDrawProof for a completed week with proof', () => {
+    const onOpenDrawProof = jest.fn();
     const complete = buildCampaign({
       id: 'complete-with-proof',
       startDate: '2024-12-01T00:00:00.000Z',
@@ -269,29 +282,21 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     });
     mockDrawProofByCampaignId[complete.id] = drawProof;
 
-    const { getByText, getByTestId, queryByTestId } = render(
+    const { getByTestId } = render(
       <MoneyAccountSweepstakesDrawScheduleSection
         campaigns={[complete]}
         localizedText={localizedText}
+        onOpenDrawProof={onOpenDrawProof}
       />,
     );
 
-    expect(getByText('Winners drawn')).toBeOnTheScreen();
-    expect(queryByTestId('draw-proof-sheet')).toBeNull();
+    fireEvent.press(
+      getByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON,
+      ),
+    );
 
-    fireEvent.press(getByText('Winners drawn'));
-
-    expect(getByTestId('draw-proof-sheet')).toBeOnTheScreen();
-    expect(getByText('Draw proof')).toBeOnTheScreen();
-    expect(getByText('Merkle root: 0xabc')).toBeOnTheScreen();
-    expect(getByText('Formula: hash(seed)')).toBeOnTheScreen();
-    expect(getByText('Entries: 100')).toBeOnTheScreen();
-    expect(getByText('Winners: 3')).toBeOnTheScreen();
-    expect(getByText('Reserves: 2')).toBeOnTheScreen();
-    expect(getByText('#1 · 0x1111')).toBeOnTheScreen();
-    expect(getByText('Ref: REF1 · Weight: 10')).toBeOnTheScreen();
-    expect(getByText('#2 · 0x2222 (reserve)')).toBeOnTheScreen();
-    expect(getByText('Weight: 5')).toBeOnTheScreen();
+    expect(onOpenDrawProof).toHaveBeenCalledWith(drawProof);
   });
 
   it('numbers weeks sequentially across multiple campaigns', () => {

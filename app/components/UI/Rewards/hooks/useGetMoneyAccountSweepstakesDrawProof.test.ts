@@ -29,6 +29,8 @@ const CAMPAIGN_ID = 'mas-campaign-1';
 const MOCK_DRAW_PROOF: MoneyAccountSweepstakesDrawProofDto = {
   explanation: {
     merkleRoot: '0xabc',
+    seedBlock: 85_400_000,
+    seedBlockHash: '0xseedhash',
     formula: 'hash(seed)',
     entryCount: 100,
     winnerCount: 3,
