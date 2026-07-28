@@ -48,7 +48,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     useState<HardwareWalletType | null>(null);
 
   const effectiveWalletType =
-    targetWalletType ?? pendingOperationWalletType ?? walletType;
+    pendingOperationWalletType ?? walletType ?? targetWalletType;
 
   const [forceHideBottomSheet, setForceHideBottomSheet] = useState(false);
 

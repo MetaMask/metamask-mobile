@@ -369,6 +369,87 @@ describe('HardwareWalletProvider', () => {
         });
       });
 
+      it('prioritizes the pending operation address over a stale target wallet type', async () => {
+        mockUseSelector.mockReturnValue({ address: '0xledger' });
+        mockGetHardwareWalletType.mockImplementation((address: string) =>
+          address === '0xqr'
+            ? HardwareWalletType.Qr
+            : HardwareWalletType.Ledger,
+        );
+        const { result } = renderHook(() => useTestActions(), {
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <HardwareWalletProvider>{children}</HardwareWalletProvider>
+          ),
+        });
+        act(() => {
+          result.current.actions.setTargetWalletType(HardwareWalletType.Qr);
+        });
+
+        act(() => {
+          result.current.actions.setPendingOperationAddress('0xledger');
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        await waitFor(() => {
+          expect(capturedBottomSheetProps.walletType).toBe(
+            HardwareWalletType.Ledger,
+          );
+        });
+      });
+
+      it('keeps the in-flight adapter when the pending wallet type renders', async () => {
+        mockUseSelector.mockReturnValue({ address: '0xqr' });
+        mockGetHardwareWalletType.mockImplementation((address: string) =>
+          address === '0xqr'
+            ? HardwareWalletType.Qr
+            : HardwareWalletType.Ledger,
+        );
+        const createdLedgerAdapters: (typeof mockAdapterInstance)[] = [];
+        mockCreateAdapter.mockImplementation(
+          (walletType: HardwareWalletType | null) => {
+            const adapter = {
+              ...mockAdapterInstance,
+              walletType: walletType ?? HardwareWalletType.Ledger,
+              requiresDeviceDiscovery: walletType !== HardwareWalletType.Qr,
+              disconnect: jest.fn().mockResolvedValue(undefined),
+              ensureDeviceReady: jest.fn().mockResolvedValue(true),
+              onTransportStateChange: jest
+                .fn()
+                .mockImplementation(
+                  (callback: (available: boolean) => void) => {
+                    callback(true);
+                    return jest.fn();
+                  },
+                ),
+            };
+            if (walletType === HardwareWalletType.Ledger) {
+              createdLedgerAdapters.push(adapter);
+            }
+            return adapter;
+          },
+        );
+        const { result } = renderHook(() => useTestActions(), {
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <HardwareWalletProvider>{children}</HardwareWalletProvider>
+          ),
+        });
+        await waitFor(() => {
+          expect(mockCreateAdapter).toHaveBeenCalledWith(
+            HardwareWalletType.Qr,
+            expect.any(Object),
+          );
+        });
+        createdLedgerAdapters.length = 0;
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0xledger');
+          await result.current.actions.ensureDeviceReady('device-123');
+        });
+
+        expect(createdLedgerAdapters).toHaveLength(1);
+        expect(createdLedgerAdapters[0].disconnect).not.toHaveBeenCalled();
+      });
+
       it('derives the pending operation wallet type once and reuses it on unrelated re-renders', async () => {
         mockUseSelector.mockReturnValue({ address: '0x1234' });
         mockGetHardwareWalletType.mockImplementation((address: string) =>
@@ -1164,6 +1245,26 @@ describe('HardwareWalletProvider', () => {
 
       await act(async () => {
         result.current.actions.setTargetWalletType(HardwareWalletType.Ledger);
+      });
+
+      await waitFor(() => {
+        expect(result.current.config.walletType).toBe(
+          HardwareWalletType.Ledger,
+        );
+      });
+    });
+
+    it('keeps the selected account wallet type when a stale target is set', async () => {
+      mockUseSelector.mockReturnValue({ address: '0xledger' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      act(() => {
+        result.current.actions.setTargetWalletType(HardwareWalletType.Qr);
       });
 
       await waitFor(() => {
