@@ -61,8 +61,15 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   const persistedAnalyticsState = persistedState.AnalyticsController;
   const defaultState = getDefaultAnalyticsControllerState();
 
+  // `consentDecisionMade` is persisted by the controller but was previously not
+  // restored, so every launch looked like "no decision made yet". Restoring it
+  // keeps the consent state faithful across restarts and is a prerequisite for
+  // enabling the controller's pre-consent queue later.
   const state: AnalyticsControllerState = {
     optedIn: persistedAnalyticsState?.optedIn ?? defaultState.optedIn,
+    consentDecisionMade:
+      persistedAnalyticsState?.consentDecisionMade ??
+      defaultState.consentDecisionMade,
     analyticsId,
   };
 

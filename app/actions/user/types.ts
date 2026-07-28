@@ -1,6 +1,7 @@
 import { type AppThemeKey } from '../../util/theme/models';
 import { type Action } from 'redux';
 import { type ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
+import { type PendingAppInstall } from '../../reducers/user/types';
 
 // Action type enum
 export enum UserActionType {
@@ -37,6 +38,8 @@ export enum UserActionType {
   SET_TOKEN_INDICATORS = 'SET_TOKEN_INDICATORS',
   SET_ONBOARDING_STEPPER_STEP = 'SET_ONBOARDING_STEPPER_STEP',
   SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
+  SET_PENDING_APP_INSTALL = 'SET_PENDING_APP_INSTALL',
+  CLEAR_PENDING_APP_INSTALL = 'CLEAR_PENDING_APP_INSTALL',
 }
 
 // User actions
@@ -156,6 +159,14 @@ export type SetOnboardingStepperStepAction =
 export type SetAppInstallEventFiredAction =
   Action<UserActionType.SET_APP_INSTALL_EVENT_FIRED>;
 
+export type SetPendingAppInstallAction =
+  Action<UserActionType.SET_PENDING_APP_INSTALL> & {
+    payload: { pendingAppInstall: PendingAppInstall };
+  };
+
+export type ClearPendingAppInstallAction =
+  Action<UserActionType.CLEAR_PENDING_APP_INSTALL>;
+
 /**
  * User actions union type
  */
@@ -192,4 +203,6 @@ export type UserAction =
   | SetTokenOverviewChartIntervalAction
   | SetTokenIndicatorsAction
   | SetOnboardingStepperStepAction
-  | SetAppInstallEventFiredAction;
+  | SetAppInstallEventFiredAction
+  | SetPendingAppInstallAction
+  | ClearPendingAppInstallAction;

@@ -2,6 +2,17 @@ import { AppThemeKey } from '../../util/theme/models';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
 /**
+ * Install details captured on first launch and held until the user makes an
+ * analytics consent decision. Emission cannot happen at capture time because
+ * consent has not been given yet, and the install date must reflect the install
+ * rather than the moment consent was granted.
+ */
+export interface PendingAppInstall {
+  /** Install date as yyyy-mm-dd, captured on first launch. */
+  installDate: string;
+}
+
+/**
  * User state
  */
 export interface UserState {
@@ -30,5 +41,8 @@ export interface UserState {
   tokenOverviewChartInterval: string;
   tokenIndicators: string[];
   onboardingStepperProgress: Record<string, number>;
+  /** Terminal marker: the App Installed event has been emitted post-consent. */
   appInstallEventFired: boolean;
+  /** Install awaiting a consent decision, or `null` when nothing is pending. */
+  pendingAppInstall: PendingAppInstall | null;
 }
