@@ -28,9 +28,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('../../hooks/useRewardCampaigns');
-const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
-  typeof useRewardCampaigns
->;
+const mockUseRewardCampaigns = jest.mocked(useRewardCampaigns);
 
 jest.mock('./CampaignTile', () => {
   const ReactActual = jest.requireActual('react');
@@ -84,10 +82,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-const now = new Date();
-const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-const furtherFutureDate = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-const pastDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Campaign status is derived from the clock, so the suite pins both the system
+// time and every fixture date to keep active/upcoming/previous deterministic.
+const FIXED_NOW = new Date('2025-08-15T12:00:00.000Z');
+const futureDate = new Date(FIXED_NOW.getTime() + 30 * DAY_MS);
+const furtherFutureDate = new Date(FIXED_NOW.getTime() + 90 * DAY_MS);
+const pastDate = new Date(FIXED_NOW.getTime() - 30 * DAY_MS);
 
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
@@ -105,19 +107,28 @@ const createTestCampaign = (
   ...overrides,
 });
 
-const mockHookDefaults = {
+const createHookDefaults = (): ReturnType<typeof useRewardCampaigns> => ({
   campaigns: [],
   categorizedCampaigns: { active: [], upcoming: [], previous: [] },
   isLoading: false,
   hasError: false,
   hasLoaded: true,
   fetchCampaigns: jest.fn(),
-};
+});
+
+let mockHookDefaults = createHookDefaults();
 
 describe('CampaignsPreview', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(FIXED_NOW);
     jest.clearAllMocks();
+    mockHookDefaults = createHookDefaults();
     mockUseRewardCampaigns.mockReturnValue(mockHookDefaults);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders the section with no campaigns when none are featured', () => {
@@ -375,10 +386,10 @@ describe('CampaignsPreview', () => {
   });
 
   it('collapses multiple MONEY_ACCOUNT_SWEEPSTAKES campaigns into one featured tile', () => {
-    const week1Start = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-    const week1End = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
+    const week1Start = new Date(FIXED_NOW.getTime() - 3 * DAY_MS);
+    const week1End = new Date(FIXED_NOW.getTime() + 4 * DAY_MS);
     const week2Start = week1End;
-    const week2End = new Date(week2Start.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const week2End = new Date(week2Start.getTime() + 7 * DAY_MS);
 
     const week1 = createTestCampaign({
       id: 'mas-week-1',
