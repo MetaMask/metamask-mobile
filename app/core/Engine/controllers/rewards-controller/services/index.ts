@@ -29,6 +29,7 @@ export type {
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
+  RewardsDataServiceRegisterMoneyAccountBindingAction,
   RewardsDataServiceGetFirstPredictOnUsAction,
 } from './rewards-data-service';
 

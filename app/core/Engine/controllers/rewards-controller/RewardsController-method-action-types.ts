@@ -484,6 +484,35 @@ export type RewardsControllerOptInToCampaignAction = {
 };
 
 /**
+ * Opt a subscription into multiple campaigns in one batch.
+ * POSTs each opt-in sequentially, then invalidates once per campaign and
+ * publishes a single `campaignOptedIn` so UI listeners do not refetch after
+ * every intermediate opt-in (important for series campaigns).
+ * Participant-status cache entries are re-seeded from the POST responses so
+ * post-event status fetches hit cache instead of the network.
+ * @param campaignIds - Campaign IDs to opt into, in call order.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns Per-campaign participant statuses after opting in.
+ */
+export type RewardsControllerOptInToCampaignsAction = {
+  type: `RewardsController:optInToCampaigns`;
+  handler: RewardsController['optInToCampaigns'];
+};
+
+/**
+ * Register (or re-assert) the Money Account holder address for a subscription.
+ * Results are memoized in-session so repeated re-asserts do not re-POST, and
+ * a discovered conflict is returned synchronously on subsequent calls.
+ * @param moneyAccountAddress - The Money Account holder address to bind.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns `'bound'` or `'conflict'`.
+ */
+export type RewardsControllerRegisterMoneyAccountBindingAction = {
+  type: `RewardsController:registerMoneyAccountBinding`;
+  handler: RewardsController['registerMoneyAccountBinding'];
+};
+
+/**
  * Get the campaign participant status, cached for 5 minutes.
  * @param campaignId - The campaign ID to check status for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -942,6 +971,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerGetCampaignsAction
   | RewardsControllerOptInToCampaignAction
+  | RewardsControllerOptInToCampaignsAction
+  | RewardsControllerRegisterMoneyAccountBindingAction
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction

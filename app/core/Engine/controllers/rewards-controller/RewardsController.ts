@@ -202,7 +202,7 @@ const PREDICT_THE_PITCH_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10;
 const PREDICT_THE_PITCH_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Money Account Sweepstakes cache thresholds
-const MONEY_ACCOUNT_SWEEPSTAKES_STATS_CACHE_THRESHOLD_MS = 1000 * 60; // 1 minute
+const MONEY_ACCOUNT_SWEEPSTAKES_STATS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 const MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_NULL_CACHE_THRESHOLD_MS =
@@ -634,9 +634,11 @@ const MESSENGER_EXPOSED_METHODS = [
   'logout',
   'optIn',
   'optInToCampaign',
+  'optInToCampaigns',
   'optOut',
   'performSilentAuth',
   'postBenefitImpression',
+  'registerMoneyAccountBinding',
   'resetAll',
   'resetState',
   'setActiveAccountFromCandidate',
@@ -695,6 +697,12 @@ export class RewardsController extends BaseController<
     string,
     { lastFetched: number }
   > = new Map();
+  /**
+   * Session cache for Money Account binding results keyed by
+   * `${subscriptionId}:${address.toLowerCase()}`. Avoids re-POSTing within a
+   * session and remembers conflicts for late-discovered-conflict UX.
+   */
+  #moneyAccountBindingResults: Map<string, 'bound' | 'conflict'> = new Map();
 
   /**
    * Calculate tier status and next tier information
@@ -3950,6 +3958,150 @@ export class RewardsController extends BaseController<
         subscriptionId,
       });
     }
+    return result;
+  }
+
+  /**
+   * Opt a subscription into multiple campaigns in one batch.
+   * POSTs each opt-in sequentially, then invalidates once per campaign and
+   * publishes a single `campaignOptedIn` so UI listeners do not refetch after
+   * every intermediate opt-in (important for series campaigns).
+   * Participant-status cache entries are re-seeded from the POST responses so
+   * post-event status fetches hit cache instead of the network.
+   * @param campaignIds - Campaign IDs to opt into, in call order.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Per-campaign participant statuses after opting in.
+   */
+  async optInToCampaigns(
+    campaignIds: string[],
+    subscriptionId: string,
+  ): Promise<Record<string, CampaignParticipantStatusDto>> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return Object.fromEntries(
+        campaignIds.map((campaignId) => [
+          campaignId,
+          { optedIn: false, participantCount: 0 },
+        ]),
+      );
+    }
+
+    if (campaignIds.length === 0) {
+      return {};
+    }
+
+    const results: Record<string, CampaignParticipantStatusDto> = {};
+    const newlyOptedInIds: string[] = [];
+
+    for (const campaignId of campaignIds) {
+      const key = this.#createSubscriptionCampaignCompositeKey(
+        subscriptionId,
+        campaignId,
+      );
+      const wasAlreadyOptedIn =
+        this.state.campaignParticipantStatus[key]?.optedIn === true;
+
+      const result = await this.#withAuthRetry(async () => {
+        Logger.log(
+          'RewardsController: Opting into campaign (batch)',
+          campaignId,
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:optInToCampaign',
+          subscriptionId,
+          campaignId,
+        )) as CampaignParticipantStatusDto;
+      }, subscriptionId);
+
+      results[campaignId] = result;
+      if (result.optedIn && !wasAlreadyOptedIn) {
+        newlyOptedInIds.push(campaignId);
+      }
+    }
+
+    // Invalidate once per campaign after the whole batch, then re-seed status
+    // so campaignOptedIn listeners that refetch get cache hits.
+    for (const campaignId of campaignIds) {
+      this.invalidateSubscriptionCache({ subscriptionId, campaignId });
+    }
+
+    const now = Date.now();
+    this.update((state) => {
+      for (const campaignId of campaignIds) {
+        const status = results[campaignId];
+        if (!status) {
+          continue;
+        }
+        const key = this.#createSubscriptionCampaignCompositeKey(
+          subscriptionId,
+          campaignId,
+        );
+        state.campaignParticipantStatus[key] = {
+          optedIn: status.optedIn,
+          participantCount: status.participantCount,
+          lastFetched: now,
+        };
+      }
+    });
+
+    if (newlyOptedInIds.length > 0) {
+      const primaryCampaignId = newlyOptedInIds[0];
+      this.messenger.publish('RewardsController:campaignOptedIn', {
+        campaignId: primaryCampaignId,
+        subscriptionId,
+      });
+      for (const campaignId of newlyOptedInIds) {
+        this.messenger.publish(
+          'RewardsController:leaderboardPositionInvalidated',
+          {
+            campaignId,
+            subscriptionId,
+          },
+        );
+        this.messenger.publish(
+          'RewardsController:portfolioPositionInvalidated',
+          {
+            campaignId,
+            subscriptionId,
+          },
+        );
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Register (or re-assert) the Money Account holder address for a subscription.
+   * Results are memoized in-session so repeated re-asserts do not re-POST, and
+   * a discovered conflict is returned synchronously on subsequent calls.
+   * @param moneyAccountAddress - The Money Account holder address to bind.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns `'bound'` or `'conflict'`.
+   */
+  async registerMoneyAccountBinding(
+    moneyAccountAddress: string,
+    subscriptionId: string,
+  ): Promise<'bound' | 'conflict'> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return 'bound';
+    }
+
+    const cacheKey = `${subscriptionId}:${moneyAccountAddress.toLowerCase()}`;
+    const cached = this.#moneyAccountBindingResults.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const result = await this.#withAuthRetry(async () => {
+      Logger.log('RewardsController: Registering Money Account binding');
+      return (await this.messenger.call(
+        'RewardsDataService:registerMoneyAccountBinding',
+        subscriptionId,
+        moneyAccountAddress,
+      )) as 'bound' | 'conflict';
+    }, subscriptionId);
+
+    this.#moneyAccountBindingResults.set(cacheKey, result);
     return result;
   }
 

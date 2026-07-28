@@ -1,31 +1,60 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useMoneyAccountSweepstakesOptIn } from './useMoneyAccountSweepstakesOptIn';
 import { useMoneyAccountSweepstakesSeries } from './useMoneyAccountSweepstakesSeries';
-import { useMoneyAccountSweepstakesParticipation } from './useMoneyAccountSweepstakesParticipation';
-import { useOptInToCampaign } from './useOptInToCampaign';
+import { useMoneyAccountSweepstakesBinding } from './useMoneyAccountSweepstakesBinding';
 import {
   CampaignType,
   type CampaignDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 
+const mockCall = jest.fn();
+const mockDispatch = jest.fn();
+const mockEnsureBound = jest.fn(async () => 'bound' as const);
+
 jest.mock('./useMoneyAccountSweepstakesSeries', () => ({
   useMoneyAccountSweepstakesSeries: jest.fn(),
 }));
 
-jest.mock('./useMoneyAccountSweepstakesParticipation', () => ({
-  useMoneyAccountSweepstakesParticipation: jest.fn(),
+jest.mock('./useMoneyAccountSweepstakesBinding', () => ({
+  useMoneyAccountSweepstakesBinding: jest.fn(),
 }));
 
-jest.mock('./useOptInToCampaign', () => ({
-  useOptInToCampaign: jest.fn(),
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      call: (...args: unknown[]) => mockCall(...args),
+    },
+  },
+}));
+
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
+jest.mock('../../../../selectors/rewards', () => ({
+  selectRewardsSubscriptionId: () => 'sub-1',
+}));
+
+const mockStatuses: Record<
+  string,
+  { optedIn: boolean; participantCount: number }
+> = {};
+
+jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectCampaignParticipantStatuses: () => mockStatuses,
+}));
+
+jest.mock('../../../../reducers/rewards', () => ({
+  setCampaignParticipantStatus: (payload: unknown) => ({
+    type: 'setCampaignParticipantStatus',
+    payload,
+  }),
 }));
 
 const mockUseSeries = jest.mocked(useMoneyAccountSweepstakesSeries);
-const mockUseParticipation = jest.mocked(
-  useMoneyAccountSweepstakesParticipation,
-);
-const mockUseOptInToCampaign = jest.mocked(useOptInToCampaign);
-const mockOptInToCampaign = jest.fn();
+const mockUseBinding = jest.mocked(useMoneyAccountSweepstakesBinding);
 
 const FIXED_NOW = new Date('2025-08-15T12:00:00.000Z');
 
@@ -40,6 +69,7 @@ const completeWeek: CampaignDto = {
   details: null,
   featured: true,
   showUpcomingDate: false,
+  image: null,
 };
 const activeWeek: CampaignDto = {
   ...completeWeek,
@@ -54,11 +84,7 @@ const upcomingWeek: CampaignDto = {
   endDate: '2025-08-29T00:00:00.000Z',
 };
 
-function setupHooks({
-  campaigns = [upcomingWeek, activeWeek, completeWeek],
-  optedInByCampaignId = {} as Record<string, boolean>,
-  isSingleOptingIn = false,
-} = {}) {
+function setupSeries(campaigns = [upcomingWeek, activeWeek, completeWeek]) {
   mockUseSeries.mockReturnValue({
     campaigns,
     first: campaigns[0] ?? null,
@@ -67,18 +93,6 @@ function setupHooks({
     displayCampaign: activeWeek,
     seriesStatus: 'active',
   });
-  mockUseParticipation.mockReturnValue({
-    optedInAny: Object.values(optedInByCampaignId).some(Boolean),
-    optedInByCampaignId,
-    isLoading: false,
-    refetch: jest.fn(),
-  });
-  mockUseOptInToCampaign.mockReturnValue({
-    optInToCampaign: mockOptInToCampaign,
-    isOptingIn: isSingleOptingIn,
-    optInError: undefined,
-    clearOptInError: jest.fn(),
-  });
 }
 
 describe('useMoneyAccountSweepstakesOptIn', () => {
@@ -86,34 +100,81 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     jest.useFakeTimers();
     jest.setSystemTime(FIXED_NOW);
     jest.clearAllMocks();
-    mockOptInToCampaign.mockResolvedValue({
-      optedIn: true,
-      participantCount: 1,
+    Object.keys(mockStatuses).forEach((key) => delete mockStatuses[key]);
+    setupSeries();
+    mockEnsureBound.mockResolvedValue('bound');
+    mockUseBinding.mockReturnValue({
+      ensureBound: mockEnsureBound,
+      bindingConflict: false,
     });
-    setupHooks();
+    mockCall.mockResolvedValue({
+      'week-active': { optedIn: true, participantCount: 1 },
+      'week-upcoming': { optedIn: true, participantCount: 1 },
+    });
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('opts into the active week before the upcoming week and skips ended weeks', async () => {
+  it('binds first, then batches active then upcoming weeks into one optInToCampaigns call', async () => {
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let success: boolean | undefined;
+    let optInResult: { success: boolean; reason?: string } | undefined;
     await act(async () => {
-      success = await result.current.ensureOptedIn();
+      optInResult = await result.current.ensureOptedIn();
     });
 
-    expect(success).toBe(true);
-    expect(mockOptInToCampaign.mock.calls.map(([id]) => id)).toEqual([
-      'week-active',
-      'week-upcoming',
-    ]);
+    expect(optInResult).toEqual({ success: true });
+    expect(mockEnsureBound).toHaveBeenCalledTimes(1);
+    expect(mockCall).toHaveBeenCalledTimes(1);
+    expect(mockCall).toHaveBeenCalledWith(
+      'RewardsController:optInToCampaigns',
+      ['week-active', 'week-upcoming'],
+      'sub-1',
+    );
+    expect(mockDispatch).toHaveBeenCalledTimes(2);
+  });
+
+  it('blocks opt-in and does not call optInToCampaigns on binding conflict', async () => {
+    mockEnsureBound.mockResolvedValue('conflict');
+
+    const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
+
+    let optInResult: { success: boolean; reason?: string } | undefined;
+    await act(async () => {
+      optInResult = await result.current.ensureOptedIn();
+    });
+
+    expect(optInResult).toEqual({
+      success: false,
+      reason: 'binding-conflict',
+    });
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('proceeds with opt-in when binding is unavailable', async () => {
+    mockEnsureBound.mockResolvedValue('unavailable');
+
+    const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
+
+    let optInResult: { success: boolean; reason?: string } | undefined;
+    await act(async () => {
+      optInResult = await result.current.ensureOptedIn();
+    });
+
+    expect(optInResult).toEqual({ success: true });
+    expect(mockCall).toHaveBeenCalledTimes(1);
   });
 
   it('skips campaigns the user has already opted into', async () => {
-    setupHooks({ optedInByCampaignId: { 'week-active': true } });
+    mockStatuses['sub-1:week-active'] = {
+      optedIn: true,
+      participantCount: 1,
+    };
+    mockCall.mockResolvedValue({
+      'week-upcoming': { optedIn: true, participantCount: 1 },
+    });
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
@@ -121,61 +182,61 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
       await result.current.ensureOptedIn();
     });
 
-    expect(mockOptInToCampaign).toHaveBeenCalledTimes(1);
-    expect(mockOptInToCampaign).toHaveBeenCalledWith('week-upcoming');
+    expect(mockCall).toHaveBeenCalledWith(
+      'RewardsController:optInToCampaigns',
+      ['week-upcoming'],
+      'sub-1',
+    );
   });
 
-  it('returns true without any calls when every eligible week is already joined', async () => {
-    setupHooks({
-      optedInByCampaignId: { 'week-active': true, 'week-upcoming': true },
-    });
+  it('returns success without opt-in calls when every eligible week is already joined', async () => {
+    mockStatuses['sub-1:week-active'] = {
+      optedIn: true,
+      participantCount: 1,
+    };
+    mockStatuses['sub-1:week-upcoming'] = {
+      optedIn: true,
+      participantCount: 1,
+    };
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let success: boolean | undefined;
+    let optInResult: { success: boolean; reason?: string } | undefined;
     await act(async () => {
-      success = await result.current.ensureOptedIn();
+      optInResult = await result.current.ensureOptedIn();
     });
 
-    expect(success).toBe(true);
-    expect(mockOptInToCampaign).not.toHaveBeenCalled();
+    expect(optInResult).toEqual({ success: true });
+    expect(mockEnsureBound).toHaveBeenCalledTimes(1);
+    expect(mockCall).not.toHaveBeenCalled();
   });
 
-  it('stops and returns false when an opt-in does not report opted in', async () => {
-    mockOptInToCampaign.mockResolvedValueOnce({
-      optedIn: false,
-      participantCount: 0,
+  it('returns success false when a batch result is not opted in', async () => {
+    mockCall.mockResolvedValue({
+      'week-active': { optedIn: false, participantCount: 0 },
+      'week-upcoming': { optedIn: true, participantCount: 1 },
     });
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let success: boolean | undefined;
+    let optInResult: { success: boolean; reason?: string } | undefined;
     await act(async () => {
-      success = await result.current.ensureOptedIn();
+      optInResult = await result.current.ensureOptedIn();
     });
 
-    expect(success).toBe(false);
-    expect(mockOptInToCampaign).toHaveBeenCalledTimes(1);
+    expect(optInResult).toEqual({ success: false });
   });
 
-  it('returns false when an opt-in throws', async () => {
-    mockOptInToCampaign.mockRejectedValueOnce(new Error('network'));
+  it('returns success false when the batch call throws', async () => {
+    mockCall.mockRejectedValueOnce(new Error('network'));
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let success: boolean | undefined;
+    let optInResult: { success: boolean; reason?: string } | undefined;
     await act(async () => {
-      success = await result.current.ensureOptedIn();
+      optInResult = await result.current.ensureOptedIn();
     });
 
-    expect(success).toBe(false);
-  });
-
-  it('reports opting in while a single campaign opt-in is in flight', () => {
-    setupHooks({ isSingleOptingIn: true });
-
-    const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
-
-    expect(result.current.isOptingIn).toBe(true);
+    expect(optInResult).toEqual({ success: false });
   });
 });

@@ -21129,6 +21129,234 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('optInToCampaigns', () => {
+    let batchMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const campaignA = 'campaign-a';
+    const campaignB = 'campaign-b';
+    const mockStatus = { optedIn: true, participantCount: 42 };
+
+    beforeEach(() => {
+      batchMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns optedIn false for every id when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({
+        [campaignA]: { optedIn: false, participantCount: 0 },
+        [campaignB]: { optedIn: false, participantCount: 0 },
+      });
+      expect(batchMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('opts into each campaign then publishes campaignOptedIn once', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      const result = await ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: mockStatus,
+      });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(2);
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+
+      const campaignOptedInCalls = batchMessenger.publish.mock.calls.filter(
+        ([event]) => event === 'RewardsController:campaignOptedIn',
+      );
+      expect(campaignOptedInCalls).toHaveLength(1);
+      expect(campaignOptedInCalls[0][1]).toEqual({
+        campaignId: campaignA,
+        subscriptionId: mockSubscriptionId,
+      });
+    });
+
+    it('re-seeds participant status cache so post-batch refetches hit cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns([campaignA, campaignB], mockSubscriptionId);
+
+      expect(
+        ctrl.state.campaignParticipantStatus[
+          `${mockSubscriptionId}:${campaignA}`
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          optedIn: true,
+          participantCount: 42,
+        }),
+      );
+      expect(
+        ctrl.state.campaignParticipantStatus[
+          `${mockSubscriptionId}:${campaignB}`
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          optedIn: true,
+          participantCount: 42,
+        }),
+      );
+    });
+
+    it('does not publish campaignOptedIn when every campaign was already opted in', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignParticipantStatus: {
+            [`${mockSubscriptionId}:${campaignA}`]: {
+              optedIn: true,
+              participantCount: 1,
+              lastFetched: Date.now(),
+            },
+            [`${mockSubscriptionId}:${campaignB}`]: {
+              optedIn: true,
+              participantCount: 1,
+              lastFetched: Date.now(),
+            },
+          },
+        },
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns([campaignA, campaignB], mockSubscriptionId);
+
+      expect(batchMessenger.publish).not.toHaveBeenCalledWith(
+        'RewardsController:campaignOptedIn',
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('registerMoneyAccountBinding', () => {
+    let bindingMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
+
+    beforeEach(() => {
+      bindingMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns bound without calling the data service when rewards is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBe('bound');
+      expect(bindingMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('delegates to the data service and caches the bound result', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockResolvedValue('bound');
+
+      const first = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+      const second = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      expect(first).toBe('bound');
+      expect(second).toBe('bound');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:registerMoneyAccountBinding',
+        mockSubscriptionId,
+        mockAddress,
+      );
+    });
+
+    it('caches conflict results so subsequent calls do not re-POST', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockResolvedValue('conflict');
+
+      const first = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+      const second = await ctrl.registerMoneyAccountBinding(
+        mockAddress.toLowerCase(),
+        mockSubscriptionId,
+      );
+
+      expect(first).toBe('conflict');
+      expect(second).toBe('conflict');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('getCampaignParticipantStatus', () => {
     let campaignParticipantMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import MoneyAccountSweepstakesCampaignDetailsView, {
   MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS,
 } from './MoneyAccountSweepstakesCampaignDetailsView';
@@ -194,6 +194,27 @@ jest.mock('../hooks/useMoneyAccountSweepstakesParticipation');
 jest.mock('../hooks/useGetMoneyAccountSweepstakesStatsMe');
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
+const mockEnsureBound = jest.fn(async () => 'bound' as const);
+const mockShowToast = jest.fn();
+const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
+
+jest.mock('../hooks/useMoneyAccountSweepstakesBinding', () => ({
+  useMoneyAccountSweepstakesBinding: () => ({
+    ensureBound: mockEnsureBound,
+    bindingConflict: false,
+  }),
+}));
+
+jest.mock('../hooks/useRewardsToast', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    RewardsToastOptions: {
+      entriesClosed: mockEntriesClosed,
+    },
+  }),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -240,6 +261,9 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   reserveSuffix: '(reserve)',
   refLabel: 'Ref',
   weightLabel: 'Weight',
+  bindingConflictTitle: 'Money Account already linked',
+  bindingConflictDescription:
+    'Money Account already binds to another Rewards profile.',
 };
 
 const details: MoneyAccountSweepstakesCampaignDetails = {
@@ -325,6 +349,7 @@ function setupHooks({
 describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnsureBound.mockResolvedValue('bound');
     setupHooks();
   });
 
@@ -453,5 +478,41 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-asserts binding when opted in to an active series', async () => {
+    setupHooks({ optedInAny: true });
+
+    render(<MoneyAccountSweepstakesCampaignDetailsView />);
+
+    await waitFor(() => {
+      expect(mockEnsureBound).toHaveBeenCalledTimes(1);
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('shows a conflict toast when the late re-assert discovers a binding conflict', async () => {
+    mockEnsureBound.mockResolvedValue('conflict');
+    setupHooks({ optedInAny: true });
+
+    render(<MoneyAccountSweepstakesCampaignDetailsView />);
+
+    await waitFor(() => {
+      expect(mockEntriesClosed).toHaveBeenCalledWith(
+        'Money Account already linked',
+        'Money Account already binds to another Rewards profile.',
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not re-assert binding when the user is not opted in', async () => {
+    setupHooks({ optedInAny: false });
+
+    render(<MoneyAccountSweepstakesCampaignDetailsView />);
+
+    await waitFor(() => {
+      expect(mockEnsureBound).not.toHaveBeenCalled();
+    });
   });
 });
