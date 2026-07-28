@@ -7,7 +7,7 @@ const stylesheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     rowContainer: {
       paddingVertical: 12,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
     },
     row: {
       flexDirection: 'row',

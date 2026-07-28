@@ -55,6 +55,18 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.moneyAccountWithdraw,
 ];
 
+/** CustomAmount / KeyValueRow screens — KeyValueRow provides its own px-4. */
+const TRANSACTION_TYPES_DISABLE_SCROLL_HORIZONTAL_PADDING = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.musdConversion,
+];
+
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
@@ -63,6 +75,12 @@ export enum ConfirmationLoader {
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
 }
+
+const CUSTOM_AMOUNT_LOADERS = new Set([
+  ConfirmationLoader.CustomAmount,
+  ConfirmationLoader.AdvancedCustomAmount,
+  ConfirmationLoader.PrefillCustomAmount,
+]);
 
 export enum PayWithOption {
   MoneyAccount = 'money_account',
@@ -150,9 +168,11 @@ export const Confirm = ({
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation<AppNavigationProp>();
   const { onReject } = useConfirmActions();
+  const disableScrollHorizontalPadding = useDisableScrollHorizontalPadding();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
     disableSafeArea,
+    disableScrollHorizontalPadding,
   });
 
   useEffect(() => {
@@ -286,7 +306,10 @@ function InfoLoader({
   testId?: string;
   loader: ConfirmationLoader;
 }) {
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+  const { styles } = useStyles(styleSheet, {
+    isFullScreenConfirmation: true,
+    disableScrollHorizontalPadding: CUSTOM_AMOUNT_LOADERS.has(loader),
+  });
 
   return (
     <SafeAreaView
@@ -308,4 +331,12 @@ function InfoLoader({
 function useDisableScroll() {
   const transaction = useTransactionMetadataRequest();
   return hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SCROLL);
+}
+
+function useDisableScrollHorizontalPadding() {
+  const transaction = useTransactionMetadataRequest();
+  return hasTransactionType(
+    transaction,
+    TRANSACTION_TYPES_DISABLE_SCROLL_HORIZONTAL_PADDING,
+  );
 }

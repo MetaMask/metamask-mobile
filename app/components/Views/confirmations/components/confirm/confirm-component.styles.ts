@@ -6,6 +6,8 @@ const styleSheet = (params: {
   vars: {
     isFullScreenConfirmation: boolean;
     disableSafeArea?: boolean;
+    /** When true, scroll content has no horizontal padding (e.g. KeyValueRow owns px-4). */
+    disableScrollHorizontalPadding?: boolean;
   };
 }) => {
   const { theme, vars } = params;
@@ -25,7 +27,11 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
     },
     scrollView: {
-      paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
+      paddingHorizontal:
+        vars.disableSafeArea === true ||
+        vars.disableScrollHorizontalPadding === true
+          ? 0
+          : 16,
     },
     scrollViewContent: {
       flexGrow: vars.isFullScreenConfirmation ? 1 : undefined,

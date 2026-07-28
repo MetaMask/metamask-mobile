@@ -13,7 +13,7 @@ import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransacti
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { Image, Pressable, StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
 import {
   Box,
@@ -25,11 +25,8 @@ import {
   IconColor,
   IconName,
   IconSize,
-  KeyValueRow,
-  KeyValueRowVariant,
-  SelectButton,
-  SelectButtonSize,
-  SelectButtonVariant,
+  KeyValueSelect,
+  KeyValueSelectVariant,
   Skeleton,
   Text,
   TextColor,
@@ -141,7 +138,7 @@ function PayWithRowLayout({
   const selectPlaceholder =
     placeholder ?? strings('confirm.label.select_token');
 
-  const endAccessory =
+  const valueEndAccessory =
     balance != null ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -167,46 +164,30 @@ function PayWithRowLayout({
     ) : undefined;
 
   return (
-    <Pressable
-      onPress={handlePress}
-      disabled={disabled}
-      accessibilityRole="button"
+    <KeyValueSelect
       testID={ConfirmationRowComponentIDs.PAY_WITH}
-      style={({ pressed }) => ({
-        opacity: pressed && !disabled ? 0.7 : 1,
-      })}
-    >
-      <KeyValueRow
-        // Parent scroll content is padded 16px; cancel it (-mr-4) then apply
-        // 4px row padding (pr-1) so with SelectButton Md's 12px right padding
-        // (px-3) the caret sits 16px from the screen edge.
-        twClassName="-mr-4 pr-1"
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
-          >
-            {label}
-          </Text>
-        }
-        value={
-          <SelectButton
-            size={SelectButtonSize.Md}
-            variant={SelectButtonVariant.Secondary}
-            placeholder={selectPlaceholder}
-            value={value}
-            startAccessory={startAccessory}
-            onPress={handlePress}
-            isDisabled={disabled}
-            hideEndArrow={Boolean(endAccessory) || !showArrow}
-            endAccessory={endAccessory}
-            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-          />
-        }
-      />
-    </Pressable>
+      variant={KeyValueSelectVariant.Summary}
+      keyLabel={label}
+      keyTextProps={{
+        color: disabled ? TextColor.TextMuted : TextColor.TextAlternative,
+      }}
+      value={value}
+      valueStartAccessory={startAccessory}
+      valueEndAccessory={valueEndAccessory}
+      valueTextProps={{
+        color: disabled ? TextColor.TextMuted : TextColor.TextDefault,
+      }}
+      isDisabled={disabled}
+      onPress={handlePress}
+      selectButtonProps={{
+        placeholder: selectPlaceholder,
+        hideEndArrow: Boolean(valueEndAccessory) || !showArrow,
+        // testID is forwarded to SelectButton but omitted from shared selectButtonProps.
+        ...({
+          testID: TransactionPayComponentIDs.PAY_WITH_SYMBOL,
+        } as object),
+      }}
+    />
   );
 }
 
@@ -427,7 +408,7 @@ export function PayWithRowSkeleton() {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="px-2 py-3"
+      twClassName="px-4 py-3"
     >
       <Skeleton height={18} width={60} />
       <Box

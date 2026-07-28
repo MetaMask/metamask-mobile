@@ -518,7 +518,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           twClassName={Platform.OS === 'android' ? 'pb-4' : 'pb-0'}
         >
-          <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
+          <Box twClassName="px-4">
+            <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
+          </Box>
           {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {supportAccountSelection &&
@@ -564,44 +566,52 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="self-center"
+              twClassName="self-center px-4"
             >
               {footerText}
             </Text>
           )}
           {isKeyboardVisible && (hasPaymentOption || hasAccountNoFunds) && (
-            <DepositKeyboard
-              hidePercentageButtons={
-                Boolean(selectedFiatPaymentMethodId) ||
-                shouldHideAccountSelector
-              }
-              alertMessage={alertTitle}
-              value={amountFiat}
-              onChange={updatePendingAmount}
-              onDonePress={handleDone}
-              onPercentagePress={handlePercentagePress}
-              hasInput={hasInput}
-              hasMax={
-                (hasMax || isMoneyDepositNoFee) &&
-                (isWithdraw || !isNativePayToken)
-              }
-            />
+            <Box twClassName="px-4">
+              <DepositKeyboard
+                hidePercentageButtons={
+                  Boolean(selectedFiatPaymentMethodId) ||
+                  shouldHideAccountSelector
+                }
+                alertMessage={alertTitle}
+                value={amountFiat}
+                onChange={updatePendingAmount}
+                onDonePress={handleDone}
+                onPercentagePress={handlePercentagePress}
+                hasInput={hasInput}
+                hasMax={
+                  (hasMax || isMoneyDepositNoFee) &&
+                  (isWithdraw || !isNativePayToken)
+                }
+              />
+            </Box>
           )}
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
-            !isDepositPrefillEnabled && <BuySection />}
+            !isDepositPrefillEnabled && (
+              <Box twClassName="px-4">
+                <BuySection />
+              </Box>
+            )}
           {!isKeyboardVisible && (
-            <ConfirmButton
-              alertTitle={alertTitle}
-              disableConfirm={
-                disableConfirm ||
-                isAccountSelectionNeeded ||
-                isPrefillPending ||
-                isAwaitingPrefillResult
-              }
-              isAmountUpdating={isAmountUpdating}
-              onContinue={trackContinue}
-            />
+            <Box twClassName="px-4">
+              <ConfirmButton
+                alertTitle={alertTitle}
+                disableConfirm={
+                  disableConfirm ||
+                  isAccountSelectionNeeded ||
+                  isPrefillPending ||
+                  isAwaitingPrefillResult
+                }
+                isAmountUpdating={isAmountUpdating}
+                onContinue={trackContinue}
+              />
+            </Box>
           )}
         </Box>
       </Box>
@@ -618,7 +628,9 @@ export function CustomAmountInfoSkeleton() {
       </Box>
       <Box>
         <PayWithRowSkeleton />
-        <DepositKeyboardSkeleton />
+        <Box twClassName="px-4">
+          <DepositKeyboardSkeleton />
+        </Box>
       </Box>
     </Box>
   );
@@ -688,7 +700,9 @@ export function AdvancedCustomAmountInfoSkeleton() {
             <PayWithRowSkeleton />
           </>
         )}
-        <DepositKeyboardSkeleton />
+        <Box twClassName="px-4">
+          <DepositKeyboardSkeleton />
+        </Box>
       </Box>
     </Box>
   );

@@ -66,7 +66,6 @@ export function PercentageRow() {
       <KeyValueRow
         testID="percentage-row"
         variant={KeyValueRowVariant.Summary}
-        twClassName="pl-2"
         keyLabel={strings('earn.claimable_bonus')}
         keyEndButtonIconProps={{
           iconName: IconName.Info,

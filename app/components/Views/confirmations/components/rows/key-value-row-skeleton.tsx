@@ -14,7 +14,7 @@ export function KeyValueRowSkeleton({ testID }: { testID?: string }) {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-2"
+      twClassName="px-4 py-2"
     >
       <Skeleton height={18} width={100} />
       <Skeleton height={18} width={80} />
