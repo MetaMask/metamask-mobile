@@ -806,11 +806,59 @@ export function useQuickBuyController(
     return `${formatted} ${symbol}`;
   }, [activeQuote, destToken]);
 
-  const minReceivedTokenAmount = activeQuote?.minToTokenAmount?.amount;
-  const formattedMinimumReceivedFiat = useDisplayCurrencyValue(
-    minReceivedTokenAmount,
+  // Display-only copy of the dest token enriched with a balance-independent
+  // rate (`useDestTokenExchangeRate`) so prices render even when the user holds
+  // no balance of the token being bought. Never propagated into `destToken` —
+  // the quote/redux reference must stay stable so market-data ticks don't churn
+  // quote requests.
+  //
+  // Price source priority for the buy token: the host-supplied chart price
+  // (display currency, present even for un-held tokens) → the cached market-data
+  // lookup → the held-balance rate. The first two cover the common case of
+  // buying a token the user doesn't hold, where the lookup alone resolves
+  // nothing (TokenRatesController only tracks held tokens).
+  const destTokenLookupRate = useDestTokenExchangeRate(destToken);
+  const hostTokenPriceFiat = analyticsContext?.tokenPriceFiat;
+  const pricedDestToken = useMemo<BridgeToken | undefined>(() => {
+    if (!destToken) return destToken;
+    const hostRate =
+      tradeMode === 'buy' &&
+      hostTokenPriceFiat !== undefined &&
+      hostTokenPriceFiat > 0
+        ? hostTokenPriceFiat
+        : undefined;
+    const rate =
+      hostRate ??
+      destTokenLookupRate ??
+      (tradeMode === 'buy' ? positionToken?.currencyExchangeRate : undefined) ??
+      destToken.currencyExchangeRate;
+    if (rate === undefined) return destToken;
+    return { ...destToken, currencyExchangeRate: rate };
+  }, [
+    tradeMode,
     destToken,
+    hostTokenPriceFiat,
+    destTokenLookupRate,
+    positionToken?.currencyExchangeRate,
+  ]);
+
+  const minReceivedTokenAmount = activeQuote?.minToTokenAmount?.amount;
+  // Priced against `pricedDestToken`: the bare `destToken` carries no
+  // `currencyExchangeRate`, so ERC20s fell back to a $0 fiat value while
+  // natives resolved through the chain's native conversion rate.
+  const minReceivedFiat = useDisplayCurrencyValue(
+    minReceivedTokenAmount,
+    pricedDestToken,
   );
+  const formattedMinimumReceivedFiat = useMemo(() => {
+    if (!minReceivedTokenAmount) return undefined;
+    // `useDisplayCurrencyValue` renders an unpriced token as an exact zero
+    // (anything priceable but tiny becomes "< $0.01"), so drop the fiat suffix
+    // instead of showing a misleading $0.00 next to the token amount.
+    return minReceivedFiat === formatCurrency(0, currentCurrency)
+      ? undefined
+      : minReceivedFiat;
+  }, [minReceivedFiat, minReceivedTokenAmount, currentCurrency]);
 
   // Derive both sides of the ratio from the same activeQuote so the rate is
   // always internally consistent. Previously we mixed the live
@@ -939,37 +987,7 @@ export function useQuickBuyController(
     ? maxSpendFiat <= 0
     : maxSpendTokens <= 0;
 
-  // Display-only copy of the dest token enriched with a balance-independent
-  // rate (`useDestTokenExchangeRate`) so the pre-quote pill renders even when
-  // the user holds no balance of the token being bought. Never propagated into
-  // `destToken` — the quote/redux reference must stay stable so market-data
-  // ticks don't churn quote requests.
-  const destTokenLookupRate = useDestTokenExchangeRate(
-    tradeMode === 'buy' ? destToken : undefined,
-  );
-  // Price source priority for the buy token: the host-supplied chart price
-  // (display currency, present even for un-held tokens) → the cached market-data
-  // lookup → the held-balance rate. The first two cover the common case of
-  // buying a token the user doesn't hold, where the lookup alone resolves
-  // nothing (TokenRatesController only tracks held tokens).
-  const hostTokenPriceFiat = analyticsContext?.tokenPriceFiat;
-  const destTokenForRate = useMemo<BridgeToken | undefined>(() => {
-    if (tradeMode !== 'buy' || !destToken) return destToken;
-    const rate =
-      (hostTokenPriceFiat !== undefined && hostTokenPriceFiat > 0
-        ? hostTokenPriceFiat
-        : undefined) ??
-      destTokenLookupRate ??
-      positionToken?.currencyExchangeRate;
-    if (rate === undefined) return destToken;
-    return { ...destToken, currencyExchangeRate: rate };
-  }, [
-    tradeMode,
-    destToken,
-    hostTokenPriceFiat,
-    destTokenLookupRate,
-    positionToken?.currencyExchangeRate,
-  ]);
+  const destTokenForRate = tradeMode === 'buy' ? pricedDestToken : destToken;
 
   const formattedExchangeRate = useMemo(
     () =>
