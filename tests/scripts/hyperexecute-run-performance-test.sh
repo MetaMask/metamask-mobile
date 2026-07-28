@@ -60,7 +60,9 @@ start_tunnel_if_needed
 trap stop_tunnel_if_needed EXIT
 
 PROJECT_ARGS="$(select_project_args)"
-CMD=(yarn playwright test "$TEST_FILE" $PROJECT_ARGS --config "$CONFIG" --workers="$PLAYWRIGHT_WORKERS" --pass-with-no-tests)
+# Do NOT pass --pass-with-no-tests: config grep /@Performance\b/ (and optional
+# GREP_TAGS) can match zero tests in a file; failing is correct vs false-green.
+CMD=(yarn playwright test "$TEST_FILE" $PROJECT_ARGS --config "$CONFIG" --workers="$PLAYWRIGHT_WORKERS")
 
 if [[ -n "$GREP_TAGS" ]]; then
   CMD+=(--grep "$GREP_TAGS")
