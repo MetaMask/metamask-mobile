@@ -7,6 +7,10 @@ export const RAMPS_BUY_CUF_TAG = {
   REASON: 'reason',
   BOUNDARY: 'boundary',
   RAMP_TYPE: 'ramp_type',
+  /** Provider id (e.g. `/providers/paypal`) when a single provider was requested. */
+  PROVIDER: 'provider',
+  /** `true` when the usable quote is a custom-action quote (PayPal, Robinhood). */
+  CUSTOM_ACTION: 'custom_action',
 } as const;
 
 /** Feature tag value for Buy CUF spans (dashboard filter). */
@@ -29,6 +33,8 @@ export type RampsBuyCufSurface =
 export const RAMPS_BUY_CUF_PATH = {
   WIDGET: 'widget',
   NATIVE: 'native',
+  /** Custom-action checkout (PayPal, Robinhood) — TRAM-3805. */
+  CUSTOM_ACTION: 'custom_action',
 } as const;
 
 /** Which surface closed the Buy E2E CUF span. */
@@ -45,6 +51,8 @@ export const RAMPS_BUY_CUF_END_REASON = {
   CANCELLED: 'cancelled',
   ABANDONED: 'abandoned',
   HEADLESS: 'headless',
+  /** HTTP succeeded but requested provider(s) returned no usable quote. */
+  NO_QUOTE: 'no_quote',
 } as const;
 
 /**

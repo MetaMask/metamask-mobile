@@ -6,6 +6,8 @@ import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import type { RampsQueryStatus } from './useRampsPaymentMethods';
 import {
+  buildRampsBuyQuoteFetchCufCompletion,
+  buildRampsBuyQuoteFetchStartTags,
   endRampsBuyQuoteFetchTrace,
   startRampsBuyQuoteFetchTrace,
 } from '../utils/rampsBuyCufTrace';
@@ -57,6 +59,15 @@ export function useRampsQuotes(
     options?.assetId && options.walletAddress && options.amount > 0,
   );
 
+  // Stabilize by provider-id value so inline `providers: [id]` arrays do not
+  // retrigger the quote CUF effect every render.
+  const requestedProvidersKey = (options?.providers ?? []).join(',');
+  const requestedProviders = useMemo(
+    () => options?.providers,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by value
+    [requestedProvidersKey],
+  );
+
   const quotesQuery = useQuery({
     ...rampsQueries.quotes.options({
       assetId: options?.assetId,
@@ -64,7 +75,7 @@ export function useRampsQuotes(
       walletAddress: options?.walletAddress ?? '',
       redirectUrl: options?.redirectUrl,
       paymentMethods: options?.paymentMethods,
-      providers: options?.providers,
+      providers: requestedProviders,
       forceRefresh: options?.forceRefresh,
       ttl: options?.ttl,
     }),
@@ -73,7 +84,8 @@ export function useRampsQuotes(
 
   const quoteCufOpIdRef = useRef<string | null>(null);
 
-  // Buy Quote Fetch CUF (TRAM-3780): fetch start → quotes rendered or error.
+  // Buy Quote Fetch CUF (TRAM-3780 / TRAM-3805): fetch start → quotes rendered
+  // or provider-level failure (incl. PayPal custom-action quotes).
   // Fires for every Unified Buy quote fetch; nests under E2E parent when active.
   useEffect(() => {
     if (!queryEnabled) {
@@ -91,7 +103,9 @@ export function useRampsQuotes(
     }
 
     if (quotesQuery.isFetching && !quoteCufOpIdRef.current) {
-      quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace();
+      quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace({
+        tags: buildRampsBuyQuoteFetchStartTags(requestedProviders),
+      });
       return;
     }
 
@@ -100,15 +114,20 @@ export function useRampsQuotes(
       quoteCufOpIdRef.current = null;
       endRampsBuyQuoteFetchTrace({
         id: opId,
-        data: quotesQuery.isError
-          ? {
-              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-            }
-          : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        data: buildRampsBuyQuoteFetchCufCompletion({
+          isQueryError: quotesQuery.isError,
+          response: quotesQuery.data,
+          requestedProviders,
+        }),
       });
     }
-  }, [queryEnabled, quotesQuery.isFetching, quotesQuery.isError]);
+  }, [
+    queryEnabled,
+    quotesQuery.isFetching,
+    quotesQuery.isError,
+    quotesQuery.data,
+    requestedProviders,
+  ]);
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {

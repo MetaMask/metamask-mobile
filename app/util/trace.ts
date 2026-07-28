@@ -65,9 +65,10 @@ export enum TraceName {
   /** Nested under RampBuyToOrderDetails: Continue (native) → order created. */
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   /**
-   * Buy Quote Fetch CUF (TRAM-3780): amount/payment/provider change → quotes
-   * rendered or error. Standalone; nests under RampBuyToOrderDetails when that
-   * parent is active.
+   * Buy Quote Fetch CUF (TRAM-3780 / TRAM-3805): amount/payment/provider change
+   * → quotes rendered or provider-level miss (incl. PayPal custom-action).
+   * Standalone; nests under RampBuyToOrderDetails when that parent is active.
+   * Tags: provider, custom_action, path=custom_action when applicable.
    */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RevealSrp = 'Reveal SRP',

@@ -10,6 +10,7 @@ import {
   RAMPS_BUY_CUF_FEATURE,
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_SURFACE,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TIMEOUT_MS,
   type RampsBuyCufSurface,
@@ -222,6 +223,99 @@ export interface StartRampsBuyQuoteFetchTraceOptions {
   tags?: Record<string, TraceValue>;
   startTime?: number;
   data?: Record<string, TraceValue>;
+}
+
+/**
+ * Start tags for a quote-fetch CUF when callers know the provider filter.
+ * Single-provider fetches (BuildQuote / PayPal) get a filterable `provider` tag.
+ */
+export function buildRampsBuyQuoteFetchStartTags(
+  providers?: string[],
+): Record<string, TraceValue> | undefined {
+  if (!providers?.length) {
+    return undefined;
+  }
+  if (providers.length === 1) {
+    return { [RAMPS_BUY_CUF_TAG.PROVIDER]: providers[0] };
+  }
+  return undefined;
+}
+
+export interface BuildRampsBuyQuoteFetchCufCompletionParams {
+  isQueryError: boolean;
+  /** Quotes API body when the HTTP/query layer succeeded. */
+  response?: {
+    success?: Array<{
+      provider?: string;
+      quote?: { isCustomAction?: boolean };
+    }>;
+  } | null;
+  /** Provider ids passed to getQuotes (single-provider = BuildQuote). */
+  requestedProviders?: string[];
+}
+
+/**
+ * Build end-span attributes for Buy Quote Fetch (TRAM-3780 / TRAM-3805).
+ *
+ * Provider-filtered fetches (e.g. PayPal on BuildQuote) treat "HTTP 200 with
+ * no usable quote for the requested provider" as failure — the quotes API
+ * returns provider errors in `error[]` without rejecting the request, which
+ * would otherwise look like a successful CUF to Prometheus/Grafana SLOs.
+ *
+ * Custom-action quotes (PayPal / Robinhood) count as usable and are tagged
+ * `path: custom_action` + `custom_action: true`.
+ */
+export function buildRampsBuyQuoteFetchCufCompletion({
+  isQueryError,
+  response,
+  requestedProviders,
+}: BuildRampsBuyQuoteFetchCufCompletionParams): Record<string, TraceValue> {
+  if (isQueryError) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+      ...(requestedProviders?.length === 1
+        ? { [RAMPS_BUY_CUF_TAG.PROVIDER]: requestedProviders[0] }
+        : {}),
+    };
+  }
+
+  const successQuotes = response?.success ?? [];
+  const singleProvider =
+    requestedProviders?.length === 1 ? requestedProviders[0] : undefined;
+
+  const usableQuotes = singleProvider
+    ? successQuotes.filter((quote) => quote.provider === singleProvider)
+    : successQuotes;
+
+  if (usableQuotes.length === 0) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+      ...(singleProvider
+        ? { [RAMPS_BUY_CUF_TAG.PROVIDER]: singleProvider }
+        : {}),
+    };
+  }
+
+  const matched = usableQuotes[0];
+  const isCustomActionQuote = matched.quote?.isCustomAction === true;
+
+  return {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+    ...(singleProvider || matched.provider
+      ? {
+          [RAMPS_BUY_CUF_TAG.PROVIDER]:
+            singleProvider ?? (matched.provider as string),
+        }
+      : {}),
+    ...(isCustomActionQuote
+      ? {
+          [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.CUSTOM_ACTION,
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: true,
+        }
+      : { [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false }),
+  };
 }
 
 /**
