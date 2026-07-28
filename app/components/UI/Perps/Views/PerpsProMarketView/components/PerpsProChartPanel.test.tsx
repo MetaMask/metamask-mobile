@@ -498,23 +498,35 @@ describe('PerpsProChartPanel', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the compact expand action while collapsed', () => {
+    it('shows the toggle action in the collapsed state', () => {
       renderCollapsed();
 
-      const expandButton = screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.CHART_EXPAND_BUTTON,
+      const toggleButton = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON,
       );
-      expect(expandButton).toBeOnTheScreen();
-      expect(expandButton.props.accessibilityState).toEqual(
+      expect(toggleButton).toBeOnTheScreen();
+      expect(toggleButton.props.accessibilityState).toEqual(
         expect.objectContaining({ expanded: false }),
       );
     });
 
-    it('persists chartExpanded=true and tracks analytics on expand', () => {
+    it('keeps the toggle action visible in the expanded state', () => {
+      renderChartPanel();
+
+      const toggleButton = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON,
+      );
+      expect(toggleButton).toBeOnTheScreen();
+      expect(toggleButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ expanded: true }),
+      );
+    });
+
+    it('persists chartExpanded=true and tracks analytics when expanding', () => {
       renderCollapsed();
 
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_EXPAND_BUTTON),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON),
       );
 
       expect(mockSetChartExpanded).toHaveBeenCalledWith(true);
@@ -531,25 +543,11 @@ describe('PerpsProChartPanel', () => {
       );
     });
 
-    it('renders the collapse action while expanded', () => {
-      renderChartPanel();
-
-      const collapseButton = screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.CHART_COLLAPSE_BUTTON,
-      );
-      expect(collapseButton).toBeOnTheScreen();
-      expect(collapseButton.props.accessibilityState).toEqual(
-        expect.objectContaining({ expanded: true }),
-      );
-    });
-
-    it('persists chartExpanded=false and tracks analytics on collapse', () => {
+    it('persists chartExpanded=false and tracks analytics when collapsing', () => {
       renderChartPanel();
 
       fireEvent.press(
-        screen.getByTestId(
-          PerpsProMarketViewSelectorsIDs.CHART_COLLAPSE_BUTTON,
-        ),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON),
       );
 
       expect(mockSetChartExpanded).toHaveBeenCalledWith(false);

@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   FilterButtonVariant,
   IconName,
   TextVariant,
@@ -248,16 +249,19 @@ const PerpsProChartPanel = ({
         symbol={symbol}
         currentPrice={syncedChartCurrentPrice}
         endAccessory={
-          isChartExpanded ? undefined : (
-            <ButtonIcon
-              iconName={IconName.Candlestick}
-              size={ButtonIconSize.Lg}
-              onPress={() => handleToggleChartExpanded(true)}
-              testID={PerpsProMarketViewSelectorsIDs.CHART_EXPAND_BUTTON}
-              accessibilityLabel={strings('perps.market_details.expand_chart')}
-              accessibilityState={{ expanded: false }}
-            />
-          )
+          <ButtonIcon
+            iconName={IconName.Candlestick}
+            size={ButtonIconSize.Lg}
+            variant={ButtonIconVariant.Filled}
+            onPress={() => handleToggleChartExpanded(!isChartExpanded)}
+            testID={PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON}
+            accessibilityLabel={strings(
+              isChartExpanded
+                ? 'perps.market_details.collapse_chart'
+                : 'perps.market_details.expand_chart',
+            )}
+            accessibilityState={{ expanded: isChartExpanded }}
+          />
         }
       />
       {isChartExpanded ? (
@@ -294,16 +298,6 @@ const PerpsProChartPanel = ({
                 accessibilityLabel={strings(
                   'perps.market_details.fullscreen_chart',
                 )}
-              />
-              <ButtonIcon
-                iconName={IconName.Collapse}
-                size={ButtonIconSize.Sm}
-                onPress={() => handleToggleChartExpanded(false)}
-                testID={PerpsProMarketViewSelectorsIDs.CHART_COLLAPSE_BUTTON}
-                accessibilityLabel={strings(
-                  'perps.market_details.collapse_chart',
-                )}
-                accessibilityState={{ expanded: true }}
               />
             </Box>
             <ComponentErrorBoundary
