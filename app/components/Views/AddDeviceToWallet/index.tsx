@@ -36,7 +36,6 @@ import {
 } from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
-  selectQrSyncError,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
   selectQrSyncPresentation,
@@ -79,7 +78,6 @@ const AddDeviceToWallet = () => {
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
-  const error = useSelector(selectQrSyncError);
 
   const handleBack = useCallback(() => {
     Engine.context.QrSyncController.resetState();
@@ -210,12 +208,6 @@ const AddDeviceToWallet = () => {
           >
             {strings('app_settings.add_device.scan_qr_code_button')}
           </Button>
-
-          {presentation === 'error' && error?.message ? (
-            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-              {error.message}
-            </Text>
-          ) : null}
         </Box>
       </Box>
     </SafeAreaView>
