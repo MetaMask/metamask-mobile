@@ -316,6 +316,22 @@ export {
   PERPS_DISK_CACHE_THROTTLE_MS,
 } from '@metamask/perps-controller/constants/perpsConfig';
 
+/**
+ * Safety-net window (ms) for the trade/close-position amount sliders: if no
+ * further drag tick (`onValueChange`) arrives within this window while a drag
+ * is in progress, the last live value is committed as though `onDragEnd` had
+ * fired.
+ *
+ * This exists because a pan gesture cancelled by competing-gesture
+ * arbitration (e.g. a parent ScrollView taking over mid-drag) or torn down by
+ * the OS finalizes internally in the design-system `Slider` without ever
+ * calling `onDragEnd` — `react-native-gesture-handler` owns the touch outside
+ * RN's responder system, so a cancellation does not reliably bubble an RN
+ * touch-cancel event either. Restarted on every tick, so it only ever fires
+ * once ticks stop arriving without a normal drag end.
+ */
+export const PERPS_SLIDER_DRAG_STALL_COMMIT_MS = 400;
+
 /** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
 export const PERPS_CONNECTION_SOURCE = {
   WALLET_ROOT_MOUNT: 'wallet_root_mount',

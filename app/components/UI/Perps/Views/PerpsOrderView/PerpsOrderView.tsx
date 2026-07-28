@@ -81,6 +81,7 @@ import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
+import { PERPS_SLIDER_DRAG_STALL_COMMIT_MS } from '../../constants/perpsConfig';
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
@@ -341,30 +342,67 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const displayAmount = isDraggingSlider ? liveDragAmount : orderForm.amount;
 
-  const handleSliderValueChange = useCallback((value: number) => {
-    inputMethodRef.current = 'slider';
-    setIsDraggingSlider(true);
-    setLiveDragAmount(Math.floor(value).toString());
+  // Safety net for a drag that never fires `onDragEnd` — a pan gesture
+  // cancelled by competing-gesture arbitration (e.g. a parent ScrollView
+  // taking over) finalizes internally in the design-system Slider without
+  // calling `onDragEnd`, and react-native-gesture-handler owns the touch
+  // outside RN's responder system, so an RN touch-cancel event is not
+  // reliable either (see PERPS_SLIDER_DRAG_STALL_COMMIT_MS). Restarted on
+  // every tick in handleSliderValueChange, so it only fires once ticks stop
+  // arriving without a normal drag end.
+  const dragStallTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearDragStallTimeout = useCallback(() => {
+    if (dragStallTimeoutRef.current) {
+      clearTimeout(dragStallTimeoutRef.current);
+      dragStallTimeoutRef.current = null;
+    }
   }, []);
 
-  const handleSliderDragEnd = useCallback(
-    (value: number) => {
-      const amount = Math.floor(value).toString();
+  const commitDragAmount = useCallback(
+    (amount: string) => {
+      clearDragStallTimeout();
       setIsDraggingSlider(false);
       setLiveDragAmount(amount);
       setAmount(amount);
     },
-    [setAmount],
+    [clearDragStallTimeout, setAmount],
   );
 
-  // A pan gesture cancelled by the OS or gesture arbitration (e.g. a
-  // competing gesture wins, or the touch sequence is torn down mid-drag)
-  // never fires `onDragEnd`. Reset the dragging flag so `displayAmount`
-  // falls back to the last committed `orderForm.amount` instead of staying
-  // stuck on an uncommitted, in-flight drag value.
+  const handleSliderValueChange = useCallback(
+    (value: number) => {
+      inputMethodRef.current = 'slider';
+      const amount = Math.floor(value).toString();
+      setIsDraggingSlider(true);
+      setLiveDragAmount(amount);
+
+      clearDragStallTimeout();
+      dragStallTimeoutRef.current = setTimeout(() => {
+        commitDragAmount(amount);
+      }, PERPS_SLIDER_DRAG_STALL_COMMIT_MS);
+    },
+    [clearDragStallTimeout, commitDragAmount],
+  );
+
+  const handleSliderDragEnd = useCallback(
+    (value: number) => {
+      commitDragAmount(Math.floor(value).toString());
+    },
+    [commitDragAmount],
+  );
+
+  // Best-effort extra signal: on paths where a cancelled touch does bubble to
+  // RN's responder system, commit immediately instead of waiting out the
+  // stall window above.
   const handleSliderDragCancel = useCallback(() => {
-    setIsDraggingSlider(false);
-  }, []);
+    if (isDraggingSlider) {
+      commitDragAmount(liveDragAmount);
+    }
+  }, [commitDragAmount, isDraggingSlider, liveDragAmount]);
+
+  useEffect(() => clearDragStallTimeout, [clearDragStallTimeout]);
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);

@@ -83,6 +83,7 @@ import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../../selectors/featureFlags';
+import { PERPS_SLIDER_DRAG_STALL_COMMIT_MS } from '../../constants/perpsConfig';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -663,14 +664,28 @@ const PerpsClosePositionView: React.FC = () => {
     setIsUserInputActive(false);
   };
 
-  const handleSliderValueChange = useCallback((value: number) => {
-    inputMethodRef.current = 'slider';
-    setIsDraggingSlider(true);
-    setLiveDragClosePercentage(value);
+  // Safety net for a drag that never fires `onDragEnd` — a pan gesture
+  // cancelled by competing-gesture arbitration (e.g. a parent ScrollView
+  // taking over) finalizes internally in the design-system Slider without
+  // calling `onDragEnd`, and react-native-gesture-handler owns the touch
+  // outside RN's responder system, so an RN touch-cancel event is not
+  // reliable either (see PERPS_SLIDER_DRAG_STALL_COMMIT_MS). Restarted on
+  // every tick in handleSliderValueChange, so it only fires once ticks stop
+  // arriving without a normal drag end.
+  const dragStallTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearDragStallTimeout = useCallback(() => {
+    if (dragStallTimeoutRef.current) {
+      clearTimeout(dragStallTimeoutRef.current);
+      dragStallTimeoutRef.current = null;
+    }
   }, []);
 
-  const handleSliderDragEnd = useCallback(
+  const commitDragClosePercentage = useCallback(
     (value: number) => {
+      clearDragStallTimeout();
       setIsDraggingSlider(false);
       setLiveDragClosePercentage(value);
       setClosePercentage(value);
@@ -679,18 +694,40 @@ const PerpsClosePositionView: React.FC = () => {
       const newUSDAmount = (value / 100) * absSize * effectivePrice;
       setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
     },
-    [absSize, effectivePrice],
+    [absSize, clearDragStallTimeout, effectivePrice],
   );
 
-  // A pan gesture cancelled by the OS or gesture arbitration (e.g. a
-  // competing gesture wins, or the touch sequence is torn down mid-drag)
-  // never fires `onDragEnd`. Reset the dragging flag so
-  // `displayClosePercentage` falls back to the last committed
-  // `closePercentage` instead of staying stuck on an uncommitted, in-flight
-  // drag value.
+  const handleSliderValueChange = useCallback(
+    (value: number) => {
+      inputMethodRef.current = 'slider';
+      setIsDraggingSlider(true);
+      setLiveDragClosePercentage(value);
+
+      clearDragStallTimeout();
+      dragStallTimeoutRef.current = setTimeout(() => {
+        commitDragClosePercentage(value);
+      }, PERPS_SLIDER_DRAG_STALL_COMMIT_MS);
+    },
+    [clearDragStallTimeout, commitDragClosePercentage],
+  );
+
+  const handleSliderDragEnd = useCallback(
+    (value: number) => {
+      commitDragClosePercentage(value);
+    },
+    [commitDragClosePercentage],
+  );
+
+  // Best-effort extra signal: on paths where a cancelled touch does bubble to
+  // RN's responder system, commit immediately instead of waiting out the
+  // stall window above.
   const handleSliderDragCancel = useCallback(() => {
-    setIsDraggingSlider(false);
-  }, []);
+    if (isDraggingSlider) {
+      commitDragClosePercentage(liveDragClosePercentage);
+    }
+  }, [commitDragClosePercentage, isDraggingSlider, liveDragClosePercentage]);
+
+  useEffect(() => clearDragStallTimeout, [clearDragStallTimeout]);
 
   // Hide provider-level limit price required error on this UI. Surface the
   // minimum amount error (e.g. minimum $10) and the "limit price too far"
