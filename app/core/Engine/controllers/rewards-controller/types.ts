@@ -1233,6 +1233,10 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   drawProofTitle: string;
   merkleRootLabel: string;
   formulaLabel: string;
+  drawFormulaLabel: string;
+  drawFormulaDescription: string;
+  seedBlockLabel: string;
+  seedBlockHashLabel: string;
   drawProofEntriesLabel: string;
   winnersLabel: string;
   reservesLabel: string;
@@ -1495,6 +1499,8 @@ export interface MoneyAccountSweepstakesPrizePoolDto {
 
 export interface MoneyAccountSweepstakesDrawExplanationDto {
   merkleRoot: string;
+  seedBlock: number;
+  seedBlockHash: string;
   formula: string;
   entryCount: number;
   winnerCount: number;
@@ -1577,6 +1583,8 @@ export type MoneyAccountSweepstakesPrizePoolState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyAccountSweepstakesDrawExplanationState = {
   merkleRoot: string;
+  seedBlock: number;
+  seedBlockHash: string;
   formula: string;
   entryCount: number;
   winnerCount: number;

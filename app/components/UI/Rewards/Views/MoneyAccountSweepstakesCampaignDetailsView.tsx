@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -14,6 +20,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import MoneyAccountSweepstakesCampaignCTA from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignCTA';
+import MoneyAccountSweepstakesDrawProofModal from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawProofModal';
 import MoneyAccountSweepstakesDrawScheduleSection from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawScheduleSection';
 import MoneyAccountSweepstakesStatsSummary from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesStatsSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -31,6 +38,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import type {
   CampaignHowItWorks as CampaignHowItWorksData,
   MoneyAccountSweepstakesCampaignDetails,
+  MoneyAccountSweepstakesDrawProofDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS = {
@@ -41,6 +49,8 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const conflictToastShownRef = useRef(false);
+  const [selectedDrawProof, setSelectedDrawProof] =
+    useState<MoneyAccountSweepstakesDrawProofDto | null>(null);
 
   const {
     isLoading: isCampaignsLoading,
@@ -209,6 +219,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                       campaigns={campaigns}
                       localizedText={localizedText}
                       activeCampaignId={activeCampaign?.id ?? null}
+                      onOpenDrawProof={setSelectedDrawProof}
                     />
                   </Box>
                 </>
@@ -222,6 +233,14 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
             campaign={displayCampaign}
             seriesStatus={seriesStatus}
             localizedText={localizedText}
+          />
+        )}
+
+        {selectedDrawProof && localizedText && (
+          <MoneyAccountSweepstakesDrawProofModal
+            drawProof={selectedDrawProof}
+            localizedText={localizedText}
+            onClose={() => setSelectedDrawProof(null)}
           />
         )}
       </SafeAreaView>
