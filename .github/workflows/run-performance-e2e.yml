@@ -586,6 +586,38 @@ jobs:
           gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
           echo "Performance results posted to PR #${{ inputs.pr_number }}"
 
+      - name: Auto app profiling check for failed tests
+        if: always() && !cancelled()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          SUMMARY="aggregated-reports/summary.json"
+          if [ ! -f "$SUMMARY" ]; then
+            echo "⚠️ No aggregated summary found — skipping auto app profiling check"
+            exit 0
+          fi
+
+          FAILED=$(node -p "JSON.parse(require('fs').readFileSync('aggregated-reports/summary.json','utf8')).failedTestsStats?.uniqueFailedTests ?? 0")
+          if [ "${FAILED}" = "0" ]; then
+            echo "✅ No failed performance tests — skipping auto app profiling check"
+            exit 0
+          fi
+
+          echo "🔬 Auto-running app profiling check for ${FAILED} failed scenario(s)..."
+          node tests/scripts/diff-app-profiling.mjs \
+            --pr "${PR_NUMBER}" \
+            --run "${CURRENT_RUN_ID}" \
+            --all \
+            --current-dir aggregated-reports \
+            --replace
+
   slack-notification:
     name: Send Slack Notification
     runs-on: ubuntu-latest

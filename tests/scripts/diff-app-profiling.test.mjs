@@ -9,8 +9,27 @@ import {
   hasUsableProfilingSummary,
   findMatchingArtifact,
   buildScenarioComment,
+  parseArgs,
   COMMENT_MARKER,
 } from './diff-app-profiling.mjs';
+
+test('parseArgs accepts --current-dir, --replace, and --all', () => {
+  const args = parseArgs([
+    '--pr',
+    '1',
+    '--run',
+    '2',
+    '--all',
+    '--current-dir',
+    './aggregated-reports',
+    '--replace',
+  ]);
+  assert.equal(args.pr, '1');
+  assert.equal(args.run, '2');
+  assert.equal(args.all, true);
+  assert.equal(args.currentDir, './aggregated-reports');
+  assert.equal(args.replace, true);
+});
 
 test('parseDeviceKey parses Name+OSVersion keys', () => {
   assert.deepEqual(parseDeviceKey('Google Pixel 8 Pro+14.0'), {

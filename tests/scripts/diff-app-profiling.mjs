@@ -42,6 +42,10 @@ function parseArgs(argv) {
     workflow: DEFAULT_WORKFLOW,
     repo: process.env.GITHUB_REPOSITORY || null,
     dryRun: false,
+    /** When set, use this local aggregated-reports dir instead of downloading the current run. */
+    currentDir: null,
+    /** Delete previous app-profiling-check PR comments before posting a new one. */
+    replace: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -80,11 +84,18 @@ function parseArgs(argv) {
         args.repo = next;
         i += 1;
         break;
+      case '--current-dir':
+        args.currentDir = next;
+        i += 1;
+        break;
       case '--all':
         args.all = true;
         break;
       case '--dry-run':
         args.dryRun = true;
+        break;
+      case '--replace':
+        args.replace = true;
         break;
       default:
         break;
@@ -623,6 +634,32 @@ function resolveScenarios(args, currentDir) {
   ];
 }
 
+function deletePreviousAppProfilingComments({ pr, repo }) {
+  const raw = runGh([
+    'api',
+    `repos/${repo}/issues/${pr}/comments`,
+    '--jq',
+    `.[] | select(.body | contains("${COMMENT_MARKER}")) | .id`,
+  ]);
+  const ids = raw
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const id of ids) {
+    try {
+      runGh(['api', `repos/${repo}/issues/comments/${id}`, '--method', 'DELETE']);
+      console.log(`🗑️  Deleted previous app profiling comment ${id}`);
+    } catch (error) {
+      console.warn(
+        `⚠️  Could not delete comment ${id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -631,10 +668,21 @@ function main() {
   if (!args.repo) fail('Missing --repo owner/repo or GITHUB_REPOSITORY');
 
   const workRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'app-profiling-check-'));
-  const currentDir = path.join(workRoot, 'current');
+  let currentDir = args.currentDir;
 
-  console.log(`📥 Downloading current aggregated-reports from run ${args.run}...`);
-  downloadAggregatedReports(args.run, currentDir, args.repo);
+  if (currentDir) {
+    currentDir = path.resolve(currentDir);
+    if (!fs.existsSync(currentDir)) {
+      fail(`--current-dir does not exist: ${currentDir}`);
+    }
+    console.log(`📂 Using local aggregated-reports at ${currentDir}`);
+  } else {
+    currentDir = path.join(workRoot, 'current');
+    console.log(
+      `📥 Downloading current aggregated-reports from run ${args.run}...`,
+    );
+    downloadAggregatedReports(args.run, currentDir, args.repo);
+  }
 
   const scenarios = resolveScenarios(args, currentDir);
   const currentArtifacts = findProfilingArtifacts(currentDir);
@@ -690,6 +738,11 @@ function main() {
     return;
   }
 
+  if (args.replace) {
+    console.log('🧹 Replacing previous app profiling check comments...');
+    deletePreviousAppProfilingComments({ pr: args.pr, repo: args.repo });
+  }
+
   console.log(`💬 Posting comment on PR #${args.pr}...`);
   runGh(['pr', 'comment', String(args.pr), '--repo', args.repo, '--body-file', bodyFile]);
   console.log('✅ App profiling check comment posted');
@@ -706,6 +759,7 @@ export {
   findMatchingArtifact,
   findGreenScenarioInDir,
   buildScenarioComment,
+  parseArgs,
   COMMENT_MARKER,
 };
 

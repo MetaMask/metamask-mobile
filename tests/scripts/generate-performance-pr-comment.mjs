@@ -222,7 +222,8 @@ const passedTestRuns = allTestRuns.filter((test) => test.passed);
 // Failed tests table (one section per team)
 if (uniqueFailedTests > 0) {
   md += `### ❌ Failed Tests (${uniqueFailedTests})\n\n`;
-  md += `> 🔬 To compare BrowserStack app profiling vs the last green run on \`main\`, copy/paste the **App profiling check** command for a failed test as a PR comment.\n\n`;
+  md += `> 🔬 An **App profiling check** runs automatically for failed scenarios and posts a separate comment with BrowserStack profiling vs the last green run on \`main\`.\n`;
+  md += `> You can also re-run it manually with the commands below.\n\n`;
 
   for (const [, teamData] of Object.entries(failedByTeam)) {
     const teamName = teamData.team?.teamId ?? 'Unknown Team';
@@ -257,7 +258,7 @@ if (uniqueFailedTests > 0) {
   }
 
   if (runId) {
-    md += `<details>\n<summary>Compare all failed scenarios</summary>\n\n`;
+    md += `<details>\n<summary>Re-run app profiling check manually</summary>\n\n`;
     md += `\`@metamaskbot app-profiling-check --all --run ${runId}\`\n\n`;
     md += `</details>\n\n`;
   }
