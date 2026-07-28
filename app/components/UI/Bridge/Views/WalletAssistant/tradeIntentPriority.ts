@@ -25,6 +25,8 @@ const PERCENT_AMOUNT = /\b(\d+(?:\.\d+)?)\s*%/;
 const PAY_WITH_SYMBOL = /\b(?:pay\s+with|use)\s+([a-z0-9][a-z0-9._-]{1,15})\b/i;
 const MAKE_IT_FIAT =
   /\b(?:make\s+it|change(?:\s+it)?\s+to)\s+\$\s*(\d+(?:\.\d+)?)/i;
+const EXPLICIT_NETWORK_FOLLOW_UP =
+  /^\s*(?:(?:on|over|via|use)\s+(?:robinhood\s+chain|ethereum(?:\s+mainnet)?|mainnet|arbitrum|optimism|polygon|base|bnb(?:\s+smart\s+chain)?|bsc|avalanche|linea|solana)|switch(?:\s+it)?\s+to\s+(?:robinhood\s+chain|ethereum(?:\s+mainnet)?|mainnet|arbitrum|optimism|polygon|base|bnb(?:\s+smart\s+chain)?|bsc|avalanche|linea|solana))\s*(?:please|instead)?[.!]?\s*$/i;
 const NETWORK_ALIASES: readonly (readonly [RegExp, string])[] = [
   [/\brobinhood\s+chain\b/i, 'Robinhood Chain'],
   [/\bethereum(?:\s+mainnet)?\b|\bmainnet\b/i, 'Ethereum'],
@@ -162,11 +164,14 @@ const buildTradeResearchResponse = (
   intent: WalletAssistantSwapIntent,
 ): WalletAssistantResearchResponse => {
   const pair = [intent.sourceSymbol, intent.destinationSymbol].filter(Boolean);
+  const destinationArticle = /^[AEIOU]/i.test(intent.destinationSymbol)
+    ? 'an'
+    : 'a';
   const title =
     pair.length === 2
       ? `Prepare ${pair[0]} → ${pair[1]} swap`
       : intent.destinationSymbol
-        ? `Prepare a ${intent.destinationSymbol} purchase`
+        ? `Prepare ${destinationArticle} ${intent.destinationSymbol} purchase`
         : `Prepare a ${intent.sourceSymbol || 'token'} sale`;
   const missingSelection = !intent.sourceSymbol
     ? 'payment token'
@@ -220,7 +225,9 @@ export const buildImmediateTradeResponse = (
 
   const fiatAmount = MAKE_IT_FIAT.exec(prompt)?.[1];
   const paymentSymbol = toTokenSymbol(PAY_WITH_SYMBOL.exec(prompt)?.[1]);
-  const network = inferNetwork(prompt);
+  const network = EXPLICIT_NETWORK_FOLLOW_UP.test(prompt)
+    ? inferNetwork(prompt)
+    : '';
   if (!fiatAmount && !paymentSymbol && !network) {
     return undefined;
   }

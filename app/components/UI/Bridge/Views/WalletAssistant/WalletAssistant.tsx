@@ -1324,10 +1324,13 @@ const WalletAssistant = () => {
       ...messages,
       { id: `user-${messages.length}`, role: 'user', text },
     ];
-    const previousTradeIntent = [...messages]
+    const previousAssistantMessage = [...messages]
       .reverse()
-      .find((message) => message.research?.swapIntent.enabled)
-      ?.research?.swapIntent;
+      .find((message) => message.role === 'assistant');
+    const previousTradeIntent = previousAssistantMessage?.research?.swapIntent
+      .enabled
+      ? previousAssistantMessage.research.swapIntent
+      : undefined;
     const immediateTradeResponse = buildImmediateTradeResponse(
       text,
       previousTradeIntent,

@@ -213,4 +213,42 @@ describe('trade intent priority', () => {
       }),
     ).toBeUndefined();
   });
+
+  it('does not leak a previous trade into network-specific research', () => {
+    const previousIntent = {
+      amountType: 'fiat' as const,
+      amountValue: '10',
+      enabled: true,
+      mode: 'real' as const,
+      network: 'BNB Smart Chain',
+      sourceAmount: '',
+      sourceSymbol: 'POSI',
+      destinationSymbol: 'ON',
+    };
+
+    expect(
+      buildImmediateTradeResponse(
+        'What token on Robinhood chain is trending today',
+        previousIntent,
+      ),
+    ).toBeUndefined();
+    expect(
+      buildImmediateTradeResponse('Which tokens are on Base?', previousIntent),
+    ).toBeUndefined();
+  });
+
+  it('accepts an explicit network-only trade follow-up', () => {
+    const result = buildImmediateTradeResponse('On Robinhood Chain', {
+      amountType: 'unspecified',
+      amountValue: '',
+      enabled: true,
+      mode: 'real',
+      network: '',
+      sourceAmount: '',
+      sourceSymbol: 'USDC',
+      destinationSymbol: 'ETH',
+    });
+
+    expect(result?.swapIntent.network).toBe('Robinhood Chain');
+  });
 });
