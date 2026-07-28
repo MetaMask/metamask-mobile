@@ -373,4 +373,39 @@ describe('CampaignsPreview', () => {
       params: undefined,
     });
   });
+
+  it('collapses multiple MONEY_ACCOUNT_SWEEPSTAKES campaigns into one featured tile', () => {
+    const week1Start = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const week1End = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
+    const week2Start = week1End;
+    const week2End = new Date(week2Start.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const week1 = createTestCampaign({
+      id: 'mas-week-1',
+      name: 'Money Account Sweepstakes',
+      type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+      startDate: week1Start.toISOString(),
+      endDate: week1End.toISOString(),
+      featured: true,
+    });
+    const week2 = createTestCampaign({
+      id: 'mas-week-2',
+      name: 'Money Account Sweepstakes',
+      type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+      startDate: week2Start.toISOString(),
+      endDate: week2End.toISOString(),
+      featured: true,
+    });
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      campaigns: [week1, week2],
+    });
+
+    const { getAllByTestId, queryByTestId } = render(<CampaignsPreview />);
+
+    const tiles = getAllByTestId(/^campaign-tile-/);
+    expect(tiles).toHaveLength(1);
+    expect(getAllByTestId('campaign-tile-mas-week-1')).toHaveLength(1);
+    expect(queryByTestId('campaign-tile-mas-week-2')).toBeNull();
+  });
 });
