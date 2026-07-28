@@ -1,5 +1,19 @@
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Keyboard, ScrollView, TextInput } from 'react-native';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ScrollView,
+  TextInput,
+  View,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -63,6 +77,39 @@ const priceValueTextProps = {
   color: TextColor.TextDefault,
 } as const;
 
+/**
+ * Reserves HelpText vertical space so TP/SL sections do not jump when
+ * expected PnL or validation errors appear. Uses an invisible danger+icon
+ * HelpText as the in-flow sizer (tallest common single-line layout).
+ */
+const SectionHelpText: React.FC<{
+  errorMessage?: string;
+  expectedMessage?: string;
+}> = ({ errorMessage, expectedMessage }) => (
+  <Box>
+    <HelpText
+      severity={HelpTextSeverity.Danger}
+      showIcon
+      twClassName="opacity-0"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      {errorMessage ?? '\u00A0'}
+    </HelpText>
+    {errorMessage ? (
+      <Box twClassName="absolute inset-x-0 top-0">
+        <HelpText severity={HelpTextSeverity.Danger} showIcon>
+          {errorMessage}
+        </HelpText>
+      </Box>
+    ) : expectedMessage ? (
+      <Box twClassName="absolute inset-x-0 top-0">
+        <HelpText>{expectedMessage}</HelpText>
+      </Box>
+    ) : null}
+  </Box>
+);
+
 const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
@@ -87,6 +134,10 @@ const PerpsTPSLView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
+  const takeProfitSectionRef = useRef<View>(null);
+  const stopLossSectionRef = useRef<View>(null);
+  const scrollOffsetRef = useRef(0);
+  const [keypadFooterHeight, setKeypadFooterHeight] = useState(0);
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
@@ -263,7 +314,72 @@ const PerpsTPSLView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // Keypad handlers
+  const scrollFocusedSectionIntoView = useCallback((inputType: string) => {
+    const sectionRef =
+      inputType === 'takeProfitPrice' || inputType === 'takeProfitPercentage'
+        ? takeProfitSectionRef
+        : stopLossSectionRef;
+    const scrollView = scrollViewRef.current;
+    const section = sectionRef.current;
+    if (!scrollView || !section) {
+      return;
+    }
+
+    section.measureInWindow((_sx, sectionY, _sw, sectionHeight) => {
+      scrollView.measureInWindow((_vx, viewY, _vw, viewHeight) => {
+        const margin = 16;
+        const sectionBottom = sectionY + sectionHeight;
+        const visibleBottom = viewY + viewHeight - margin;
+        const sectionTop = sectionY;
+        const visibleTop = viewY + margin;
+
+        let delta = 0;
+        if (sectionBottom > visibleBottom) {
+          delta = sectionBottom - visibleBottom;
+        } else if (sectionTop < visibleTop) {
+          delta = sectionTop - visibleTop;
+        }
+
+        if (Math.abs(delta) > 1) {
+          scrollView.scrollTo({
+            y: Math.max(0, scrollOffsetRef.current + delta),
+            animated: true,
+          });
+        }
+      });
+    });
+  }, []);
+
+  // After the custom keypad mounts (and ScrollView shrinks), scroll the focused
+  // section so its inputs + HelpText sit in the remaining viewport.
+  useEffect(() => {
+    if (!focusedInput) {
+      setKeypadFooterHeight(0);
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      scrollFocusedSectionIntoView(focusedInput);
+    }, 50);
+    return () => clearTimeout(timeoutId);
+  }, [focusedInput, keypadFooterHeight, scrollFocusedSectionIntoView]);
+
+  const handleScroll = useCallback(
+    (scrollEvent: NativeSyntheticEvent<NativeScrollEvent>) => {
+      scrollOffsetRef.current = scrollEvent.nativeEvent.contentOffset.y;
+    },
+    [],
+  );
+
+  const handleKeypadFooterLayout = useCallback(
+    (layoutEvent: LayoutChangeEvent) => {
+      const nextHeight = focusedInput
+        ? layoutEvent.nativeEvent.layout.height
+        : 0;
+      setKeypadFooterHeight(nextHeight);
+    },
+    [focusedInput],
+  );
+
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
       if (focusedInput === 'takeProfitPrice') {
@@ -299,28 +415,7 @@ const PerpsTPSLView: React.FC = () => {
       // an empty inputView. The custom keypad is the only keyboard shown and
       // the native caret stays focused and blinking — no Keyboard.dismiss()
       // workaround needed.
-
-      // Auto-scroll to keep input visible when keypad is active
-      if (scrollViewRef.current) {
-        let yOffset = 0;
-
-        // Calculate scroll position based on which input is focused
-        switch (inputType) {
-          case 'takeProfitPrice':
-          case 'takeProfitPercentage':
-            yOffset = 150; // Take Profit section
-            break;
-          case 'stopLossPrice':
-          case 'stopLossPercentage':
-            yOffset = 350; // Stop Loss section
-            break;
-        }
-
-        scrollViewRef.current.scrollTo({
-          y: yOffset,
-          animated: true,
-        });
-      }
+      // Scroll-into-view runs in an effect after the keypad layout settles.
 
       // Call the appropriate original focus handler
       switch (inputType) {
@@ -562,13 +657,20 @@ const PerpsTPSLView: React.FC = () => {
       <ScrollView
         ref={scrollViewRef}
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('grow')}
-        onScrollBeginDrag={Keyboard.dismiss}
+        contentContainerStyle={[
+          tw.style('grow'),
+          focusedInput
+            ? { paddingBottom: Math.max(keypadFooterHeight, 24) }
+            : null,
+        ]}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="flex-1" testID="scroll-content">
           {/* Current price and liquidation price info */}
-          <Box twClassName="mb-3 gap-2">
+          <Box twClassName="mb-6 gap-2">
             {position && (
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
@@ -601,249 +703,262 @@ const PerpsTPSLView: React.FC = () => {
           </Box>
 
           {/* Take Profit Section */}
-          <Box twClassName={focusedInput ? 'mb-0 px-4' : 'mb-6 px-4'}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="mb-2 -mr-3"
-            >
-              <Label>
-                {actualDirection === 'short'
-                  ? strings('perps.tpsl.take_profit_short')
-                  : strings('perps.tpsl.take_profit_long')}
-              </Label>
-              {Boolean(takeProfitPrice) && (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  size={ButtonSize.Sm}
-                  onPress={handleTakeProfitClear}
-                  isDisabled={inputsDisabled}
-                  testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON}
-                >
-                  {strings('perps.tpsl.clear')}
-                </Button>
-              )}
-            </Box>
+          <View ref={takeProfitSectionRef} collapsable={false}>
+            <Box twClassName="mb-6 px-4">
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="mb-2 -mr-3 min-h-8"
+              >
+                <Label>
+                  {actualDirection === 'short'
+                    ? strings('perps.tpsl.take_profit_short')
+                    : strings('perps.tpsl.take_profit_long')}
+                </Label>
+                {Boolean(takeProfitPrice) && (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleTakeProfitClear}
+                    isDisabled={inputsDisabled}
+                    testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON}
+                  >
+                    {strings('perps.tpsl.clear')}
+                  </Button>
+                )}
+              </Box>
 
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-3 gap-2">
-              {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
-                <Button
-                  key={percentage}
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Md}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="mb-3 gap-2"
+              >
+                {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
+                  <Button
+                    key={percentage}
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Md}
+                    twClassName="flex-1"
+                    onPress={() => handleTakeProfitPercentageButton(percentage)}
+                    testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
+                      percentage,
+                    )}
+                    isDisabled={inputsDisabled}
+                  >
+                    {`+${percentage}%`}
+                  </Button>
+                ))}
+              </Box>
+
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="mb-2 gap-2"
+              >
+                <TextField
                   twClassName="flex-1"
-                  onPress={() => handleTakeProfitPercentageButton(percentage)}
-                  testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
-                    percentage,
-                  )}
+                  inputRef={takeProfitPriceRef}
+                  isError={takeProfitHasError}
+                  value={takeProfitPrice}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
+                    handleTakeProfitPriceChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   isDisabled={inputsDisabled}
-                >
-                  {`+${percentage}%`}
-                </Button>
-              ))}
-            </Box>
+                  onFocus={() => {
+                    handleInputFocus('takeProfitPrice');
+                  }}
+                  onBlur={() => handleInputBlur('takeProfitPrice')}
+                  startAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('perps.tpsl.usd_label')}
+                    </Text>
+                  }
+                  inputProps={{
+                    testID: PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+                    showSoftInputOnFocus: false,
+                  }}
+                />
+                <TextField
+                  twClassName="flex-1"
+                  inputRef={takeProfitPercentageRef}
+                  isError={takeProfitHasError}
+                  value={formattedTakeProfitPercentage}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
+                    handleTakeProfitPercentageChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.profit_roe_placeholder')}
+                  isDisabled={inputsDisabled}
+                  onFocus={() => {
+                    handleInputFocus('takeProfitPercentage');
+                  }}
+                  onBlur={() => handleInputBlur('takeProfitPercentage')}
+                  endAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      %
+                    </Text>
+                  }
+                  inputProps={{
+                    testID:
+                      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT,
+                    showSoftInputOnFocus: false,
+                  }}
+                />
+              </Box>
 
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-2 gap-2">
-              <TextField
-                twClassName="flex-1"
-                inputRef={takeProfitPriceRef}
-                isError={takeProfitHasError}
-                value={takeProfitPrice}
-                onChangeText={(text) => {
-                  const digitCount = (text.match(/\d/g) || []).length;
-                  if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
-                  handleTakeProfitPriceChange(text);
-                }}
-                placeholder={strings('perps.tpsl.trigger_price_placeholder')}
-                isDisabled={inputsDisabled}
-                onFocus={() => {
-                  handleInputFocus('takeProfitPrice');
-                }}
-                onBlur={() => handleInputBlur('takeProfitPrice')}
-                startAccessory={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('perps.tpsl.usd_label')}
-                  </Text>
+              <SectionHelpText
+                errorMessage={
+                  takeProfitHasError ? takeProfitError || undefined : undefined
                 }
-                inputProps={{
-                  testID: PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
-                  showSoftInputOnFocus: false,
-                }}
-              />
-              <TextField
-                twClassName="flex-1"
-                inputRef={takeProfitPercentageRef}
-                isError={takeProfitHasError}
-                value={formattedTakeProfitPercentage}
-                onChangeText={(text) => {
-                  const digitCount = (text.match(/\d/g) || []).length;
-                  if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
-                  handleTakeProfitPercentageChange(text);
-                }}
-                placeholder={strings('perps.tpsl.profit_roe_placeholder')}
-                isDisabled={inputsDisabled}
-                onFocus={() => {
-                  handleInputFocus('takeProfitPercentage');
-                }}
-                onBlur={() => handleInputBlur('takeProfitPercentage')}
-                endAccessory={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    %
-                  </Text>
+                expectedMessage={
+                  takeProfitPrice
+                    ? expectedTakeProfitPnL !== undefined
+                      ? formatExpectedPnL(expectedTakeProfitPnL)
+                      : PERPS_CONSTANTS.FallbackDataDisplay
+                    : undefined
                 }
-                inputProps={{
-                  testID:
-                    PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT,
-                  showSoftInputOnFocus: false,
-                }}
               />
             </Box>
-
-            {takeProfitHasError ? (
-              <HelpText severity={HelpTextSeverity.Danger} showIcon>
-                {takeProfitError}
-              </HelpText>
-            ) : (
-              Boolean(takeProfitPrice) && (
-                <HelpText>
-                  {expectedTakeProfitPnL !== undefined
-                    ? formatExpectedPnL(expectedTakeProfitPnL)
-                    : PERPS_CONSTANTS.FallbackDataDisplay}
-                </HelpText>
-              )
-            )}
-          </Box>
+          </View>
 
           {/* Stop Loss Section */}
-          <Box twClassName={focusedInput ? 'mb-0 px-4' : 'mb-6 px-4'}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="mb-2 -mr-3"
-            >
-              <Label>
-                {actualDirection === 'short'
-                  ? strings('perps.tpsl.stop_loss_short')
-                  : strings('perps.tpsl.stop_loss_long')}
-              </Label>
-              {Boolean(stopLossPrice) && (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  size={ButtonSize.Sm}
-                  onPress={handleStopLossClear}
-                  isDisabled={inputsDisabled}
-                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON}
-                >
-                  {strings('perps.tpsl.clear')}
-                </Button>
-              )}
-            </Box>
+          <View ref={stopLossSectionRef} collapsable={false}>
+            <Box twClassName="mb-6 px-4">
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="mb-2 -mr-3 min-h-8"
+              >
+                <Label>
+                  {actualDirection === 'short'
+                    ? strings('perps.tpsl.stop_loss_short')
+                    : strings('perps.tpsl.stop_loss_long')}
+                </Label>
+                {Boolean(stopLossPrice) && (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleStopLossClear}
+                    isDisabled={inputsDisabled}
+                    testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON}
+                  >
+                    {strings('perps.tpsl.clear')}
+                  </Button>
+                )}
+              </Box>
 
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-3 gap-2">
-              {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
-                <Button
-                  key={percentage}
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Md}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="mb-3 gap-2"
+              >
+                {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
+                  <Button
+                    key={percentage}
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Md}
+                    twClassName="flex-1"
+                    onPress={() => handleStopLossPercentageButton(percentage)}
+                    testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
+                      percentage,
+                    )}
+                    isDisabled={inputsDisabled}
+                  >
+                    {`${percentage}%`}
+                  </Button>
+                ))}
+              </Box>
+
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="mb-2 gap-2"
+              >
+                <TextField
                   twClassName="flex-1"
-                  onPress={() => handleStopLossPercentageButton(percentage)}
-                  testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
-                    percentage,
-                  )}
+                  inputRef={stopLossPriceRef}
+                  isError={stopLossHasError}
+                  value={stopLossPrice}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
+                    handleStopLossPriceChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   isDisabled={inputsDisabled}
-                >
-                  {`${percentage}%`}
-                </Button>
-              ))}
-            </Box>
+                  onFocus={() => {
+                    handleInputFocus('stopLossPrice');
+                  }}
+                  onBlur={() => handleInputBlur('stopLossPrice')}
+                  startAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('perps.tpsl.usd_label')}
+                    </Text>
+                  }
+                  inputProps={{
+                    testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+                    showSoftInputOnFocus: false,
+                  }}
+                />
+                <TextField
+                  twClassName="flex-1"
+                  inputRef={stopLossPercentageRef}
+                  isError={stopLossHasError}
+                  value={formattedStopLossPercentage}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
+                    handleStopLossPercentageChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.loss_roe_placeholder')}
+                  isDisabled={inputsDisabled}
+                  onFocus={() => {
+                    handleInputFocus('stopLossPercentage');
+                  }}
+                  onBlur={() => handleInputBlur('stopLossPercentage')}
+                  endAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      %
+                    </Text>
+                  }
+                  inputProps={{
+                    testID:
+                      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
+                    showSoftInputOnFocus: false,
+                  }}
+                />
+              </Box>
 
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-2 gap-2">
-              <TextField
-                twClassName="flex-1"
-                inputRef={stopLossPriceRef}
-                isError={stopLossHasError}
-                value={stopLossPrice}
-                onChangeText={(text) => {
-                  const digitCount = (text.match(/\d/g) || []).length;
-                  if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
-                  handleStopLossPriceChange(text);
-                }}
-                placeholder={strings('perps.tpsl.trigger_price_placeholder')}
-                isDisabled={inputsDisabled}
-                onFocus={() => {
-                  handleInputFocus('stopLossPrice');
-                }}
-                onBlur={() => handleInputBlur('stopLossPrice')}
-                startAccessory={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('perps.tpsl.usd_label')}
-                  </Text>
+              <SectionHelpText
+                errorMessage={stopLossErrorMessage || undefined}
+                expectedMessage={
+                  stopLossPrice
+                    ? expectedStopLossPnL !== undefined
+                      ? formatExpectedPnL(expectedStopLossPnL)
+                      : PERPS_CONSTANTS.FallbackDataDisplay
+                    : undefined
                 }
-                inputProps={{
-                  testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-                  showSoftInputOnFocus: false,
-                }}
-              />
-              <TextField
-                twClassName="flex-1"
-                inputRef={stopLossPercentageRef}
-                isError={stopLossHasError}
-                value={formattedStopLossPercentage}
-                onChangeText={(text) => {
-                  const digitCount = (text.match(/\d/g) || []).length;
-                  if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
-                  handleStopLossPercentageChange(text);
-                }}
-                placeholder={strings('perps.tpsl.loss_roe_placeholder')}
-                isDisabled={inputsDisabled}
-                onFocus={() => {
-                  handleInputFocus('stopLossPercentage');
-                }}
-                onBlur={() => handleInputBlur('stopLossPercentage')}
-                endAccessory={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    %
-                  </Text>
-                }
-                inputProps={{
-                  testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
-                  showSoftInputOnFocus: false,
-                }}
               />
             </Box>
-
-            {stopLossErrorMessage ? (
-              <HelpText severity={HelpTextSeverity.Danger} showIcon>
-                {stopLossErrorMessage}
-              </HelpText>
-            ) : (
-              Boolean(stopLossPrice) && (
-                <HelpText>
-                  {expectedStopLossPnL !== undefined
-                    ? formatExpectedPnL(expectedStopLossPnL)
-                    : PERPS_CONSTANTS.FallbackDataDisplay}
-                </HelpText>
-              )
-            )}
-          </Box>
+          </View>
         </Box>
       </ScrollView>
 
-      <Box twClassName="px-0 pb-4 w-full">
+      <Box twClassName="px-0 pb-4 w-full" onLayout={handleKeypadFooterLayout}>
         {focusedInput ? (
           <>
             <BottomSheetFooter primaryButtonProps={doneButtonProps} />

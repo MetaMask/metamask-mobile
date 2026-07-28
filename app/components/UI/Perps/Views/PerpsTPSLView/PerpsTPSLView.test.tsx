@@ -164,6 +164,10 @@ describe('PerpsTPSLView', () => {
     mockRouteParams = { ...defaultRouteParams };
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   // ==================== Test Helpers ====================
 
   const renderView = (overrides = {}) => {
@@ -257,7 +261,9 @@ describe('PerpsTPSLView', () => {
 
       // Focus the input first to set internal focusedInput state
       const takeProfitInput = getTakeProfitPriceInput();
-      fireEvent(takeProfitInput, 'focus');
+      await act(async () => {
+        fireEvent(takeProfitInput, 'focus');
+      });
 
       // Now press clear
       const clearButton = screen.getByTestId(
@@ -285,7 +291,9 @@ describe('PerpsTPSLView', () => {
 
       // Focus the input first to set internal focusedInput state
       const stopLossInput = getStopLossPriceInput();
-      fireEvent(stopLossInput, 'focus');
+      await act(async () => {
+        fireEvent(stopLossInput, 'focus');
+      });
 
       // Now press clear
       const clearButton = screen.getByTestId(
@@ -384,7 +392,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'handles focus and blur events for %s input',
-      (_description, getInput, focusHandler, blurHandler) => {
+      async (_description, getInput, focusHandler, blurHandler) => {
         const mockFocusHandler = jest.fn();
         const mockBlurHandler = jest.fn();
         renderView({
@@ -395,8 +403,12 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent(getInput(), 'focus');
-        fireEvent(getInput(), 'blur');
+        await act(async () => {
+          fireEvent(getInput(), 'focus');
+        });
+        await act(async () => {
+          fireEvent(getInput(), 'blur');
+        });
 
         expect(mockFocusHandler).toHaveBeenCalled();
         expect(mockBlurHandler).toHaveBeenCalled();
@@ -423,7 +435,7 @@ describe('PerpsTPSLView', () => {
       // field, the price blur must be delivered regardless of the order in
       // which focus/blur events arrive, so that hook focus state stays accurate.
       'delivers %s price blur when focus moves from price to percentage field',
-      (_description, getPriceInput, getPctInput, priceBlurHandler) => {
+      async (_description, getPriceInput, getPctInput, priceBlurHandler) => {
         const mockPriceBlur = jest.fn();
         renderView({
           handlers: {
@@ -432,9 +444,15 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent(getPriceInput(), 'focus');
-        fireEvent(getPctInput(), 'focus');
-        fireEvent(getPriceInput(), 'blur');
+        await act(async () => {
+          fireEvent(getPriceInput(), 'focus');
+        });
+        await act(async () => {
+          fireEvent(getPctInput(), 'focus');
+        });
+        await act(async () => {
+          fireEvent(getPriceInput(), 'blur');
+        });
 
         expect(mockPriceBlur).toHaveBeenCalled();
       },
@@ -453,15 +471,16 @@ describe('PerpsTPSLView', () => {
       },
     );
 
-    it('does not call Keyboard.dismiss when an input is focused', () => {
-      const { Keyboard } = jest.requireActual('react-native');
-      const dismissSpy = jest.spyOn(Keyboard, 'dismiss');
+    it('keeps the custom keypad available after focusing an input', async () => {
       renderView();
 
-      fireEvent(getTakeProfitPriceInput(), 'focus');
+      await act(async () => {
+        fireEvent(getTakeProfitPriceInput(), 'focus');
+      });
 
-      expect(dismissSpy).not.toHaveBeenCalled();
-      dismissSpy.mockRestore();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -612,7 +631,9 @@ describe('PerpsTPSLView', () => {
         },
       });
 
-      fireEvent(getTakeProfitPriceInput(), 'focus');
+      await act(async () => {
+        fireEvent(getTakeProfitPriceInput(), 'focus');
+      });
 
       const doneButton = screen.getByTestId(
         PerpsTPSLViewSelectorsIDs.DONE_BUTTON,
