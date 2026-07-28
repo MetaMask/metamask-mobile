@@ -11,6 +11,7 @@ import {
   buildScenarioComment,
   parseArgs,
   buildRegressionSummary,
+  shouldIncludeScenarioInComment,
   COMMENT_MARKER,
 } from './diff-app-profiling.mjs';
 
@@ -236,10 +237,32 @@ test('buildScenarioComment explains missing baseline', () => {
     repo: 'MetaMask/metamask-mobile',
   });
 
-  assert.match(md, /No usable baseline profiling found/);
-  assert.match(md, /Current profilingSummary JSON/);
-  assert.match(md, /<details>/);
+  assert.match(md, /Skipping scenario/);
   assert.match(md, new RegExp(COMMENT_MARKER));
+});
+
+test('shouldIncludeScenarioInComment requires baseline and usable current', () => {
+  assert.equal(
+    shouldIncludeScenarioInComment({
+      currentArtifact: { profilingSummary: { cpu: { avg: 1 } } },
+      baseline: null,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldIncludeScenarioInComment({
+      currentArtifact: { profilingSummary: { error: 'missing' } },
+      baseline: { artifact: { profilingSummary: { cpu: { avg: 1 } } } },
+    }),
+    false,
+  );
+  assert.equal(
+    shouldIncludeScenarioInComment({
+      currentArtifact: { profilingSummary: { cpu: { avg: 1 } } },
+      baseline: { artifact: { profilingSummary: { cpu: { avg: 1 } } } },
+    }),
+    true,
+  );
 });
 
 test('buildScenarioComment labels non-green baseline fallback', () => {

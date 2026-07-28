@@ -611,6 +611,14 @@ function buildRegressionSummary(rows) {
   } over +10%: ${list}`;
 }
 
+function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
+  // Without a prior baseline there is nothing useful to compare — omit the
+  // scenario from the PR comment instead of posting a "no baseline" stub.
+  return Boolean(
+    baseline && currentArtifact && hasUsableProfilingSummary(currentArtifact),
+  );
+}
+
 function buildScenarioComment({
   testName,
   platform,
@@ -631,24 +639,10 @@ function buildScenarioComment({
   md += '\n\n';
   md += `**Current:** [run ${currentRunId}](${currentUrl})`;
 
-  if (!currentArtifact || !hasUsableProfilingSummary(currentArtifact)) {
-    md += `\n\n⚠️ Current run has no usable \`profilingSummary\` for this scenario.\n`;
-    if (currentArtifact?.apiCallsError) {
-      md += `\nAPI calls note: \`${currentArtifact.apiCallsError}\`\n`;
-    }
+  if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
+    // Kept for callers/tests; main() skips these scenarios before posting.
+    md += `\n\n⚠️ Skipping scenario: need usable current profiling and a baseline on \`${baselineBranch}\`.\n`;
     md += `\n${COMMENT_MARKER}\n`;
-    return md;
-  }
-
-  if (!baseline) {
-    md += `\n\n⚠️ No usable baseline profiling found on \`${baselineBranch}\` (within recent \`aggregated-reports\` retention) for this scenario + device.\n\n`;
-    md += `**Summary:** current profiling only (no baseline comparison).\n\n`;
-    md += `<details>\n<summary>Current profilingSummary JSON</summary>\n\n`;
-    md += '```json\n';
-    md += `${JSON.stringify(currentArtifact.profilingSummary, null, 2)}\n`;
-    md += '```\n\n';
-    md += `</details>\n\n`;
-    md += `${COMMENT_MARKER}\n`;
     return md;
   }
 
@@ -814,6 +808,15 @@ function main() {
       workRoot,
     });
 
+    if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
+      console.warn(
+        `⏭️  Skipping "${scenario.testName}" on ${formatDeviceLabel(
+          scenario.device,
+        )}: no usable current profiling and/or no prior baseline on ${args.baselineBranch}`,
+      );
+      continue;
+    }
+
     comments.push(
       buildScenarioComment({
         testName: scenario.testName,
@@ -826,6 +829,17 @@ function main() {
         baselineBranch: args.baselineBranch,
       }),
     );
+  }
+
+  if (comments.length === 0) {
+    console.log(
+      'ℹ️  No failed scenarios had both usable current profiling and a prior baseline — nothing to post',
+    );
+    if (args.replace && !args.dryRun) {
+      console.log('🧹 Clearing previous app profiling check comments...');
+      deletePreviousAppProfilingComments({ pr: args.pr, repo: args.repo });
+    }
+    return;
   }
 
   const body = comments.join('\n---\n\n');
@@ -862,6 +876,7 @@ export {
   downloadAggregatedReports,
   buildRegressionSummary,
   buildScenarioComment,
+  shouldIncludeScenarioInComment,
   parseArgs,
   COMMENT_MARKER,
 };

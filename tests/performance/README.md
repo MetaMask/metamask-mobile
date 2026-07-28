@@ -674,6 +674,9 @@ Baseline preference:
 2. Else latest usable profiling on `main` even if that scenario is also
    failing (labeled as such in the comment)
 
+Failed scenarios **without** a prior usable baseline on `main` are skipped
+(not listed in the profiling comment), since there is nothing to compare.
+
 Manual re-run is still available via PR comment:
 
 ```text
