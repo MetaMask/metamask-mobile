@@ -55,6 +55,10 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import {
+  MMPayPayWithVariant,
+  useMMPayVisualOverrides,
+} from '../../../debug/mmPayVisualValidation';
 
 const moneyIconStyles = StyleSheet.create({
   moneyIcon: {
@@ -105,7 +109,25 @@ function PayWithRowComponent({
   return <PayWithRowInteractive />;
 }
 
-export const PayWithRow = memo(PayWithRowComponent);
+export const PayWithRow = memo(function PayWithRow(
+  props: { isResultReady?: boolean } = {},
+) {
+  const visualOverrides = useMMPayVisualOverrides();
+  if (visualOverrides?.forcePayWithVariant === 'hidden') {
+    return null;
+  }
+  if (visualOverrides?.forcePayWithVariant) {
+    return (
+      <ForcedPayWithRow
+        variant={visualOverrides.forcePayWithVariant}
+        labelKey={visualOverrides.forcePayWithLabel}
+        symbol={visualOverrides.forcePayWithSymbol}
+        balance={visualOverrides.forcePayWithBalance}
+      />
+    );
+  }
+  return <PayWithRowComponent {...props} />;
+});
 
 function PayWithRowLayout({
   label,
@@ -420,5 +442,67 @@ export function PayWithRowSkeleton() {
         <Skeleton height={18} width={120} />
       </Box>
     </Box>
+  );
+}
+
+function ForcedPayWithRow({
+  variant,
+  labelKey,
+  symbol,
+  balance,
+}: {
+  variant: Exclude<MMPayPayWithVariant, 'hidden'>;
+  labelKey?: 'pay_with' | 'receive_as';
+  symbol?: string;
+  balance?: string;
+}) {
+  const { colors } = useTheme();
+  const label =
+    labelKey === 'receive_as'
+      ? strings('confirm.label.receive_as')
+      : strings('confirm.label.pay_with');
+
+  if (variant === 'skeleton') {
+    return <PayWithRowSkeleton />;
+  }
+
+  if (variant === 'empty') {
+    return (
+      <PayWithRowLayout
+        label={label}
+        value={null}
+        placeholder={strings('confirm.label.select_payment_method')}
+      />
+    );
+  }
+
+  if (variant === 'money') {
+    return (
+      <PayWithRowLayout
+        label={label}
+        startAccessory={
+          <Image
+            source={MoneyIcon}
+            style={[
+              moneyIconStyles.moneyIcon,
+              { backgroundColor: colors.accent04.light },
+            ]}
+          />
+        }
+        value={strings('confirm.pay_with_bottom_sheet.money_account')}
+      />
+    );
+  }
+
+  if (variant === 'fiat') {
+    return <PayWithRowLayout label={label} value={symbol ?? 'Debit or Credit'} />;
+  }
+
+  return (
+    <PayWithRowLayout
+      label={label}
+      value={symbol ?? 'USDC'}
+      balance={balance}
+    />
   );
 }

@@ -20,12 +20,14 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import { useMMPayVisualOverrides } from '../../../debug/mmPayVisualValidation';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
 const HIDE_TYPES = [TransactionType.musdConversion];
 
 export function BridgeTimeRow() {
+  const visualOverrides = useMMPayVisualOverrides();
   const isLoading = useIsTransactionPayLoading();
   const { estimatedDuration } = useTransactionPayTotals() ?? {};
   const quotes = useTransactionPayQuotes();
@@ -34,6 +36,33 @@ export function BridgeTimeRow() {
   const { chainId } = transactionMetadata ?? {};
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
+
+  if (visualOverrides?.forceHideBridgeTime) {
+    return null;
+  }
+
+  if (visualOverrides?.forceQuotesLoading) {
+    return <KeyValueRowSkeleton testID="bridge-time-row-skeleton" />;
+  }
+
+  if (visualOverrides?.forceBridgeTime) {
+    return (
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('confirm.label.bridge_estimated_time')}
+        value={
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            testID={ConfirmationRowComponentIDs.BRIDGE_TIME}
+          >
+            {visualOverrides.forceBridgeTime}
+          </Text>
+        }
+      />
+    );
+  }
 
   const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
 

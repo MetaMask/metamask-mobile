@@ -21,6 +21,13 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
 }));
+jest.mock('../../../debug/useMMPayVisualStatePicker', () => ({
+  useMMPayVisualStatePicker: jest.fn(() => ({
+    navbarOverrides: undefined,
+    sheet: null,
+    forcedNavbarTitle: null,
+  })),
+}));
 
 describe('PerpsDepositInfo', () => {
   const mockUseNavbar = jest.mocked(useNavbar);
@@ -38,6 +45,8 @@ describe('PerpsDepositInfo', () => {
 
     expect(mockUseNavbar).toHaveBeenCalledWith(
       strings('confirm.title.perps_deposit'),
+      true,
+      undefined,
     );
   });
 
@@ -48,7 +57,11 @@ describe('PerpsDepositInfo', () => {
 
     render(<PerpsDepositInfo />);
 
-    expect(mockUseNavbar).toHaveBeenCalledWith(strings('perps.send_to_perps'));
+    expect(mockUseNavbar).toHaveBeenCalledWith(
+      strings('perps.send_to_perps'),
+      true,
+      undefined,
+    );
   });
 
   it('registers Arbitrum USDC token', () => {

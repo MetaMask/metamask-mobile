@@ -419,6 +419,8 @@ describe('CustomAmountInfo', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
       alertTitle: undefined,
       alertMessage: undefined,
+      helpText: undefined,
+      hasBlockingError: false,
     });
 
     useAccountTokensMock.mockReturnValue([]);
@@ -470,16 +472,44 @@ describe('CustomAmountInfo', () => {
     expect(queryByText('TST')).toBeNull();
   });
 
-  it('renders alert', () => {
+  it('renders HelpText under amount and keeps Confirm label when blocking error', () => {
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
+      hasInput: true,
+      isDepositPrefillEnabled: true,
+      isDepositPrefilled: true,
+      isInputChanged: true,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: jest.fn().mockResolvedValue(undefined),
+    });
+    useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
     useTransactionCustomAmountAlertsMock.mockReturnValue({
       alertTitle: 'Test Alert Title',
       alertMessage: 'Test Alert Message',
+      helpText: 'Test Alert Title - Test Alert Message',
+      hasBlockingError: true,
     });
 
-    const { getByText } = render();
+    const { getByText, queryByText, getByTestId } = render();
 
-    expect(getByText('Test Alert Title')).toBeDefined();
-    expect(getByText('Test Alert Message')).toBeDefined();
+    expect(
+      getByText('Test Alert Title - Test Alert Message'),
+    ).toBeOnTheScreen();
+    expect(queryByText('Test Alert Title', { exact: true })).toBeNull();
+    expect(queryByText('Test Alert Message', { exact: true })).toBeNull();
+    expect(
+      getByText(strings('confirm.deposit_edit_amount_done')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
   });
 
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
@@ -1284,7 +1314,7 @@ describe('CustomAmountInfo', () => {
     expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
-  it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
+  it('renders no funds HelpText for moneyAccountDeposit when alert is present', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
@@ -1298,16 +1328,16 @@ describe('CustomAmountInfo', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
       alertTitle: strings('confirm.custom_amount.insufficient_funds'),
       alertMessage: strings('alert_system.account_no_funds.message'),
+      helpText: strings('alert_system.account_no_funds.message'),
+      hasBlockingError: true,
     });
 
-    const { getAllByText } = render({
+    const { getByText } = render({
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
-    // The alert message appears in AlertMessage and in the keyboard's alertMessage
-    // prop now that hasFiatOption=true (asset-provider path). Check at least one.
     expect(
-      getAllByText(strings('alert_system.account_no_funds.message'))[0],
+      getByText(strings('alert_system.account_no_funds.message')),
     ).toBeOnTheScreen();
   });
 
@@ -2101,7 +2131,7 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
   });
 
-  it('renders perps buy message when no tokens available for perpsDeposit', () => {
+  it('renders perps buy HelpText and Buy crypto without Confirm when no tokens', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.perpsDeposit,
       txParams: { from: '0x123' },
@@ -2112,16 +2142,22 @@ describe('CustomAmountInfo', () => {
       hasTokens: false,
     });
 
-    const { getByText } = render({
+    const { getByText, queryByTestId } = render({
       transactionType: TransactionType.perpsDeposit,
     });
 
     expect(
       getByText(strings('confirm.custom_amount.buy_perps')),
     ).toBeOnTheScreen();
+    expect(
+      getByText(strings('confirm.custom_amount.buy_button')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeNull();
   });
 
-  it('renders predict buy message when no tokens available for predictDeposit', () => {
+  it('renders predict buy HelpText and Buy crypto without Confirm when no tokens', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.predictDeposit,
       txParams: { from: '0x123' },
@@ -2132,13 +2168,19 @@ describe('CustomAmountInfo', () => {
       hasTokens: false,
     });
 
-    const { getByText } = render({
+    const { getByText, queryByTestId } = render({
       transactionType: TransactionType.predictDeposit,
     });
 
     expect(
       getByText(strings('confirm.custom_amount.buy_predict')),
     ).toBeOnTheScreen();
+    expect(
+      getByText(strings('confirm.custom_amount.buy_button')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeNull();
   });
 
   it('resets submitting state when onConfirm rejects', async () => {

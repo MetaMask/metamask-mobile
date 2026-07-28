@@ -85,28 +85,6 @@ export const createStyles = (theme: Theme) => {
       borderTopColor: colors.border.muted,
       borderTopWidth: 1,
     },
-    validationSection: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
-    errorMessage: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      backgroundColor: colors.error.muted,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    warningMessage: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      backgroundColor: colors.warning.muted,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
     footer: {
       paddingVertical: 16,
       gap: 12,

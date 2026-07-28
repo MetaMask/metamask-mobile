@@ -43,8 +43,10 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { resolveTransactionType } from '../../../utils/transaction';
 import { TooltipModal } from '../../UI/Tooltip/Tooltip';
 import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import { useMMPayVisualOverrides } from '../../../debug/mmPayVisualValidation';
 
 export function BridgeFeeRow() {
+  const visualOverrides = useMMPayVisualOverrides();
   const transactionMetadata = useTransactionMetadataOrThrow();
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
@@ -56,6 +58,38 @@ export function BridgeFeeRow() {
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
+
+  if (visualOverrides?.forceQuotesLoading) {
+    return <KeyValueRowSkeleton testID="bridge-fee-row-skeleton" />;
+  }
+
+  if (
+    visualOverrides?.forcePaidByMetaMask ||
+    visualOverrides?.forceFeeUsd != null
+  ) {
+    return (
+      <Box testID="bridge-fee-row">
+        <KeyValueRow
+          variant={KeyValueRowVariant.Summary}
+          keyLabel={strings('confirm.label.transaction_fees')}
+          value={
+            visualOverrides.forcePaidByMetaMask ? (
+              <PaidByLabel />
+            ) : (
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+              >
+                {visualOverrides.forceFeeUsd}
+              </Text>
+            )
+          }
+        />
+      </Box>
+    );
+  }
 
   return (
     <TransactionFeeRow

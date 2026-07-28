@@ -21,6 +21,7 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
 import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import { useMMPayVisualOverrides } from '../../../debug/mmPayVisualValidation';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -31,6 +32,7 @@ const styles = StyleSheet.create({
 });
 
 export function PercentageRow() {
+  const visualOverrides = useMMPayVisualOverrides();
   const isLoading = useIsTransactionPayLoading();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
@@ -39,7 +41,8 @@ export function PercentageRow() {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   if (
-    !hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
+    !hasTransactionType(transactionMetadata, [TransactionType.musdConversion]) &&
+    !visualOverrides?.forceShowPercentageRow
   ) {
     return null;
   }

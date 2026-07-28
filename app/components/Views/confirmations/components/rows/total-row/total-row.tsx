@@ -21,6 +21,7 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../../utils/transaction';
 import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import { useMMPayVisualOverrides } from '../../../debug/mmPayVisualValidation';
 
 const HIDE_TYPES = [TransactionType.musdConversion];
 
@@ -29,6 +30,7 @@ const HIDE_TYPES = [TransactionType.musdConversion];
  * For withdrawal transactions, use ReceiveRow instead.
  */
 export function TotalRow() {
+  const visualOverrides = useMMPayVisualOverrides();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
@@ -39,6 +41,35 @@ export function TotalRow() {
     if (!totals?.total) return '';
     return formatFiat(new BigNumber(totals.total.usd));
   }, [totals, formatFiat]);
+
+  if (visualOverrides?.forceCanSelectWithdrawToken) {
+    return null;
+  }
+
+  if (visualOverrides?.forceQuotesLoading) {
+    return <KeyValueRowSkeleton testID="total-row-skeleton" />;
+  }
+
+  if (visualOverrides?.forceTotalUsd != null) {
+    return (
+      <Box testID="total-row">
+        <KeyValueRow
+          variant={KeyValueRowVariant.Summary}
+          keyLabel={strings('confirm.label.total')}
+          value={
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              testID={ConfirmationRowComponentIDs.TOTAL}
+            >
+              {visualOverrides.forceTotalUsd}
+            </Text>
+          }
+        />
+      </Box>
+    );
+  }
 
   if (hasTransactionType(transactionMetadata, HIDE_TYPES)) {
     return null;

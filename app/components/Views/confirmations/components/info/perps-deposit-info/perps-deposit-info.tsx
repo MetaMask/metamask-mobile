@@ -11,15 +11,20 @@ import {
   ConfirmationParams,
   PayWithOption,
 } from '../../confirm/confirm-component';
+import { useMMPayVisualStatePicker } from '../../../debug/useMMPayVisualStatePicker';
 
 export function PerpsDepositInfo() {
   const { payWithOption } = useParams<ConfirmationParams>({});
-  const title =
+  const { navbarOverrides, sheet, forcedNavbarTitle } =
+    useMMPayVisualStatePicker();
+
+  const liveTitle =
     payWithOption === PayWithOption.MoneyAccount
       ? strings('perps.send_to_perps')
       : strings('confirm.title.perps_deposit');
 
-  useNavbar(title);
+  // Flow-specific error presets (e.g. withdraw) override the Add funds title.
+  useNavbar(forcedNavbarTitle ?? liveTitle, true, navbarOverrides);
   useDefaultPaySelectedSection();
 
   useAddToken({
@@ -30,5 +35,10 @@ export function PerpsDepositInfo() {
     tokenAddress: ARBITRUM_USDC.address,
   });
 
-  return <CustomAmountInfo currency={PERPS_CURRENCY} hasMax />;
+  return (
+    <>
+      <CustomAmountInfo currency={PERPS_CURRENCY} hasMax />
+      {sheet}
+    </>
+  );
 }

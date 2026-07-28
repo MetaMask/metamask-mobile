@@ -35,7 +35,6 @@ import {
 import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
   CustomAmountSkeleton,
@@ -70,6 +69,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HelpText,
+  HelpTextSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -98,6 +99,7 @@ import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFia
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { KeyValueRowSkeleton } from '../../rows/key-value-row-skeleton';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import { useMMPayVisualOverrides } from '../../../debug/mmPayVisualValidation';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -267,6 +269,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
     const { toastRef } = useContext(ToastContext);
+    const visualOverrides = useMMPayVisualOverrides();
 
     const isTransactionResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -297,12 +300,101 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       (isDepositPrefillLoading ||
         (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
 
-    const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
+    const { helpText, hasBlockingError } = useTransactionCustomAmountAlerts({
       isInputChanged,
       isKeyboardVisible,
       pendingTokenAmount: amountHumanDebounced,
       pendingFiatAmount: amountFiatDebounced,
     });
+
+    const { headlessBuyError } = useConfirmationContext();
+
+    const isAccountSelectionNeeded =
+      supportAccountSelection && !accountOverride;
+    const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
+    const hideBuyForNoFunds =
+      Boolean(accountOverride) && (hasAccountNoFunds || isQuotesLoading);
+
+    const amountFiatDisplay = visualOverrides?.forceAmountFiat ?? amountFiat;
+    const hasPaymentOptionEffective =
+      visualOverrides?.forceHasPaymentOption ?? hasPaymentOption;
+    const hasAccountNoFundsEffective =
+      visualOverrides?.forceHasAccountNoFunds ?? hasAccountNoFunds;
+    const isKeyboardVisibleEffective =
+      visualOverrides?.forceKeyboardVisible ?? isKeyboardVisible;
+    const hasSourceAmountEffective =
+      visualOverrides?.forceHasSourceAmount ?? hasSourceAmount;
+    const hasQuotesEffective =
+      visualOverrides?.forceHasQuotes ?? Boolean(quotes?.length);
+    const hasNoQuotesAlertEffective =
+      visualOverrides?.forceHasQuotes === false ? true : hasNoQuotesAlert;
+    const showLoadingReviewEffective =
+      visualOverrides?.forceQuotesLoading === true
+        ? true
+        : visualOverrides != null &&
+            visualOverrides.forceQuotesLoading === false
+          ? false
+          : showLoadingReview;
+    const isResultReadyEffective =
+      visualOverrides?.forceKeyboardVisible === true
+        ? false
+        : visualOverrides?.forceKeyboardVisible === false
+          ? true
+          : isResultReady;
+    const showPaymentDetailsEffective =
+      showLoadingReviewEffective ||
+      hasQuotesEffective ||
+      (!isAddMusdIntent &&
+        !hasSourceAmountEffective &&
+        !hasNoQuotesAlertEffective);
+    const isAwaitingPrefillResultEffective =
+      visualOverrides?.forceAwaitingPrefill ?? isAwaitingPrefillResult;
+    const headlessBuyErrorEffective =
+      visualOverrides?.forceHeadlessBuyError ?? headlessBuyError;
+    const canSelectWithdrawTokenEffective =
+      visualOverrides?.forceCanSelectWithdrawToken ?? canSelectWithdrawToken;
+    const hasMaxEffective = visualOverrides?.forceHasMax ?? hasMax;
+    const hasInputEffective = visualOverrides?.forceHasInput ?? hasInput;
+    const hidePctEffective =
+      visualOverrides?.forceHidePercentageButtons ??
+      (Boolean(selectedFiatPaymentMethodId) || shouldHideAccountSelector);
+    const hideDetailsForNoFundsEffective = visualOverrides
+      ? false
+      : hideDetailsForNoFunds;
+    const hideBuyForNoFundsEffective =
+      visualOverrides?.forceHideBuy === true
+        ? true
+        : visualOverrides?.forceBuySection === true
+          ? false
+          : hideBuyForNoFunds;
+    const showBuySection =
+      visualOverrides?.forceBuySection === true ||
+      ((!hasPaymentOptionEffective || hasAccountNoFundsEffective) &&
+        !hideBuyForNoFundsEffective &&
+        !isDepositPrefillEnabled);
+    const buyEmptyHelpText = getBuyEmptyHelpText(
+      transactionMeta,
+      visualOverrides?.forceBuyMessageFlow,
+    );
+    const helpTextEffective =
+      visualOverrides?.forceHelpText ??
+      (showBuySection ? buyEmptyHelpText : undefined) ??
+      helpText ??
+      (headlessBuyErrorEffective
+        ? `${strings('alert_system.headless_buy_error.title')} - ${headlessBuyErrorEffective}`
+        : undefined);
+    const hasBlockingErrorEffective =
+      Boolean(helpTextEffective) || hasBlockingError;
+    const hideConfirm =
+      visualOverrides?.forceHideConfirm === true ||
+      Boolean(showBuySection && buyEmptyHelpText);
+    const disableConfirmEffective =
+      (visualOverrides?.forceConfirmDisabled ?? false) ||
+      disableConfirm ||
+      isAccountSelectionNeeded ||
+      isPrefillPending ||
+      isAwaitingPrefillResultEffective ||
+      hasBlockingErrorEffective;
 
     const hasAutoSubmittedPrefill = useRef(false);
 
@@ -477,38 +569,46 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible(true);
     }, []);
 
-    const isAccountSelectionNeeded =
-      supportAccountSelection && !accountOverride;
-    const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
-    const hideBuyForNoFunds =
-      Boolean(accountOverride) && (hasAccountNoFunds || isQuotesLoading);
-
-    const { headlessBuyError } = useConfirmationContext();
-
     return (
       <Box twClassName="flex-1 flex-col justify-between">
         <Box twClassName="flex-1 justify-center items-center gap-3.5">
           <CustomAmount
-            amountFiat={amountFiat}
+            amountFiat={amountFiatDisplay}
             currency={currency}
-            hasAlert={Boolean(alertMessage)}
+            hasAlert={Boolean(helpTextEffective)}
             isLoading={
-              !hasAccountNoFunds &&
-              !skipDepositPrefill &&
-              (isPrefillPending || isDepositPrefillLoading)
+              visualOverrides?.forceAmountLoading ??
+              (!hasAccountNoFundsEffective &&
+                !skipDepositPrefill &&
+                (isPrefillPending || isDepositPrefillLoading))
             }
-            onPress={showLoadingReview ? undefined : handleAmountPress}
-            disabled={!hasPaymentOption}
-            showCursor={isKeyboardVisible && !showLoadingReview}
+            onPress={showLoadingReviewEffective ? undefined : handleAmountPress}
+            disabled={!hasPaymentOptionEffective}
+            showCursor={
+              isKeyboardVisibleEffective && !showLoadingReviewEffective
+            }
           />
+          {helpTextEffective ? (
+            <HelpText
+              severity={HelpTextSeverity.Danger}
+              twClassName="px-4 text-center"
+            >
+              {helpTextEffective}
+            </HelpText>
+          ) : null}
           {!hidePayTokenAmount &&
             disablePay !== true &&
             (isMoneyAccountDeposit ? (
-              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
+              <BalanceProjection
+                amountFiat={amountFiatDisplay}
+                projectedYears={1}
+              />
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
-                disabled={!hasPaymentOption || isAccountSelectionNeeded}
+                disabled={
+                  !hasPaymentOptionEffective || isAccountSelectionNeeded
+                }
               />
             ))}
           {!hidePayTokenAmount && children}
@@ -518,27 +618,27 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           twClassName={Platform.OS === 'android' ? 'pb-4' : 'pb-0'}
         >
-          <Box twClassName="px-4">
-            <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
-          </Box>
-          {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
-            <>
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && (
-                  <Box twClassName="border-b border-muted mb-[-4px]">
-                    <PayAccountSelector />
-                  </Box>
-                )}
-              <PerpsAccountPickerRow />
-              <PredictAccountPickerRow />
-              {disablePay !== true &&
-                (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
-            </>
-          )}
-          {isResultReady && (
+          {!isResultReadyEffective &&
+            !(isKeyboardVisibleEffective && isAddMusdIntent) && (
+              <>
+                {supportAccountSelection &&
+                  !selectedFiatPaymentMethodId &&
+                  !shouldHideAccountSelector && (
+                    <Box twClassName="border-b border-muted mb-[-4px]">
+                      <PayAccountSelector />
+                    </Box>
+                  )}
+                <PerpsAccountPickerRow />
+                <PredictAccountPickerRow />
+                {disablePay !== true &&
+                  (hasPaymentOptionEffective || hasAccountNoFundsEffective) && (
+                    <PayWithRow />
+                  )}
+              </>
+            )}
+          {isResultReadyEffective && (
             <View
-              pointerEvents={showLoadingReview ? 'none' : 'auto'}
+              pointerEvents={showLoadingReviewEffective ? 'none' : 'auto'}
               testID={CustomAmountInfoTestIds.REVIEW_ROWS}
             >
               {supportAccountSelection &&
@@ -546,19 +646,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !shouldHideAccountSelector && <PayAccountSelector />}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
-              {disablePay !== true && hasPaymentOption && (
+              {disablePay !== true && hasPaymentOptionEffective && (
                 <PayWithRow isResultReady />
               )}
-              {!hasAccountNoFunds && (
-                <Quote
-                  amountFiat={amountFiat}
-                  canSelectWithdrawToken={canSelectWithdrawToken}
-                  isAddMusdIntent={isAddMusdIntent}
-                  isAwaitingPrefillResult={isAwaitingPrefillResult}
-                  isLoading={showLoadingReview}
-                  showPaymentDetails={showPaymentDetails}
-                />
-              )}
+              {!hideDetailsForNoFundsEffective &&
+                !hasAccountNoFundsEffective && (
+                  <Quote
+                    amountFiat={amountFiatDisplay}
+                    canSelectWithdrawToken={canSelectWithdrawTokenEffective}
+                    isAddMusdIntent={isAddMusdIntent}
+                    isAwaitingPrefillResult={isAwaitingPrefillResultEffective}
+                    isLoading={showLoadingReviewEffective}
+                    showPaymentDetails={showPaymentDetailsEffective}
+                  />
+                )}
               <PercentageRow />
             </View>
           )}
@@ -571,43 +672,34 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && (hasPaymentOption || hasAccountNoFunds) && (
-            <Box twClassName="px-4">
-              <DepositKeyboard
-                hidePercentageButtons={
-                  Boolean(selectedFiatPaymentMethodId) ||
-                  shouldHideAccountSelector
-                }
-                alertMessage={alertTitle}
-                value={amountFiat}
-                onChange={updatePendingAmount}
-                onDonePress={handleDone}
-                onPercentagePress={handlePercentagePress}
-                hasInput={hasInput}
-                hasMax={
-                  (hasMax || isMoneyDepositNoFee) &&
-                  (isWithdraw || !isNativePayToken)
-                }
-              />
-            </Box>
-          )}
-          {(!hasPaymentOption || hasAccountNoFunds) &&
-            !hideBuyForNoFunds &&
-            !isDepositPrefillEnabled && (
+          {isKeyboardVisibleEffective &&
+            !(showBuySection && buyEmptyHelpText) &&
+            (hasPaymentOptionEffective || hasAccountNoFundsEffective) && (
               <Box twClassName="px-4">
-                <BuySection />
+                <DepositKeyboard
+                  hidePercentageButtons={hidePctEffective}
+                  isDoneDisabled={hasBlockingErrorEffective}
+                  value={amountFiatDisplay}
+                  onChange={updatePendingAmount}
+                  onDonePress={handleDone}
+                  onPercentagePress={handlePercentagePress}
+                  hasInput={hasInputEffective}
+                  hasMax={
+                    (hasMaxEffective || isMoneyDepositNoFee) &&
+                    (isWithdraw || !isNativePayToken)
+                  }
+                />
               </Box>
             )}
-          {!isKeyboardVisible && (
+          {showBuySection ? (
+            <Box twClassName="px-4">
+              <BuySection />
+            </Box>
+          ) : null}
+          {!isKeyboardVisibleEffective && !hideConfirm && (
             <Box twClassName="px-4">
               <ConfirmButton
-                alertTitle={alertTitle}
-                disableConfirm={
-                  disableConfirm ||
-                  isAccountSelectionNeeded ||
-                  isPrefillPending ||
-                  isAwaitingPrefillResult
-                }
+                disableConfirm={disableConfirmEffective}
                 isAmountUpdating={isAmountUpdating}
                 onContinue={trackContinue}
               />
@@ -708,8 +800,29 @@ export function AdvancedCustomAmountInfoSkeleton() {
   );
 }
 
+function getBuyEmptyHelpText(
+  transactionMeta: ReturnType<typeof useTransactionMetadataRequest>,
+  forceBuyMessageFlow: 'perps' | 'predict' | 'none' | undefined,
+): string | undefined {
+  if (forceBuyMessageFlow === 'perps') {
+    return strings('confirm.custom_amount.buy_perps');
+  }
+  if (forceBuyMessageFlow === 'predict') {
+    return strings('confirm.custom_amount.buy_predict');
+  }
+  if (forceBuyMessageFlow === 'none') {
+    return undefined;
+  }
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+    return strings('confirm.custom_amount.buy_perps');
+  }
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    return strings('confirm.custom_amount.buy_predict');
+  }
+  return undefined;
+}
+
 function BuySection() {
-  const transactionMeta = useTransactionMetadataRequest();
   const tokens = useAccountTokens({ includeNoBalance: true });
   const requiredTokens = useTransactionPayRequiredTokens();
 
@@ -737,23 +850,8 @@ function BuySection() {
     goToBuy({ assetId });
   }, [assetId, goToBuy]);
 
-  let message: string | undefined;
-
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    message = strings('confirm.custom_amount.buy_perps');
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    message = strings('confirm.custom_amount.buy_predict');
-  }
-
   return (
     <Box alignItems={BoxAlignItems.Center} gap={5}>
-      {message && (
-        <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-          {message}
-        </Text>
-      )}
       <Button
         variant={ButtonVariant.Primary}
         onPress={handleBuyPress}
@@ -817,12 +915,10 @@ function PaymentDetailsSkeleton() {
 }
 
 function ConfirmButton({
-  alertTitle,
   disableConfirm,
   isAmountUpdating,
   onContinue,
 }: Readonly<{
-  alertTitle: string | undefined;
   disableConfirm?: boolean;
   isAmountUpdating?: boolean;
   onContinue?: () => void;
@@ -864,7 +960,7 @@ function ConfirmButton({
       onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
-      {isAmountUpdating ? buttonLabel : (alertTitle ?? buttonLabel)}
+      {buttonLabel}
     </Button>
   );
 }

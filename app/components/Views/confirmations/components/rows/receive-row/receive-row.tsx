@@ -19,6 +19,7 @@ import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTr
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import { useMMPayVisualOverrides } from '../../../debug/mmPayVisualValidation';
 
 export interface ReceiveRowProps {
   /** The user's input amount in USD */
@@ -32,6 +33,7 @@ export interface ReceiveRowProps {
  * original transaction gas (added in relay-quotes.ts when isPostQuote).
  */
 export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
+  const visualOverrides = useMMPayVisualOverrides();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
@@ -69,6 +71,33 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
     transactionMeta?.isGasFeeSponsored,
     sourceAmounts?.length,
   ]);
+
+  if (visualOverrides?.forceQuotesLoading) {
+    return <KeyValueRowSkeleton testID="receive-row-skeleton" />;
+  }
+
+  if (visualOverrides?.forceCanSelectWithdrawToken) {
+    const displayAmount = visualOverrides.forceAmountFiat ?? inputAmountUsd;
+
+    return (
+      <Box testID="receive-row">
+        <KeyValueRow
+          variant={KeyValueRowVariant.Summary}
+          keyLabel={strings('confirm.label.you_receive')}
+          value={
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              testID={ConfirmationRowComponentIDs.RECEIVE}
+            >
+              {`$${displayAmount}`}
+            </Text>
+          }
+        />
+      </Box>
+    );
+  }
 
   if (isLoading) {
     return <KeyValueRowSkeleton testID="receive-row-skeleton" />;
