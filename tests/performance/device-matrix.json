@@ -10,13 +10,7 @@
       "name": "Google Pixel 8 Pro",
       "os_version": "14.0",
       "category": "low",
-      "description": "High-end Google flagship device with Android 14"
-    },
-    {
-      "name": "Pixel 8 Pro",
-      "os_version": "14",
-      "category": "low",
-      "description": "Mid-range Google flagship device with Android 14"
+      "description": "High-end Google flagship device with Android 14. TestMu maps this to catalog name Pixel 8 Pro via TestMuDeviceResolver."
     }
   ],
   "ios_devices": [
