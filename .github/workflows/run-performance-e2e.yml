@@ -64,7 +64,7 @@ on:
         type: string
         default: ''
       enable_testmu_benchmark:
-        description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_USERNAME/LT_ACCESS_KEY secrets)'
+        description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
         required: false
         type: boolean
         default: true
@@ -137,7 +137,7 @@ on:
         type: string
         default: ''
       enable_testmu_benchmark:
-        description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_USERNAME/LT_ACCESS_KEY secrets)'
+        description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
         required: false
         type: boolean
         default: false
@@ -177,19 +177,21 @@ jobs:
       lt_username: ${{ steps.resolve.outputs.lt_username }}
       lt_access_key: ${{ steps.resolve.outputs.lt_access_key }}
     steps:
-      - name: Resolve credentials from repository secrets
+      - name: Resolve TestMu AI credentials
         id: resolve
         env:
-          SECRET_USER: ${{ secrets.LT_USERNAME }}
+          # PoC: only one secret slot available — username is fixed, key from LT_ACCESS_KEY.
           SECRET_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
-          if [ -n "$SECRET_USER" ] && [ -n "$SECRET_KEY" ]; then
-            echo "Using TestMu AI credentials from repository secrets"
-            echo "lt_username=$SECRET_USER" >> "$GITHUB_OUTPUT"
-            echo "lt_access_key=$SECRET_KEY" >> "$GITHUB_OUTPUT"
-            echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
+          if [ -n "$SECRET_KEY" ]; then
+            echo "Using fixed TestMu AI username javiervera + LT_ACCESS_KEY secret"
+            {
+              echo "lt_username=javiervera"
+              echo "lt_access_key=$SECRET_KEY"
+              echo "testmu_ready=true"
+            } >> "$GITHUB_OUTPUT"
           else
-            echo "TestMu AI credentials not available (configure LT_USERNAME/LT_ACCESS_KEY secrets)"
+            echo "TestMu AI credentials not available (configure LT_ACCESS_KEY secret)"
             echo "testmu_ready=false" >> "$GITHUB_OUTPUT"
           fi
 
