@@ -299,3 +299,21 @@ describe('executeMobileDeepLink', () => {
     });
   });
 });
+
+describe('PlaywrightUtilities.buildDeviceAccountMapping', () => {
+  it('maps BrowserStack matrix names and TestMu catalog aliases to the same account', () => {
+    const mapping = PlaywrightUtilities.buildDeviceAccountMapping();
+
+    // Low-tier Android: matrix name + TestMu catalog alias
+    expect(mapping['Google Pixel 8 Pro']).toBe('Account 1');
+    expect(mapping['Pixel 8 Pro']).toBe('Account 1');
+
+    // High-tier Android: matrix name + TestMu catalog alias
+    expect(mapping['Samsung Galaxy S25 Ultra']).toBe('Account 3');
+    expect(mapping['Galaxy S25 Ultra']).toBe('Account 3');
+
+    // iOS names are shared across providers
+    expect(mapping['iPhone 16 Pro Max']).toBe('Account 4');
+    expect(mapping['iPhone 12']).toBe('Account 5');
+  });
+});
