@@ -60,6 +60,16 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
     return () => animation.stop();
   }, [fadeAnim]);
 
+  const cursor = (
+    <Animated.View
+      style={[
+        tw.style(cursorTwClassName),
+        styles.cursor,
+        { opacity: fadeAnim },
+      ]}
+    />
+  );
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -73,6 +83,7 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
         flexDirection={BoxFlexDirection.Row}
         twClassName="items-baseline max-w-[95%] shrink"
       >
+        {!hasInput && cursor}
         <RNText
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -80,20 +91,12 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
           style={[
             tw.style('font-medium'),
             styles.amountText,
-            {
-              color: hasInput ? colors.text.default : colors.text.alternative,
-            },
+            { color: hasInput ? colors.text.default : colors.text.alternative },
           ]}
         >
           {text}
         </RNText>
-        <Animated.View
-          style={[
-            tw.style(cursorTwClassName),
-            styles.cursor,
-            { opacity: fadeAnim },
-          ]}
-        />
+        {hasInput && cursor}
         {suffix}
       </Box>
     </Box>
