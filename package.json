@@ -6,12 +6,6 @@
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
   },
-  "previewBuilds": {
-    "@metamask/social-controllers": {
-      "type": "non-breaking",
-      "previewVersion": "2.6.0-preview-3d3ef9d3a"
-    }
-  },
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
@@ -370,7 +364,7 @@
     "@metamask/snaps-rpc-methods": "^17.1.0",
     "@metamask/snaps-sdk": "^11.2.0",
     "@metamask/snaps-utils": "^12.4.0",
-    "@metamask/social-controllers": "^2.6.0",
+    "@metamask/social-controllers": "^2.7.0",
     "@metamask/solana-wallet-snap": "^2.10.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
