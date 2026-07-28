@@ -46,13 +46,12 @@ describe('TestMuDeviceResolver', () => {
   });
 
   describe('resolveTestMuDeviceCapabilities', () => {
-    it('maps Google Pixel 7 Pro (BS 13) to TestMu Pixel 7 Pro / 15 with regex', () => {
-      delete process.env['TESTMU_DEVICE_EXACT'];
+    it('maps Google Pixel 7 Pro (BS 13) to TestMu Pixel 7 Pro / 15', () => {
       expect(
         resolveTestMuDeviceCapabilities('Google Pixel 7 Pro', '13.0'),
       ).toEqual({
-        deviceName: 'Pixel 7 Pro.*',
-        platformVersion: '15.*',
+        deviceName: 'Pixel 7 Pro',
+        platformVersion: '15',
       });
     });
 
@@ -67,11 +66,10 @@ describe('TestMuDeviceResolver', () => {
     });
 
     it('falls back to prefix stripping for unknown devices', () => {
-      delete process.env['TESTMU_DEVICE_EXACT'];
       expect(resolveTestMuDeviceCapabilities('Google Pixel 6', '13.0')).toEqual(
         {
-          deviceName: 'Pixel 6.*',
-          platformVersion: '13.*',
+          deviceName: 'Pixel 6',
+          platformVersion: '13',
         },
       );
     });
