@@ -17,6 +17,15 @@ import { mockTheme } from '../../../../util/theme';
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    // useContext is stubbed below for ToastContext only; keep useTheme on
+    // mockTheme so colors.success.default is defined in toast callbacks.
+    useTheme: () => actual.mockTheme,
+  };
+});
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
