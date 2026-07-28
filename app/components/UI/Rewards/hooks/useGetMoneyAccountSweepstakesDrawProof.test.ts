@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useGetMoneyAccountSweepstakesDrawProof } from './useGetMoneyAccountSweepstakesDrawProof';
@@ -95,19 +95,18 @@ describe('useGetMoneyAccountSweepstakesDrawProof', () => {
 
     renderHook(() => useGetMoneyAccountSweepstakesDrawProof(CAMPAIGN_ID, true));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setMoneyAccountSweepstakesDrawProof({
+          campaignId: CAMPAIGN_ID,
+          drawProof: MOCK_DRAW_PROOF,
+        }),
+      );
     });
 
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:getMoneyAccountSweepstakesDrawProof',
       CAMPAIGN_ID,
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setMoneyAccountSweepstakesDrawProof({
-        campaignId: CAMPAIGN_ID,
-        drawProof: MOCK_DRAW_PROOF,
-      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setMoneyAccountSweepstakesDrawProofLoading({
@@ -122,16 +121,14 @@ describe('useGetMoneyAccountSweepstakesDrawProof', () => {
 
     renderHook(() => useGetMoneyAccountSweepstakesDrawProof(CAMPAIGN_ID));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setMoneyAccountSweepstakesDrawProofError({
+          campaignId: CAMPAIGN_ID,
+          error: true,
+        }),
+      );
     });
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setMoneyAccountSweepstakesDrawProofError({
-        campaignId: CAMPAIGN_ID,
-        error: true,
-      }),
-    );
   });
 
   it('returns cached state and refetches on demand', async () => {

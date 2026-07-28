@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useGetMoneyAccountSweepstakesStatsMe } from './useGetMoneyAccountSweepstakesStatsMe';
@@ -103,8 +103,13 @@ describe('useGetMoneyAccountSweepstakesStatsMe', () => {
 
     renderHook(() => useGetMoneyAccountSweepstakesStatsMe(CAMPAIGN_ID));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setMoneyAccountSweepstakesStats({
+          campaignId: CAMPAIGN_ID,
+          stats: MOCK_STATS,
+        }),
+      );
     });
 
     expect(mockCall).toHaveBeenCalledWith(
@@ -116,12 +121,6 @@ describe('useGetMoneyAccountSweepstakesStatsMe', () => {
       setMoneyAccountSweepstakesStatsLoading({
         campaignId: CAMPAIGN_ID,
         loading: true,
-      }),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setMoneyAccountSweepstakesStats({
-        campaignId: CAMPAIGN_ID,
-        stats: MOCK_STATS,
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -137,16 +136,14 @@ describe('useGetMoneyAccountSweepstakesStatsMe', () => {
 
     renderHook(() => useGetMoneyAccountSweepstakesStatsMe(CAMPAIGN_ID));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setMoneyAccountSweepstakesStatsError({
+          campaignId: CAMPAIGN_ID,
+          error: true,
+        }),
+      );
     });
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setMoneyAccountSweepstakesStatsError({
-        campaignId: CAMPAIGN_ID,
-        error: true,
-      }),
-    );
     expect(mockDispatch).toHaveBeenCalledWith(
       setMoneyAccountSweepstakesStatsLoading({
         campaignId: CAMPAIGN_ID,
