@@ -26,7 +26,6 @@ import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../.
 import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
-import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import styleSheet from './StakingEarnings.styles';
@@ -205,9 +204,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
 };
 
 export const StakingEarnings = ({ asset }: StakingEarningsProps) => (
-  <StakeSDKProvider>
-    <StakingEarningsContent asset={asset} />
-  </StakeSDKProvider>
+  <StakingEarningsContent asset={asset} />
 );
 
 export default StakingEarnings;
