@@ -16,6 +16,7 @@ import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import WatchlistSection from './Sections/Watchlist';
 import MoreSection from './Sections/More';
+import AllocationSection from './Sections/Allocation';
 import { SectionRefreshHandle } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
@@ -156,6 +157,7 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
       accessible={false}
     >
+      <AllocationSection />
       <TokensSection
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
