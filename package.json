@@ -236,12 +236,6 @@
     "@metamask/bridge-controller@npm:^77.7.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
     "@metamask/bridge-controller@npm:^77.8.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch"
   },
-  "previewBuilds": {
-    "@metamask/ramps-controller": {
-      "type": "non-breaking",
-      "previewVersion": "18.0.0-preview-ff22b464a"
-    }
-  },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@config-plugins/detox": "^9.0.0",
@@ -344,7 +338,7 @@
     "@metamask/preinstalled-example-snap": "^0.8.1",
     "@metamask/profile-metrics-controller": "^4.0.1",
     "@metamask/profile-sync-controller": "^28.3.0",
-    "@metamask/ramps-controller": "18.0.0",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@18.0.0-preview-ff22b464a",
     "@metamask/react-data-query": "^0.2.2",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
