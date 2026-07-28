@@ -601,7 +601,7 @@
     "@metamask/browser-passworder": "^5.0.0",
     "@metamask/browser-playground": "0.8.1",
     "@metamask/build-utils": "^3.0.0",
-    "@metamask/client-mcp-core": "^0.6.0",
+    "@metamask/client-mcp-core": "^0.7.0",
     "@metamask/device-mcp": "^0.3.0",
     "@metamask/eslint-config-typescript": "^13.0.0",
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",

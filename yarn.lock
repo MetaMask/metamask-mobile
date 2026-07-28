@@ -8296,11 +8296,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/client-mcp-core@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@metamask/client-mcp-core@npm:0.6.0"
+"@metamask/client-mcp-core@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@metamask/client-mcp-core@npm:0.7.0"
   dependencies:
-    "@metamask/device-mcp": "npm:^0.3.0"
+    "@metamask/device-mcp": "npm:^0.3.2"
     cosmiconfig: "npm:^9.0.0"
     express: "npm:^5.2.1"
     zod: "npm:^4.4.3"
@@ -8309,7 +8309,7 @@ __metadata:
     playwright: ^1.49.0
   bin:
     mm: ./dist/cli/mm.cjs
-  checksum: 10/d74f0d4106d215e88b2c9ccbdac69f03ec7a553c3fe507265feff2b206e7510c35080ae133625dd74cb577356ab9b10f3a6efc2cf0b5a473cd61716e015d1911
+  checksum: 10/4296a49b579ce36373097312a3b3f927c49092a69da052b0dbc056d0f859c8a7768a4998091bd30dab23c2a4795f88d60399f0549d86c1778a809740e35bf14f
   languageName: node
   linkType: hard
 
@@ -8556,6 +8556,18 @@ __metadata:
   bin:
     device-mcp: ./dist/cli/device-mcp.mjs
   checksum: 10/79c7479d9770643f147fdf05d5a7a23672a73b708f2ff18cdc84c77a3a5a11d3cfc5ea2d53b9e58dd00774a20d9eeff95cca58a28c039b69b4cc77543b694347
+  languageName: node
+  linkType: hard
+
+"@metamask/device-mcp@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "@metamask/device-mcp@npm:0.3.2"
+  dependencies:
+    "@modelcontextprotocol/sdk": "npm:^1.12.1"
+    zod: "npm:^4.4.3"
+  bin:
+    device-mcp: ./dist/cli/device-mcp.mjs
+  checksum: 10/62bd0e0f4138f66c161b827dca5fa076b8d14237764c8ee62f9ccda4711ac495f1508802bbdaf5b28c9afec7118c3ff6b1c59969be0b4e3957709d1d591d36c2
   languageName: node
   linkType: hard
 
@@ -36060,7 +36072,7 @@ __metadata:
     "@metamask/chain-agnostic-permission": "npm:^1.7.0"
     "@metamask/chomp-api-service": "npm:^4.0.0"
     "@metamask/client-controller": "npm:^1.0.1"
-    "@metamask/client-mcp-core": "npm:^0.6.0"
+    "@metamask/client-mcp-core": "npm:^0.7.0"
     "@metamask/client-utils": "npm:^1.2.1"
     "@metamask/compliance-controller": "npm:2.1.0"
     "@metamask/config-registry-controller": "npm:^0.3.1"
