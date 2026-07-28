@@ -253,7 +253,7 @@ const ManageContent = ({
   showMetalCard: boolean;
   privacyMode: boolean;
 }) => (
-  <Box twClassName="gap-3" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
+  <Box twClassName="gap-7" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}

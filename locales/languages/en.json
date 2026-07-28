@@ -7662,12 +7662,9 @@
       "filter_purchases": "Purchases"
     },
     "condensed_cards": {
-      "how_it_works_title": "How it works",
-      "how_it_works_subtitle": "See how your money works for you",
-      "musd_title": "MetaMask USD",
-      "musd_subtitle": "Learn more about mUSD",
-      "what_you_get_title": "What you get",
-      "what_you_get_subtitle": "Explore your benefits"
+      "how_it_works_title": "How your money grows",
+      "musd_title": "Meet mUSD",
+      "what_you_get_title": "Explore your benefits"
     },
     "transaction": {
       "deposited": "Deposited",
