@@ -14,6 +14,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -41,7 +42,12 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../hooks';
 import {
+  NOTIFICATION_DISMISS_DISTANCE_THRESHOLD,
+  NOTIFICATION_DISMISS_MIN_DISTANCE,
+  NOTIFICATION_DISMISS_VELOCITY_THRESHOLD,
   NOTIFICATION_SPRING_CONFIG,
+  NOTIFICATION_SWIPE_ACTIVE_OFFSET_Y,
+  NOTIFICATION_SWIPE_FAIL_OFFSET_X,
   NOTIFICATION_TOP_PADDING,
   NOTIFICATION_VISIBILITY_DURATION,
 } from './BaseNotification.constants';
@@ -180,8 +186,16 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
   const notificationHeight = useSharedValue(screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
+  const visibleTranslateY = useSharedValue(0);
+  const gestureStartY = useSharedValue(0);
+  // True after onStart until onEnd/onFinalize recovers. Used so a failed pan
+  // (e.g. failOffsetX after activation) still springs back and resumes dismiss.
+  const isSwipeActive = useSharedValue(false);
   const hasEnteredRef = useRef(false);
   const dismissCompleteCalledRef = useRef(false);
+  const visibleAtRef = useRef<number | null>(null);
+  const persistUntilDismissRef = useRef(persistUntilDismiss);
+  persistUntilDismissRef.current = persistUntilDismiss;
   const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
 
   const hasCloseIconButton = autoDismiss;
@@ -217,6 +231,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     setTitleLineCount(null);
     hasEnteredRef.current = false;
     dismissCompleteCalledRef.current = false;
+    visibleAtRef.current = null;
   }, [status, title, description, isVisible]);
 
   const handleTitleTextLayout = (event: TextLayoutEvent) => {
@@ -242,8 +257,10 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       translateYProgress.value = withSpring(
         hiddenTranslateY,
         NOTIFICATION_SPRING_CONFIG,
-        () => {
-          if (onComplete) {
+        (finished) => {
+          // cancelAnimation (e.g. pan start) invokes this with finished=false;
+          // only run dismiss/hide callbacks when the exit spring completed.
+          if (finished && onComplete) {
             runOnJS(onComplete)();
           }
         },
@@ -258,8 +275,58 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     }
 
     dismissCompleteCalledRef.current = true;
+    visibleAtRef.current = null;
     onDismissComplete?.();
   }, [onDismissComplete]);
+
+  const scheduleAutoDismiss = useCallback(
+    (delayMs: number) => {
+      const hiddenTranslateY = getHiddenTranslateY(notificationHeight.value);
+
+      translateYProgress.value = withDelay(
+        delayMs,
+        withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, (finished) => {
+          // cancelAnimation during a pan must not mark the toast dismissed.
+          if (finished) {
+            runOnJS(handleDismissComplete)();
+          }
+        }),
+      );
+    },
+    [handleDismissComplete, notificationHeight, translateYProgress],
+  );
+
+  const beginAutoDismiss = useCallback(() => {
+    visibleAtRef.current = Date.now();
+    scheduleAutoDismiss(dismissDurationMs);
+  }, [dismissDurationMs, scheduleAutoDismiss]);
+
+  const resumeAutoDismissAfterSwipe = useCallback(() => {
+    if (persistUntilDismissRef.current) {
+      return;
+    }
+
+    if (visibleAtRef.current === null) {
+      visibleAtRef.current = Date.now();
+      scheduleAutoDismiss(dismissDurationMs);
+      return;
+    }
+
+    const elapsed = Date.now() - visibleAtRef.current;
+    if (elapsed >= dismissDurationMs) {
+      runExitAnimation(() => {
+        handleDismissComplete();
+      });
+      return;
+    }
+
+    scheduleAutoDismiss(dismissDurationMs - elapsed);
+  }, [
+    dismissDurationMs,
+    handleDismissComplete,
+    runExitAnimation,
+    scheduleAutoDismiss,
+  ]);
 
   useEffect(
     () => () => {
@@ -272,12 +339,105 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   );
 
   const handleManualDismiss = useCallback(() => {
+    visibleAtRef.current = null;
     cancelAnimation(translateYProgress);
     runExitAnimation(() => {
       onHide?.();
       handleDismissComplete();
     });
   }, [handleDismissComplete, onHide, runExitAnimation, translateYProgress]);
+
+  const handleManualDismissRef = useRef(handleManualDismiss);
+  const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
+  handleManualDismissRef.current = handleManualDismiss;
+  resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
+
+  const dismissNotificationFromSwipe = () => {
+    handleManualDismissRef.current();
+  };
+
+  const resumeAutoDismissFromSwipe = () => {
+    resumeAutoDismissAfterSwipeRef.current();
+  };
+
+  const swipeGesture = useMemo(() => {
+    const springBackAfterSwipe = () => {
+      'worklet';
+      translateYProgress.value = withSpring(
+        visibleTranslateY.value,
+        NOTIFICATION_SPRING_CONFIG,
+        (finished) => {
+          // A new pan cancels this spring via cancelAnimation; only resume
+          // auto-dismiss when the spring-back completed naturally.
+          if (finished) {
+            runOnJS(resumeAutoDismissFromSwipe)();
+          }
+        },
+      );
+    };
+
+    return Gesture.Pan()
+      .activeOffsetY(NOTIFICATION_SWIPE_ACTIVE_OFFSET_Y)
+      .failOffsetX([
+        -NOTIFICATION_SWIPE_FAIL_OFFSET_X,
+        NOTIFICATION_SWIPE_FAIL_OFFSET_X,
+      ])
+      .onStart(() => {
+        isSwipeActive.value = true;
+        cancelAnimation(translateYProgress);
+        gestureStartY.value = translateYProgress.value;
+      })
+      .onUpdate((event) => {
+        if (!isSwipeActive.value) {
+          return;
+        }
+        const nextTranslateY = gestureStartY.value + event.translationY;
+        // Notification sits at the top; only allow dragging upward (more negative).
+        translateYProgress.value = Math.min(
+          nextTranslateY,
+          visibleTranslateY.value,
+        );
+      })
+      .onEnd((event) => {
+        if (!isSwipeActive.value) {
+          return;
+        }
+        isSwipeActive.value = false;
+
+        const { translationY, velocityY } = event;
+        const dismissDistance = Math.max(
+          notificationHeight.value * NOTIFICATION_DISMISS_DISTANCE_THRESHOLD,
+          NOTIFICATION_DISMISS_MIN_DISTANCE,
+        );
+        const hasReachedDismissOffset = translationY <= -dismissDistance;
+        const hasReachedSwipeThreshold =
+          Math.abs(velocityY) > NOTIFICATION_DISMISS_VELOCITY_THRESHOLD;
+        const isQuickDismissing = velocityY < 0;
+
+        const shouldDismiss =
+          hasReachedDismissOffset ||
+          (hasReachedSwipeThreshold && isQuickDismissing);
+
+        if (shouldDismiss) {
+          runOnJS(dismissNotificationFromSwipe)();
+          return;
+        }
+
+        springBackAfterSwipe();
+      })
+      .onFinalize(() => {
+        // onEnd is skipped when the pan fails/cancels after activation
+        // (e.g. horizontal travel past failOffsetX). Recover position and
+        // auto-dismiss so the notification is not left stuck mid-offset.
+        if (!isSwipeActive.value) {
+          return;
+        }
+        isSwipeActive.value = false;
+        springBackAfterSwipe();
+      });
+    // Shared values and swipe JS wrappers are stable for the component lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onAnimatedViewLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -288,40 +448,40 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       hasEnteredRef.current = true;
       const { height } = event.nativeEvent.layout;
       const hiddenTranslateY = getHiddenTranslateY(height);
-      const visibleTranslateY = topInset + NOTIFICATION_TOP_PADDING;
+      const nextVisibleTranslateY = topInset + NOTIFICATION_TOP_PADDING;
 
       notificationHeight.value = height;
+      visibleTranslateY.value = nextVisibleTranslateY;
+      visibleAtRef.current = null;
       translateYProgress.value = hiddenTranslateY;
 
       if (persistUntilDismiss) {
         translateYProgress.value = withSpring(
-          visibleTranslateY,
+          nextVisibleTranslateY,
           NOTIFICATION_SPRING_CONFIG,
         );
         return;
       }
 
       translateYProgress.value = withSpring(
-        visibleTranslateY,
+        nextVisibleTranslateY,
         NOTIFICATION_SPRING_CONFIG,
-        () => {
-          translateYProgress.value = withDelay(
-            dismissDurationMs,
-            withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, () => {
-              runOnJS(handleDismissComplete)();
-            }),
-          );
+        (finished) => {
+          // Only start the auto-dismiss timer after entrance completes.
+          if (finished) {
+            runOnJS(beginAutoDismiss)();
+          }
         },
       );
     },
     [
-      dismissDurationMs,
-      handleDismissComplete,
+      beginAutoDismiss,
       isVisible,
       notificationHeight,
       persistUntilDismiss,
       topInset,
       translateYProgress,
+      visibleTranslateY,
     ],
   );
 
@@ -330,60 +490,62 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   }
 
   return (
-    <Animated.View
-      onLayout={onAnimatedViewLayout}
-      style={baseStyle}
-      testID="base-notification-container"
-    >
-      <TouchableOpacity
-        style={[
-          styles.pressableContent,
-          shouldTopAlign && styles.pressableContentTopAligned,
-        ]}
-        onPress={onPress}
-        activeOpacity={0.8}
-        disabled={!onPress}
+    <GestureDetector gesture={swipeGesture}>
+      <Animated.View
+        onLayout={onAnimatedViewLayout}
+        style={baseStyle}
+        testID="base-notification-container"
       >
-        <View>{getIcon(status)}</View>
-        <View
+        <TouchableOpacity
           style={[
-            styles.flashLabel,
-            shouldTopAlign && styles.flashLabelTopAligned,
+            styles.pressableContent,
+            shouldTopAlign && styles.pressableContentTopAligned,
           ]}
-          testID={BaseNotificationTestIds.CONTAINER}
+          onPress={onPress}
+          activeOpacity={0.8}
+          disabled={!onPress}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            style={styles.flashTitle}
-            testID={BaseNotificationTestIds.NOTIFICATION_TITLE}
-            onTextLayout={handleTitleTextLayout}
+          <View>{getIcon(status)}</View>
+          <View
+            style={[
+              styles.flashLabel,
+              shouldTopAlign && styles.flashLabelTopAligned,
+            ]}
+            testID={BaseNotificationTestIds.CONTAINER}
           >
-            {!title ? getTitle(status, safeData) : title}
-          </Text>
-          {hasDescription ? (
             <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              style={styles.flashText}
-              onTextLayout={handleDescriptionTextLayout}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              style={styles.flashTitle}
+              testID={BaseNotificationTestIds.NOTIFICATION_TITLE}
+              onTextLayout={handleTitleTextLayout}
             >
-              {resolvedDescription}
+              {!title ? getTitle(status, safeData) : title}
             </Text>
-          ) : null}
-        </View>
-      </TouchableOpacity>
-      {autoDismiss && (
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSize.Md}
-          onPress={handleManualDismiss}
-          style={shouldTopAlign ? styles.closeButton : undefined}
-          testID="base-notification-close"
-        />
-      )}
-    </Animated.View>
+            {hasDescription ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                style={styles.flashText}
+                onTextLayout={handleDescriptionTextLayout}
+              >
+                {resolvedDescription}
+              </Text>
+            ) : null}
+          </View>
+        </TouchableOpacity>
+        {autoDismiss && (
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            onPress={handleManualDismiss}
+            style={shouldTopAlign ? styles.closeButton : undefined}
+            testID="base-notification-close"
+          />
+        )}
+      </Animated.View>
+    </GestureDetector>
   );
 };
 

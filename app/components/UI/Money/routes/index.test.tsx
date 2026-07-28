@@ -2,19 +2,19 @@ import React from 'react';
 import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
-import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
 import {
   MoneyConfirmationScreenStack,
   MoneyModalStack,
   MoneyTabScreenStack,
 } from './index';
 
-jest.mock('../hooks/useUpgradeMoneyAccountOnMount', () => ({
-  useUpgradeMoneyAccountOnMount: jest.fn(),
+jest.mock('../hooks/useUpgradeMoneyAccountOnFocus', () => ({
+  useUpgradeMoneyAccountOnFocus: jest.fn(),
 }));
 
-const mockUseUpgradeMoneyAccountOnMount = jest.mocked(
-  useUpgradeMoneyAccountOnMount,
+const mockUseUpgradeMoneyAccountOnFocus = jest.mocked(
+  useUpgradeMoneyAccountOnFocus,
 );
 
 jest.mock(
@@ -143,12 +143,12 @@ describe('MoneyTabScreenStack', () => {
     expect(getByTestId('money-header-hidden')).toBeOnTheScreen();
   });
 
-  it('calls useUpgradeMoneyAccountOnMount on mount', () => {
+  it('calls useUpgradeMoneyAccountOnFocus', () => {
     renderWithProvider(<MoneyTabScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -188,12 +188,12 @@ describe('MoneyConfirmationScreenStack', () => {
     );
   });
 
-  it('calls useUpgradeMoneyAccountOnMount on mount', () => {
+  it('calls useUpgradeMoneyAccountOnFocus', () => {
     renderWithProvider(<MoneyConfirmationScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -202,12 +202,12 @@ describe('MoneyModalStack', () => {
     jest.clearAllMocks();
   });
 
-  it('calls useUpgradeMoneyAccountOnMount on mount', () => {
+  it('calls useUpgradeMoneyAccountOnFocus', () => {
     renderWithProvider(<MoneyModalStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 
   it('registers the Add money sheet as a modal screen', () => {

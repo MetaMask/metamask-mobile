@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
@@ -34,7 +35,7 @@ export const PAY_WITH_PERPS_BALANCE_ROW_TEST_ID =
   'pay-with-perps-section-balance-row';
 
 export function usePayWithPerpsSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactionMeta = useTransactionMetadataRequest();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const perpsAccount = useSelector(selectPerpsAccountState);

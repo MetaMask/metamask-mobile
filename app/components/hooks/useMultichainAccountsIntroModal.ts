@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { selectMultichainAccountsIntroModalSeen } from '../../reducers/user/selectors';
 import Routes from '../../constants/navigation/Routes';
@@ -16,7 +17,7 @@ const hasTestOverrides = process.env.HAS_TEST_OVERRIDES === 'true';
  * 3. This is not a fresh install (app update)
  */
 export const useMultichainAccountsIntroModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const hasSeenIntroModal = useSelector(selectMultichainAccountsIntroModalSeen);
 

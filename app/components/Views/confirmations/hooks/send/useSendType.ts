@@ -4,6 +4,7 @@ import {
   isBitcoinChainId,
   /// END:ONLY_INCLUDE_IF
   isSolanaChainId,
+  isStellarChainId,
 } from '@metamask/bridge-controller';
 import { useCallback, useMemo } from 'react';
 
@@ -28,6 +29,7 @@ export const useSendType = () => {
   const isPredefinedBitcoin = predefinedRecipient?.chainType === 'bitcoin';
   const isPredefinedSolana = predefinedRecipient?.chainType === 'solana';
   const isPredefinedTron = predefinedRecipient?.chainType === 'tron';
+  const isPredefinedStellar = predefinedRecipient?.chainType === 'stellar';
 
   const isPredefinedNonEvm =
     predefinedRecipient?.chainType && predefinedRecipient.chainType !== 'evm';
@@ -75,6 +77,11 @@ export const useSendType = () => {
   );
   /// END:ONLY_INCLUDE_IF
 
+  const isStellarSendType = useMemo(
+    () => createChainTypeCheck(isPredefinedStellar, isStellarChainId),
+    [createChainTypeCheck, isPredefinedStellar],
+  );
+
   const assetIsNative =
     asset && 'isNative' in asset ? Boolean(asset.isNative) : undefined;
 
@@ -95,6 +102,8 @@ export const useSendType = () => {
       isTronSendType,
       isPredefinedTron,
       /// END:ONLY_INCLUDE_IF
+      isStellarSendType,
+      isPredefinedStellar,
     }),
     [
       isEvmSendType,
@@ -111,6 +120,8 @@ export const useSendType = () => {
       isTronSendType,
       isPredefinedTron,
       /// END:ONLY_INCLUDE_IF
+      isStellarSendType,
+      isPredefinedStellar,
     ],
   );
 };
