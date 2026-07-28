@@ -48,6 +48,11 @@ const styles = StyleSheet.create({
   container: {
     height: 64,
   },
+  // Matches the Figma title cap so long names truncate instead of pushing the
+  // leverage tag / caret out of view.
+  nameText: {
+    maxWidth: 120,
+  },
 });
 
 /**
@@ -80,14 +85,14 @@ const PerpsProMarketHeader = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      twClassName={`min-w-0 flex-1 rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
+      twClassName={`self-start rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
     >
       <PerpsTokenLogo
         symbol={market.symbol}
         size={32}
         testID={PerpsProMarketViewSelectorsIDs.HEADER_ASSET_ICON}
       />
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="min-w-0 flex-1">
+      <Box flexDirection={BoxFlexDirection.Column}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -97,7 +102,7 @@ const PerpsProMarketHeader = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            twClassName="shrink"
+            style={styles.nameText}
             testID={PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL}
           >
             {displayTitle}
@@ -144,7 +149,7 @@ const PerpsProMarketHeader = ({
         />
       ) : null}
 
-      <Box twClassName="min-w-0 flex-1">
+      <Box twClassName="flex-1">
         {onIdentityPress ? (
           <Pressable
             onPress={onIdentityPress}
