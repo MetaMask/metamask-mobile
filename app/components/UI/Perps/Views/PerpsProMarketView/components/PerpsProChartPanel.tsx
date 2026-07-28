@@ -27,6 +27,7 @@ import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
+import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
 import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
@@ -47,6 +48,16 @@ import TradingViewChart, {
 import PerpsProMarketSummary from './PerpsProMarketSummary';
 
 const PRO_CHART_HEIGHT = 288;
+/**
+ * Typed button-clicked labels for the Pro chart collapse/expand analytics
+ * (mirrors the local-constant pattern used by e.g. `COMPETITION_BANNER_BUTTON`),
+ * since `@metamask/perps-controller` has no dedicated chart collapse/expand
+ * interaction value.
+ */
+const PRO_CHART_BUTTON = {
+  COLLAPSE_CHART: 'collapse_chart',
+  EXPAND_CHART: 'expand_chart',
+} as const;
 const PRO_CANDLE_PERIODS = [
   { label: '1m', value: CandlePeriod.OneMinute },
   { label: '5m', value: CandlePeriod.FiveMinutes },
@@ -78,6 +89,7 @@ const PerpsProChartPanel = ({
   onChartError,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
+  const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
@@ -152,6 +164,22 @@ const PerpsProChartPanel = ({
     }
   }, [candleData, selectedCandlePeriod, visibleCandleCount]);
 
+  const handleToggleChartExpanded = useCallback(
+    (expanded: boolean) => {
+      setChartExpanded(expanded);
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: expanded
+          ? PRO_CHART_BUTTON.EXPAND_CHART
+          : PRO_CHART_BUTTON.COLLAPSE_CHART,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+        ...chartAnalyticsProperties,
+      });
+    },
+    [chartAnalyticsProperties, setChartExpanded, symbol, track],
+  );
+
   const handleFullscreenChartOpen = useCallback(() => {
     setIsFullscreenChartVisible(true);
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -212,64 +240,88 @@ const PerpsProChartPanel = ({
       <PerpsProMarketSummary
         symbol={symbol}
         currentPrice={syncedChartCurrentPrice}
+        endAccessory={
+          isChartExpanded ? undefined : (
+            <ButtonIcon
+              iconName={IconName.Candlestick}
+              size={ButtonIconSize.Lg}
+              onPress={() => handleToggleChartExpanded(true)}
+              testID={PerpsProMarketViewSelectorsIDs.CHART_EXPAND_BUTTON}
+              accessibilityLabel={strings('perps.market_details.expand_chart')}
+              accessibilityState={{ expanded: false }}
+            />
+          )
+        }
       />
-      <Box
-        testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
-        twClassName="my-2 h-[344px] px-4 py-2"
-      >
+      {isChartExpanded ? (
         <Box
-          testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
-          twClassName="flex-1 gap-2"
+          testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
+          twClassName="my-2 h-[344px] px-4 py-2"
         >
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+            testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
+            twClassName="flex-1 gap-2"
           >
-            <PerpsCandlePeriodSelector
-              selectedPeriod={selectedCandlePeriod}
-              onPeriodChange={onCandlePeriodChange}
-              onMorePress={onMorePress}
-              visiblePeriods={PRO_CANDLE_PERIODS}
-              twClassName="flex-1 py-0"
-              groupTwClassName="gap-2 justify-start"
-              filterVariant={FilterButtonVariant.Secondary}
-              periodButtonTwClassName="h-7 rounded px-1"
-              moreButtonTwClassName="h-7 rounded px-1"
-              textVariant={TextVariant.BodyXs}
-              testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
-            />
-            <ButtonIcon
-              iconName={IconName.Expand}
-              size={ButtonIconSize.Sm}
-              onPress={handleFullscreenChartOpen}
-              testID={PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON}
-              accessibilityLabel={strings(
-                'perps.market_details.fullscreen_chart',
-              )}
-            />
-          </Box>
-          <ComponentErrorBoundary
-            componentLabel="PerpsProMarketChart"
-            onError={onChartError}
-          >
-            <Box twClassName="relative flex-1">
-              {ohlcData ? (
-                <Box twClassName="absolute left-0 right-0 top-0 z-10">
-                  <PerpsOHLCVBar
-                    open={ohlcData.open}
-                    high={ohlcData.high}
-                    low={ohlcData.low}
-                    close={ohlcData.close}
-                    volume={ohlcData.volume}
-                    testID={PerpsProMarketViewSelectorsIDs.CHART_OHLCV}
-                  />
-                </Box>
-              ) : null}
-              {chartContent}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <PerpsCandlePeriodSelector
+                selectedPeriod={selectedCandlePeriod}
+                onPeriodChange={onCandlePeriodChange}
+                onMorePress={onMorePress}
+                visiblePeriods={PRO_CANDLE_PERIODS}
+                twClassName="flex-1 py-0"
+                groupTwClassName="gap-2 justify-start"
+                filterVariant={FilterButtonVariant.Secondary}
+                periodButtonTwClassName="h-7 rounded px-1"
+                moreButtonTwClassName="h-7 rounded px-1"
+                textVariant={TextVariant.BodyXs}
+                testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
+              />
+              <ButtonIcon
+                iconName={IconName.Expand}
+                size={ButtonIconSize.Sm}
+                onPress={handleFullscreenChartOpen}
+                testID={PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON}
+                accessibilityLabel={strings(
+                  'perps.market_details.fullscreen_chart',
+                )}
+              />
+              <ButtonIcon
+                iconName={IconName.Collapse}
+                size={ButtonIconSize.Sm}
+                onPress={() => handleToggleChartExpanded(false)}
+                testID={PerpsProMarketViewSelectorsIDs.CHART_COLLAPSE_BUTTON}
+                accessibilityLabel={strings(
+                  'perps.market_details.collapse_chart',
+                )}
+                accessibilityState={{ expanded: true }}
+              />
             </Box>
-          </ComponentErrorBoundary>
+            <ComponentErrorBoundary
+              componentLabel="PerpsProMarketChart"
+              onError={onChartError}
+            >
+              <Box twClassName="relative flex-1">
+                {ohlcData ? (
+                  <Box twClassName="absolute left-0 right-0 top-0 z-10">
+                    <PerpsOHLCVBar
+                      open={ohlcData.open}
+                      high={ohlcData.high}
+                      low={ohlcData.low}
+                      close={ohlcData.close}
+                      volume={ohlcData.volume}
+                      testID={PerpsProMarketViewSelectorsIDs.CHART_OHLCV}
+                    />
+                  </Box>
+                ) : null}
+                {chartContent}
+              </Box>
+            </ComponentErrorBoundary>
+          </Box>
         </Box>
-      </Box>
+      ) : null}
       {isTradingHalted && !isLoadingTradingHalted ? (
         <PerpsPriceDeviationWarning
           testID={PerpsProMarketViewSelectorsIDs.CHART_PRICE_DEVIATION_WARNING}

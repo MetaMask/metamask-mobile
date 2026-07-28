@@ -10,7 +10,10 @@ import {
   type CandleData,
   type Position,
 } from '@metamask/perps-controller';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 import type { PerpsAdvancedChartProps } from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import PerpsCandlePeriodSelector from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
 import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
@@ -104,9 +107,15 @@ const mockUsePerpsLiveCandles = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockUsePerpsMarketData = jest.fn();
 const mockUsePriceDeviation = jest.fn();
+const mockSetChartExpanded = jest.fn();
+const mockUsePerpsProChartExpanded = jest.fn();
 
 jest.mock('../../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
+jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
+  usePerpsProChartExpanded: () => mockUsePerpsProChartExpanded(),
 }));
 
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
@@ -218,6 +227,10 @@ describe('PerpsProChartPanel', () => {
     mockUsePriceDeviation.mockReturnValue({
       isDeviatedAboveThreshold: false,
       isLoading: false,
+    });
+    mockUsePerpsProChartExpanded.mockReturnValue({
+      isChartExpanded: true,
+      setChartExpanded: mockSetChartExpanded,
     });
   });
 
@@ -435,5 +448,128 @@ describe('PerpsProChartPanel', () => {
     });
 
     expect(mockOnChartError).toHaveBeenCalledWith('WebView failed');
+  });
+
+  describe('collapse and expand', () => {
+    const renderCollapsed = (
+      overrides: Partial<PerpsProChartPanelProps> = {},
+    ) => {
+      mockUsePerpsProChartExpanded.mockReturnValue({
+        isChartExpanded: false,
+        setChartExpanded: mockSetChartExpanded,
+      });
+      return renderChartPanel(overrides);
+    };
+
+    it('keeps the market summary visible while collapsed', () => {
+      renderCollapsed();
+
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
+      ).toBeOnTheScreen();
+    });
+
+    it('unmounts the inline chart and its controls while collapsed', () => {
+      renderCollapsed();
+
+      expect(
+        screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_PANEL),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('mock-perps-advanced-chart'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('unmounts the Lightweight chart WebView while collapsed', () => {
+      renderCollapsed({ isAdvancedChartEnabled: false });
+
+      expect(
+        screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the compact expand action while collapsed', () => {
+      renderCollapsed();
+
+      const expandButton = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_EXPAND_BUTTON,
+      );
+      expect(expandButton).toBeOnTheScreen();
+      expect(expandButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ expanded: false }),
+      );
+    });
+
+    it('persists chartExpanded=true and tracks analytics on expand', () => {
+      renderCollapsed();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_EXPAND_BUTTON),
+      );
+
+      expect(mockSetChartExpanded).toHaveBeenCalledWith(true);
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'expand_chart',
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+        }),
+      );
+    });
+
+    it('renders the collapse action while expanded', () => {
+      renderChartPanel();
+
+      const collapseButton = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_COLLAPSE_BUTTON,
+      );
+      expect(collapseButton).toBeOnTheScreen();
+      expect(collapseButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ expanded: true }),
+      );
+    });
+
+    it('persists chartExpanded=false and tracks analytics on collapse', () => {
+      renderChartPanel();
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.CHART_COLLAPSE_BUTTON,
+        ),
+      );
+
+      expect(mockSetChartExpanded).toHaveBeenCalledWith(false);
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'collapse_chart',
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
+    });
+
+    it('does not open the fullscreen modal while collapsed', () => {
+      renderCollapsed();
+
+      expect(
+        screen.queryByTestId('mock-perps-fullscreen-chart'),
+      ).not.toBeOnTheScreen();
+    });
   });
 });
