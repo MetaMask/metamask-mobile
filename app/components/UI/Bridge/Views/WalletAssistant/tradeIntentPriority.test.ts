@@ -229,6 +229,15 @@ describe('trade intent priority', () => {
     ).toBeUndefined();
   });
 
+  it.each([
+    'Buy the first one',
+    'Buy the second one',
+    'Buy that',
+    'Buy it with USDC',
+  ])('defers the contextual trade %p to AI interpretation', (prompt) => {
+    expect(buildImmediateTradeResponse(prompt)).toBeUndefined();
+  });
+
   it('does not leak a previous trade into network-specific research', () => {
     const previousIntent = {
       amountType: 'fiat' as const,

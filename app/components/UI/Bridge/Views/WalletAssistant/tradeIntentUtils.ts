@@ -83,6 +83,7 @@ export const resolveTradeToken = <T extends TradeTokenCandidate>(
   symbol: string,
   network: string,
   activeChainId: string,
+  preferredAssetId = '',
 ): TradeTokenResolution<T> => {
   const normalizedSymbol = symbol.trim().toUpperCase();
   if (!normalizedSymbol) {
@@ -108,10 +109,18 @@ export const resolveTradeToken = <T extends TradeTokenCandidate>(
   const networkMatches = networkPrefix
     ? exactMatches.filter((token) => token.assetId.startsWith(networkPrefix))
     : exactMatches;
+  const preferredAsset = preferredAssetId
+    ? networkMatches.find(
+        ({ assetId }) =>
+          assetId.toLowerCase() === preferredAssetId.toLowerCase(),
+      )
+    : undefined;
 
   return {
-    asset: networkMatches.length === 1 ? networkMatches[0] : undefined,
-    isAmbiguous: networkMatches.length > 1,
+    asset:
+      preferredAsset ??
+      (networkMatches.length === 1 ? networkMatches[0] : undefined),
+    isAmbiguous: !preferredAsset && networkMatches.length > 1,
   };
 };
 

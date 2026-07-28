@@ -58,7 +58,15 @@ export interface SwapIntent {
   destinationSymbol: string;
 }
 
+export interface SwapAssetIdentity {
+  chainId: string;
+  contractAddress: string;
+  network: string;
+  symbol: string;
+}
+
 export interface EmbeddedSwapCardProps {
+  assets?: readonly SwapAssetIdentity[];
   intent: SwapIntent;
   onReview: (
     sourceToken: BridgeToken | undefined,
@@ -104,7 +112,33 @@ const areSameChain = (
   }
 };
 
-const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
+const getPreferredAssetId = (
+  assets: readonly SwapAssetIdentity[],
+  symbol: string,
+  network: string,
+) => {
+  const matches = assets.filter(
+    (asset) =>
+      asset.symbol.toUpperCase() === symbol.toUpperCase() &&
+      (!network || asset.network.toLowerCase() === network.toLowerCase()) &&
+      asset.chainId &&
+      asset.contractAddress,
+  );
+  if (matches.length !== 1) {
+    return '';
+  }
+
+  const [asset] = matches;
+  return asset.chainId.startsWith('eip155:')
+    ? `${asset.chainId}/erc20:${asset.contractAddress}`
+    : '';
+};
+
+const EmbeddedSwapCard = ({
+  assets = [],
+  intent,
+  onReview,
+}: EmbeddedSwapCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
@@ -137,6 +171,16 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
       query: intent.destinationSymbol,
       hideRiskyTokens: true,
     });
+  const preferredSourceAssetId = useMemo(
+    () =>
+      getPreferredAssetId(assets, intent.sourceSymbol, intent.network),
+    [assets, intent.network, intent.sourceSymbol],
+  );
+  const preferredDestinationAssetId = useMemo(
+    () =>
+      getPreferredAssetId(assets, intent.destinationSymbol, intent.network),
+    [assets, intent.destinationSymbol, intent.network],
+  );
   const sourceResolution = useMemo(
     () =>
       resolveTradeToken(
@@ -144,8 +188,15 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
         intent.sourceSymbol,
         intent.network,
         activeChainId,
+        preferredSourceAssetId,
       ),
-    [activeChainId, intent.network, intent.sourceSymbol, sourceResults],
+    [
+      activeChainId,
+      intent.network,
+      intent.sourceSymbol,
+      preferredSourceAssetId,
+      sourceResults,
+    ],
   );
   const destinationResolution = useMemo(
     () =>
@@ -154,8 +205,14 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
         intent.destinationSymbol,
         intent.network,
         '',
+        preferredDestinationAssetId,
       ),
-    [destinationResults, intent.destinationSymbol, intent.network],
+    [
+      destinationResults,
+      intent.destinationSymbol,
+      intent.network,
+      preferredDestinationAssetId,
+    ],
   );
   const resolvedTrendingSourceToken = useMemo(
     () => getBridgeTokenFromTrendingAsset(sourceResolution.asset),

@@ -44,7 +44,14 @@ const NON_TOKEN_WORDS = new Set([
   'A',
   'AN',
   'CRYPTO',
+  'FIRST',
+  'IT',
+  'ONE',
+  'SECOND',
   'SOME',
+  'THAT',
+  'THE',
+  'THIS',
   'TOKEN',
   'TOKENS',
 ]);
@@ -223,6 +230,13 @@ export const buildImmediateTradeResponse = (
 ): WalletAssistantResearchResponse | undefined => {
   if (isDirectTradeRequest(prompt)) {
     const symbols = getTradeSymbols(prompt);
+    const action = TRADE_ACTION.exec(prompt)?.[1]?.toLowerCase();
+    if (
+      (action === 'buy' || action === 'purchase') &&
+      !symbols.destinationSymbol
+    ) {
+      return undefined;
+    }
     const amount = getTradeAmount(prompt, symbols.sourceSymbol);
     const intent: WalletAssistantSwapIntent = {
       ...amount,
