@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -67,7 +66,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   transactionActiveAbTests,
   onTreatmentCtaClick,
 }) => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation();
   const { navigateToMarketDetails } = usePredictNavigation();
   const worldCupScreenEnabled = useSelector(
     selectPredictWorldCupScreenEnabledFlag,

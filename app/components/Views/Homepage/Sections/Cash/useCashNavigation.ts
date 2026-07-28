@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -12,7 +11,7 @@ import { MusdNavigationTarget } from '../../../../UI/Earn/types/musd.types';
  * Shared navigation handler for the Cash section education gate.
  */
 export const useCashNavigation = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation();
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const hasSeenEducation = useSelector(selectMusdConversionEducationSeen);
 

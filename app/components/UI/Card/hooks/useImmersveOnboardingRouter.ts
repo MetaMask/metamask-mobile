@@ -1,6 +1,5 @@
 import { useCallback, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
@@ -32,7 +31,7 @@ interface RouteContext {
  * navigate to itself. From SignUp they legitimately route to KYC_PROCESSING.
  */
 export const useImmersveOnboardingRouter = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
 

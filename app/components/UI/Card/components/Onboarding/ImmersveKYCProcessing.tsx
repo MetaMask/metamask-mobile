@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -47,7 +46,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * - active/funding (approved) → interim terminus (branch 6b wires SpendingLimit)
  */
 const ImmersveKYCProcessing = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const { countryKey, kycUrl } = useParams<{
     countryKey?: string;

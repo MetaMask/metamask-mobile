@@ -577,7 +577,10 @@ const AddCustomToken = ({
                   onPress={() => {
                     navigation.navigate('Webview', {
                       screen: 'SimpleWebview',
-                      params: { url: explorerUrl, title: explorerTitle },
+                      params: {
+                        url: explorerUrl ?? undefined,
+                        title: explorerTitle ?? undefined,
+                      },
                     });
                   }}
                 >

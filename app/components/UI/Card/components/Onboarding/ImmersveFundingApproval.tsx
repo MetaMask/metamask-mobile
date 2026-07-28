@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -147,7 +146,7 @@ const ReadOnlyTokenRow = () => (
  * settings card + footer button).
  */
 const ImmersveFundingApproval = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const theme = useTheme();
   const headerHandlers = useCardHeaderHandlers('close-direct');
