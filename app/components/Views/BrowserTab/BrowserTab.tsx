@@ -867,11 +867,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * associated native apps; applied on both platforms for a single code path
      * (MCWP-748).
      *
-     * A two-step source update (`about:blank` then destination) is required on
-     * iOS: RNCWebView's `visitSource` can skip `loadRequest` when only the URI
-     * changes on an already-loaded document, which broke SmokeBrowser iOS E2E
-     * (phishing/security) while Android continued to pass.
+     * Remounting (`webViewReloadKey`) is required because mid-session
+     * `source.uri` prop updates do not reliably trigger WKWebView loadRequest
+     * on iOS (RNCWebView's iOS `loadUrl` command is a no-op; Android uses
+     * native `loadUrl`). Remount matches Explore's fresh-tab loadRequest path.
      */
+    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
     const navigateWebViewToUrl = useCallback((url: string) => {
       const sanitizedUrl = sanitizeUrlInput(url);
       if (!sanitizedUrl) {
@@ -884,14 +885,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }
 
       webViewUriRef.current = sanitizedUrl;
-      setWebViewUri('about:blank');
-      setTimeout(() => {
-        // Drop stale timeouts if a newer navigation superseded this one.
-        if (webViewUriRef.current !== sanitizedUrl) {
-          return;
-        }
-        setWebViewUri(sanitizedUrl);
-      }, 0);
+      setWebViewUri(sanitizedUrl);
+      setWebViewReloadKey((key) => key + 1);
     }, []);
 
     /**
@@ -1748,6 +1743,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   >
                     <View style={styles.webview}>
                       <WebView
+                        key={`browser-webview-${webViewReloadKey}`}
                         originWhitelist={webViewOriginWhitelist}
                         decelerationRate={0.998}
                         ref={webviewRef}

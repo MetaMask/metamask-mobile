@@ -19,6 +19,7 @@ import { PhishingDetectorResultType } from '@metamask/phishing-controller';
 const mockInjectJavaScript = jest.fn();
 const mockStopLoading = jest.fn();
 const mockReload = jest.fn();
+let webViewMountCount = 0;
 
 jest.mock('@metamask/react-native-webview', () => {
   const { View } = jest.requireActual('react-native');
@@ -26,6 +27,9 @@ jest.mock('@metamask/react-native-webview', () => {
 
   const MockWebView = ActualReact.forwardRef(
     (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
+      ActualReact.useEffect(() => {
+        webViewMountCount += 1;
+      }, []);
       ActualReact.useImperativeHandle(ref, () => ({
         injectJavaScript: mockInjectJavaScript,
         stopLoading: mockStopLoading,
@@ -177,6 +181,7 @@ describe('BrowserTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInjectJavaScript.mockClear();
+    webViewMountCount = 0;
   });
 
   it('render Browser', async () => {
@@ -528,6 +533,57 @@ describe('BrowserTab', () => {
         mockProps.initialUrl,
       );
     });
+
+    it('does not navigate when targetUrl is a javascript: URL', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const initialUri = webView.props.source.uri;
+      const mountsBefore = webViewMountCount;
+
+      await act(async () => {
+        webView.props.onOpenWindow({
+          nativeEvent: { targetUrl: 'javascript:alert(1)' },
+        });
+      });
+
+      expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+        initialUri,
+      );
+      expect(webViewMountCount).toBe(mountsBefore);
+      expect(mockReload).not.toHaveBeenCalled();
+    });
+
+    it('remounts WebView when onOpenWindow navigates to a new URL', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const mountsBefore = webViewMountCount;
+
+      await act(async () => {
+        screen.getByTestId('browser-webview').props.onOpenWindow({
+          nativeEvent: { targetUrl: 'https://example.com' },
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
+          'https://example.com',
+        );
+        expect(webViewMountCount).toBeGreaterThan(mountsBefore);
+      });
+    });
   });
 
   describe('URL bar navigation', () => {
@@ -540,6 +596,8 @@ describe('BrowserTab', () => {
         expect(screen.getByTestId('browser-webview')).toBeVisible(),
       );
 
+      const mountsBefore = webViewMountCount;
+
       fireEvent.press(screen.getByTestId('browser-url-display-text'));
       const urlInput = screen.getByTestId('browser-modal-url-input');
       fireEvent(urlInput, 'submitEditing', {
@@ -550,6 +608,7 @@ describe('BrowserTab', () => {
         expect(screen.getByTestId('browser-webview').props.source.uri).toBe(
           'https://example.com',
         );
+        expect(webViewMountCount).toBeGreaterThan(mountsBefore);
       });
       expect(mockInjectJavaScript).not.toHaveBeenCalledWith(
         expect.stringContaining('window.location.href'),
