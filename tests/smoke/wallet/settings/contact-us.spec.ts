@@ -1,11 +1,11 @@
-import { RegressionWalletUX } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
-describe.skip(RegressionWalletUX('Settings'), () => {
+describe.skip(SmokeWalletPlatform('Settings'), () => {
   it('Open contact support', async () => {
     await withFixtures(
       {

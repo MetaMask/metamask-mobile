@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import OnboardingView from '../../../page-objects/Onboarding/OnboardingView';
 import LoginView from '../../../page-objects/wallet/LoginView';
 import SettingsView from '../../../page-objects/Settings/SettingsView';
@@ -14,7 +14,7 @@ import Assertions from '../../../framework/Assertions';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
 
 describe(
-  RegressionWalletPlatform(
+  SmokeWalletPlatform(
     'Log in into the app, change password then delete wallet flow',
   ),
   () => {

@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
@@ -13,7 +13,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 const MEMO = 'Address for testing 123123123';
 
 describe.skip(
-  RegressionWalletPlatform('Relaunch App after Adding Address to Contact Book'),
+  SmokeWalletPlatform('Relaunch App after Adding Address to Contact Book'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);

@@ -1,4 +1,4 @@
-import { RegressionWalletUX } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import SettingsView from '../../../page-objects/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import { loginToApp } from '../../../flows/wallet.flow';
@@ -12,7 +12,7 @@ import BrowserView from '../../../page-objects/Browser/BrowserView';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
 import { DappVariants } from '../../../framework/Constants';
 
-describe(RegressionWalletUX('Clear Privacy data'), () => {
+describe(SmokeWalletPlatform('Clear Privacy data'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

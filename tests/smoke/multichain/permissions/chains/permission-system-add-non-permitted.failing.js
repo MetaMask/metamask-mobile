@@ -1,7 +1,4 @@
-import {
-  RegressionNetworkExpansion,
-  SmokeNetworkExpansion,
-} from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 import { loginToApp } from '../../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import Assertions from '../../../../framework/Assertions';
@@ -121,7 +118,7 @@ describe(
 );
 
 describe(
-  RegressionNetworkExpansion('Chain Permission System, non-permitted chain, '),
+  SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();

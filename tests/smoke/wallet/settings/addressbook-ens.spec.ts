@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
@@ -120,7 +120,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
+describe.skip(SmokeWalletPlatform('Addressbook ENS Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
