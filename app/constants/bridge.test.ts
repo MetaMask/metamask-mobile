@@ -41,7 +41,6 @@ describe('getBridgeApiBaseUrlForMetaMaskEnv', () => {
     expect(getBridgeApiBaseUrlForMetaMaskEnv()).toBe(BRIDGE_UAT_API_BASE_URL);
   });
 
-  // @ts-expect-error This is missing from the Mocha type definitions
   it.each(['dev', 'test', 'e2e', 'local'])(
     'returns the dev base URL when METAMASK_ENVIRONMENT is %s',
     (env: string) => {
@@ -51,7 +50,6 @@ describe('getBridgeApiBaseUrlForMetaMaskEnv', () => {
     },
   );
 
-  // @ts-expect-error This is missing from the Mocha type definitions
   it.each(['production', 'beta', 'rc', 'pre-release'])(
     'returns the prod base URL when METAMASK_ENVIRONMENT is %s',
     (env: string) => {
