@@ -42,7 +42,6 @@ export function completeOnboardingCtaNavigation(
       success: true,
       cta_id: pendingNavigation.ctaId,
       destination_screen_id: destinationScreenId,
-      platform: getOnboardingPerformanceTags().platform,
     },
   });
   pendingNavigation = null;
@@ -60,7 +59,6 @@ export function cancelPendingOnboardingCtaNavigation(reason: string): void {
       success: false,
       reason,
       cta_id: pendingNavigation.ctaId,
-      platform: getOnboardingPerformanceTags().platform,
     },
   });
   pendingNavigation = null;

@@ -96,7 +96,6 @@ export function useRivePerformance({
         success: false,
         animation_id: animationId,
         outcome: 'timeout',
-        platform: getOnboardingPerformanceTags().platform,
       });
     }, timeoutMs);
 
@@ -111,7 +110,6 @@ export function useRivePerformance({
             reason: 'unmounted',
             animation_id: animationId,
             outcome: 'unmounted',
-            platform: getOnboardingPerformanceTags().platform,
           },
         });
         ended.current = true;
@@ -126,7 +124,6 @@ export function useRivePerformance({
           success: true,
           animation_id: animationId,
           outcome: 'play',
-          platform: getOnboardingPerformanceTags().platform,
         });
       },
       onError: (riveError: RiveErrorPayload) => {
@@ -135,7 +132,6 @@ export function useRivePerformance({
           animation_id: animationId,
           outcome: 'error',
           error_type: riveError.type ?? 'unknown',
-          platform: getOnboardingPerformanceTags().platform,
         });
       },
     }),

@@ -79,7 +79,6 @@ export const useScreenPerformance = ({
             success: false,
             reason: 'unmounted',
             screen_id: screenId,
-            platform: getOnboardingPerformanceTags().platform,
           },
         });
         ttcStarted.current = false;
@@ -92,7 +91,6 @@ export const useScreenPerformance = ({
             success: false,
             reason: 'unmounted',
             screen_id: screenId,
-            platform: getOnboardingPerformanceTags().platform,
           },
         });
         fetchStarted.current = false;
@@ -109,7 +107,6 @@ export const useScreenPerformance = ({
           success: true,
           screen_id: screenId,
           content_state: traceContentState,
-          platform: getOnboardingPerformanceTags().platform,
         },
       });
       ttcEnded.current = true;
@@ -148,7 +145,6 @@ export const useScreenPerformance = ({
           success: true,
           screen_id: screenId,
           content_state: traceContentState,
-          platform: getOnboardingPerformanceTags().platform,
         },
       });
       fetchStarted.current = false;
