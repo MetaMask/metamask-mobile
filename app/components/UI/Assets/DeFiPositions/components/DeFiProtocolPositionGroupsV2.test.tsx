@@ -72,10 +72,12 @@ describe('DeFiProtocolPositionGroupsV2', () => {
     expect(await findByText('Aave V3 Staking')).toBeOnTheScreen();
 
     expect(await findByText('USDC')).toBeOnTheScreen();
+    expect(await findByText('deposit')).toBeOnTheScreen();
     expect(await findByText('$100.50')).toBeOnTheScreen();
     expect(await findByText('100.5 USDC')).toBeOnTheScreen();
 
     expect(await findByText('stETH')).toBeOnTheScreen();
+    expect(await findByText('staked')).toBeOnTheScreen();
     expect(await findByText('$4,000.00')).toBeOnTheScreen();
     expect(await findByText('2 stETH')).toBeOnTheScreen();
   });

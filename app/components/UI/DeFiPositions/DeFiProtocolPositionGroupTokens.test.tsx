@@ -1,6 +1,8 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import DeFiProtocolPositionGroupTokens from './DeFiProtocolPositionGroupTokens';
+import DeFiProtocolPositionGroupTokens, {
+  DEFI_DETAILS_POSITION_TYPE_TAG_TEST_ID,
+} from './DeFiProtocolPositionGroupTokens';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
@@ -86,5 +88,35 @@ describe('DeFiProtocolPositionGroupTokens', () => {
     expect(queryByText(/^\d+\s[A-Z0-9]+$/)).not.toBeOnTheScreen(); // Matches token quantities like "20 TKN2"
     expect(await findAllByText('•••••••••')).toHaveLength(2);
     expect(await findAllByText('••••••')).toHaveLength(2);
+  });
+
+  it('renders a position type tag next to the token when provided', async () => {
+    const { findByText, getAllByTestId } = renderWithProvider(
+      <DeFiProtocolPositionGroupTokens
+        positionType="supply"
+        hidePositionTypeLabel
+        tokens={[
+          {
+            ...mockTokens[0],
+            positionType: 'deposit',
+          },
+          {
+            ...mockTokens[1],
+            positionType: 'staked',
+          },
+        ]}
+        networkIconAvatar={10}
+        privacyMode={false}
+      />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(await findByText('deposit')).toBeOnTheScreen();
+    expect(await findByText('staked')).toBeOnTheScreen();
+    expect(getAllByTestId(DEFI_DETAILS_POSITION_TYPE_TAG_TEST_ID)).toHaveLength(
+      2,
+    );
   });
 });

@@ -1,4 +1,7 @@
-import type { DeFiUnderlyingPosition } from '@metamask/assets-controllers';
+import type {
+  DeFiPositionType,
+  DeFiUnderlyingPosition,
+} from '@metamask/assets-controllers';
 import {
   formatChainIdToHex,
   isNonEvmChainId,
@@ -20,6 +23,8 @@ export interface DeFiDetailsPositionTokenV2 {
   marketValue: number | undefined;
   chainId: string;
   isNative: boolean;
+  /** Position type from protocol metadata (e.g. deposit, staked). */
+  positionType: DeFiPositionType;
 }
 
 function toTokenCellChainId(
@@ -81,5 +86,6 @@ export function mapDefiProtocolDetailsPositionV2ToToken(
     marketValue: position.marketValue,
     chainId: toTokenCellChainId(position.chainId),
     isNative,
+    positionType: position.positionType,
   };
 }

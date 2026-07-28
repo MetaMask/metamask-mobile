@@ -26,6 +26,7 @@ describe('mapDefiProtocolDetailsPositionV2ToToken', () => {
       iconUrl: 'musd.png',
       balance: 0.00001,
       isNative: false,
+      positionType: 'deposit',
     });
   });
 
