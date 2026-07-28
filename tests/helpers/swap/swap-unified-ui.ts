@@ -1,5 +1,6 @@
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import SlippageModal from '../../page-objects/swaps/SlippageModal';
+import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet';
 import { Assertions, FrameworkDetector } from '../../framework';
 import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
@@ -88,6 +89,9 @@ export async function checkSwapActivity(
 ) {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
+
+  // Post-trade modal is always shown after confirm; open Activity from there.
+  await PostTradeBottomSheet.tapViewActivity();
 
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.title);

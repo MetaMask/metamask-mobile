@@ -146,6 +146,7 @@ export function setupTrendingApiFetchMock(
   responseData: MockTrendingToken[] = mockTrendingTokensData,
   customReply?: (uri: string) => MockTrendingToken[],
   rwaResponseData: MockRwaToken[] = mockRwaTokensData,
+  searchResponseData: MockTrendingToken[] = [],
 ): void {
   clearAllNockMocks();
   disableNetConnect();
@@ -164,7 +165,10 @@ export function setupTrendingApiFetchMock(
   nock(TRENDING_ORIGIN)
     .get(TOKEN_SEARCH_PATH)
     .query(true)
-    .reply(200, { count: 0, data: [] })
+    .reply(200, {
+      count: searchResponseData.length,
+      data: searchResponseData,
+    })
     .persist();
 
   nock(NFT_API_ORIGIN)

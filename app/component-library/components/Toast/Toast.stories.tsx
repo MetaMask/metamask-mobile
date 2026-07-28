@@ -11,12 +11,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 // Internal dependencies.
 import { default as ToastComponent } from './Toast';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
+import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 import { ToastOptions, ToastVariants } from './Toast.types';
-import {
-  TEST_ACCOUNT_ADDRESS,
-  TEST_AVATAR_TYPE,
-  TEST_NETWORK_IMAGE_URL,
-} from './Toast.constants';
+
+const TEST_ACCOUNT_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
+const TEST_NETWORK_IMAGE_URL =
+  'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
 
 interface ToastStoryArgs {
   variant: ToastVariants;
@@ -72,7 +72,7 @@ export const Default = {
             { label: ' Account 2.', isBold: true },
           ],
           accountAddress: TEST_ACCOUNT_ADDRESS,
-          accountAvatarType: TEST_AVATAR_TYPE,
+          accountAvatarType: AvatarAccountType.JazzIcon,
         };
         break;
       case ToastVariants.Network:

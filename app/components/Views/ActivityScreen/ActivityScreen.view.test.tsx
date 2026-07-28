@@ -8,12 +8,22 @@ import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
 } from '../../../../tests/component-view/renderers/activity';
-import { activityLineaNetworkOverride } from '../../../../tests/component-view/presets/activity';
+import {
+  ACTIVITY_CV_ACCOUNT,
+  activityLineaNetworkOverride,
+  initialStateActivityWithAccountsApi,
+} from '../../../../tests/component-view/presets/activity';
+import {
+  clearAccountsTransactionsApiMocks,
+  setupAccountsTransactionsApiMock,
+} from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
+
+const USDC_MAINNET = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 const optionTestId = (filter: ActivityTypeFilter) =>
   `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${filter}`;
@@ -27,6 +37,34 @@ const selectedTypeFilterLabel = (filter: ActivityTypeFilter) =>
 
 const perpsFilterLabel = (filter: PerpsActivityFilter) =>
   strings(PERPS_ACTIVITY_FILTER_LABEL_KEY[filter]);
+
+const emptyActivityStateWithGeo = () =>
+  initialStateActivityWithAccountsApi().withOverrides({
+    engine: {
+      backgroundState: {
+        GeolocationController: {
+          location: 'us-ca',
+        },
+      },
+    },
+  } as never);
+
+const emptyActivityStateFunded = () =>
+  initialStateActivityWithAccountsApi().withOverrides({
+    engine: {
+      backgroundState: {
+        TokenBalancesController: {
+          tokenBalances: {
+            [ACTIVITY_CV_ACCOUNT]: {
+              '0x1': {
+                [USDC_MAINNET]: '0x5f5e100', // 100 USDC
+              },
+            },
+          },
+        },
+      },
+    },
+  } as never);
 
 describeForPlatforms('ActivityScreen', () => {
   it('updates the selected type filter through the real screen controls', async () => {
@@ -206,6 +244,206 @@ describeForPlatforms('ActivityScreen', () => {
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — empty state', () => {
+  beforeEach(() => {
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  it('shows unfunded Transactions empty state and Add funds opens ramp token selection', async () => {
+    const unfundedDescription = strings(
+      'activity_view.empty_state.transactions_unfunded.description',
+    );
+    const addFundsLabel = strings(
+      'activity_view.empty_state.transactions_unfunded.action',
+    );
+
+    const { getAllByText, findByTestId, findByText } =
+      renderActivityScreenViewWithRoutes({
+        state: emptyActivityStateWithGeo().build(),
+        extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
+
+    fireEvent.press(await findByText(addFundsLabel));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.RAMP.TOKEN_SELECTION)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows funded Transactions empty state and Swap tokens opens bridge', async () => {
+    const fundedDescription = strings(
+      'activity_view.empty_state.transactions_funded.description',
+    );
+    const swapTokensLabel = strings(
+      'activity_view.empty_state.transactions_funded.action',
+    );
+
+    const { findByTestId, findByText } = renderActivityScreenViewWithRoutes({
+      state: emptyActivityStateFunded().build(),
+      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    });
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(await findByText(fundedDescription)).toBeOnTheScreen();
+
+    fireEvent.press(await findByText(swapTokensLabel));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.BRIDGE.ROOT)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows unfunded Buy/Sell empty state and Add funds opens ramp token selection', async () => {
+    const buySellDescription = strings(
+      'activity_view.empty_state.buy_sell.description',
+    );
+    const addFundsLabel = strings('activity_view.empty_state.buy_sell.action');
+
+    const { getByTestId, getAllByText, findByTestId, findByText } =
+      renderActivityScreenViewWithRoutes({
+        state: emptyActivityStateWithGeo().build(),
+        extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
+      });
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(optionTestId(ActivityTypeFilter.BuySell)),
+    );
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.BuySell))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(await findByText(buySellDescription)).toBeOnTheScreen();
+
+    fireEvent.press(await findByText(addFundsLabel));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.RAMP.TOKEN_SELECTION)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Make a prediction CTA on the Predictions empty state', async () => {
+    const makePredictionLabel = strings(
+      'activity_view.empty_state.predictions.action',
+    );
+    const state = initialStateActivityWithAccountsApi()
+      .withRemoteFeatureFlags({
+        predictTradingEnabled: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      })
+      .build();
+
+    const { getByTestId, findByTestId, findByText } = renderActivityScreenView({
+      state,
+    });
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(optionTestId(ActivityTypeFilter.Predictions)),
+    );
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(await findByText(makePredictionLabel)).toBeOnTheScreen();
+  });
+
+  it('shows Perps empty state and Browse markets opens perps market list', async () => {
+    const browseMarketsLabel = strings(
+      'activity_view.empty_state.perps.action',
+    );
+    const perpsDescription = strings(
+      'activity_view.empty_state.perps.description',
+    );
+    // Keep Perps disabled so the list does not mount PerpsActivitySource /
+    // connection providers (which can stay loading). Empty CTA still resolves
+    // from typeFilter alone.
+    const state = initialStateActivityWithAccountsApi()
+      .withRemoteFeatureFlags({
+        perpsPerpTradingEnabled: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      })
+      .build();
+
+    const { getByTestId, findByTestId, findByText } =
+      renderActivityScreenViewWithRoutes({
+        state,
+        extraRoutes: [{ name: Routes.PERPS.ROOT }],
+      });
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Perps)));
+
+    // Wait for Perps-specific copy — EMPTY_STATE may still be the prior
+    // Transactions empty until the filter re-render settles.
+    expect(await findByText(perpsDescription)).toBeOnTheScreen();
+    expect(await findByText(browseMarketsLabel)).toBeOnTheScreen();
+
+    fireEvent.press(await findByText(browseMarketsLabel));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.PERPS.ROOT)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Card empty state and Open MetaMask Card opens card home', async () => {
+    const openCardLabel = strings(
+      'activity_view.empty_state.metamask_card.action',
+    );
+
+    const { getByTestId, findByTestId, findByText } =
+      renderActivityScreenViewWithRoutes({
+        state: initialStateActivityWithAccountsApi().build(),
+        extraRoutes: [{ name: Routes.CARD.ROOT }],
+      });
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(optionTestId(ActivityTypeFilter.MetamaskCard)),
+    );
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(await findByText(openCardLabel)).toBeOnTheScreen();
+
+    fireEvent.press(await findByText(openCardLabel));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.CARD.ROOT)),
     ).toBeOnTheScreen();
   });
 });

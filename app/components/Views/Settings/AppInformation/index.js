@@ -32,6 +32,7 @@ import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { navigateToSupportConsent } from '../../../../util/support';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { isProduction } from '../../../../util/environment';
 import {
@@ -154,9 +155,18 @@ class AppInformation extends PureComponent {
     this.goTo(url, strings('app_information.attributions'));
   };
 
+  // Shows the consent sheet on every tap (choice is not persisted, mirroring
+  // the extension's behavior) before opening the support URL.
+  openSupportWithConsent = (title) => {
+    navigateToSupportConsent(
+      this.props.navigation,
+      (url) => this.goTo(url, title),
+      METAMASK_SUPPORT_URL,
+    );
+  };
+
   onSupportCenter = () => {
-    const url = METAMASK_SUPPORT_URL;
-    this.goTo(url, strings('drawer.metamask_support'));
+    this.openSupportWithConsent(strings('drawer.metamask_support'));
   };
 
   onWebSite = () => {
@@ -165,8 +175,7 @@ class AppInformation extends PureComponent {
   };
 
   onContactUs = () => {
-    const url = METAMASK_SUPPORT_URL;
-    this.goTo(url, strings('drawer.metamask_support'));
+    this.openSupportWithConsent(strings('drawer.metamask_support'));
   };
 
   handleLongPressFox = () => {

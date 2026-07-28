@@ -223,6 +223,14 @@ describe('usePredictPlaceOrder', () => {
         preview: createMockOrderPreview({
           side: Side.SELL,
           minAmountReceived: 150,
+          fees: {
+            metamaskFee: 4.5,
+            providerFee: 1.5,
+            marketFee: 1,
+            totalFee: 6,
+            totalFeePercentage: 4,
+            collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+          },
         }),
       };
       const { result } = renderHook(() => usePredictPlaceOrder());
@@ -241,6 +249,10 @@ describe('usePredictPlaceOrder', () => {
             expect.objectContaining({
               label: expect.stringContaining('Cashed out'),
               isBold: true,
+            }),
+            expect.objectContaining({
+              label: '143.00 added to your balance',
+              isBold: false,
             }),
           ]),
           hasNoTimeout: false,

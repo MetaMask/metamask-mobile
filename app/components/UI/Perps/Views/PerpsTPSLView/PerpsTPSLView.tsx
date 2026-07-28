@@ -5,6 +5,8 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
@@ -51,7 +53,7 @@ import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsTPSLView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
 
   // Extract params from navigation route
