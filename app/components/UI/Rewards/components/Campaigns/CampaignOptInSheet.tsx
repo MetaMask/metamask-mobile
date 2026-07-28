@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   BottomSheet,
   Box,
@@ -29,6 +29,13 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
   onClose?: () => void;
+  /** Optional sheet title. Defaults to the standard campaign opt-in i18n title. */
+  title?: string;
+  /**
+   * Optional custom opt-in handler. When provided, called instead of
+   * `optInToCampaign(campaign.id)`. Treats `true` or `void` as success.
+   */
+  onOptIn?: () => Promise<boolean | void>;
 }
 
 /**
@@ -39,33 +46,52 @@ interface CampaignOptInSheetProps {
 const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
+  title,
+  onOptIn,
 }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const [isCustomOptingIn, setIsCustomOptingIn] = useState(false);
+
+  const isLoading = onOptIn ? isCustomOptingIn : isOptingIn;
 
   const handleOptIn = useCallback(async () => {
     try {
-      const result = await optInToCampaign(campaign.id);
-      if (result?.optedIn) {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
-          )
-            .addProperties({ campaign_id: campaign.id })
-            .build(),
-        );
-        showToast(
-          RewardsToastOptions.success(
-            strings('rewards.campaign.opt_in_success_toast'),
-          ),
-        );
-        onClose?.();
+      if (onOptIn) {
+        setIsCustomOptingIn(true);
+        try {
+          const result = await onOptIn();
+          if (result === false) {
+            return;
+          }
+        } finally {
+          setIsCustomOptingIn(false);
+        }
+      } else {
+        const result = await optInToCampaign(campaign.id);
+        if (!result?.optedIn) {
+          return;
+        }
       }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_CAMPAIGN_OPT_IN_COMPLETED)
+          .addProperties({ campaign_id: campaign.id })
+          .build(),
+      );
+      showToast(
+        RewardsToastOptions.success(
+          strings('rewards.campaign.opt_in_success_toast'),
+        ),
+      );
+      onClose?.();
     } catch {
       // Error is handled by the hook; sheet stays open so user can retry
+      setIsCustomOptingIn(false);
     }
   }, [
+    onOptIn,
     optInToCampaign,
     campaign.id,
     trackEvent,
@@ -95,7 +121,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
               fontWeight={FontWeight.Bold}
               testID="campaign-opt-in-sheet-title"
             >
-              {strings('rewards.campaign.opt_in_sheet_title')}
+              {title ?? strings('rewards.campaign.opt_in_sheet_title')}
             </Text>
           </Box>
           <ButtonIcon
@@ -133,8 +159,8 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleOptIn}
-          isLoading={isOptingIn}
-          isDisabled={isOptingIn}
+          isLoading={isLoading}
+          isDisabled={isLoading}
           twClassName="w-full"
           testID="campaign-opt-in-cta"
         >

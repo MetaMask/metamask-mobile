@@ -24,6 +24,9 @@ import {
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
   PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesDrawProofDto,
   VipDashboardState,
   VipRefereeMeState,
   VipTransactionDto,
@@ -262,6 +265,24 @@ export interface RewardsState {
     CampaignResourceCacheEntry<PredictThePitchPrizePoolDto>
   >;
 
+  // Money Account Sweepstakes stats (keyed by campaignId; auth-scoped via controller)
+  moneyAccountSweepstakesStats: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesStatsMeDto>
+  >;
+
+  // Money Account Sweepstakes prize pool (keyed by campaignId)
+  moneyAccountSweepstakesPrizePools: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesPrizePoolDto>
+  >;
+
+  // Money Account Sweepstakes draw proof (keyed by campaignId)
+  moneyAccountSweepstakesDrawProofs: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesDrawProofDto>
+  >;
+
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
@@ -399,6 +420,9 @@ export const initialState: RewardsState = {
   predictThePitchLeaderboardPositions: {},
   predictThePitchPositions: {},
   predictThePitchPrizePools: {},
+  moneyAccountSweepstakesStats: {},
+  moneyAccountSweepstakesPrizePools: {},
+  moneyAccountSweepstakesDrawProofs: {},
 
   pendingDeeplink: null,
 
@@ -527,6 +551,9 @@ const rewardsSlice = createSlice({
       state.predictThePitchLeaderboardPositions = {};
       state.predictThePitchPositions = {};
       state.predictThePitchPrizePools = {};
+      state.moneyAccountSweepstakesStats = {};
+      state.moneyAccountSweepstakesPrizePools = {};
+      state.moneyAccountSweepstakesDrawProofs = {};
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
@@ -1190,6 +1217,123 @@ const rewardsSlice = createSlice({
       }
     },
 
+    // Money Account Sweepstakes stats reducers
+    setMoneyAccountSweepstakesStats: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        stats: MoneyAccountSweepstakesStatsMeDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.stats;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesStatsLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesStatsError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes prize pool reducers
+    setMoneyAccountSweepstakesPrizePool: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        prizePool: MoneyAccountSweepstakesPrizePoolDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.prizePool;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesPrizePoolLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesPrizePoolError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes draw proof reducers
+    setMoneyAccountSweepstakesDrawProof: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        drawProof: MoneyAccountSweepstakesDrawProofDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.drawProof;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesDrawProofLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesDrawProofError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -1523,6 +1667,15 @@ export const {
   setPredictThePitchPrizePool,
   setPredictThePitchPrizePoolLoading,
   setPredictThePitchPrizePoolError,
+  setMoneyAccountSweepstakesStats,
+  setMoneyAccountSweepstakesStatsLoading,
+  setMoneyAccountSweepstakesStatsError,
+  setMoneyAccountSweepstakesPrizePool,
+  setMoneyAccountSweepstakesPrizePoolLoading,
+  setMoneyAccountSweepstakesPrizePoolError,
+  setMoneyAccountSweepstakesDrawProof,
+  setMoneyAccountSweepstakesDrawProofLoading,
+  setMoneyAccountSweepstakesDrawProofError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

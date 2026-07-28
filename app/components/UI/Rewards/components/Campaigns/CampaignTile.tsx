@@ -26,6 +26,7 @@ import {
 } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
+import { useMoneyAccountSweepstakesParticipation } from '../../hooks/useMoneyAccountSweepstakesParticipation';
 import { useCampaignReminderActions } from '../../hooks/useCampaignReminderActions';
 import { navigateToRewardsRoute } from '../../utils';
 
@@ -46,6 +47,7 @@ interface CampaignTileProps {
  * - SEASON_1: navigates to season one campaign details
  * - PERPS_TRADING: navigates to Perps Trading campaign details
  * - PREDICT_THE_PITCH: navigates to Predict The Pitch campaign details
+ * - MONEY_ACCOUNT_SWEEPSTAKES: navigates to Money Account Sweepstakes details
  * - Unsupported types: non-interactive unless onPress is provided
  * - With onPress: executes custom handler regardless of type
  */
@@ -61,6 +63,9 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     dateLabel,
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
+  const isMoneyAccountSweepstakes =
+    campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES;
+
   const { status: participantStatus, isLoading: isParticipantStatusLoading } =
     useGetCampaignParticipantStatus(
       campaignStatus === 'active' &&
@@ -70,6 +75,18 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
         ? campaign.id
         : undefined,
     );
+
+  const {
+    optedInAny: sweepstakesOptedInAny,
+    isLoading: isSweepstakesParticipationLoading,
+  } = useMoneyAccountSweepstakesParticipation(isMoneyAccountSweepstakes);
+
+  const isOptedIn = isMoneyAccountSweepstakes
+    ? sweepstakesOptedInAny
+    : participantStatus?.optedIn === true;
+  const isOptInLoading = isMoneyAccountSweepstakes
+    ? isSweepstakesParticipationLoading
+    : isParticipantStatusLoading;
 
   const isInteractive =
     campaignStatus !== 'upcoming' &&
@@ -93,10 +110,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
 
   const hasTour = (campaign.details?.howItWorks?.tour?.length ?? 0) > 0;
   const shouldShowTour =
-    hasTour &&
-    !isParticipantStatusLoading &&
-    participantStatus?.optedIn !== true &&
-    campaignStatus === 'active';
+    hasTour && !isOptInLoading && !isOptedIn && campaignStatus === 'active';
 
   const handlePress = () => {
     if (!isInteractive) return;
@@ -148,6 +162,20 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
         navigateToRewardsRoute(
           navigation,
           Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+          {
+            campaignId: campaign.id,
+          },
+        );
+      }
+    } else if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+      if (shouldShowTour) {
+        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigateToRewardsRoute(
+          navigation,
+          Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
           {
             campaignId: campaign.id,
           },

@@ -208,15 +208,27 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
           [BLOCK_TYPES.HEADING_5]: TextVariant.HeadingSm,
           [BLOCK_TYPES.HEADING_6]: TextVariant.HeadingSm,
         };
+        const showDivider =
+          node.nodeType === BLOCK_TYPES.HEADING_1 ||
+          node.nodeType === BLOCK_TYPES.HEADING_2 ||
+          node.nodeType === BLOCK_TYPES.HEADING_3 ||
+          node.nodeType === BLOCK_TYPES.HEADING_4;
         return (
-          <Text
-            key={key}
-            variant={headingVariantMap[node.nodeType]}
-            fontWeight={FontWeight.Bold}
-            twClassName={`my-3 ${headingClassName}`}
-          >
-            {renderInlineChildren(node.content ?? [], key)}
-          </Text>
+          <Fragment key={key}>
+            {showDivider ? (
+              <Box
+                twClassName="-mx-4 mt-8 mb-4 border-b border-border-muted"
+                testID="contentful-rich-text-heading-divider"
+              />
+            ) : null}
+            <Text
+              variant={headingVariantMap[node.nodeType]}
+              fontWeight={FontWeight.Bold}
+              twClassName={`my-3 ${headingClassName}`}
+            >
+              {renderInlineChildren(node.content ?? [], key)}
+            </Text>
+          </Fragment>
         );
       }
 

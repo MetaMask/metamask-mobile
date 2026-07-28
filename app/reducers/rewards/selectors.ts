@@ -16,6 +16,9 @@ import type {
   PerpsTradingCampaignVolumeDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesDrawProofDto,
   VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 
@@ -606,4 +609,77 @@ export const selectPredictThePitchPrizePoolErrorByCampaignId =
   (state: RootState): boolean =>
     campaignId
       ? (state.rewards.predictThePitchPrizePools[campaignId]?.error ?? false)
+      : false;
+
+// Money Account Sweepstakes stats selectors
+export const selectMoneyAccountSweepstakesStatsByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesStatsMeDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.data ?? null)
+      : null;
+
+export const selectMoneyAccountSweepstakesStatsLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesStatsErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.error ?? false)
+      : false;
+
+// Money Account Sweepstakes prize pool selectors
+export const selectMoneyAccountSweepstakesPrizePoolByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesPrizePoolDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesPrizePoolLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesPrizePoolErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.error ??
+        false)
+      : false;
+
+// Money Account Sweepstakes draw proof selectors
+export const selectMoneyAccountSweepstakesDrawProofByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesDrawProofDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesDrawProofLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesDrawProofErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.error ??
+        false)
       : false;
