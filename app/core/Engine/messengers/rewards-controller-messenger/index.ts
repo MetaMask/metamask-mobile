@@ -88,6 +88,7 @@ import {
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
+  RewardsDataServiceRegisterMoneyAccountBindingAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -160,7 +161,8 @@ type AllowedActions =
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
-  | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction;
+  | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
+  | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -268,6 +270,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
       'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
       'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
+      'RewardsDataService:registerMoneyAccountBinding',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

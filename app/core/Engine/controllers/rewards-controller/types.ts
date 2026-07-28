@@ -1310,6 +1310,8 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   reserveSuffix: string;
   refLabel: string;
   weightLabel: string;
+  bindingConflictTitle: string;
+  bindingConflictDescription: string;
 };
 
 export interface MoneyAccountSweepstakesCampaignDetails
