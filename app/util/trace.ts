@@ -108,6 +108,11 @@ export enum TraceName {
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
   OnboardingSRPAccountCreationTime = 'Onboarding SRP Account Creation Time',
   OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
+  // Onboarding screen / Rive / navigation performance
+  OnboardingScreenTimeToContent = 'Onboarding Screen Time To Content',
+  OnboardingScreenDataFetch = 'Onboarding Screen Data Fetch',
+  OnboardingRiveReady = 'Onboarding Rive Ready',
+  OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
   Card = 'Card',
@@ -290,6 +295,9 @@ export enum TraceOperation {
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  OnboardingScreenPerformance = 'onboarding.screen.performance',
+  OnboardingRivePerformance = 'onboarding.rive.performance',
+  OnboardingNavigationPerformance = 'onboarding.navigation.performance',
   // Accounts
   AccountCreate = 'account.create',
   AccountDiscover = 'account.discover',

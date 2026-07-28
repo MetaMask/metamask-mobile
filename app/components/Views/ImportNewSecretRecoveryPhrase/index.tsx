@@ -63,6 +63,9 @@ import {
   validateWords,
   validateMnemonic,
 } from './validation';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 async function checkSeedlessPasswordOutdated(): Promise<boolean> {
   return Authentication.checkIsSeedlessPasswordOutdated({
@@ -113,6 +116,18 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [currentInputWord, setCurrentInputWord] = useState('');
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.IMPORT_SRP,
+    contentReady: true,
+    isEmpty: false,
+    isLoading: loading,
+  });
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.IMPORT_SRP,
+    destinationReady: true,
+  });
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useAnalytics();

@@ -11,6 +11,8 @@ import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
 import { hasTestOverrides } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
+import { OnboardingRiveAnimationIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useRivePerformance } from '../../../hooks/performance/useRivePerformance';
 
 import { useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -61,10 +63,12 @@ const OnboardingAnimation = ({
   children,
   startOnboardingAnimation,
   setStartFoxAnimation,
+  onInteractiveContentReady,
 }: {
   children: React.ReactNode;
   startOnboardingAnimation: boolean;
   setStartFoxAnimation: (value: boolean) => void;
+  onInteractiveContentReady?: () => void;
 }) => {
   const logoRef = useRef<RiveRef>(null);
   const logoPosition = useMemo(() => new Animated.Value(0), []);
@@ -77,6 +81,19 @@ const OnboardingAnimation = ({
   const styles = createStyles();
 
   const [isPlaying, setIsPlaying] = useState(hasTestOverrides);
+  const hasReportedInteractiveContent = useRef(false);
+  const { riveHandlers } = useRivePerformance({
+    animationId: OnboardingRiveAnimationIds.ONBOARDING_WORDMARK,
+    enabled: !hasTestOverrides,
+  });
+
+  const reportInteractiveContentReady = useCallback(() => {
+    if (hasReportedInteractiveContent.current) {
+      return;
+    }
+    hasReportedInteractiveContent.current = true;
+    onInteractiveContentReady?.();
+  }, [onInteractiveContentReady]);
 
   const moveLogoUp = useCallback(() => {
     Animated.parallel([
@@ -92,14 +109,19 @@ const OnboardingAnimation = ({
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,
       }),
-    ]).start();
-  }, [logoPosition, buttonsOpacity]);
+    ]).start(({ finished }) => {
+      if (finished) {
+        reportInteractiveContentReady();
+      }
+    });
+  }, [logoPosition, buttonsOpacity, reportInteractiveContentReady]);
 
   const startRiveAnimation = useCallback(() => {
     if (hasTestOverrides) {
       logoPosition.setValue(-180);
       buttonsOpacity.setValue(1);
       setStartFoxAnimation(true);
+      reportInteractiveContentReady();
       return;
     }
 
@@ -126,6 +148,7 @@ const OnboardingAnimation = ({
     setStartFoxAnimation,
     logoPosition,
     buttonsOpacity,
+    reportInteractiveContentReady,
   ]);
 
   useEffect(() => {
@@ -156,7 +179,11 @@ const OnboardingAnimation = ({
               stateMachineName="WordmarkBuildUp"
               testID="metamask-wordmark-animation"
               onPlay={() => {
+                riveHandlers.onPlay();
                 setIsPlaying(true);
+              }}
+              onError={(riveError) => {
+                riveHandlers.onError(riveError);
               }}
             />
           )}

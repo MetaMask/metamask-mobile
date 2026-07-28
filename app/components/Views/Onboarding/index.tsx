@@ -111,6 +111,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 import {
+  OnboardingCtaIds,
+  OnboardingScreenIds,
+  type OnboardingCtaId,
+} from '../../../hooks/performance/onboardingPerformanceIds';
+import { startOnboardingCtaNavigation } from '../../../hooks/performance/onboardingNavigationPerformanceState';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
+import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
@@ -245,8 +252,22 @@ const Onboarding = () => {
     startFoxAnimation: undefined,
   });
 
+  const [onboardingContentReady, setOnboardingContentReady] =
+    useState(hasTestOverrides);
+
   const [onboardingNotificationVisible, setOnboardingNotificationVisible] =
     useState(false);
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.ONBOARDING_LANDING,
+    contentReady: onboardingContentReady && !state.loading && !loading,
+    isEmpty: false,
+    enabled: !state.loading && !loading,
+  });
+
+  const handleOnboardingInteractiveContentReady = useCallback(() => {
+    setOnboardingContentReady(true);
+  }, []);
 
   const onboardingTraceCtx = useRef<TraceContext>(undefined);
   const socialLoginTraceCtx = useRef<TraceContext>(undefined);
@@ -425,6 +446,7 @@ const Onboarding = () => {
         'onboarding.method': OnboardingMethod.Srp,
         account_type: AccountType.Metamask,
       });
+      startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
       trace({
         name: TraceName.OnboardingNewSrpCreateWallet,
         op: TraceOperation.OnboardingUserJourney,
@@ -472,6 +494,7 @@ const Onboarding = () => {
         'onboarding.method': OnboardingMethod.Srp,
         account_type: AccountType.Imported,
       });
+      startOnboardingCtaNavigation(OnboardingCtaIds.IMPORT_WALLET);
       trace({
         name: TraceName.OnboardingExistingSrpImport,
         op: TraceOperation.OnboardingUserJourney,
@@ -850,6 +873,17 @@ const Onboarding = () => {
         return;
       }
 
+      const socialCtaIdByProvider: Partial<
+        Record<AuthConnection, OnboardingCtaId>
+      > = {
+        [AuthConnection.Google]: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+        [AuthConnection.Apple]: OnboardingCtaIds.SOCIAL_LOGIN_APPLE,
+        [AuthConnection.Telegram]: OnboardingCtaIds.SOCIAL_LOGIN_TELEGRAM,
+      };
+      const socialCtaId =
+        socialCtaIdByProvider[provider] ?? OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE;
+      startOnboardingCtaNavigation(socialCtaId);
+
       // Continue with the social login flow
       navigation.navigate('Onboarding');
 
@@ -1131,6 +1165,7 @@ const Onboarding = () => {
         <OnboardingAnimation
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
+          onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
           {/*
            * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
@@ -1170,7 +1205,12 @@ const Onboarding = () => {
         </OnboardingAnimation>
       </Box>
     ),
-    [state.startOnboardingAnimation, setStartFoxAnimation, handleCtaActions],
+    [
+      state.startOnboardingAnimation,
+      setStartFoxAnimation,
+      handleCtaActions,
+      handleOnboardingInteractiveContentReady,
+    ],
   );
 
   const handleSimpleNotification =
