@@ -8547,19 +8547,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/device-mcp@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/device-mcp@npm:0.3.0"
-  dependencies:
-    "@modelcontextprotocol/sdk": "npm:^1.12.1"
-    zod: "npm:^4.4.3"
-  bin:
-    device-mcp: ./dist/cli/device-mcp.mjs
-  checksum: 10/79c7479d9770643f147fdf05d5a7a23672a73b708f2ff18cdc84c77a3a5a11d3cfc5ea2d53b9e58dd00774a20d9eeff95cca58a28c039b69b4cc77543b694347
-  languageName: node
-  linkType: hard
-
-"@metamask/device-mcp@npm:^0.3.2":
+"@metamask/device-mcp@npm:^0.3.0, @metamask/device-mcp@npm:^0.3.2":
   version: 0.3.2
   resolution: "@metamask/device-mcp@npm:0.3.2"
   dependencies:
