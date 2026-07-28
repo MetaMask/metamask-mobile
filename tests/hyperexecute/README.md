@@ -31,6 +31,13 @@ Sentry DSN in the generated YAML. Those values go to a temp `--job-secret-file` 
 repo and are referenced as `${{.secrets.NAME}}`. GHA artifacts only upload test reports
 (not `tmp/hyperexecute/`).
 
+## Discovery vs `@Performance` grep
+
+Autosplit discovery only emits specs whose describe title can match
+`playwright.testmu.config.ts` grep `/@Performance\b/` (bare type tag). `@System`-only /
+area-only specs are skipped. The per-file runner does **not** use `--pass-with-no-tests`,
+so a mismatched task fails instead of reporting empty success.
+
 ## Manual local trigger
 
 ```bash
