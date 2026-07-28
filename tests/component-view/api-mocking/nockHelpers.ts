@@ -33,8 +33,9 @@ export function disableNetConnect(): void {
   nock.disableNetConnect();
   // In nock v14, each enableNetConnect(string) call overwrites the previous
   // allowlist matcher (single assignment). Both patterns must be combined into
-  // one regex so neither is lost.
-  nock.enableNetConnect(/127\.0\.0\.1|localhost/);
+  // one regex so neither is lost. Include bs-local.com for BrowserStack Local
+  // agents that may poll during local / CI component-view runs.
+  nock.enableNetConnect(/127\.0\.0\.1|localhost|bs-local\.com/);
 }
 
 /**
