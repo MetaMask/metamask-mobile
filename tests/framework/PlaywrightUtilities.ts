@@ -522,6 +522,96 @@ class PlaywrightUtilities {
   }
 
   /**
+   * Force-stop Chrome so the next launch reads `/data/local/tmp/chrome-command-line`.
+   */
+  static forceStopChrome(): void {
+    try {
+      execSync(`adb shell am force-stop ${CHROME_PACKAGE}`, { stdio: 'pipe' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Could not force-stop Chrome: ${message}`);
+    }
+  }
+
+  /**
+   * Open a URL in Chrome via VIEW intent (bypasses omnibox UI flakiness on CI).
+   * Uses `-p` (package) — a bare trailing package name is treated as a component
+   * and fails on google_apis emulator Chrome.
+   */
+  static openUrlInChrome(url: string): void {
+    const escapedUrl = url.replace(/"/g, '\\"');
+    const attempts = [
+      `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" -p ${CHROME_PACKAGE}`,
+      `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" -n ${CHROME_PACKAGE}/com.google.android.apps.chrome.Main`,
+    ];
+    let lastMessage = '';
+    for (const command of attempts) {
+      try {
+        execSync(command, { stdio: 'pipe' });
+        return;
+      } catch (error) {
+        lastMessage = error instanceof Error ? error.message : String(error);
+      }
+    }
+    throw new Error(`Failed to open URL in Chrome via intent: ${lastMessage}`);
+  }
+
+  /**
+   * Grant notification permission so Chrome does not block the NTP with the
+   * "Chrome notifications make things easier" dialog on google_apis emulators.
+   */
+  static grantChromeNotificationPermission(): void {
+    try {
+      execSync(
+        `adb shell pm grant ${CHROME_PACKAGE} android.permission.POST_NOTIFICATIONS`,
+        { stdio: 'pipe' },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(
+        `Could not grant Chrome POST_NOTIFICATIONS (dialog may show): ${message}`,
+      );
+    }
+  }
+
+  /**
+   * Collapse the status bar so heads-up notifications (e.g. Play services)
+   * do not cover Chrome's omnibox on CI emulators.
+   */
+  static collapseStatusBar(): void {
+    PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+  }
+
+  /**
+   * Dismiss visible heads-up notifications on CI google_apis emulators.
+   * The persistent "Enable Google Play services" banner covers in-app controls
+   * (e.g. Unlock) and makes UiAutomator2 report them as non-interactive.
+   */
+  static dismissAndroidHeadsUpNotifications(): void {
+    const serial = process.env.ANDROID_DEVICE_UDID?.trim();
+    const adb = serial ? `adb -s ${serial}` : 'adb';
+    const run = (shellCommand: string): void => {
+      try {
+        execSync(`${adb} shell ${shellCommand}`, { stdio: 'pipe' });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.debug(
+          `dismissAndroidHeadsUpNotifications (${shellCommand}) best-effort failed: ${message}`,
+        );
+      }
+    };
+
+    run('cmd statusbar collapse');
+    run('settings put global heads_up_notifications_enabled 0');
+    run('am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS');
+    // Cancel any posted notifications (Play services banner may already be showing).
+    run('cmd notification cancel-all');
+    // Swipe the typical heads-up position up to dismiss a visible banner.
+    run('input swipe 540 200 540 40 150');
+    run('cmd statusbar collapse');
+  }
+
+  /**
    * Resolves {@link LaunchArgs} defaults for Playwright + Appium (same logical defaults as
    * `FixtureHelper` Detox Android: fallback ports + URL blacklist + account-activity WS fallback).
    * Callers may override or extend via `launchArgs` (e.g. real ports when `withFixtures` is active).

@@ -34,6 +34,7 @@ import type {
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../../components/UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import type { Nft } from '@metamask/assets-controllers';
 import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
 import type { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DeFiProtocolPositionDetails';
@@ -65,6 +66,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
+import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
@@ -404,7 +406,7 @@ export type RootModalFlowParamList = {
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   OnboardingSheet: OnboardingSheetParams | undefined;
@@ -436,7 +438,9 @@ export type RootModalFlowParamList = {
   ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   TurnOffRememberMeModal: undefined;
   AssetHideConfirmation: { onConfirm: () => void } | undefined;
@@ -657,7 +661,7 @@ export type RootStackParamList = {
   RewardsSelectSheet: RewardsNavigationParamList['RewardsSelectSheet'];
 
   // Modal routes
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
@@ -791,7 +795,9 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
@@ -1091,6 +1097,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
