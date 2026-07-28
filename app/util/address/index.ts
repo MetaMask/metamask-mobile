@@ -246,7 +246,9 @@ export function isQRHardwareAccount(address: string) {
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const qrKeyrings = keyrings.filter(
-    (keyring) => keyring.type === ExtendedKeyringTypes.qr,
+    (keyring) =>
+      keyring.type === ExtendedKeyringTypes.qr ||
+      keyring.type === ExtendedKeyringTypes.oneKey,
   );
   let qrAccounts: string[] = [];
   for (const qrKeyring of qrKeyrings) {
@@ -285,7 +287,11 @@ export function getKeyringByAddress(address: string) {
  */
 export function isHardwareAccount(
   address: string,
-  accountTypes = [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger],
+  accountTypes = [
+    ExtendedKeyringTypes.qr,
+    ExtendedKeyringTypes.ledger,
+    ExtendedKeyringTypes.oneKey,
+  ],
 ) {
   const keyring = getKeyringByAddress(address);
   return keyring && accountTypes.includes(keyring.type as ExtendedKeyringTypes);

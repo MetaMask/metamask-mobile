@@ -5,6 +5,13 @@ import EarnRewardsPreview from './EarnRewardsPreview';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MONEY_DISCLAIMER_URL } from '../../../../../constants/urls';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -41,7 +48,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const map: Record<string, string> = {
       'rewards.earn_rewards.title': 'Earn rewards',
-      'rewards.earn_rewards.musd_title': 'Up to {{percentage}}% bonus on mUSD',
+      'rewards.earn_rewards.musd_money_title': 'Earn up to {{percentage}}% APY',
+      'rewards.earn_rewards.musd_disclaimer_accessibility_label':
+        'mUSD APY disclaimer',
       'rewards.earn_rewards.musd_subtitle': 'Money accounts are here',
       'rewards.earn_rewards.card_title': 'Up to 3% back on spend',
       'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
@@ -225,7 +234,8 @@ describe('EarnRewardsPreview', () => {
     it('renders correct text for mUSD card', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3.8% bonus on mUSD')).toBeOnTheScreen();
+      expect(getByText(/Earn up to 3\.8% APY/)).toBeOnTheScreen();
+      expect(getByText('*')).toBeOnTheScreen();
       expect(getByText('Money accounts are here')).toBeOnTheScreen();
     });
 
@@ -235,7 +245,7 @@ describe('EarnRewardsPreview', () => {
       } as ReturnType<typeof useMoneyAccountBalance>);
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3% bonus on mUSD')).toBeOnTheScreen();
+      expect(getByText(/Earn up to 3% APY/)).toBeOnTheScreen();
     });
 
     it('renders correct text for MetaMask card', () => {
@@ -305,6 +315,24 @@ describe('EarnRewardsPreview', () => {
       expect(mockHandleDeeplink).toHaveBeenCalledWith({
         uri: 'metamask://money',
       });
+    });
+
+    it('opens the APY disclaimer in the in-app browser when the asterisk is pressed', () => {
+      setupSelectors({ geoLocation: 'US' });
+      const { getByTestId } = render(<EarnRewardsPreview />);
+
+      fireEvent.press(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK),
+        { stopPropagation: jest.fn() },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: expect.objectContaining({
+          newTabUrl: MONEY_DISCLAIMER_URL,
+        }),
+      });
+      expect(mockHandleDeeplink).not.toHaveBeenCalled();
     });
 
     it('triggers card-home deeplink when card card is pressed', () => {
