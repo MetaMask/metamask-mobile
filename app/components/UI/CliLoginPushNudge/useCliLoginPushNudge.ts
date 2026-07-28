@@ -157,6 +157,73 @@ export function useCliLoginPushNudge(): {
     [runEnableFlow, scheduleForegroundRetry, showLoadingToast, toastRef],
   );
 
+  const runGrantedFlow = useCallback(
+    async (isCurrent: () => boolean) => {
+      if (!isCurrent()) {
+        return;
+      }
+      showLoadingToast();
+      await enableNotifications();
+      if (isCurrent()) {
+        toastRef?.current?.closeToast();
+      }
+    },
+    [enableNotifications, showLoadingToast, toastRef],
+  );
+
+  const runAndroidPermissionFlow = useCallback(
+    async (isCurrent: () => boolean) => {
+      showLoadingToast();
+      // Android < 13 has no runtime dialog; when notifications are not already
+      // granted they can only be enabled from system settings.
+      if (Number(Platform.Version) < ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
+        openSettingsAndScheduleRetry(isCurrent);
+        return;
+      }
+      // Android 13+ requires the POST_NOTIFICATIONS runtime permission.
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+      if (!isCurrent()) {
+        return;
+      }
+      if (result === PermissionsAndroid.RESULTS.GRANTED) {
+        await runEnableFlow(isCurrent);
+        return;
+      }
+      // User tapped Turn on — any deny opens settings.
+      openSettingsAndScheduleRetry(isCurrent);
+    },
+    [openSettingsAndScheduleRetry, runEnableFlow, showLoadingToast],
+  );
+
+  const runIosPermissionFlow = useCallback(
+    async (isCurrent: () => boolean) => {
+      const promptable = await isPushPermissionPromptable();
+      if (!isCurrent()) {
+        return;
+      }
+      if (!promptable) {
+        openSettingsAndScheduleRetry(isCurrent);
+        return;
+      }
+      // OS can still show its dialog — request permission via enableNotifications().
+      // If the user denies, dismiss the toast without opening Settings (matches
+      // PushNotificationOnboarding).
+      showLoadingToast();
+      await enableNotifications();
+      if (isCurrent()) {
+        toastRef?.current?.closeToast();
+      }
+    },
+    [
+      enableNotifications,
+      openSettingsAndScheduleRetry,
+      showLoadingToast,
+      toastRef,
+    ],
+  );
+
   const onTapTurnOn = useCallback(async () => {
     if (inFlightRef.current) {
       return;
@@ -168,66 +235,17 @@ export function useCliLoginPushNudge(): {
 
     try {
       if (await isPushPermissionGranted()) {
-        if (!isCurrent()) {
-          return;
-        }
-        showLoadingToast();
-        await enableNotifications();
-        if (isCurrent()) {
-          toastRef?.current?.closeToast();
-        }
+        await runGrantedFlow(isCurrent);
         return;
       }
       if (!isCurrent()) {
         return;
       }
-
       if (Platform.OS === 'android') {
-        showLoadingToast();
-        // Android 13+ requires the POST_NOTIFICATIONS runtime permission. The
-        // request resolves to NEVER_ASK_AGAIN once the user has permanently
-        // denied it, which is the authoritative signal that the OS dialog can
-        // no longer be shown.
-        if (Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
-          const result = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-          );
-          if (!isCurrent()) {
-            return;
-          }
-          if (result === PermissionsAndroid.RESULTS.GRANTED) {
-            await runEnableFlow(isCurrent);
-            return;
-          }
-          // User tapped Turn on — any deny opens settings.
-          openSettingsAndScheduleRetry(isCurrent);
-          return;
-        }
-
-        // Android < 13 has no runtime dialog; when notifications are not
-        // already granted they can only be enabled from system settings.
-        openSettingsAndScheduleRetry(isCurrent);
+        await runAndroidPermissionFlow(isCurrent);
         return;
       }
-
-      const promptable = await isPushPermissionPromptable();
-      if (!isCurrent()) {
-        return;
-      }
-
-      if (!promptable) {
-        openSettingsAndScheduleRetry(isCurrent);
-        return;
-      }
-
-      // iOS: OS can still show its dialog — request permission via enableNotifications().
-      // If the user denies, dismiss the toast without opening Settings (matches
-      // PushNotificationOnboarding).
-      showLoadingToast();
-      await enableNotifications();
-      if (isCurrent()) {
-        toastRef?.current?.closeToast();
-      }
+      await runIosPermissionFlow(isCurrent);
     } catch {
       if (isCurrent()) {
         toastRef?.current?.closeToast();
@@ -239,11 +257,10 @@ export function useCliLoginPushNudge(): {
       }
     }
   }, [
-    enableNotifications,
-    openSettingsAndScheduleRetry,
-    runEnableFlow,
+    runGrantedFlow,
+    runAndroidPermissionFlow,
+    runIosPermissionFlow,
     showErrorToast,
-    showLoadingToast,
     toastRef,
   ]);
 
