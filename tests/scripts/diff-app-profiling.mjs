@@ -694,9 +694,13 @@ function resolveScenarios(args, currentDir) {
 }
 
 function deletePreviousAppProfilingComments({ pr, repo }) {
+  // Paginate: without --paginate gh only returns the first page (30 comments,
+  // oldest-first), so recent <!-- app-profiling-check --> comments on busy PRs
+  // would be missed and --replace would stack duplicates.
   const raw = runGh([
     'api',
-    `repos/${repo}/issues/${pr}/comments`,
+    '--paginate',
+    `repos/${repo}/issues/${pr}/comments?per_page=100`,
     '--jq',
     `.[] | select(.body | contains("${COMMENT_MARKER}")) | .id`,
   ]);

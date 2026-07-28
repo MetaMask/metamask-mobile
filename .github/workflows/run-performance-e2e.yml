@@ -563,7 +563,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments" \
+          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments?per_page=100" \
             --jq '.[] | select(.body | contains("<!-- perf-test-results -->")) | .id')
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
