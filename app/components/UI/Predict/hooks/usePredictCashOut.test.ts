@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { PredictEventValues } from '../constants/eventNames';
 import { usePredictCashOut } from './usePredictCashOut';
+import { mockTheme } from '../../../../util/theme';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 
@@ -38,16 +39,6 @@ jest.mock('../contexts', () => ({
 const mockLoggerError = jest.fn();
 jest.mock('../../../../util/Logger', () => ({
   error: (...args: unknown[]) => mockLoggerError(...args),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      error: {
-        default: 'error-default',
-      },
-    },
-  }),
 }));
 
 const mockShowToast = jest.fn();
@@ -234,7 +225,7 @@ describe('usePredictCashOut', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: ToastVariants.Icon,
-        iconColor: 'error-default',
+        iconColor: mockTheme.colors.error.default,
         hasNoTimeout: false,
         labelOptions: expect.arrayContaining([
           expect.objectContaining({ isBold: true }),

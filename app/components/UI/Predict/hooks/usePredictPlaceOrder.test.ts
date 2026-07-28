@@ -13,18 +13,10 @@ import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { mockTheme } from '../../../../util/theme';
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      success: {
-        default: 'success-default',
-      },
-    },
-  }),
-}));
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
@@ -193,7 +185,7 @@ describe('usePredictPlaceOrder', () => {
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.Confirmation,
-          iconColor: 'success-default',
+          iconColor: mockTheme.colors.success.default,
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('Prediction placed'),
@@ -255,7 +247,7 @@ describe('usePredictPlaceOrder', () => {
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.Confirmation,
-          iconColor: 'success-default',
+          iconColor: mockTheme.colors.success.default,
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('Cashed out'),
