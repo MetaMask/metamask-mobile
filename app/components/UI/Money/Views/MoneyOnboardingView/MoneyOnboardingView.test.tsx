@@ -1,6 +1,11 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { Dimensions, StyleSheet } from 'react-native';
+import {
+  AppState,
+  type AppStateStatus,
+  Dimensions,
+  StyleSheet,
+} from 'react-native';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
 import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -118,6 +123,9 @@ let mockOnError: (error: { message: string; type: string }) => void;
 let mockTriggerCallbacks: Record<string, () => void> = {};
 const mockSetNumber = jest.fn();
 const mockSetString = jest.fn();
+const mockRiveStop = jest.fn();
+const mockRivePause = jest.fn();
+const mockRivePlay = jest.fn();
 
 const triggerStateChange = (stateName: string) => {
   act(() => {
@@ -128,7 +136,13 @@ const triggerStateChange = (stateName: string) => {
 const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 
 jest.mock('rive-react-native', () => {
-  const mockRiveRef = {};
+  // Wrapped in arrow functions because the factory runs before the jest.fn
+  // declarations above are initialized.
+  const mockRiveRef = {
+    stop: () => mockRiveStop(),
+    pause: () => mockRivePause(),
+    play: () => mockRivePlay(),
+  };
 
   return {
     __esModule: true,
@@ -151,8 +165,24 @@ jest.mock('rive-react-native', () => {
 });
 
 describe('MoneyOnboardingView', () => {
+  let appStateChangeHandler: ((state: AppStateStatus) => void) | undefined;
+
+  const triggerAppStateChange = (state: AppStateStatus) => {
+    act(() => {
+      appStateChangeHandler?.(state);
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    appStateChangeHandler = undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation(((
+      _event: string,
+      handler: (state: AppStateStatus) => void,
+    ) => {
+      appStateChangeHandler = handler;
+      return { remove: jest.fn() };
+    }) as unknown as typeof AppState.addEventListener);
     mockTriggerCallbacks = {};
     mockIsUsUnauthenticatedNonCardholder = false;
     mockRouteParams = undefined;
@@ -618,6 +648,102 @@ describe('MoneyOnboardingView', () => {
             'MoneyOnboardingView: Rive error: Unable to load artboard - IncorrectArtboardName',
         }),
       );
+    });
+  });
+
+  describe('Rive teardown', () => {
+    it('stops the Rive animation before navigating away on completion', () => {
+      renderMoneyOnboardingView();
+
+      triggerStateChange('FinalState');
+
+      expect(mockRiveStop).toHaveBeenCalledTimes(1);
+      expect(mockRiveStop.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('stops the Rive animation before navigating away on close', () => {
+      renderMoneyOnboardingView();
+
+      mockTriggerCallbacks.close();
+
+      expect(mockRiveStop).toHaveBeenCalledTimes(1);
+      expect(mockRiveStop.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('stops the Rive animation before navigating away on error', () => {
+      renderMoneyOnboardingView();
+
+      mockOnError({ message: 'boom', type: 'Malformed' });
+
+      expect(mockRiveStop).toHaveBeenCalledTimes(1);
+      expect(mockRiveStop.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('navigates once when close fires repeatedly', () => {
+      renderMoneyOnboardingView();
+
+      mockTriggerCallbacks.close();
+      mockTriggerCallbacks.close();
+
+      expect(mockRiveStop).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates once when a state change arrives after an exit started', () => {
+      renderMoneyOnboardingView();
+
+      mockTriggerCallbacks.close();
+      triggerStateChange('FinalState');
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockTrackOnboardingEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        }),
+      );
+    });
+  });
+
+  describe('App state changes', () => {
+    it('pauses the Rive animation when the app is backgrounded', () => {
+      renderMoneyOnboardingView();
+
+      triggerAppStateChange('background');
+
+      expect(mockRivePause).toHaveBeenCalledTimes(1);
+      expect(mockRivePlay).not.toHaveBeenCalled();
+    });
+
+    it('pauses the Rive animation when the app becomes inactive', () => {
+      renderMoneyOnboardingView();
+
+      triggerAppStateChange('inactive');
+
+      expect(mockRivePause).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes the Rive animation when the app returns to the foreground', () => {
+      renderMoneyOnboardingView();
+
+      triggerAppStateChange('background');
+      triggerAppStateChange('active');
+
+      expect(mockRivePlay).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not resume the Rive animation once the screen is exiting', () => {
+      renderMoneyOnboardingView();
+
+      mockTriggerCallbacks.close();
+      triggerAppStateChange('active');
+
+      expect(mockRivePlay).not.toHaveBeenCalled();
     });
   });
 

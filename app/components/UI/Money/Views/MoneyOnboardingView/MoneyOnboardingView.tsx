@@ -45,6 +45,8 @@ import Rive, {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
+  AppState,
+  type AppStateStatus,
   PixelRatio,
   StyleSheet,
   useWindowDimensions,
@@ -270,6 +272,7 @@ const MoneyOnboardingView = () => {
   const [ref, riveRef] = useRive();
 
   const stepRef = useRef(0);
+  const isExitingRef = useRef(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(0);
 
@@ -336,6 +339,44 @@ const MoneyOnboardingView = () => {
     );
   }, [riveRef, setTransitionSpeed, setButtonText, overlayOpacity]);
 
+  /**
+   * Tears the Rive state machine down before navigation unmounts the native
+   * view. On Android the render thread otherwise keeps calling into a view
+   * that React Native is disposing of, which segfaults inside the Rive JNI
+   * layer. Returns false when an exit is already in flight, since Rive can
+   * emit several terminal callbacks for a single exit.
+   */
+  const beginExit = useCallback(() => {
+    if (isExitingRef.current) {
+      return false;
+    }
+
+    isExitingRef.current = true;
+    riveRef?.stop();
+
+    return true;
+  }, [riveRef]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        if (isExitingRef.current) {
+          return;
+        }
+
+        if (nextAppState === 'active') {
+          riveRef?.play();
+          return;
+        }
+
+        riveRef?.pause();
+      },
+    );
+
+    return () => subscription.remove();
+  }, [riveRef]);
+
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
@@ -372,6 +413,10 @@ const MoneyOnboardingView = () => {
 
   const handleClose = useCallback(
     async (stepIndex: number) => {
+      if (!beginExit()) {
+        return;
+      }
+
       playImpact(ImpactMoment.PageNavigation);
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
@@ -385,6 +430,7 @@ const MoneyOnboardingView = () => {
       await navigateToPostOnboardingDestination();
     },
     [
+      beginExit,
       dispatch,
       navigateToPostOnboardingDestination,
       postOnboardingRedirectTarget,
@@ -408,6 +454,10 @@ const MoneyOnboardingView = () => {
 
   const handleComplete = useCallback(
     async (stepIndex: number) => {
+      if (!beginExit()) {
+        return;
+      }
+
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
@@ -420,6 +470,7 @@ const MoneyOnboardingView = () => {
       await navigateToPostOnboardingDestination();
     },
     [
+      beginExit,
       dispatch,
       navigateToPostOnboardingDestination,
       postOnboardingRedirectTarget,
@@ -434,6 +485,12 @@ const MoneyOnboardingView = () => {
 
   const handleStateChanged = useCallback(
     (_stateMachineName: string, stateName: string) => {
+      // State machine events emitted while the view is being torn down are
+      // part of the teardown race and must not drive navigation.
+      if (isExitingRef.current) {
+        return;
+      }
+
       if (RIVE_TRANSITION_STATES.has(stateName)) {
         playImpact(ImpactMoment.PageNavigation);
         overlayOpacity.set(
@@ -475,10 +532,15 @@ const MoneyOnboardingView = () => {
           `MoneyOnboardingView: Rive error: ${riveError.message} - ${riveError.type}`,
         ),
       );
+
+      if (!beginExit()) {
+        return;
+      }
+
       dispatch(setMoneyOnboardingSeen(true));
       navigateToMoneyHome();
     },
-    [dispatch, navigateToMoneyHome],
+    [beginExit, dispatch, navigateToMoneyHome],
   );
 
   return (
