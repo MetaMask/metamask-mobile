@@ -134,11 +134,18 @@ describe('isMoneylineLikeMarketType', () => {
 
 describe('filterSupportedLeagues', () => {
   it('keeps the extended sports leagues supported by Predict', () => {
-    const result = filterSupportedLeagues([
+    const extendedSportsLeagues = [
       'nba',
       'wnba',
       'mlb',
+      'kbo',
+      'npb',
+      'cpbl',
       'nhl',
+      'shl',
+      'khl',
+      'cehl',
+      'dehl',
       'fifwc',
       'ucl',
       'epl',
@@ -147,29 +154,29 @@ describe('filterSupportedLeagues', () => {
       'bun',
       'mls',
       'fif',
+      'uel',
+      'col',
+      'fl1',
+      'ere',
+      'bra',
+      'por',
+      'bel1',
+      'elc',
+      'lib',
+      'nfl',
+      'cfb',
+      'cfl',
       'atp',
       'wta',
       'itf',
+    ];
+
+    const result = filterSupportedLeagues([
+      ...extendedSportsLeagues,
       'fake_league',
     ]);
 
-    expect(result).toEqual([
-      'nba',
-      'wnba',
-      'mlb',
-      'nhl',
-      'fifwc',
-      'ucl',
-      'epl',
-      'lal',
-      'sea',
-      'bun',
-      'mls',
-      'fif',
-      'atp',
-      'wta',
-      'itf',
-    ]);
+    expect(result).toEqual(extendedSportsLeagues);
   });
 });
 

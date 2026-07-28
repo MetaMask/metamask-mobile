@@ -29,6 +29,14 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     pattern: /^nfl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'away-home',
   },
+  cfb: {
+    pattern: /^cfb-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  cfl: {
+    pattern: /^cfl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
   nba: {
     pattern: /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'away-home',
@@ -41,9 +49,37 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     pattern: /^mlb-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'away-home',
   },
+  kbo: {
+    pattern: /^kbo-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  npb: {
+    pattern: /^npb-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  cpbl: {
+    pattern: /^cpbl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
   nhl: {
     pattern: /^nhl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'away-home',
+  },
+  shl: {
+    pattern: /^shl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  khl: {
+    pattern: /^khl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  cehl: {
+    pattern: /^cehl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  dehl: {
+    pattern: /^dehl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
   },
   ucl: {
     pattern: /^ucl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
@@ -100,6 +136,15 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     pattern: /^epl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'home-away',
     tagSlug: 'premier-league',
+  },
+  elc: {
+    pattern: /^elc-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'efl-championship',
+  },
+  bel1: {
+    pattern: /^bel1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
   },
   cze1: {
     pattern: /^cze1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,

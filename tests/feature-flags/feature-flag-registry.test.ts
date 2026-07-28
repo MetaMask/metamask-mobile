@@ -43,6 +43,58 @@ describe('Feature Flag Registry', () => {
         expect(entry.productionDefault).toBeDefined();
       }
     });
+
+    it('enables curated event pages for the extended sports leagues', () => {
+      const extendedSportsLeagues = [
+        'nba',
+        'wnba',
+        'mlb',
+        'nhl',
+        'fifwc',
+        'ucl',
+        'epl',
+        'lal',
+        'sea',
+        'bun',
+        'mls',
+        'fif',
+        'atp',
+        'wta',
+        'itf',
+        'uel',
+        'col',
+        'fl1',
+        'ere',
+        'bra',
+        'por',
+        'bel1',
+        'elc',
+        'lib',
+        'kbo',
+        'npb',
+        'cpbl',
+        'shl',
+        'khl',
+        'cehl',
+        'dehl',
+        'nfl',
+        'cfb',
+        'cfl',
+      ];
+
+      const extendedSportsFlag =
+        FEATURE_FLAG_REGISTRY.predictExtendedSportsMarkets.productionDefault;
+
+      expect(extendedSportsFlag).toEqual(
+        expect.objectContaining({
+          versions: expect.objectContaining({
+            '7.82.0': expect.objectContaining({
+              leagues: expect.arrayContaining(extendedSportsLeagues),
+            }),
+          }),
+        }),
+      );
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
