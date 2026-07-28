@@ -104,7 +104,11 @@ export function useCustomAmountStage({
       loadingBaselineRef.current = quotesLastUpdated;
       lastCommittedFiatRef.current = amountFiat;
 
-      if (isNoOpRecommit) {
+      // `disablePay` flows are direct transfers: no pay token, no quote, and the
+      // required-token amount may never resolve. There is nothing to await once
+      // the amount is committed, so settle on the arm frame itself — the settle
+      // branch below is never re-entered when no reactive input changes.
+      if (isNoOpRecommit || disablePay) {
         setStage(null);
       }
       return;
@@ -118,9 +122,7 @@ export function useCustomAmountStage({
       (loadingBaselineRef.current === undefined ||
         quotesLastUpdated > loadingBaselineRef.current);
 
-    // `disablePay` flows are direct transfers with no pay token and no quotes,
-    // so no quote will ever arrive. Settle as soon as the amount commit lands.
-    if (hasAmount && (hasFreshQuote || isQuotesLoading || disablePay)) {
+    if (hasAmount && (hasFreshQuote || isQuotesLoading)) {
       setStage(null);
     }
   }, [

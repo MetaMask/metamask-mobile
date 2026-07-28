@@ -1,11 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import {
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useRef,
-} from 'react';
+import { type Dispatch, type SetStateAction, useEffect, useRef } from 'react';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { CustomAmountStage } from '../custom-amount/useCustomAmountStage';

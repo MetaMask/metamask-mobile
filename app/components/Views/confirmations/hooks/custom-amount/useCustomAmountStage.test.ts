@@ -327,45 +327,70 @@ describe('useCustomAmountStage', () => {
       expect(view.result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
-    it('settles the Loading override once the amount commit lands', () => {
-      // Regression: the extracted hook had no disablePay concept, so the commit
-      // Loading override could never clear (no quote ever arrives) and the
-      // stage deadlocked in Loading with the Confirm button disabled.
-      setupState({ isQuotesLoading: false, quotes: [], amountRaw: '1000' });
+    it('settles the commit Loading override on the arm frame, with no quote and no resolved amount', () => {
+      // Regression (device deadlock): a direct withdraw never fetches a quote
+      // and its required-token amount may never resolve (missing fiat rate), so
+      // `hasAmount` can stay false forever. The settle must happen on the arm
+      // frame itself — the settle branch is never re-entered when no reactive
+      // input changes. Reproduce that: no quote, no amount, no dep change.
+      setupState({
+        isQuotesLoading: false,
+        quotes: [],
+        quotesLastUpdated: undefined,
+        amountRaw: undefined,
+      });
+
+      const { result } = runHook({ disablePay: true });
+
+      // Commit the amount: handleDone sets the Loading override. Nothing else
+      // changes afterwards (no quote, no amount), yet it must settle.
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
+    });
+
+    it('settles a changed re-commit without any quote', () => {
+      setupState({
+        isQuotesLoading: false,
+        quotes: [],
+        amountRaw: undefined,
+      });
 
       const { result, setOptions } = runHook({
         amountFiat: '5',
         disablePay: true,
       });
 
-      // Commit at '5' arms the settle effect (records the baseline).
+      // First commit settles on the arm frame.
       act(() => {
         result.current.setStage(CustomAmountStage.Loading);
       });
-      // A new committed amount re-runs the effect; disablePay needs no quote,
-      // just a real amount, so the override clears to ShowTotals.
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
+
+      // Edit the amount and re-commit: re-arms and settles again immediately.
       act(() => {
         setOptions({ amountFiat: '10' });
+        result.current.setStage(CustomAmountStage.Loading);
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
-    it('holds the Loading override until the required token has an amount', () => {
-      setupState({ isQuotesLoading: false, quotes: [], amountRaw: '0' });
+    it('settles an identical re-commit without any quote', () => {
+      setupState({ isQuotesLoading: false, quotes: [], amountRaw: undefined });
 
-      const { result, setOptions } = runHook({ disablePay: true });
+      const { result } = runHook({ amountFiat: '5', disablePay: true });
 
       act(() => {
         result.current.setStage(CustomAmountStage.Loading);
       });
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
 
-      // hasAmount is false, so the override is retained.
-      expect(result.current.stage).toBe(CustomAmountStage.Loading);
-
-      setupState({ isQuotesLoading: false, quotes: [], amountRaw: '1000' });
+      // Re-commit the same amount: still settles (no-op re-commit OR disablePay).
       act(() => {
-        setOptions({});
+        result.current.setStage(CustomAmountStage.Loading);
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
