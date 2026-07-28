@@ -51,7 +51,6 @@ if [ -f "$SUMMARY_FILE" ]; then
                 .scenario // (
                   .testFilePath // ""
                   | if test("/performance/onboarding/") then "onboarding"
-                    elif test("/performance/mm-connect/") then "mm-connect"
                     else "imported-wallet"
                     end
                 )
