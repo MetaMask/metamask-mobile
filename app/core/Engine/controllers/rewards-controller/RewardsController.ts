@@ -5911,7 +5911,7 @@ export class RewardsController extends BaseController<
       return null;
     }
 
-    const cached = this.state.moneyAccountSweepstakesDrawProof[campaignId];
+    const cached = this.state.moneyAccountSweepstakesDrawProof?.[campaignId];
     if (
       cached &&
       Date.now() - cached.lastFetched <
@@ -5947,9 +5947,12 @@ export class RewardsController extends BaseController<
     if (result) {
       this.#moneyAccountSweepstakesDrawProofNullCache.delete(campaignId);
       this.update((state) => {
-        state.moneyAccountSweepstakesDrawProof[campaignId] = {
-          ...result,
-          lastFetched: Date.now(),
+        state.moneyAccountSweepstakesDrawProof = {
+          ...state.moneyAccountSweepstakesDrawProof,
+          [campaignId]: {
+            ...result,
+            lastFetched: Date.now(),
+          },
         };
       });
     } else {
