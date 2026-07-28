@@ -13,7 +13,8 @@ import Routes from '../../../constants/navigation/Routes';
 /**
  * Component View tests for DeleteWalletModal.
  *
- * Covers modal UI states and confirmation navigation only.
+ * Mirrors (partial): tests/smoke/wallet/settings/delete-wallet.spec.ts
+ * — modal UI states and confirmation navigation only.
  *
  * Run: yarn jest -c jest.config.view.js DeleteWalletModal.view.test.tsx --runInBand
  */
