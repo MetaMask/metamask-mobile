@@ -7519,14 +7519,14 @@
       "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
-      "title": "MetaMask Card",
-      "upsell_title": "Get MetaMask Card",
+      "title": "Card",
+      "upsell_title": "Get card",
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
-      "get_now": "Get now",
-      "link_title": "Link MetaMask Card",
+      "get_now": "Get",
+      "link_title": "Link card",
       "link_subtitle": "Spend your balance and earn on purchases.",
       "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
@@ -7554,7 +7554,6 @@
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Manage",
-      "avail_balance": "Avail. balance",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
@@ -7568,9 +7567,6 @@
       "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
-    },
-    "footer": {
-      "add_money": "Add funds"
     },
     "add_money_sheet": {
       "title": "Add funds",

@@ -33,7 +33,6 @@ import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList, {
   MAX_PREVIEW_ITEMS as MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
 } from '../../components/MoneyActivityList';
-import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
@@ -379,13 +378,6 @@ const MoneyHomeView = () => {
     [navigation, trackButtonClicked],
   );
 
-  const handleFooterAddMoneyPress = useCallback(() => {
-    handleAddPress({
-      labelKey: 'money.footer.add_money',
-      componentName: COMPONENT_NAMES.MONEY_FOOTER,
-    });
-  }, [handleAddPress]);
-
   const handleMusdRowAddPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -427,15 +419,6 @@ const MoneyHomeView = () => {
       ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
     });
   }, [navigation, metamaskCardMode]);
-
-  const handleCardHeaderPress = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_CARD_SECTION_HEADER,
-      redirect_target: SCREEN_NAMES.CARD_HOME,
-    });
-
-    navigateToCardHome();
-  }, [navigateToCardHome, trackSurfaceClicked]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -609,15 +592,6 @@ const MoneyHomeView = () => {
     [initiateDeposit, trackTokenSurfaceClicked],
   );
 
-  const handlePotentialEarningsHeaderPress = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
-      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
-    });
-
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
-  }, [navigation, trackSurfaceClicked]);
-
   const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -662,15 +636,6 @@ const MoneyHomeView = () => {
     },
     [navigation, trackSurfaceClicked],
   );
-
-  const handleActivityHeaderPress = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
-      redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
-    });
-
-    navigation.navigate(Routes.MONEY.ACTIVITY as never);
-  }, [navigation, trackSurfaceClicked]);
 
   const handleViewAllActivityPress = useCallback(() => {
     trackButtonClicked({
@@ -734,7 +699,6 @@ const MoneyHomeView = () => {
           <MoneyMetaMaskCard
             mode={metamaskCardMode}
             onGetNowPress={navigateToCardHome}
-            onHeaderPress={handleCardHeaderPress}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
             showMetalCard={hasMetalCard}
@@ -819,7 +783,6 @@ const MoneyHomeView = () => {
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
           onViewAllPress={handleViewAllActivityPress}
-          onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
           privacyMode={privacyMode}
         />
@@ -838,7 +801,6 @@ const MoneyHomeView = () => {
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}
           onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
-          onHeaderPress={handlePotentialEarningsHeaderPress}
           onInfoPress={handleEarnCryptoInfoPress}
           privacyMode={privacyMode}
         />
@@ -947,7 +909,6 @@ const MoneyHomeView = () => {
             {section.node}
           </React.Fragment>
         ))}
-        <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
       </ScrollView>
     </Box>
   );
