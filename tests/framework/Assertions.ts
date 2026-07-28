@@ -1,5 +1,5 @@
 import { waitFor } from 'detox';
-import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, stripJsonKeys } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import Matchers from './Matchers.ts';
 import {
@@ -823,5 +823,47 @@ export default class Assertions {
         )}\nActual: ${JSON.stringify(actual, null, 2)}`,
       );
     }
+  }
+
+  /**
+   * Parse a JSON string and assert equality (objects, arrays, and primitives).
+   */
+  static async checkParsedJsonEqual(
+    actualText: string,
+    expectedJson: Json,
+    description = 'result',
+  ): Promise<void> {
+    let actualJson: Json;
+    try {
+      actualJson = JSON.parse(actualText) as Json;
+    } catch {
+      throw new Error(
+        `Failed to parse JSON from ${description}: ${actualText}`,
+      );
+    }
+    await this.checkIfJsonEqual(actualJson, expectedJson);
+  }
+
+  /**
+   * Parse a JSON string, strip excluded keys, and assert equality.
+   */
+  static async checkParsedJsonEqualExcluding(
+    actualText: string,
+    expectedJson: Json,
+    excludedKeys: string[],
+    description = 'result',
+  ): Promise<void> {
+    let actualJson: Json;
+    try {
+      actualJson = JSON.parse(actualText) as Json;
+    } catch {
+      throw new Error(
+        `Failed to parse JSON from ${description}: ${actualText}`,
+      );
+    }
+    await this.checkIfJsonEqual(
+      stripJsonKeys(actualJson, excludedKeys),
+      stripJsonKeys(expectedJson, excludedKeys),
+    );
   }
 }

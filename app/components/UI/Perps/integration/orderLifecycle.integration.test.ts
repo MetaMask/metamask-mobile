@@ -6,7 +6,7 @@
  * `HyperLiquidProvider` runs; only the I/O boundary (SDK clients, wallet,
  * subscriptions) is mocked via the harness.
  *
- * Reference: tests/integration/AGENTS.md · .agents/skills/integration-test/
+ * Reference: tests/integration/AGENTS.md · MetaMask/skills integration-test
  */
 
 import { type Position } from '@metamask/perps-controller';

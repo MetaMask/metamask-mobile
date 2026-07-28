@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import {
   BottomSheet,
@@ -16,7 +17,7 @@ import Routes from '../../../constants/navigation/Routes';
 
 export const SelectSRPBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const surfaceClass = useElevatedSurface();
   const goBack = useCallback(() => {
     goBackIfFocused(navigation);
