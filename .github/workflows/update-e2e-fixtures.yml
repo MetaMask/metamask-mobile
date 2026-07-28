@@ -331,7 +331,7 @@ jobs:
         # Spec throws after writing an updated fixture when structural changes exist.
         # Continue so we can cache/commit the written file.
         continue-on-error: true
-        timeout-minutes: 35
+        timeout-minutes: 25
         run: >-
           yarn playwright test
           --config tests/playwright.smoke-appium.config.ts
