@@ -1,24 +1,25 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Box,
   BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
-  ButtonVariant,
+  Icon,
   IconColor,
   IconName,
+  IconSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type {
   MoneyAccountSweepstakesLocalizedTextDto,
   MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesTodayStatus,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatUsd } from '../../../utils/formatUtils';
-import { ModalType } from '../../RewardsBottomSheetModal';
 import { StatCell } from '../OndoCampaignStatsSummary';
-import { strings } from '../../../../../../../locales/i18n';
 import { ENTRIES_COUNT_PLACEHOLDER } from './constants';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS = {
@@ -26,12 +27,30 @@ export const MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS = {
   CURRENT_BALANCE: 'money-account-sweepstakes-stats-current-balance',
   ELIGIBLE_BALANCE: 'money-account-sweepstakes-stats-eligible-balance',
   ENTRIES: 'money-account-sweepstakes-stats-entries',
+  ELIGIBLE_STATUS_ICON: 'money-account-sweepstakes-stats-eligible-status-icon',
 } as const;
 
 interface MoneyAccountSweepstakesStatsSummaryProps {
   stats: MoneyAccountSweepstakesStatsMeDto | null;
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
   isLoading: boolean;
+}
+
+function getEligibleStatusDescription(
+  todayStatus: MoneyAccountSweepstakesTodayStatus | undefined,
+  localizedText: MoneyAccountSweepstakesLocalizedTextDto,
+): string {
+  const base = localizedText.eligibleBalanceDescription;
+  switch (todayStatus) {
+    case 'on_track':
+      return `${base} ${localizedText.onTrackDescription}`;
+    case 'lost_today':
+      return `${base} ${localizedText.lostTodayDescription}`;
+    case 'below_threshold':
+      return `${base} ${localizedText.belowThresholdDescription}`;
+    default:
+      return base;
+  }
 }
 
 const MoneyAccountSweepstakesStatsSummary: React.FC<
@@ -41,19 +60,9 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
 
   const showInfoModal = useCallback(
     (title: string, description: string) => {
-      navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
+      navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
         title,
         description,
-        type: ModalType.Confirmation,
-        confirmAction: {
-          label: strings('rewards.upcoming_rewards.cta_label'),
-          onPress: () => {
-            // dismiss only
-          },
-          variant: ButtonVariant.Primary,
-        },
-        showCancelButton: true,
-        cancelMode: 'top-right-cross-icon',
       });
     },
     [navigation],
@@ -72,11 +81,49 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
       )
     : '—';
 
+  const todayStatus = stats?.todayStatus;
+  const isWarningStatus =
+    todayStatus === 'lost_today' || todayStatus === 'below_threshold';
+  const eligibleValueColor = isWarningStatus
+    ? TextColor.WarningDefault
+    : TextColor.TextDefault;
+
+  const eligibleStatusIcon = useMemo(() => {
+    if (!todayStatus) {
+      return null;
+    }
+    if (todayStatus === 'on_track') {
+      return (
+        <Icon
+          name={IconName.Check}
+          size={IconSize.Md}
+          color={IconColor.SuccessDefault}
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.ELIGIBLE_STATUS_ICON
+          }
+        />
+      );
+    }
+    if (isWarningStatus) {
+      return (
+        <Icon
+          name={IconName.Danger}
+          size={IconSize.Md}
+          color={IconColor.WarningDefault}
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.ELIGIBLE_STATUS_ICON
+          }
+        />
+      );
+    }
+    return null;
+  }, [todayStatus, isWarningStatus]);
+
   const infoSuffix = (title: string, description: string) => (
     <ButtonIcon
       iconName={IconName.Info}
       iconProps={{ color: IconColor.IconAlternative }}
-      size={ButtonIconSize.Sm}
+      size={ButtonIconSize.Xs}
       onPress={() => showInfoModal(title, description)}
     />
   );
@@ -104,24 +151,6 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
           }
         />
         <StatCell
-          label={localizedText.eligibleBalanceTitle}
-          value={eligibleBalanceDisplay}
-          isLoading={showSkeleton}
-          testID={
-            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.ELIGIBLE_BALANCE
-          }
-          suffix={
-            !showSkeleton
-              ? infoSuffix(
-                  localizedText.eligibleBalanceTitle,
-                  localizedText.eligibleBalanceDescription,
-                )
-              : undefined
-          }
-        />
-      </Box>
-      <Box flexDirection={BoxFlexDirection.Row}>
-        <StatCell
           label={localizedText.entriesTitle}
           value={entriesDisplay}
           isLoading={showSkeleton}
@@ -134,6 +163,26 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
                 )
               : undefined
           }
+        />
+      </Box>
+      <Box flexDirection={BoxFlexDirection.Row}>
+        <StatCell
+          label={localizedText.eligibleBalanceTitle}
+          value={eligibleBalanceDisplay}
+          isLoading={showSkeleton}
+          valueColor={eligibleValueColor}
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.ELIGIBLE_BALANCE
+          }
+          suffix={
+            !showSkeleton
+              ? infoSuffix(
+                  localizedText.eligibleBalanceTitle,
+                  getEligibleStatusDescription(todayStatus, localizedText),
+                )
+              : undefined
+          }
+          valueSuffix={!showSkeleton ? eligibleStatusIcon : undefined}
         />
       </Box>
     </Box>

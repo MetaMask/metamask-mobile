@@ -25,6 +25,12 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     Text: (props: Record<string, unknown>) =>
       ReactActual.createElement(RN.Text, props, props.children),
+    Icon: ({ name, testID, ...props }: { name?: string; testID?: string }) =>
+      ReactActual.createElement(RN.Text, {
+        testID,
+        accessibilityLabel: name,
+        ...props,
+      }),
     ButtonIcon: ({
       onPress,
       ...props
@@ -44,15 +50,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   tw.style = jest.fn(() => ({}));
   return { useTailwind: () => tw };
 });
-
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const map: Record<string, string> = {
-      'rewards.upcoming_rewards.cta_label': 'Got it',
-    };
-    return map[key] ?? key;
-  },
-}));
 
 jest.mock('../../../utils/formatUtils', () => ({
   formatUsd: (value: number | null) =>
@@ -90,6 +87,11 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   bindingConflictTitle: 'Money Account already linked',
   bindingConflictDescription:
     'Money Account already binds to another Rewards profile.',
+  onTrackDescription: "You are on track to earn today's entry.",
+  lostTodayDescription:
+    "You lost today's entry because your balance dipped below $100 today.",
+  belowThresholdDescription:
+    "Maintain a balance of $100 or more in your Money Account to earn todays' entry.",
 };
 
 const stats: MoneyAccountSweepstakesStatsMeDto = {
@@ -128,8 +130,36 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     expect(getByTestId(TEST_IDS.ENTRIES).props.children).toBe('3 / 7');
   });
 
-  it('renders dashes when stats are unavailable', () => {
+  it('shows Check icon when todayStatus is on_track', () => {
     const { getByTestId } = render(
+      <MoneyAccountSweepstakesStatsSummary
+        stats={stats}
+        localizedText={localizedText}
+        isLoading={false}
+      />,
+    );
+
+    expect(
+      getByTestId(TEST_IDS.ELIGIBLE_STATUS_ICON).props.accessibilityLabel,
+    ).toBe('Check');
+  });
+
+  it('shows Danger icon when todayStatus is lost_today', () => {
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesStatsSummary
+        stats={{ ...stats, todayStatus: 'lost_today' }}
+        localizedText={localizedText}
+        isLoading={false}
+      />,
+    );
+
+    expect(
+      getByTestId(TEST_IDS.ELIGIBLE_STATUS_ICON).props.accessibilityLabel,
+    ).toBe('Danger');
+  });
+
+  it('renders dashes when stats are unavailable', () => {
+    const { getByTestId, queryByTestId } = render(
       <MoneyAccountSweepstakesStatsSummary
         stats={null}
         localizedText={localizedText}
@@ -140,6 +170,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     expect(getByTestId(TEST_IDS.CURRENT_BALANCE).props.children).toBe('—');
     expect(getByTestId(TEST_IDS.ELIGIBLE_BALANCE).props.children).toBe('—');
     expect(getByTestId(TEST_IDS.ENTRIES).props.children).toBe('—');
+    expect(queryByTestId(TEST_IDS.ELIGIBLE_STATUS_ICON)).toBeNull();
   });
 
   it('hides values while loading without existing stats', () => {
@@ -171,7 +202,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     expect(getByTestId(TEST_IDS.ENTRIES).props.children).toBe('3 / 7');
   });
 
-  it('opens an info modal when a stats info button is pressed', () => {
+  it('opens RewardsInfoSheetModal for current balance', () => {
     const { getAllByTestId } = render(
       <MoneyAccountSweepstakesStatsSummary
         stats={stats}
@@ -183,13 +214,54 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     fireEvent.press(getAllByTestId('stats-info-button')[0]);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      expect.objectContaining({
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
         title: 'Current balance',
         description: 'Current balance description',
-        showCancelButton: true,
-        cancelMode: 'top-right-cross-icon',
-      }),
+      },
+    );
+  });
+
+  it('opens eligible balance info with on_track status description', () => {
+    const { getAllByTestId } = render(
+      <MoneyAccountSweepstakesStatsSummary
+        stats={stats}
+        localizedText={localizedText}
+        isLoading={false}
+      />,
+    );
+
+    // Current balance, Entries, Eligible balance — eligible is last
+    fireEvent.press(getAllByTestId('stats-info-button')[2]);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: 'Eligible balance',
+        description:
+          "Eligible balance description You are on track to earn today's entry.",
+      },
+    );
+  });
+
+  it('opens eligible balance info with lost_today status description', () => {
+    const { getAllByTestId } = render(
+      <MoneyAccountSweepstakesStatsSummary
+        stats={{ ...stats, todayStatus: 'lost_today' }}
+        localizedText={localizedText}
+        isLoading={false}
+      />,
+    );
+
+    fireEvent.press(getAllByTestId('stats-info-button')[2]);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: 'Eligible balance',
+        description:
+          "Eligible balance description You lost today's entry because your balance dipped below $100 today.",
+      },
     );
   });
 });
