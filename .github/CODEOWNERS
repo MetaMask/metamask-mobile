@@ -390,7 +390,6 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-system-tests.yml                          @MetaMask/qa
 .github/scripts/e2e-*.mjs                                       @MetaMask/qa
 .github/scripts/collect-qa-stats.mjs                            @MetaMask/qa
-.github/scripts/generate-regression-slack-summary.mjs           @MetaMask/qa
 
 # Co-owned by Swaps and Money Movement teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
