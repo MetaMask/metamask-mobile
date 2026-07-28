@@ -137,7 +137,7 @@
     "run-playwright:android": "yarn playwright test --project android --config tests/playwright.config.ts",
     "run-playwright:ios": "yarn playwright test --project ios --config tests/playwright.config.ts",
     "run-playwright:android-testmu": "yarn playwright test --project testmu-android --config tests/playwright.testmu.config.ts",
-    "run-playwright:android-onboarding-testmu": "yarn playwright test --project testmu-android-onboarding --config tests/playwright.testmu.config.ts",
+    "run-playwright:android-onboarding-testmu": "yarn playwright test --project testmu-android-onboarding --project testmu-android-onboarding-seedless --config tests/playwright.testmu.config.ts",
     "run-playwright:ios-onboarding-testmu": "yarn playwright test --project testmu-ios-onboarding --project testmu-ios-onboarding-seedless --config tests/playwright.testmu.config.ts",
     "run-playwright:android-seedless-testmu": "yarn playwright test --project testmu-android-onboarding-seedless --config tests/playwright.testmu.config.ts",
     "run-playwright:ios-seedless-testmu": "yarn playwright test --project testmu-ios-onboarding-seedless --config tests/playwright.testmu.config.ts",
