@@ -15,6 +15,7 @@ export enum AgentProgressStatus {
   Thinking = 'thinking',
   SearchingWeb = 'searching-web',
   CheckingPrices = 'checking-prices',
+  PreparingPlan = 'preparing-plan',
   PreparingQuote = 'preparing-quote',
 }
 
@@ -32,6 +33,7 @@ export const AGENT_PROGRESS_LABELS: Record<AgentProgressStatus, string> = {
   [AgentProgressStatus.Thinking]: 'Thinking',
   [AgentProgressStatus.SearchingWeb]: 'Searching the web',
   [AgentProgressStatus.CheckingPrices]: 'Checking prices',
+  [AgentProgressStatus.PreparingPlan]: 'Preparing transaction plan',
   [AgentProgressStatus.PreparingQuote]: 'Preparing quote',
 };
 

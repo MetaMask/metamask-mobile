@@ -23,8 +23,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { fetch as expoFetch } from 'expo/fetch';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import type { TrendingAsset } from '@metamask/assets-controllers';
+import {
+  BatchSellMetricsLocation,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
+import {
+  fetchTokenAssets,
+  type TrendingAsset,
+} from '@metamask/assets-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import {
   Box,
@@ -69,11 +75,13 @@ import { getAssetNavigationParams } from '../../../Trending/components/TrendingT
 import { useTrendingTokenPress } from '../../../Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import {
   selectAllowedChainRanking,
+  selectBatchSellDestStablecoinsByChain,
   selectSelectedSourceChainIds,
+  setBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
 import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
@@ -81,6 +89,7 @@ import AssistantResponseActions from './components/AssistantResponseActions';
 import AgentProgress, { AgentProgressStatus } from './components/AgentProgress';
 import { ConversationControlsTestIds } from './components/ConversationControls/ConversationControls.testIds';
 import EmbeddedSwapCard from './components/EmbeddedSwapCard';
+import PortfolioPlanCard from './components/PortfolioPlanCard';
 import ResearchChart from './components/ResearchChart';
 import { WalletAssistantTransactionStatusCard } from './components/TransactionStatusCard';
 import {
@@ -116,12 +125,20 @@ import {
 } from './performanceUtils';
 import { useWalletAssistantPersistence } from './persistence';
 import { WalletAssistantWalletContext } from './walletContext';
+import {
+  buildPortfolioPlan,
+  getTokenLabelsByAssetId,
+  getWalletTokenAssetId,
+  parsePortfolioPlanRequest,
+  type WalletAssistantPortfolioPlan,
+} from './portfolioPlan';
 
 type ResearchSource = WalletAssistantResearchSource;
 type ResearchResponse = WalletAssistantResearchResponse;
 
 interface Message {
   id: string;
+  portfolioPlan?: WalletAssistantPortfolioPlan;
   role: 'assistant' | 'user';
   research?: ResearchResponse;
   text: string;
@@ -130,6 +147,11 @@ interface Message {
 const INITIAL_MESSAGES: Message[] = [];
 const OPENAI_KEYCHAIN_SERVICE = 'metamask-wallet-assistant-openai-v2';
 const PROMPT_EXAMPLES = [
+  {
+    icon: IconName.Merge,
+    label: 'Consolidate positions',
+    prompt: 'Move all my meme coins into USDC',
+  },
   {
     icon: IconName.SwapVertical,
     label: 'Buy or swap a token',
@@ -975,6 +997,7 @@ interface ConversationHistoryProps {
   messages: Message[];
   onLatestUserAnchored: () => void;
   onOpenSource: (url: string) => void;
+  onReviewPortfolioPlan: (plan: WalletAssistantPortfolioPlan) => void;
   onRetry: (prompt: string) => void;
   onReviewSwap: (
     sourceToken: BridgeToken | undefined,
@@ -992,6 +1015,7 @@ const ConversationHistory = React.memo(
     messages,
     onLatestUserAnchored,
     onOpenSource,
+    onReviewPortfolioPlan,
     onRetry,
     onReviewSwap,
     scrollViewRef,
@@ -1076,19 +1100,30 @@ const ConversationHistory = React.memo(
                   onOpenSource={onOpenSource}
                   onReviewSwap={onReviewSwap}
                 />
+              ) : message.portfolioPlan ? (
+                <PortfolioPlanCard
+                  plan={message.portfolioPlan}
+                  onReview={() => {
+                    if (message.portfolioPlan) {
+                      onReviewPortfolioPlan(message.portfolioPlan);
+                    }
+                  }}
+                />
               ) : (
                 <Text variant={TextVariant.BodyMd}>{message.text}</Text>
               )}
-              <AssistantResponseActions
-                responseText={message.text}
-                onRetry={() => {
-                  if (previousUserPrompt) {
-                    onRetry(previousUserPrompt);
-                  }
-                }}
-                onThumbUp={NOOP}
-                onThumbDown={NOOP}
-              />
+              {!message.portfolioPlan && (
+                <AssistantResponseActions
+                  responseText={message.text}
+                  onRetry={() => {
+                    if (previousUserPrompt) {
+                      onRetry(previousUserPrompt);
+                    }
+                  }}
+                  onThumbUp={NOOP}
+                  onThumbDown={NOOP}
+                />
+              )}
             </Box>
           ),
         )}
@@ -1104,6 +1139,7 @@ const ConversationHistory = React.memo(
  */
 const WalletAssistant = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const tw = useTailwind();
   const {
     isLoading: isPersistenceLoading,
@@ -1113,6 +1149,9 @@ const WalletAssistant = () => {
   const hasHydratedPersistence = useRef(false);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const allowedChainRanking = useSelector(selectAllowedChainRanking);
+  const batchSellDestinationsByChain = useSelector(
+    selectBatchSellDestStablecoinsByChain,
+  );
   const [draft, setDraft] = useState('');
   const draftResearchPlan = useMemo(() => buildResearchPlan(draft), [draft]);
   const walletChainIds = useMemo(
@@ -1337,6 +1376,62 @@ const WalletAssistant = () => {
       ...messages,
       { id: `user-${messages.length}`, role: 'user', text },
     ];
+    const portfolioPlanRequest = parsePortfolioPlanRequest(text);
+    if (portfolioPlanRequest) {
+      if (messages.length === 0 && !reduceMotion) {
+        LayoutAnimation.configureNext(FIRST_CHAT_LAYOUT_ANIMATION);
+      }
+      shouldAnchorLatestMessage.current = true;
+      setMessages(nextMessages);
+      setDraft('');
+      setError('');
+      setErrorRecovery(undefined);
+      setIsLoading(true);
+      setRequestStatus(AgentProgressStatus.PreparingPlan);
+
+      try {
+        const assetIds = walletTokens
+          .map(getWalletTokenAssetId)
+          .filter((assetId): assetId is NonNullable<typeof assetId> =>
+            Boolean(assetId),
+          );
+        const assetIdBatches = Array.from(
+          { length: Math.ceil(assetIds.length / 100) },
+          (_, index) => assetIds.slice(index * 100, (index + 1) * 100),
+        );
+        const assets = (
+          await Promise.all(
+            assetIdBatches.map((batch) =>
+              fetchTokenAssets(batch, {
+                includeLabels: true,
+              }),
+            ),
+          )
+        ).flat();
+        const portfolioPlan = buildPortfolioPlan({
+          destinationTokensByChain: batchSellDestinationsByChain,
+          labelsByAssetId: getTokenLabelsByAssetId(assets),
+          request: portfolioPlanRequest,
+          walletTokens,
+        });
+
+        setMessages((current) => [
+          ...current,
+          {
+            id: `assistant-${current.length}`,
+            portfolioPlan,
+            role: 'assistant',
+            text: `Consolidate ${portfolioPlan.sourceTokens.length} positions into ${portfolioPlan.destinationSymbol}.`,
+          },
+        ]);
+      } catch {
+        setError('Could not prepare this portfolio plan. Please try again.');
+        setDraft(text);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
     const previousAssistantMessage = [...messages]
       .reverse()
       .find((message) => message.role === 'assistant');
@@ -1510,12 +1605,14 @@ const WalletAssistant = () => {
     }
   }, [
     apiKey,
+    batchSellDestinationsByChain,
     draft,
     isLoading,
     localMarketTokens,
     messages,
     reduceMotion,
     walletSnapshot,
+    walletTokens,
   ]);
 
   const handleStop = useCallback(() => {
@@ -1592,6 +1689,29 @@ const WalletAssistant = () => {
       });
     },
     [navigation],
+  );
+
+  const handleReviewPortfolioPlan = useCallback(
+    (plan: WalletAssistantPortfolioPlan) => {
+      if (
+        plan.status !== 'ready' ||
+        plan.sourceTokens.length === 0 ||
+        !plan.sourceChainId
+      ) {
+        return;
+      }
+
+      dispatch(setBatchSellSourceTokens(plan.sourceTokens));
+      navigation.navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.Unknown,
+          preferredDestinationSymbol: plan.destinationSymbol,
+          preserveBridgeState: true,
+        },
+      });
+    },
+    [dispatch, navigation],
   );
 
   const handleRetryResponse = useCallback((prompt: string) => {
@@ -1769,6 +1889,7 @@ const WalletAssistant = () => {
                 messages={messages}
                 onLatestUserAnchored={handleLatestUserAnchored}
                 onOpenSource={handleOpenSource}
+                onReviewPortfolioPlan={handleReviewPortfolioPlan}
                 onRetry={handleRetryResponse}
                 onReviewSwap={handleReviewSwap}
                 scrollViewRef={scrollViewRef}
