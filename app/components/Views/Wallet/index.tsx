@@ -71,6 +71,9 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   BadgeWrapperPositionAnchorShape,
+  Button as MMDSButton,
+  ButtonVariant as MMDSButtonVariant,
+  ButtonSize as MMDSButtonSize,
   ButtonIcon,
   ButtonIconSize,
   IconColor as MMDSIconColor,
@@ -1091,6 +1094,19 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
+  const libsodiumPocButton =
+    process.env.METAMASK_ENVIRONMENT !== 'production' ? (
+      <MMDSButton
+        variant={MMDSButtonVariant.Secondary}
+        size={MMDSButtonSize.Md}
+        isFullWidth
+        onPress={() => navigation.navigate(Routes.LIBSODIUM_POC)}
+        testID="wallet-libsodium-poc-button"
+      >
+        libsodium POC
+      </MMDSButton>
+    ) : null;
+
   const portfolioHeaderBase = (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
@@ -1101,6 +1117,7 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
+      {libsodiumPocButton}
     </View>
   );
 
@@ -1116,6 +1133,7 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
+      {libsodiumPocButton}
     </View>
   );
 
