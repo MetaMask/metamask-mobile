@@ -65,6 +65,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
+import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
@@ -404,7 +405,7 @@ export type RootModalFlowParamList = {
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   OnboardingSheet: OnboardingSheetParams | undefined;
@@ -657,7 +658,7 @@ export type RootStackParamList = {
   RewardsSelectSheet: RewardsNavigationParamList['RewardsSelectSheet'];
 
   // Modal routes
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
