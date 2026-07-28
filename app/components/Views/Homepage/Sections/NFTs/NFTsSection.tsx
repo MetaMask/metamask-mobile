@@ -190,9 +190,9 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
           <SectionRow gap={3}>
             {isLoading ? (
               <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-                <NftSkeletonCell />
-                <NftSkeletonCell />
-                <NftSkeletonCell />
+                <NftSkeletonCell animated={isDetecting} />
+                <NftSkeletonCell animated={isDetecting} />
+                <NftSkeletonCell animated={isDetecting} />
               </Box>
             ) : (
               nftRows.map((row, rowIndex) => (
