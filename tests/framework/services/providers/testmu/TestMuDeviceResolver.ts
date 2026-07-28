@@ -12,6 +12,9 @@ const BROWSERSTACK_TO_TESTMU_DEVICE: Record<
   string,
   { name: string; osVersion?: string }
 > = {
+  // PoC: BS Pixel 7 Pro / 13 → TestMu Pixel 7 Pro / 15
+  'Google Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '15' },
+  'Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '15' },
   'Google Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
   'Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
   'Samsung Galaxy S25 Ultra': { name: 'Galaxy S25 Ultra', osVersion: '15' },
@@ -42,12 +45,15 @@ export function normalizeTestMuPlatformVersion(osVersion: string): string {
 }
 
 function isExactDeviceMatchEnabled(): boolean {
-  return process.env.TESTMU_DEVICE_EXACT?.toLowerCase() === 'true';
+  // Bracket access so babel-plugin-transform-inline-environment-variables
+  // cannot bake an undefined value at Jest transform time.
+  const value = process.env['TESTMU_DEVICE_EXACT'];
+  return typeof value === 'string' && value.toLowerCase() === 'true';
 }
 
 /**
  * Widen device/OS selection with TestMu App Automation regex so a busy exact
- * device (e.g. "Pixel 8 Pro" + "14") can fall back to any matching inventory
+ * device (e.g. "Pixel 7 Pro" + "15") can fall back to any matching inventory
  * entry. Set TESTMU_DEVICE_EXACT=true to pin the catalog name instead.
  */
 export function applyTestMuAvailabilityRegex(

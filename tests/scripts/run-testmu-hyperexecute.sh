@@ -134,8 +134,8 @@ env:
   BUILD_TYPE: "$(yaml_escape "$BUILD_TYPE")"
   LT_USERNAME: \${{.secrets.LT_USERNAME}}
   LT_ACCESS_KEY: \${{.secrets.LT_ACCESS_KEY}}
-  TESTMU_DEVICE: "$(yaml_escape "${TESTMU_DEVICE:-Pixel 8 Pro}")"
-  TESTMU_OS_VERSION: "$(yaml_escape "${TESTMU_OS_VERSION:-14}")"
+  TESTMU_DEVICE: "$(yaml_escape "${TESTMU_DEVICE:-Pixel 7 Pro}")"
+  TESTMU_OS_VERSION: "$(yaml_escape "${TESTMU_OS_VERSION:-15}")"
   TESTMU_BUILD_NAME: "$(yaml_escape "${TESTMU_BUILD_NAME:-HyperExecute-Performance}")"
   TESTMU_GEO_LOCATION: "$(yaml_escape "${TESTMU_GEO_LOCATION:-SE}")"
   TEST_PLATFORM: "$(yaml_escape "${TEST_PLATFORM:-android}")"
@@ -182,7 +182,7 @@ EOF
 echo "=== Generated HyperExecute YAML: $HE_YAML ==="
 echo "Secrets file: (outside workspace, wiped on exit)"
 echo "Primary app env key: $APP_URL_KEY=${!APP_URL_KEY:-<empty>}"
-echo "Device: ${TESTMU_DEVICE:-Pixel 8 Pro} / ${TESTMU_OS_VERSION:-14}"
+echo "Device: ${TESTMU_DEVICE:-Pixel 7 Pro} / ${TESTMU_OS_VERSION:-15}"
 echo "Concurrency: $HE_CONCURRENCY"
 
 # Ensure scripts are executable inside the uploaded payload

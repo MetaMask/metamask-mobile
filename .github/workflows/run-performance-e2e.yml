@@ -335,11 +335,11 @@ jobs:
           FILE="tests/performance/device-matrix.json"
 
           # TestMu PoC: one logical Pixel device only (no Galaxy, no duplicate Pixel aliases).
-          # Matrix keeps BrowserStack catalog name "Google Pixel 8 Pro"; TestMu runner/resolver
-          # maps it to TestMu catalog name "Pixel 8 Pro" for session capabilities.
-          ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name == "Google Pixel 8 Pro")]' "$FILE")
+          # Matrix keeps BrowserStack catalog name "Google Pixel 7 Pro" / 13; TestMu runner/resolver
+          # maps it to TestMu catalog name "Pixel 7 Pro" / 15 for session capabilities.
+          ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name == "Google Pixel 7 Pro")]' "$FILE")
           IOS_MATRIX='[]'
-          echo "PoC mode: Google Pixel 8 Pro only (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
+          echo "PoC mode: Google Pixel 7 Pro only (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
 
           {
             echo "android_matrix<<EOF"
