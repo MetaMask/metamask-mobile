@@ -138,14 +138,14 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
-    it('uses the selected wallet type before a stale targetWalletTypeRef', async () => {
+    it('uses targetWalletTypeRef over the selected account wallet type', async () => {
       const refs = createMockRefs();
-      refs.targetWalletTypeRef.current = HardwareWalletType.Qr;
+      refs.targetWalletTypeRef.current = HardwareWalletType.Ledger;
       const mockAdapter = createMockAdapter();
       const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
       const options = createDefaultOptions({
         refs,
-        walletType: HardwareWalletType.Ledger,
+        walletType: HardwareWalletType.Qr,
         deviceId: 'device-123',
         createAdapterWithCallbacks,
       });

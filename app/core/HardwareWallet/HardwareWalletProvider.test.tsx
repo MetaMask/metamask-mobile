@@ -1254,9 +1254,9 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    it('keeps the selected account wallet type when a stale target is set', async () => {
-      mockUseSelector.mockReturnValue({ address: '0xledger' });
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+    it('uses the target wallet type over the selected account wallet type', async () => {
+      mockUseSelector.mockReturnValue({ address: '0xqr' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Qr);
       const { result } = renderHook(() => useTestActions(), {
         wrapper: ({ children }: { children: React.ReactNode }) => (
           <HardwareWalletProvider>{children}</HardwareWalletProvider>
@@ -1264,7 +1264,7 @@ describe('HardwareWalletProvider', () => {
       });
 
       act(() => {
-        result.current.actions.setTargetWalletType(HardwareWalletType.Qr);
+        result.current.actions.setTargetWalletType(HardwareWalletType.Ledger);
       });
 
       await waitFor(() => {
@@ -1272,6 +1272,53 @@ describe('HardwareWalletProvider', () => {
           HardwareWalletType.Ledger,
         );
       });
+    });
+
+    it('creates the target adapter when ensureDeviceReady runs before re-render', async () => {
+      mockUseSelector.mockReturnValue({ address: '0xqr' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Qr);
+      const createdLedgerAdapters: (typeof mockAdapterInstance)[] = [];
+      mockCreateAdapter.mockImplementation(
+        (walletType: HardwareWalletType | null) => {
+          const adapter = {
+            ...mockAdapterInstance,
+            walletType: walletType ?? HardwareWalletType.Ledger,
+            requiresDeviceDiscovery: walletType !== HardwareWalletType.Qr,
+            disconnect: jest.fn().mockResolvedValue(undefined),
+            ensureDeviceReady: jest.fn().mockResolvedValue(true),
+            onTransportStateChange: jest
+              .fn()
+              .mockImplementation((callback: (available: boolean) => void) => {
+                callback(true);
+                return jest.fn();
+              }),
+          };
+          if (walletType === HardwareWalletType.Ledger) {
+            createdLedgerAdapters.push(adapter);
+          }
+          return adapter;
+        },
+      );
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+      await waitFor(() => {
+        expect(mockCreateAdapter).toHaveBeenCalledWith(
+          HardwareWalletType.Qr,
+          expect.any(Object),
+        );
+      });
+      createdLedgerAdapters.length = 0;
+
+      await act(async () => {
+        result.current.actions.setTargetWalletType(HardwareWalletType.Ledger);
+        await result.current.actions.ensureDeviceReady('device-123');
+      });
+
+      expect(createdLedgerAdapters.length).toBeGreaterThan(0);
+      expect(createdLedgerAdapters[0].ensureDeviceReady).toHaveBeenCalled();
     });
   });
 });
