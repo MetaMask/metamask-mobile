@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import MoneyAccountSweepstakesCampaignCTA from './MoneyAccountSweepstakesCampaignCTA';
 import { CAMPAIGN_CTA_TEST_IDS } from '../CampaignOptInCta';
 import {
@@ -10,13 +10,22 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+let mockFocusEffectCallback: (() => void) | null = null;
 let mockIsGeoRestricted = false;
 let mockIsGeoLoading = false;
 let mockOptedInAny = false;
 let mockIsParticipationLoading = false;
 let mockBindingConflict = false;
-const mockEnsureOptedIn = jest.fn(async () => ({ success: true }));
-const mockEnsureBound = jest.fn(async () => 'bound' as const);
+let mockHasActionableAddMoneyOptions = true;
+const mockEnsureOptedIn = jest.fn(
+  async (): Promise<{
+    success: boolean;
+    reason?: 'binding-conflict';
+  }> => ({ success: true }),
+);
+const mockEnsureBound = jest.fn(
+  async (): Promise<'bound' | 'conflict' | 'unavailable'> => 'bound',
+);
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
@@ -30,6 +39,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useFocusEffect: (callback: () => void) => {
+    mockFocusEffectCallback = callback;
+  },
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -62,6 +74,10 @@ jest.mock('../../../hooks/useMoneyAccountSweepstakesBinding', () => ({
     ensureBound: mockEnsureBound,
     bindingConflict: mockBindingConflict,
   }),
+}));
+
+jest.mock('../../../hooks/useHasActionableAddMoneyOptions', () => ({
+  useHasActionableAddMoneyOptions: () => mockHasActionableAddMoneyOptions,
 }));
 
 jest.mock('../../../hooks/useRewardsToast', () => ({
@@ -120,6 +136,9 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   entriesCountValue: '{count} / 7',
   drawScheduleTitle: 'Draw schedule',
   addFundsTitle: 'Add funds',
+  addFundsNoBalanceTitle: "You don't have any balance yet",
+  addFundsNoBalanceDescription:
+    'Deposit crypto or mUSD in your wallet before moving them to Money Account',
   weekTitle: 'Week {number}',
   completeLabel: 'Complete',
   activeLabel: 'Active',
@@ -175,9 +194,11 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     mockOptedInAny = false;
     mockIsParticipationLoading = false;
     mockBindingConflict = false;
+    mockHasActionableAddMoneyOptions = true;
     mockEnsureOptedIn.mockResolvedValue({ success: true });
     mockEnsureBound.mockResolvedValue('bound');
     latestOptInSheetProps = null;
+    mockFocusEffectCallback = null;
   });
 
   it('renders nothing when series status is not active', () => {
@@ -234,6 +255,39 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
     });
+  });
+
+  it('navigates immediately and toasts after returning when no Add Money options are actionable', async () => {
+    mockOptedInAny = true;
+    mockHasActionableAddMoneyOptions = false;
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign()}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
+
+    // Simulate returning to the campaign screen after dismissing Add Money.
+    act(() => {
+      mockFocusEffectCallback?.();
+    });
+
+    expect(mockEntriesClosed).toHaveBeenCalledWith(
+      "You don't have any balance yet",
+      'Deposit crypto or mUSD in your wallet before moving them to Money Account',
+    );
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
   });
 
   it('shows binding conflict toast instead of navigating when already opted in', async () => {
@@ -311,7 +365,9 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
     expect(latestOptInSheetProps?.onOptIn).toBeDefined();
 
-    await latestOptInSheetProps?.onOptIn?.();
+    await act(async () => {
+      await latestOptInSheetProps?.onOptIn?.();
+    });
     fireEvent.press(getByTestId('campaign-opt-in-sheet-close'));
 
     expect(mockEnsureOptedIn).toHaveBeenCalledTimes(1);
@@ -335,7 +391,9 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     );
 
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
-    await latestOptInSheetProps?.onOptIn?.();
+    await act(async () => {
+      await latestOptInSheetProps?.onOptIn?.();
+    });
     fireEvent.press(getByTestId('campaign-opt-in-sheet-close'));
 
     expect(mockEntriesClosed).toHaveBeenCalledWith(
@@ -358,7 +416,9 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     );
 
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
-    await latestOptInSheetProps?.onOptIn?.();
+    await act(async () => {
+      await latestOptInSheetProps?.onOptIn?.();
+    });
     fireEvent.press(getByTestId('campaign-opt-in-sheet-close'));
 
     expect(mockNavigate).not.toHaveBeenCalled();

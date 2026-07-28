@@ -1565,9 +1565,16 @@ describe('RewardsController', () => {
   });
 
   describe('addPointsEstimateToHistory', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('adds entry to history with basic request/response fields', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1591,13 +1598,10 @@ describe('RewardsController', () => {
       expect(entry.requestAccount).toBe(CAIP_ACCOUNT_1);
       expect(entry.responsePointsEstimate).toBe(100);
       expect(entry.responseBonusBips).toBe(200);
-
-      jest.useRealTimers();
     });
 
     it('flattens swap context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockSwapContext = {
@@ -1646,13 +1650,10 @@ describe('RewardsController', () => {
       expect(entry.requestSwapFeeAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestSwapFeeAssetAmount).toBe('5000000000000000');
       expect(entry.requestSwapFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('flattens single perps context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockPerpsContext = {
@@ -1681,13 +1682,10 @@ describe('RewardsController', () => {
       expect(entry.requestPerpsType).toBe('CLOSE_POSITION');
       expect(entry.requestPerpsCoin).toBe('BTC');
       expect(entry.requestPerpsUsdFeeValue).toBe('15.75');
-
-      jest.useRealTimers();
     });
 
     it('excludes perps context fields when perpsContext is an array', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockPerpsContextArray = [
@@ -1727,13 +1725,10 @@ describe('RewardsController', () => {
       // Basic fields should still be present
       expect(entry.requestActivityType).toBe('PERPS');
       expect(entry.responsePointsEstimate).toBe(300);
-
-      jest.useRealTimers();
     });
 
     it('flattens predict context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1762,13 +1757,10 @@ describe('RewardsController', () => {
       expect(entry.requestPredictFeeAssetId).toBe('eip155:8453/slip44:60');
       expect(entry.requestPredictFeeAssetAmount).toBe('1000000000000000');
       expect(entry.requestPredictFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('flattens shield context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1797,13 +1789,10 @@ describe('RewardsController', () => {
       expect(entry.requestShieldFeeAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestShieldFeeAssetAmount).toBe('2000000000000000');
       expect(entry.requestShieldFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('limits history to 50 entries', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1824,13 +1813,10 @@ describe('RewardsController', () => {
       }
 
       expect(controller.state.pointsEstimateHistory).toHaveLength(50);
-
-      jest.useRealTimers();
     });
 
     it('adds new entries at the beginning (most recent first)', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request1 = {
@@ -1873,13 +1859,10 @@ describe('RewardsController', () => {
       expect(entries[1].timestamp).toBe(now);
       expect(entries[1].requestActivityType).toBe('SWAP');
       expect(entries[1].responsePointsEstimate).toBe(100);
-
-      jest.useRealTimers();
     });
 
     it('preserves oldest entries within limit when trimming', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1909,8 +1892,6 @@ describe('RewardsController', () => {
       // Oldest kept entry should be the 6th one added (indices 5-54 are kept)
       expect(entries[49].responsePointsEstimate).toBe(6);
       expect(entries[49].timestamp).toBe(now + 5);
-
-      jest.useRealTimers();
     });
   });
 
@@ -17503,6 +17484,9 @@ describe('RewardsController', () => {
       campaigns: {},
       clientVersionRequirements: null,
       firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17542,6 +17526,9 @@ describe('RewardsController', () => {
       campaigns: {},
       clientVersionRequirements: null,
       firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17586,6 +17573,9 @@ describe('RewardsController', () => {
       campaigns: {},
       clientVersionRequirements: null,
       firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},

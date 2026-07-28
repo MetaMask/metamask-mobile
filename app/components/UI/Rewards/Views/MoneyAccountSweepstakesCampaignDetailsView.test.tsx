@@ -194,7 +194,9 @@ jest.mock('../hooks/useMoneyAccountSweepstakesParticipation');
 jest.mock('../hooks/useGetMoneyAccountSweepstakesStatsMe');
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
-const mockEnsureBound = jest.fn(async () => 'bound' as const);
+const mockEnsureBound = jest.fn(
+  async (): Promise<'bound' | 'conflict' | 'unavailable'> => 'bound',
+);
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
@@ -245,6 +247,9 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   entriesCountValue: '{count} / 7',
   drawScheduleTitle: 'Draw schedule',
   addFundsTitle: 'Add funds',
+  addFundsNoBalanceTitle: "You don't have any balance yet",
+  addFundsNoBalanceDescription:
+    'Deposit crypto or mUSD in your wallet before moving them to Money Account',
   weekTitle: 'Week {number}',
   completeLabel: 'Complete',
   activeLabel: 'Active',

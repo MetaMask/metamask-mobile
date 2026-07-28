@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import RewardsDashboard from './RewardsDashboard';
 import Routes from '../../../../constants/navigation/Routes';
@@ -1553,11 +1553,12 @@ describe('RewardsDashboard', () => {
 
       // Act — 5 quick taps
       tapTitle(getByTestId as never, 5);
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       // Assert
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
-      });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:getVIPDashboard',
         defaultSelectorValues.subscriptionId,
@@ -1647,8 +1648,8 @@ describe('RewardsDashboard', () => {
 
       // Act — first 5 taps trigger; another 5 should be ignored
       tapTitle(getByTestId as never, 5);
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await jest.runAllTimersAsync();
       });
       tapTitle(getByTestId as never, 5);
 
@@ -1663,15 +1664,17 @@ describe('RewardsDashboard', () => {
 
       // Act — first 5 taps fail; another 5 should be allowed
       tapTitle(getByTestId as never, 5);
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await jest.runAllTimersAsync();
       });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       tapTitle(getByTestId as never, 5);
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       // Assert
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
-      });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
     });
   });
 });

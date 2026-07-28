@@ -1224,6 +1224,8 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   entriesCountValue: string;
   drawScheduleTitle: string;
   addFundsTitle: string;
+  addFundsNoBalanceTitle: string;
+  addFundsNoBalanceDescription: string;
   weekTitle: string;
   completeLabel: string;
   activeLabel: string;

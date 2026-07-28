@@ -6,7 +6,7 @@ import {
   ButtonVariant,
   IconName,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type {
   CampaignDto,
@@ -14,6 +14,7 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useCampaignGeoRestriction from '../../../hooks/useCampaignGeoRestriction';
+import { useHasActionableAddMoneyOptions } from '../../../hooks/useHasActionableAddMoneyOptions';
 import { useMoneyAccountSweepstakesBinding } from '../../../hooks/useMoneyAccountSweepstakesBinding';
 import { useMoneyAccountSweepstakesOptIn } from '../../../hooks/useMoneyAccountSweepstakesOptIn';
 import { useMoneyAccountSweepstakesParticipation } from '../../../hooks/useMoneyAccountSweepstakesParticipation';
@@ -35,12 +36,15 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   const navigation = useNavigation<AppNavigationProp>();
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   const shouldNavigateToAddMoneyRef = useRef(false);
+  // Toast after Add Money closes — Rewards toast sits under native modals.
+  const pendingNoFundingToastRef = useRef(false);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { isGeoRestricted, isGeoLoading } = useCampaignGeoRestriction(campaign);
   const { optedInAny, isLoading: isParticipationLoading } =
     useMoneyAccountSweepstakesParticipation(seriesStatus === 'active');
   const { ensureOptedIn } = useMoneyAccountSweepstakesOptIn();
   const { ensureBound, bindingConflict } = useMoneyAccountSweepstakesBinding();
+  const hasActionableAddMoneyOptions = useHasActionableAddMoneyOptions();
 
   const buttonLabel = localizedText.addFundsTitle;
   const optInSheetTitle = localizedText.joinTheSweepstakesTitle;
@@ -59,11 +63,38 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     localizedText.bindingConflictDescription,
   ]);
 
+  const showNoFundingOptionsToast = useCallback(() => {
+    showToast(
+      RewardsToastOptions.entriesClosed(
+        localizedText.addFundsNoBalanceTitle,
+        localizedText.addFundsNoBalanceDescription,
+      ),
+    );
+  }, [
+    showToast,
+    RewardsToastOptions,
+    localizedText.addFundsNoBalanceTitle,
+    localizedText.addFundsNoBalanceDescription,
+  ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!pendingNoFundingToastRef.current) {
+        return;
+      }
+      pendingNoFundingToastRef.current = false;
+      showNoFundingOptionsToast();
+    }, [showNoFundingOptionsToast]),
+  );
+
   const navigateToAddMoney = useCallback(() => {
+    if (!hasActionableAddMoneyOptions) {
+      pendingNoFundingToastRef.current = true;
+    }
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
-  }, [navigation]);
+  }, [hasActionableAddMoneyOptions, navigation]);
 
   const handleGeoLockedPress = useCallback(() => {
     showToast(

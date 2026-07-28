@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import {
   BottomSheet,
   Box,
@@ -127,7 +127,15 @@ const MoneyAccountSweepstakesDrawProofModal: React.FC<
 > = ({ drawProof, localizedText, onClose }) => {
   const { explanation, originalDraw } = drawProof;
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const { height: screenHeight } = useWindowDimensions();
   const [isFormulaExpanded, setIsFormulaExpanded] = useState(false);
+
+  // Cap body height so the sticky "Got it" footer stays visible when content
+  // grows (e.g. expanded formula description + long original-draw list).
+  const scrollStyle = useMemo(
+    () => ({ maxHeight: screenHeight * 0.55 }),
+    [screenHeight],
+  );
 
   const handleCopy = useCallback(
     async (value: string) => {
@@ -179,6 +187,7 @@ const MoneyAccountSweepstakesDrawProofModal: React.FC<
 
         <ScrollView
           showsVerticalScrollIndicator={false}
+          style={scrollStyle}
           testID={
             MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_MODAL_TEST_IDS.ORIGINAL_DRAW
           }

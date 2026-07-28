@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useMoneyAccountSweepstakesParticipation } from './useMoneyAccountSweepstakesParticipation';
@@ -54,6 +54,14 @@ const mockUseInvalidateByRewardEvents = jest.mocked(
 
 const SUBSCRIPTION_ID = 'sub-1';
 
+let lastSetup: {
+  campaigns: CampaignDto[];
+  subscriptionId: string | null;
+} = {
+  campaigns: [],
+  subscriptionId: SUBSCRIPTION_ID,
+};
+
 function buildCampaign(id: string): CampaignDto {
   return {
     id,
@@ -74,6 +82,7 @@ function setupHooks({
   subscriptionId = SUBSCRIPTION_ID as string | null,
   statuses = {} as Record<string, { optedIn: boolean }>,
 } = {}) {
+  lastSetup = { campaigns, subscriptionId };
   mockUseSeries.mockReturnValue({
     campaigns,
     first: campaigns[0] ?? null,
@@ -90,16 +99,30 @@ function setupHooks({
 }
 
 /**
- * Renders the hook and flushes the initial status fetch so the loading state
- * update it triggers stays inside `act`.
+ * Renders the hook and waits for the initial status fetch (or no-op) to settle.
  */
-async function renderParticipation(enabled?: boolean) {
+async function renderParticipation(enabled: boolean = true) {
   const rendered = renderHook(() =>
     useMoneyAccountSweepstakesParticipation(enabled),
   );
-  await act(async () => {
-    await Promise.resolve();
-  });
+
+  const shouldFetch =
+    enabled &&
+    Boolean(lastSetup.subscriptionId) &&
+    lastSetup.campaigns.length > 0;
+
+  if (shouldFetch) {
+    await waitFor(() => {
+      expect(mockCall).toHaveBeenCalled();
+      expect(rendered.result.current.isLoading).toBe(false);
+    });
+  } else {
+    await waitFor(() => {
+      expect(mockUseInvalidateByRewardEvents).toHaveBeenCalled();
+      expect(rendered.result.current.isLoading).toBe(false);
+    });
+  }
+
   return rendered;
 }
 
