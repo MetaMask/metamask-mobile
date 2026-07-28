@@ -1,5 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -91,8 +91,21 @@ const QRTabSwitcher = () => {
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasShownExtensionCancelSheetRef = useRef(false);
   const prevPhaseRef = useRef(phase);
-  const [keepWaitingScreenAfterCancel, setKeepWaitingScreenAfterCancel] =
-    useState(false);
+  const keepWaitingScreenAfterCancelRef = useRef(false);
+
+  if (isAddDeviceOrigin) {
+    if (
+      phase === QrSyncPhases.INITIALIZING ||
+      phase === QrSyncPhases.DISPLAYING_OTP
+    ) {
+      keepWaitingScreenAfterCancelRef.current = false;
+    } else if (
+      DEVICE_LINKED_WAIT_PHASES.has(prevPhaseRef.current) &&
+      (phase === QrSyncPhases.IDLE || phase === QrSyncPhases.FAILED)
+    ) {
+      keepWaitingScreenAfterCancelRef.current = true;
+    }
+  }
 
   const showExtensionCancelSheetOnce = useCallback(() => {
     if (hasShownExtensionCancelSheetRef.current) {
@@ -100,7 +113,6 @@ const QRTabSwitcher = () => {
     }
 
     hasShownExtensionCancelSheetRef.current = true;
-    setKeepWaitingScreenAfterCancel(true);
     showExtensionCancelledErrorSheet(navigation, {
       errorMessage: qrSyncError?.message,
     });
@@ -112,7 +124,7 @@ const QRTabSwitcher = () => {
 
   const resetExtensionCancelSheetState = useCallback(() => {
     hasShownExtensionCancelSheetRef.current = false;
-    setKeepWaitingScreenAfterCancel(false);
+    keepWaitingScreenAfterCancelRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -137,7 +149,8 @@ const QRTabSwitcher = () => {
 
   const showDeviceAddedLoader =
     isAddDeviceOrigin &&
-    (presentation === 'device-linked' || keepWaitingScreenAfterCancel);
+    (presentation === 'device-linked' ||
+      keepWaitingScreenAfterCancelRef.current);
 
   useEffect(() => {
     if (!isAddDeviceOrigin) {
@@ -149,7 +162,6 @@ const QRTabSwitcher = () => {
       phase === QrSyncPhases.DISPLAYING_OTP
     ) {
       hasShownExtensionCancelSheetRef.current = false;
-      setKeepWaitingScreenAfterCancel(false);
     }
   }, [isAddDeviceOrigin, phase]);
 
