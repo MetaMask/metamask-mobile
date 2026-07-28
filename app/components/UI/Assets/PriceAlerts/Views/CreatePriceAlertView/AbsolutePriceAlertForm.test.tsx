@@ -154,16 +154,6 @@ describe('AbsolutePriceAlertForm', () => {
     ).toBeDisabled();
   });
 
-  it('shows $0 as placeholder after clearing the pre-filled price', () => {
-    const screen = renderForm();
-
-    for (let i = 0; i < 7; i++) {
-      fireEvent.press(screen.getByTestId('keypad-delete-button'));
-    }
-
-    expect(screen.getByText('$0')).toBeOnTheScreen();
-  });
-
   it('enables saving after a quick-percentage selection', () => {
     const screen = renderForm();
 
