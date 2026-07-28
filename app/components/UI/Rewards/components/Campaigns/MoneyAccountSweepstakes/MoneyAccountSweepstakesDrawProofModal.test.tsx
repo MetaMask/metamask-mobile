@@ -104,6 +104,9 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   entriesCountValue: '{count} / 7',
   drawScheduleTitle: 'Draw schedule',
   addFundsTitle: 'Add funds',
+  addFundsNoBalanceTitle: "You don't have any balance yet",
+  addFundsNoBalanceDescription:
+    'Deposit crypto or mUSD in your wallet before moving them to Money Account',
   weekTitle: 'Week {number}',
   completeLabel: 'Complete',
   activeLabel: 'Active',

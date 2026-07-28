@@ -9,7 +9,9 @@ import {
 
 const mockCall = jest.fn();
 const mockDispatch = jest.fn();
-const mockEnsureBound = jest.fn(async () => 'bound' as const);
+const mockEnsureBound = jest.fn(
+  async (): Promise<'bound' | 'conflict' | 'unavailable'> => 'bound',
+);
 
 jest.mock('./useMoneyAccountSweepstakesSeries', () => ({
   useMoneyAccountSweepstakesSeries: jest.fn(),
@@ -69,7 +71,6 @@ const completeWeek: CampaignDto = {
   details: null,
   featured: true,
   showUpcomingDate: false,
-  image: null,
 };
 const activeWeek: CampaignDto = {
   ...completeWeek,
