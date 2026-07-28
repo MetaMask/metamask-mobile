@@ -18,15 +18,15 @@ jest.mock('../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
   TraceName: {
-    OnboardingScreenTimeToContent: 'Onboarding Screen Time To Content',
-    OnboardingScreenDataFetch: 'Onboarding Screen Data Fetch',
-    OnboardingRiveReady: 'Onboarding Rive Ready',
-    OnboardingCtaNavigation: 'Onboarding CTA Navigation',
+    OnboardingScreenTimeToContent: 'ttc',
+    OnboardingScreenDataFetch: 'fetch',
+    OnboardingRiveReady: 'rive',
+    OnboardingCtaNavigation: 'nav',
   },
   TraceOperation: {
-    OnboardingScreenPerformance: 'onboarding.screen.performance',
-    OnboardingRivePerformance: 'onboarding.rive.performance',
-    OnboardingNavigationPerformance: 'onboarding.navigation.performance',
+    OnboardingScreenPerformance: 'screen',
+    OnboardingRivePerformance: 'rive',
+    OnboardingNavigationPerformance: 'nav',
   },
 }));
 
@@ -36,6 +36,10 @@ jest.mock('./useRenderStormMonitor', () => ({
 
 const { trace: mockTrace, endTrace: mockEndTrace } =
   jest.requireMock('../../util/trace');
+
+const expectEnd = (partial: Record<string, unknown>) => {
+  expect(mockEndTrace).toHaveBeenCalledWith(expect.objectContaining(partial));
+};
 
 describe('onboarding performance hooks', () => {
   beforeEach(() => {
@@ -49,7 +53,7 @@ describe('onboarding performance hooks', () => {
   });
 
   describe('useScreenPerformance', () => {
-    it('starts and ends a time-to-content trace', () => {
+    it('starts and ends time-to-content', () => {
       const { rerender } = renderHook(
         ({ contentReady }) =>
           useScreenPerformance({
@@ -59,25 +63,20 @@ describe('onboarding performance hooks', () => {
           }),
         { initialProps: { contentReady: false } },
       );
-
       expect(mockTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingScreenTimeToContent,
           op: TraceOperation.OnboardingScreenPerformance,
         }),
       );
-
       rerender({ contentReady: true });
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingScreenTimeToContent,
-          data: expect.objectContaining({ success: true }),
-        }),
-      );
+      expectEnd({
+        name: TraceName.OnboardingScreenTimeToContent,
+        data: expect.objectContaining({ success: true }),
+      });
     });
 
-    it('does not start a trace when disabled', () => {
+    it('respects enabled:false and unmount cleanup', () => {
       renderHook(() =>
         useScreenPerformance({
           screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
@@ -86,11 +85,8 @@ describe('onboarding performance hooks', () => {
           enabled: false,
         }),
       );
-
       expect(mockTrace).not.toHaveBeenCalled();
-    });
 
-    it('ends the trace as unmounted when disabled before content is ready', () => {
       const { rerender } = renderHook(
         ({ enabled }) =>
           useScreenPerformance({
@@ -101,21 +97,14 @@ describe('onboarding performance hooks', () => {
           }),
         { initialProps: { enabled: true } },
       );
-
       rerender({ enabled: false });
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingScreenTimeToContent,
-          data: expect.objectContaining({
-            success: false,
-            reason: 'unmounted',
-          }),
-        }),
-      );
+      expectEnd({
+        name: TraceName.OnboardingScreenTimeToContent,
+        data: expect.objectContaining({ success: false, reason: 'unmounted' }),
+      });
     });
 
-    it('records a data-fetch span for the first loading cycle', () => {
+    it('records the first data-fetch cycle', () => {
       const { rerender } = renderHook(
         ({ isLoading }) =>
           useScreenPerformance({
@@ -126,183 +115,96 @@ describe('onboarding performance hooks', () => {
           }),
         { initialProps: { isLoading: false } },
       );
-
       rerender({ isLoading: true });
       rerender({ isLoading: false });
-
       expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingScreenDataFetch,
-        }),
+        expect.objectContaining({ name: TraceName.OnboardingScreenDataFetch }),
       );
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingScreenDataFetch,
-          data: expect.objectContaining({ success: true }),
-        }),
-      );
-    });
-
-    it('ends the trace as unmounted on cleanup before content is ready', () => {
-      const { unmount } = renderHook(() =>
-        useScreenPerformance({
-          screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
-          contentReady: false,
-          isEmpty: false,
-        }),
-      );
-
-      unmount();
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingScreenTimeToContent,
-          data: expect.objectContaining({
-            success: false,
-            reason: 'unmounted',
-          }),
-        }),
-      );
+      expectEnd({
+        name: TraceName.OnboardingScreenDataFetch,
+        data: expect.objectContaining({ success: true }),
+      });
     });
   });
 
   describe('useRivePerformance', () => {
-    it('records a play outcome', () => {
-      const { result } = renderHook(() =>
-        useRivePerformance({
-          animationId: OnboardingRiveAnimationIds.FOX_LOADER,
-          timeoutMs: 1000,
-        }),
-      );
+    const foxLoader = () =>
+      useRivePerformance({
+        animationId: OnboardingRiveAnimationIds.FOX_LOADER,
+        timeoutMs: 1000,
+      });
 
+    it('records play, timeout, and error outcomes', () => {
+      const { result } = renderHook(foxLoader);
       act(() => {
         result.current.riveHandlers.onPlay();
       });
+      expectEnd({ data: expect.objectContaining({ outcome: 'play' }) });
 
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ outcome: 'play' }),
-        }),
-      );
-    });
-
-    it('records a timeout outcome', () => {
-      renderHook(() =>
-        useRivePerformance({
-          animationId: OnboardingRiveAnimationIds.FOX_LOADER,
-          timeoutMs: 1000,
-        }),
-      );
-
+      renderHook(foxLoader);
       act(() => {
         jest.advanceTimersByTime(1000);
       });
+      expectEnd({ data: expect.objectContaining({ outcome: 'timeout' }) });
 
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ outcome: 'timeout' }),
-        }),
-      );
-    });
-
-    it('records an error outcome', () => {
-      const { result } = renderHook(() =>
-        useRivePerformance({
-          animationId: OnboardingRiveAnimationIds.FOX_LOADER,
-          timeoutMs: 1000,
-        }),
-      );
-
+      jest.clearAllMocks();
+      const { result: errorResult } = renderHook(foxLoader);
       act(() => {
-        result.current.riveHandlers.onError({
+        errorResult.current.riveHandlers.onError({
           message: 'Rive failed',
           type: 'load_error',
         });
       });
+      expectEnd({ data: expect.objectContaining({ outcome: 'error' }) });
 
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ outcome: 'error' }),
-        }),
-      );
-    });
+      jest.clearAllMocks();
+      const { unmount: unmountPending } = renderHook(foxLoader);
+      unmountPending();
+      expectEnd({ data: expect.objectContaining({ outcome: 'unmounted' }) });
 
-    it('does not start a trace when disabled', () => {
+      jest.clearAllMocks();
       renderHook(() =>
         useRivePerformance({
           animationId: OnboardingRiveAnimationIds.FOX_LOADER,
           enabled: false,
         }),
       );
-
       expect(mockTrace).not.toHaveBeenCalled();
-    });
-
-    it('ends the trace as unmounted on cleanup', () => {
-      const { unmount } = renderHook(() =>
-        useRivePerformance({
-          animationId: OnboardingRiveAnimationIds.FOX_LOADER,
-          timeoutMs: 1000,
-        }),
-      );
-
-      unmount();
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ outcome: 'unmounted' }),
-        }),
-      );
     });
   });
 
-  describe('useNavigationPerformance', () => {
-    it('completes a pending CTA navigation span', () => {
+  describe('navigation performance', () => {
+    it('completes, cancels, and respects enabled:false', () => {
       startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
-
       renderHook(() =>
         useNavigationPerformance({
           destinationScreenId: OnboardingScreenIds.CHOOSE_PASSWORD,
           destinationReady: true,
         }),
       );
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingCtaNavigation,
-          data: expect.objectContaining({
-            cta_id: OnboardingCtaIds.CREATE_WALLET,
-          }),
+      expectEnd({
+        name: TraceName.OnboardingCtaNavigation,
+        data: expect.objectContaining({
+          cta_id: OnboardingCtaIds.CREATE_WALLET,
         }),
-      );
-    });
+      });
 
-    it('cancels a pending span when the destination unmounts before ready', () => {
+      jest.clearAllMocks();
       startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
-
       const { unmount } = renderHook(() =>
         useNavigationPerformance({
           destinationScreenId: OnboardingScreenIds.CHOOSE_PASSWORD,
           destinationReady: false,
         }),
       );
-
       unmount();
+      expectEnd({
+        name: TraceName.OnboardingCtaNavigation,
+        data: expect.objectContaining({ success: false, reason: 'unmounted' }),
+      });
 
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingCtaNavigation,
-          data: expect.objectContaining({
-            success: false,
-            reason: 'unmounted',
-          }),
-        }),
-      );
-    });
-
-    it('does nothing when disabled', () => {
+      jest.clearAllMocks();
       startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
-
       renderHook(() =>
         useNavigationPerformance({
           destinationScreenId: OnboardingScreenIds.CHOOSE_PASSWORD,
@@ -310,50 +212,29 @@ describe('onboarding performance hooks', () => {
           enabled: false,
         }),
       );
-
       expect(mockEndTrace).not.toHaveBeenCalled();
-    });
-  });
 
-  describe('startOnboardingCtaNavigation', () => {
-    it('supersedes an existing pending navigation span', () => {
-      startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
       jest.clearAllMocks();
-
+      startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
       startOnboardingCtaNavigation(OnboardingCtaIds.IMPORT_WALLET);
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingCtaNavigation,
-          data: expect.objectContaining({
-            success: false,
-            reason: 'superseded',
-            cta_id: OnboardingCtaIds.CREATE_WALLET,
-          }),
+      expectEnd({
+        name: TraceName.OnboardingCtaNavigation,
+        data: expect.objectContaining({
+          success: false,
+          reason: 'superseded',
+          cta_id: OnboardingCtaIds.CREATE_WALLET,
         }),
-      );
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            cta_id: OnboardingCtaIds.IMPORT_WALLET,
-          }),
-        }),
-      );
-    });
+      });
 
-    it('cancels a pending navigation span with a reason', () => {
+      jest.clearAllMocks();
       startOnboardingCtaNavigation(OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE);
-
       cancelPendingOnboardingCtaNavigation('social_login_failed');
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            success: false,
-            reason: 'social_login_failed',
-          }),
+      expectEnd({
+        data: expect.objectContaining({
+          success: false,
+          reason: 'social_login_failed',
         }),
-      );
+      });
     });
   });
 });

@@ -84,6 +84,7 @@ const OnboardingAnimation = ({
   const hasReportedInteractiveContent = useRef(false);
   const { riveHandlers } = useRivePerformance({
     animationId: OnboardingRiveAnimationIds.ONBOARDING_WORDMARK,
+    timeoutMs: 5_000,
     enabled: !hasTestOverrides,
   });
 

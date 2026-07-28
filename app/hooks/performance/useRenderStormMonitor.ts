@@ -4,12 +4,9 @@ import performance from 'react-native-performance';
 import { TraceOperation } from '../../util/trace';
 
 interface UseRenderStormMonitorConfig {
-  /** Primary identifier — e.g. screen_id or section_id */
   id: string;
   category: TraceOperation;
-  /** Optional noun in the breadcrumb message, e.g. "section" or "screen". */
   entityLabel?: string;
-  /** Extra fields merged into the breadcrumb data payload. */
   breadcrumbData?: Record<string, string | number>;
   enabled?: boolean;
   reRenderThreshold?: number;
@@ -19,10 +16,6 @@ interface UseRenderStormMonitorConfig {
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
 const DEFAULT_RE_RENDER_WINDOW_MS = 500;
 
-/**
- * Records at most one Sentry breadcrumb per mount when commits exceed a threshold
- * within a sliding time window.
- */
 export const useRenderStormMonitor = ({
   id,
   category,

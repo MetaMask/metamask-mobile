@@ -274,18 +274,27 @@ const Onboarding = () => {
   const onboardingTraceCtx = useRef<TraceContext>(undefined);
   const socialLoginTraceCtx = useRef<TraceContext>(undefined);
 
-  const endSocialLoginAttemptTrace = useCallback((success: boolean) => {
-    if (socialLoginTraceCtx.current) {
-      endTrace({
-        name: TraceName.OnboardingSocialLoginAttempt,
-        data: { success },
-      });
-      socialLoginTraceCtx.current = undefined;
-    }
-    if (!success) {
-      cancelPendingOnboardingCtaNavigation('social_login_failed');
-    }
-  }, []);
+  const endSocialLoginAttemptTrace = useCallback(
+    (success: boolean, cancelReason?: string) => {
+      if (socialLoginTraceCtx.current) {
+        endTrace({
+          name: TraceName.OnboardingSocialLoginAttempt,
+          data: { success },
+        });
+        socialLoginTraceCtx.current = undefined;
+      }
+      if (!success && cancelReason) {
+        cancelPendingOnboardingCtaNavigation(cancelReason);
+      }
+    },
+    [],
+  );
+
+  const failSocialLogin = useCallback(
+    (cancelReason = 'social_login_failed') =>
+      endSocialLoginAttemptTrace(false, cancelReason),
+    [endSocialLoginAttemptTrace],
+  );
 
   // Ending the social-login attempt (or the overall journey) does not automatically end the
   // OAuth child spans started inside OAuthService (provider login, BYOA token request, seedless
@@ -693,7 +702,7 @@ const Onboarding = () => {
           error.code === OAuthErrorType.TelegramLoginError
         ) {
           // QA: do not show error sheet if user cancelled
-          endSocialLoginAttemptTrace(false);
+          failSocialLogin('user_cancelled');
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
@@ -749,7 +758,7 @@ const Onboarding = () => {
                 (fallbackError.code === OAuthErrorType.UserCancelled ||
                   fallbackError.code === OAuthErrorType.UserDismissed)
               ) {
-                endSocialLoginAttemptTrace(false);
+                failSocialLogin('user_cancelled');
                 return;
               }
               // Handle both OAuthError and unexpected errors from browser fallback
@@ -769,11 +778,11 @@ const Onboarding = () => {
                 );
                 handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
-              endSocialLoginAttemptTrace(false);
+              failSocialLogin();
               return;
             }
           }
-          endSocialLoginAttemptTrace(false);
+          failSocialLogin();
           return;
         }
         // Show error sheet for auth server or seedless controller errors
@@ -792,7 +801,7 @@ const Onboarding = () => {
               type: 'error',
             },
           });
-          endSocialLoginAttemptTrace(false);
+          failSocialLogin();
           return;
         }
         if (isPreOAuthSocialLoginFailure(error)) {
@@ -808,12 +817,16 @@ const Onboarding = () => {
               type: 'error',
             },
           });
-          endSocialLoginAttemptTrace(false);
+          failSocialLogin(
+            error.code === OAuthErrorType.InvalidProvider
+              ? 'provider_unavailable'
+              : 'unsupported_platform',
+          );
           return;
         }
         // unexpected oauth login error
         handleOAuthLoginError(error, socialConnectionType, false);
-        endSocialLoginAttemptTrace(false);
+        failSocialLogin();
         return;
       }
 
@@ -827,7 +840,7 @@ const Onboarding = () => {
       });
       endTrace({ name: TraceName.OnboardingSocialLoginError });
 
-      endSocialLoginAttemptTrace(false);
+      failSocialLogin();
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -846,7 +859,7 @@ const Onboarding = () => {
       setLoading,
       unsetLoading,
       handlePostSocialLogin,
-      endSocialLoginAttemptTrace,
+      failSocialLogin,
     ],
   );
 
@@ -1009,7 +1022,6 @@ const Onboarding = () => {
             provider,
             createWallet,
           );
-          cancelPendingOnboardingCtaNavigation('provider_unavailable');
           return;
         }
 
@@ -1389,7 +1401,7 @@ const Onboarding = () => {
             // Finalize the OAuth child spans (provider login, token request) before the
             // attempt span: their promises may never settle after abandonment.
             finalizeInFlightOAuthTraces();
-            endSocialLoginAttemptTrace(false);
+            failSocialLogin('oauth_abandoned');
           }
         }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
       }
@@ -1401,7 +1413,11 @@ const Onboarding = () => {
         abandonmentTimerRef.current = null;
       }
     };
-  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces]);
+  }, [
+    endSocialLoginAttemptTrace,
+    finalizeInFlightOAuthTraces,
+    failSocialLogin,
+  ]);
 
   useEffect(() => {
     updateNavBar();

@@ -1,4 +1,5 @@
-/** Primary Sentry tag for onboarding screen perf — keep stable. */
+import { Platform } from 'react-native';
+
 export const OnboardingScreenIds = {
   ONBOARDING_LANDING: 'onboarding_landing',
   CHOOSE_PASSWORD: 'choose_password',
@@ -27,3 +28,9 @@ export const OnboardingCtaIds = {
 
 export type OnboardingCtaId =
   (typeof OnboardingCtaIds)[keyof typeof OnboardingCtaIds];
+
+export function getOnboardingPerformanceTags(
+  extra?: Record<string, string>,
+): Record<string, string> {
+  return { platform: Platform.OS, ...extra };
+}

@@ -12,10 +12,6 @@ interface UseNavigationPerformanceConfig {
   enabled?: boolean;
 }
 
-/**
- * Ends a pending onboarding CTA navigation span when the destination screen
- * becomes interactive. Pair with `startOnboardingCtaNavigation` on CTA press.
- */
 export function useNavigationPerformance({
   destinationScreenId,
   destinationReady,

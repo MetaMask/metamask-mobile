@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
-import type { OnboardingScreenId } from './onboardingPerformanceIds';
-import { getOnboardingPerformanceTags } from './onboardingPerformanceTags';
+import {
+  getOnboardingPerformanceTags,
+  type OnboardingScreenId,
+} from './onboardingPerformanceIds';
 import { useRenderStormMonitor } from './useRenderStormMonitor';
 
 interface UseScreenPerformanceConfig {
@@ -16,13 +18,6 @@ interface UseScreenPerformanceConfig {
   reRenderWindowMs?: number;
 }
 
-/**
- * Onboarding screen performance telemetry via Sentry spans.
- *
- * 1. Time to Content — mount until `contentReady`.
- * 2. Data Fetch Latency — optional first `isLoading` cycle per mount.
- * 3. Re-render monitoring — breadcrumb when commits exceed threshold.
- */
 export const useScreenPerformance = ({
   screenId,
   contentReady,

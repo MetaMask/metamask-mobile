@@ -7,8 +7,10 @@ import {
   TraceOperation,
   type TraceValue,
 } from '../../util/trace';
-import type { OnboardingRiveAnimationId } from './onboardingPerformanceIds';
-import { getOnboardingPerformanceTags } from './onboardingPerformanceTags';
+import {
+  getOnboardingPerformanceTags,
+  type OnboardingRiveAnimationId,
+} from './onboardingPerformanceIds';
 
 interface RiveErrorPayload {
   message: string;
@@ -21,32 +23,18 @@ interface UseRivePerformanceConfig {
   enabled?: boolean;
 }
 
-interface UseRivePerformanceResult {
+const DEFAULT_RIVE_TIMEOUT_MS = 3_000;
+
+export function useRivePerformance({
+  animationId,
+  timeoutMs = DEFAULT_RIVE_TIMEOUT_MS,
+  enabled = true,
+}: UseRivePerformanceConfig): {
   riveHandlers: {
     onPlay: () => void;
     onError: (riveError: RiveErrorPayload) => void;
   };
-}
-
-const DEFAULT_RIVE_TIMEOUT_MS = 3_000;
-
-const RIVE_TIMEOUT_MS_BY_ANIMATION: Partial<
-  Record<OnboardingRiveAnimationId, number>
-> = {
-  fox_loader: 3_000,
-  onboarding_wordmark: 5_000,
-  fox_appear: 3_000,
-};
-
-/**
- * Measures Rive mount → first `onPlay`, with timeout and error outcomes.
- */
-export function useRivePerformance({
-  animationId,
-  timeoutMs = RIVE_TIMEOUT_MS_BY_ANIMATION[animationId] ??
-    DEFAULT_RIVE_TIMEOUT_MS,
-  enabled = true,
-}: UseRivePerformanceConfig): UseRivePerformanceResult {
+} {
   const traceId = useRef(uuidv4());
   const ended = useRef(false);
   const started = useRef(false);
@@ -101,19 +89,12 @@ export function useRivePerformance({
 
     return () => {
       clearPendingTimeout();
-      if (started.current && !ended.current) {
-        endTrace({
-          name: TraceName.OnboardingRiveReady,
-          id: traceId.current,
-          data: {
-            success: false,
-            reason: 'unmounted',
-            animation_id: animationId,
-            outcome: 'unmounted',
-          },
-        });
-        ended.current = true;
-      }
+      endRiveTrace({
+        success: false,
+        reason: 'unmounted',
+        animation_id: animationId,
+        outcome: 'unmounted',
+      });
     };
   }, [animationId, clearPendingTimeout, enabled, endRiveTrace, timeoutMs]);
 

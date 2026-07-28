@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
-import type {
-  OnboardingCtaId,
-  OnboardingScreenId,
+import {
+  getOnboardingPerformanceTags,
+  type OnboardingCtaId,
+  type OnboardingScreenId,
 } from './onboardingPerformanceIds';
-import { getOnboardingPerformanceTags } from './onboardingPerformanceTags';
 
 interface PendingNavigation {
   ctaId: OnboardingCtaId;
@@ -68,7 +68,6 @@ export function cancelPendingOnboardingCtaNavigation(reason: string): void {
   pendingNavigation = null;
 }
 
-/** @internal Reset module state between test runs. */
 export function _resetOnboardingNavigationPerformanceForTesting(): void {
   pendingNavigation = null;
 }
