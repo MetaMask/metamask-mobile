@@ -264,6 +264,11 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   bindingConflictTitle: 'Money Account already linked',
   bindingConflictDescription:
     'Money Account already binds to another Rewards profile.',
+  onTrackDescription: "You are on track to earn today's entry.",
+  lostTodayDescription:
+    "You lost today's entry because your balance dipped below $100 today.",
+  belowThresholdDescription:
+    "Maintain a balance of $100 or more in your Money Account to earn todays' entry.",
 };
 
 const details: MoneyAccountSweepstakesCampaignDetails = {

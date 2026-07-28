@@ -7,6 +7,7 @@ import type {
 import type { AccountGroupId } from '@metamask/account-api';
 import type { SeasonRewardType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
+import type { RewardsInfoSheetModalParams } from '../components/RewardsInfoSheetModal';
 
 export interface RewardsOndoCampaignDetailsParams {
   campaignId?: string;
@@ -225,6 +226,7 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsSelectSheet: RewardsSelectSheetParams;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsBottomSheetModal: RewardsBottomSheetModalParams | undefined;
+  RewardsInfoSheetModal: RewardsInfoSheetModalParams | undefined;
   RewardsClaimBottomSheetModal: RewardsClaimBottomSheetModalParams | undefined;
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
