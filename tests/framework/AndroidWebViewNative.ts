@@ -3,7 +3,7 @@ import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/B
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
 import { getDriver } from './PlaywrightUtilities';
 import PlaywrightGestures from './PlaywrightGestures';
-import { sleep } from './Utilities';
+import Utilities, { sleep } from './Utilities';
 import { createPlaywrightLogger } from './playwrightLogger';
 
 const logger = createPlaywrightLogger('AndroidWebViewNative');
@@ -191,10 +191,13 @@ export async function tapAndroidWebId(
   options: AndroidWebViewTapOptions = {},
 ): Promise<void> {
   const elem = await scrollAndroidWebIdIntoView(webId, options);
-  logger.debug(options.description ?? `Android native WebView tap: ${webId}`);
-  // Avoid importing Gestures here — Gestures re-exports these helpers and that
-  // would create a circular dependency.
-  await elem.click();
+  const description =
+    options.description ?? `Android native WebView tap: ${webId}`;
+  logger.debug(description);
+  // Retry click to handle transient post-scroll interactability issues.
+  await Utilities.executeWithRetry(async () => elem.click(), {
+    description,
+  });
 }
 
 /**
