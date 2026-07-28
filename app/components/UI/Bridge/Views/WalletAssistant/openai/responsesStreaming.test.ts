@@ -45,6 +45,39 @@ describe('createOpenAIResponsesSSEParser', () => {
     expect(parser.finish()).toEqual({ response: undefined, text: 'AB' });
   });
 
+  it('uses output_text.done when delta events are unavailable', () => {
+    const onTextDelta = jest.fn();
+    const parser = createOpenAIResponsesSSEParser({ onTextDelta });
+
+    parser.push(
+      'data: {"type":"response.output_text.done","text":"Complete text"}\n\n',
+    );
+
+    expect(parser.finish().text).toBe('Complete text');
+    expect(onTextDelta).toHaveBeenCalledWith('Complete text', 'Complete text');
+  });
+
+  it('extracts text from the embedded completed response', () => {
+    const parser = createOpenAIResponsesSSEParser();
+
+    parser.push(
+      'data: {"type":"response.completed","response":{"id":"resp_3","output":[{"type":"message","content":[{"type":"output_text","text":"Embedded text"}]}]}}\n\n',
+    );
+
+    expect(parser.finish()).toEqual({
+      response: {
+        id: 'resp_3',
+        output: [
+          {
+            type: 'message',
+            content: [{ type: 'output_text', text: 'Embedded text' }],
+          },
+        ],
+      },
+      text: 'Embedded text',
+    });
+  });
+
   it('joins multi-line data fields and ignores comments', () => {
     const parser = createOpenAIResponsesSSEParser();
 
@@ -70,7 +103,7 @@ describe('createOpenAIResponsesSSEParser', () => {
     expect(parser.finish().text).toBe('kept');
   });
 
-  it.each(['error', 'response.failed'])(
+  it.each(['error', 'response.failed', 'response.incomplete'])(
     'throws a useful error for %s events',
     (type) => {
       const parser = createOpenAIResponsesSSEParser();

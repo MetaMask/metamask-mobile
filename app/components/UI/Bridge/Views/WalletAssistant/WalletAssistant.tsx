@@ -103,6 +103,7 @@ import {
 } from './networkContext';
 import {
   applyResearchPlanIdentity,
+  buildLocalPriceResponse,
   buildResearchPlan,
   getResearchPlanInstructions,
 } from './researchRouting';
@@ -1264,19 +1265,22 @@ const WalletAssistant = () => {
       text,
       previousTradeIntent,
     );
+    const researchPlan = buildResearchPlan(text);
+    const immediateResearchResponse =
+      immediateTradeResponse ?? buildLocalPriceResponse(researchPlan, text);
     if (messages.length === 0 && !reduceMotion) {
       LayoutAnimation.configureNext(FIRST_CHAT_LAYOUT_ANIMATION);
     }
     shouldAnchorLatestMessage.current = true;
     setMessages(
-      immediateTradeResponse
+      immediateResearchResponse
         ? [
             ...nextMessages,
             {
               id: `assistant-${nextMessages.length}`,
               role: 'assistant',
-              research: immediateTradeResponse,
-              text: getResearchPlainText(immediateTradeResponse),
+              research: immediateResearchResponse,
+              text: getResearchPlainText(immediateResearchResponse),
             },
           ]
         : nextMessages,
@@ -1284,13 +1288,12 @@ const WalletAssistant = () => {
     setDraft('');
     setError('');
     setErrorRecovery(undefined);
-    if (immediateTradeResponse) {
+    if (immediateResearchResponse) {
       return;
     }
     setIsLoading(true);
     const requestController = new AbortController();
     requestControllerRef.current = requestController;
-    const researchPlan = buildResearchPlan(text);
     const useWebResearch = researchPlan.useWebSearch;
     const networkContextInstructions = getNetworkContextInstructions(text);
     const secureRequestParts = buildSecureOpenAIRequestParts({
@@ -1361,7 +1364,6 @@ const WalletAssistant = () => {
       if (!responseText) {
         throw new MalformedOpenAIResponseError();
       }
-
       let research = prioritizeDirectTradeRequest(
         text,
         applyResearchPlanIdentity(

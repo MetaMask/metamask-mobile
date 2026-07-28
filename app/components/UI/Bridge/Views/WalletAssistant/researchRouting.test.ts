@@ -1,5 +1,6 @@
 import {
   applyResearchPlanIdentity,
+  buildLocalPriceResponse,
   buildResearchPlan,
   getResearchPlanInstructions,
 } from './researchRouting';
@@ -71,6 +72,47 @@ describe('researchRouting', () => {
         useWebSearch: false,
       }),
     );
+  });
+
+  it('builds a local market-data response for one-token price questions', () => {
+    const response = buildLocalPriceResponse(
+      buildResearchPlan('What is the price of ETH?'),
+      'What is the price of ETH?',
+    );
+
+    expect(response).toEqual(
+      expect.objectContaining({
+        title: 'ETH price',
+        tokens: ['ETH'],
+        assets: [
+          expect.objectContaining({
+            symbol: 'ETH',
+          }),
+        ],
+      }),
+    );
+    expect(response?.summary).not.toMatch(/\$[\d,.]+/);
+  });
+
+  it('does not bypass research for complex, multi-token, or non-price questions', () => {
+    expect(
+      buildLocalPriceResponse(
+        buildResearchPlan('Compare the price of ETH and BTC'),
+        'Compare the price of ETH and BTC',
+      ),
+    ).toBeUndefined();
+    expect(
+      buildLocalPriceResponse(
+        buildResearchPlan('What is the ETH price chart?'),
+        'What is the ETH price chart?',
+      ),
+    ).toBeUndefined();
+    expect(
+      buildLocalPriceResponse(
+        buildResearchPlan('Is ETH risky?'),
+        'Is ETH risky?',
+      ),
+    ).toBeUndefined();
   });
 
   it('applies explicit network and contract identity to the response', () => {

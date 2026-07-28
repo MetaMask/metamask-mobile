@@ -54,6 +54,32 @@ const getErrorMessage = (payload: OpenAIResponsePayload) => {
   return 'The AI response stream failed.';
 };
 
+const getResponseOutputText = (response: OpenAIResponsePayload): string => {
+  if (typeof response.output_text === 'string') {
+    return response.output_text;
+  }
+
+  if (!Array.isArray(response.output)) {
+    return '';
+  }
+
+  return response.output
+    .filter(
+      (item): item is OpenAIResponsePayload =>
+        Boolean(item) && typeof item === 'object',
+    )
+    .flatMap((item) => (Array.isArray(item.content) ? item.content : []))
+    .filter(
+      (content): content is OpenAIResponsePayload =>
+        Boolean(content) &&
+        typeof content === 'object' &&
+        (content as OpenAIResponsePayload).type === 'output_text',
+    )
+    .map((content) => (typeof content.text === 'string' ? content.text : ''))
+    .filter(Boolean)
+    .join('\n');
+};
+
 export class OpenAIResponsesStreamError extends Error {
   readonly payload?: OpenAIResponsePayload;
   readonly status?: number;
@@ -141,13 +167,42 @@ export const createOpenAIResponsesSSEParser = (
         text += delta;
         callbacks.onTextDelta?.(delta, text);
       }
+    } else if (type === 'response.output_text.done') {
+      const completedText = payload.text;
+      if (!text && typeof completedText === 'string') {
+        text = completedText;
+        callbacks.onTextDelta?.(completedText, text);
+      }
+    } else if (type === 'response.content_part.done') {
+      const part = payload.part;
+      if (
+        !text &&
+        part &&
+        typeof part === 'object' &&
+        (part as OpenAIResponsePayload).type === 'output_text'
+      ) {
+        const completedText = (part as OpenAIResponsePayload).text;
+        if (typeof completedText === 'string') {
+          text = completedText;
+          callbacks.onTextDelta?.(completedText, text);
+        }
+      }
     } else if (type === 'response.completed') {
       if (payload.response && typeof payload.response === 'object') {
         response = payload.response as OpenAIResponsePayload;
       } else {
         response = payload;
       }
-    } else if (type === 'error' || type === 'response.failed') {
+      const completedText = getResponseOutputText(response);
+      if (!text && completedText) {
+        text = completedText;
+        callbacks.onTextDelta?.(completedText, text);
+      }
+    } else if (
+      type === 'error' ||
+      type === 'response.failed' ||
+      type === 'response.incomplete'
+    ) {
       throw new OpenAIResponsesStreamError(getErrorMessage(payload), payload);
     }
   };

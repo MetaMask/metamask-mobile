@@ -235,6 +235,61 @@ export const buildResearchPlan = (
   };
 };
 
+/**
+ * Answers simple single-token price questions from MetaMask market data without
+ * waiting for an AI or web request. More involved market questions continue
+ * through the research path.
+ */
+export const buildLocalPriceResponse = (
+  plan: WalletAssistantResearchPlan,
+  prompt: string,
+): WalletAssistantResearchResponse | undefined => {
+  const asksForPrice = /\b(price|quote)\b/i.test(prompt);
+  const needsResearch =
+    /\b(chart|compare|history|market cap|news|performance|range|trend|volume|why)\b/i.test(
+      prompt,
+    );
+  if (
+    plan.intent !== 'price_snapshot' ||
+    plan.assetHints.length !== 1 ||
+    !asksForPrice ||
+    needsResearch
+  ) {
+    return undefined;
+  }
+
+  const [hint] = plan.assetHints;
+
+  return {
+    asOf: '',
+    assets: [
+      {
+        chainId: hint.network?.caipChainId ?? '',
+        contractAddress: hint.contractAddress,
+        name: '',
+        network: hint.network?.name ?? '',
+        symbol: hint.symbol,
+      },
+    ],
+    chart: { labels: [], sourceIds: [], title: '', unit: '', values: [] },
+    sections: [],
+    sources: [],
+    summary: `The latest verified ${hint.symbol} price is shown below.`,
+    title: `${hint.symbol} price`,
+    tokens: [hint.symbol],
+    swapIntent: {
+      amountType: 'unspecified',
+      amountValue: '',
+      enabled: false,
+      mode: 'real',
+      network: '',
+      sourceAmount: '',
+      sourceSymbol: '',
+      destinationSymbol: '',
+    },
+  };
+};
+
 export const getResearchPlanInstructions = (
   plan: WalletAssistantResearchPlan,
 ): string => {
