@@ -4,9 +4,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  TextVariant,
+  IconName,
 } from '@metamask/design-system-react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type {
   CampaignDto,
@@ -14,8 +14,6 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useCampaignGeoRestriction from '../../../hooks/useCampaignGeoRestriction';
-import { useHasActionableAddMoneyOptions } from '../../../hooks/useHasActionableAddMoneyOptions';
-import { useMoneyAccountSweepstakesBinding } from '../../../hooks/useMoneyAccountSweepstakesBinding';
 import { useMoneyAccountSweepstakesOptIn } from '../../../hooks/useMoneyAccountSweepstakesOptIn';
 import { useMoneyAccountSweepstakesParticipation } from '../../../hooks/useMoneyAccountSweepstakesParticipation';
 import useRewardsToast from '../../../hooks/useRewardsToast';
@@ -28,74 +26,28 @@ interface MoneyAccountSweepstakesCampaignCTAProps {
   campaign: CampaignDto;
   seriesStatus: MoneyAccountSweepstakesSeriesStatus | null;
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
-  inline?: boolean;
 }
 
 const MoneyAccountSweepstakesCampaignCTA: React.FC<
   MoneyAccountSweepstakesCampaignCTAProps
-> = ({ campaign, seriesStatus, localizedText, inline = false }) => {
+> = ({ campaign, seriesStatus, localizedText }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
-  // Toast after Add Money closes — Rewards toast sits under native modals.
-  const pendingNoFundingToastRef = useRef(false);
+  const shouldNavigateToAddMoneyRef = useRef(false);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { isGeoRestricted, isGeoLoading } = useCampaignGeoRestriction(campaign);
   const { optedInAny, isLoading: isParticipationLoading } =
     useMoneyAccountSweepstakesParticipation(seriesStatus === 'active');
   const { ensureOptedIn } = useMoneyAccountSweepstakesOptIn();
-  const { ensureBound, bindingConflict } = useMoneyAccountSweepstakesBinding();
-  const hasActionableAddMoneyOptions = useHasActionableAddMoneyOptions();
-  const buttonLabel = optedInAny
-    ? localizedText.addFundsTitle
-    : localizedText.joinTheSweepstakesTitle;
+
+  const buttonLabel = localizedText.addFundsTitle;
   const optInSheetTitle = localizedText.joinTheSweepstakesTitle;
 
-  const showBindingConflictToast = useCallback(() => {
-    showToast(
-      RewardsToastOptions.entriesClosed(
-        localizedText.bindingConflictTitle,
-        localizedText.bindingConflictDescription,
-      ),
-    );
-  }, [
-    showToast,
-    RewardsToastOptions,
-    localizedText.bindingConflictTitle,
-    localizedText.bindingConflictDescription,
-  ]);
-
-  const showNoFundingOptionsToast = useCallback(() => {
-    showToast(
-      RewardsToastOptions.entriesClosed(
-        localizedText.addFundsNoBalanceTitle,
-        localizedText.addFundsNoBalanceDescription,
-      ),
-    );
-  }, [
-    showToast,
-    RewardsToastOptions,
-    localizedText.addFundsNoBalanceTitle,
-    localizedText.addFundsNoBalanceDescription,
-  ]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!pendingNoFundingToastRef.current) {
-        return;
-      }
-      pendingNoFundingToastRef.current = false;
-      showNoFundingOptionsToast();
-    }, [showNoFundingOptionsToast]),
-  );
-
   const navigateToAddMoney = useCallback(() => {
-    if (!hasActionableAddMoneyOptions) {
-      pendingNoFundingToastRef.current = true;
-    }
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
-  }, [hasActionableAddMoneyOptions, navigation]);
+  }, [navigation]);
 
   const handleGeoLockedPress = useCallback(() => {
     showToast(
@@ -107,61 +59,55 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   }, [showToast, RewardsToastOptions]);
 
   const handleCustomOptIn = useCallback(async (): Promise<boolean> => {
-    const result = await ensureOptedIn();
-    if (result.reason === 'binding-conflict') {
-      showBindingConflictToast();
-      // Close the sheet so the toast is the only failure signal (avoids a
-      // generic error banner on top of the conflict-specific toast).
-      setIsOptInSheetOpen(false);
-      return false;
-    }
-    return result.success;
-  }, [ensureOptedIn, showBindingConflictToast]);
+    const success = await ensureOptedIn();
+    shouldNavigateToAddMoneyRef.current = success;
+    return success;
+  }, [ensureOptedIn]);
 
   const handleOptInSheetClose = useCallback(() => {
     setIsOptInSheetOpen(false);
-  }, []);
+    if (shouldNavigateToAddMoneyRef.current) {
+      shouldNavigateToAddMoneyRef.current = false;
+      navigateToAddMoney();
+    }
+  }, [navigateToAddMoney]);
 
-  const handlePress = useCallback(async () => {
+  const handlePress = useCallback(() => {
     if (isGeoLoading) {
       return;
     }
-    if (isGeoRestricted) {
-      handleGeoLockedPress();
-      return;
-    }
     if (optedInAny) {
-      if (bindingConflict) {
-        showBindingConflictToast();
-        return;
-      }
-      const bindingResult = await ensureBound();
-      if (bindingResult === 'conflict') {
-        showBindingConflictToast();
-        return;
-      }
       navigateToAddMoney();
       return;
     }
+    shouldNavigateToAddMoneyRef.current = false;
     setIsOptInSheetOpen(true);
-  }, [
-    isGeoLoading,
-    isGeoRestricted,
-    handleGeoLockedPress,
-    optedInAny,
-    bindingConflict,
-    ensureBound,
-    showBindingConflictToast,
-    navigateToAddMoney,
-  ]);
+  }, [isGeoLoading, optedInAny, navigateToAddMoney]);
 
   if (seriesStatus !== 'active') {
     return null;
   }
 
+  if (!isGeoLoading && isGeoRestricted) {
+    return (
+      <Box twClassName="p-4 mb-2">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          startIconName={IconName.Lock}
+          onPress={handleGeoLockedPress}
+          testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
+        >
+          {strings('rewards.campaign.geo_locked_cta')}
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <>
-      <Box twClassName={inline ? 'pt-1' : 'mb-2 gap-2 px-4 pb-2 pt-4'}>
+      <Box twClassName="p-4 mb-2">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -179,8 +125,6 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
         <CampaignOptInSheet
           campaign={campaign}
           title={optInSheetTitle}
-          legalTextVariant={TextVariant.BodyXs}
-          legalBodyClassName="text-left text-alternative"
           onOptIn={handleCustomOptIn}
           onClose={handleOptInSheetClose}
         />

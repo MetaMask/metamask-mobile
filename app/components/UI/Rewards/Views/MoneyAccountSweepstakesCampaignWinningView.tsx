@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useMoneyAccountSweepstakesOutcome } from '../hooks/useMoneyAccountSweepstakesOutcome';
-import { formatOrdinalRank } from '../utils/formatUtils';
+import { formatUsd } from '../utils/formatUtils';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
-import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
+
+const PRIZE_EMAIL = 'moneyaccountcampaign@consensys.net';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type MoneyAccountSweepstakesCampaignWinningRouteParams = {
@@ -33,11 +34,11 @@ const MoneyAccountSweepstakesCampaignWinningView: React.FC = () => {
   const winningCode = outcome?.winnerVerificationCode ?? null;
 
   const rankDisplay = useMemo(() => {
-    if (!outcome?.rank) {
+    if (outcome?.prizeAmountUsd == null) {
       return null;
     }
-    return formatOrdinalRank(outcome.rank);
-  }, [outcome?.rank]);
+    return formatUsd(outcome.prizeAmountUsd);
+  }, [outcome?.prizeAmountUsd]);
 
   const fallbackRoute = useMemo(
     () => ({
@@ -53,7 +54,7 @@ const MoneyAccountSweepstakesCampaignWinningView: React.FC = () => {
         MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER
       }
       viewName="MoneyAccountSweepstakesCampaignWinningView"
-      prizeEmail={REWARDS_WINNER_CONTACT_EMAIL}
+      prizeEmail={PRIZE_EMAIL}
       campaignName={campaignName}
       campaignId={campaignId}
       analyticsPageType="money_account_sweepstakes_campaign_winning"
