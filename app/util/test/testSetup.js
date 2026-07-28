@@ -1102,6 +1102,7 @@ jest.mock('@sentry/react-native', () => ({
   getGlobalScope: jest.fn(() => ({
     setTag: jest.fn(),
   })),
+  getClient: jest.fn(),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {

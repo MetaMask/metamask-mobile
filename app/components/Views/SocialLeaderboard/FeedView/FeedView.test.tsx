@@ -19,7 +19,6 @@ import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
 const mockNavigate = jest.fn();
-let mockIsFocused = true;
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockLoadMore = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
@@ -112,7 +111,6 @@ jest.mock('./hooks/useTraderFeed', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
-  useIsFocused: () => mockIsFocused,
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -125,8 +123,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
-
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
@@ -135,62 +131,6 @@ jest.mock('../analytics', () => {
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
   };
 });
-
-jest.mock('../TraderPositionView/components/QuickBuy', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    QuickBuy: {
-      Root: ({
-        isVisible,
-        analyticsContext,
-      }: {
-        isVisible: boolean;
-        analyticsContext?: { source?: string };
-      }) => {
-        mockQuickBuyAnalyticsContext = analyticsContext;
-        return isVisible ? <View testID="mock-quick-buy-open" /> : null;
-      },
-    },
-    TOP_TRADERS_QUICK_BUY_FEATURES: {},
-  };
-});
-
-let mockAbTestVariant: { openSwaps: boolean } = { openSwaps: false };
-const mockUseABTest = jest.fn((..._args: unknown[]) => ({
-  variant: mockAbTestVariant,
-}));
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: (...args: unknown[]) => mockUseABTest(...args),
-}));
-
-const mockGoToSwaps = jest.fn();
-jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
-  SwapBridgeNavigationLocation: {
-    TokenView: 'TokenView',
-    FollowTradingFeedScreen: 'Follow Trading Feed Screen',
-  },
-  useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
-}));
-
-let mockDestToken: unknown = {
-  address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
-  symbol: 'PEPE',
-  name: 'Pepe',
-  decimals: 18,
-  chainId: '0x1',
-};
-let mockQuickBuyIsLoading = false;
-jest.mock(
-  '../TraderPositionView/components/QuickBuy/hooks/useQuickBuySetup',
-  () => ({
-    useQuickBuySetup: () => ({
-      destToken: mockDestToken,
-      isLoading: mockQuickBuyIsLoading,
-      chainId: undefined,
-      isUnsupportedChain: false,
-    }),
-  }),
-);
 
 let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
 
@@ -212,18 +152,7 @@ describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
-    mockQuickBuyAnalyticsContext = undefined;
     handleTypeFilterChange = undefined;
-    mockAbTestVariant = { openSwaps: false };
-    mockIsFocused = true;
-    mockDestToken = {
-      address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
-      symbol: 'PEPE',
-      name: 'Pepe',
-      decimals: 18,
-      chainId: '0x1',
-    };
-    mockQuickBuyIsLoading = false;
   });
 
   it('renders the type selector, audience toggle, and feed list when items exist', () => {
@@ -274,14 +203,21 @@ describe('FeedView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the QuickBuy sheet with a CTA haptic when a spot Trade is pressed', () => {
-    renderWithProvider(<FeedView />);
+  it('requests QuickBuy with a CTA haptic when a spot Trade is pressed', () => {
+    const onQuickBuy = jest.fn();
+    renderWithProvider(<FeedView onQuickBuy={onQuickBuy} />);
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'trader_feed' });
+    expect(onQuickBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: spotItem.tokenAddress,
+        tokenSymbol: spotItem.tokenSymbol,
+        tokenName: spotItem.tokenName,
+        chain: spotItem.chain,
+      }),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
@@ -299,89 +235,20 @@ describe('FeedView', () => {
     );
   });
 
-  it('navigates to the main swaps view (treatment) when a spot Trade is pressed', () => {
-    mockAbTestVariant = { openSwaps: true };
+  it('reports spot availability to the parent', () => {
+    const onSpotAvailabilityChange = jest.fn();
 
-    renderWithProvider(<FeedView />);
-
-    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
-
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      expect.objectContaining({ symbol: 'PEPE', chainId: '0x1' }),
-      undefined,
-      true,
+    const { rerender } = renderWithProvider(
+      <FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />,
     );
-    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
-    // The attribution event still fires in both variants.
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
-      expect.objectContaining({ trade_type: 'spot', source: 'trader_feed' }),
-    );
-  });
 
-  it('falls back to QuickBuy (treatment) when the token metadata cannot be resolved', () => {
-    mockAbTestVariant = { openSwaps: true };
-    mockDestToken = undefined;
-    mockQuickBuyIsLoading = false;
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(true);
 
-    renderWithProvider(<FeedView />);
-
-    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
-
-    expect(mockGoToSwaps).not.toHaveBeenCalled();
-    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-  });
-
-  it('waits (treatment) while token metadata is still loading — no premature swaps or QuickBuy fallback', () => {
-    mockAbTestVariant = { openSwaps: true };
-    mockDestToken = undefined;
-    mockQuickBuyIsLoading = true;
-
-    renderWithProvider(<FeedView />);
-
-    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
-
-    expect(mockGoToSwaps).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
-  });
-
-  it('cancels a pending swap (treatment) without navigating when the feed route loses focus', () => {
-    mockAbTestVariant = { openSwaps: true };
-    mockIsFocused = false;
-
-    renderWithProvider(<FeedView />);
-
-    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
-
-    expect(mockGoToSwaps).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
-  });
-
-  it('cancels a pending swap (treatment) when the feed is not the active pager tab', () => {
-    mockAbTestVariant = { openSwaps: true };
-    mockIsFocused = true;
-
-    renderWithProvider(<FeedView isActive={false} />);
-
-    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
-
-    expect(mockGoToSwaps).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
-  });
-
-  it('does not resolve the A/B test when the feed has no spot rows', () => {
+    onSpotAvailabilityChange.mockClear();
     mockFeedResult = buildResult({ items: [perpItem] });
+    rerender(<FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />);
 
-    renderWithProvider(<FeedView />);
-
-    expect(mockUseABTest).not.toHaveBeenCalled();
-  });
-
-  it('resolves the A/B test (exposure) when the feed contains a spot row', () => {
-    renderWithProvider(<FeedView />);
-
-    expect(mockUseABTest).toHaveBeenCalled();
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(false);
   });
 
   it('navigates to the Perps market detail page when a perps Trade is pressed', () => {

@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
@@ -178,6 +178,9 @@ async function handleHeadlessCheckoutCallback({
 }
 
 const Checkout = () => {
+  // Must match redirectUrl from getRampCallbackBaseUrl() on quote fetch
+  // (including Dev → on-ramp.dev-api), not Aggregator/sdk's content host.
+  const callbackBaseUrl = getRampCallbackBaseUrl();
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
@@ -444,6 +447,7 @@ const Checkout = () => {
       providerName,
       effectiveOrderId,
       headlessBaseOverrides,
+      callbackBaseUrl,
     ],
   );
 
@@ -576,6 +580,7 @@ const Checkout = () => {
       headlessBaseOverrides,
       headlessRampSurface,
       regionCode,
+      callbackBaseUrl,
     ],
   );
 

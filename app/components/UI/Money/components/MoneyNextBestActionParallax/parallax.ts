@@ -21,3 +21,14 @@ export function tiltToParallaxValue(tilt: number): number {
   const clamped = Math.min(1, Math.max(-1, tilt));
   return PARALLAX_REST_VALUE + clamped * PARALLAX_TILT_AMPLITUDE;
 }
+
+/**
+ * Maps a normalized device-pitch value onto the Rive `yValue`.
+ *
+ * The artboard's `yValue` travel runs opposite to the pitch reported by
+ * `useDeviceOrientation`, so the pitch is inverted before mapping — without
+ * this the graphic leans the wrong way.
+ */
+export function pitchToParallaxValue(pitch: number): number {
+  return tiltToParallaxValue(-pitch);
+}

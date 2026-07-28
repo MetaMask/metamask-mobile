@@ -1511,6 +1511,42 @@
       "place_order": "Place order",
       "close_keyboard": "Close keyboard"
     },
+    "pro_positions_panel": {
+      "positions": "Positions",
+      "positions_with_count": "Positions ({{count}})",
+      "orders": "Orders",
+      "orders_with_count": "Orders ({{count}})",
+      "ticker_only": "{{ticker}} only",
+      "positions_empty": "Your open positions will appear here.",
+      "positions_empty_filtered": "No open {{ticker}} positions.",
+      "orders_empty": "Your open orders will appear here.",
+      "card": {
+        "entry_price": "Entry price",
+        "margin": "Margin",
+        "mark_price": "Mark price",
+        "tp_sl": "TP / SL",
+        "liq_price": "Liq. price",
+        "funding": "Funding",
+        "isolated": "Isolated",
+        "cross": "Cross",
+        "close": "Close",
+        "reverse": "Reverse",
+        "share": "Share"
+      },
+      "order_card": {
+        "size": "Size",
+        "order_value": "Order value",
+        "price": "Price",
+        "reduce_only": "Reduce only",
+        "tp_sl": "TP / SL",
+        "trigger_condition": "Trigger condition",
+        "take_profit": "Take profit",
+        "stop": "Stop",
+        "open_limit": "Open limit",
+        "close_limit": "Close limit",
+        "cancel": "Cancel"
+      }
+    },
     "order": {
       "title": "New order",
       "leverage": "Leverage",
@@ -1833,6 +1869,7 @@
     "errors": {
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "unsupportedCollateral": "This market's collateral is not supported",
       "unknownError": "Unknown error occurred",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",
@@ -2424,6 +2461,24 @@
       "loading": "Loading order book...",
       "no_data": "No order book data available",
       "error": "Failed to load order book",
+      "connection_error": "Order book connection lost",
+      "reconnect": "Reconnect",
+      "config_title": "Order book settings",
+      "listed_by": "Listed by",
+      "value_type": "Value type",
+      "group_by": "Group by",
+      "apply": "Apply",
+      "save": "Save",
+      "collapse": "Hide order book",
+      "expand": "Show order book",
+      "view_toggle": "Toggle order book view",
+      "view_mode_both": "Bids and asks",
+      "view_mode_bids": "Bids only",
+      "view_mode_asks": "Asks only",
+      "buy_percent": "Buy: {{percent}}%",
+      "sell_percent": "Sell: {{percent}}%",
+      "depth_ratio": "Buy {{buy}}%, sell {{sell}}%",
+      "use_price": "Use {{price}} as limit price",
       "depth_band": {
         "title": "Select Price Grouping"
       }
@@ -7429,10 +7484,11 @@
       "get_apy": "Get {{apy}}% APY"
     },
     "earnings": {
-      "title": "Estimated earnings",
+      "title": "Earnings",
       "estimated_monthly": "Monthly",
-      "estimated_yearly": "Annual",
-      "info_label": "Earnings info"
+      "estimated_lifetime": "Lifetime",
+      "monthly_info_label": "Monthly earnings info",
+      "lifetime_info_label": "Lifetime earnings info"
     },
     "how_it_works": {
       "title": "How it works",
@@ -7582,8 +7638,14 @@
       "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
-      "title": "Estimated earnings",
-      "body": "An estimate of how much you could earn over a period based on your current balance and today's APY. Estimates are not guaranteed returns and remain subject to change."
+      "monthly": {
+        "title": "Monthly earnings",
+        "body": "The total you've earned on your Money account balance in the last 30 days."
+      },
+      "lifetime": {
+        "title": "Lifetime earnings",
+        "body": "The total you've earned on your Money account balance over time."
+      }
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
@@ -8008,6 +8070,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_payment_method": "Select payment method",
       "select_token": "Select token",
       "from": "From",
       "to": "To",
@@ -8832,7 +8895,8 @@
         "country_not_available": "Card sign-up isn't available in your country yet.",
         "account_label": "Account",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_exists_toast": "You already have a card account."
+        "account_exists_toast": "You already have a card account.",
+        "card_program_label": "Card program (testing)"
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -9086,6 +9150,11 @@
         "kyc_pending": {
           "title": "Verification in progress",
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+        },
+        "pending_verification": {
+          "title": "Finish setting up your card",
+          "description": "You have pending verification steps to complete before your card can be enabled.",
+          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {
@@ -9508,6 +9577,17 @@
       "swaps_volume_info_label": "Swaps volume information",
       "swaps_volume_info_title": "Swaps volume",
       "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
+    },
+    "vip_transactions": {
+      "select_type": "Select type",
+      "type_perps": "Perps",
+      "type_swap": "Swaps",
+      "swap_title": "Swap",
+      "perps_title": "Perps",
+      "error_title": "Failed to load transactions",
+      "error_description": "Something went wrong while loading your transactions. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
@@ -9987,7 +10067,8 @@
     },
     "earn_rewards": {
       "title": "Earn rewards",
-      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_money_title": "Earn up to {{percentage}}% APY",
+      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
       "musd_subtitle": "Money accounts are here",
       "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
