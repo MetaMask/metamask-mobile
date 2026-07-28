@@ -141,6 +141,30 @@ const stripControlCharacters = (value: string) =>
     })
     .join('');
 
+const parseJsonObjectText = (value: string): unknown => {
+  const trimmedValue = value.trim();
+
+  try {
+    return JSON.parse(trimmedValue);
+  } catch {
+    const fencedMatch =
+      /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmedValue)?.[1];
+    const candidate = fencedMatch ?? trimmedValue;
+    const objectStart = candidate.indexOf('{');
+    const objectEnd = candidate.lastIndexOf('}');
+
+    if (objectStart === -1 || objectEnd <= objectStart) {
+      throw new MalformedOpenAIResponseError();
+    }
+
+    try {
+      return JSON.parse(candidate.slice(objectStart, objectEnd + 1));
+    } catch {
+      throw new MalformedOpenAIResponseError();
+    }
+  }
+};
+
 const toBoundedString = (value: unknown, maxLength: number): string => {
   if (typeof value !== 'string' && typeof value !== 'number') {
     return '';
@@ -411,11 +435,7 @@ export const parseWalletAssistantResearchResponse = (
   let parsed: unknown = input;
 
   if (typeof input === 'string') {
-    try {
-      parsed = JSON.parse(input);
-    } catch {
-      throw new MalformedOpenAIResponseError();
-    }
+    parsed = parseJsonObjectText(input);
   }
 
   if (!isRecord(parsed)) {

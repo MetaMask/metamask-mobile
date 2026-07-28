@@ -193,6 +193,8 @@ const FIRST_CHAT_LAYOUT_ANIMATION = {
 };
 const BASE_OPENAI_INSTRUCTIONS =
   'You are Wallet Assistant inside MetaMask. Trading assistance is your primary job. Be concise, useful, and transparent about uncertainty. Treat direct language such as “Can I buy ETH?”, “Buy ETH”, “I want to sell ETH”, or “Swap ETH for USDC” as a request to prepare a trade, not as a request for educational information. For those requests, set swapIntent.enabled true, keep the prose task-focused, and do not use web research unless the user separately asks for market research. Questions such as “Should I buy ETH?” remain research or financial-education questions and must not prepare a trade. Research current market questions using web search. For market-cap, ranking, trending, and token-metadata questions, use CoinGecko as the default primary source. Corroborate with official project documentation, chain explorers, and other reputable sources when useful. Never ask the user to choose a tracker, data source, or research provider when the question can be answered with web research. Return a short factual headline in title and clean structured content: no Markdown, no inline URLs, and no URLs in title, summary, or bullets. Give every source a stable unique ID. Put only safe, public URLs in the sources array with their publication date as an ISO-8601 string, or an empty date when unavailable. Add source IDs and a confidence level to every factual bullet. Set asOf to the timestamp or date represented by the research. Never name a source “live price feed” or describe a web result as live or real-time. Treat researched prices as time-stamped snapshots, not current app prices. For token price questions, let the app’s verified token pill display the current price and focus the prose on context and drivers. Include a chart only when researched sources provide a small, directly comparable numeric series. Include one source ID for each chart point. Otherwise return an empty chart. Never estimate or invent chart values. Put the uppercase ticker symbols of clearly identified crypto tokens discussed in the response in the tokens array. Put network-aware identity in assets, including contract address and CAIP chain ID when verified; leave unknown fields empty and never infer identity from ticker alone. Exclude companies, funds, ambiguous tickers, and assets you cannot identify confidently. When the user explicitly asks to buy, sell, swap, or trade a token, set swapIntent.enabled true and identify the source and destination ticker when stated. Wallet Assistant only prepares real MetaMask swaps; if the user explicitly requests a paper, fake, simulated, or simulation trade, explain briefly that simulations are not supported and set swapIntent.enabled false. Set swapIntent.mode to real. Classify the requested amount as exact source-token amount, fiat amount, percentage of a source holding, or unspecified; put the raw number in amountValue. Copy amountValue into sourceAmount only for exact source-token amounts. Capture an explicitly named network in network, otherwise leave it empty. For requests such as “buy $50 of ETH” with no source token, leave sourceSymbol and sourceAmount empty, set amountType fiat, and amountValue 50. Otherwise set swapIntent.enabled false and leave its strings empty with amountType unspecified and mode real. Never claim a quote is ready, predict received amount or fees, sign, submit, or say a transaction completed. The app resolves verified assets and MetaMask Swap fetches the real quote; the user must review and explicitly confirm every transaction. Do not provide personalized financial advice.';
+const STRUCTURED_RESPONSE_RETRY_INSTRUCTIONS =
+  'Your previous answer could not be decoded. Return one complete JSON object that exactly matches the provided wallet_research schema. Do not use Markdown fences, commentary, or text outside the JSON object.';
 const RESEARCH_RESPONSE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -1570,38 +1572,51 @@ const WalletAssistant = () => {
             input: secureRequestParts.input,
           },
         });
-      let result = await requestResearch(secureRequestParts.instructions);
-      let responseText =
-        result.text ||
-        getResponseText((result.response ?? {}) as OpenAIResponse);
-      if (!responseText) {
-        throw new MalformedOpenAIResponseError();
-      }
-      let research = prioritizeDirectTradeRequest(
-        text,
-        applyResearchPlanIdentity(
-          researchPlan,
-          parseWalletAssistantResearchResponse(responseText),
-        ),
-      );
-
-      if (hasNetworkContextMismatch(text, research)) {
-        setRequestStatus(AgentProgressStatus.SearchingWeb);
-        result = await requestResearch(
-          `${secureRequestParts.instructions}\n\n${ROBINHOOD_CHAIN_RETRY_INSTRUCTIONS}`,
-        );
-        responseText =
-          result.text ||
-          getResponseText((result.response ?? {}) as OpenAIResponse);
-        if (!responseText) {
-          throw new MalformedOpenAIResponseError();
-        }
-        research = prioritizeDirectTradeRequest(
+      const parseResearch = (responseText: string) =>
+        prioritizeDirectTradeRequest(
           text,
           applyResearchPlanIdentity(
             researchPlan,
             parseWalletAssistantResearchResponse(responseText),
           ),
+        );
+      const requestParsedResearch = async (instructions: string) => {
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          const result = await requestResearch(
+            attempt === 0
+              ? instructions
+              : `${instructions}\n\n${STRUCTURED_RESPONSE_RETRY_INSTRUCTIONS}`,
+          );
+          const responseText =
+            result.text ||
+            getResponseText((result.response ?? {}) as OpenAIResponse);
+
+          try {
+            if (!responseText) {
+              throw new MalformedOpenAIResponseError();
+            }
+            return parseResearch(responseText);
+          } catch (parseError) {
+            if (
+              !(parseError instanceof MalformedOpenAIResponseError) ||
+              attempt === 1
+            ) {
+              throw parseError;
+            }
+            setRequestStatus(AgentProgressStatus.Thinking);
+          }
+        }
+
+        throw new MalformedOpenAIResponseError();
+      };
+      let research = await requestParsedResearch(
+        secureRequestParts.instructions,
+      );
+
+      if (hasNetworkContextMismatch(text, research)) {
+        setRequestStatus(AgentProgressStatus.SearchingWeb);
+        research = await requestParsedResearch(
+          `${secureRequestParts.instructions}\n\n${ROBINHOOD_CHAIN_RETRY_INSTRUCTIONS}`,
         );
         if (hasNetworkContextMismatch(text, research)) {
           throw new MalformedOpenAIResponseError();
