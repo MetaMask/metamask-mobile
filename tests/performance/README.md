@@ -617,11 +617,11 @@ What gets sent per scenario:
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                       | Content                   |
-| --------- | -------------------------------------------------------------- | ------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html` | Visual report with charts |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`  | Spreadsheet-friendly data |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`   | Raw metrics data          |
+| File Type | Location                                                                      | Content                                             |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
 | Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario BrowserStack app profiling + API calls |
 
 ### HTML Report Contents
