@@ -98,8 +98,11 @@ write_secret "TEST_SRP_4" "${TEST_SRP_4:-}"
 write_secret "E2E_PASSWORD" "${E2E_PASSWORD:-}"
 write_secret "E2E_PERFORMANCE_SENTRY_DSN" "${E2E_PERFORMANCE_SENTRY_DSN:-}"
 
+# Use YAML 0.1: version 0.2 requires framework.name and drops support for
+# custom testDiscovery / testRunnerCommand (see HyperExecute YAML 0.2 docs).
+# This PoC orchestrates Appium-via-Playwright with our own discovery/runner.
 cat > "$HE_YAML" <<EOF
-version: "0.2"
+version: "0.1"
 runson: linux
 autosplit: true
 concurrency: ${HE_CONCURRENCY}
