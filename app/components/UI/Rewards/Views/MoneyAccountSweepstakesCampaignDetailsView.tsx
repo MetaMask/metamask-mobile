@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -18,9 +18,11 @@ import MoneyAccountSweepstakesDrawScheduleSection from '../components/Campaigns/
 import MoneyAccountSweepstakesStatsSummary from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesStatsSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
+import { useMoneyAccountSweepstakesBinding } from '../hooks/useMoneyAccountSweepstakesBinding';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import useRewardsToast from '../hooks/useRewardsToast';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { buildMoneyAccountSweepstakesTileCampaign } from '../utils/moneyAccountSweepstakesSeries';
@@ -38,6 +40,7 @@ export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS = {
 const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const conflictToastShownRef = useRef(false);
 
   const {
     isLoading: isCampaignsLoading,
@@ -51,6 +54,8 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const { optedInAny } = useMoneyAccountSweepstakesParticipation(
     Boolean(displayCampaign),
   );
+  const { ensureBound } = useMoneyAccountSweepstakesBinding();
+  const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const { stats, isLoading: isStatsLoading } =
     useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
@@ -73,6 +78,40 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
     page_type: 'money_account_sweepstakes_campaign_details',
     campaign_id: displayCampaign?.id,
   });
+
+  // Re-assert Money Account binding for already-opted-in users. Late-discovered
+  // conflicts must surface — deposits cannot earn entries without a binding.
+  useEffect(() => {
+    if (!optedInAny || seriesStatus !== 'active' || !localizedText) {
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const result = await ensureBound();
+      if (cancelled || result !== 'conflict' || conflictToastShownRef.current) {
+        return;
+      }
+      conflictToastShownRef.current = true;
+      showToast(
+        RewardsToastOptions.entriesClosed(
+          localizedText.bindingConflictTitle,
+          localizedText.bindingConflictDescription,
+        ),
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    optedInAny,
+    seriesStatus,
+    localizedText,
+    ensureBound,
+    showToast,
+    RewardsToastOptions,
+  ]);
 
   const navigateToMechanics = useCallback(() => {
     if (!displayCampaign?.id) return;

@@ -14,6 +14,7 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useCampaignGeoRestriction from '../../../hooks/useCampaignGeoRestriction';
+import { useMoneyAccountSweepstakesBinding } from '../../../hooks/useMoneyAccountSweepstakesBinding';
 import { useMoneyAccountSweepstakesOptIn } from '../../../hooks/useMoneyAccountSweepstakesOptIn';
 import { useMoneyAccountSweepstakesParticipation } from '../../../hooks/useMoneyAccountSweepstakesParticipation';
 import useRewardsToast from '../../../hooks/useRewardsToast';
@@ -39,9 +40,24 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   const { optedInAny, isLoading: isParticipationLoading } =
     useMoneyAccountSweepstakesParticipation(seriesStatus === 'active');
   const { ensureOptedIn } = useMoneyAccountSweepstakesOptIn();
+  const { ensureBound, bindingConflict } = useMoneyAccountSweepstakesBinding();
 
   const buttonLabel = localizedText.addFundsTitle;
   const optInSheetTitle = localizedText.joinTheSweepstakesTitle;
+
+  const showBindingConflictToast = useCallback(() => {
+    showToast(
+      RewardsToastOptions.entriesClosed(
+        localizedText.bindingConflictTitle,
+        localizedText.bindingConflictDescription,
+      ),
+    );
+  }, [
+    showToast,
+    RewardsToastOptions,
+    localizedText.bindingConflictTitle,
+    localizedText.bindingConflictDescription,
+  ]);
 
   const navigateToAddMoney = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -59,10 +75,15 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   }, [showToast, RewardsToastOptions]);
 
   const handleCustomOptIn = useCallback(async (): Promise<boolean> => {
-    const success = await ensureOptedIn();
-    shouldNavigateToAddMoneyRef.current = success;
-    return success;
-  }, [ensureOptedIn]);
+    const result = await ensureOptedIn();
+    if (result.reason === 'binding-conflict') {
+      showBindingConflictToast();
+      shouldNavigateToAddMoneyRef.current = false;
+      return false;
+    }
+    shouldNavigateToAddMoneyRef.current = result.success;
+    return result.success;
+  }, [ensureOptedIn, showBindingConflictToast]);
 
   const handleOptInSheetClose = useCallback(() => {
     setIsOptInSheetOpen(false);
@@ -72,17 +93,33 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     }
   }, [navigateToAddMoney]);
 
-  const handlePress = useCallback(() => {
+  const handlePress = useCallback(async () => {
     if (isGeoLoading) {
       return;
     }
     if (optedInAny) {
+      if (bindingConflict) {
+        showBindingConflictToast();
+        return;
+      }
+      const bindingResult = await ensureBound();
+      if (bindingResult === 'conflict') {
+        showBindingConflictToast();
+        return;
+      }
       navigateToAddMoney();
       return;
     }
     shouldNavigateToAddMoneyRef.current = false;
     setIsOptInSheetOpen(true);
-  }, [isGeoLoading, optedInAny, navigateToAddMoney]);
+  }, [
+    isGeoLoading,
+    optedInAny,
+    bindingConflict,
+    ensureBound,
+    showBindingConflictToast,
+    navigateToAddMoney,
+  ]);
 
   if (seriesStatus !== 'active') {
     return null;

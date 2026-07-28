@@ -2,8 +2,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useMoneyAccountSweepstakesBinding } from './useMoneyAccountSweepstakesBinding';
 
 const mockCall = jest.fn();
-let mockSubscriptionId: string | null;
-let mockPrimaryMoneyAccount: { address: string } | undefined;
+let mockSubscriptionId: string | null = 'sub-1';
+let mockPrimaryMoneyAccount: { address: string } | undefined = {
+  address: '0xABCDEF1234567890abcdef1234567890ABCDEF12',
+};
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
