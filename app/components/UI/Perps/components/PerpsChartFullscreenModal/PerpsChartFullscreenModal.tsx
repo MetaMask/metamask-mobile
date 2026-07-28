@@ -56,6 +56,8 @@ export interface PerpsChartFullscreenModalProps {
   positionSize?: string;
   /** Hyperliquid size decimals; forwarded so fullscreen advanced chart matches market precision. */
   szDecimals?: number | null;
+  /** Loads older candles when the fullscreen Advanced Chart falls back to Lightweight. */
+  fallbackFetchMoreHistory?: () => void;
 }
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
@@ -70,6 +72,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   symbol,
   positionSize,
   szDecimals,
+  fallbackFetchMoreHistory,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -327,6 +330,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 onError={handleAdvancedChartError}
                 onSkeletonHidden={handleAdvancedChartSkeletonHidden}
                 fallbackCandleData={candleData ?? null}
+                fallbackFetchMoreHistory={fallbackFetchMoreHistory}
               />
             ) : (
               <TradingViewChart
