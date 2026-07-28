@@ -220,8 +220,94 @@ test('buildScenarioComment explains missing baseline', () => {
     repo: 'MetaMask/metamask-mobile',
   });
 
-  assert.match(md, /No green baseline found/);
+  assert.match(md, /No usable baseline profiling found/);
   assert.match(md, new RegExp(COMMENT_MARKER));
+});
+
+test('buildScenarioComment labels non-green baseline fallback', () => {
+  const md = buildScenarioComment({
+    testName: 'Import SRP with +50 accounts',
+    platform: 'Android',
+    device: { name: 'Pixel 8', osVersion: '14.0' },
+    currentRunId: '111',
+    currentArtifact: {
+      profilingSummary: {
+        cpu: { avg: 10, max: 20 },
+        memory: { avg: 200, max: 250 },
+        uiRendering: { slowFrames: 10, frozenFrames: 0, anrs: 0 },
+        issues: 1,
+        criticalIssues: 0,
+      },
+    },
+    baseline: {
+      isGreen: false,
+      run: {
+        databaseId: 222,
+        headSha: 'abcdef123456',
+        url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/222',
+      },
+      artifact: {
+        profilingSummary: {
+          cpu: { avg: 8, max: 18 },
+          memory: { avg: 190, max: 240 },
+          uiRendering: { slowFrames: 7, frozenFrames: 0, anrs: 0 },
+          issues: 1,
+          criticalIssues: 0,
+        },
+      },
+    },
+    repo: 'MetaMask/metamask-mobile',
+  });
+
+  assert.match(md, /scenario also failing/);
+  assert.match(md, /No green baseline was available/);
+  assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
+});
+
+test('findScenarioWithProfilingInDir can use failed scenarios with profiling', async () => {
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const { findScenarioWithProfilingInDir } = await import(
+    './diff-app-profiling.mjs'
+  );
+
+  const dir = mkdtempSync(join(tmpdir(), 'profiling-failed-baseline-'));
+  try {
+    writeFileSync(
+      join(dir, 'performance-results.json'),
+      JSON.stringify({
+        Android: {
+          'Pixel 8+14.0': [
+            {
+              testName: 'Import SRP',
+              testFailed: true,
+              failureReason: 'failed',
+              device: { name: 'Pixel 8', osVersion: '14.0' },
+              profilingSummary: { cpu: { avg: 5, max: 12 }, issues: 1 },
+            },
+          ],
+        },
+      }),
+    );
+
+    const greenOnly = findScenarioWithProfilingInDir(dir, {
+      testName: 'Import SRP',
+      device: { name: 'Pixel 8', osVersion: '14.0' },
+      requireGreen: true,
+    });
+    assert.equal(greenOnly, null);
+
+    const any = findScenarioWithProfilingInDir(dir, {
+      testName: 'Import SRP',
+      device: { name: 'Pixel 8', osVersion: '14.0' },
+      requireGreen: false,
+    });
+    assert.equal(any?.isGreen, false);
+    assert.equal(any?.artifact?.profilingSummary?.cpu?.avg, 5);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('findGreenScenarioInDir falls back to embedded profilingSummary', async () => {

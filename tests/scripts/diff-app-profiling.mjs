@@ -14,6 +14,10 @@
  * Or compare all failed tests from the current run:
  *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all
  *
+ * From the performance workflow (local aggregated-reports already present):
+ *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all \
+ *     --current-dir aggregated-reports --replace
+ *
  * Environment:
  *   GITHUB_REPOSITORY  owner/repo (required unless --repo is passed)
  *   GH_TOKEN / GITHUB_TOKEN  GitHub token with actions:read + pull_requests:write
@@ -292,7 +296,10 @@ function flattenPerformanceResults(results) {
   return entries;
 }
 
-function findGreenScenarioInDir(dir, { testName, device }) {
+function findScenarioWithProfilingInDir(
+  dir,
+  { testName, device, requireGreen = false },
+) {
   const resultsPath = path.join(dir, 'performance-results.json');
   if (!fs.existsSync(resultsPath)) {
     return null;
@@ -302,11 +309,13 @@ function findGreenScenarioInDir(dir, { testName, device }) {
     (entry) =>
       entry.test.testName === testName &&
       devicesMatch(entry.device, device) &&
-      isScenarioGreen(entry.test),
+      (!requireGreen || isScenarioGreen(entry.test)),
   );
   if (!match) {
     return null;
   }
+
+  const isGreen = isScenarioGreen(match.test);
 
   // Prefer dedicated app-profiling sidecars when present (new artifact layout).
   const artifacts = findProfilingArtifacts(dir);
@@ -316,6 +325,7 @@ function findGreenScenarioInDir(dir, { testName, device }) {
       platform: match.platform,
       device: match.device,
       artifact: sidecar.data,
+      isGreen,
     };
   }
 
@@ -340,7 +350,17 @@ function findGreenScenarioInDir(dir, { testName, device }) {
     platform: match.platform,
     device: match.device,
     artifact: embeddedArtifact,
+    isGreen,
   };
+}
+
+/** @deprecated Prefer findScenarioWithProfilingInDir({ requireGreen: true }) */
+function findGreenScenarioInDir(dir, { testName, device }) {
+  return findScenarioWithProfilingInDir(dir, {
+    testName,
+    device,
+    requireGreen: true,
+  });
 }
 
 function findBaselineScenario({
@@ -358,12 +378,14 @@ function findBaselineScenario({
     branch: baselineBranch,
   });
 
+  const downloaded = [];
+
   for (const run of candidates) {
     if (String(run.databaseId) === String(currentRunId)) {
       continue;
     }
-    // Prefer completed runs; performance can be non-blocking so conclusion
-    // success still needs per-scenario green checks below.
+    // Prefer completed workflow runs. Per-scenario green is checked below;
+    // performance can be non-blocking so workflow success ≠ scenario green.
     if (run.conclusion && run.conclusion !== 'success') {
       continue;
     }
@@ -378,11 +400,39 @@ function findBaselineScenario({
       continue;
     }
 
-    const found = findGreenScenarioInDir(dest, { testName, device });
-    if (found) {
+    downloaded.push({ run, dest });
+
+    const green = findScenarioWithProfilingInDir(dest, {
+      testName,
+      device,
+      requireGreen: true,
+    });
+    if (green) {
       return {
         run,
-        ...found,
+        ...green,
+        isGreen: true,
+      };
+    }
+  }
+
+  // Fallback: if the scenario is also failing on the baseline branch, still
+  // compare against the latest usable profilingSummary so teams can see
+  // whether the PR is worse/better than current main.
+  for (const { run, dest } of downloaded) {
+    const any = findScenarioWithProfilingInDir(dest, {
+      testName,
+      device,
+      requireGreen: false,
+    });
+    if (any) {
+      console.warn(
+        `⚠️  No green baseline for "${testName}"; using latest usable profiling from run ${run.databaseId} (scenario also failing on ${baselineBranch})`,
+      );
+      return {
+        run,
+        ...any,
+        isGreen: false,
       };
     }
   }
@@ -559,7 +609,7 @@ function buildScenarioComment({
   }
 
   if (!baseline) {
-    md += `\n\n⚠️ No green baseline found on \`${baselineBranch}\` (within recent \`aggregated-reports\` retention) for this scenario + device.\n\n`;
+    md += `\n\n⚠️ No usable baseline profiling found on \`${baselineBranch}\` (within recent \`aggregated-reports\` retention) for this scenario + device.\n\n`;
     md += `### Current profilingSummary\n\n`;
     md += '```json\n';
     md += `${JSON.stringify(currentArtifact.profilingSummary, null, 2)}\n`;
@@ -572,11 +622,20 @@ function buildScenarioComment({
     baseline.run.url ||
     `https://github.com/${repo}/actions/runs/${baseline.run.databaseId}`;
   const baselineSha = (baseline.run.headSha || '').slice(0, 7);
-  md += ` · **Baseline (last green on \`${baselineBranch}\`):** [run ${baseline.run.databaseId}](${baselineUrl})`;
+  const baselineKind =
+    baseline.isGreen === false
+      ? `last run on \`${baselineBranch}\` (scenario also failing)`
+      : `last green on \`${baselineBranch}\``;
+  md += ` · **Baseline (${baselineKind}):** [run ${baseline.run.databaseId}](${baselineUrl})`;
   if (baselineSha) {
     md += ` @ \`${baselineSha}\``;
   }
-  md += '\n\n';
+  md += '\n';
+
+  if (baseline.isGreen === false) {
+    md += `\n> ⚠️ No green baseline was available for this scenario on \`${baselineBranch}\`. Comparing against the latest usable profiling anyway.\n`;
+  }
+  md += '\n';
   md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
   md += `> - If \`Current <= Baseline + 10%\`, the change is treated as acceptable noise (no highlight).\n`;
   md += `> - If \`Current > Baseline + 10%\`, **Current** and the **variance %** are highlighted and marked with ⚠️.\n\n`;
@@ -758,6 +817,7 @@ export {
   hasUsableProfilingSummary,
   findMatchingArtifact,
   findGreenScenarioInDir,
+  findScenarioWithProfilingInDir,
   buildScenarioComment,
   parseArgs,
   COMMENT_MARKER,

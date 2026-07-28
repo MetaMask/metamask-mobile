@@ -669,6 +669,11 @@ When a PR performance run has failed scenarios, the
 BrowserStack `profilingSummary` vs the last green baseline on `main`
 (⚠️ only when Current > Baseline + 10%).
 
+Baseline preference:
+1. Last **green** scenario on `main` with usable profiling
+2. Else latest usable profiling on `main` even if that scenario is also
+   failing (labeled as such in the comment)
+
 Manual re-run is still available via PR comment:
 
 ```text
