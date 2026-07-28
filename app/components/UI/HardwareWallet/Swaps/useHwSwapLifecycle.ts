@@ -309,19 +309,9 @@ export function useHwSwapLifecycle({
 
   // ── Initial submit (first Waiting) ───────────────────────────────
   useEffect(() => {
+    if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
     if (hasInitialSubmissionRef.current) return;
     if (hasAutoNavigatedRef.current) return;
-
-    // Remount with signing already finished (Waiting or Submitted): complete
-    // without resubmitting. Must run before the Waiting-only submit gate —
-    // Submitted remounts never enter that path otherwise.
-    if (allStepsSigned) {
-      hasInitialSubmissionRef.current = true;
-      completeSignedFlow();
-      return;
-    }
-
-    if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
     // Bridge gates on cached params; send flow validates inside submitWithDeviceReady.
     if (!strategy.isSendFlow && !canRetry()) {
       dispatch(
@@ -333,6 +323,12 @@ export function useHwSwapLifecycle({
     }
 
     hasInitialSubmissionRef.current = true;
+
+    // Never resubmit a remounted flow whose signing steps already completed.
+    if (allStepsSigned) {
+      completeSignedFlow();
+      return;
+    }
 
     if (!strategy.isSendFlow) {
       didStartBridgeSubmitRef.current = true;
