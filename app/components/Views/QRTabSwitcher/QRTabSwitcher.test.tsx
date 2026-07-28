@@ -335,8 +335,16 @@ describe('QRTabSwitcher', () => {
       useSelector: jest.Mock;
     };
 
+    const syncError = {
+      code: 'INVALID_PAYLOAD' as const,
+      message:
+        'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+    };
+
     let phase: (typeof defaultQrSyncControllerState)['phase'] =
       QrSyncPhases.AWAITING_SYNC_READY;
+    let error: (typeof defaultQrSyncControllerState)['error'] = null;
+
     reactReduxModule.useSelector.mockImplementation(
       (selector: (state: RootState) => unknown) =>
         selector({
@@ -345,6 +353,7 @@ describe('QRTabSwitcher', () => {
               QrSyncController: {
                 ...defaultQrSyncControllerState,
                 phase,
+                error,
               },
             },
           },
@@ -354,11 +363,20 @@ describe('QRTabSwitcher', () => {
         } as RootState),
     );
 
-    const { rerender } = render(<QRTabSwitcher />);
+    const { getByTestId, rerender } = render(<QRTabSwitcher />);
 
-    phase = QrSyncPhases.IDLE;
+    expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
+
+    phase = QrSyncPhases.FAILED;
+    error = syncError;
     rerender(<QRTabSwitcher />);
 
     expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledTimes(1);
+    expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledWith(
+      expect.anything(),
+      { errorMessage: syncError.message },
+    );
+    // Waiting UI must stay mounted so the cancel sheet is not over the camera.
+    expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
   });
 });
