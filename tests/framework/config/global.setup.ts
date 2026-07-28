@@ -1,6 +1,6 @@
 import { type FullConfig } from '@playwright/test';
 import { WebDriverConfig } from '../types.ts';
-import { createServiceProvider } from '../services';
+import { createServiceProvider } from '../services/providers/factory.ts';
 import { createLogger, LogLevel } from '../logger';
 
 const logger = createLogger({
