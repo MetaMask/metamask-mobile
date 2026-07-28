@@ -140,6 +140,10 @@ ignores:
   - '@types/react-test-renderer'
   # runtime for dependecies using Nitro Modules (@metamask/native-utils)
   - 'react-native-nitro-modules'
+  # RNFB native core: autolinked (RNFBApp pod / gradle) and required as a peer
+  # dependency of @react-native-firebase/messaging, but never imported directly
+  # in source (only `messaging` is), so depcheck can't see it.
+  - '@react-native-firebase/app'
   # Jest `jest.mock('react-native-worklets', …, { virtual: true })` in testSetup only; not a root dependency
   - 'react-native-worklets'
   # Activated via /** @jest-environment jsdom */ docblock pragma in test files, not imported directly
