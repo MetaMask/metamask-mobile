@@ -27,7 +27,7 @@
     "low": "Low-end devices for backward compatibility and emerging market testing"
   },
   "os_coverage": {
-    "android": ["14.0"],
+    "android": ["13.0"],
     "ios": ["16", "17"]
   },
   "notes": {
