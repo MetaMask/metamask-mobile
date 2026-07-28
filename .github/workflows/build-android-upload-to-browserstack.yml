@@ -265,7 +265,9 @@ jobs:
     name: Upload APKs to TestMu AI
     runs-on: ubuntu-latest
     needs: [check-builds-needed, build-with-srp, build-without-srp]
-    if: needs.check-builds-needed.outputs.builds-needed == 'true' && needs.build-with-srp.result == 'success' && needs.build-without-srp.result == 'success' && inputs.lt_username != '' && secrets.LT_ACCESS_KEY != ''
+    # Gate on lt_username only — secrets.* is illegal in job `if:` for reusable workflows.
+    # LT_ACCESS_KEY is still consumed in the upload step via secrets: inherit.
+    if: needs.check-builds-needed.outputs.builds-needed == 'true' && needs.build-with-srp.result == 'success' && needs.build-without-srp.result == 'success' && inputs.lt_username != ''
     continue-on-error: true
     outputs:
       with-srp-testmu-url: ${{ steps.testmu-upload.outputs.with-srp-testmu-url }}
