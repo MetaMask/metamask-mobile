@@ -6,6 +6,11 @@ import React from 'react';
 import { useRampsQuotes, type GetQuotesOptions } from './useRampsQuotes';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
+import {
+  RAMPS_QUOTE_FETCH_END_REASON,
+  RAMPS_QUOTE_FETCH_PATH,
+  RAMPS_QUOTE_FETCH_TAG,
+} from '../constants/rampsQuoteFetchTags';
 
 const mockGetBuyWidgetData = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -16,6 +21,21 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+const mockStartRampsQuoteFetchTrace = jest.fn(() => 'quote-fetch-op-1');
+const mockEndRampsQuoteFetchTrace = jest.fn();
+jest.mock('../utils/rampsQuoteFetchTrace', () => {
+  const actual = jest.requireActual(
+    '../utils/rampsQuoteFetchTrace',
+  ) as typeof import('../utils/rampsQuoteFetchTrace');
+  return {
+    ...actual,
+    startRampsQuoteFetchTrace: (...args: unknown[]) =>
+      mockStartRampsQuoteFetchTrace(...args),
+    endRampsQuoteFetchTrace: (...args: unknown[]) =>
+      mockEndRampsQuoteFetchTrace(...args),
+  };
+});
 
 const createMockStore = () =>
   configureStore({
@@ -52,7 +72,7 @@ const createWrapper = (store: ReturnType<typeof createMockStore>) => {
 };
 
 const mockQuotesResponse = {
-  success: [{ provider: 'test', quote: { amountIn: 100 } }],
+  success: [{ provider: '/providers/transak', quote: { amountIn: 100 } }],
   sorted: [],
   error: [],
   customActions: [],
@@ -180,6 +200,9 @@ describe('useRampsQuotes', () => {
       expect(result.current.loading).toBe(true);
       expect(result.current.status).toBe('loading');
       expect(result.current.data).toBeNull();
+      expect(mockStartRampsQuoteFetchTrace).toHaveBeenCalledWith({
+        tags: { [RAMPS_QUOTE_FETCH_TAG.PROVIDER]: '/providers/transak' },
+      });
 
       await waitFor(() => {
         expect(result.current.status).toBe('success');
@@ -189,6 +212,14 @@ describe('useRampsQuotes', () => {
       expect(result.current.data).toEqual(mockQuotesResponse);
       expect(result.current.isSuccess).toBe(true);
       expect(result.current.error).toBeNull();
+      expect(mockEndRampsQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-fetch-op-1',
+        data: {
+          [RAMPS_QUOTE_FETCH_TAG.SUCCESS]: true,
+          [RAMPS_QUOTE_FETCH_TAG.PROVIDER]: '/providers/transak',
+          [RAMPS_QUOTE_FETCH_TAG.CUSTOM_ACTION]: false,
+        },
+      });
       expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           amount: 100,
@@ -219,6 +250,92 @@ describe('useRampsQuotes', () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe(networkError);
       expect(result.current.data).toBeNull();
+      expect(mockEndRampsQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-fetch-op-1',
+        data: {
+          [RAMPS_QUOTE_FETCH_TAG.SUCCESS]: false,
+          [RAMPS_QUOTE_FETCH_TAG.REASON]: RAMPS_QUOTE_FETCH_END_REASON.ERROR,
+          [RAMPS_QUOTE_FETCH_TAG.PROVIDER]: '/providers/transak',
+        },
+      });
+    });
+
+    it('records PayPal custom-action quote success with provider + path tags', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+      const paypalOptions: GetQuotesOptions = {
+        ...options,
+        providers: ['/providers/paypal'],
+        paymentMethods: ['/payments/paypal'],
+      };
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue({
+        success: [
+          {
+            provider: '/providers/paypal',
+            quote: { amountIn: 100, isCustomAction: true },
+          },
+        ],
+        sorted: [],
+        error: [],
+        customActions: [],
+      });
+
+      const { result } = renderHook(() => useRampsQuotes(paypalOptions), {
+        wrapper: Wrapper,
+      });
+
+      expect(mockStartRampsQuoteFetchTrace).toHaveBeenCalledWith({
+        tags: { [RAMPS_QUOTE_FETCH_TAG.PROVIDER]: '/providers/paypal' },
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(mockEndRampsQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-fetch-op-1',
+        data: {
+          [RAMPS_QUOTE_FETCH_TAG.SUCCESS]: true,
+          [RAMPS_QUOTE_FETCH_TAG.PROVIDER]: '/providers/paypal',
+          [RAMPS_QUOTE_FETCH_TAG.PATH]: RAMPS_QUOTE_FETCH_PATH.CUSTOM_ACTION,
+          [RAMPS_QUOTE_FETCH_TAG.CUSTOM_ACTION]: true,
+        },
+      });
+    });
+
+    it('records provider-level PayPal quote miss as a failure', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+      const paypalOptions: GetQuotesOptions = {
+        ...options,
+        providers: ['/providers/paypal'],
+        paymentMethods: ['/payments/paypal'],
+      };
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue({
+        success: [],
+        sorted: [],
+        error: [
+          { provider: '/providers/paypal', error: 'PayPal unavailable' },
+        ],
+        customActions: [],
+      });
+
+      const { result } = renderHook(() => useRampsQuotes(paypalOptions), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(mockEndRampsQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-fetch-op-1',
+        data: {
+          [RAMPS_QUOTE_FETCH_TAG.SUCCESS]: false,
+          [RAMPS_QUOTE_FETCH_TAG.REASON]: RAMPS_QUOTE_FETCH_END_REASON.NO_QUOTE,
+          [RAMPS_QUOTE_FETCH_TAG.PROVIDER]: '/providers/paypal',
+        },
+      });
     });
 
     it('preserves enriched error metadata when the request rejects', async () => {
