@@ -476,6 +476,61 @@ describe('CustomAmountInfo', () => {
     expect(queryByText('TST')).toBeNull();
   });
 
+  it('settles a disablePay withdraw to an enabled review without any quote', async () => {
+    // Regression: a direct withdraw (disablePay) has no pay token and never
+    // fetches a quote, so the commit Loading override must settle on the amount
+    // alone. Previously it deadlocked in Loading and the Confirm button stayed
+    // disabled (the on-device "confirm-button still not enabled" failure).
+    const deferred = createDeferredPromise();
+    const updateTokenAmount = jest.fn(() => deferred.promise);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'withdraw-tx-id',
+      type: TransactionType.predictWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+    setControllerTransactions([{ id: 'withdraw-tx-id' }]);
+    useTransactionCustomAmountMock.mockReturnValue({
+      ...useTransactionCustomAmountMock(),
+      updateTokenAmount,
+    });
+    // No quotes for a direct transfer.
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(undefined);
+    // The committed amount is not yet reflected when Loading is armed.
+    useTransactionPayPrimaryRequiredTokenMock.mockReturnValue({
+      amountRaw: '0',
+    } as ReturnType<typeof useTransactionPayPrimaryRequiredToken>);
+
+    const view = render({
+      disablePay: true,
+      transactionType: TransactionType.predictWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+      deferred.resolve();
+      await deferred.promise;
+    });
+
+    // The amount commit lands (required token now has an amount). No quote is
+    // provided — disablePay alone must settle the Loading override to totals.
+    useTransactionPayPrimaryRequiredTokenMock.mockReturnValue({
+      amountRaw: '1000',
+    } as ReturnType<typeof useTransactionPayPrimaryRequiredToken>);
+    view.rerender(
+      createCustomAmountInfo({
+        disablePay: true,
+        transactionType: TransactionType.predictWithdraw,
+      }),
+    );
+
+    expect(view.getByTestId('total-row')).toBeOnTheScreen();
+    expect(view.queryByTestId('total-row-skeleton')).not.toBeOnTheScreen();
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+  });
+
   it('renders alert', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
       alertTitle: 'Test Alert Title',

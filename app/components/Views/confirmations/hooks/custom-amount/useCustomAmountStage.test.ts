@@ -51,6 +51,7 @@ type HookOptions = Parameters<typeof useCustomAmountStage>[0];
 
 const DEFAULT_OPTIONS: HookOptions = {
   amountFiat: '10',
+  disablePay: false,
   isAddMusdIntent: false,
   isDepositPrefillEnabled: false,
   isDepositPrefillLoading: false,
@@ -293,6 +294,81 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+    });
+  });
+
+  describe('disablePay (direct transfer, no quotes)', () => {
+    it('derives ShowTotals with no quotes present', () => {
+      // A direct withdraw has no pay token and never fetches a quote, so the
+      // derive path must show totals rather than fall through to NoQuote.
+      setupState({ isQuotesLoading: false, quotes: [] });
+
+      const view = runHook({ disablePay: true });
+      act(() => {
+        view.result.current.setStage(null);
+      });
+
+      expect(view.result.current.stage).toBe(CustomAmountStage.ShowTotals);
+    });
+
+    it('never derives NoQuote even after a settled empty fetch', () => {
+      setupState({
+        isQuotesLoading: false,
+        quotes: [],
+        quotesLastUpdated: 1,
+      });
+
+      const view = runHook({ disablePay: true });
+      act(() => {
+        view.result.current.setStage(null);
+      });
+
+      expect(view.result.current.stage).not.toBe(CustomAmountStage.NoQuote);
+      expect(view.result.current.stage).toBe(CustomAmountStage.ShowTotals);
+    });
+
+    it('settles the Loading override once the amount commit lands', () => {
+      // Regression: the extracted hook had no disablePay concept, so the commit
+      // Loading override could never clear (no quote ever arrives) and the
+      // stage deadlocked in Loading with the Confirm button disabled.
+      setupState({ isQuotesLoading: false, quotes: [], amountRaw: '1000' });
+
+      const { result, setOptions } = runHook({
+        amountFiat: '5',
+        disablePay: true,
+      });
+
+      // Commit at '5' arms the settle effect (records the baseline).
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+      // A new committed amount re-runs the effect; disablePay needs no quote,
+      // just a real amount, so the override clears to ShowTotals.
+      act(() => {
+        setOptions({ amountFiat: '10' });
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
+    });
+
+    it('holds the Loading override until the required token has an amount', () => {
+      setupState({ isQuotesLoading: false, quotes: [], amountRaw: '0' });
+
+      const { result, setOptions } = runHook({ disablePay: true });
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      // hasAmount is false, so the override is retained.
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+
+      setupState({ isQuotesLoading: false, quotes: [], amountRaw: '1000' });
+      act(() => {
+        setOptions({});
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
   });
 

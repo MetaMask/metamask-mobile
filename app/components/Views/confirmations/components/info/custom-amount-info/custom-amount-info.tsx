@@ -205,6 +205,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { stage, setStage } = useCustomAmountStage({
       amountFiat,
+      disablePay,
       hasAccountNoFunds,
       isAddMusdIntent,
       isDepositPrefillEnabled,

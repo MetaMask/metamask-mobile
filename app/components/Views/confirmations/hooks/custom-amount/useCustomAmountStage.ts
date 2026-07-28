@@ -35,6 +35,7 @@ export enum CustomAmountStage {
  */
 export function useCustomAmountStage({
   amountFiat,
+  disablePay,
   hasAccountNoFunds,
   isAddMusdIntent,
   isDepositPrefillEnabled,
@@ -42,6 +43,7 @@ export function useCustomAmountStage({
   skipDepositPrefill,
 }: {
   amountFiat: string;
+  disablePay: boolean | undefined;
   hasAccountNoFunds: boolean;
   isAddMusdIntent: boolean;
   isDepositPrefillEnabled: boolean;
@@ -116,12 +118,15 @@ export function useCustomAmountStage({
       (loadingBaselineRef.current === undefined ||
         quotesLastUpdated > loadingBaselineRef.current);
 
-    if (hasAmount && (hasFreshQuote || isQuotesLoading)) {
+    // `disablePay` flows are direct transfers with no pay token and no quotes,
+    // so no quote will ever arrive. Settle as soon as the amount commit lands.
+    if (hasAmount && (hasFreshQuote || isQuotesLoading || disablePay)) {
       setStage(null);
     }
   }, [
     stageOverride,
     amountFiat,
+    disablePay,
     hasAmount,
     hasQuotes,
     isQuotesLoading,
@@ -131,7 +136,9 @@ export function useCustomAmountStage({
   const isAwaitingPrefillResult =
     !hasAccountNoFunds && !skipDepositPrefill && isDepositPrefillLoading;
 
-  const showTotals = hasQuotes;
+  // `disablePay` flows never fetch quotes, so totals (a plain `TotalRow`) show
+  // as soon as the override clears — they must never fall through to `NoQuote`.
+  const showTotals = hasQuotes || disablePay;
 
   // Re-assert the keyboard when prefill is enabled but skipped: nothing to
   // prefill, so the user should be entering an amount. The updater is a no-op
