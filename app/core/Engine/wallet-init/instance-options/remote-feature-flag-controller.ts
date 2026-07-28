@@ -34,8 +34,10 @@ function withDefaultFeatureFlags(
   service: ClientConfigApiService,
 ): ClientConfigApiServiceOption {
   return {
-    onBreak: service.onBreak.bind(service),
-    onDegraded: service.onDegraded.bind(service),
+    // `onBreak`/`onDegraded` are optional on the service contract
+    // (`Partial<Pick<ServicePolicy, ...>>`); forward them only when present.
+    onBreak: service.onBreak?.bind(service),
+    onDegraded: service.onDegraded?.bind(service),
     async fetchRemoteFeatureFlags() {
       const response = await service.fetchRemoteFeatureFlags();
       return {
