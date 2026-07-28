@@ -613,7 +613,7 @@ jobs:
       source_fingerprint: ${{ needs.ensure-fingerprint.outputs.fingerprint }}
       main_branch_only: ${{ inputs.reuse_main_builds }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
+      # LT_ACCESS_KEY must travel via secrets: inherit — secrets.* is illegal in reusable-workflow `with:`
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -711,7 +711,7 @@ jobs:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
+      # LT_ACCESS_KEY via secrets: inherit (secrets.* illegal in reusable-workflow `with:`)
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
@@ -864,7 +864,7 @@ jobs:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
+      # LT_ACCESS_KEY via secrets: inherit (secrets.* illegal in reusable-workflow `with:`)
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
