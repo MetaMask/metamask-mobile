@@ -110,7 +110,7 @@ const setUpDownEnabled = (enabled: boolean) => {
 const setCustomConfig = (
   queryParams = '',
   excludedMarketIds: string[] = [],
-  curation: 'generic' | 'live' = 'generic',
+  composition: 'query-results' | 'live-now' = 'query-results',
 ) => {
   feedCarouselConfig = {
     enabled: true,
@@ -118,7 +118,7 @@ const setCustomConfig = (
     mode: 'custom',
     title: 'Wimbledon',
     contentSource: {
-      curation,
+      composition,
       queryParams,
       excludedMarketIds,
     },
@@ -194,7 +194,7 @@ describe('usePredictLiveNowSection', () => {
       ...feedCarouselConfig,
       title: 'NFL Playoffs',
       contentSource: {
-        curation: 'generic',
+        composition: 'query-results',
         queryParams: 'tag_slug=football',
         excludedMarketIds: ['market-2'],
       },
@@ -211,7 +211,7 @@ describe('usePredictLiveNowSection', () => {
     ]);
   });
 
-  it('keeps scoreboard markets and drops regular markets without a game', () => {
+  it('keeps sports game markets and drops regular markets without game data', () => {
     setLiveMarketList({
       markets: [createLiveMarket('L1'), createRegularMarket('R1')],
     });
@@ -221,7 +221,7 @@ describe('usePredictLiveNowSection', () => {
     expect(ids(result.current.items)).toEqual(['L1']);
   });
 
-  it('caps scoreboard markets at the display limit', () => {
+  it('caps sports game markets at the display limit', () => {
     const live = Array.from({ length: LIVE_NOW_LIVE_LIMIT + 4 }, (_, i) =>
       createLiveMarket(`L${i}`),
     );
@@ -232,7 +232,7 @@ describe('usePredictLiveNowSection', () => {
     expect(result.current.items).toHaveLength(LIVE_NOW_LIVE_LIMIT);
   });
 
-  it('keeps generic markets and caps cards in custom mode', () => {
+  it('keeps query-result markets and caps cards in custom mode', () => {
     setCustomConfig('tag_slug=tennis');
     setUpDownEnabled(true);
     const markets = Array.from(
@@ -272,8 +272,8 @@ describe('usePredictLiveNowSection', () => {
     );
   });
 
-  it('reuses live scoreboard and crypto curation after applying exclusions', () => {
-    setCustomConfig('live=true&order=volume24hr', ['L1', 'BTC5M'], 'live');
+  it('reuses Live Now sports-card and crypto composition after exclusions', () => {
+    setCustomConfig('live=true&order=volume24hr', ['L1', 'BTC5M'], 'live-now');
     setUpDownEnabled(true);
     setLiveMarketList({
       markets: [

@@ -20,7 +20,7 @@ export const DEFAULT_PREDICT_FEED_CAROUSEL_FLAG: PredictFeedCarouselConfig = {
   mode: 'live',
   title: '',
   contentSource: {
-    curation: 'generic',
+    composition: 'query-results',
     queryParams: '',
     excludedMarketIds: [],
   },

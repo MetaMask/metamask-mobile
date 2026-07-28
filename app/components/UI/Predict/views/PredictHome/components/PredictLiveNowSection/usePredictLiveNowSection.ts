@@ -17,8 +17,8 @@ import { isCryptoUpDown } from '../../../../utils/cryptoUpDown';
 import { interleaveLiveNowMarkets } from './liveNowInterleave';
 
 /**
- * Over-fetch live markets so client-side filtering (keep scoreboard-capable
- * markets only) still leaves enough to fill the rail.
+ * Over-fetch live markets so client-side filtering (keep sports game markets
+ * only) still leaves enough to fill the rail.
  *
  * Kept deliberately modest: `listMarkets` does not resolve until the provider
  * has loaded the team rosters for every sports league present in the batch
@@ -29,7 +29,7 @@ import { interleaveLiveNowMarkets } from './liveNowInterleave';
  */
 export const LIVE_NOW_FETCH_LIMIT = 15;
 
-/** Max live (scoreboard) markets displayed in the Live Now rail after filtering. */
+/** Max sports game markets displayed in the Live Now rail after filtering. */
 export const LIVE_NOW_LIVE_LIMIT = 7;
 
 /** Max cards displayed when the carousel uses a custom content source. */
@@ -49,12 +49,12 @@ export interface UsePredictLiveNowSectionResult {
 /**
  * Data source for the configurable Predict home feed carousel.
  *
- * Live mode pulls markets with `live: true`, keeps scoreboard-capable results,
+ * Live mode pulls markets with `live: true`, keeps sports game results,
  * and preserves the existing crypto interleave. Custom mode uses the configured
- * raw query params and removes remotely excluded market IDs. Its `live`
- * curation reuses the PRED-834 scoreboard/crypto behavior, while `generic`
- * renders query results directly. An empty query uses the provider defaults for
- * top open markets by 24-hour volume.
+ * raw query params and removes remotely excluded market IDs. Its `live-now`
+ * composition reuses the PRED-834 sports-card/crypto behavior, while
+ * `query-results` renders query results directly. An empty query uses the
+ * provider defaults for top open markets by 24-hour volume.
  *
  * Alongside, the BTC 5m / ETH 5m / BTC 15m Up/Down crypto markets are resolved
  * from their series and interleaved (`2 live, 1 crypto, ...`) by
@@ -72,9 +72,9 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const config = useSelector(selectPredictFeedCarouselConfig);
   const isCustom = config.mode === 'custom';
-  const usesLiveCuration =
-    !isCustom || config.contentSource.curation === 'live';
-  const includeCrypto = usesLiveCuration && upDownEnabled;
+  const usesLiveNowComposition =
+    !isCustom || config.contentSource.composition === 'live-now';
+  const includeCrypto = usesLiveNowComposition && upDownEnabled;
   const excludedMarketIds = useMemo(
     () => new Set(isCustom ? config.contentSource.excludedMarketIds : []),
     [config.contentSource.excludedMarketIds, isCustom],
@@ -99,8 +99,8 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
   const { markets: marketsRaw, isLoading: isMarketListLoading } =
     usePredictMarketList(marketListParams);
 
-  // Keep only scoreboard-capable live markets (those with `game`); drop the
-  // generic-card "regular" markets, then cap to the display limit.
+  // Keep only sports game markets (those with `game`); drop standard-card
+  // markets, then cap to the display limit.
   const liveMarkets = useMemo(
     () =>
       marketsRaw
@@ -151,10 +151,10 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
 
   const items = useMemo(
     () =>
-      usesLiveCuration
+      usesLiveNowComposition
         ? interleaveLiveNowMarkets(liveMarkets, cryptoMarkets)
         : customMarkets,
-    [cryptoMarkets, customMarkets, liveMarkets, usesLiveCuration],
+    [cryptoMarkets, customMarkets, liveMarkets, usesLiveNowComposition],
   );
 
   const isCryptoLoading =
