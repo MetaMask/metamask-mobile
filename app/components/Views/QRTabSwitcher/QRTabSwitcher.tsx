@@ -1,5 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -24,6 +24,7 @@ import type { QrSyncPhase } from '../../../core/QrSync/types';
 import Engine from '../../../core/Engine';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
+  selectQrSyncError,
   selectQrSyncIsSessionActive,
   selectQrSyncPhase,
   selectQrSyncPresentation,
@@ -86,9 +87,12 @@ const QRTabSwitcher = () => {
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const qrSyncError = useSelector(selectQrSyncError);
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasShownExtensionCancelSheetRef = useRef(false);
   const prevPhaseRef = useRef(phase);
+  const [keepWaitingScreenAfterCancel, setKeepWaitingScreenAfterCancel] =
+    useState(false);
 
   const showExtensionCancelSheetOnce = useCallback(() => {
     if (hasShownExtensionCancelSheetRef.current) {
@@ -96,8 +100,11 @@ const QRTabSwitcher = () => {
     }
 
     hasShownExtensionCancelSheetRef.current = true;
-    showExtensionCancelledErrorSheet(navigation);
-  }, [navigation]);
+    setKeepWaitingScreenAfterCancel(true);
+    showExtensionCancelledErrorSheet(navigation, {
+      errorMessage: qrSyncError?.message,
+    });
+  }, [navigation, qrSyncError?.message]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -105,6 +112,7 @@ const QRTabSwitcher = () => {
 
   const resetExtensionCancelSheetState = useCallback(() => {
     hasShownExtensionCancelSheetRef.current = false;
+    setKeepWaitingScreenAfterCancel(false);
   }, []);
 
   useEffect(() => {
@@ -128,7 +136,8 @@ const QRTabSwitcher = () => {
   useQrSyncImportNavigation({ enabled: isAddDeviceOrigin });
 
   const showDeviceAddedLoader =
-    isAddDeviceOrigin && presentation === 'device-linked';
+    isAddDeviceOrigin &&
+    (presentation === 'device-linked' || keepWaitingScreenAfterCancel);
 
   useEffect(() => {
     if (!isAddDeviceOrigin) {
@@ -140,6 +149,7 @@ const QRTabSwitcher = () => {
       phase === QrSyncPhases.DISPLAYING_OTP
     ) {
       hasShownExtensionCancelSheetRef.current = false;
+      setKeepWaitingScreenAfterCancel(false);
     }
   }, [isAddDeviceOrigin, phase]);
 
