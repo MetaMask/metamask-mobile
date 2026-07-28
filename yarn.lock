@@ -9857,29 +9857,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:18.0.0":
-  version: 18.0.0
-  resolution: "@metamask/ramps-controller@npm:18.0.0"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@18.0.0-preview-ff22b464a":
+  version: 18.0.0-preview-ff22b464a
+  resolution: "@metamask-previews/ramps-controller@npm:18.0.0-preview-ff22b464a"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/664a36f0e8c31a879051d8ef37f8ae5b15eb64b7df8b981a25b8abfbe90d8e5ca8f82915de3aaabf8bf76e016113f9a5125e53c101804fc4888c93157659f1c5
+  checksum: 10/72bff4392aa54c76d59aad83a11c01d4427759217a5ab956031cc736333e73c4e13e079a174f3e886416e40b201553744ca94d54f78644bdb1b1eba68a819613
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A18.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-18.0.0-91392f64be.patch":
-  version: 18.0.0
-  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A18.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-18.0.0-91392f64be.patch::version=18.0.0&hash=2638b1"
+"@metamask/ramps-controller@npm:^17.0.0":
+  version: 17.2.0
+  resolution: "@metamask/ramps-controller@npm:17.2.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/a23ddf5d68635c55e3834de96384f3782d09804e6eac0ca268353d4df86a639f3f5a1a93864d0b49e0555c23db86403b64654bc01df845c5fa359ec0c99bd958
+  checksum: 10/9fb8e922c2620354386e1d2a84ee6f074abda6b22a6f58594cb71a7d5c66d89e5e003b3164731b90f2e83601aeed05a22a8ccf404a1d3916d7aa87f0a8b10d49
   languageName: node
   linkType: hard
 
@@ -35939,7 +35939,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A18.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-18.0.0-91392f64be.patch"
+    "@metamask/ramps-controller": "npm:18.0.0"
     "@metamask/react-data-query": "npm:^0.2.2"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
