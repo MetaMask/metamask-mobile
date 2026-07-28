@@ -18,6 +18,8 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
+import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
@@ -32,6 +34,7 @@ import type {
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../../components/UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import type { Nft } from '@metamask/assets-controllers';
 import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
 import type { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DeFiProtocolPositionDetails';
@@ -63,6 +66,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
+import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
@@ -74,7 +78,6 @@ import type {
   PerpsOrderRouteParams,
   PerpsStackParamList,
 } from '../../components/UI/Perps/types/navigation';
-import type { ConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type {
   MoneyNavigationParamList,
   MoneyScreensStackParamList,
@@ -123,6 +126,9 @@ import type {
   TransactionsViewParams,
   TransactionDetailsParams,
 } from '../../components/Views/TransactionsView/TransactionsView.types';
+import type { ActivityTypeFilterSheetParams } from '../../components/Views/ActivityScreen/components/ActivityTypeFilterSheet';
+import type { PerpsActivityFilterSheetParams } from '../../components/Views/ActivityScreen/components/PerpsActivityFilterSheet';
+import type { ActivityNetworkFilterSheetParams } from '../../components/Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 
 // Asset params
 import type {
@@ -400,7 +406,7 @@ export type RootModalFlowParamList = {
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   OnboardingSheet: OnboardingSheetParams | undefined;
@@ -427,9 +433,14 @@ export type RootModalFlowParamList = {
   PermittedNetworksInfoSheet: undefined;
   NetworkSelector: NetworkSelectorParams | undefined;
   TokenSort: undefined;
+  ActivityTypeFilter: ActivityTypeFilterSheetParams;
+  ActivityPerpsFilter: PerpsActivityFilterSheetParams;
+  ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   TurnOffRememberMeModal: undefined;
   AssetHideConfirmation: { onConfirm: () => void } | undefined;
@@ -650,7 +661,7 @@ export type RootStackParamList = {
   RewardsSelectSheet: RewardsNavigationParamList['RewardsSelectSheet'];
 
   // Modal routes
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
@@ -784,7 +795,9 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
@@ -807,6 +820,9 @@ export type RootStackParamList = {
   OriginSpamModal: OriginSpamModalParams | undefined;
   tooltipModal: TooltipModalRouteParams | undefined;
   TokenSort: undefined;
+  ActivityTypeFilter: ActivityTypeFilterSheetParams;
+  ActivityPerpsFilter: PerpsActivityFilterSheetParams;
+  ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
@@ -1022,7 +1038,7 @@ export type RootStackParamList = {
         ConfirmationSwitchAccountType: { address?: string } | undefined;
       }>
     | undefined;
-  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithModal: PayWithModalParams | undefined;
   ConfirmationPayWithBottomSheet:
     | { preferredPaymentToken?: SetPayTokenRequest }
     | undefined;
@@ -1059,11 +1075,13 @@ export type RootStackParamList = {
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
+  // FullScreenConfirmationParams covers confirmation entry points; Partial<PerpsOrderRouteParams>
+  // covers Perps deposit+order navigation that reuses the same root route key.
   RedesignedConfirmations:
-    | ConfirmationParams
+    | FullScreenConfirmationParams
     | Partial<PerpsOrderRouteParams>
     | undefined;
-  NoHeaderConfirmations: undefined;
+  NoHeaderConfirmations: FullScreenConfirmationParams | undefined;
 
   // Identity routes
   TurnOnBackupAndSync: undefined;
@@ -1079,6 +1097,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
