@@ -809,29 +809,6 @@ const PerpsClosePositionView: React.FC = () => {
           </View>
         )}
 
-        {/* Validation Messages - keep visible while typing */}
-        {/* Filter the errors and only show minimum $10 error (or forced visual QA copy) */}
-        <View style={styles.helpTextContainer}>
-          {filteredErrors.map((error, index) => (
-            <HelpText
-              key={`error-${index}`}
-              severity={HelpTextSeverity.Danger}
-              twClassName="w-full justify-center text-center"
-            >
-              {error}
-            </HelpText>
-          ))}
-          {visibleWarnings.map((warning, index) => (
-            <HelpText
-              key={`warning-${index}`}
-              severity={HelpTextSeverity.Warning}
-              twClassName="w-full justify-center text-center"
-            >
-              {warning}
-            </HelpText>
-          ))}
-        </View>
-
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {effectiveOrderType === 'limit' && !isInputFocusedEffective && (
           <View style={styles.detailsWrapper}>
@@ -855,6 +832,29 @@ const PerpsClosePositionView: React.FC = () => {
             </View>
           </View>
         )}
+
+        {/* Validation Messages - keep visible while typing */}
+        {/* Filter the errors and only show minimum $10 error (or forced visual QA copy) */}
+        <View style={styles.helpTextContainer}>
+          {filteredErrors.map((error, index) => (
+            <HelpText
+              key={`error-${index}`}
+              severity={HelpTextSeverity.Danger}
+              twClassName="w-full justify-center text-center"
+            >
+              {error}
+            </HelpText>
+          ))}
+          {visibleWarnings.map((warning, index) => (
+            <HelpText
+              key={`warning-${index}`}
+              severity={HelpTextSeverity.Warning}
+              twClassName="w-full justify-center text-center"
+            >
+              {warning}
+            </HelpText>
+          ))}
+        </View>
       </ScrollView>
 
       {/* Keypad Section - Show when input is focused; keep summary and slider above */}

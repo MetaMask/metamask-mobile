@@ -53,22 +53,21 @@ export const createStyles = (theme: Theme) => {
     },
     sliderSection: {
       paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 0,
+      paddingVertical: 16,
     },
     helpTextContainer: {
       alignItems: 'center',
       justifyContent: 'flex-start',
       paddingHorizontal: 16,
-      marginTop: 0,
+      marginTop: 8,
       marginBottom: 16,
-      // Reserve space so Limit price / content below don't jump when
+      // Reserve space so content below doesn't jump when
       // validation HelpText appears or wraps.
       minHeight: 40,
     },
     detailsWrapper: {
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingBottom: 0,
     },
     inputGroupContainer: {
       backgroundColor: colors.background.section,

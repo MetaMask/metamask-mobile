@@ -217,7 +217,7 @@ export const PERPS_CLOSE_POSITION_VISUAL_PRESETS: PerpsClosePositionVisualPreset
       id: 'error_margin_no_amount',
       label: 'Error — no amount',
       group: 'Errors',
-      description: 'HelpText under slider; Confirm disabled',
+      description: 'HelpText under limit price; Confirm disabled',
       pages: ['margin'],
     },
     {
@@ -420,9 +420,7 @@ export function getOverridesForClosePositionState(
     case 'error_margin_no_amount':
       return {
         forceMarginPercentage: 0,
-        forceVisibleErrors: [
-          strings('perps.adjust_margin.no_amount_selected'),
-        ],
+        forceVisibleErrors: [strings('perps.adjust_margin.no_amount_selected')],
         forceAmountHasError: true,
         forceConfirmDisabled: true,
         forceInputFocused: false,
@@ -431,9 +429,7 @@ export function getOverridesForClosePositionState(
     case 'error_margin_exceeds_available':
       return {
         forceMarginPercentage: 100,
-        forceVisibleErrors: [
-          strings('perps.adjust_margin.exceeds_available'),
-        ],
+        forceVisibleErrors: [strings('perps.adjust_margin.exceeds_available')],
         forceAmountHasError: true,
         forceConfirmDisabled: true,
         forceInputFocused: false,
