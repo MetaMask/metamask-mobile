@@ -195,6 +195,7 @@ interface ImportFromSecretRecoveryPhraseRouteParams {
   qrSyncImport?: boolean;
   onboardingTraceCtx?: TraceContext;
   oauthLoginSuccess?: boolean;
+  previous_screen?: string;
 }
 
 interface PasswordVisibilityToggleProps {
