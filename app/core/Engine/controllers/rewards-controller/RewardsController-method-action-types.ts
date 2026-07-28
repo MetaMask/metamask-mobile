@@ -800,6 +800,55 @@ export type RewardsControllerGetPredictThePitchPrizePoolAction = {
 };
 
 /**
+ * Fetch the current user's Money Account Sweepstakes stats.
+ * Results are cached for 1 minute using controller state.
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The user's sweepstakes stats.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesStatsMeAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesStatsMe`;
+  handler: RewardsController['getMoneyAccountSweepstakesStatsMe'];
+};
+
+/**
+ * Fetch the Money Account Sweepstakes prize pool.
+ * Public endpoint — results are cached for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The prize pool DTO.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesPrizePool`;
+  handler: RewardsController['getMoneyAccountSweepstakesPrizePool'];
+};
+
+/**
+ * Fetch the Money Account Sweepstakes draw proof.
+ * Public endpoint. Non-null proofs are cached in controller state for 1 hour;
+ * null (pending) responses are cached in-memory for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The draw proof DTO, or null if the draw has not been published yet.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesDrawProofAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesDrawProof`;
+  handler: RewardsController['getMoneyAccountSweepstakesDrawProof'];
+};
+
+/**
+ * Fetch the participant outcome for the current user in a completed Money
+ * Account Sweepstakes campaign. Results are cached for 10 minutes using a
+ * private in-memory Map.
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The participant outcome DTO, or null if unavailable.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction =
+  {
+    type: `RewardsController:getMoneyAccountSweepstakesParticipantOutcome`;
+    handler: RewardsController['getMoneyAccountSweepstakesParticipantOutcome'];
+  };
+
+/**
  * Get the perps trading campaign leaderboard.
  * This is a public endpoint - no authentication required.
  * Results are cached for 5 minutes.
@@ -926,6 +975,10 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetPredictThePitchPositionsAction
   | RewardsControllerGetPredictThePitchParticipantOutcomeAction
   | RewardsControllerGetPredictThePitchPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesStatsMeAction
+  | RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesDrawProofAction
+  | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsControllerGetPerpsTradingCampaignVolumeAction;

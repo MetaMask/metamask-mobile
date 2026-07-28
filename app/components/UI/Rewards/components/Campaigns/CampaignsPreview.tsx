@@ -21,14 +21,49 @@ import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
 import CampaignReminder from './CampaignReminder';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from './CampaignTile.utils';
 import { navigateToRewardsRoute } from '../../utils';
+import {
+  buildMoneyAccountSweepstakesTileCampaign,
+  getMoneyAccountSweepstakesSeries,
+} from '../../utils/moneyAccountSweepstakesSeries';
+
+/**
+ * Collapse MONEY_ACCOUNT_SWEEPSTAKES into one series tile (same as CampaignsView),
+ * then return featured campaigns for the dashboard preview.
+ */
+export function getFeaturedPreviewCampaigns(
+  campaigns: CampaignDto[],
+): CampaignDto[] {
+  const series = getMoneyAccountSweepstakesSeries(campaigns);
+  const seriesTile = buildMoneyAccountSweepstakesTileCampaign(series);
+  const anyMasFeatured = series.campaigns.some((c) => c.featured);
+  let seriesPlaced = false;
+  const collapsed: CampaignDto[] = [];
+
+  for (const campaign of campaigns) {
+    if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+      if (!seriesPlaced && seriesTile && anyMasFeatured) {
+        seriesPlaced = true;
+        collapsed.push({ ...seriesTile, featured: true });
+      }
+      continue;
+    }
+    collapsed.push(campaign);
+  }
+
+  return collapsed.filter((c) => c.featured);
+}
 
 /**
  * CampaignsPreview shows featured campaigns on the dashboard.
  * All campaigns marked `featured` are displayed, in API order. Upcoming campaigns
  * use {@link CampaignReminder}; active or complete campaigns use {@link CampaignTile}.
+ * Consecutive MONEY_ACCOUNT_SWEEPSTAKES campaigns collapse to a single tile.
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
@@ -38,7 +73,7 @@ const CampaignsPreview: React.FC = () => {
     useRewardCampaigns();
 
   const featuredCampaigns = useMemo(
-    (): CampaignDto[] => (campaigns ?? []).filter((c) => c.featured),
+    (): CampaignDto[] => getFeaturedPreviewCampaigns(campaigns ?? []),
     [campaigns],
   );
 

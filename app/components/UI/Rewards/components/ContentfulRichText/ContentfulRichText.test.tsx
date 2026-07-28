@@ -175,6 +175,34 @@ describe('ContentfulRichText', () => {
     expect(getByText('Title')).toBeOnTheScreen();
   });
 
+  it('renders a full-bleed divider before heading-1 through heading-4', () => {
+    const doc = makeDoc({
+      nodeType: 'heading-4',
+      data: {},
+      content: [text('Section')],
+    });
+    const { getByTestId, getByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+    expect(getByText('Section')).toBeOnTheScreen();
+    expect(
+      getByTestId('contentful-rich-text-heading-divider'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render a divider before heading-5 or heading-6', () => {
+    const doc = makeDoc({
+      nodeType: 'heading-5',
+      data: {},
+      content: [text('Small heading')],
+    });
+    const { getByText, queryByTestId } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+    expect(getByText('Small heading')).toBeOnTheScreen();
+    expect(queryByTestId('contentful-rich-text-heading-divider')).toBeNull();
+  });
+
   it('sets the testID on the container', () => {
     const doc = makeDoc(paragraph(text('test')));
     const { getByTestId } = render(

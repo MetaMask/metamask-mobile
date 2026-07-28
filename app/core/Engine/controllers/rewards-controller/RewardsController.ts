@@ -38,6 +38,10 @@ import {
   type PredictThePitchPositionsDto,
   type PredictThePitchCampaignParticipantOutcomeDto,
   type PredictThePitchPrizePoolDto,
+  type MoneyAccountSweepstakesStatsMeDto,
+  type MoneyAccountSweepstakesPrizePoolDto,
+  type MoneyAccountSweepstakesDrawProofDto,
+  type MoneyAccountSweepstakesOutcomeDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
@@ -197,6 +201,15 @@ const PREDICT_THE_PITCH_POSITIONS_CACHE_THRESHOLD_MS = 0;
 const PREDICT_THE_PITCH_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 const PREDICT_THE_PITCH_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
+// Money Account Sweepstakes cache thresholds
+const MONEY_ACCOUNT_SWEEPSTAKES_STATS_CACHE_THRESHOLD_MS = 1000 * 60; // 1 minute
+const MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
+const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_NULL_CACHE_THRESHOLD_MS =
+  1000 * 60 * 5; // 5 minutes (null/pending)
+const MONEY_ACCOUNT_SWEEPSTAKES_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS =
+  1000 * 60 * 10; // 10 minutes
+
 // Client version requirements cache threshold
 const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
 
@@ -352,6 +365,24 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   predictThePitchPrizePool: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  moneyAccountSweepstakesStats: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  moneyAccountSweepstakesPrizePool: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  moneyAccountSweepstakesDrawProof: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -566,6 +597,10 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPredictThePitchPositions',
   'getPredictThePitchParticipantOutcome',
   'getPredictThePitchPrizePool',
+  'getMoneyAccountSweepstakesStatsMe',
+  'getMoneyAccountSweepstakesPrizePool',
+  'getMoneyAccountSweepstakesDrawProof',
+  'getMoneyAccountSweepstakesParticipantOutcome',
   'getPerpsDiscountForAccount',
   'getVipTierForAccount',
   'getVipTransactions',
@@ -648,6 +683,17 @@ export class RewardsController extends BaseController<
       payload: PredictThePitchCampaignParticipantOutcomeDto | null;
       lastFetched: number;
     }
+  > = new Map();
+  #moneyAccountSweepstakesParticipantOutcomeCache: Map<
+    string,
+    {
+      payload: MoneyAccountSweepstakesOutcomeDto;
+      lastFetched: number;
+    }
+  > = new Map();
+  #moneyAccountSweepstakesDrawProofNullCache: Map<
+    string,
+    { lastFetched: number }
   > = new Map();
 
   /**
@@ -876,6 +922,8 @@ export class RewardsController extends BaseController<
     this.#participantOutcomeCache.clear();
     this.#perpsTradingParticipantOutcomeCache.clear();
     this.#predictThePitchParticipantOutcomeCache.clear();
+    this.#moneyAccountSweepstakesParticipantOutcomeCache.clear();
+    this.#moneyAccountSweepstakesDrawProofNullCache.clear();
     this.update(() => ({
       ...getRewardsControllerDefaultState(),
       rewardsEnvUrl,
@@ -5192,6 +5240,7 @@ export class RewardsController extends BaseController<
           state.perpsTradingCampaignLeaderboardPositions,
           state.predictThePitchLeaderboardPositions,
           state.predictThePitchPositions,
+          state.moneyAccountSweepstakesStats,
         ].forEach((cache) =>
           deleteMatchingCacheEntries(cache, campaignCacheMatches),
         );
@@ -5209,6 +5258,10 @@ export class RewardsController extends BaseController<
       );
       deleteMatchingMapEntries(
         this.#predictThePitchParticipantOutcomeCache,
+        campaignCacheMatches,
+      );
+      deleteMatchingMapEntries(
+        this.#moneyAccountSweepstakesParticipantOutcomeCache,
         campaignCacheMatches,
       );
     }
@@ -5487,6 +5540,251 @@ export class RewardsController extends BaseController<
         });
       },
     });
+  }
+
+  /**
+   * Fetch the current user's Money Account Sweepstakes stats.
+   * Results are cached for 1 minute using controller state.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's sweepstakes stats.
+   */
+  async getMoneyAccountSweepstakesStatsMe(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesStatsMeDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        entryCount: 0,
+        currentBalanceUsd: 0,
+        yieldEarnedUsd: 0,
+        todayMinUsd: null,
+        todayStatus: 'below_threshold',
+        daysRemaining: 0,
+      };
+    }
+
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+
+    return await wrapWithCache<MoneyAccountSweepstakesStatsMeDto>({
+      key,
+      ttl: MONEY_ACCOUNT_SWEEPSTAKES_STATS_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.moneyAccountSweepstakesStats[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            entryCount: cached.entryCount,
+            currentBalanceUsd: cached.currentBalanceUsd,
+            yieldEarnedUsd: cached.yieldEarnedUsd,
+            todayMinUsd: cached.todayMinUsd,
+            todayStatus: cached.todayStatus,
+            daysRemaining: cached.daysRemaining,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh Money Account Sweepstakes stats via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
+            campaignId,
+            subscriptionId,
+          )) as MoneyAccountSweepstakesStatsMeDto;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.moneyAccountSweepstakesStats[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  /**
+   * Fetch the Money Account Sweepstakes prize pool.
+   * Public endpoint — results are cached for 5 minutes.
+   * @param campaignId - The campaign ID.
+   * @returns The prize pool DTO.
+   */
+  async getMoneyAccountSweepstakesPrizePool(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesPrizePoolDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        totalVolumeUsd: 0,
+        unlockedPoolUsd: 0,
+        thresholdsUsd: [],
+        poolScheduleUsd: [],
+        numberOfWinners: 0,
+        minPrizeUsd: 0,
+        maxPrizeUsd: 0,
+      };
+    }
+
+    return await wrapWithCache<MoneyAccountSweepstakesPrizePoolDto>({
+      key: campaignId,
+      ttl: MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.moneyAccountSweepstakesPrizePool[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            totalVolumeUsd: cached.totalVolumeUsd,
+            unlockedPoolUsd: cached.unlockedPoolUsd,
+            thresholdsUsd: cached.thresholdsUsd,
+            poolScheduleUsd: cached.poolScheduleUsd,
+            numberOfWinners: cached.numberOfWinners,
+            minPrizeUsd: cached.minPrizeUsd,
+            maxPrizeUsd: cached.maxPrizeUsd,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh Money Account Sweepstakes prize pool via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+          campaignId,
+        )) as MoneyAccountSweepstakesPrizePoolDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.moneyAccountSweepstakesPrizePool[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  /**
+   * Fetch the Money Account Sweepstakes draw proof.
+   * Public endpoint. Non-null proofs are cached in controller state for 1 hour;
+   * null (pending) responses are cached in-memory for 5 minutes.
+   * @param campaignId - The campaign ID.
+   * @returns The draw proof DTO, or null if the draw has not been published yet.
+   */
+  async getMoneyAccountSweepstakesDrawProof(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesDrawProofDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const cached = this.state.moneyAccountSweepstakesDrawProof[campaignId];
+    if (
+      cached &&
+      Date.now() - cached.lastFetched <
+        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_CACHE_THRESHOLD_MS
+    ) {
+      return {
+        explanation: cached.explanation,
+        originalDraw: cached.originalDraw,
+        finalWinners: cached.finalWinners,
+        adjustmentTrail: cached.adjustmentTrail,
+        addressProof: cached.addressProof,
+      };
+    }
+
+    const nullCached =
+      this.#moneyAccountSweepstakesDrawProofNullCache.get(campaignId);
+    if (
+      nullCached &&
+      Date.now() - nullCached.lastFetched <
+        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_NULL_CACHE_THRESHOLD_MS
+    ) {
+      return null;
+    }
+
+    Logger.log(
+      'RewardsController: Fetching fresh Money Account Sweepstakes draw proof via API call',
+    );
+    const result = (await this.messenger.call(
+      'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
+      campaignId,
+    )) as MoneyAccountSweepstakesDrawProofDto | null;
+
+    if (result) {
+      this.#moneyAccountSweepstakesDrawProofNullCache.delete(campaignId);
+      this.update((state) => {
+        state.moneyAccountSweepstakesDrawProof[campaignId] = {
+          ...result,
+          lastFetched: Date.now(),
+        };
+      });
+    } else {
+      this.#moneyAccountSweepstakesDrawProofNullCache.set(campaignId, {
+        lastFetched: Date.now(),
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Fetch the participant outcome for the current user in a completed Money
+   * Account Sweepstakes campaign. Results are cached for 10 minutes using a
+   * private in-memory Map.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The participant outcome DTO, or null if unavailable.
+   */
+  async getMoneyAccountSweepstakesParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesOutcomeDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    try {
+      return await wrapWithCache<MoneyAccountSweepstakesOutcomeDto>({
+        key,
+        ttl: MONEY_ACCOUNT_SWEEPSTAKES_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS,
+        readCache: (k) =>
+          this.#moneyAccountSweepstakesParticipantOutcomeCache.get(k) ??
+          undefined,
+        fetchFresh: async () =>
+          this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Fetching Money Account Sweepstakes participant outcome',
+            );
+            return (await this.messenger.call(
+              'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
+              campaignId,
+              subscriptionId,
+            )) as MoneyAccountSweepstakesOutcomeDto;
+          }, subscriptionId),
+        writeCache: (k, payload) => {
+          this.#moneyAccountSweepstakesParticipantOutcomeCache.set(k, {
+            payload,
+            lastFetched: Date.now(),
+          });
+        },
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'RewardsController: Failed to fetch Money Account Sweepstakes participant outcome',
+      );
+      return null;
+    }
   }
 
   /**

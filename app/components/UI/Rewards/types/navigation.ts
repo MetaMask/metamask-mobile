@@ -89,6 +89,15 @@ export interface RewardsPredictThePitchCampaignStatsParams {
   campaignId: string;
 }
 
+export interface RewardsMoneyAccountSweepstakesCampaignDetailsParams {
+  campaignId?: string;
+}
+
+export interface RewardsMoneyAccountSweepstakesCampaignWinningParams {
+  campaignId: string;
+  campaignName: string;
+}
+
 export interface RewardsModalAction {
   label: string;
   onPress: () => void | Promise<void>;
@@ -200,6 +209,10 @@ export type RewardsStackParamList = {
   RewardsPredictThePitchCampaignPortfolioView: RewardsPredictThePitchCampaignPortfolioParams;
   RewardsPredictThePitchCampaignWinning: RewardsPredictThePitchCampaignWinningParams;
   RewardsPredictThePitchCampaignStats: RewardsPredictThePitchCampaignStatsParams;
+  RewardsMoneyAccountSweepstakesCampaignDetails:
+    | RewardsMoneyAccountSweepstakesCampaignDetailsParams
+    | undefined;
+  RewardsMoneyAccountSweepstakesCampaignWinning: RewardsMoneyAccountSweepstakesCampaignWinningParams;
 };
 
 /**

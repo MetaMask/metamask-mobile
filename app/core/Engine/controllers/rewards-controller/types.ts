@@ -349,6 +349,7 @@ export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
   PERPS_TRADING = 'PERPS_TRADING',
   PREDICT_THE_PITCH = 'PREDICT_THE_PITCH',
+  MONEY_ACCOUNT_SWEEPSTAKES = 'MONEY_ACCOUNT_SWEEPSTAKES',
   SEASON_1 = 'SEASON_1',
 }
 
@@ -491,11 +492,17 @@ export type PerpsTradingCampaignDetailsState = CampaignDetailsState;
 
 export type PredictThePitchCampaignDetailsState = CampaignDetailsState;
 
+export type MoneyAccountSweepstakesCampaignDetailsState =
+  CampaignDetailsState & {
+    localizedText: MoneyAccountSweepstakesLocalizedTextDto;
+  };
+
 export type CampaignDetailsDtoState =
   | CampaignDetailsState
   | OndoHoldingDetailsState
   | PerpsTradingCampaignDetailsState
-  | PredictThePitchCampaignDetailsState;
+  | PredictThePitchCampaignDetailsState
+  | MoneyAccountSweepstakesCampaignDetailsState;
 
 /**
  * Serializable version of CampaignDto for state storage.
@@ -1204,11 +1211,48 @@ export type PerpsTradingCampaignDetails = CampaignDetails;
 
 export type PredictThePitchCampaignDetails = CampaignDetails;
 
+// Backend resolveMoneyAccountSweepstakesLocalizedText guarantees every key is
+// populated, so the UI can rely on these strings without a local fallback.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesLocalizedTextDto = {
+  currentBalanceTitle: string;
+  currentBalanceDescription: string;
+  eligibleBalanceTitle: string;
+  eligibleBalanceDescription: string;
+  entriesTitle: string;
+  entriesDescription: string;
+  entriesCountValue: string;
+  drawScheduleTitle: string;
+  addFundsTitle: string;
+  weekTitle: string;
+  completeLabel: string;
+  activeLabel: string;
+  joinTheSweepstakesTitle: string;
+  drawPendingTitle: string;
+  drawCompleteTitle: string;
+  drawProofTitle: string;
+  merkleRootLabel: string;
+  formulaLabel: string;
+  drawProofEntriesLabel: string;
+  winnersLabel: string;
+  reservesLabel: string;
+  originalDrawTitle: string;
+  reserveSuffix: string;
+  refLabel: string;
+  weightLabel: string;
+};
+
+export interface MoneyAccountSweepstakesCampaignDetails
+  extends CampaignDetails {
+  localizedText: MoneyAccountSweepstakesLocalizedTextDto;
+}
+
 export type CampaignDetailsDto =
   | CampaignDetails
   | OndoHoldingDetails
   | PerpsTradingCampaignDetails
-  | PredictThePitchCampaignDetails;
+  | PredictThePitchCampaignDetails
+  | MoneyAccountSweepstakesCampaignDetails;
 
 export interface PredictThePitchLeaderboardEntryDto {
   rank: number;
@@ -1417,6 +1461,173 @@ export type PredictThePitchPrizePoolState = {
 };
 
 // ─── End Predict The Pitch Campaign ───────────────────────────────────────
+
+// ─── Money Account Sweepstakes Campaign ───────────────────────────────────
+
+export type MoneyAccountSweepstakesTodayStatus =
+  | 'on_track'
+  | 'lost_today'
+  | 'below_threshold';
+
+export interface MoneyAccountSweepstakesStatsMeDto {
+  entryCount: number;
+  currentBalanceUsd: number;
+  yieldEarnedUsd: number;
+  todayMinUsd: number | null;
+  todayStatus: MoneyAccountSweepstakesTodayStatus;
+  daysRemaining: number;
+}
+
+export interface MoneyAccountSweepstakesPrizePoolDto {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  numberOfWinners: number;
+  minPrizeUsd: number;
+  maxPrizeUsd: number;
+}
+
+export interface MoneyAccountSweepstakesDrawExplanationDto {
+  merkleRoot: string;
+  formula: string;
+  entryCount: number;
+  winnerCount: number;
+  reserveCount: number;
+}
+
+export interface MoneyAccountSweepstakesRankedEntryDto {
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+  weight: number;
+  isReserve: boolean;
+}
+
+export interface MoneyAccountSweepstakesFinalWinnerDto {
+  originalRank: number;
+  addressPrefix: string;
+  refCode: string | null;
+  prizeAmountUsd: number | null;
+}
+
+export interface MoneyAccountSweepstakesAdjustmentDto {
+  kind: 'promoted' | 'removed';
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+}
+
+export interface MoneyAccountSweepstakesMerkleProofStepDto {
+  sibling: string;
+  position: 'left' | 'right';
+}
+
+export interface MoneyAccountSweepstakesAddressProofDto {
+  included: boolean;
+  index?: number | null;
+  leaf?: string | null;
+  path?: MoneyAccountSweepstakesMerkleProofStepDto[];
+}
+
+export interface MoneyAccountSweepstakesDrawProofDto {
+  explanation: MoneyAccountSweepstakesDrawExplanationDto;
+  originalDraw: MoneyAccountSweepstakesRankedEntryDto[];
+  finalWinners: MoneyAccountSweepstakesFinalWinnerDto[];
+  adjustmentTrail: MoneyAccountSweepstakesAdjustmentDto[];
+  addressProof?: MoneyAccountSweepstakesAddressProofDto;
+}
+
+export interface MoneyAccountSweepstakesOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  prizeAmountUsd?: number | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesStatsMeState = {
+  entryCount: number;
+  currentBalanceUsd: number;
+  yieldEarnedUsd: number;
+  todayMinUsd: number | null;
+  todayStatus: MoneyAccountSweepstakesTodayStatus;
+  daysRemaining: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesPrizePoolState = {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  numberOfWinners: number;
+  minPrizeUsd: number;
+  maxPrizeUsd: number;
+  lastFetched: number;
+};
+
+/**
+ * Plain-object state shapes for draw proof cache (interfaces are not Json-safe).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesDrawExplanationState = {
+  merkleRoot: string;
+  formula: string;
+  entryCount: number;
+  winnerCount: number;
+  reserveCount: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesRankedEntryState = {
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+  weight: number;
+  isReserve: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesFinalWinnerState = {
+  originalRank: number;
+  addressPrefix: string;
+  refCode: string | null;
+  prizeAmountUsd: number | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesAdjustmentState = {
+  kind: 'promoted' | 'removed';
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesMerkleProofStepState = {
+  sibling: string;
+  position: 'left' | 'right';
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesAddressProofState = {
+  included: boolean;
+  index?: number | null;
+  leaf?: string | null;
+  path?: MoneyAccountSweepstakesMerkleProofStepState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesDrawProofState = {
+  explanation: MoneyAccountSweepstakesDrawExplanationState;
+  originalDraw: MoneyAccountSweepstakesRankedEntryState[];
+  finalWinners: MoneyAccountSweepstakesFinalWinnerState[];
+  adjustmentTrail: MoneyAccountSweepstakesAdjustmentState[];
+  addressProof?: MoneyAccountSweepstakesAddressProofState;
+  lastFetched: number;
+};
+
+// ─── End Money Account Sweepstakes Campaign ───────────────────────────────
 
 /**
  * Campaign status derived from dates
@@ -2511,6 +2722,18 @@ export type RewardsControllerState = {
   /** Predict The Pitch prize pool keyed by campaignId (public endpoint). */
   predictThePitchPrizePool: {
     [campaignId: string]: PredictThePitchPrizePoolState;
+  };
+  /** Money Account Sweepstakes stats keyed by compositeId (subscriptionId:campaignId). */
+  moneyAccountSweepstakesStats: {
+    [compositeId: string]: MoneyAccountSweepstakesStatsMeState;
+  };
+  /** Money Account Sweepstakes prize pool keyed by campaignId (public endpoint). */
+  moneyAccountSweepstakesPrizePool: {
+    [campaignId: string]: MoneyAccountSweepstakesPrizePoolState;
+  };
+  /** Money Account Sweepstakes draw proof keyed by campaignId (public endpoint). */
+  moneyAccountSweepstakesDrawProof: {
+    [campaignId: string]: MoneyAccountSweepstakesDrawProofState;
   };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;

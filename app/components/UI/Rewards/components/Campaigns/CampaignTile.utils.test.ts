@@ -5,6 +5,7 @@
 import {
   getCampaignStatus,
   formatCampaignStatusLabel,
+  formatCampaignDateRange,
   getCampaignPillLabel,
   getCampaignStatusInfo,
   isCampaignTypeSupported,
@@ -299,6 +300,28 @@ describe('CampaignTile.utils', () => {
 
     it('returns false for unknown campaign types', () => {
       expect(isCampaignTypeSupported('UNKNOWN' as CampaignType)).toBe(false);
+    });
+  });
+
+  describe('formatCampaignDateRange', () => {
+    it('collapses the month when start and end share a month', () => {
+      expect(
+        formatCampaignDateRange(
+          '2026-07-08T00:00:00.000Z',
+          '2026-07-14T00:00:00.000Z',
+          'en-US',
+        ),
+      ).toBe('Jul 8–14');
+    });
+
+    it('keeps both months when the range spans months', () => {
+      expect(
+        formatCampaignDateRange(
+          '2026-07-28T00:00:00.000Z',
+          '2026-08-03T00:00:00.000Z',
+          'en-US',
+        ),
+      ).toBe('Jul 28–Aug 3');
     });
   });
 });
