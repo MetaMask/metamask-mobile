@@ -70,7 +70,10 @@ export class TestMuAIConfigBuilder {
       `TestMu AI tunnel: ${isLocal}, geoLocation: ${isLocal ? 'disabled for tunnel sessions' : geoLocation}`,
     );
     logger.info(
-      `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, isRealMobile=true`,
+      `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, isRealMobile=true` +
+        (process.env.TESTMU_DEVICE_EXACT?.toLowerCase() === 'true'
+          ? ' (exact match)'
+          : ' (availability regex)'),
     );
 
     const ltOptions = {
