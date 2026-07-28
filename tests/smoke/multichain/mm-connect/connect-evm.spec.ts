@@ -1,12 +1,12 @@
 /**
  * E2E tests for MMConnect Legacy EVM (@metamask/connect-evm) driven inside
  * MetaMask Mobile's in-app browser via Detox (ported from the extension spec
- * `metamask-extension/test/e2e/tests/mm-connect/connect-evm.spec.ts`; the
- * perf-suite tests under `tests/performance/mm-connect/` instead drive an
- * external browser over Appium). EIP-1193 calls route via the in-app
- * `window.ethereum` bridge to `ConnectBottomSheet` and the redesigned
- * confirmation surfaces (shared footer). The Wagmi connector variant is
- * deferred — its provider path is identical to Legacy EVM.
+ * `metamask-extension/test/e2e/tests/mm-connect/connect-evm.spec.ts`). External
+ * system-browser Appium coverage lives under `tests/smoke-appium/mm-connect/`.
+ * EIP-1193 calls route via the in-app `window.ethereum` bridge to
+ * `ConnectBottomSheet` and the redesigned confirmation surfaces (shared
+ * footer). The Wagmi connector variant is deferred — its provider path is
+ * identical to Legacy EVM.
  */
 import type { Mockttp } from 'mockttp';
 import { SmokeMultiChainAPI } from '../../../tags';
