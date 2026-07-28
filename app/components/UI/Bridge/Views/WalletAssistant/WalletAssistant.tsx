@@ -722,6 +722,34 @@ const AssistantResearch = React.memo(
         sourcesById,
       ],
     );
+    const hasTradeIntent =
+      research.swapIntent.enabled &&
+      Boolean(
+        research.swapIntent.sourceSymbol ||
+          research.swapIntent.destinationSymbol,
+      );
+
+    if (hasTradeIntent) {
+      return (
+        <Box twClassName="w-full">
+          {isTradeCardActive ? (
+            <EmbeddedSwapCard
+              intent={research.swapIntent}
+              onReview={onReviewSwap}
+            />
+          ) : (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              isFullWidth
+              onPress={onActivateTrade}
+            >
+              Review this trade
+            </Button>
+          )}
+        </Box>
+      );
+    }
 
     return (
       <ResearchTokenMetadataProvider
@@ -927,27 +955,6 @@ const AssistantResearch = React.memo(
               </Box>
             );
           })}
-
-          {research.swapIntent.enabled &&
-            Boolean(
-              research.swapIntent.sourceSymbol ||
-                research.swapIntent.destinationSymbol,
-            ) &&
-            (isTradeCardActive ? (
-              <EmbeddedSwapCard
-                intent={research.swapIntent}
-                onReview={onReviewSwap}
-              />
-            ) : (
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                isFullWidth
-                onPress={onActivateTrade}
-              >
-                Review this trade
-              </Button>
-            ))}
 
           <ResearchChart
             title={research.chart.title}

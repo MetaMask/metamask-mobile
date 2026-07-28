@@ -1,5 +1,6 @@
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { CaipChainId } from '@metamask/utils';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -37,6 +38,7 @@ import { getAssetNavigationParams } from '../../../../../Trending/components/Tre
 import { type BridgeToken, TokenSelectorType } from '../../../../types';
 import { adaptTokenSecurityData } from '../../../../utils/tokenSecurityUtils';
 import {
+  getTradeNetworkChainId,
   resolveTradeSourceAmount,
   resolveTradeToken,
 } from '../../tradeIntentUtils';
@@ -117,12 +119,17 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
   const { activeChainId, tokensWithBalance } = useContext(
     WalletAssistantWalletContext,
   );
+  const requestedChainId = getTradeNetworkChainId(intent.network);
   const { data: sourceResults, isLoading: isSourceLoading } = useTokensFeed({
+    chainIds: requestedChainId ? [requestedChainId as CaipChainId] : undefined,
     query: intent.sourceSymbol,
     hideRiskyTokens: true,
   });
   const { data: destinationResults, isLoading: isDestinationLoading } =
     useTokensFeed({
+      chainIds: requestedChainId
+        ? [requestedChainId as CaipChainId]
+        : undefined,
       query: intent.destinationSymbol,
       hideRiskyTokens: true,
     });

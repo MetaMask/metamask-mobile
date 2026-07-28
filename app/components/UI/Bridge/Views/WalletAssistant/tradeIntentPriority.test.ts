@@ -75,6 +75,20 @@ describe('trade intent priority', () => {
     expect(result.sources).toEqual([]);
   });
 
+  it('preserves an explicit network when overriding an information response', () => {
+    const result = prioritizeDirectTradeRequest(
+      'Can I buy ETH on Robinhood Chain?',
+      createResearch(),
+    );
+
+    expect(result.swapIntent).toEqual(
+      expect.objectContaining({
+        destinationSymbol: 'ETH',
+        network: 'Robinhood Chain',
+      }),
+    );
+  });
+
   it('does not turn a paper-trade request into a real swap', () => {
     const result = prioritizeDirectTradeRequest(
       'Paper trade: buy $50 of ETH',

@@ -266,7 +266,7 @@ const buildFallbackSwapIntent = (
     amountValue: fiatAmount,
     enabled: true,
     mode: 'real',
-    network: '',
+    network: inferNetwork(prompt),
     sourceAmount: '',
     sourceSymbol: isSell ? inferredSymbol : '',
     destinationSymbol: isSell ? '' : inferredSymbol,

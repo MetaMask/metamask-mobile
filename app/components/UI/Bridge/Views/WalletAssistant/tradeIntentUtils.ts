@@ -45,7 +45,12 @@ const NETWORK_ASSET_PREFIXES: Record<string, string> = {
   polygon: 'eip155:137/',
   robinhood: 'eip155:4663/',
   'robinhood chain': 'eip155:4663/',
-  solana: 'solana:',
+  solana: 'solana:mainnet/',
+};
+
+export const getTradeNetworkChainId = (network: string): string | undefined => {
+  const prefix = NETWORK_ASSET_PREFIXES[network.trim().toLowerCase()];
+  return prefix?.replace(/\/$/, '');
 };
 
 const getActiveNetworkPrefix = (activeChainId: string): string | undefined => {
@@ -87,10 +92,12 @@ export const resolveTradeToken = <T extends TradeTokenCandidate>(
   const exactMatches = results.filter(
     (token) => token.symbol.trim().toUpperCase() === normalizedSymbol,
   );
-  const normalizedNetwork = network.trim().toLowerCase();
-  const hasExplicitNetwork = normalizedNetwork.length > 0;
+  const hasExplicitNetwork = network.trim().length > 0;
+  const explicitChainId = getTradeNetworkChainId(network);
   const networkPrefix = hasExplicitNetwork
-    ? NETWORK_ASSET_PREFIXES[normalizedNetwork]
+    ? explicitChainId
+      ? `${explicitChainId}/`
+      : undefined
     : getActiveNetworkPrefix(activeChainId);
 
   // Never silently substitute the active network for an unknown network name.

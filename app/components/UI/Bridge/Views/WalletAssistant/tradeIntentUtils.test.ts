@@ -1,8 +1,15 @@
 import {
+  getTradeNetworkChainId,
   resolveTradeSourceAmount,
   resolveTradeToken,
   TradeTokenCandidate,
 } from './tradeIntentUtils';
+
+describe('getTradeNetworkChainId', () => {
+  it('maps Robinhood Chain to its CAIP chain ID', () => {
+    expect(getTradeNetworkChainId('Robinhood Chain')).toBe('eip155:4663');
+  });
+});
 
 interface TestToken extends TradeTokenCandidate {
   name: string;
