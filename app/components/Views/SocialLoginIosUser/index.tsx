@@ -29,6 +29,7 @@ import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getSocialAccountType } from '../../../constants/onboarding';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 interface SocialLoginIosUserProps {
   type: 'new' | 'existing';
@@ -36,7 +37,7 @@ interface SocialLoginIosUserProps {
 
 const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -167,30 +168,24 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           </Text>
         </Box>
 
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          gap={isMedium ? 3 : 4}
-          marginBottom={4}
-          twClassName="w-full"
+        <Button
+          variant={ButtonVariant.Primary}
+          testID={
+            isUserTypeNew
+              ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON
+              : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON
+          }
+          isFullWidth
+          size={isMedium ? ButtonSize.Md : ButtonSize.Lg}
+          onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
+          twClassName="w-full mb-4"
         >
-          <Button
-            variant={ButtonVariant.Primary}
-            testID={
-              isUserTypeNew
-                ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON
-                : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON
-            }
-            isFullWidth
-            size={isMedium ? ButtonSize.Md : ButtonSize.Lg}
-            onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
-          >
-            {strings(
-              isUserTypeNew
-                ? 'social_login_ios_user.new_user_button'
-                : 'social_login_ios_user.existing_user_button',
-            )}
-          </Button>
-        </Box>
+          {strings(
+            isUserTypeNew
+              ? 'social_login_ios_user.new_user_button'
+              : 'social_login_ios_user.existing_user_button',
+          )}
+        </Button>
       </Box>
     </SafeAreaView>
   );
