@@ -431,6 +431,30 @@ describe('outcomeGrouping', () => {
       ]);
     });
 
+    it('orders soccer half totals by line without changing half market order', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('h2-total-2.5', 'second_half_totals', 2.5),
+        createGroupingOutcome('h1-total-1.5', 'first_half_totals', 1.5),
+        createGroupingOutcome('h2-result', 'soccer_second_half_result'),
+        createGroupingOutcome('h1-total-0.5', 'first_half_totals', 0.5),
+        createGroupingOutcome('h1-result', 'soccer_halftime_result'),
+        createGroupingOutcome('h2-total-0.5', 'second_half_totals', 0.5),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].key).toBe('halves');
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'first_half_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['h1-total-0.5', 'h1-total-1.5']);
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'second_half_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['h2-total-0.5', 'h2-total-2.5']);
+    });
+
     it('splits soccer team totals into one line subgroup per team', () => {
       const groups = buildOutcomeGroups([
         createGroupingOutcome(
@@ -486,6 +510,54 @@ describe('outcomeGrouping', () => {
           ],
         }),
       ]);
+    });
+
+    it('orders tennis totals by line without moving first set totals out of the first set group', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('match-total-22.5', 'tennis_match_totals', 22.5),
+        createGroupingOutcome('set-total-1.5', 'tennis_set_totals', 1.5),
+        createGroupingOutcome(
+          'first-set-total-10.5',
+          'tennis_first_set_totals',
+          10.5,
+        ),
+        createGroupingOutcome('match-total-18.5', 'tennis_match_totals', 18.5),
+        createGroupingOutcome('first-set-winner', 'tennis_first_set_winner'),
+        createGroupingOutcome('set-total-0.5', 'tennis_set_totals', 0.5),
+        createGroupingOutcome(
+          'first-set-total-8.5',
+          'tennis_first_set_totals',
+          8.5,
+        ),
+      ]);
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'game_lines',
+        'first_set',
+      ]);
+      expect(groups[0].subgroups?.map((subgroup) => subgroup.key)).toEqual([
+        'tennis_set_totals',
+        'tennis_match_totals',
+      ]);
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'tennis_set_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['set-total-0.5', 'set-total-1.5']);
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'tennis_match_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['match-total-18.5', 'match-total-22.5']);
+      expect(groups[1].subgroups?.map((subgroup) => subgroup.key)).toEqual([
+        'tennis_first_set_winner',
+        'tennis_first_set_totals',
+      ]);
+      expect(
+        groups[1].subgroups
+          ?.find((subgroup) => subgroup.key === 'tennis_first_set_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['first-set-total-8.5', 'first-set-total-10.5']);
     });
 
     it('groups supported half markets under halves', () => {

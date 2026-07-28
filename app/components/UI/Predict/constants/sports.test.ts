@@ -168,6 +168,19 @@ describe('isLineMarketType', () => {
     expect(isLineMarketType(type)).toBe(true);
   });
 
+  it.each([
+    'totals',
+    'first_half_totals',
+    'second_half_totals',
+    'team_totals',
+    'soccer_team_totals',
+    'tennis_set_totals',
+    'tennis_first_set_totals',
+    'tennis_match_totals',
+  ])('returns true for totals line market %s', (type) => {
+    expect(isLineMarketType(type)).toBe(true);
+  });
+
   it('returns false for an esports binary prop', () => {
     expect(isLineMarketType('lol_penta_kill')).toBe(false);
   });
