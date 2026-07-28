@@ -57,6 +57,15 @@ describe('gameParser', () => {
       expect(getLeagueTeamOrder('itf')).toBe('home-away');
     });
 
+    it.each(['cs2', 'lol', 'dota2', 'val', 'r6siege'] as const)(
+      'returns home-away for %s',
+      (league) => {
+        const result = getLeagueTeamOrder(league);
+
+        expect(result).toBe('home-away');
+      },
+    );
+
     it('returns away-home for US sports leagues', () => {
       expect(getLeagueTeamOrder('nfl')).toBe('away-home');
     });
@@ -85,6 +94,29 @@ describe('gameParser', () => {
           slug,
           tags: [
             { id: '1', label: league.toUpperCase(), slug: league },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        });
+
+        const result = getEventLeague(event);
+
+        expect(result).toBe(league);
+      },
+    );
+
+    it.each([
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'counter-strike-2'],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'league-of-legends'],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'dota-2'],
+      ['val', 'val-bar2-kc1-2026-07-28', 'valorant'],
+      ['r6siege', 'r6siege-sr-aiu-2026-08-04', 'rainbow-six-siege'],
+    ] as const)(
+      'returns "%s" for its esports tag and slug',
+      (league, slug, tagSlug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: tagSlug, slug: tagSlug },
             { id: '2', label: 'Games', slug: 'games' },
           ],
         });
@@ -128,6 +160,37 @@ describe('gameParser', () => {
 
       expect(result).toBe('wta');
     });
+
+    it.each([
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'counter-strike'],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'league-of-legends'],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'dota-2'],
+      ['val', 'val-bar2-kc1-2026-07-28', 'valorant'],
+      ['r6siege', 'r6siege-sr-aiu-2026-08-04', 'rainbow-six-siege'],
+    ] as const)(
+      'returns "%s" from its provider series alias',
+      (league, slug, seriesSlug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: 'Esports', slug: 'esports' },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+          series: [
+            {
+              id: 'series-1',
+              slug: seriesSlug,
+              title: seriesSlug,
+              recurrence: 'daily',
+            },
+          ],
+        });
+
+        const result = getEventLeague(event);
+
+        expect(result).toBe(league);
+      },
+    );
 
     it('returns null when missing nfl tag', () => {
       const event = createMockEvent({
@@ -181,6 +244,35 @@ describe('gameParser', () => {
 
       expect(result).toBe('epl');
     });
+
+    it.each([
+      ['cs2', 'csgo', 'cs2-g1-newvis-2026-07-28-map-props'],
+      ['val', 'valorant', 'val-bar2-kc1-2026-07-28-map-props'],
+    ] as const)(
+      'infers "%s" from its provider team alias for suffixed events',
+      (league, teamLeague, slug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [{ id: '2', label: 'Games', slug: 'games' }],
+          teams: [
+            createMockApiTeam({
+              id: 'team-1',
+              abbreviation: 'home',
+              league: teamLeague,
+            }),
+            createMockApiTeam({
+              id: 'team-2',
+              abbreviation: 'away',
+              league: teamLeague,
+            }),
+          ],
+        });
+
+        const result = getEventLeague(event, [league]);
+
+        expect(result).toBe(league);
+      },
+    );
 
     it('returns null for suffixed child events when extended markets are disabled', () => {
       const event = createMockEvent({
@@ -286,6 +378,11 @@ describe('gameParser', () => {
       ['atp', 'atp-darderi-minaur-2026-05-21', 'minaur', 'darderi'],
       ['wta', 'wta-tan-fruhvir-2026-05-22', 'fruhvir', 'tan'],
       ['itf', 'itf-par-saigo-2026-05-21', 'saigo', 'par'],
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'newvis', 'g1'],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'gxp', 'bar'],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'nemiga', 'pr1'],
+      ['val', 'val-bar2-kc1-2026-07-28', 'kc1', 'bar2'],
+      ['r6siege', 'r6siege-sr-aiu-2026-08-04', 'aiu', 'sr'],
     ] as const)(
       'extracts participants from valid %s slug',
       (league, slug, awayAbbreviation, homeAbbreviation) => {
@@ -578,6 +675,32 @@ describe('gameParser', () => {
       expect(result?.score).toEqual({ away: 1, home: 2, raw: '2-1' });
       expect(result?.homeTeam).toEqual(homeTeam);
       expect(result?.awayTeam).toEqual(awayTeam);
+    });
+
+    it('uses embedded provider teams when cache lookup misses', () => {
+      const homeTeam = createMockApiTeam({
+        id: 'team-g1',
+        name: 'GenOne',
+        abbreviation: 'g1',
+        league: 'csgo',
+      });
+      const awayTeam = createMockApiTeam({
+        id: 'team-newvis',
+        name: 'NEW VISION',
+        abbreviation: 'newvis',
+        league: 'csgo',
+      });
+      const event = createMockEvent({
+        gameId: 'game-cs2-123',
+        slug: 'cs2-g1-newvis-2026-07-28',
+        teams: [homeTeam, awayTeam],
+      });
+      const emptyTeamLookup = () => undefined;
+
+      const result = buildGameData(event, 'cs2', emptyTeamLookup);
+
+      expect(result?.homeTeam).toEqual(mapApiTeamToPredictTeam(homeTeam));
+      expect(result?.awayTeam).toEqual(mapApiTeamToPredictTeam(awayTeam));
     });
 
     it('builds ATP game scores from completed sets won', () => {
@@ -881,6 +1004,34 @@ describe('gameParser', () => {
       expect(result.get('wta')).toEqual(['fruhvir', 'tan']);
       expect(result.get('itf')).toEqual(['saigo', 'par']);
     });
+
+    it.each([
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'counter-strike-2', ['newvis', 'g1']],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'league-of-legends', ['gxp', 'bar']],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'dota-2', ['nemiga', 'pr1']],
+      ['val', 'val-bar2-kc1-2026-07-28', 'valorant', ['kc1', 'bar2']],
+      [
+        'r6siege',
+        'r6siege-sr-aiu-2026-08-04',
+        'rainbow-six-siege',
+        ['aiu', 'sr'],
+      ],
+    ] as const)(
+      'extracts teams from %s events',
+      (league, slug, tagSlug, expectedTeams) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: tagSlug, slug: tagSlug },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        });
+
+        const result = extractNeededTeamsFromEvents([event], [league]);
+
+        expect(result.get(league)).toEqual(expectedTeams);
+      },
+    );
 
     it('extracts tennis teams when provider metadata supplies the league without a league tag', () => {
       const event = createMockEvent({

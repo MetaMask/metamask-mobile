@@ -57,6 +57,11 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'atp',
   'wta',
   'itf',
+  'cs2',
+  'lol',
+  'dota2',
+  'val',
+  'r6siege',
 ];
 
 export const WORLD_CUP_LEAGUE: PredictSportsLeague = 'fifwc';

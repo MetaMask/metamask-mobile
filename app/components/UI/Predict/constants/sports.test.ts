@@ -150,6 +150,11 @@ describe('filterSupportedLeagues', () => {
       'atp',
       'wta',
       'itf',
+      'cs2',
+      'lol',
+      'dota2',
+      'val',
+      'r6siege',
       'fake_league',
     ]);
 
@@ -169,6 +174,11 @@ describe('filterSupportedLeagues', () => {
       'atp',
       'wta',
       'itf',
+      'cs2',
+      'lol',
+      'dota2',
+      'val',
+      'r6siege',
     ]);
   });
 });

@@ -1,11 +1,11 @@
-import {
+import type {
   PredictGameScore,
   PredictGameStatus,
   PredictMarketGame,
   PredictSportTeam,
   PredictSportsLeague,
 } from '../types';
-import {
+import type {
   PolymarketApiEvent,
   PolymarketApiTeam,
 } from '../providers/polymarket/types';
@@ -22,6 +22,8 @@ interface LeagueSlugConfig {
   pattern: RegExp;
   teamOrder: LeagueTeamOrder;
   tagSlug?: string; // if different than league slug
+  seriesSlug?: string; // if different than league slug
+  teamsApiLeague?: string; // if different than league slug
 }
 
 const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
@@ -242,7 +244,43 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     pattern: /^itf-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'home-away',
   },
+  cs2: {
+    pattern: /^cs2-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'counter-strike-2',
+    seriesSlug: 'counter-strike',
+    teamsApiLeague: 'csgo',
+  },
+  lol: {
+    pattern: /^lol-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'league-of-legends',
+    seriesSlug: 'league-of-legends',
+  },
+  dota2: {
+    pattern: /^dota2-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'dota-2',
+    seriesSlug: 'dota-2',
+  },
+  val: {
+    pattern: /^val-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'valorant',
+    seriesSlug: 'valorant',
+    teamsApiLeague: 'valorant',
+  },
+  r6siege: {
+    pattern: /^r6siege-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'rainbow-six-siege',
+    seriesSlug: 'rainbow-six-siege',
+  },
 };
+
+export function getPolymarketTeamLeague(league: PredictSportsLeague): string {
+  return LEAGUE_SLUG_CONFIGS[league].teamsApiLeague ?? league;
+}
 
 export type TeamLookup = (
   league: PredictSportsLeague,
@@ -260,7 +298,8 @@ const hasTeamsMatchingLeague = (
   league: PredictSportsLeague,
 ): boolean => {
   const teams = Array.isArray(event.teams) ? event.teams : [];
-  return teams.length > 0 && teams.every((team) => team.league === league);
+  const teamLeague = getPolymarketTeamLeague(league);
+  return teams.length > 0 && teams.every((team) => team.league === teamLeague);
 };
 
 const hasSeriesMatchingLeague = (
@@ -268,7 +307,10 @@ const hasSeriesMatchingLeague = (
   league: PredictSportsLeague,
 ): boolean =>
   Array.isArray(event.series) &&
-  event.series.some((series) => series.slug === league);
+  event.series.some(
+    (series) =>
+      series.slug === (LEAGUE_SLUG_CONFIGS[league].seriesSlug ?? league),
+  );
 
 export function getEventLeague(
   event: PolymarketApiEvent,
@@ -399,6 +441,20 @@ export function mapApiTeamToPredictTeam(
   };
 }
 
+const getEmbeddedEventTeam = (
+  event: PolymarketApiEvent,
+  league: PredictSportsLeague,
+  abbreviation: string,
+): PredictSportTeam | undefined => {
+  const teamLeague = getPolymarketTeamLeague(league);
+  const team = event.teams?.find(
+    (candidate) =>
+      candidate.league === teamLeague &&
+      candidate.abbreviation.toLowerCase() === abbreviation.toLowerCase(),
+  );
+  return team ? mapApiTeamToPredictTeam(team) : undefined;
+};
+
 export function getLeagueTeamOrder(
   league?: PredictSportsLeague,
 ): LeagueTeamOrder {
@@ -525,8 +581,12 @@ export function buildGameData(
     return null;
   }
 
-  const awayTeam = teamLookup(league, parsedSlug.awayAbbreviation);
-  const homeTeam = teamLookup(league, parsedSlug.homeAbbreviation);
+  const awayTeam =
+    teamLookup(league, parsedSlug.awayAbbreviation) ??
+    getEmbeddedEventTeam(event, league, parsedSlug.awayAbbreviation);
+  const homeTeam =
+    teamLookup(league, parsedSlug.homeAbbreviation) ??
+    getEmbeddedEventTeam(event, league, parsedSlug.homeAbbreviation);
 
   if (!awayTeam || !homeTeam) {
     return null;
