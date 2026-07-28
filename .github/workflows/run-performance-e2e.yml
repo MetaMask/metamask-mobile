@@ -494,7 +494,7 @@ jobs:
       # the reusable Android build job fail to start.
       main_branch_only: ${{ inputs.reuse_main_builds == true && inputs.build_variant == 'e2e' }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
+      # LT_ACCESS_KEY must travel via secrets: inherit — secrets.* is illegal in reusable-workflow `with:`
     secrets: inherit
 
   # =============================================================================
@@ -573,7 +573,6 @@ jobs:
       branch_name: ${{ inputs.branch_name }}
       testmu_build_name: ${{ needs.prepare.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
@@ -667,9 +666,7 @@ jobs:
       branch_name: ${{ inputs.branch_name }}
       testmu_build_name: ${{ needs.prepare.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
-    secrets: inherit
 
   run-ios-imported-wallet-tests:
     name: Performance Test iOS (Imported Wallet)

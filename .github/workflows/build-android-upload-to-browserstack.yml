@@ -58,10 +58,8 @@ on:
         required: false
         type: string
         description: 'TestMu AI username (from manual dispatch or secrets upstream)'
-      lt_access_key:
-        required: false
-        type: string
-        description: 'TestMu AI access key (from manual dispatch or secrets upstream)'
+      # LT_ACCESS_KEY must come from secrets (caller uses secrets: inherit).
+      # Passing it via `with:` is invalid — GitHub rejects secrets.* in reusable-workflow inputs.
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -816,7 +814,7 @@ jobs:
     name: Upload APKs to TestMu AI
     runs-on: ubuntu-latest
     needs: [check-builds-needed, build-with-srp, build-without-srp]
-    if: needs.check-builds-needed.outputs.builds-needed == 'true' && needs.build-with-srp.result == 'success' && needs.build-without-srp.result == 'success' && inputs.lt_username != '' && inputs.lt_access_key != ''
+    if: needs.check-builds-needed.outputs.builds-needed == 'true' && needs.build-with-srp.result == 'success' && needs.build-without-srp.result == 'success' && inputs.lt_username != '' && secrets.LT_ACCESS_KEY != ''
     continue-on-error: true
     outputs:
       with-srp-testmu-url: ${{ steps.testmu-upload.outputs.with-srp-testmu-url }}
@@ -841,7 +839,7 @@ jobs:
         id: testmu-upload
         env:
           LT_USERNAME: ${{ inputs.lt_username }}
-          LT_ACCESS_KEY: ${{ inputs.lt_access_key }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
           set +e
           echo "Uploading APKs to TestMu AI..."
