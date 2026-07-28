@@ -8,7 +8,12 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import {
+  clearAllNockMocks,
+  disableNetConnect,
+  teardownNock,
+} from './nockHelpers';
+import { resetRampAggregatorSdkForTests } from './ramp';
 
 const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
 const TRANSACTIONS_PATH = '/v4/multiaccount/transactions';
@@ -51,5 +56,10 @@ export function setupAccountsTransactionsApiMock(
 }
 
 export function clearAccountsTransactionsApiMocks(): void {
-  clearAllNockMocks();
+  // Fully reset nock (including re-enabling net connect) so later suites in the
+  // same Jest worker are not left with disableNetConnect from setup. Also clear
+  // Ramp Aggregator SDK HTTP clients — Activity empty-state CTAs can navigate
+  // toward Ramp and leave axios instances bound to cleared nock interceptors.
+  teardownNock();
+  resetRampAggregatorSdkForTests();
 }
