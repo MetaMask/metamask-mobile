@@ -50,11 +50,13 @@ export function buildRampsQuoteFetchStartTags(
 
 export interface BuildRampsQuoteFetchCompletionParams {
   isQueryError: boolean;
+  // Structural subset of `QuotesResponse`; the index signature keeps controller
+  // quote payloads (which do not declare `isCustomAction`) assignable.
   response?: {
-    success?: Array<{
+    success?: {
       provider?: string;
-      quote?: { isCustomAction?: boolean };
-    }>;
+      quote?: { isCustomAction?: boolean; [key: string]: unknown };
+    }[];
   } | null;
   requestedProviders?: string[];
 }

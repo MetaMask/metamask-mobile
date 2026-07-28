@@ -22,7 +22,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const mockStartRampsQuoteFetchTrace = jest.fn(() => 'quote-fetch-op-1');
+const mockStartRampsQuoteFetchTrace = jest
+  .fn()
+  .mockReturnValue('quote-fetch-op-1');
 const mockEndRampsQuoteFetchTrace = jest.fn();
 jest.mock('../utils/rampsQuoteFetchTrace', () => {
   const actual = jest.requireActual(
@@ -268,17 +270,19 @@ describe('useRampsQuotes', () => {
         providers: ['/providers/paypal'],
         paymentMethods: ['/payments/paypal'],
       };
-      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue({
-        success: [
-          {
-            provider: '/providers/paypal',
-            quote: { amountIn: 100, isCustomAction: true },
-          },
-        ],
-        sorted: [],
-        error: [],
-        customActions: [],
-      });
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        {
+          success: [
+            {
+              provider: '/providers/paypal',
+              quote: { amountIn: 100, isCustomAction: true },
+            },
+          ],
+          sorted: [],
+          error: [],
+          customActions: [],
+        },
+      );
 
       const { result } = renderHook(() => useRampsQuotes(paypalOptions), {
         wrapper: Wrapper,
@@ -311,14 +315,16 @@ describe('useRampsQuotes', () => {
         providers: ['/providers/paypal'],
         paymentMethods: ['/payments/paypal'],
       };
-      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue({
-        success: [],
-        sorted: [],
-        error: [
-          { provider: '/providers/paypal', error: 'PayPal unavailable' },
-        ],
-        customActions: [],
-      });
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        {
+          success: [],
+          sorted: [],
+          error: [
+            { provider: '/providers/paypal', error: 'PayPal unavailable' },
+          ],
+          customActions: [],
+        },
+      );
 
       const { result } = renderHook(() => useRampsQuotes(paypalOptions), {
         wrapper: Wrapper,
