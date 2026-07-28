@@ -185,6 +185,7 @@ describe('Route Constants Validation', () => {
       Routes.MODAL.WALLET_ACTIONS,
       Routes.MODAL.ROOT_MODAL_FLOW,
       Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
     ];
 
     modalRoutes.forEach((route) => {

@@ -1242,6 +1242,9 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   weightLabel: string;
   bindingConflictTitle: string;
   bindingConflictDescription: string;
+  onTrackDescription: string;
+  lostTodayDescription: string;
+  belowThresholdDescription: string;
 };
 
 export interface MoneyAccountSweepstakesCampaignDetails
