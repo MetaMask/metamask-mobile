@@ -44,7 +44,14 @@ const NON_TOKEN_WORDS = new Set([
   'A',
   'AN',
   'CRYPTO',
+  'FIRST',
+  'IT',
+  'ONE',
+  'SECOND',
   'SOME',
+  'THAT',
+  'THE',
+  'THIS',
   'TOKEN',
   'TOKENS',
 ]);
@@ -79,6 +86,23 @@ const inferNetwork = (prompt: string) => {
   return (
     NETWORK_ALIASES.find(([pattern]) => pattern.test(networkPhrase))?.[1] ?? ''
   );
+};
+
+export const getResearchNetworkContext = (
+  research: WalletAssistantResearchResponse | undefined,
+) => {
+  const tradeNetwork = research?.swapIntent.network.trim();
+  if (tradeNetwork) {
+    return tradeNetwork;
+  }
+
+  const assetNetworks = new Set(
+    research?.assets
+      .map((asset) => asset.network.trim())
+      .filter(Boolean) ?? [],
+  );
+
+  return assetNetworks.size === 1 ? [...assetNetworks][0] : '';
 };
 
 const inferPercentAmount = (prompt: string) => {
@@ -202,15 +226,23 @@ const buildTradeResearchResponse = (
 export const buildImmediateTradeResponse = (
   prompt: string,
   previousIntent?: WalletAssistantSwapIntent,
+  researchNetworkContext = '',
 ): WalletAssistantResearchResponse | undefined => {
   if (isDirectTradeRequest(prompt)) {
     const symbols = getTradeSymbols(prompt);
+    const action = TRADE_ACTION.exec(prompt)?.[1]?.toLowerCase();
+    if (
+      (action === 'buy' || action === 'purchase') &&
+      !symbols.destinationSymbol
+    ) {
+      return undefined;
+    }
     const amount = getTradeAmount(prompt, symbols.sourceSymbol);
     const intent: WalletAssistantSwapIntent = {
       ...amount,
       enabled: true,
       mode: 'real',
-      network: inferNetwork(prompt),
+      network: inferNetwork(prompt) || researchNetworkContext,
       ...symbols,
     };
 

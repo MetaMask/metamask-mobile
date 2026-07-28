@@ -29,9 +29,10 @@ import {
 } from '@metamask/bridge-controller';
 import {
   fetchTokenAssets,
+  getTrendingTokens,
   type TrendingAsset,
 } from '@metamask/assets-controllers';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import {
   Box,
   BoxAlignItems,
@@ -105,6 +106,7 @@ import {
 } from './openai';
 import {
   buildImmediateTradeResponse,
+  getResearchNetworkContext,
   prioritizeDirectTradeRequest,
 } from './tradeIntentPriority';
 import {
@@ -117,7 +119,10 @@ import {
   buildLocalMarketListResponse,
   buildLocalPriceResponse,
   buildResearchPlan,
+  getInitialResearchDomains,
   getResearchPlanInstructions,
+  isLocalMemeMarketListRequest,
+  shouldBroadenInitialResearch,
 } from './researchRouting';
 import {
   getConversationMessageEntries,
@@ -126,12 +131,22 @@ import {
 import { useWalletAssistantPersistence } from './persistence';
 import { WalletAssistantWalletContext } from './walletContext';
 import {
+  applyConversationContext,
+  buildConversationContext,
+  getConversationContextInstructions,
+} from './conversationContext';
+import {
   buildPortfolioPlan,
   getTokenLabelsByAssetId,
   getWalletTokenAssetId,
   parsePortfolioPlanRequest,
   type WalletAssistantPortfolioPlan,
 } from './portfolioPlan';
+import {
+  getTokenPillMovement,
+  TOKEN_PILL_MOVEMENT_PRESENTATION,
+  type TokenPillMovement,
+} from './tokenPillMovement';
 
 type ResearchSource = WalletAssistantResearchSource;
 type ResearchResponse = WalletAssistantResearchResponse;
@@ -186,7 +201,11 @@ const FIRST_CHAT_LAYOUT_ANIMATION = {
   },
 };
 const BASE_OPENAI_INSTRUCTIONS =
-  'You are Wallet Assistant inside MetaMask. Trading assistance is your primary job. Be concise, useful, and transparent about uncertainty. Treat direct language such as “Can I buy ETH?”, “Buy ETH”, “I want to sell ETH”, or “Swap ETH for USDC” as a request to prepare a trade, not as a request for educational information. For those requests, set swapIntent.enabled true, keep the prose task-focused, and do not use web research unless the user separately asks for market research. Questions such as “Should I buy ETH?” remain research or financial-education questions and must not prepare a trade. Research current market questions using web search. For market-cap, ranking, trending, and token-metadata questions, use CoinGecko as the default primary source. Corroborate with official project documentation, chain explorers, and other reputable sources when useful. Never ask the user to choose a tracker, data source, or research provider when the question can be answered with web research. Return a short factual headline in title and clean structured content: no Markdown, no inline URLs, and no URLs in title, summary, or bullets. Give every source a stable unique ID. Put only safe, public URLs in the sources array with their publication date as an ISO-8601 string, or an empty date when unavailable. Add source IDs and a confidence level to every factual bullet. Set asOf to the timestamp or date represented by the research. Never name a source “live price feed” or describe a web result as live or real-time. Treat researched prices as time-stamped snapshots, not current app prices. For token price questions, let the app’s verified token pill display the current price and focus the prose on context and drivers. Include a chart only when researched sources provide a small, directly comparable numeric series. Include one source ID for each chart point. Otherwise return an empty chart. Never estimate or invent chart values. Put the uppercase ticker symbols of clearly identified crypto tokens discussed in the response in the tokens array. Put network-aware identity in assets, including contract address and CAIP chain ID when verified; leave unknown fields empty and never infer identity from ticker alone. Exclude companies, funds, ambiguous tickers, and assets you cannot identify confidently. When the user explicitly asks to buy, sell, swap, or trade a token, set swapIntent.enabled true and identify the source and destination ticker when stated. Wallet Assistant only prepares real MetaMask swaps; if the user explicitly requests a paper, fake, simulated, or simulation trade, explain briefly that simulations are not supported and set swapIntent.enabled false. Set swapIntent.mode to real. Classify the requested amount as exact source-token amount, fiat amount, percentage of a source holding, or unspecified; put the raw number in amountValue. Copy amountValue into sourceAmount only for exact source-token amounts. Capture an explicitly named network in network, otherwise leave it empty. For requests such as “buy $50 of ETH” with no source token, leave sourceSymbol and sourceAmount empty, set amountType fiat, and amountValue 50. Otherwise set swapIntent.enabled false and leave its strings empty with amountType unspecified and mode real. Never claim a quote is ready, predict received amount or fees, sign, submit, or say a transaction completed. The app resolves verified assets and MetaMask Swap fetches the real quote; the user must review and explicitly confirm every transaction. Do not provide personalized financial advice.';
+  'You are Wallet Assistant inside MetaMask. Trading assistance is your primary job. Be concise, useful, and transparent about uncertainty. Interpret each new message in the context of the recent conversation and structured result data. Treat direct language such as “Can I buy ETH?”, “Buy ETH”, “I want to sell ETH”, “Buy the first one”, “Use the same chain”, or “Swap ETH for USDC” as a request to prepare or update a trade, not as a request for educational information. For those requests, set swapIntent.enabled true, keep the prose task-focused, and do not use web research unless the user separately asks for market research. Questions such as “Should I buy ETH?” remain research or financial-education questions and must not prepare a trade. Research current market questions using web search. For single-token identity and overview questions, use CoinMarketCap as the first source. Corroborate with CoinGecko, official project documentation, chain explorers, and other reputable sources when useful. Never ask the user to choose a tracker, data source, or research provider when the question can be answered with web research. Return a short factual headline in title and clean structured content: no Markdown, no inline URLs, and no URLs in title, summary, or bullets. Give every source a stable unique ID. Put only safe, public URLs in the sources array with their publication date as an ISO-8601 string, or an empty date when unavailable. Add source IDs and a confidence level to every factual bullet. Set asOf to the timestamp or date represented by the research. Never name a source “live price feed” or describe a web result as live or real-time. Treat researched prices as time-stamped snapshots, not current app prices. For token price questions, let the app’s verified token pill display the current price and focus the prose on context and drivers. Include a chart only when researched sources provide a small, directly comparable numeric series. Include one source ID for each chart point. Otherwise return an empty chart. Never estimate or invent chart values. Put the uppercase ticker symbols of clearly identified crypto tokens discussed in the response in the tokens array. Put network-aware identity in assets, including contract address and CAIP chain ID when verified; leave unknown fields empty and never infer identity from ticker alone. Exclude companies, funds, ambiguous tickers, and assets you cannot identify confidently. When the user explicitly asks to buy, sell, swap, or trade a token, set swapIntent.enabled true and identify the source and destination ticker when stated or resolved from structured conversation context. Wallet Assistant only prepares real MetaMask swaps; if the user explicitly requests a paper, fake, simulated, or simulation trade, explain briefly that simulations are not supported and set swapIntent.enabled false. Set swapIntent.mode to real. Classify the requested amount as exact source-token amount, fiat amount, percentage of a source holding, or unspecified; put the raw number in amountValue. Copy amountValue into sourceAmount only for exact source-token amounts. Capture an explicitly named or context-resolved network in network, otherwise leave it empty. For requests such as “buy $50 of ETH” with no source token, leave sourceSymbol and sourceAmount empty, set amountType fiat, and amountValue 50. Otherwise set swapIntent.enabled false and leave its strings empty with amountType unspecified and mode real. Never claim a quote is ready, predict received amount or fees, sign, submit, or say a transaction completed. The app resolves verified assets and MetaMask Swap fetches the real quote; the user must review and explicitly confirm every transaction. Do not provide personalized financial advice.';
+const STRUCTURED_RESPONSE_RETRY_INSTRUCTIONS =
+  'Your previous answer could not be decoded. Return one complete JSON object that exactly matches the provided wallet_research schema. Do not use Markdown fences, commentary, or text outside the JSON object.';
+const BROAD_RESEARCH_RETRY_INSTRUCTIONS =
+  'CoinMarketCap did not provide a usable result for this token. Broaden the search to CoinGecko, official project documentation, and chain explorers. Do not substitute a different token with the same or a similar ticker.';
 const RESEARCH_RESPONSE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -539,6 +558,21 @@ const ResearchTokenMetadataProvider = ({
     </ResearchTokenMetadataContext.Provider>
   );
 
+const TOKEN_PILL_MOVEMENT_STYLES: Record<
+  TokenPillMovement,
+  { textColor: TextColor }
+> = {
+  gain: {
+    textColor: TextColor.SuccessDefault,
+  },
+  loss: {
+    textColor: TextColor.ErrorDefault,
+  },
+  neutral: {
+    textColor: TextColor.TextAlternative,
+  },
+};
+
 const ResolvedContextualTokenPill = ({
   price,
   symbol,
@@ -553,6 +587,9 @@ const ResolvedContextualTokenPill = ({
     token,
     tokenDetailsSource: TokenDetailsSource.WalletAssistant,
   });
+  const movement = getTokenPillMovement(token.priceChangePct?.h24);
+  const movementPresentation = TOKEN_PILL_MOVEMENT_PRESENTATION[movement];
+  const movementStyle = TOKEN_PILL_MOVEMENT_STYLES[movement];
 
   return (
     <Pressable
@@ -565,7 +602,7 @@ const ResolvedContextualTokenPill = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        twClassName="rounded-full bg-success-muted px-2 py-1"
+        twClassName={`rounded-full px-2 py-1 ${movementPresentation.background}`}
       >
         <TrendingTokenLogo
           assetId={token.assetId}
@@ -575,11 +612,12 @@ const ResolvedContextualTokenPill = ({
         />
         <Text
           variant={TextVariant.BodySm}
-          color={TextColor.SuccessDefault}
+          color={movementStyle.textColor}
           fontWeight={FontWeight.Medium}
         >
           {symbol}
-          {price ? ` · ${price}` : ''} ↗
+          {price ? ` · ${price}` : ''}
+          {movementPresentation.arrow}
         </Text>
       </Box>
     </Pressable>
@@ -611,11 +649,11 @@ const ContextualTokenPill = ({ symbol }: { symbol: string }) => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={1}
-      twClassName="rounded-full bg-success-muted px-2 py-1"
+      twClassName="rounded-full bg-muted px-2 py-1"
     >
       <Text
         variant={TextVariant.BodySm}
-        color={TextColor.SuccessDefault}
+        color={TextColor.TextAlternative}
         fontWeight={FontWeight.Medium}
       >
         {symbol}
@@ -756,6 +794,7 @@ const AssistantResearch = React.memo(
         <Box twClassName="w-full">
           {isTradeCardActive ? (
             <EmbeddedSwapCard
+              assets={research.assets}
               intent={research.swapIntent}
               onReview={onReviewSwap}
             />
@@ -1439,11 +1478,91 @@ const WalletAssistant = () => {
       .enabled
       ? previousAssistantMessage.research.swapIntent
       : undefined;
+    const researchNetworkContext = getResearchNetworkContext(
+      previousAssistantMessage?.research,
+    );
     const immediateTradeResponse = buildImmediateTradeResponse(
       text,
       previousTradeIntent,
+      researchNetworkContext,
     );
     const researchPlan = buildResearchPlan(text);
+    if (isLocalMemeMarketListRequest(text)) {
+      if (messages.length === 0 && !reduceMotion) {
+        LayoutAnimation.configureNext(FIRST_CHAT_LAYOUT_ANIMATION);
+      }
+      shouldAnchorLatestMessage.current = true;
+      setMessages(nextMessages);
+      setDraft('');
+      setError('');
+      setErrorRecovery(undefined);
+      setIsLoading(true);
+      setRequestStatus(AgentProgressStatus.CheckingPrices);
+
+      try {
+        const marketDataTokens =
+          localMarketTokens.length > 0 || !researchPlan.network
+            ? localMarketTokens
+            : await getTrendingTokens({
+                chainIds: [
+                  researchPlan.network.caipChainId as CaipChainId,
+                ],
+                excludeLabels: ['stable_coin', 'blue_chip'],
+                includeTokenSecurityData: true,
+              });
+        const tokens = marketDataTokens.filter(({ securityData }) => {
+          const resultType = securityData?.resultType;
+          return (
+            !resultType ||
+            resultType === 'Verified' ||
+            resultType === 'Benign'
+          );
+        });
+        const assetIds = tokens.map(
+          ({ assetId }) => assetId as CaipAssetType,
+        );
+        const assetIdBatches = Array.from(
+          { length: Math.ceil(assetIds.length / 100) },
+          (_, index) => assetIds.slice(index * 100, (index + 1) * 100),
+        );
+        const assets = (
+          await Promise.all(
+            assetIdBatches.map((batch) =>
+              fetchTokenAssets(batch, {
+                includeLabels: true,
+              }),
+            ),
+          )
+        ).flat();
+        const research = buildLocalMarketListResponse(
+          text,
+          tokens,
+          researchPlan.network,
+          getTokenLabelsByAssetId(assets),
+        );
+
+        if (!research) {
+          throw new Error('Unable to build local market response');
+        }
+        setMessages((current) => [
+          ...current,
+          {
+            id: `assistant-${current.length}`,
+            role: 'assistant',
+            research,
+            text: getResearchPlainText(research),
+          },
+        ]);
+      } catch {
+        setError(
+          'Could not load MetaMask market data. Please try again shortly.',
+        );
+        setDraft(text);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
     const immediateResearchResponse =
       immediateTradeResponse ??
       buildLocalPriceResponse(researchPlan, text) ??
@@ -1479,12 +1598,17 @@ const WalletAssistant = () => {
     const requestController = new AbortController();
     requestControllerRef.current = requestController;
     const useWebResearch = researchPlan.useWebSearch;
+    const initialResearchDomains = getInitialResearchDomains(researchPlan);
     const networkContextInstructions = getNetworkContextInstructions(text);
+    const conversationContext = buildConversationContext(messages);
+    const conversationContextInstructions =
+      getConversationContextInstructions(conversationContext);
     const secureRequestParts = buildSecureOpenAIRequestParts({
       baseInstructions: [
         BASE_OPENAI_INSTRUCTIONS,
         getResearchPlanInstructions(researchPlan),
         networkContextInstructions,
+        conversationContextInstructions,
       ]
         .filter(Boolean)
         .join('\n\n'),
@@ -1508,7 +1632,10 @@ const WalletAssistant = () => {
     );
 
     try {
-      const requestResearch = (instructions: string) =>
+      const requestResearch = (
+        instructions: string,
+        allowedDomains?: string[],
+      ) =>
         streamOpenAIResponse({
           apiKey,
           fetchImplementation: expoFetch as typeof fetch,
@@ -1524,6 +1651,13 @@ const WalletAssistant = () => {
                     {
                       type: 'web_search',
                       search_context_size: researchPlan.searchContextSize,
+                      ...(allowedDomains?.length
+                        ? {
+                            filters: {
+                              allowed_domains: allowedDomains,
+                            },
+                          }
+                        : {}),
                     },
                   ],
                   tool_choice: 'auto',
@@ -1541,38 +1675,66 @@ const WalletAssistant = () => {
             input: secureRequestParts.input,
           },
         });
-      let result = await requestResearch(secureRequestParts.instructions);
-      let responseText =
-        result.text ||
-        getResponseText((result.response ?? {}) as OpenAIResponse);
-      if (!responseText) {
+      const parseResearch = (responseText: string) =>
+        applyConversationContext(
+          prioritizeDirectTradeRequest(
+            text,
+            applyResearchPlanIdentity(
+              researchPlan,
+              parseWalletAssistantResearchResponse(responseText),
+            ),
+          ),
+          conversationContext,
+        );
+      const requestParsedResearch = async (
+        instructions: string,
+        allowedDomains?: string[],
+      ) => {
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          const result = await requestResearch(
+            attempt === 0
+              ? instructions
+              : `${instructions}\n\n${STRUCTURED_RESPONSE_RETRY_INSTRUCTIONS}`,
+            allowedDomains,
+          );
+          const responseText =
+            result.text ||
+            getResponseText((result.response ?? {}) as OpenAIResponse);
+
+          try {
+            if (!responseText) {
+              throw new MalformedOpenAIResponseError();
+            }
+            return parseResearch(responseText);
+          } catch (parseError) {
+            if (
+              !(parseError instanceof MalformedOpenAIResponseError) ||
+              attempt === 1
+            ) {
+              throw parseError;
+            }
+            setRequestStatus(AgentProgressStatus.Thinking);
+          }
+        }
+
         throw new MalformedOpenAIResponseError();
-      }
-      let research = prioritizeDirectTradeRequest(
-        text,
-        applyResearchPlanIdentity(
-          researchPlan,
-          parseWalletAssistantResearchResponse(responseText),
-        ),
+      };
+      let research = await requestParsedResearch(
+        secureRequestParts.instructions,
+        initialResearchDomains,
       );
+
+      if (shouldBroadenInitialResearch(researchPlan, research)) {
+        setRequestStatus(AgentProgressStatus.SearchingWeb);
+        research = await requestParsedResearch(
+          `${secureRequestParts.instructions}\n\n${BROAD_RESEARCH_RETRY_INSTRUCTIONS}`,
+        );
+      }
 
       if (hasNetworkContextMismatch(text, research)) {
         setRequestStatus(AgentProgressStatus.SearchingWeb);
-        result = await requestResearch(
+        research = await requestParsedResearch(
           `${secureRequestParts.instructions}\n\n${ROBINHOOD_CHAIN_RETRY_INSTRUCTIONS}`,
-        );
-        responseText =
-          result.text ||
-          getResponseText((result.response ?? {}) as OpenAIResponse);
-        if (!responseText) {
-          throw new MalformedOpenAIResponseError();
-        }
-        research = prioritizeDirectTradeRequest(
-          text,
-          applyResearchPlanIdentity(
-            researchPlan,
-            parseWalletAssistantResearchResponse(responseText),
-          ),
         );
         if (hasNetworkContextMismatch(text, research)) {
           throw new MalformedOpenAIResponseError();

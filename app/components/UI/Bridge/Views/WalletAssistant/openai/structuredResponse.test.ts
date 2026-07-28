@@ -64,6 +64,18 @@ describe('parseWalletAssistantResearchResponse', () => {
     });
   });
 
+  it.each([
+    ['```json\n%s\n```', 'a JSON code fence'],
+    ['Research result:\n%s', 'a short text preface'],
+  ])('recovers structured data wrapped in %s', (template) => {
+    const parsed = parseWalletAssistantResearchResponse(
+      template.replace('%s', JSON.stringify(validResponse)),
+    );
+
+    expect(parsed.title).toBe(validResponse.title);
+    expect(parsed.tokens).toEqual(['ETH']);
+  });
+
   it.each(['{secret raw response', null, [], 42])(
     'throws a safe malformed response error for %p',
     (input) => {

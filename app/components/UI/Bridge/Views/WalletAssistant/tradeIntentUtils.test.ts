@@ -71,6 +71,21 @@ describe('resolveTradeToken', () => {
     });
   });
 
+  it('uses an exact prior asset identity to disambiguate a ticker', () => {
+    const result = resolveTradeToken(
+      TOKENS,
+      'ETH',
+      '',
+      '',
+      'eip155:8453/erc20:0xeth',
+    );
+
+    expect(result).toEqual({
+      asset: TOKENS[1],
+      isAmbiguous: false,
+    });
+  });
+
   it.each([
     ['0x1', TOKENS[0]],
     ['1', TOKENS[0]],

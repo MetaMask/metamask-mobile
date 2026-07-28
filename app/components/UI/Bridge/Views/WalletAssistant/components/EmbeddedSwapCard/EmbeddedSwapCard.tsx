@@ -34,9 +34,12 @@ import {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useTokensFeed } from '../../../../../../Views/TrendingView/feeds/tokens/useTokensFeed';
 import { TokenDetailsSource } from '../../../../../TokenDetails/constants/constants';
+import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
 import { getAssetNavigationParams } from '../../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { type BridgeToken, TokenSelectorType } from '../../../../types';
 import { adaptTokenSecurityData } from '../../../../utils/tokenSecurityUtils';
+import { buildMMPayRampIntent, isUnfundedBuyIntent } from '../../mmpayIntent';
+import MMPayFundingCard from '../MMPayFundingCard';
 import {
   getTradeNetworkChainId,
   resolveTradeSourceAmount,
@@ -55,7 +58,15 @@ export interface SwapIntent {
   destinationSymbol: string;
 }
 
+export interface SwapAssetIdentity {
+  chainId: string;
+  contractAddress: string;
+  network: string;
+  symbol: string;
+}
+
 export interface EmbeddedSwapCardProps {
+  assets?: readonly SwapAssetIdentity[];
   intent: SwapIntent;
   onReview: (
     sourceToken: BridgeToken | undefined,
@@ -101,9 +112,36 @@ const areSameChain = (
   }
 };
 
-const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
+const getPreferredAssetId = (
+  assets: readonly SwapAssetIdentity[],
+  symbol: string,
+  network: string,
+) => {
+  const matches = assets.filter(
+    (asset) =>
+      asset.symbol.toUpperCase() === symbol.toUpperCase() &&
+      (!network || asset.network.toLowerCase() === network.toLowerCase()) &&
+      asset.chainId &&
+      asset.contractAddress,
+  );
+  if (matches.length !== 1) {
+    return '';
+  }
+
+  const [asset] = matches;
+  return asset.chainId.startsWith('eip155:')
+    ? `${asset.chainId}/erc20:${asset.contractAddress}`
+    : '';
+};
+
+const EmbeddedSwapCard = ({
+  assets = [],
+  intent,
+  onReview,
+}: EmbeddedSwapCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const { goToBuy } = useRampNavigation();
   const dispatch = useDispatch();
   const selectedBridgeSourceToken = useSelector(selectSourceToken);
   const selectedBridgeDestinationToken = useSelector(selectDestToken);
@@ -133,6 +171,16 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
       query: intent.destinationSymbol,
       hideRiskyTokens: true,
     });
+  const preferredSourceAssetId = useMemo(
+    () =>
+      getPreferredAssetId(assets, intent.sourceSymbol, intent.network),
+    [assets, intent.network, intent.sourceSymbol],
+  );
+  const preferredDestinationAssetId = useMemo(
+    () =>
+      getPreferredAssetId(assets, intent.destinationSymbol, intent.network),
+    [assets, intent.destinationSymbol, intent.network],
+  );
   const sourceResolution = useMemo(
     () =>
       resolveTradeToken(
@@ -140,8 +188,15 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
         intent.sourceSymbol,
         intent.network,
         activeChainId,
+        preferredSourceAssetId,
       ),
-    [activeChainId, intent.network, intent.sourceSymbol, sourceResults],
+    [
+      activeChainId,
+      intent.network,
+      intent.sourceSymbol,
+      preferredSourceAssetId,
+      sourceResults,
+    ],
   );
   const destinationResolution = useMemo(
     () =>
@@ -150,8 +205,14 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
         intent.destinationSymbol,
         intent.network,
         '',
+        preferredDestinationAssetId,
       ),
-    [destinationResults, intent.destinationSymbol, intent.network],
+    [
+      destinationResults,
+      intent.destinationSymbol,
+      intent.network,
+      preferredDestinationAssetId,
+    ],
   );
   const resolvedTrendingSourceToken = useMemo(
     () => getBridgeTokenFromTrendingAsset(sourceResolution.asset),
@@ -201,6 +262,14 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
     tokensWithBalance,
   ]);
   const initialSourceToken = walletSourceToken ?? resolvedTrendingSourceToken;
+  const shouldOfferAddFunds = isUnfundedBuyIntent(
+    intent,
+    Boolean(walletSourceToken),
+  );
+  const rampIntent = useMemo(
+    () => buildMMPayRampIntent(intent, initialDestinationToken),
+    [initialDestinationToken, intent],
+  );
   const hasSelectedSourceInSwap =
     sourceSelectorBaselineKey !== undefined &&
     getBridgeTokenKey(selectedBridgeSourceToken) !== sourceSelectorBaselineKey;
@@ -295,6 +364,22 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
     sourceAmountForQuote,
     sourceToken,
   ]);
+  const handleAddFunds = useCallback(() => {
+    goToBuy(rampIntent);
+  }, [goToBuy, rampIntent]);
+
+  if (shouldOfferAddFunds) {
+    return (
+      <MMPayFundingCard
+        amount={intent.amountType === 'fiat' ? intent.amountValue : undefined}
+        destinationSymbol={intent.destinationSymbol}
+        destinationToken={destinationToken}
+        isLoading={isDestinationLoading}
+        networkName={getNetworkName(destinationToken)}
+        onAddFunds={handleAddFunds}
+      />
+    );
+  }
 
   return (
     <Box twClassName="mt-4 gap-4 rounded-2xl border border-muted bg-muted p-4">

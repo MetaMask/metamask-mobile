@@ -167,6 +167,10 @@ export const useRampNavigation = () => {
           createBuildQuoteNavDetails({
             assetId: controllerAssetId,
             buyFlowOrigin: options?.buyFlowOrigin,
+            amount:
+              intent.amount && Number.isFinite(Number(intent.amount))
+                ? Number(intent.amount)
+                : undefined,
           }),
         );
         return;

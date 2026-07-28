@@ -5,8 +5,11 @@ import {
   buildLocalMarketListResponse,
   buildLocalPriceResponse,
   buildResearchPlan,
+  getInitialResearchDomains,
   getResearchPlanInstructions,
+  isLocalMemeMarketListRequest,
   isLocalMarketListRequest,
+  shouldBroadenInitialResearch,
 } from './researchRouting';
 
 const MARKET_TOKENS: TrendingAsset[] = [
@@ -111,6 +114,59 @@ describe('researchRouting', () => {
     );
   });
 
+  it('starts a single-token overview on CoinMarketCap', () => {
+    const plan = buildResearchPlan('What is JIMOTHY?');
+
+    expect(getInitialResearchDomains(plan)).toEqual(['coinmarketcap.com']);
+  });
+
+  it('does not restrict broader research to CoinMarketCap', () => {
+    expect(
+      getInitialResearchDomains(
+        buildResearchPlan('Compare JIMOTHY with THEHOOD'),
+      ),
+    ).toBeUndefined();
+  });
+
+  it('broadens a token overview only when CoinMarketCap did not answer', () => {
+    const plan = buildResearchPlan('What is JIMOTHY?');
+    const baseResponse = {
+      asOf: '',
+      assets: [],
+      chart: { labels: [], sourceIds: [], title: '', unit: '', values: [] },
+      sections: [],
+      sources: [],
+      summary: '',
+      swapIntent: {
+        amountType: 'unspecified' as const,
+        amountValue: '',
+        enabled: false,
+        mode: 'real' as const,
+        network: '',
+        sourceAmount: '',
+        sourceSymbol: '',
+        destinationSymbol: '',
+      },
+      title: 'JIMOTHY',
+      tokens: ['JIMOTHY'],
+    };
+
+    expect(shouldBroadenInitialResearch(plan, baseResponse)).toBe(true);
+    expect(
+      shouldBroadenInitialResearch(plan, {
+        ...baseResponse,
+        sources: [
+          {
+            date: '',
+            id: 'cmc',
+            title: 'JIMOTHY price',
+            url: 'https://coinmarketcap.com/currencies/jimothy/',
+          },
+        ],
+      }),
+    ).toBe(false);
+  });
+
   it('builds a local market-data response for one-token price questions', () => {
     const response = buildLocalPriceResponse(
       buildResearchPlan('What is the price of ETH?'),
@@ -204,6 +260,64 @@ describe('researchRouting', () => {
             network: 'Robinhood Chain',
           }),
         ],
+      }),
+    );
+  });
+
+  it('uses classified MetaMask data for the most popular memecoin on a network', () => {
+    const prompt = 'What is the most popular memecoin on robinhood chain';
+    const plan = buildResearchPlan(prompt);
+    const labelsByAssetId = new Map<string, readonly string[]>([
+      ['eip155:4663/erc20:0xccc', ['meme_coin']],
+      ['eip155:4663/erc20:0xpop', ['meme_coin']],
+      ['eip155:1/erc20:0xaaa', ['meme_coin']],
+    ]);
+    const marketTokens = [
+      ...MARKET_TOKENS,
+      {
+        aggregatedUsdVolume: 10_000,
+        assetId: 'eip155:4663/erc20:0xpop',
+        decimals: 18,
+        marketCap: 25_000,
+        name: 'Popular Robinhood Meme',
+        price: '1',
+        priceChangePct: { h24: '-2' },
+        symbol: 'POP',
+      },
+    ];
+
+    expect(isLocalMemeMarketListRequest(prompt)).toBe(true);
+    expect(
+      buildLocalMarketListResponse(
+        prompt,
+        marketTokens,
+        plan.network,
+        labelsByAssetId,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        title: 'Most popular memecoin on Robinhood Chain',
+        tokens: ['POP'],
+        assets: [
+          expect.objectContaining({
+            chainId: 'eip155:4663',
+            network: 'Robinhood Chain',
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('does not treat unclassified tokens as memecoins', () => {
+    const prompt = 'What are the popular memecoins?';
+
+    expect(
+      buildLocalMarketListResponse(prompt, MARKET_TOKENS),
+    ).toEqual(
+      expect.objectContaining({
+        tokens: [],
+        summary:
+          'MetaMask market data does not currently include a classified memecoin.',
       }),
     );
   });
