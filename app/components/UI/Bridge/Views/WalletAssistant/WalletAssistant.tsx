@@ -62,6 +62,7 @@ import SourceLogoGroup from '../../../MarketInsights/components/SourceLogoGroup'
 import ArticleRow from '../../../MarketInsights/components/ArticleRow';
 import { isSafeUrl } from '../../../MarketInsights/utils/marketInsightsFormatting';
 import { useTokensFeed } from '../../../../Views/TrendingView/feeds/tokens/useTokensFeed';
+import { usePopularTokens } from '../../../../Views/Homepage/Sections/Tokens/hooks/usePopularTokens';
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import { getAssetNavigationParams } from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { useTrendingTokenPress } from '../../../Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
@@ -409,10 +410,12 @@ const ResearchTokenMetadataResolver = React.memo(
 const EnabledResearchTokenMetadataProvider = ({
   assets,
   children,
+  seedTokens,
   symbols,
 }: {
   assets: readonly WalletAssistantResearchAsset[];
   children: React.ReactNode;
+  seedTokens: readonly TrendingAsset[];
   symbols: readonly string[];
 }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -430,14 +433,42 @@ const EnabledResearchTokenMetadataProvider = ({
       ),
     [assets],
   );
+  const seededTokensBySymbol = useMemo(
+    () =>
+      Object.fromEntries(
+        seedTokens
+          .filter((token) => {
+            const asset = assetsBySymbol[token.symbol.toUpperCase()];
+            if (!asset) {
+              return false;
+            }
+            const normalizedAssetId = token.assetId.toLowerCase();
+            return (
+              (!asset.chainId ||
+                normalizedAssetId.startsWith(
+                  `${asset.chainId.toLowerCase()}/`,
+                )) &&
+              (!asset.contractAddress ||
+                normalizedAssetId.endsWith(
+                  `:${asset.contractAddress.toLowerCase()}`,
+                ))
+            );
+          })
+          .map((token) => [token.symbol.toUpperCase(), token]),
+      ),
+    [assetsBySymbol, seedTokens],
+  );
   const handleResolve = useCallback((symbol: string, token: TrendingAsset) => {
     setTokensBySymbol((current) =>
       current[symbol] === token ? current : { ...current, [symbol]: token },
     );
   }, []);
   const value = useMemo(
-    () => ({ currentCurrency, tokensBySymbol }),
-    [currentCurrency, tokensBySymbol],
+    () => ({
+      currentCurrency,
+      tokensBySymbol: { ...seededTokensBySymbol, ...tokensBySymbol },
+    }),
+    [currentCurrency, seededTokensBySymbol, tokensBySymbol],
   );
 
   return (
@@ -459,15 +490,21 @@ const ResearchTokenMetadataProvider = ({
   assets,
   children,
   isEnabled,
+  seedTokens,
   symbols,
 }: {
   assets: readonly WalletAssistantResearchAsset[];
   children: React.ReactNode;
   isEnabled: boolean;
+  seedTokens: readonly TrendingAsset[];
   symbols: readonly string[];
 }) =>
   isEnabled ? (
-    <EnabledResearchTokenMetadataProvider assets={assets} symbols={symbols}>
+    <EnabledResearchTokenMetadataProvider
+      assets={assets}
+      seedTokens={seedTokens}
+      symbols={symbols}
+    >
       {children}
     </EnabledResearchTokenMetadataProvider>
   ) : (
@@ -626,6 +663,7 @@ const AssistantResearch = React.memo(
     onActivateTrade,
     research,
     resolveTokenMetadata,
+    seedTokens,
     onOpenSource,
     onReviewSwap,
   }: {
@@ -633,6 +671,7 @@ const AssistantResearch = React.memo(
     onActivateTrade: () => void;
     research: ResearchResponse;
     resolveTokenMetadata: boolean;
+    seedTokens: readonly TrendingAsset[];
     onOpenSource: (url: string) => void;
     onReviewSwap: (
       sourceToken: BridgeToken | undefined,
@@ -687,6 +726,7 @@ const AssistantResearch = React.memo(
         assets={research.assets}
         symbols={research.tokens}
         isEnabled={resolveTokenMetadata}
+        seedTokens={seedTokens}
       >
         <Box twClassName="w-full gap-5">
           <Box twClassName="gap-2">
@@ -922,6 +962,7 @@ const NOOP = () => undefined;
 const TOKEN_METADATA_MESSAGE_LIMIT = 3;
 
 interface ConversationHistoryProps {
+  marketTokens: readonly TrendingAsset[];
   messages: Message[];
   onLatestUserAnchored: () => void;
   onOpenSource: (url: string) => void;
@@ -938,6 +979,7 @@ interface ConversationHistoryProps {
 
 const ConversationHistory = React.memo(
   ({
+    marketTokens,
     messages,
     onLatestUserAnchored,
     onOpenSource,
@@ -1016,6 +1058,7 @@ const ConversationHistory = React.memo(
               {message.research ? (
                 <AssistantResearch
                   research={message.research}
+                  seedTokens={marketTokens}
                   resolveTokenMetadata={recentAssistantMessageIds.has(
                     message.id,
                   )}
@@ -1074,6 +1117,28 @@ const WalletAssistant = () => {
   const { data: localMarketTokens } = useTokensFeed({
     hideRiskyTokens: true,
   });
+  const { tokens: popularTokens } = usePopularTokens();
+  const marketTokens = useMemo<TrendingAsset[]>(
+    () => [
+      ...localMarketTokens,
+      ...popularTokens.map((token) => ({
+        aggregatedUsdVolume: 0,
+        assetId: token.assetId,
+        decimals: 0,
+        marketCap: 0,
+        name: token.name,
+        price: token.price === undefined ? '' : String(token.price),
+        priceChangePct: {
+          h24:
+            token.priceChange1d === undefined
+              ? undefined
+              : String(token.priceChange1d),
+        },
+        symbol: token.symbol,
+      })),
+    ],
+    [localMarketTokens, popularTokens],
+  );
   const walletSnapshot = useMemo(
     () =>
       walletTokens
@@ -1680,6 +1745,7 @@ const WalletAssistant = () => {
 
             <Box twClassName="gap-7">
               <ConversationHistory
+                marketTokens={marketTokens}
                 messages={messages}
                 onLatestUserAnchored={handleLatestUserAnchored}
                 onOpenSource={handleOpenSource}

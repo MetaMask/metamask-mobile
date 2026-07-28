@@ -118,6 +118,7 @@ describe('researchRouting', () => {
         ],
       }),
     );
+    expect(response?.summary).toBe('ETH');
     expect(response?.summary).not.toMatch(/\$[\d,.]+/);
   });
 

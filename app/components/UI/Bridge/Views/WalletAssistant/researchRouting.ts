@@ -276,7 +276,7 @@ export const buildLocalPriceResponse = (
     chart: { labels: [], sourceIds: [], title: '', unit: '', values: [] },
     sections: [],
     sources: [],
-    summary: `The latest verified ${hint.symbol} price is shown below.`,
+    summary: hint.symbol,
     title: `${hint.symbol} price`,
     tokens: [hint.symbol],
     swapIntent: {
