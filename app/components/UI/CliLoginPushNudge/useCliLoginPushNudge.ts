@@ -130,6 +130,11 @@ export function useCliLoginPushNudge(): {
   const openSettingsAndScheduleRetry = useCallback(
     (isCurrent: () => boolean) => {
       toastRef?.current?.closeToast();
+      // Release the in-flight guard before opening system settings so that a
+      // throw from openSystemSettings() can't leave "Turn on" permanently
+      // locked. Both iOS and Android reach this helper, so releasing here keeps
+      // them consistent. The scheduled foreground retry owns its own guard.
+      inFlightRef.current = false;
       NotificationService.openSystemSettings();
       scheduleForegroundRetry(async () => {
         if (!isCurrent()) {
@@ -152,7 +157,6 @@ export function useCliLoginPushNudge(): {
           inFlightRef.current = false;
         }
       });
-      inFlightRef.current = false;
     },
     [runEnableFlow, scheduleForegroundRetry, showLoadingToast, toastRef],
   );
@@ -173,14 +177,17 @@ export function useCliLoginPushNudge(): {
 
   const runAndroidPermissionFlow = useCallback(
     async (isCurrent: () => boolean) => {
-      showLoadingToast();
       // Android < 13 has no runtime dialog; when notifications are not already
       // granted they can only be enabled from system settings.
+      // openSettingsAndScheduleRetry closes the toast and opens settings, so no
+      // loading toast is needed here.
       if (Number(Platform.Version) < ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
         openSettingsAndScheduleRetry(isCurrent);
         return;
       }
-      // Android 13+ requires the POST_NOTIFICATIONS runtime permission.
+      // Android 13+ requires the POST_NOTIFICATIONS runtime permission. Don't
+      // show the loading toast before the request — it would sit behind the OS
+      // permission dialog.
       const result = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
       );
@@ -188,10 +195,13 @@ export function useCliLoginPushNudge(): {
         return;
       }
       if (result === PermissionsAndroid.RESULTS.GRANTED) {
+        // Show the loading toast only while the enable work runs, after the OS
+        // dialog is dismissed.
+        showLoadingToast();
         await runEnableFlow(isCurrent);
         return;
       }
-      // User tapped Turn on — any deny opens settings.
+      // User tapped Turn on — any deny opens settings (no loading toast).
       openSettingsAndScheduleRetry(isCurrent);
     },
     [openSettingsAndScheduleRetry, runEnableFlow, showLoadingToast],
