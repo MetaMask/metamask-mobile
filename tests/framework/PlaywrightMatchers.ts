@@ -161,8 +161,7 @@ export default class PlaywrightMatchers {
   }
 
   /**
-   * Builds the text-match XPath used by getElementByText and countElementsByText.
-   * Android also matches content-desc.
+   * Builds the text-match XPath shared by getElementByText and countElementsByText.
    */
   private static async buildTextXPath(
     text: string,
@@ -181,11 +180,9 @@ export default class PlaywrightMatchers {
   }
 
   /**
-   * Counts elements currently matching the given text. Returns 0 when absent
-   * WITHOUT polling — a single `$$` snapshot. Use for best-effort presence
-   * probes where the count itself is the thing under test (e.g. dismissing
-   * optional dialogs), so callers can fast-fail instead of waiting out a
-   * `waitForDisplayed` timeout on an absent element.
+   * Counts elements currently matching the given text via a single `$$`
+   * snapshot (no polling). Returns 0 when absent, so callers can fast-fail
+   * instead of waiting out a `waitForDisplayed` timeout.
    * @param text - The text to search for
    * @param exactMatch - Whether to match the text exactly
    * @returns The number of matching elements (0 when none)

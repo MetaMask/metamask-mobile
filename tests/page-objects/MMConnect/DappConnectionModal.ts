@@ -23,6 +23,14 @@ class DappConnectionModal {
     });
   }
 
+  /** SDKConnectV2 "Return to app" success toast shown after a request completes. */
+  get returnToAppToast(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () =>
+        PlaywrightMatchers.getElementByText('Return to the app to continue.'),
+    });
+  }
+
   get updateAccountsButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
@@ -105,6 +113,13 @@ class DappConnectionModal {
     if (shouldCooldown) {
       await sleep(timeToCooldown);
     }
+  }
+
+  /** Waits for the "Return to app" success toast to appear then dismiss. */
+  async waitForReturnToAppToastToDismiss(): Promise<void> {
+    const toast = await asPlaywrightElement(this.returnToAppToast);
+    await toast.waitForDisplayed({ timeout: 30_000 });
+    await toast.waitForDisplayed({ reverse: true, timeout: 15_000 });
   }
 
   async tapEditAccountsButton(): Promise<void> {

@@ -20,17 +20,10 @@ const CHROME_UI_SETTLE_MS = 800;
 const CHROME_VIEW_INTENT_SETTLE_MS = 3000;
 
 /**
- * Dismisses common Chrome first-run / privacy / default-browser dialogs if present.
- * Avoid "More" — it expands FRE options rather than dismissing them.
- *
- * Best-effort and self-bounding: each selector is probed with a cheap presence
- * count (no polling) and only tapped when present, so absent dialogs cost
- * near nothing. A single absolute deadline caps total time. Deliberately NOT
- * wrapped in withTimeout by callers — Promise.race cannot cancel WebDriver
- * commands, so a raced-out dismissal would keep polling the session in the
- * background and pile up.
+ * Best-effort dismissal of Chrome first-run / privacy dialogs, bounded by an
+ * absolute deadline. Avoid "More" — it expands FRE options rather than
+ * dismissing them.
  * @param deadlineMs - Absolute time (Date.now() ms) after which to stop.
- * @returns void
  */
 const dismissChromeAdPrivacyIfPresent = async (
   deadlineMs: number = Date.now() + CHROME_DISMISS_TIMEOUT_MS,
@@ -114,47 +107,6 @@ const safelyOnboardChromeBrowser = async () => {
 };
 
 /**
- * Wait until Chrome NTP/omnibox is interactable, dismissing leftover dialogs.
- * google_apis emulator Chrome often uses placeholder text instead of stable IDs.
- * @throws If Chrome never becomes ready within the timeout
- */
-const waitForChromeNavigationReady = async () => {
-  const deadline = Date.now() + 20_000;
-  while (Date.now() < deadline) {
-    PlaywrightUtilities.collapseStatusBar();
-    try {
-      await withTimeout(
-        dismissChromeNotificationsIfPresent(),
-        2_000,
-        'dismissChromeNotificationsReady',
-      );
-    } catch {
-      // Modal not present
-    }
-
-    for (const probe of [
-      () => asPlaywrightElement(ChromeBrowserView.chromeHomePageSearchBox),
-      () => asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
-      () =>
-        PlaywrightMatchers.getElementByText('Search or type web address', true),
-    ]) {
-      try {
-        const chromeTarget = await probe();
-        if (await chromeTarget.isVisible()) {
-          return;
-        }
-      } catch {
-        // Try next probe
-      }
-    }
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  throw new Error(
-    'Chrome navigation UI (NTP/omnibox) did not become ready within 20s',
-  );
-};
-
-/**
  * Returns true when the Chrome URL bar appears to show the target URL.
  */
 const chromeUrlBarShowsTarget = async (url: string): Promise<boolean> => {
@@ -201,7 +153,9 @@ export const launchMobileBrowser = async ({
   if (safelyOnboardChrome) {
     await safelyOnboardChromeBrowser();
   }
-  await waitForChromeNavigationReady();
+  // No omnibox/NTP readiness gate: newer Chrome restores to the tab switcher on
+  // warm launches, where the omnibox is absent. navigateToDapp() uses an adb VIEW
+  // intent that foregrounds Chrome on the target URL regardless of prior UI state.
   await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
 };
 
