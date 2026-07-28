@@ -1305,7 +1305,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   autoscrollToTopThreshold: 100,
                 }}
                 style={baseStyles.flexGrow}
-                contentContainerStyle={tw.style('pb-8')}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}
