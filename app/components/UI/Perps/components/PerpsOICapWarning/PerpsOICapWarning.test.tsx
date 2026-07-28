@@ -49,10 +49,10 @@ describe('PerpsOICapWarning', () => {
         <PerpsOICapWarning symbol="BTC" variant="inline" />,
       );
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
       expect(
         getByText(strings('perps.order.validation.oi_cap_reached')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('should use custom testID when provided', () => {
@@ -69,7 +69,7 @@ describe('PerpsOICapWarning', () => {
         />,
       );
 
-      expect(getByTestId('custom-test-id')).toBeTruthy();
+      expect(getByTestId('custom-test-id')).toBeOnTheScreen();
     });
   });
 
@@ -95,10 +95,10 @@ describe('PerpsOICapWarning', () => {
         <PerpsOICapWarning symbol="BTC" variant="banner" />,
       );
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
       expect(
         getByText(strings('perps.order.validation.oi_cap_reached')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('should render inline variant when specified', () => {
@@ -120,7 +120,7 @@ describe('PerpsOICapWarning', () => {
 
       const { getByTestId } = render(<PerpsOICapWarning symbol="BTC" />);
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
       expect(usePerpsOICap).toHaveBeenCalledWith('BTC');
     });
 
@@ -132,7 +132,7 @@ describe('PerpsOICapWarning', () => {
 
       const { getByTestId } = render(<PerpsOICapWarning symbol="xyz:TSLA" />);
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
       expect(usePerpsOICap).toHaveBeenCalledWith('xyz:TSLA');
     });
   });

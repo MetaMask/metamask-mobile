@@ -145,7 +145,8 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
             actionButtonLayout={BannerBaseActionButtonLayout.End}
             actionButtonLabel={
               isSuccess
-                ? ''
+                ? // Non-empty label keeps Button content mounted; checkmark is the start icon
+                  '\u00A0'
                 : isAddMargin
                   ? strings('perps.stop_loss_prompt.add_margin_button')
                   : strings('perps.stop_loss_prompt.set_button')
@@ -167,6 +168,9 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
                     startIconProps: {
                       testID: PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON,
                     },
+                    accessibilityLabel: strings(
+                      'perps.stop_loss_prompt.set_button',
+                    ),
                   }
                 : {}),
             }}

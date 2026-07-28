@@ -68,7 +68,11 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
               iconName={IconName.Info}
               size={ButtonIconSize.Sm}
               onPress={onInfoPress}
-              accessibilityLabel={titleText}
+              accessibilityLabel={
+                marketHoursStatus.isOpen
+                  ? strings('perps.tooltips.market_hours.title')
+                  : strings('perps.tooltips.after_hours_trading.title')
+              }
               testID={`${testID}-info-button`}
             />
           </Box>

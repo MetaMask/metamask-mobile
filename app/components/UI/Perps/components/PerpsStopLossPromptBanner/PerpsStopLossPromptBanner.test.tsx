@@ -228,6 +228,27 @@ describe('PerpsStopLossPromptBanner', () => {
   });
 
   describe('fade-out animation', () => {
+    it('shows success checkmark when isSuccess is true', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsStopLossPromptBanner
+          variant="stop_loss"
+          liquidationDistance={15}
+          suggestedStopLossPrice="47500"
+          suggestedStopLossPercent={-50}
+          onSetStopLoss={jest.fn()}
+          isSuccess
+        />,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
     it('calls onFadeOutComplete after success animation', async () => {
       jest.useFakeTimers();
       const onFadeOutComplete = jest.fn();
