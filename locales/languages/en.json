@@ -1511,6 +1511,42 @@
       "place_order": "Place order",
       "close_keyboard": "Close keyboard"
     },
+    "pro_positions_panel": {
+      "positions": "Positions",
+      "positions_with_count": "Positions ({{count}})",
+      "orders": "Orders",
+      "orders_with_count": "Orders ({{count}})",
+      "ticker_only": "{{ticker}} only",
+      "positions_empty": "Your open positions will appear here.",
+      "positions_empty_filtered": "No open {{ticker}} positions.",
+      "orders_empty": "Your open orders will appear here.",
+      "card": {
+        "entry_price": "Entry price",
+        "margin": "Margin",
+        "mark_price": "Mark price",
+        "tp_sl": "TP / SL",
+        "liq_price": "Liq. price",
+        "funding": "Funding",
+        "isolated": "Isolated",
+        "cross": "Cross",
+        "close": "Close",
+        "reverse": "Reverse",
+        "share": "Share"
+      },
+      "order_card": {
+        "size": "Size",
+        "order_value": "Order value",
+        "price": "Price",
+        "reduce_only": "Reduce only",
+        "tp_sl": "TP / SL",
+        "trigger_condition": "Trigger condition",
+        "take_profit": "Take profit",
+        "stop": "Stop",
+        "open_limit": "Open limit",
+        "close_limit": "Close limit",
+        "cancel": "Cancel"
+      }
+    },
     "order": {
       "title": "New order",
       "leverage": "Leverage",
@@ -8027,6 +8063,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_payment_method": "Select payment method",
       "select_token": "Select token",
       "from": "From",
       "to": "To",
@@ -10023,7 +10060,8 @@
     },
     "earn_rewards": {
       "title": "Earn rewards",
-      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_money_title": "Earn up to {{percentage}}% APY",
+      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
       "musd_subtitle": "Money accounts are here",
       "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",

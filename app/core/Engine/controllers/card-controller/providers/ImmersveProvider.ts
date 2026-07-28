@@ -51,8 +51,6 @@ const IMMERSVE_LOCATION = 'international';
 const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
 const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
-// Same ceiling as BAANX_MAX_LIMIT — Immersve does not treat this as a hard cap.
-const IMMERSVE_SPENDABLE_AMOUNT = 2199023255551;
 
 const IMMERSVE_FUNDING_NETWORK_RPC: Record<
   string,
@@ -582,7 +580,7 @@ export class ImmersveProvider implements ICardProvider {
         {
           cardProgramId: this.requireProgramValue('cardProgramId'),
           fundingSourceId,
-          spendableAmount: IMMERSVE_SPENDABLE_AMOUNT,
+          spendableAmount: '1',
           spendableCurrency: IMMERSVE_SPENDABLE_CURRENCY,
           kycType: IMMERSVE_KYC_TYPE,
           kycRedirectUrl: params.kycRedirectUrl,
