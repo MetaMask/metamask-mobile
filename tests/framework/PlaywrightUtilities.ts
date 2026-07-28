@@ -454,8 +454,8 @@ class PlaywrightUtilities {
 
     /**
      * Register the matrix device name and its TestMu catalog alias.
-     * CI sets TESTMU_DEVICE to the resolved catalog name (e.g. "Pixel 8 Pro")
-     * while device-matrix.json keeps BrowserStack names (e.g. "Google Pixel 8 Pro").
+     * CI sets TESTMU_DEVICE to the resolved catalog name (e.g. "Pixel 7 Pro")
+     * while device-matrix.json keeps BrowserStack names (e.g. "Google Pixel 7 Pro").
      * Perps/account selection uses currentDeviceDetails.deviceName, so both keys
      * must resolve to the same account.
      */
