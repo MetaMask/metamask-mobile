@@ -83,7 +83,6 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
         flexDirection={BoxFlexDirection.Row}
         twClassName="items-baseline max-w-[95%] shrink"
       >
-        {!hasInput && cursor}
         <RNText
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -96,7 +95,7 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
         >
           {text}
         </RNText>
-        {hasInput && cursor}
+        {cursor}
         {suffix}
       </Box>
     </Box>
