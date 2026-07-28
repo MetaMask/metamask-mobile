@@ -73,6 +73,21 @@ describe('SrpInputGrid', () => {
     expect(toJSON()).not.toBeNull();
   });
 
+  it('omits top margin when includeTopMargin is false', () => {
+    const { toJSON: withTopMargin } = renderWithProvider(
+      <SrpInputGrid {...defaultProps} />,
+    );
+    const { toJSON: withoutTopMargin } = renderWithProvider(
+      <SrpInputGrid {...defaultProps} includeTopMargin={false} />,
+    );
+
+    expect(withTopMargin()).not.toBeNull();
+    expect(withoutTopMargin()).not.toBeNull();
+    expect(JSON.stringify(withTopMargin())).not.toEqual(
+      JSON.stringify(withoutTopMargin()),
+    );
+  });
+
   it('renders with custom uniqueId', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} uniqueId="custom-id" />,

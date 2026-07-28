@@ -1,9 +1,10 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { getDriver } from './PlaywrightUtilities';
 import PlaywrightGestures from './PlaywrightGestures';
-import Utilities, { sleep } from './Utilities';
+import { sleep } from './Utilities';
 import { createPlaywrightLogger } from './playwrightLogger';
 
 const logger = createPlaywrightLogger('AndroidWebViewNative');
@@ -160,11 +161,15 @@ async function scrollNativeWebIdIntoViewViaScrollGesture(
 /**
  * Scroll an Android WebView accessibility node (resource-id) into view.
  * Prefer this over Chromedriver WebView context on CI where context switching flakes.
+ * Always switches to NATIVE_APP first so UiAutomator works even if a prior step
+ * left the session in a WEBVIEW context.
  */
 export async function scrollAndroidWebIdIntoView(
   webId: string,
   options: AndroidWebViewScrollOptions = {},
 ): Promise<PlaywrightElement> {
+  await PlaywrightContextHelpers.switchToNativeContext();
+
   // Generous in-place wait: nodes often appear in the current viewport, and a
   // UiScrollable sweep from the top is far costlier than waiting a few seconds.
   const alreadyVisible = await tryFindNativeWebIdElement(
@@ -194,10 +199,7 @@ export async function tapAndroidWebId(
   const description =
     options.description ?? `Android native WebView tap: ${webId}`;
   logger.debug(description);
-  // Retry click to handle transient post-scroll interactability issues.
-  await Utilities.executeWithRetry(async () => elem.click(), {
-    description,
-  });
+  await PlaywrightGestures.waitAndTap(elem);
 }
 
 /**
