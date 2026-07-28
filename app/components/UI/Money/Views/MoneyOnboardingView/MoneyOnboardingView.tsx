@@ -59,7 +59,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
-import onboardingFlowV24Animation from '../../../../../animations/onboarding_flow_v24.riv';
+import onboardingFlowV25Animation from '../../../../../animations/onboarding_flow_v25.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 /**
@@ -510,7 +510,7 @@ const MoneyOnboardingView = () => {
     <View style={styles.root}>
       <Rive
         ref={ref}
-        source={onboardingFlowV24Animation}
+        source={onboardingFlowV25Animation}
         artboardName={RIVE_ARTBOARD_NAME}
         stateMachineName={RIVE_STATE_MACHINE_NAME}
         dataBinding={AutoBind(true)}
