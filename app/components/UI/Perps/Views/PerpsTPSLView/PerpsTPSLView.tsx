@@ -10,7 +10,6 @@ import {
   ScrollView,
   TextInput,
   View,
-  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -137,7 +136,6 @@ const PerpsTPSLView: React.FC = () => {
   const takeProfitSectionRef = useRef<View>(null);
   const stopLossSectionRef = useRef<View>(null);
   const scrollOffsetRef = useRef(0);
-  const [keypadFooterHeight, setKeypadFooterHeight] = useState(0);
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
@@ -354,14 +352,13 @@ const PerpsTPSLView: React.FC = () => {
   // section so its inputs + HelpText sit in the remaining viewport.
   useEffect(() => {
     if (!focusedInput) {
-      setKeypadFooterHeight(0);
       return;
     }
     const timeoutId = setTimeout(() => {
       scrollFocusedSectionIntoView(focusedInput);
     }, 50);
     return () => clearTimeout(timeoutId);
-  }, [focusedInput, keypadFooterHeight, scrollFocusedSectionIntoView]);
+  }, [focusedInput, scrollFocusedSectionIntoView]);
 
   const handleScroll = useCallback(
     (scrollEvent: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -370,15 +367,14 @@ const PerpsTPSLView: React.FC = () => {
     [],
   );
 
-  const handleKeypadFooterLayout = useCallback(
-    (layoutEvent: LayoutChangeEvent) => {
-      const nextHeight = focusedInput
-        ? layoutEvent.nativeEvent.layout.height
-        : 0;
-      setKeypadFooterHeight(nextHeight);
-    },
-    [focusedInput],
-  );
+  // Footer onLayout fires after the keypad mounts and the ScrollView viewport
+  // shrinks — re-measure so the focused section stays visible.
+  const handleKeypadFooterLayout = useCallback(() => {
+    if (!focusedInput) {
+      return;
+    }
+    scrollFocusedSectionIntoView(focusedInput);
+  }, [focusedInput, scrollFocusedSectionIntoView]);
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
@@ -657,12 +653,7 @@ const PerpsTPSLView: React.FC = () => {
       <ScrollView
         ref={scrollViewRef}
         style={tw.style('flex-1')}
-        contentContainerStyle={[
-          tw.style('grow'),
-          focusedInput
-            ? { paddingBottom: Math.max(keypadFooterHeight, 24) }
-            : null,
-        ]}
+        contentContainerStyle={tw.style('grow')}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
