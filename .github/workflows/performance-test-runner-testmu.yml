@@ -1,4 +1,7 @@
-name: Performance Test Runner — TestMu AI (Reusable)
+name: Performance Test Runner — TestMu AI HyperExecute (Reusable)
+
+# PoC branch variant: orchestrates performance suites via HyperExecute while
+# keeping the existing Playwright + WebDriverIO Appium provider (mobile-hub).
 
 on:
   workflow_call:
@@ -63,6 +66,11 @@ on:
         required: true
         type: string
         description: 'TestMu AI access key'
+      he_concurrency:
+        required: false
+        type: string
+        default: '3'
+        description: 'HyperExecute autosplit concurrency'
     secrets:
       MM_TEST_ACCOUNT_SRP:
         required: true
@@ -83,7 +91,7 @@ on:
 
 jobs:
   run-tests:
-    name: '[TestMu] Run ${{ inputs.build_type }} on ${{ inputs.platform }} - ${{ matrix.device.name }}'
+    name: '[TestMu/HE] Run ${{ inputs.build_type }} on ${{ inputs.platform }} - ${{ matrix.device.name }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -93,72 +101,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Restore node_modules cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-
-      - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn --immutable
-
-      - name: Restore .metamask folder
-        id: restore-metamask
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
-
-      - name: Setup project
-        run: yarn setup:github-ci
-        working-directory: '.'
-
-      - name: Compute TestMu AI Tunnel Name
-        id: tm-tunnel
-        if: inputs.build_type == 'mm-connect'
-        run: |
-          BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
-          DEVICE_SAFE=$(printf '%s' "${{ matrix.device.name }}" | tr -c 'a-zA-Z0-9-' '_')
-          echo "name=perf-${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
-
-      - name: Start TestMu AI Tunnel
-        if: inputs.build_type == 'mm-connect'
-        env:
-          LT_USERNAME: ${{ inputs.lt_username }}
-          LT_ACCESS_KEY: ${{ inputs.lt_access_key }}
-          TUNNEL_NAME: ${{ steps.tm-tunnel.outputs.name }}
-        run: bash ./tests/scripts/start-testmu-tunnel.sh
-
       - name: Set Test Environment
         run: |
-          echo "Setting TestMu AI ${{ inputs.build_type }} environment for device: ${{ matrix.device.name }}"
+          echo "Setting TestMu HyperExecute ${{ inputs.build_type }} environment for device: ${{ matrix.device.name }}"
 
           SENTRY_TARGET="${{ inputs.sentry_target }}"
           SENTRY_TEST_DSN="${{ secrets.MM_SENTRY_DSN_TEST }}"
           SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
           SELECTED_SENTRY_DSN=""
-          SENTRY_ENVIRONMENT="github-actions-performance-e2e-testmu"
+          SENTRY_ENVIRONMENT="github-actions-performance-e2e-testmu-he"
           FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
           TESTMU_GEO_LOCATION="${TESTMU_GEO_LOCATION:-SE}"
 
@@ -170,7 +121,7 @@ jobs:
           case "$SENTRY_TARGET" in
             real)
               SELECTED_SENTRY_DSN="$SENTRY_REAL_DSN"
-              SENTRY_ENVIRONMENT="github-actions-performance-e2e-testmu-real"
+              SENTRY_ENVIRONMENT="github-actions-performance-e2e-testmu-he-real"
               ;;
             test)
               SELECTED_SENTRY_DSN="$SENTRY_TEST_DSN"
@@ -181,7 +132,7 @@ jobs:
               ;;
           esac
 
-          # Map BrowserStack matrix names → TestMu AI catalog names (same as TestMuDeviceResolver).
+          # Map BrowserStack matrix names → TestMu AI catalog names.
           MATRIX_DEVICE="${{ matrix.device.name }}"
           MATRIX_OS="${{ matrix.device.os_version }}"
           case "$MATRIX_DEVICE" in
@@ -201,8 +152,10 @@ jobs:
           echo "Matrix device '$MATRIX_DEVICE' ($MATRIX_OS) → TestMu '$TESTMU_DEVICE_NAME' ($TESTMU_OS_VERSION)"
 
           {
+            echo "BUILD_TYPE=${{ inputs.build_type }}"
             echo "TESTMU_DEVICE=$TESTMU_DEVICE_NAME"
             echo "TESTMU_OS_VERSION=$TESTMU_OS_VERSION"
+            echo "TESTMU_ANDROID_APP_URL=${{ inputs.testmu_app_url }}"
             echo "TESTMU_ANDROID_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.testmu_app_url }}"
             if [ -n "${{ inputs.testmu_playground_url }}" ]; then
               echo "TESTMU_RN_PLAYGROUND_URL=${{ inputs.testmu_playground_url }}"
@@ -213,7 +166,7 @@ jobs:
             fi
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
-            echo "TESTMU_BUILD_NAME=${{ inputs.testmu_build_name }}"
+            echo "TESTMU_BUILD_NAME=${{ inputs.testmu_build_name }}-HyperExecute"
             echo "TESTMU_GEO_LOCATION=$TESTMU_GEO_LOCATION"
             echo "LT_USERNAME=${{ inputs.lt_username }}"
             echo "LT_ACCESS_KEY=${{ inputs.lt_access_key }}"
@@ -229,36 +182,21 @@ jobs:
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
             echo "E2E_PERFORMANCE_CLOUD_PROVIDER=testmu"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
+            echo "HE_CONCURRENCY=${{ inputs.he_concurrency }}"
+            echo "TESTMU_LOCAL=${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}"
           } >> "$GITHUB_ENV"
 
-      - name: Run Tests
+      - name: Run Tests via HyperExecute
+        id: he-run
         continue-on-error: true
         env:
-          TESTMU_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}
-          TESTMU_TUNNEL_NAME: ${{ inputs.build_type == 'mm-connect' && steps.tm-tunnel.outputs.name || '' }}
-          TESTMU_BUILD_NAME: ${{ inputs.testmu_build_name }}
           GREP_TAGS: ${{ inputs.grep_tags }}
+          HE_CONCURRENCY: ${{ inputs.he_concurrency }}
         working-directory: '.'
         run: |
-          echo "=== [TestMu AI] Running ${{ inputs.build_type }} on ${{ matrix.device.name }} ==="
-
-          if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-onboarding-testmu"
-          elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
-            BASE_CMD="yarn run-playwright:mm-connect-${{ inputs.platform }}-testmu"
-          else
-            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-testmu"
-          fi
-
-          if [ -n "$GREP_TAGS" ]; then
-            $BASE_CMD --grep "$GREP_TAGS" --pass-with-no-tests
-          else
-            $BASE_CMD
-          fi
-
-      - name: Stop TestMu AI Tunnel
-        if: always() && inputs.build_type == 'mm-connect'
-        run: bash ./tests/scripts/stop-testmu-tunnel.sh
+          echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} ==="
+          chmod +x ./tests/scripts/run-testmu-hyperexecute.sh
+          ./tests/scripts/run-testmu-hyperexecute.sh
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -268,5 +206,7 @@ jobs:
           path: |
             tests/reporters/reports
             tests/test-reports/playwright-report/
+            tmp/hyperexecute/
+            artifacts/
           if-no-files-found: ignore
           retention-days: 7

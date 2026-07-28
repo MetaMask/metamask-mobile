@@ -1,0 +1,26 @@
+# Keep HyperExecute uploads lean — Appium sessions use cloud lt:// apps, not local native builds.
+android/
+ios/
+*.apk
+*.aab
+*.ipa
+*.app
+node_modules/
+.yarn/cache/
+.yarn/install-state.gz
+coverage/
+dist/
+build/
+.expo/
+*.log
+tmp/
+/tmp/
+.git/
+artifacts/
+tests/test-reports/
+tests/reporters/reports/
+docs/
+storybook/
+*.mp4
+*.zip
+sourcemaps/
