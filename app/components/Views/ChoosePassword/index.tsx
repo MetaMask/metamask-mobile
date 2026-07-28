@@ -207,7 +207,6 @@ const ChoosePassword = () => {
     screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
     contentReady: choosePasswordContentReady,
     isEmpty: false,
-    isLoading: loading,
   });
 
   useNavigationPerformance({

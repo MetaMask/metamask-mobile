@@ -115,7 +115,10 @@ import {
   OnboardingScreenIds,
   type OnboardingCtaId,
 } from '../../../hooks/performance/onboardingPerformanceIds';
-import { startOnboardingCtaNavigation } from '../../../hooks/performance/onboardingNavigationPerformanceState';
+import {
+  cancelPendingOnboardingCtaNavigation,
+  startOnboardingCtaNavigation,
+} from '../../../hooks/performance/onboardingNavigationPerformanceState';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   Box,
@@ -262,7 +265,6 @@ const Onboarding = () => {
     screenId: OnboardingScreenIds.ONBOARDING_LANDING,
     contentReady: onboardingContentReady && !state.loading && !loading,
     isEmpty: false,
-    enabled: !state.loading && !loading,
   });
 
   const handleOnboardingInteractiveContentReady = useCallback(() => {
@@ -279,6 +281,9 @@ const Onboarding = () => {
         data: { success },
       });
       socialLoginTraceCtx.current = undefined;
+    }
+    if (!success) {
+      cancelPendingOnboardingCtaNavigation('social_login_failed');
     }
   }, []);
 
@@ -554,6 +559,7 @@ const Onboarding = () => {
       });
       if (createWallet) {
         if (result.existingUser) {
+          cancelPendingOnboardingCtaNavigation('account_already_exists');
           navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
@@ -590,6 +596,7 @@ const Onboarding = () => {
           }
         }
       } else if (result.existingUser) {
+        cancelPendingOnboardingCtaNavigation('existing_user_rehydrate');
         trace({
           name: TraceName.OnboardingExistingSocialLogin,
           op: TraceOperation.OnboardingUserJourney,
@@ -612,6 +619,7 @@ const Onboarding = () => {
               onboardingTraceCtx: onboardingTraceCtx.current,
             });
       } else {
+        cancelPendingOnboardingCtaNavigation('account_not_found');
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
           oauthLoginSuccess: true,
@@ -979,6 +987,7 @@ const Onboarding = () => {
                 OAuthErrorType.UnsupportedPlatform,
               ),
             });
+            cancelPendingOnboardingCtaNavigation('unsupported_platform');
             return;
           }
 
@@ -1000,6 +1009,7 @@ const Onboarding = () => {
             provider,
             createWallet,
           );
+          cancelPendingOnboardingCtaNavigation('provider_unavailable');
           return;
         }
 
@@ -1326,6 +1336,7 @@ const Onboarding = () => {
         finalizeInFlightOAuthTraces();
         endSocialLoginAttemptTrace(false);
       }
+      cancelPendingOnboardingCtaNavigation('onboarding_unmounted');
       // Close the overall-journey span on unmount so it is never left open to be force-closed
       // by the 5-min trace cleanup timer (which also does not fire reliably while the app is
       // backgrounded during OAuth). success:false is correct here because every SUCCESSFUL

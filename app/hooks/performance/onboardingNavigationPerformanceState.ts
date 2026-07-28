@@ -14,6 +14,10 @@ interface PendingNavigation {
 let pendingNavigation: PendingNavigation | null = null;
 
 export function startOnboardingCtaNavigation(ctaId: OnboardingCtaId): void {
+  if (pendingNavigation) {
+    cancelPendingOnboardingCtaNavigation('superseded');
+  }
+
   const traceId = uuidv4();
   trace({
     name: TraceName.OnboardingCtaNavigation,
