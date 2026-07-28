@@ -213,7 +213,7 @@ const PerpsProMarketView = () => {
           }
         />
         <SectionDivider />
-        <PerpsProPositionsPanel />
+        <PerpsProPositionsPanel symbol={symbol} />
       </ScrollView>
       <PerpsCandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
