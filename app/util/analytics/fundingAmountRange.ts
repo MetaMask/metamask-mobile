@@ -6,16 +6,12 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectNativeNetworkCurrencies,
 } from '../../selectors/networkController';
-import {
-  selectSelectedAccountGroupId,
-  selectSelectedAccountGroupInternalAccounts,
-} from '../../selectors/multichainAccounts/accountTreeController';
-import { selectBalanceByAccountGroup } from '../../selectors/assets/balances';
+import { selectSelectedAccountGroupInternalAccounts } from '../../selectors/multichainAccounts/accountTreeController';
+import { selectBalanceBySelectedAccountGroup } from '../../selectors/assets/balances';
 
 /**
- * USD range buckets for the `funding_amount_range` prop on
- * `Wallet Setup Completed` (import flow). Values mirror the enum in the
- * segment-schema repo (`metamask-onboarding/wallet-setup-completed.yaml`).
+ * USD buckets for the `funding_amount_range` prop on `Wallet Setup
+ * Completed` (import flow). Mirrors the enum in the segment-schema repo.
  */
 export type FundingAmountRange =
   | '< 0.01'
@@ -26,10 +22,9 @@ export type FundingAmountRange =
   | '10000.00+';
 
 /**
- * Buckets a USD-equivalent balance into a funding range (half-open
- * intervals: 10.00 falls in '10.00 - 99.99').
- * `< 0.01` means a successfully fetched (near-)zero balance — callers must
- * not pass amounts from a failed fetch (omit the prop instead).
+ * Buckets a USD balance into a funding range. Intervals are half-open:
+ * 10.00 falls in '10.00 - 99.99'. Only pass successfully fetched amounts —
+ * '< 0.01' must always mean a confirmed zero balance.
  */
 export const getFundingAmountRange = (amount: number): FundingAmountRange => {
   if (amount < 0.01) return '< 0.01';
@@ -40,27 +35,22 @@ export const getFundingAmountRange = (amount: number): FundingAmountRange => {
   return '10000.00+';
 };
 
-export const FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS = 15000;
-
 /**
- * Delays before retrying a failed refresh task. Initial sync of a freshly
- * imported wallet is a burst-y window (RPC flakes, rate limits), so the
- * schedule escalates instead of hammering; it stays well inside
- * {@link FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS}.
+ * Fetch budget. Guarantees the deferred event emission fires even if a
+ * refresh task hangs; fetches slower than this omit the prop instead.
  */
-export const FUNDING_AMOUNT_RETRY_DELAYS_MS = [300, 1000, 3000];
+export const FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS = 20000;
 
 /**
- * Refreshes balances for the freshly imported wallet and returns the funding
- * range of the selected account group (Account 1 at import time), across
- * EVM popular mainnets (native + ERC-20) and the group's non-EVM accounts
- * (Solana etc.), in the user's currency (USD on a fresh install — onboarding
- * happens before the currency can be changed).
+ * Refreshes and returns the funding range of the selected account group
+ * (Account 1 at import time) — the same balance the wallet home displays:
+ * popular EVM mainnets plus the group's non-EVM accounts, in USD.
  *
- * Returns undefined — so the analytics prop is omitted and Mixpanel shows
- * "(not set)" — if any balance-refresh task fails or the fetch exceeds
- * {@link FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS}. A returned '< 0.01'
- * therefore always reflects a successful fetch of a zero balance.
+ * Resolves undefined (prop omitted, "(not set)" in Mixpanel) if any refresh
+ * task fails or {@link FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS} elapses, so
+ * '< 0.01' always means a confirmed zero balance. Not a pure read — it warms
+ * the same controller state the wallet home refreshes on mount — but it
+ * never throws and never blocks the caller.
  */
 export async function fetchImportedWalletFundingAmountRange(): Promise<
   FundingAmountRange | undefined
@@ -80,13 +70,9 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
       NetworkEnablementController,
       TokenBalancesController,
       TokenDetectionController,
+      TokenRatesController,
     } = Engine.context;
 
-    // Popular mainnets only, matching the wallet screen's balance refresh —
-    // testnets contribute nothing to a fiat total and slow the fetch down.
-    // NetworkEnablementController can list chains (e.g. Sei) that have no
-    // NetworkController configuration; detectTokens/updateBalances throw
-    // `Invalid chain ID` for those, so restrict to configured chains.
     const chainIds =
       NetworkEnablementController.listPopularEvmNetworks().filter(
         (chainId) => evmNetworkConfigurations[chainId],
@@ -103,26 +89,10 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
       )
       .filter((id): id is string => Boolean(id));
 
-    // Every task must succeed: a partial fetch could misreport a funded
-    // wallet as '< 0.01', which must only ever mean a confirmed zero balance.
-    // Delayed retries per task absorb transient RPC failures and poisoned
-    // shared batches (see FUNDING_AMOUNT_RETRY_DELAYS_MS).
     const pendingTasks = new Set<string>();
     const labeled = <T>(label: string, task: () => Promise<T>): Promise<T> => {
       pendingTasks.add(label);
-      const attempt = (retriesUsed: number): Promise<T> =>
-        task().catch((error) => {
-          if (retriesUsed >= FUNDING_AMOUNT_RETRY_DELAYS_MS.length) {
-            throw error;
-          }
-          return new Promise<T>((resolve, reject) => {
-            setTimeout(
-              () => attempt(retriesUsed + 1).then(resolve, reject),
-              FUNDING_AMOUNT_RETRY_DELAYS_MS[retriesUsed],
-            );
-          });
-        });
-      return attempt(0).then((result) => {
+      return task().then((result) => {
         pendingTasks.delete(label);
         return result;
       });
@@ -138,20 +108,26 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
         labeled('tokenDetection', () =>
           TokenDetectionController.detectTokens({ chainIds }),
         ),
-        // _executePoll runs the same update as updateBalances but skips the
-        // 200ms shared batch, where a concurrent caller's request for an
-        // unconfigured chain (e.g. Sei tokens streamed by the account
-        // activity service — Sei is an add-it-yourself network) rejects
-        // every merged call with `Invalid chain ID`.
         labeled('tokenBalances', () =>
-          TokenBalancesController._executePoll({ chainIds }),
+          TokenBalancesController._executePoll({ chainIds }).catch((error) => {
+            const failedChain = /^Invalid chain ID "(?<chainId>.+)"$/.exec(
+              error instanceof Error ? error.message : '',
+            )?.groups?.chainId;
+            if (failedChain && !chainIdSet.has(failedChain)) {
+              Logger.log(
+                'fetchImportedWalletFundingAmountRange: ignored foreign-chain token import failure',
+                error,
+              );
+              return undefined;
+            }
+            throw error;
+          }),
+        ),
+        labeled('tokenRates', () =>
+          TokenRatesController._executePoll({ chainIds }),
         ),
       ]);
 
-      // Non-EVM (Solana etc.) balances for the selected group. Gathered
-      // after the EVM phase so snap accounts still being created
-      // asynchronously at import time have had a chance to appear; accounts
-      // that appear later than that are missed rather than waited on.
       const nonEvmAccounts = selectSelectedAccountGroupInternalAccounts(
         ReduxService.store.getState(),
       ).filter((account) => !isEvmAccountType(account.type));
@@ -165,14 +141,11 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
           ),
         ),
       );
-      // Conversion rates last, once the accounts' asset lists exist.
       await labeled('multichainRates', () =>
         MultichainAssetsRatesController.updateAssetsRates(),
       );
     };
     const refreshPromise = runRefresh();
-    // Rejections after the timeout wins the race must not surface as
-    // unhandled promise rejections.
     refreshPromise.catch(() => undefined);
 
     await Promise.race([
@@ -193,12 +166,13 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
     ]);
 
     const refreshedState = ReduxService.store.getState();
-    const selectedGroupId = selectSelectedAccountGroupId(refreshedState);
-    if (!selectedGroupId) {
+    const groupBalance = selectBalanceBySelectedAccountGroup(
+      NetworkEnablementController.listPopularNetworks(),
+    )(refreshedState);
+    if (!groupBalance) {
       return undefined;
     }
-    const { totalBalanceInUserCurrency } =
-      selectBalanceByAccountGroup(selectedGroupId)(refreshedState);
+    const { totalBalanceInUserCurrency } = groupBalance;
     if (!Number.isFinite(totalBalanceInUserCurrency)) {
       return undefined;
     }

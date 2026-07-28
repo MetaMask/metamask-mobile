@@ -2,15 +2,11 @@ import {
   getFundingAmountRange,
   fetchImportedWalletFundingAmountRange,
   FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
-  FUNDING_AMOUNT_RETRY_DELAYS_MS,
 } from './fundingAmountRange';
 import Engine from '../../core/Engine';
 import ReduxService from '../../core/redux';
-import {
-  selectSelectedAccountGroupId,
-  selectSelectedAccountGroupInternalAccounts,
-} from '../../selectors/multichainAccounts/accountTreeController';
-import { selectBalanceByAccountGroup } from '../../selectors/assets/balances';
+import { selectSelectedAccountGroupInternalAccounts } from '../../selectors/multichainAccounts/accountTreeController';
+import { selectBalanceBySelectedAccountGroup } from '../../selectors/assets/balances';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -20,9 +16,11 @@ jest.mock('../../core/Engine', () => ({
     MultichainBalancesController: { updateBalance: jest.fn() },
     NetworkEnablementController: {
       listPopularEvmNetworks: jest.fn(() => ['0x1']),
+      listPopularNetworks: jest.fn(() => ['eip155:1']),
     },
     TokenBalancesController: { _executePoll: jest.fn() },
     TokenDetectionController: { detectTokens: jest.fn() },
+    TokenRatesController: { _executePoll: jest.fn() },
   },
 }));
 
@@ -43,29 +41,30 @@ jest.mock('../../selectors/networkController', () => ({
 }));
 
 jest.mock('../../selectors/multichainAccounts/accountTreeController', () => ({
-  selectSelectedAccountGroupId: jest.fn(),
   selectSelectedAccountGroupInternalAccounts: jest.fn(() => []),
 }));
 
 jest.mock('../../selectors/assets/balances', () => ({
-  selectBalanceByAccountGroup: jest.fn(),
+  selectBalanceBySelectedAccountGroup: jest.fn(),
 }));
 
-const mockSelectSelectedAccountGroupId =
-  selectSelectedAccountGroupId as unknown as jest.Mock;
 const mockSelectSelectedAccountGroupInternalAccounts =
   selectSelectedAccountGroupInternalAccounts as unknown as jest.Mock;
-const mockSelectBalanceByAccountGroup =
-  selectBalanceByAccountGroup as unknown as jest.Mock;
+const mockSelectBalanceBySelectedAccountGroup =
+  selectBalanceBySelectedAccountGroup as unknown as jest.Mock;
 
 const mockEngineContext = Engine.context as unknown as {
   AccountTrackerController: { refresh: jest.Mock };
   CurrencyRateController: { updateExchangeRate: jest.Mock };
   MultichainAssetsRatesController: { updateAssetsRates: jest.Mock };
   MultichainBalancesController: { updateBalance: jest.Mock };
-  NetworkEnablementController: { listPopularEvmNetworks: jest.Mock };
+  NetworkEnablementController: {
+    listPopularEvmNetworks: jest.Mock;
+    listPopularNetworks: jest.Mock;
+  };
   TokenBalancesController: { _executePoll: jest.Mock };
   TokenDetectionController: { detectTokens: jest.Mock };
+  TokenRatesController: { _executePoll: jest.Mock };
 };
 
 const GROUP_ID = 'keyring:wallet1/0';
@@ -89,9 +88,11 @@ function arrangeSuccessfulRefresh(totalBalanceInUserCurrency: number) {
   mockEngineContext.MultichainAssetsRatesController.updateAssetsRates.mockResolvedValue(
     undefined,
   );
+  mockEngineContext.TokenRatesController._executePoll.mockResolvedValue(
+    undefined,
+  );
   mockSelectSelectedAccountGroupInternalAccounts.mockReturnValue([]);
-  mockSelectSelectedAccountGroupId.mockReturnValue(GROUP_ID);
-  mockSelectBalanceByAccountGroup.mockReturnValue(() => ({
+  mockSelectBalanceBySelectedAccountGroup.mockReturnValue(() => ({
     walletId: 'keyring:wallet1',
     groupId: GROUP_ID,
     totalBalanceInUserCurrency,
@@ -137,7 +138,12 @@ describe('fetchImportedWalletFundingAmountRange', () => {
     expect(
       mockEngineContext.TokenBalancesController._executePoll,
     ).toHaveBeenCalledWith({ chainIds: ['0x1'] });
-    expect(mockSelectBalanceByAccountGroup).toHaveBeenCalledWith(GROUP_ID);
+    expect(
+      mockEngineContext.TokenRatesController._executePoll,
+    ).toHaveBeenCalledWith({ chainIds: ['0x1'] });
+    expect(mockSelectBalanceBySelectedAccountGroup).toHaveBeenCalledWith([
+      'eip155:1',
+    ]);
   });
 
   it('returns < 0.01 for a confirmed zero balance', async () => {
@@ -148,39 +154,45 @@ describe('fetchImportedWalletFundingAmountRange', () => {
     expect(range).toBe('< 0.01');
   });
 
-  it('returns undefined when a refresh task fails on every attempt', async () => {
-    jest.useFakeTimers();
+  it('returns undefined when a refresh task fails', async () => {
     arrangeSuccessfulRefresh(50);
     mockEngineContext.AccountTrackerController.refresh.mockRejectedValue(
       new Error('network down'),
     );
 
-    const rangePromise = fetchImportedWalletFundingAmountRange();
-    await jest.advanceTimersByTimeAsync(
-      FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
-    );
-    const range = await rangePromise;
+    const range = await fetchImportedWalletFundingAmountRange();
 
     expect(range).toBeUndefined();
     expect(
       mockEngineContext.AccountTrackerController.refresh,
-    ).toHaveBeenCalledTimes(1 + FUNDING_AMOUNT_RETRY_DELAYS_MS.length);
-    jest.useRealTimers();
+    ).toHaveBeenCalledTimes(1);
   });
 
-  it('recovers when a refresh task fails once then succeeds on retry', async () => {
+  it('tolerates an Invalid chain ID failure for a chain outside the request', async () => {
     arrangeSuccessfulRefresh(50);
-    // e.g. a transient RPC failure during the initial sync burst.
-    mockEngineContext.TokenBalancesController._executePoll
-      .mockRejectedValueOnce(new Error('rate limited'))
-      .mockResolvedValueOnce(undefined);
+    // Accounts-API rows for backend-supported-but-unconfigured chains (Sei)
+    // make the final register-untracked-tokens step throw.
+    mockEngineContext.TokenBalancesController._executePoll.mockRejectedValue(
+      new Error('Invalid chain ID "0x531"'),
+    );
 
     const range = await fetchImportedWalletFundingAmountRange();
 
     expect(range).toBe('10.00 - 99.99');
     expect(
       mockEngineContext.TokenBalancesController._executePoll,
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays fatal when Invalid chain ID names a requested chain', async () => {
+    arrangeSuccessfulRefresh(50);
+    mockEngineContext.TokenBalancesController._executePoll.mockRejectedValue(
+      new Error('Invalid chain ID "0x1"'),
+    );
+
+    const range = await fetchImportedWalletFundingAmountRange();
+
+    expect(range).toBeUndefined();
   });
 
   it('returns undefined when the refresh exceeds the timeout', async () => {
@@ -237,8 +249,7 @@ describe('fetchImportedWalletFundingAmountRange', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('returns undefined when a non-EVM balance refresh fails on every attempt', async () => {
-    jest.useFakeTimers();
+  it('returns undefined when a non-EVM balance refresh fails', async () => {
     arrangeSuccessfulRefresh(50);
     mockSelectSelectedAccountGroupInternalAccounts.mockReturnValue([
       { id: 'solana-account', type: 'solana:data-account' },
@@ -247,14 +258,9 @@ describe('fetchImportedWalletFundingAmountRange', () => {
       new Error('snap unavailable'),
     );
 
-    const rangePromise = fetchImportedWalletFundingAmountRange();
-    await jest.advanceTimersByTimeAsync(
-      FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
-    );
-    const range = await rangePromise;
+    const range = await fetchImportedWalletFundingAmountRange();
 
     expect(range).toBeUndefined();
-    jest.useRealTimers();
   });
 
   it('excludes popular networks that have no NetworkController configuration', async () => {
@@ -296,7 +302,8 @@ describe('fetchImportedWalletFundingAmountRange', () => {
 
   it('returns undefined when no account group is selected', async () => {
     arrangeSuccessfulRefresh(50);
-    mockSelectSelectedAccountGroupId.mockReturnValue(null);
+    // selectBalanceBySelectedAccountGroup resolves null without a selection.
+    mockSelectBalanceBySelectedAccountGroup.mockReturnValue(() => null);
 
     const range = await fetchImportedWalletFundingAmountRange();
 
