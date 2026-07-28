@@ -549,6 +549,7 @@ describe('BrowserTab', () => {
 
       await act(async () => {
         webView.props.onOpenWindow({
+          // eslint-disable-next-line no-script-url
           nativeEvent: { targetUrl: 'javascript:alert(1)' },
         });
       });
