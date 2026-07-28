@@ -30,12 +30,14 @@ appiumTest.describe(SmokeSnaps('Network Access Snap Tests'), () => {
           await loginAndOpenTestSnaps();
           await TestSnaps.installSnap('connectNetworkAccessButton');
 
+          // Use fetch
           await TestSnaps.tapButton('sendNetworkAccessTestButton');
           await TestSnaps.checkResultSpanIncludes(
             'networkAccessResultSpan',
             '"hello": "world"',
           );
 
+          // Use WebSockets
           const webSocketUrl = `ws://localhost:${getAnvilPortForTest()}`;
           await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl);
           await TestSnaps.tapButton('startWebSocket');

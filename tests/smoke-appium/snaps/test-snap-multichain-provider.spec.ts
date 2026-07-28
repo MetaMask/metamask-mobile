@@ -83,6 +83,7 @@ appiumTest.describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
             );
 
             if (chain.chainId) {
+              // Test getting chain ID.
               await TestSnaps.tapButton('sendMultichainChainIdButton');
               await TestSnaps.checkResultSpanIncludes(
                 'multichainProviderResultSpan',
@@ -90,18 +91,21 @@ appiumTest.describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
               );
             }
 
+            // Test getting genesis hash.
             await TestSnaps.tapButton('sendMultichainGetGenesisHashButton');
             await TestSnaps.checkResultSpanIncludes(
               'multichainProviderResultSpan',
               chain.genesisHash,
             );
 
+            // Test getting accounts.
             await TestSnaps.tapButton('sendMultichainAccountsButton');
             await TestSnaps.checkResultSpanIncludes(
               'multichainProviderResultSpan',
               chain.account,
             );
 
+            // Test signing messages.
             await TestSnaps.fillMessage(
               'signMessageMultichainMessageInput',
               'foo',
@@ -118,6 +122,7 @@ appiumTest.describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
             );
 
             if (chain.signTypedDataSignature) {
+              // Test signing typed data.
               await TestSnaps.fillMessage(
                 'signTypedDataMultichainMessageInput',
                 'bar',

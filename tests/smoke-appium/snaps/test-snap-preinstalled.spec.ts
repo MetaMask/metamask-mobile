@@ -9,7 +9,11 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
-  appiumTest.todo('displays the Snap settings page');
+  // TODO(Appium): implement — skipped placeholder (Playwright has no test.todo;
+  // Detox used it.todo for the same unfinished coverage).
+  appiumTest.skip('displays the Snap settings page', async () => {
+    // To be implemented.
+  });
 
   /**
    * Combined with the messenger test: Appium specs do not share mockServer
@@ -41,9 +45,19 @@ appiumTest.describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
     },
   );
 
-  appiumTest.todo('tracks an error in Sentry with `snap_trackError`');
+  // TODO(Appium): implement — skipped placeholder for unfinished Sentry error tracking coverage.
+  appiumTest.skip(
+    'tracks an error in Sentry with `snap_trackError`',
+    async () => {
+      // To be implemented.
+    },
+  );
 
-  appiumTest.todo(
+  // TODO(Appium): implement — skipped placeholder for unfinished Sentry performance-trace coverage.
+  appiumTest.skip(
     'starts and ends a performance trace in Sentry with `snap_startTrace` and `snap_endTrace`',
+    async () => {
+      // To be implemented.
+    },
   );
 });

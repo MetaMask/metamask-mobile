@@ -82,6 +82,8 @@ appiumTest.describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
           await RedesignedSendView.enterZeroAmount();
           await RedesignedSendView.pressContinueButton();
 
+          // Use replaceText instead of type+'\n' to avoid flakiness from the
+          // trailing newline added when hiding the keyboard.
           await Gestures.replaceText(
             RedesignedSendView.recipientAddressInput,
             domain,
@@ -97,6 +99,7 @@ appiumTest.describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
             Matchers.getElementByText(domain, PlatformDetector.isIOS() ? 1 : 0),
             {
               elemDescription: 'Recipient address',
+              // There's an animation that can cause flakiness.
               delay: 1000,
             },
           );

@@ -783,7 +783,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if element is disabled
-   * @deprecated Use Utilities.waitForElementToBeEnabled() with negated logic instead
+   * @deprecated Use Utilities.waitForElementToBeDisabled() instead for better retry handling
    */
   static async checkIfDisabled(
     elem: EncapsulatedElementType,

@@ -4,29 +4,9 @@ import { DateTime } from 'luxon';
 import Assertions from '../../framework/Assertions.js';
 import Matchers from '../../framework/Matchers.js';
 import Utilities from '../../framework/Utilities.js';
-import type { EncapsulatedElementType } from '../../framework/EncapsulatedElement.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
-
-async function expectElementDisabled(
-  elem: EncapsulatedElementType,
-): Promise<void> {
-  await Utilities.executeWithRetry(
-    async () => {
-      try {
-        await Utilities.checkElementEnabled(elem);
-      } catch {
-        return;
-      }
-      throw new Error('Expected element to be disabled, but it was enabled');
-    },
-    {
-      timeout: 5_000,
-      description: 'Element to be disabled',
-    },
-  );
-}
 
 appiumTest.describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
   appiumTest.describe.configure({ timeout: 150_000 });
@@ -50,6 +30,8 @@ appiumTest.describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
 
         await TestSnaps.tapButton('createDialogButton');
 
+        // Capture expected date when the pickers are mounted so we can compare
+        // later with the values submitted by the snap.
         const dateTimePickerDate = DateTime.now();
 
         await TestSnaps.fillInput('example-input', 'foo bar');
@@ -96,25 +78,33 @@ appiumTest.describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
         const input = Matchers.getElementByID('example-input-snap-ui-input');
         await Assertions.expectElementToBeVisible(input);
 
-        await expectElementDisabled(input);
-        await expectElementDisabled(
+        await Utilities.waitForElementToBeDisabled(input);
+        await Utilities.waitForElementToBeDisabled(
           Matchers.getElementByID('snap-ui-renderer__dropdown'),
         );
-        await expectElementDisabled(
+        await Utilities.waitForElementToBeDisabled(
           Matchers.getElementByID('snap-ui-renderer__radio'),
         );
-        await expectElementDisabled(
+        await Utilities.waitForElementToBeDisabled(
           Matchers.getElementByID('snap-ui-renderer__checkbox'),
         );
-        await expectElementDisabled(
+        await Utilities.waitForElementToBeDisabled(
           Matchers.getElementByID('snap-ui-renderer__selector'),
         );
 
-        await expectElementDisabled(TestSnaps.dateTimePickerTouchable);
-        await expectElementDisabled(TestSnaps.datePickerTouchable);
-        await expectElementDisabled(TestSnaps.timePickerTouchable);
+        await Utilities.waitForElementToBeDisabled(
+          TestSnaps.dateTimePickerTouchable,
+        );
+        await Utilities.waitForElementToBeDisabled(
+          TestSnaps.datePickerTouchable,
+        );
+        await Utilities.waitForElementToBeDisabled(
+          TestSnaps.timePickerTouchable,
+        );
 
-        await expectElementDisabled(Matchers.getElementByText('Submit'));
+        await Utilities.waitForElementToBeDisabled(
+          Matchers.getElementByText('Submit'),
+        );
 
         await TestSnaps.tapCancelButton();
       });
