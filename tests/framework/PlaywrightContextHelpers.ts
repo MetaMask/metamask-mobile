@@ -7,6 +7,12 @@ import { APP_PACKAGE_IDS } from './Constants';
 import { PlatformDetector } from './PlatformLocator';
 import { getDriver, withTimeout } from './PlaywrightUtilities';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
+// eslint-disable-next-line import-x/no-nodejs-modules -- adb host commands for webview page-lock
+import { exec } from 'child_process';
+// eslint-disable-next-line import-x/no-nodejs-modules -- adb host commands for webview page-lock
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const logger = createPlaywrightLogger('PlaywrightContextHelpers');
 
@@ -24,19 +30,115 @@ export default class PlaywrightContextHelpers {
   private static readonly WEBVIEW_SWITCH_TIMEOUT_MS = 45_000;
   private static readonly WEBVIEW_WARMUP_TIMEOUT_MS = 15_000;
   private static readonly POLL_INTERVAL_MS = 1_000;
+  private static readonly NATIVE_READY_TIMEOUT_MS = 5_000;
+  private static readonly NATIVE_READY_POLL_INTERVAL_MS = 200;
 
   static async switchToNativeContext(): Promise<void> {
     logger.debug('Switching to native app context');
-    await getDriver().switchContext(NATIVE_APP);
+    const drv = getDriver();
+    await drv.switchContext(NATIVE_APP);
+    // switchContext resolves before UiAutomator2 re-attaches; gate on native
+    // readiness so the first post-switch find does not race the switch.
+    // Android-only — iOS/WDA does not exhibit this.
+    if (!(await PlatformDetector.isAndroid())) {
+      return;
+    }
+    const deadline = Date.now() + this.NATIVE_READY_TIMEOUT_MS;
+    let lastErr: unknown;
+    while (Date.now() < deadline) {
+      try {
+        const ctx = (await drv.getContext()) as string | undefined;
+        if (ctx === NATIVE_APP) {
+          await drv.getPageSource();
+          return;
+        }
+      } catch (err) {
+        lastErr = err;
+      }
+      await new Promise((resolve) =>
+        setTimeout(resolve, this.NATIVE_READY_POLL_INTERVAL_MS),
+      );
+    }
+    logger.debug(
+      `Native context not confirmed ready in ${this.NATIVE_READY_TIMEOUT_MS}ms: ${this.getErrorMessage(
+        lastErr,
+      ).slice(0, 200)}`,
+    );
+  }
+
+  /**
+   * Resolve the dapp's DevTools page id by querying the Android WebView
+   * DevTools /json/list endpoint directly (via adb forward + fetch), bypassing
+   * chromedriver. Used to lock chromedriver onto the real dapp page instead of
+   * one of the Snaps about:blank pages. Returns undefined on any failure.
+   */
+  private static async findDappPageId(
+    dappUrl: string,
+  ): Promise<string | undefined> {
+    if (!(await PlatformDetector.isAndroid())) {
+      return undefined;
+    }
+    const serial = process.env.ANDROID_SERIAL;
+    const deviceFlag = serial ? `-s ${serial}` : '';
+    const HOST_PROBE_PORT = 19222;
+    try {
+      // Discover the io.metamask WebView devtools abstract socket on device.
+      const { stdout: sockets } = await execAsync(
+        `adb ${deviceFlag} shell cat /proc/net/unix`,
+      ).catch((e) => ({ stdout: `cat /proc/net/unix failed: ${e?.message}` }));
+      const abstractSocket = sockets
+        .split('\n')
+        .map((l) => l.match(/@(webview_devtools_remote_\d+)/))
+        .find(Boolean)?.[1];
+      if (!abstractSocket) {
+        return undefined;
+      }
+
+      // Forward host:19222 -> device webview devtools socket, then fetch
+      // /json/list to enumerate every page target and match the dapp URL.
+      await execAsync(
+        `adb ${deviceFlag} forward tcp:${HOST_PROBE_PORT} localabstract:${abstractSocket}`,
+      );
+      try {
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), 10_000);
+        const res = await fetch(
+          `http://127.0.0.1:${HOST_PROBE_PORT}/json/list`,
+          {
+            signal: controller.signal,
+          },
+        );
+        clearTimeout(t);
+        const targets = (await res.json()) as {
+          type?: string;
+          url?: string;
+          webSocketDebuggerUrl?: string;
+        }[];
+        const dappTarget = targets.find(
+          (tgt) => tgt.type === 'page' && tgt.url?.includes(dappUrl),
+        );
+        return dappTarget?.webSocketDebuggerUrl
+          ?.split('/devtools/page/')[1]
+          ?.trim();
+      } finally {
+        await execAsync(
+          `adb ${deviceFlag} forward --remove tcp:${HOST_PROBE_PORT}`,
+        ).catch(() => undefined);
+      }
+    } catch (err) {
+      logger.debug(
+        `devtools target enumeration failed: ${this.getErrorMessage(err).slice(0, 200)}`,
+      );
+    }
+    return undefined;
   }
 
   static async switchToWebViewContext(dappUrl: string): Promise<void> {
     logger.debug(`Switching to webview context for URL: ${dappUrl}`);
-    // Strategy B: Try WebdriverIO's built-in URL matching first.
-    // Falls back to manual polling on any failure (LavaMoat scuttling,
-    // stale URL metadata on BrowserStack, platform quirks, etc.).
+    const dappPageId = await this.findDappPageId(dappUrl);
+    // Try WebdriverIO's built-in URL matching first; fall back to manual
+    // polling on any failure (LavaMoat scuttling, stale URL metadata, etc.).
     try {
-      const switchStart = Date.now();
       await withTimeout(
         getDriver().switchContext({
           url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
@@ -45,34 +147,24 @@ export default class PlaywrightContextHelpers {
         this.WEBVIEW_SWITCH_TIMEOUT_MS,
         `switchContext for ${dappUrl}`,
       );
-      logger.info(
-        `[webview-trace] switchContext({ url }) succeeded for ${dappUrl} in ${Date.now() - switchStart}ms`,
-      );
       await this.warmWebViewContext();
-      // MECHANISM PROBE (LavaMoat CDP-wedge diagnosis): a trivial Runtime.evaluate.
-      // If this hangs on a scuttled realm, it proves the WebView cannot service
-      // CDP evaluate calls after attach — the root cause of the getContexts wedge.
-      try {
-        const probeStart = Date.now();
-        const probeResult = await withTimeout(
-          getDriver().execute('return 1'),
-          10_000,
-          'webview CDP probe (execute return 1)',
-        );
-        logger.info(
-          `[webview-trace] CDP probe execute('return 1') => ${JSON.stringify(probeResult)} in ${Date.now() - probeStart}ms`,
-        );
-      } catch (probeErr) {
-        logger.info(
-          `[webview-trace] CDP probe execute('return 1') FAILED/HUNG: ${this.getErrorMessage(probeErr).slice(0, 200)}`,
-        );
+      // Lock onto the dapp page. The io.metamask WebView owns several pages
+      // (the dapp + Snaps about:blank pages); chromedriver can park on a Snaps
+      // page and wedge subsequent CDP commands. switchToWindow pins the correct
+      // page without calling getContexts (which deadlocks while attached).
+      if (dappPageId) {
+        try {
+          await withTimeout(
+            getDriver().switchToWindow(dappPageId),
+            this.WEBVIEW_SWITCH_TIMEOUT_MS,
+            `switchToWindow(${dappPageId})`,
+          );
+        } catch (lockErr) {
+          logger.debug(
+            `switchToWindow(dapp page) failed (non-fatal): ${this.getErrorMessage(lockErr).slice(0, 200)}`,
+          );
+        }
       }
-      // NOTE: Do NOT call switchToMatchingWebviewWindow here. A successful
-      // switchContext({ url }) has already selected the matching WebView
-      // window by URL. Re-enumerating via getContexts() while attached to the
-      // WebView context deadlocks Android UiAutomator2 + chromedriver (the
-      // call blocks until connectionRetryTimeout). The window is already
-      // correct, so this second lookup is redundant overhead.
       logger.debug(`Switched to webview context for URL: ${dappUrl}`);
       return;
     } catch (err) {
@@ -136,14 +228,10 @@ export default class PlaywrightContextHelpers {
     }
 
     try {
-      const getContextsStart = Date.now();
       const contexts: (Context | DetailedContext)[] = await withTimeout(
         wdioDriver.getContexts({ returnDetailedContexts: true }),
         this.WEBVIEW_TIMEOUT_MS,
         'getContexts (detailed)',
-      );
-      logger.info(
-        `[webview-trace] getContexts(detailed) returned ${contexts.length} context(s) in ${Date.now() - getContextsStart}ms (issued from ${isAlreadyNative ? 'NATIVE_APP' : `native (restored to ${previousContext})`})`,
       );
 
       return contexts.filter((ctx): ctx is DetailedContext => {
