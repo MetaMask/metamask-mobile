@@ -280,10 +280,10 @@ export const selectPredictFeedCarouselConfig = createSelector(
       return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
     }
 
-    const title = parsedFlag.title.trim();
+    const title = parsedFlag.title?.trim() || undefined;
     const deeplink = parsedFlag.deeplink?.trim() || undefined;
 
-    if (!title || (deeplink && !isAllowedPredictDeeplink(deeplink))) {
+    if (deeplink && !isAllowedPredictDeeplink(deeplink)) {
       return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
     }
 

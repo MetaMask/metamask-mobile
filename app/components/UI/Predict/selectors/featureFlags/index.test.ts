@@ -2238,6 +2238,19 @@ describe('Predict Feature Flag Selectors', () => {
       expect(result.deeplink).toBeUndefined();
     });
 
+    it.each([undefined, '   '])(
+      'accepts custom mode with title %p',
+      (title) => {
+        const { title: _title, ...flagWithoutTitle } = validFlag;
+        const flag =
+          title === undefined ? flagWithoutTitle : { ...validFlag, title };
+        const result = selectPredictFeedCarouselConfig(createState(flag));
+
+        expect(result.mode).toBe('custom');
+        expect(result.title).toBeUndefined();
+      },
+    );
+
     it('unwraps a threshold flag value', () => {
       const result = selectPredictFeedCarouselConfig(
         createState({ name: 'treatment', value: validFlag }),
@@ -2256,7 +2269,6 @@ describe('Predict Feature Flag Selectors', () => {
     it.each([
       { ...validFlag, enabled: false },
       { ...validFlag, mode: 'live' },
-      { ...validFlag, title: '   ' },
       { ...validFlag, deeplink: 'https://example.com/predict' },
       { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
       {

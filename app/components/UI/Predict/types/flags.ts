@@ -19,7 +19,7 @@ export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
 
 export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
   mode: 'live' | 'custom';
-  title: string;
+  title?: string;
   deeplink?: string;
   contentSource: {
     /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */

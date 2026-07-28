@@ -5641,7 +5641,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '8.6.0',
       mode: 'live',
-      title: '',
       contentSource: {
         composition: 'query-results',
         queryParams: '',

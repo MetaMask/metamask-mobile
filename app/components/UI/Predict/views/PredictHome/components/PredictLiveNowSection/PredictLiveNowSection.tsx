@@ -164,7 +164,11 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
     <Box testID={testID}>
       <SectionHeader
         testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER}
-        title={isCustom ? config.title : strings('predict.home.live_now_title')}
+        title={
+          isCustom && config.title
+            ? config.title
+            : strings('predict.home.live_now_title')
+        }
         isInteractive={isHeaderInteractive}
         onPress={isHeaderInteractive ? handleHeaderPress : undefined}
         endIconProps={{

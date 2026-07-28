@@ -56,7 +56,7 @@ export const PredictFeedCarouselSchema = defaulted(
       PredictFeedCarouselModeSchema,
       () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.mode,
     ),
-    title: defaulted(string(), () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.title),
+    title: optional(string()),
     deeplink: optional(string()),
     contentSource: defaulted(
       type({

@@ -291,6 +291,17 @@ describe('PredictLiveNowSection', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('uses the translated Live now title when custom title is omitted', () => {
+    setSection({
+      items: [createLiveMarket('L1')],
+      config: createCustomConfig({ title: undefined }),
+    });
+
+    const { getByText } = renderSection();
+
+    expect(getByText(strings('predict.home.live_now_title'))).toBeOnTheScreen();
+  });
+
   it('renders a static custom header without a deeplink or chevron', () => {
     setSection({
       items: [createLiveMarket('L1')],
