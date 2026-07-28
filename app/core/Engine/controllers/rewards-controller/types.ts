@@ -107,6 +107,7 @@ export type VipTierDto = {
 export type VipLocalizedTextDto = {
   periodTitle: string;
   memberIdTitle: string;
+  transactionsTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   revenueShareTitle: string;
@@ -196,6 +197,78 @@ export type VipFeesResponseDto = {
   vipTier: number;
   fees: VipFeesGroupDto | null;
   updatedAt: string | null;
+};
+
+export type VipTransactionType = 'PERPS' | 'SWAP';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsTransactionDetailDto = {
+  coin: string;
+  feeCoin: string;
+  rawFee: string;
+  rawNotionalVolume: string;
+  tradeId: string;
+  orderId: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipSwapTransactionDetailDto = {
+  quoteId: string;
+  bridgeId?: string;
+  srcChainId: string;
+  srcAssetSymbol?: string;
+  destChainId: string;
+  destAssetSymbol?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionDto = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PaginatedVipTransactionsDto = {
+  results: VipTransactionDto[];
+  has_more: boolean;
+  cursor: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type GetVipTransactionsDto = {
+  subscriptionId: string;
+  type: VipTransactionType;
+  cursor: string | null;
+  forceFresh?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsLastUpdatedDto = {
+  lastUpdated: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionEntryState = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsState = {
+  results: VipTransactionEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
 };
 
 // Per-subscription cache for VIP perps builder fee.
@@ -1211,6 +1284,45 @@ export interface PredictThePitchPrizePoolDto {
   computedAt: string | null;
 }
 
+/**
+ * Minimal reference to a single Polymarket market.
+ */
+export interface PredictMarketRef {
+  eventId: string;
+  conditionId?: string;
+}
+
+/**
+ * Response DTO for the public first predict on us endpoint.
+ */
+export interface FirstPredictOnUsDto {
+  name: string;
+  image: ThemeImage | null;
+  localizedText: Record<string, string>;
+  usdAmount: number;
+  markets: PredictMarketRef[];
+  termsUrl: string | null;
+}
+
+/**
+ * Serializable version of FirstPredictOnUsDto for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsDtoState = {
+  name: string;
+  image: ThemeImageState | null;
+  localizedText: { [key: string]: string };
+  usdAmount: number;
+  markets: { eventId: string; conditionId?: string }[];
+  termsUrl: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsCacheState = {
+  data: FirstPredictOnUsDtoState | null;
+  lastFetched: number;
+};
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardEntryState = {
   rank: number;
@@ -1879,6 +1991,7 @@ export type SubscriptionBenefitDto = {
   actionDate: string | null;
   chain: string;
   type: { id: number; name: string };
+  companyName?: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -2332,6 +2445,10 @@ export type RewardsControllerState = {
   vipPerpsFees: {
     [subscriptionId: string]: VipPerpsFeesState;
   };
+  /** First-page VIP transactions keyed by subscriptionId:type. */
+  vipTransactions: {
+    [compositeId: string]: VipTransactionsState;
+  };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
@@ -2397,6 +2514,8 @@ export type RewardsControllerState = {
   };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;
+  /** Cached first predict on us content from the public endpoint. */
+  firstPredictOnUs: FirstPredictOnUsCacheState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

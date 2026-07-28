@@ -12,6 +12,7 @@ import {
 } from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
+import { isNoOpQuote } from '../../../../../selectors/transactionPayController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
@@ -181,28 +182,41 @@ function addPayTypeProperties(
 ) {
   const { metamaskPay, id: transactionId } = transaction;
 
+  if (properties.mm_pay) {
+    return;
+  }
+
+  const chainId = metamaskPay?.chainId;
+  const tokenAddress = metamaskPay?.tokenAddress;
+
   if (
-    !metamaskPay?.chainId ||
-    !metamaskPay?.tokenAddress ||
-    properties.mm_pay
+    !hasTransactionType(transaction, PAY_TYPES) &&
+    (!chainId || !tokenAddress)
   ) {
     return;
   }
 
-  const { chainId, tokenAddress } = metamaskPay;
-
   properties.mm_pay = true;
-  properties.mm_pay_chain_selected = chainId;
   properties.mm_pay_payment_method_selected = 'crypto';
 
+  if (chainId) {
+    properties.mm_pay_chain_selected = chainId;
+  }
+
   const txPayData =
-    state.engine.backgroundState.TransactionPayController?.transactionData?.[
+    state?.engine?.backgroundState?.TransactionPayController?.transactionData?.[
       transactionId
     ];
 
-  properties.mm_pay_token_selected =
+  const tokenSymbol =
     txPayData?.paymentToken?.symbol ??
-    getTokenSymbol(state, chainId, tokenAddress);
+    (chainId && tokenAddress
+      ? getTokenSymbol(state, chainId, tokenAddress)
+      : undefined);
+
+  if (tokenSymbol !== undefined) {
+    properties.mm_pay_token_selected = tokenSymbol;
+  }
 
   for (const [types, useCase] of USE_CASE_MAP) {
     if (hasTransactionType(transaction, types)) {
@@ -215,7 +229,17 @@ function addPayTypeProperties(
     return;
   }
 
-  const { quotes, totals, tokens } = txPayData;
+  const { totals, tokens } = txPayData;
+
+  // No-op quotes mark routes the controller validated as needing no
+  // conversion. They are not executable, so strategy and step totals must
+  // only count real quotes.
+  const quotes = (txPayData.quotes ?? []).filter(
+    (quote) => !isNoOpQuote(quote),
+  );
+  properties.mm_pay_quote_skipped =
+    (txPayData.quotes ?? []).length > quotes.length;
+
   const primaryRequiredToken = tokens?.find(
     (t: { skipIfBalance: boolean }) => !t.skipIfBalance,
   );
@@ -237,7 +261,7 @@ function addPayTypeProperties(
       .toString(10);
   }
 
-  const strategy = quotes?.[0]?.strategy;
+  const strategy = quotes[0]?.strategy;
 
   if (strategy === TransactionPayStrategy.Relay) {
     properties.mm_pay_strategy = 'relay';
@@ -245,7 +269,7 @@ function addPayTypeProperties(
     properties.mm_pay_strategy = 'fiat';
   }
 
-  properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
+  properties.mm_pay_transaction_step_total = quotes.length + 1;
   properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
 
   const fiatPayment = txPayData.fiatPayment;

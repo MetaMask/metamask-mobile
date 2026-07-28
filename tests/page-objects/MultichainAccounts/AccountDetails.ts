@@ -75,18 +75,17 @@ class AccountDetails {
     });
   }
 
+  /**
+   * Appium iOS: XCTest often reports `isDisplayed() === false` on native-stack
+   * screens even when page source shows `visible="true"`. Skip displayed checks
+   * and tap by testID directly (same pattern as AddressList.tapBackButton).
+   */
   async tapBackButton(): Promise<void> {
     if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
-      const container = await asPlaywrightElement(this.container);
-      const isOnAccountDetails = await container.isVisible().catch(() => false);
-      if (!isOnAccountDetails) {
-        return;
-      }
-
       const backEl = await asPlaywrightElement(this.backButton);
       try {
         await PlaywrightGestures.waitAndTap(backEl, {
-          timeout: 5_000,
+          timeout: 10_000,
           checkForDisplayed: false,
         });
       } catch {

@@ -12,6 +12,7 @@ import {
 import { TRON_STAKING_FAQ_URL } from '../../../../../../constants/urls';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -19,6 +20,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -191,6 +193,17 @@ describe('TronStakingLearnMoreModal', () => {
       });
     });
 
+    it('closes the bottom sheet before navigating to webview', () => {
+      const { getByText } = renderModal();
+
+      fireEvent.press(getByText('Learn more'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    });
+
     it('tracks analytics event when Learn More button is pressed', () => {
       const { getByText } = renderModal();
 
@@ -200,6 +213,28 @@ describe('TronStakingLearnMoreModal', () => {
         MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics event with stake learn more modal properties', () => {
+      const { getByText } = renderModal();
+
+      fireEvent.press(getByText('Learn more'));
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        selected_provider: 'consensys',
+        text: 'Learn More',
+        location: 'LearnMoreModal',
+      });
+    });
+
+    it('closes the bottom sheet when Got it button is pressed', () => {
+      const { getByText } = renderModal();
+
+      fireEvent.press(getByText('Got it'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

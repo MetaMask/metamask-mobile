@@ -44,6 +44,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
+      primary: { default: mockTestHexColors.CHART_PRIMARY },
       success: { default: mockTestHexColors.SUCCESS_BRIGHT },
       error: { default: mockTestHexColors.ERROR_BRIGHT },
       accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
@@ -424,6 +425,43 @@ describe('usePredictToastRegistrations', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows redeemed toast on confirmed status when amount is zero', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'confirmed',
+          amount: 0,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Info',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.title',
+            }),
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.description',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$0.00'),
+            }),
+          ]),
         }),
       );
     });
@@ -950,7 +988,7 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
-          iconName: 'Check',
+          iconName: 'Confirmation',
           hasNoTimeout: false,
         }),
       );

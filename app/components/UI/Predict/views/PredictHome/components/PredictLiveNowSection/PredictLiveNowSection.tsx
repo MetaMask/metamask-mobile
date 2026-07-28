@@ -11,15 +11,16 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
 import { PaginationDots } from '../../../../components/PaginationDots/PaginationDots';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import type { PredictMarket as PredictMarketType } from '../../../../types';
-import type { PredictNavigationParamList } from '../../../../types/navigation';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
 import { usePredictLiveNowSection } from './usePredictLiveNowSection';
 
@@ -49,8 +50,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   testID = PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = useMemo(
     () => screenWidth * CARD_WIDTH_RATIO,
@@ -63,6 +63,11 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleSeeAll = useCallback(() => {
+    Engine.context.PredictController.trackHomeSectionInteraction({
+      sectionId: PredictEventValues.SECTION_ID.LIVE_NOW,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.FEED,
       params: {
@@ -141,13 +146,14 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       {/* "See all" navigates to the generic PredictFeedView (feedId 'live'). */}
       <SectionHeader
         testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.live_now_title')}
         isInteractive
         onPress={handleSeeAll}
+        twClassName="p-0 mb-2"
       />
 
       <Box twClassName="-mx-4">

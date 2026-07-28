@@ -1,39 +1,51 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import MoneySectionHeader from '../MoneySectionHeader';
 import type { MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
 import MoneyActivityRow from '../MoneyActivityRow/MoneyActivityRow';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
-const MAX_PREVIEW_ITEMS = 5;
+export const MAX_PREVIEW_ITEMS = 5;
 
 interface MoneyActivityListProps {
   items: MoneyActivityItem[];
   moneyAddress?: string;
+  /** Whether more activity exists beyond what's fetched (paginated upstream). */
+  hasMore?: boolean;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
   onItemPress?: (transaction: TransactionMeta) => void;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyActivityList = ({
   items,
   moneyAddress,
+  hasMore = false,
   onViewAllPress,
   onHeaderPress,
   onItemPress,
+  privacyMode = false,
 }: MoneyActivityListProps) => {
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
+
   if (!items.length) {
     return null;
   }
 
   const previewItems = items.slice(0, MAX_PREVIEW_ITEMS);
-  const hasMoreItems = items.length > MAX_PREVIEW_ITEMS;
+  const hasMoreItems = items.length > MAX_PREVIEW_ITEMS || hasMore;
 
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
@@ -48,7 +60,8 @@ const MoneyActivityList = ({
           key={item.id}
           item={item}
           moneyAddress={moneyAddress}
-          onPress={onItemPress}
+          onPress={activityDetailsEnabled ? onItemPress : undefined}
+          privacyMode={privacyMode}
         />
       ))}
       {hasMoreItems && onViewAllPress && (

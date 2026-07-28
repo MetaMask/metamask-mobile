@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -58,7 +59,7 @@ interface SpendingLimitProps {
  * Supports three flows: onboarding, enable, and manage.
  */
 const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const tw = useTailwind();
   const selectedAccount = useSelector(selectSelectedInternalAccount);

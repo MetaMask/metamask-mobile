@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -7,24 +8,16 @@ import {
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { store } from '../../../../store';
-import { selectMoneyFirstTimeDepositAnimationEnabledFlag } from '../selectors/featureFlags';
-import { isMoneyDepositTx } from '../utils/moneyTransactionGuards';
-import { hasPriorMoneyDeposit } from '../utils/firstTimeDeposit';
+import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 
 export const useMoneyFirstTimeDepositTracker = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   useEffect(() => {
     const handleTransactionConfirmed = (tx: TransactionMeta) => {
       if (tx.status !== TransactionStatus.confirmed) return;
 
-      const state = store.getState();
-
-      if (
-        !isMoneyDepositTx(tx) ||
-        !selectMoneyFirstTimeDepositAnimationEnabledFlag(state) ||
-        hasPriorMoneyDeposit(state, tx.id)
-      ) {
+      if (!shouldShowMoneyFirstTimeDepositAnimation(store.getState(), tx)) {
         return;
       }
 

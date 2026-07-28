@@ -1,15 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { ShimmerBand, useShimmerSweep } from '../../../../Shimmer';
 
 export interface ShimmerOverlayProps {
   children: React.ReactNode;
@@ -39,9 +31,6 @@ const DEFAULT_COLORS = [
   'rgba(255,255,255,0)',
 ] as const;
 
-const GRADIENT_START = { x: 0, y: 0.5 } as const;
-const GRADIENT_END = { x: 1, y: 0.5 } as const;
-
 const styles = StyleSheet.create({
   wrapper: {
     position: 'relative',
@@ -50,14 +39,6 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
-  },
-  band: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-  },
-  gradient: {
-    flex: 1,
   },
 });
 
@@ -77,37 +58,9 @@ const ShimmerOverlay: React.FC<ShimmerOverlayProps> = ({
   colors = DEFAULT_COLORS,
   testID,
 }) => {
-  const [width, setWidth] = useState(0);
-  const translateX = useSharedValue(0);
-  const bandWidth = width * widthFraction;
-
-  useEffect(() => {
-    if (width === 0) return;
-
-    translateX.value = -bandWidth;
-    translateX.value = withRepeat(
-      withSequence(
-        withTiming(width, {
-          duration: sweepDurationMs,
-          easing: Easing.inOut(Easing.ease),
-        }),
-        withDelay(pauseDurationMs, withTiming(-bandWidth, { duration: 0 })),
-      ),
-      -1,
-      false,
-    );
-  }, [width, bandWidth, sweepDurationMs, pauseDurationMs, translateX]);
-
-  const animatedBandStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const next = event.nativeEvent.layout.width;
-    if (next !== width) {
-      setWidth(next);
-    }
-  };
+  const { width, bandWidth, animatedBandStyle, handleLayout } = useShimmerSweep(
+    { widthFraction, sweepDurationMs, pauseDurationMs },
+  );
 
   return (
     <View
@@ -121,16 +74,11 @@ const ShimmerOverlay: React.FC<ShimmerOverlayProps> = ({
           style={styles.overlay}
           testID={testID}
         >
-          <Animated.View
-            style={[styles.band, { width: bandWidth }, animatedBandStyle]}
-          >
-            <LinearGradient
-              colors={colors as unknown as string[]}
-              start={GRADIENT_START}
-              end={GRADIENT_END}
-              style={styles.gradient}
-            />
-          </Animated.View>
+          <ShimmerBand
+            bandWidth={bandWidth}
+            animatedStyle={animatedBandStyle}
+            colors={colors}
+          />
         </Animated.View>
       )}
     </View>

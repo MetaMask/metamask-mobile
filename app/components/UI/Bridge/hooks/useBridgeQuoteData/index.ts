@@ -14,7 +14,11 @@ import {
   setSelectedQuoteRequestId,
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
-import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
+import {
+  RequestStatus,
+  isNonEvmChainId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
@@ -135,14 +139,18 @@ export const useBridgeQuoteData = ({
   const isQuoteSourceTokenMatch = useMemo(() => {
     if (!activeQuote || !sourceToken) return false;
 
-    const { srcAsset } = activeQuote.quote;
+    const { srcAsset, srcChainId } = activeQuote.quote;
 
     const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
       ? (srcAsset.assetId ?? srcAsset.address)
       : srcAsset.address;
 
     const selectedSourceAddress = sourceToken.address;
-    return areAddressesEqual(quoteSourceAddress, selectedSourceAddress);
+    return (
+      formatChainIdToCaip(srcChainId) ===
+        formatChainIdToCaip(sourceToken.chainId) &&
+      areAddressesEqual(quoteSourceAddress, selectedSourceAddress)
+    );
   }, [activeQuote, sourceToken]);
 
   // Helper to validate that a quote's destination asset matches the selected destination token
@@ -151,7 +159,7 @@ export const useBridgeQuoteData = ({
     (quote: (typeof allQuotes)[number] | undefined | null): boolean => {
       if (!quote || !destToken) return false;
 
-      const { destAsset } = quote.quote;
+      const { destAsset, destChainId } = quote.quote;
 
       // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
       // or zero address for native tokens, while destToken.address uses CAIP format
@@ -163,7 +171,11 @@ export const useBridgeQuoteData = ({
         : destAsset.address;
 
       const selectedDestAddress = destToken.address;
-      return areAddressesEqual(quoteDestAddress, selectedDestAddress);
+      return (
+        formatChainIdToCaip(destChainId) ===
+          formatChainIdToCaip(destToken.chainId) &&
+        areAddressesEqual(quoteDestAddress, selectedDestAddress)
+      );
     },
     [destToken],
   );
@@ -364,24 +376,43 @@ export const useBridgeQuoteData = ({
     }
   }, [manuallySelectedQuote, dispatch]);
 
-  const returnValue = {
-    bestQuote,
-    quoteFetchError,
-    activeQuote,
-    quotesLoadingStatus,
-    destTokenAmount,
-    isLoading,
-    formattedQuoteData,
-    isNoQuotesAvailable,
-    willRefresh,
-    isExpired,
-    blockaidError,
-    shouldShowPriceImpactWarning,
-    validQuotes,
-    needsNewQuote,
-    isActiveQuoteForCurrentTokenPair:
-      isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
-  };
+  const isActiveQuoteForCurrentTokenPair =
+    isQuoteSourceTokenMatch && isQuoteDestTokenMatch;
 
-  return returnValue;
+  return useMemo(
+    () => ({
+      bestQuote,
+      quoteFetchError,
+      activeQuote,
+      quotesLoadingStatus,
+      destTokenAmount,
+      isLoading,
+      formattedQuoteData,
+      isNoQuotesAvailable,
+      willRefresh,
+      isExpired,
+      blockaidError,
+      shouldShowPriceImpactWarning,
+      validQuotes,
+      needsNewQuote,
+      isActiveQuoteForCurrentTokenPair,
+    }),
+    [
+      bestQuote,
+      quoteFetchError,
+      activeQuote,
+      quotesLoadingStatus,
+      destTokenAmount,
+      isLoading,
+      formattedQuoteData,
+      isNoQuotesAvailable,
+      willRefresh,
+      isExpired,
+      blockaidError,
+      shouldShowPriceImpactWarning,
+      validQuotes,
+      needsNewQuote,
+      isActiveQuoteForCurrentTokenPair,
+    ],
+  );
 };

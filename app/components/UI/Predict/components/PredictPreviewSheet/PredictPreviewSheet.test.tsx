@@ -24,6 +24,7 @@ const TestComponent = ({
   image,
   isFullscreen,
   renderHeader,
+  renderRightComponent,
   onDismiss,
 }: {
   shouldOpen?: boolean;
@@ -32,6 +33,7 @@ const TestComponent = ({
   image?: string;
   isFullscreen?: boolean;
   renderHeader?: () => React.ReactNode;
+  renderRightComponent?: () => React.ReactNode;
   onDismiss?: () => void;
 }) => {
   const ref = useRef<PredictPreviewSheetRef>(null);
@@ -56,6 +58,7 @@ const TestComponent = ({
         image={image}
         isFullscreen={isFullscreen}
         renderHeader={renderHeader}
+        renderRightComponent={renderRightComponent}
         onDismiss={onDismiss}
         testID="preview-sheet"
       >
@@ -168,5 +171,27 @@ describe('PredictPreviewSheet', () => {
     expect(screen.getByTestId('preview-sheet-title')).toHaveTextContent(
       'Default Title',
     );
+  });
+
+  it('renders the right component next to the default title', async () => {
+    render(
+      <TestComponent
+        shouldOpen
+        title="Default Title"
+        renderRightComponent={() => (
+          <Text testID="preview-sheet-right-component">Right</Text>
+        )}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-sheet-title')).toBeOnTheScreen();
+    });
+    expect(screen.getByTestId('preview-sheet-title')).toHaveTextContent(
+      'Default Title',
+    );
+    expect(
+      screen.getByTestId('preview-sheet-right-component'),
+    ).toHaveTextContent('Right');
   });
 });

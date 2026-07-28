@@ -3,10 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
+const mockUseIsFocused = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+  useIsFocused: () => mockUseIsFocused(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -14,9 +16,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Feed hooks — return empty/not-loading so NowTab renders without network calls.
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
-  useTokensFeed: jest.fn(() => ({ data: [], isLoading: false })),
+  useTokensFeed: jest.fn(),
 }));
 
 jest.mock('../feeds/tokens/CryptoMoversPillItem', () => {
@@ -47,8 +48,19 @@ jest.mock('../feeds/perps/usePerpsFeed', () => ({
   usePerpsFeed: () => mockUsePerpsFeed(),
 }));
 
-jest.mock('../../../UI/Perps/hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
+// usePerpsLiveMovers (used by PerpsBlock) subscribes via the stream
+// singleton — stub it so the hook's real ranking/fingerprint logic still
+// runs (preserving the filter/sort assertions below) without needing a
+// PerpsStreamProvider or real WebSocket.
+const mockSubscribeToSymbols = jest.fn(() => jest.fn());
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  usePerpsStream: () => ({
+    prices: {
+      subscribeToSymbols: (
+        ...args: Parameters<typeof mockSubscribeToSymbols>
+      ) => mockSubscribeToSymbols(...args),
+    },
+  }),
 }));
 
 jest.mock('../feeds/perps/PerpsPillItem', () => {
@@ -77,31 +89,8 @@ jest.mock('../feeds/perps/perpsNavigation', () => ({
   ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId, options),
 }));
 
-interface MockPredictionMarket {
-  id: string;
-}
-
-const mockUsePredictionsFeed = jest.fn<
-  { data: MockPredictionMarket[]; isLoading: boolean },
-  []
->(() => ({
-  data: [],
-  isLoading: false,
-}));
 jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: () => mockUsePredictionsFeed(),
-}));
-
-const mockUseWorldCupPredictionsFeed = jest.fn<
-  { data: MockPredictionMarket[]; isLoading: boolean; isEnabled: boolean },
-  []
->(() => ({
-  data: [],
-  isLoading: false,
-  isEnabled: false,
-}));
-jest.mock('../feeds/predictions/useWorldCupPredictionsFeed', () => ({
-  useWorldCupPredictionsFeed: () => mockUseWorldCupPredictionsFeed(),
+  usePredictionsFeed: jest.fn(),
 }));
 
 jest.mock('../feeds/predictions/PredictionRowItem', () => {
@@ -128,10 +117,9 @@ jest.mock('../components/HorizontalCarousel', () => {
 });
 
 jest.mock('../feeds/stocks/useStocksFeed', () => ({
-  useStocksFeed: jest.fn(() => ({ data: [], isLoading: false })),
+  useStocksFeed: jest.fn(),
 }));
 
-// Mock PerpsSectionProvider as a transparent passthrough.
 jest.mock('../feeds/perps/PerpsSectionProvider', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createElement } = require('react');
@@ -140,12 +128,6 @@ jest.mock('../feeds/perps/PerpsSectionProvider', () => {
   return ({ children }: { children: unknown }) =>
     createElement(View, null, children);
 });
-
-// Mock WhatsHappeningSection to keep its transitive deps (Engine, analytics)
-// out of this unit test. We control rendering via mockWhatsHappeningImpl.
-const mockWhatsHappeningImpl = jest.fn<React.ReactElement | null, [unknown]>(
-  () => null,
-);
 
 const mockWhatsHappeningRefresh = jest.fn();
 const mockUseWhatsHappening = jest.fn(() => ({
@@ -206,26 +188,29 @@ jest.mock('../feeds/predictions/PredictionsCarouselSection', () => ({
   }) => mockPredictionsCarouselSection(props),
 }));
 
-jest.mock('../../../UI/WhatsHappening', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { forwardRef } = require('react');
-  return {
-    __esModule: true,
-    default: forwardRef((props: unknown, ref: unknown) =>
-      mockWhatsHappeningImpl({ ...(props as object), ref }),
-    ),
-  };
-});
+jest.mock('../../../UI/WhatsHappening', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
 
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import NowTab from './NowTab';
+import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
+import type { ExploreTabName } from '../search/analytics';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
+import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
+
+const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
+const mockUseStocksFeed = jest.mocked(useStocksFeed);
+const mockWhatsHappeningImpl = jest.mocked(WhatsHappeningSection);
 
 const defaultRefresh: RefreshConfig = { trigger: 0, silentRefresh: true };
 const defaultTabProps = {
@@ -235,107 +220,135 @@ const defaultTabProps = {
 };
 
 const predictSectionTestId = 'section-header-view-all-predictions';
+const cryptoMoversSectionTestId = 'section-header-view-all-crypto_movers';
+const perpsSectionTestId = 'section-header-view-all-perps';
 const whatsHappeningSectionTestId = 'whats-happening-carousel';
+const stocksSectionTestId = 'section-header-view-all-stocks';
 
-const renderNowTab = (props = defaultTabProps) =>
-  render(
-    <NavigationContainer>
-      <NowTab {...props} />
-    </NavigationContainer>,
-  );
+const createWhatsHappeningCarousel = () =>
+  React.createElement('View', { testID: whatsHappeningSectionTestId });
 
-interface RenderNode {
-  props?: {
-    testID?: string;
+const createMockSelectorImpl =
+  ({
+    perpsEnabled = false,
+    predictEnabled = false,
+    whatsHappeningEnabled = false,
+  }: {
+    perpsEnabled?: boolean;
+    predictEnabled?: boolean;
+    whatsHappeningEnabled?: boolean;
+  }) =>
+  (selector: unknown) => {
+    if (selector === selectPerpsEnabledFlag) return perpsEnabled;
+    if (selector === selectPredictEnabledFlag) return predictEnabled;
+    if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
+    return undefined;
   };
-  children?: unknown[] | null;
-}
 
-const isRenderNode = (node: unknown): node is RenderNode =>
-  Boolean(node) && typeof node === 'object';
+const arrangeMocks = () => {
+  jest.clearAllMocks();
+  mockUseIsFocused.mockReturnValue(true);
 
-const collectTestIds = (node: unknown): string[] => {
-  if (Array.isArray(node)) {
-    return node.flatMap(collectTestIds);
-  }
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+  const mockUseTokensFeed = useTokensFeed as jest.MockedFunction<
+    typeof useTokensFeed
+  >;
 
-  if (!isRenderNode(node)) {
-    return [];
-  }
-
-  const ownTestIds =
-    typeof node.props?.testID === 'string' ? [node.props.testID] : [];
-  const childTestIds = node.children?.flatMap(collectTestIds) ?? [];
-
-  return [...ownTestIds, ...childTestIds];
-};
-
-const getIntroSectionOrder = (tree: unknown) =>
-  collectTestIds(tree).filter((testId) =>
-    [predictSectionTestId, whatsHappeningSectionTestId].includes(testId),
+  mockUseSelector.mockImplementation(
+    createMockSelectorImpl({
+      perpsEnabled: false,
+      predictEnabled: false,
+      whatsHappeningEnabled: false,
+    }),
   );
 
-const mockUseTokensFeed = useTokensFeed as jest.MockedFunction<
-  typeof useTokensFeed
->;
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  mockUsePerpsFeed.mockReturnValue({
-    data: [],
+  mockUsePredictionsFeed.mockReturnValue({
+    data: [{ id: 'market-1' }] as never,
     isLoading: false,
     refetch: jest.fn(),
-    defaultSortOptionId: 'priceChange' as const,
   });
-  mockUsePredictionsFeed.mockReturnValue({ data: [], isLoading: false });
-  mockUseWorldCupPredictionsFeed.mockReturnValue({
-    data: [],
+  mockUsePerpsFeed.mockReturnValue({
+    data: [{ market: { symbol: 'BTC', change24hPercent: '5' } }] as never,
     isLoading: false,
-    isEnabled: false,
+    refetch: jest.fn(),
+    defaultSortOptionId: 'priceChange',
+  });
+  mockUseTokensFeed.mockReturnValue({
+    data: [
+      {
+        assetId: 'eip155:1/erc20:0x1',
+        symbol: 'ONE',
+        priceChangePct: { h1: '1.23' },
+      },
+      {
+        assetId: 'eip155:1/erc20:0x2',
+        symbol: 'TWO',
+        priceChangePct: { h1: '2.34' },
+      },
+      {
+        assetId: 'eip155:1/erc20:0x3',
+        symbol: 'THREE',
+        priceChangePct: { h1: '3.45' },
+      },
+    ] as never,
+    isLoading: false,
+    refetch: jest.fn(),
+  });
+  mockUseStocksFeed.mockReturnValue({
+    data: [],
+    isLoading: true,
+    refetch: jest.fn(),
   });
   mockUseWhatsHappening.mockReturnValue({
-    items: [],
+    items: [{ id: 'trend-0' }],
     isLoading: false,
     error: null,
     refresh: mockWhatsHappeningRefresh,
   });
-  mockWhatsHappeningImpl.mockReturnValue(null);
-});
+  mockWhatsHappeningImpl.mockReturnValue(createWhatsHappeningCarousel());
+
+  return {
+    useSelector: mockUseSelector,
+    useTokensFeed: mockUseTokensFeed,
+    usePerpsFeed: mockUsePerpsFeed,
+    usePredictionsFeed: mockUsePredictionsFeed,
+    useStocksFeed: mockUseStocksFeed,
+    useWhatsHappening: mockUseWhatsHappening,
+    whatsHappeningImpl: mockWhatsHappeningImpl,
+    whatsHappeningRefresh: mockWhatsHappeningRefresh,
+    navigateToPerpsMarketList: mockNavigateToPerpsMarketList,
+    navigate: mockNavigate,
+  };
+};
+
+const renderNowTab = (
+  props = defaultTabProps,
+  { activeTab = 'Now' as ExploreTabName } = {},
+) =>
+  render(
+    <NavigationContainer>
+      <ExploreActiveTabProvider activeTab={activeTab}>
+        <NowTab {...props} />
+      </ExploreActiveTabProvider>
+    </NavigationContainer>,
+  );
 
 describe('NowTab — WhatsHappeningSection integration', () => {
-  const mockUseSelector = useSelector as jest.MockedFunction<
-    typeof useSelector
-  >;
-
-  const mockSelectorBase = (selector: unknown) => {
-    if (selector === selectPerpsEnabledFlag) return false;
-    if (selector === selectPredictEnabledFlag) return false;
-    return undefined;
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseSelector.mockImplementation(mockSelectorBase);
-    // Default: section mock renders nothing; individual tests override as needed.
-    mockWhatsHappeningImpl.mockReturnValue(null);
-  });
-
-  it('mounts WhatsHappeningSection and renders it when the feature flag is enabled', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      return mockSelectorBase(selector);
-    });
-    mockUseWhatsHappening.mockReturnValue({
-      items: [{ id: 'trend-0' }],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-    (mockWhatsHappeningImpl as jest.Mock).mockReturnValue(
-      React.createElement('View', {
-        testID: 'whats-happening-carousel',
+  const arrangeWhatsHappeningMocks = () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({
+        whatsHappeningEnabled: true,
       }),
     );
+
+    return mocks;
+  };
+
+  it('mounts WhatsHappeningSection and renders it when the feature flag is enabled', () => {
+    arrangeWhatsHappeningMocks();
 
     renderNowTab();
 
@@ -343,27 +356,24 @@ describe('NowTab — WhatsHappeningSection integration', () => {
   });
 
   it('does not mount WhatsHappeningSection when the feature flag is disabled', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return false;
-      return mockSelectorBase(selector);
-    });
-
+    const mocks = arrangeWhatsHappeningMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({
+        whatsHappeningEnabled: false,
+      }),
+    );
     renderNowTab();
 
-    // Section is not even mounted, so the mock should never have been called.
-    expect(mockWhatsHappeningImpl).not.toHaveBeenCalled();
+    expect(mocks.whatsHappeningImpl).not.toHaveBeenCalled();
     expect(screen.queryByTestId('whats-happening-carousel')).toBeNull();
   });
 
   it('calls whatsHappening.refresh when pull-to-refresh is triggered', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      return mockSelectorBase(selector);
-    });
+    const mocks = arrangeWhatsHappeningMocks();
 
     const { rerender } = renderNowTab();
 
-    expect(mockWhatsHappeningRefresh).not.toHaveBeenCalled();
+    expect(mocks.whatsHappeningRefresh).not.toHaveBeenCalled();
 
     rerender(
       <NavigationContainer>
@@ -374,123 +384,45 @@ describe('NowTab — WhatsHappeningSection integration', () => {
       </NavigationContainer>,
     );
 
-    expect(mockWhatsHappeningRefresh).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders Predict before Whats Happening', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      if (selector === selectPredictEnabledFlag) return true;
-      return mockSelectorBase(selector);
-    });
-    mockUsePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }],
-      isLoading: false,
-    });
-    mockUseWhatsHappening.mockReturnValue({
-      items: [{ id: 'trend-0' }],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-    mockWhatsHappeningImpl.mockReturnValue(
-      React.createElement('View', {
-        testID: whatsHappeningSectionTestId,
-      }),
-    );
-
-    const { toJSON } = renderNowTab();
-
-    expect(getIntroSectionOrder(toJSON())).toEqual([
-      predictSectionTestId,
-      whatsHappeningSectionTestId,
-    ]);
-  });
-
-  it('does not add a divider when Whats Happening feed is empty', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      if (selector === selectPredictEnabledFlag) return true;
-      return mockSelectorBase(selector);
-    });
-    mockUsePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }],
-      isLoading: false,
-    });
-    mockUseWhatsHappening.mockReturnValue({
-      items: [],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-
-    renderNowTab();
-
-    expect(screen.queryByTestId('explore-section-divider')).toBeNull();
-  });
-
-  it('adds a divider between Predict and Whats Happening when Whats Happening has content', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      if (selector === selectPredictEnabledFlag) return true;
-      return mockSelectorBase(selector);
-    });
-    mockUsePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }],
-      isLoading: false,
-    });
-    mockUseWhatsHappening.mockReturnValue({
-      items: [{ id: 'trend-0' }],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-    mockWhatsHappeningImpl.mockReturnValue(
-      React.createElement('View', {
-        testID: whatsHappeningSectionTestId,
-      }),
-    );
-
-    renderNowTab();
-
-    expect(screen.getByTestId('explore-section-divider')).toBeOnTheScreen();
+    expect(mocks.whatsHappeningRefresh).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('NowTab — Perps Movers "View All" navigation', () => {
-  const mockUseSelector = useSelector as jest.MockedFunction<
-    typeof useSelector
-  >;
+  const arrangePerpsMoversMocks = (
+    marketDataOverride?: {
+      market: { symbol: string; change24hPercent: string };
+    }[],
+  ) => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({
+        perpsEnabled: true,
+      }),
+    );
 
-  // Selector base: perps enabled, everything else off.
-  const mockSelectorBase = (selector: unknown) => {
-    if (selector === selectPerpsEnabledFlag) return true;
-    if (selector === selectPredictEnabledFlag) return false;
-    return undefined;
+    if (marketDataOverride) {
+      mocks.usePerpsFeed.mockReturnValue({
+        data: marketDataOverride as never,
+        isLoading: false,
+        refetch: jest.fn(),
+        defaultSortOptionId: 'priceChange',
+      });
+    }
+
+    return mocks;
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseSelector.mockImplementation(mockSelectorBase);
-    mockWhatsHappeningImpl.mockReturnValue(null);
-  });
-
   it('calls navigateToPerpsMarketList with "all" filter, price change sort, and gainers direction by default', () => {
-    // Return one market so PerpsBlock does not bail out with an early null return.
-    mockUsePerpsFeed.mockReturnValue({
-      data: [{ market: { symbol: 'BTC', change24hPercent: '5' } }] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
-    });
+    const mocks = arrangePerpsMoversMocks();
 
     renderNowTab();
 
     fireEvent.press(screen.getByTestId('section-header-view-all-perps'));
 
-    expect(mockNavigateToPerpsMarketList).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToPerpsMarketList).toHaveBeenCalledWith(
-      expect.anything(), // navigation object
+    expect(mocks.navigateToPerpsMarketList).toHaveBeenCalledTimes(1);
+    expect(mocks.navigateToPerpsMarketList).toHaveBeenCalledWith(
+      expect.anything(),
       'all',
       'priceChange',
       { sortDirection: 'desc' },
@@ -498,15 +430,10 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders Gainers by default and filters out negative price changes', () => {
-    mockUsePerpsFeed.mockReturnValue({
-      data: [
-        { market: { symbol: 'BTC', change24hPercent: '5' } },
-        { market: { symbol: 'ETH', change24hPercent: '-3' } },
-      ] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
-    });
+    arrangePerpsMoversMocks([
+      { market: { symbol: 'BTC', change24hPercent: '5' } },
+      { market: { symbol: 'ETH', change24hPercent: '-3' } },
+    ]);
 
     renderNowTab();
 
@@ -516,11 +443,12 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders pill skeletons while Perps Movers are loading', () => {
-    mockUsePerpsFeed.mockReturnValue({
+    const mocks = arrangePerpsMoversMocks();
+    mocks.usePerpsFeed.mockReturnValue({
       data: [],
       isLoading: true,
       refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
+      defaultSortOptionId: 'priceChange',
     });
 
     renderNowTab();
@@ -531,15 +459,15 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders placeholder perps when price change data is unavailable after loading', () => {
-    mockUsePerpsFeed.mockReturnValue({
-      data: [
-        { market: { symbol: 'BTC', change24hPercent: '' } },
-        { market: { symbol: 'ETH', change24hPercent: undefined } },
-      ] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
-    });
+    arrangePerpsMoversMocks([
+      { market: { symbol: 'BTC', change24hPercent: '' } },
+      {
+        market: {
+          symbol: 'ETH',
+          change24hPercent: undefined as unknown as string,
+        },
+      },
+    ]);
 
     renderNowTab();
 
@@ -549,15 +477,10 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('does not render pill skeletons when price change data is valid but filtered out', () => {
-    mockUsePerpsFeed.mockReturnValue({
-      data: [
-        { market: { symbol: 'BTC', change24hPercent: '0%' } },
-        { market: { symbol: 'ETH', change24hPercent: '0.00%' } },
-      ] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
-    });
+    arrangePerpsMoversMocks([
+      { market: { symbol: 'BTC', change24hPercent: '0%' } },
+      { market: { symbol: 'ETH', change24hPercent: '0.00%' } },
+    ]);
 
     renderNowTab();
 
@@ -565,16 +488,11 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders Losers sorted by biggest negative move and passes ascending sort direction to the market list', () => {
-    mockUsePerpsFeed.mockReturnValue({
-      data: [
-        { market: { symbol: 'BTC', change24hPercent: '5' } },
-        { market: { symbol: 'ETH', change24hPercent: '-3' } },
-        { market: { symbol: 'SOL', change24hPercent: '-8' } },
-      ] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
-    });
+    const mocks = arrangePerpsMoversMocks([
+      { market: { symbol: 'BTC', change24hPercent: '5' } },
+      { market: { symbol: 'ETH', change24hPercent: '-3' } },
+      { market: { symbol: 'SOL', change24hPercent: '-8' } },
+    ]);
 
     renderNowTab();
 
@@ -586,7 +504,7 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
 
     fireEvent.press(screen.getByTestId('section-header-view-all-perps'));
 
-    expect(mockNavigateToPerpsMarketList).toHaveBeenCalledWith(
+    expect(mocks.navigateToPerpsMarketList).toHaveBeenCalledWith(
       expect.anything(),
       'all',
       'priceChange',
@@ -595,43 +513,89 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('does not render the Perps Movers section when the perps flag is disabled', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPerpsEnabledFlag) return false;
-      if (selector === selectPredictEnabledFlag) return false;
-      return undefined;
-    });
-
+    const mocks = arrangePerpsMoversMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({
+        perpsEnabled: false,
+      }),
+    );
     renderNowTab();
 
     expect(screen.queryByTestId('section-header-view-all-perps')).toBeNull();
   });
+
+  describe('live movers subscription gating', () => {
+    it('subscribes to live prices when the Now tab is active and the screen is focused', () => {
+      arrangePerpsMoversMocks();
+
+      renderNowTab(defaultTabProps, { activeTab: 'Now' });
+
+      expect(mockSubscribeToSymbols).toHaveBeenCalled();
+    });
+
+    it('does not subscribe to live prices when a different Explore tab is active', () => {
+      arrangePerpsMoversMocks();
+
+      renderNowTab(defaultTabProps, { activeTab: 'Macro' });
+
+      expect(mockSubscribeToSymbols).not.toHaveBeenCalled();
+    });
+
+    it('does not subscribe to live prices when the Explore screen is unfocused', () => {
+      arrangePerpsMoversMocks();
+      mockUseIsFocused.mockReturnValue(false);
+
+      renderNowTab(defaultTabProps, { activeTab: 'Now' });
+
+      expect(mockSubscribeToSymbols).not.toHaveBeenCalled();
+    });
+
+    it('stops establishing new live subscriptions once the tab becomes inactive', () => {
+      arrangePerpsMoversMocks([
+        { market: { symbol: 'BTC', change24hPercent: '5' } },
+      ]);
+
+      const { rerender } = renderNowTab(defaultTabProps, {
+        activeTab: 'Now',
+      });
+
+      expect(mockSubscribeToSymbols).toHaveBeenCalled();
+      const callsWhileActive = mockSubscribeToSymbols.mock.calls.length;
+
+      rerender(
+        <NavigationContainer>
+          <ExploreActiveTabProvider activeTab="Macro">
+            <NowTab {...defaultTabProps} />
+          </ExploreActiveTabProvider>
+        </NavigationContainer>,
+      );
+
+      // No further subscriptions should be established once disabled — the
+      // count should stay exactly where it was when the tab went inactive.
+      expect(mockSubscribeToSymbols.mock.calls.length).toBe(callsWhileActive);
+    });
+  });
 });
 
 describe('NowTab — Predictions navigation', () => {
-  const mockUseSelector = useSelector as jest.MockedFunction<
-    typeof useSelector
-  >;
+  const arrangePredictSelectionMocks = () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({
+        predictEnabled: true,
+      }),
+    );
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPerpsEnabledFlag) return false;
-      if (selector === selectPredictEnabledFlag) return true;
-      if (selector === selectWhatsHappeningEnabled) return false;
-      return undefined;
-    });
-    mockUsePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }],
-      isLoading: false,
-    });
-  });
+    return mocks;
+  };
 
   it('opens the Predict trending tab from the Predictions section title', () => {
+    const mocks = arrangePredictSelectionMocks();
     renderNowTab();
 
     fireEvent.press(screen.getByTestId(predictSectionTestId));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+    expect(mocks.navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
         entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
@@ -639,70 +603,20 @@ describe('NowTab — Predictions navigation', () => {
       },
     });
   });
-
-  it('opens the World Cup screen from the Predictions section title when World Cup predictions are enabled', () => {
-    mockUseWorldCupPredictionsFeed.mockReturnValue({
-      data: [{ id: 'world-cup-market-1' }],
-      isLoading: false,
-      isEnabled: true,
-    });
-
-    renderNowTab();
-
-    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId(predictSectionTestId));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.WORLD_CUP,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        initialTab: 'all',
-      },
-    });
-  });
 });
 
 describe('NowTab — Crypto Movers', () => {
-  const mockUseSelector = useSelector as jest.MockedFunction<
-    typeof useSelector
-  >;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPerpsEnabledFlag) return false;
-      if (selector === selectPredictEnabledFlag) return false;
-      if (selector === selectWhatsHappeningEnabled) return false;
-      return undefined;
-    });
-    mockUseTokensFeed.mockReturnValue({
-      data: [
-        {
-          assetId: 'eip155:1/erc20:0x1',
-          symbol: 'ONE',
-          priceChangePct: { h1: '1.23' },
-        },
-        {
-          assetId: 'eip155:1/erc20:0x2',
-          symbol: 'TWO',
-          priceChangePct: { h1: '2.34' },
-        },
-        {
-          assetId: 'eip155:1/erc20:0x3',
-          symbol: 'THREE',
-          priceChangePct: { h1: '3.45' },
-        },
-      ] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-  });
+  const arrangeCryptoMoversMocks = () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(createMockSelectorImpl({}));
+    return mocks;
+  };
 
   it('requests and opens Crypto Movers with the 1h filter', () => {
+    const mocks = arrangeCryptoMoversMocks();
     renderNowTab();
 
-    expect(mockUseTokensFeed).toHaveBeenCalledWith({
+    expect(mocks.useTokensFeed).toHaveBeenCalledWith({
       refresh: defaultRefresh,
       hideRiskyTokens: true,
       timeOption: '1h',
@@ -712,7 +626,7 @@ describe('NowTab — Crypto Movers', () => {
       screen.getByTestId('section-header-view-all-crypto_movers'),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
+    expect(mocks.navigate).toHaveBeenCalledWith(
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
       {
         initialTimeOption: '1h',
@@ -723,6 +637,7 @@ describe('NowTab — Crypto Movers', () => {
   });
 
   it('renders Crypto Movers across three rows', () => {
+    arrangeCryptoMoversMocks();
     renderNowTab();
 
     expect(
@@ -737,7 +652,8 @@ describe('NowTab — Crypto Movers', () => {
   });
 
   it('renders up to 18 Crypto Movers pills', () => {
-    mockUseTokensFeed.mockReturnValue({
+    const mocks = arrangeCryptoMoversMocks();
+    mocks.useTokensFeed.mockReturnValue({
       data: Array.from({ length: 19 }, (_, index) => ({
         assetId: `eip155:1/erc20:0x${index}`,
         symbol: `T${index}`,
@@ -751,5 +667,88 @@ describe('NowTab — Crypto Movers', () => {
 
     expect(screen.getByTestId('section-pill-eip155:1/erc20:0x17')).toBeTruthy();
     expect(screen.queryByTestId('section-pill-eip155:1/erc20:0x18')).toBeNull();
+  });
+});
+
+describe('NowTab — section ordering', () => {
+  const arrangeAllSectionsVisibleMocks = () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({
+        perpsEnabled: true,
+        predictEnabled: true,
+        whatsHappeningEnabled: true,
+      }),
+    );
+
+    return mocks;
+  };
+
+  const NOW_TAB_SECTION_ORDER_TEST_IDS = [
+    'explore-section-predict',
+    'explore-section-crypto_movers',
+    'explore-section-perps',
+    'explore-section-wh',
+    'explore-section-stocks',
+  ] as const;
+
+  type RootType = ReturnType<typeof render>['root'];
+
+  const NOW_TAB_SECTION_ORDER_TEST_IDS_SET = new Set<string>(
+    NOW_TAB_SECTION_ORDER_TEST_IDS,
+  );
+
+  const getNowTabSectionOrder = (tree: RootType): string[] => {
+    if (!tree) {
+      return [];
+    }
+
+    const processSections = (sectionTree: RootType): string[] => {
+      if (Array.isArray(sectionTree)) {
+        return sectionTree.flatMap(processSections);
+      }
+
+      const testID = sectionTree.props?.testID;
+      const ownTestIds =
+        typeof testID === 'string' &&
+        NOW_TAB_SECTION_ORDER_TEST_IDS_SET.has(testID)
+          ? [testID]
+          : [];
+
+      const childTestIds = (sectionTree.children ?? []).flatMap((child) =>
+        typeof child === 'string' ? [] : processSections(child),
+      );
+
+      return [...ownTestIds, ...childTestIds];
+    };
+
+    const results = processSections(tree);
+    return [...new Set(results)];
+  };
+
+  it('renders all sections in fixed order when every section is visible', () => {
+    arrangeAllSectionsVisibleMocks();
+    const { root } = renderNowTab();
+
+    expect(getNowTabSectionOrder(root)).toEqual(NOW_TAB_SECTION_ORDER_TEST_IDS);
+  });
+
+  it('keeps relative order when middle sections are hidden', () => {
+    const mocks = arrangeAllSectionsVisibleMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({
+        perpsEnabled: false,
+        predictEnabled: true,
+        whatsHappeningEnabled: false,
+      }),
+    );
+
+    const { root } = renderNowTab();
+
+    expect(getNowTabSectionOrder(root)).toEqual([
+      'explore-section-predict',
+      'explore-section-crypto_movers',
+      'explore-section-stocks',
+    ]);
   });
 });

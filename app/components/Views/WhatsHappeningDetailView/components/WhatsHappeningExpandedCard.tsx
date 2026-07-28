@@ -139,8 +139,8 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             style={tw.style('flex-1')}
             contentContainerStyle={tw.style('pt-7 px-5 pb-5 gap-4')}
           >
-            {/* Tag row: AI pill + impact badge */}
-            {item.impact && (
+            {/* Tag row: AI pill + impact badge + outdated badge */}
+            {(item.impact || item.isOutdated) && (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
@@ -182,13 +182,26 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                   )}
                 </Pressable>
 
-                <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
-                >
-                  <Text variant={TextVariant.BodySm} color={impactTextColor}>
-                    {impactLabel}
-                  </Text>
-                </Box>
+                {item.impact ? (
+                  <Box
+                    twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
+                  >
+                    <Text variant={TextVariant.BodySm} color={impactTextColor}>
+                      {impactLabel}
+                    </Text>
+                  </Box>
+                ) : null}
+
+                {item.isOutdated ? (
+                  <Box twClassName="bg-warning-muted rounded px-2 py-1 self-start border border-transparent">
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.WarningDefault}
+                    >
+                      {strings('whats_happening.outdated')}
+                    </Text>
+                  </Box>
+                ) : null}
               </Box>
             )}
 

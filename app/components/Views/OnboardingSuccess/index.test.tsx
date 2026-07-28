@@ -21,13 +21,18 @@ import {
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   setWalletHomeOnboardingStepsEligible,
 } from '../../../actions/onboarding';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { analytics } from '../../../util/analytics/analytics';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { clearAttribution } from '../../../core/redux/slices/attribution';
 
-jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 jest.mock('../../../selectors/onboarding', () => ({
   ...jest.requireActual('../../../selectors/onboarding'),
@@ -44,9 +49,14 @@ jest.mock('../../../selectors/attribution', () => ({
   selectWalletSetupCompletedAttributionAnalyticsProps: jest.fn(),
 }));
 
-const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
-  typeof trackOnboarding
->;
+jest.mock('../../../selectors/qrSyncController', () => ({
+  ...jest.requireActual('../../../selectors/qrSyncController'),
+  selectQrSyncNeedsProvisioning: jest.fn(),
+}));
+
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
+
+const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -58,6 +68,10 @@ jest.mock('../../../core/Engine/Engine', () => ({
           },
         ],
       },
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
     },
     NetworkController: {
       addNetwork: jest.fn().mockResolvedValue(undefined),
@@ -123,6 +137,17 @@ jest.mock('@react-navigation/native', () => {
 
 const mockDispatch = jest.fn();
 
+const setupSelectorMocks = () => {
+  jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(false);
+  jest
+    .mocked(selectOnboardingAccountType)
+    .mockReturnValue(AccountType.Imported);
+  jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+  jest
+    .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
+    .mockReturnValue({});
+};
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
@@ -131,13 +156,12 @@ jest.mock('react-redux', () => ({
 describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .mocked(selectOnboardingAccountType)
-      .mockReturnValue(AccountType.Imported);
-    jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
-    jest
-      .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
-      .mockReturnValue({});
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
+    setupSelectorMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders correctly when successFlow is BACKED_UP_SRP', () => {
@@ -186,7 +210,7 @@ describe('OnboardingSuccessComponent', () => {
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     fireEvent.press(button);
 
-    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Onboarding Completed',
         properties: expect.objectContaining({
@@ -198,9 +222,9 @@ describe('OnboardingSuccessComponent', () => {
           onboarding_type: 'seed_phrase',
         }),
       }),
-      expect.any(Function),
     );
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
       setWalletHomeOnboardingStepsEligible(true, {
         skipInitialBalanceWait: true,
@@ -229,7 +253,7 @@ describe('OnboardingSuccessComponent', () => {
     );
     fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
 
-    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Onboarding Completed',
         properties: expect.objectContaining({
@@ -243,16 +267,32 @@ describe('OnboardingSuccessComponent', () => {
           attribution_id: 'aid-1',
         }),
       }),
-      expect.any(Function),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
-  it('logs when discoverAccounts rejects and still invokes onDone', async () => {
-    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
-      // Do nothing
-    });
-    mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+  it('calls provisionFromMetadata instead of discoverAccounts for QR sync users', () => {
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+    expect(jest.mocked(selectQrSyncNeedsProvisioning)).toHaveBeenCalled();
+  });
+
+  it('still invokes onDone when provisionFromMetadata rejects for QR sync users', async () => {
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+    mockProvisionFromMetadata.mockRejectedValueOnce(
+      new Error('provisioning failed'),
+    );
     const onDone = jest.fn();
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
@@ -265,14 +305,38 @@ describe('OnboardingSuccessComponent', () => {
     await waitFor(() => {
       expect(onDone).toHaveBeenCalled();
     });
-    await waitFor(() => {
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.any(Error),
-        'OnboardingSuccess: discoverAccounts failed',
-      );
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
+  });
+
+  it('logs when discoverAccounts rejects and still invokes onDone', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // Do nothing
     });
-    loggerSpy.mockRestore();
-    mockDiscoverAccounts.mockResolvedValue(0);
+    try {
+      mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+      const onDone = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={onDone}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
+      );
+      fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+      await waitFor(() => {
+        expect(onDone).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(loggerSpy).toHaveBeenCalledWith(
+          expect.any(Error),
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      });
+    } finally {
+      loggerSpy.mockRestore();
+      mockDiscoverAccounts.mockResolvedValue(0);
+    }
   });
 
   it('does not mark steps eligible for SETTINGS_BACKUP flow when Done is pressed', () => {
@@ -284,7 +348,7 @@ describe('OnboardingSuccessComponent', () => {
     );
     fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
 
-    expect(mockTrackOnboarding).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     expect(
       mockDispatch.mock.calls.some(
         (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
@@ -388,9 +452,15 @@ describe('OnboardingSuccessComponent', () => {
 
 describe('OnboardingSuccess', () => {
   beforeEach(() => {
-    mockDiscoverAccounts.mockClear();
+    jest.clearAllMocks();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
+    setupSelectorMocks();
     mockDiscoverAccounts.mockResolvedValue(0);
     mockRouteParams = {};
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
@@ -399,9 +469,11 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('fails to add networks to the network controller but renders the component', () => {
@@ -409,9 +481,11 @@ describe('OnboardingSuccess', () => {
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
   });
 
@@ -421,10 +495,11 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
@@ -432,7 +507,9 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      );
       fireEvent.press(button);
       expect(mockDiscoverAccounts).toHaveBeenCalled();
 
@@ -441,6 +518,27 @@ describe('OnboardingSuccess', () => {
           skipInitialBalanceWait: true,
         }),
       );
+      await waitFor(() => {
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          ResetNavigationToHome,
+        );
+      });
+    });
+  });
+
+  describe('first predict on us splash flow', () => {
+    it('resets to HomeNav when Done is pressed after the gate completes', async () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      };
+
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      );
+
+      fireEvent.press(button);
+
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           ResetNavigationToHome,

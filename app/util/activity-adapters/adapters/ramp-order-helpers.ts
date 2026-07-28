@@ -15,7 +15,7 @@ import type { ActivityListItem, Status, TokenAmount } from '../types';
 
 export type RampActivityKind = Extract<
   ActivityListItem['type'],
-  'buy' | 'sell' | 'deposit'
+  'buy' | 'sell'
 >;
 
 export function mapRampOrderType(
@@ -23,11 +23,10 @@ export function mapRampOrderType(
 ): RampActivityKind | null {
   switch (orderType) {
     case OrderOrderTypeEnum.Buy:
+    case DepositOrderType.Deposit:
       return 'buy';
     case OrderOrderTypeEnum.Sell:
       return 'sell';
-    case DepositOrderType.Deposit:
-      return 'deposit';
     default:
       return null;
   }
@@ -50,15 +49,16 @@ export function mapRampOrderStatus(state: FiatOrder['state']): Status {
 
 export function toRampOrderCaipChainId(network: string): CaipChainId | null {
   try {
-    const parsedCaipChainId = isCaipChainId(network)
-      ? parseCaipChainId(network)
-      : undefined;
-    if (parsedCaipChainId && parsedCaipChainId.namespace !== 'eip155') {
+    if (!network) {
       return null;
     }
 
-    const chainReference =
-      parsedCaipChainId?.reference ?? getDecimalChainId(network);
+    if (isCaipChainId(network)) {
+      const { namespace, reference } = parseCaipChainId(network);
+      return toCaipChainId(namespace, reference);
+    }
+
+    const chainReference = getDecimalChainId(network);
     if (!chainReference || Number.isNaN(Number(chainReference))) {
       return null;
     }
@@ -97,13 +97,16 @@ export function toRampOrderToken(
   order: FiatOrder,
   direction: TokenAmount['direction'],
 ): TokenAmount {
-  const { assetId, decimals } = getRampOrderCryptoCurrencyMetadata(order);
+  const { assetId } = getRampOrderCryptoCurrencyMetadata(order);
 
+  // FiatOrder.cryptoAmount is already human-readable. Activity TokenAmount
+  // amounts are treated as atomic when `decimals` is set
+  // (`getHumanReadableTokenAmount` → formatUnits), so do not attach decimals
+  // from cryptoCurrency metadata here.
   return {
     amount:
       order.cryptoAmount === undefined ? undefined : String(order.cryptoAmount),
     assetId,
-    decimals,
     symbol: order.cryptocurrency,
     direction,
   };

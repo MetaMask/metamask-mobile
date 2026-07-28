@@ -172,6 +172,77 @@ describe('useActivityDetailsDoItAgain', () => {
     );
   });
 
+  it('hydrates a non-EVM (Solana) swap leg from held tokens even though the activity row has no decimals', () => {
+    const heldSol = {
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      symbol: 'SOL',
+      decimals: 9,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      image: 'https://example.com/sol.png',
+      balance: '2.5',
+      tokenFiatAmount: 250,
+    };
+    const heldUsdc = {
+      address:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      image: 'https://example.com/usdc.png',
+      balance: '42.0',
+      tokenFiatAmount: 42,
+    };
+    mockUseTokensWithBalance.mockReturnValue([heldSol, heldUsdc] as ReturnType<
+      typeof useTokensWithBalance
+    >);
+
+    // Solana activity rows carry a symbol + asset id but no decimals.
+    const solSource = {
+      amount: '1000000000',
+      symbol: 'SOL',
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      direction: 'out',
+    } as TokenAmount;
+    const usdcDest = {
+      amount: '42000000',
+      symbol: 'USDC',
+      assetId:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      direction: 'in',
+    } as TokenAmount;
+
+    const { result } = renderHook(() =>
+      useActivityDetailsDoItAgain({
+        sourceToken: solSource,
+        destinationToken: usdcDest,
+        fallbackCaipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      }),
+    );
+
+    result.current();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          // Real decimals (9 / 6) come from the held tokens, not the 0
+          // placeholder the skeleton carries for non-EVM rows.
+          sourceToken: expect.objectContaining({
+            symbol: 'SOL',
+            decimals: 9,
+            image: 'https://example.com/sol.png',
+            balance: '2.5',
+          }),
+          destToken: expect.objectContaining({
+            symbol: 'USDC',
+            decimals: 6,
+            balance: '42.0',
+          }),
+        }),
+      }),
+    );
+  });
+
   it('does nothing when the source token cannot be mapped to a bridge token', () => {
     const { result } = renderHook(() =>
       useActivityDetailsDoItAgain({
@@ -197,5 +268,20 @@ describe('canRenderActivityDetailsDoItAgain', () => {
     expect(canRenderActivityDetailsDoItAgain(undefined, 'eip155:1')).toBe(
       false,
     );
+  });
+
+  it('returns true for a non-EVM (Solana) token with a symbol but no decimals', () => {
+    const solToken = {
+      symbol: 'SOL',
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      direction: 'out',
+    } as TokenAmount;
+
+    expect(
+      canRenderActivityDetailsDoItAgain(
+        solToken,
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      ),
+    ).toBe(true);
   });
 });

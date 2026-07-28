@@ -5,12 +5,7 @@ jest.mock('prettier', () => ({
   },
 }));
 
-jest.mock('child_process', () => ({
-  execFileSync: jest.fn(),
-}));
-
 /* eslint-disable import-x/no-nodejs-modules -- Node.js script for CI/sync */
-import { execFileSync } from 'child_process';
 import fs from 'fs';
 import {
   getProductionRemoteFlagApiResponse,
@@ -429,14 +424,7 @@ describe('findDuplicateRegistryKeys', () => {
 });
 
 describe('validateRegistryFile', () => {
-  const mockedExecFileSync = execFileSync as unknown as jest.Mock;
-
-  beforeEach(() => {
-    mockedExecFileSync.mockReset();
-  });
-
-  it('returns empty array for valid content with no duplicates and clean tsc', () => {
-    mockedExecFileSync.mockReturnValue('');
+  it('returns empty array for valid content with no duplicates', () => {
     const content = `
   flagA: {
     name: 'flagA',
@@ -449,7 +437,6 @@ describe('validateRegistryFile', () => {
   });
 
   it('returns duplicate key errors', () => {
-    mockedExecFileSync.mockReturnValue('');
     const content = `
   flagA: {
     name: 'flagA',
@@ -461,80 +448,6 @@ describe('validateRegistryFile', () => {
     const errors = validateRegistryFile(content);
     expect(errors.length).toBeGreaterThan(0);
     expect(errors[0]).toContain('flagA');
-  });
-
-  it('returns TypeScript errors from tsc', () => {
-    const tsError =
-      'feature-flag-registry.ts(10,3): error TS1117: Duplicate property';
-    mockedExecFileSync.mockImplementation(() => {
-      const err = new Error('tsc failed') as Error & { stdout: string };
-      err.stdout = tsError;
-      throw err;
-    });
-    const content = `
-  flagA: {
-    name: 'flagA',
-  },
-`;
-    const errors = validateRegistryFile(content);
-    expect(errors).toContainEqual(expect.stringContaining('error TS1117'));
-  });
-
-  it('catches chained TypeScript errors from imported files', () => {
-    const chainedError =
-      'node_modules/@metamask/utils/types.d.ts(5,1): error TS2305: Module has no exported member';
-    mockedExecFileSync.mockImplementation(() => {
-      const err = new Error('tsc failed') as Error & { stdout: string };
-      err.stdout = chainedError;
-      throw err;
-    });
-    const content = `
-  flagA: {
-    name: 'flagA',
-  },
-`;
-    const errors = validateRegistryFile(content);
-    expect(errors).toContainEqual(expect.stringContaining('error TS2305'));
-  });
-
-  it('reports error when tsc fails to spawn with no output', () => {
-    mockedExecFileSync.mockImplementation(() => {
-      const err = new Error('ENOENT') as Error & {
-        stdout: string;
-        stderr: string;
-      };
-      err.stdout = '';
-      err.stderr = '';
-      throw err;
-    });
-    const content = `
-  flagA: {
-    name: 'flagA',
-  },
-`;
-    const errors = validateRegistryFile(content);
-    expect(errors).toContainEqual(expect.stringContaining('tsc failed to run'));
-  });
-
-  it('reports error when tsc exits with non-TS diagnostic output', () => {
-    mockedExecFileSync.mockImplementation(() => {
-      const err = new Error('tsc failed') as Error & {
-        stdout: string;
-        stderr: string;
-      };
-      err.stdout = 'Some unexpected compiler crash output';
-      err.stderr = '';
-      throw err;
-    });
-    const content = `
-  flagA: {
-    name: 'flagA',
-  },
-`;
-    const errors = validateRegistryFile(content);
-    expect(errors).toContainEqual(
-      expect.stringContaining('tsc exited with an error'),
-    );
   });
 });
 

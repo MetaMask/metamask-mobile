@@ -25,6 +25,7 @@ export type {
   RewardsDataServiceGetPredictThePitchPositionsAction,
   RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
+  RewardsDataServiceGetFirstPredictOnUsAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -61,7 +62,7 @@ interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
-export function PayWithRow({
+function PayWithRowComponent({
   isResultReady,
 }: { isResultReady?: boolean } = {}) {
   const transactionMeta = useTransactionMetadataRequest();
@@ -97,6 +98,8 @@ export function PayWithRow({
 
   return <PayWithRowInteractive />;
 }
+
+export const PayWithRow = memo(PayWithRowComponent);
 
 function PayWithRowLayout({
   label,
@@ -151,7 +154,7 @@ function PayWithRowLayout({
 }
 
 function PayWithRowInteractive() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -208,7 +211,10 @@ function PayWithRowInteractive() {
   }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
 
   const balanceUsdFormatted = useMemo(
-    () => formatFiat(new BigNumber(accountBalanceUsd)),
+    () =>
+      formatFiat(
+        new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
+      ),
     [formatFiat, accountBalanceUsd],
   );
 
@@ -338,14 +344,14 @@ function PayWithRowEmpty({
         color={TextColor.TextAlternative}
         testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
       >
-        {strings('confirm.label.select_token')}
+        {strings('confirm.label.select_payment_method')}
       </Text>
     </PayWithRowLayout>
   );
 }
 
 function PayWithRowMoneyAccount() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isWithdraw } = useTransactionPayWithdraw();
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();

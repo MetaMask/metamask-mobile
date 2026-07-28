@@ -2,9 +2,8 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokePerps } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { placeLimitOrderAtPreset } from '../../flows/perps.flow.js';
-import PerpsView from '../../page-objects/Perps/PerpsView.js';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
-import Assertions from '../../framework/Assertions.js';
 import { TestSuiteParams } from '../../framework/types.js';
 import {
   beginPerpsSmokeTestPlaywright,
@@ -35,10 +34,8 @@ appiumTest.describe(SmokePerps('Perps - Limit order no fill'), () => {
           await beginPerpsSmokeTestPlaywright();
 
           await placeLimitOrderAtPreset(PERPS_SMOKE_MARKET_SYMBOL, 'long', -1);
-          await PerpsView.navigateToPerpsPortfolioHomeFromMarketOrderFlow();
 
-          await PerpsView.expectLimitOrderVisibleOnPortfolio({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
+          await PerpsMarketDetailsView.expectCompactOpenOrderVisible({
             direction: 'long',
           });
 
@@ -48,22 +45,11 @@ appiumTest.describe(SmokePerps('Perps - Limit order no fill'), () => {
             '2480.00',
           );
 
-          await PerpsView.expectLimitOrderVisibleOnPortfolio({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
+          await PerpsMarketDetailsView.expectCompactOpenOrderVisible({
             direction: 'long',
           });
 
-          await Assertions.expectElementToNotBeVisible(
-            PerpsView.getPositionItemAnyLeverage(
-              PERPS_SMOKE_MARKET_SYMBOL,
-              'long',
-            ),
-            {
-              description:
-                'No ETH long position row while limit order remains unfilled',
-              timeout: 5000,
-            },
-          );
+          await PerpsMarketDetailsView.expectClosePositionButtonNotVisible();
         },
       );
     },

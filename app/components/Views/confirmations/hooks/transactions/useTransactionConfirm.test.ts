@@ -51,7 +51,10 @@ jest.mock('../gas/useGaslessSupportedSmartTransactions');
 jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 jest.mock('../../../../../util/address');
 jest.mock('../pay/useFiatConfirm');
-jest.mock('../../../../../util/navigation/navUtils');
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
+}));
 jest.mock('../../../../UI/HardwareWallet/Swaps/useHandleHwSend', () => ({
   useHandleHwSend: jest.fn(),
 }));
@@ -906,6 +909,74 @@ describe('useTransactionConfirm', () => {
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.not.objectContaining({ isExternalSign: true }),
+      });
+    });
+  });
+
+  describe('isExternalSign revert for unsupported accounts', () => {
+    // Regression: on gas-sponsorship chains (e.g. Monad, SEI) the
+    // TransactionController sets `isExternalSign = true` from
+    // `isGasFeeSponsored` during gas simulation regardless of account type.
+    // For hardware wallets no relay is eligible (HW cannot hold an EIP-7702
+    // delegation), so leaving the flag set skips device signing and an empty
+    // `0x` payload reaches eth_sendRawTransaction. The fix reverts the flag
+    // whenever gasless sponsorship cannot apply for the account/chain.
+
+    it('reverts isExternalSign when gasless is unsupported (hardware wallet on sponsored chain)', async () => {
+      isHardwareAccountMock.mockReturnValue(true);
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        isGasFeeSponsored: true,
+        isExternalSign: true,
+        txParams: { from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isExternalSign: false,
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
+
+    it('keeps isExternalSign when gasless is supported (EOA relay path intact)', async () => {
+      isHardwareAccountMock.mockReturnValue(false);
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: true,
+        isSmartTransaction: true,
+        pending: false,
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        isGasFeeSponsored: true,
+        isExternalSign: true,
+        txParams: { from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isExternalSign: true,
+          isGasFeeSponsored: true,
+        }),
       });
     });
   });

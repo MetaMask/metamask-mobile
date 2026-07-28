@@ -10,7 +10,10 @@ import type { PolymarketApiMarket } from './types';
 
 const DISPLAYED_SPREAD_LINE_PATTERN = /([+-]\d+(?:\.\d+)?)$/;
 const SOCCER_TEAM_TOTALS_MARKET_TYPE = 'soccer_team_totals';
+const SOCCER_PLAYER_GOALS_MARKET_TYPE = 'soccer_player_goals';
 const OVER_UNDER_SUBJECT_PATTERN = /^(.*?)[:]?\s*O\/U\s*[\d.]+\s*$/;
+const PLAYER_GOALS_SUBJECT_PATTERN = /^(.+?):\s*\d+\+\s+goals?\s*$/iu;
+const MAX_PLAYER_GOAL_SUBGROUPS = 16;
 
 export const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
@@ -113,12 +116,86 @@ const buildSoccerTeamTotalsSubgroups = (
   );
 };
 
+const isSoccerPlayerGoalsMarketType = (type?: string): boolean =>
+  type?.toLowerCase() === SOCCER_PLAYER_GOALS_MARKET_TYPE;
+
+const getPlayerGoalSubject = (outcome: PredictOutcome): string => {
+  const raw = outcome.groupItemTitle || outcome.title || outcome.id;
+  const player = raw.match(PLAYER_GOALS_SUBJECT_PATTERN)?.[1]?.trim();
+
+  return player || raw.split(':')[0].trim() || outcome.id;
+};
+
+const getPlayerGoalSubgroupKey = (player: string): string => {
+  const normalizedPlayer = player
+    .trim()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  const slug =
+    normalizedPlayer.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') ||
+    'unknown-player';
+
+  return `${SOCCER_PLAYER_GOALS_MARKET_TYPE}-${slug}`;
+};
+
+const buildSoccerPlayerGoalsSubgroups = (
+  outcomes: PredictOutcome[],
+): PredictOutcomeGroup[] => {
+  const outcomesByPlayerKey = new Map<
+    string,
+    { title: string; outcomes: PredictOutcome[] }
+  >();
+
+  for (const outcome of outcomes) {
+    const player = getPlayerGoalSubject(outcome);
+    const key = getPlayerGoalSubgroupKey(player);
+    const bucket = outcomesByPlayerKey.get(key);
+    if (bucket) {
+      bucket.outcomes.push(outcome);
+    } else {
+      outcomesByPlayerKey.set(key, { title: player, outcomes: [outcome] });
+    }
+  }
+
+  return [...outcomesByPlayerKey.entries()]
+    .sort((a, b) => {
+      const aScore = a[1].outcomes.reduce(
+        (sum, outcome) => sum + outcome.volume + (outcome.liquidity ?? 0),
+        0,
+      );
+      const bScore = b[1].outcomes.reduce(
+        (sum, outcome) => sum + outcome.volume + (outcome.liquidity ?? 0),
+        0,
+      );
+
+      if (aScore !== bScore) {
+        return bScore - aScore;
+      }
+
+      return a[1].title.localeCompare(b[1].title);
+    })
+    .slice(0, MAX_PLAYER_GOAL_SUBGROUPS)
+    .map(([key, playerGroup]) => ({
+      key,
+      title: playerGroup.title,
+      outcomes: sortLineOutcomesForDisplay(
+        playerGroup.outcomes,
+        SOCCER_PLAYER_GOALS_MARKET_TYPE,
+      ),
+    }));
+};
+
 const buildSubgroupsForType = (
   type: string,
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] => {
   if (isSoccerTeamTotalsMarketType(type)) {
     return buildSoccerTeamTotalsSubgroups(outcomes);
+  }
+
+  if (isSoccerPlayerGoalsMarketType(type)) {
+    return buildSoccerPlayerGoalsSubgroups(outcomes);
   }
 
   return [
@@ -229,7 +306,10 @@ export function buildOutcomeGroups(
 
     if (typeMap.size < 2) {
       const [[type, typeOutcomes]] = typeMap.entries();
-      if (isSoccerTeamTotalsMarketType(type)) {
+      if (
+        isSoccerTeamTotalsMarketType(type) ||
+        isSoccerPlayerGoalsMarketType(type)
+      ) {
         return {
           key,
           outcomes: [],

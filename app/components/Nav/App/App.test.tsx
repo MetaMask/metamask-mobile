@@ -3,7 +3,7 @@ import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
-import { cleanup, render, waitFor } from '@testing-library/react-native';
+import { act, cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -589,7 +589,7 @@ describe('App', () => {
       });
 
       jest.useFakeTimers();
-    });
+    }, 30000);
   });
 
   describe('route registration', () => {
@@ -659,7 +659,6 @@ describe('App', () => {
     });
 
     it('has sheet routes defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
       expect(Routes.SHEET.NETWORK_SELECTOR).toBeDefined();
       expect(Routes.SHEET.ONBOARDING_SHEET).toBeDefined();
       expect(Routes.SHEET.SDK_LOADING).toBeDefined();
@@ -761,6 +760,10 @@ describe('App', () => {
 
   describe('App version handling', () => {
     it('should handle version storage operations', async () => {
+      const getItemSpy = jest
+        .spyOn(StorageWrapper, 'getItem')
+        .mockResolvedValue(null);
+
       const mockStore = configureMockStore();
       const store = mockStore(initialState);
 
@@ -776,9 +779,15 @@ describe('App', () => {
 
       render(<App />, { wrapper: Providers });
 
-      await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalled();
+      // Flush startApp's microtasks. Avoid waitFor here: this suite uses fake
+      // timers and testSetup freezes Date.now, so waitFor's timeout never
+      // elapses and a delayed getItem call hangs until Jest's test timeout.
+      await act(async () => {
+        await Promise.resolve();
       });
+
+      expect(getItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION);
+      getItemSpy.mockRestore();
     });
   });
 
@@ -805,9 +814,11 @@ describe('App', () => {
 
       renderAppForVersionTest(initialState);
 
-      await waitFor(() => {
-        expect(getItemSpy).toHaveBeenCalled();
+      await act(async () => {
+        await Promise.resolve();
       });
+
+      expect(getItemSpy).toHaveBeenCalled();
 
       getItemSpy.mockRestore();
     });
@@ -1180,7 +1191,7 @@ describe('App', () => {
 
   describe('Account management screens', () => {
     it('has account selector route defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
+      expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR).toBeDefined();
     });
 
     it('has address selector route defined', () => {

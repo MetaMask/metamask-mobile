@@ -81,6 +81,9 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Isolate from prior CV suites that use nock (Ramp/PriceAlerts) — leftover
+    // interceptor TLS state surfaces here as unhandled `read EINVAL`.
+    clearSeedlessAuthServerMocks();
     getTypeSpy = mockAuthenticationGetType();
     if (Engine.context.SeedlessOnboardingController?.state) {
       Engine.context.SeedlessOnboardingController.state.accessToken =
@@ -188,7 +191,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     },
   );
 
-  it('posts marketing opt-in to auth server and navigates to onboarding success after wallet creation', async () => {
+  it('posts marketing opt-in to auth server and navigates to interest questionnaire after wallet creation', async () => {
     setupSeedlessAuthServerMocks({ marketingOptIn: true });
     mockAuthenticationForSocialWalletCreation();
 
@@ -218,6 +221,6 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
     );
 
-    await findByTestId(`route-${Routes.ONBOARDING.SUCCESS_FLOW}`);
+    await findByTestId(`route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`);
   });
 });

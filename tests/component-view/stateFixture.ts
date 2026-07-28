@@ -40,11 +40,6 @@ export const defaultFeatureFlags: Record<string, unknown> = {
     featureVersion: null,
     minimumVersion: null,
   },
-  rewardsEnabled: {
-    enabled: false,
-    featureVersion: null,
-    minimumVersion: null,
-  },
   rewardsAnnouncementModalEnabled: {
     enabled: false,
     featureVersion: null,

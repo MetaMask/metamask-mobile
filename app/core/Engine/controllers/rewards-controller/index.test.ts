@@ -10,12 +10,16 @@ import { rewardsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectRewardsFirstPredictOnUsEnabled } from '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs';
 import { isVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('./RewardsController');
 jest.mock('../../../../selectors/settings');
 jest.mock('../../../../selectors/featureFlagController/vipProgram');
+jest.mock(
+  '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs',
+);
 jest.mock('../../../../util/remoteFeatureFlag');
 
 describe('rewardsControllerInit', () => {
@@ -24,6 +28,9 @@ describe('rewardsControllerInit', () => {
     selectBasicFunctionalityEnabled,
   );
   const selectVipProgramEnabledMock = jest.mocked(selectVipProgramEnabled);
+  const selectRewardsFirstPredictOnUsEnabledMock = jest.mocked(
+    selectRewardsFirstPredictOnUsEnabled,
+  );
   const isVersionGatedFeatureFlagMock = jest.mocked(isVersionGatedFeatureFlag);
 
   let initRequestMock: jest.Mocked<
@@ -76,6 +83,7 @@ describe('rewardsControllerInit', () => {
     // Default mock return values
     selectBasicFunctionalityEnabledMock.mockReturnValue(true);
     selectVipProgramEnabledMock.mockReturnValue(true);
+    selectRewardsFirstPredictOnUsEnabledMock.mockReturnValue(true);
     isVersionGatedFeatureFlagMock.mockReturnValue(false);
   });
 
@@ -162,6 +170,33 @@ describe('rewardsControllerInit', () => {
       const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
       const isVipDisabledFn = constructorArgs.isVipDisabled as () => boolean;
       expect(isVipDisabledFn()).toBe(true);
+    });
+  });
+
+  describe('isFirstPredictOnUsDisabled function', () => {
+    it('returns false when First Predict On Us is enabled', () => {
+      selectRewardsFirstPredictOnUsEnabledMock.mockReturnValue(true);
+
+      rewardsControllerInit(initRequestMock);
+
+      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
+      const isFirstPredictOnUsDisabledFn =
+        constructorArgs.isFirstPredictOnUsDisabled as () => boolean;
+      expect(isFirstPredictOnUsDisabledFn()).toBe(false);
+      expect(selectRewardsFirstPredictOnUsEnabledMock).toHaveBeenCalledWith(
+        initRequestMock.getState(),
+      );
+    });
+
+    it('returns true when First Predict On Us is disabled', () => {
+      selectRewardsFirstPredictOnUsEnabledMock.mockReturnValue(false);
+
+      rewardsControllerInit(initRequestMock);
+
+      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
+      const isFirstPredictOnUsDisabledFn =
+        constructorArgs.isFirstPredictOnUsDisabled as () => boolean;
+      expect(isFirstPredictOnUsDisabledFn()).toBe(true);
     });
   });
 });

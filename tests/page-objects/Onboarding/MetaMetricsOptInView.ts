@@ -25,11 +25,11 @@ class MetaMetricsOptIn {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
         ),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
           {
             exact: true,
           },
@@ -71,8 +71,8 @@ class MetaMetricsOptIn {
     );
   }
 
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(
+  get scrollViewIdentifier() {
+    return Matchers.scrollContainer(
       MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
     );
   }

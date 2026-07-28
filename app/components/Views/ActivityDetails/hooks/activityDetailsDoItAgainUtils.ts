@@ -42,26 +42,33 @@ export function toBridgeToken(
   fallbackCaipChainId: CaipChainId,
 ): BridgeToken | undefined {
   const symbol = token?.symbol;
-  const decimals = token?.decimals;
-  const address = getActivityTokenAddress(token);
-
-  if (!symbol || decimals === undefined) {
+  if (!symbol) {
     return undefined;
   }
 
   const chainId = getActivityTokenCaipChainId(token, fallbackCaipChainId);
+  const isNonEvm = isNonEvmChainId(chainId);
+  const decimals = token?.decimals;
+
+  if (!isNonEvm && decimals === undefined) {
+    return undefined;
+  }
+
   const image = token?.assetId
-    ? getTokenIconUrl(token.assetId as CaipAssetType, isNonEvmChainId(chainId))
+    ? getTokenIconUrl(token.assetId as CaipAssetType, isNonEvm)
     : undefined;
-  const rawAddress = address ?? NATIVE_SWAPS_TOKEN_ADDRESS;
-  const normalizedAddress = isNonEvmChainId(chainId)
-    ? rawAddress
-    : normalizeTokenAddress(rawAddress, formatChainIdToHex(chainId));
+
+  const address = isNonEvm
+    ? (token?.assetId ?? NATIVE_SWAPS_TOKEN_ADDRESS)
+    : normalizeTokenAddress(
+        getActivityTokenAddress(token) ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+        formatChainIdToHex(chainId),
+      );
 
   return {
-    address: normalizedAddress,
+    address,
     symbol,
-    decimals,
+    decimals: decimals ?? 0,
     chainId,
     ...(image ? { image } : {}),
   };

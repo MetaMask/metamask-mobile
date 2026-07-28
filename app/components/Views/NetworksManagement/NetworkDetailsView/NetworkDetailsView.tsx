@@ -7,10 +7,8 @@ import React, {
 } from 'react';
 import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import {
-  KeyboardAwareScrollView,
-  KeyboardProvider,
-} from 'react-native-keyboard-controller';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -78,7 +76,7 @@ type NetworkDetailsRouteParams = RouteProp<
 
 const NetworkDetailsView = () => {
   const route = useRoute<NetworkDetailsRouteParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = route.params;
   const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
@@ -260,7 +258,7 @@ const NetworkDetailsView = () => {
 
   const placeholderTextColor = colors.text.muted;
 
-  const content = (
+  return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
       edges={['top', 'bottom']}
@@ -435,8 +433,6 @@ const NetworkDetailsView = () => {
       )}
     </SafeAreaView>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default NetworkDetailsView;
