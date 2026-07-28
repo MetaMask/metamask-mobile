@@ -590,6 +590,27 @@ function getMetricRows(baselineSummary, currentSummary) {
   });
 }
 
+function buildRegressionSummary(rows) {
+  const warned = (rows ?? []).filter((row) => row.warn);
+  if (warned.length === 0) {
+    return '✅ No metrics over the +10% baseline margin.';
+  }
+
+  const list = warned
+    .map((row) => {
+      const delta = String(row.deltaText ?? '')
+        .replaceAll('**', '')
+        .replace(' ⚠️', '')
+        .trim();
+      return delta ? `${row.label} (${delta})` : row.label;
+    })
+    .join(', ');
+
+  return `⚠️ **${warned.length}** metric${
+    warned.length === 1 ? '' : 's'
+  } over +10%: ${list}`;
+}
+
 function buildScenarioComment({
   testName,
   platform,
@@ -621,11 +642,13 @@ function buildScenarioComment({
 
   if (!baseline) {
     md += `\n\n⚠️ No usable baseline profiling found on \`${baselineBranch}\` (within recent \`aggregated-reports\` retention) for this scenario + device.\n\n`;
-    md += `### Current profilingSummary\n\n`;
+    md += `**Summary:** current profiling only (no baseline comparison).\n\n`;
+    md += `<details>\n<summary>Current profilingSummary JSON</summary>\n\n`;
     md += '```json\n';
     md += `${JSON.stringify(currentArtifact.profilingSummary, null, 2)}\n`;
-    md += '```\n';
-    md += `\n${COMMENT_MARKER}\n`;
+    md += '```\n\n';
+    md += `</details>\n\n`;
+    md += `${COMMENT_MARKER}\n`;
     return md;
   }
 
@@ -646,25 +669,28 @@ function buildScenarioComment({
   if (baseline.isGreen === false) {
     md += `\n> ⚠️ No green baseline was available for this scenario on \`${baselineBranch}\`. Comparing against the latest usable profiling anyway.\n`;
   }
-  md += '\n';
-  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
-  md += `> - If \`Current <= Baseline + 10%\`, the change is treated as acceptable noise (no highlight).\n`;
-  md += `> - If \`Current > Baseline + 10%\`, **Current** and the **variance %** are highlighted and marked with ⚠️.\n\n`;
 
   const rows = getMetricRows(
     baseline.artifact.profilingSummary,
     currentArtifact.profilingSummary,
   );
 
+  md += `\n**Summary:** ${buildRegressionSummary(rows)}\n`;
+
+  if (currentArtifact.apiCallsError) {
+    md += `\n> ℹ️ API calls unavailable on current run: \`${currentArtifact.apiCallsError}\`\n`;
+  }
+
+  md += `\n<details>\n<summary>Full metric table (+10% variance rules)</summary>\n\n`;
+  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
+  md += `> - If \`Current <= Baseline + 10%\`, the change is treated as acceptable noise (no highlight).\n`;
+  md += `> - If \`Current > Baseline + 10%\`, **Current** and the **variance %** are highlighted and marked with ⚠️.\n\n`;
   md += `| Metric | Baseline | Current | Δ |\n`;
   md += `|--------|----------|---------|---|\n`;
   for (const row of rows) {
     md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
   }
-
-  if (currentArtifact.apiCallsError) {
-    md += `\n> ℹ️ API calls unavailable on current run: \`${currentArtifact.apiCallsError}\`\n`;
-  }
+  md += `\n</details>\n`;
 
   md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
   md += `**Baseline**\n\n\`\`\`json\n${JSON.stringify(
@@ -834,6 +860,7 @@ export {
   findGreenScenarioInDir,
   findScenarioWithProfilingInDir,
   downloadAggregatedReports,
+  buildRegressionSummary,
   buildScenarioComment,
   parseArgs,
   COMMENT_MARKER,

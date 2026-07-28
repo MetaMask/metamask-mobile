@@ -10,6 +10,7 @@ import {
   findMatchingArtifact,
   buildScenarioComment,
   parseArgs,
+  buildRegressionSummary,
   COMMENT_MARKER,
 } from './diff-app-profiling.mjs';
 
@@ -200,12 +201,27 @@ test('buildScenarioComment includes marker and delta table when baseline exists'
   });
 
   assert.match(md, /## 🔬 App Profiling Check: Cold Start Login/);
-      assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
-      assert.match(md, /Disclaimer — allowed variance/);
-      assert.match(md, /\+10%/);
-      assert.match(md, new RegExp(COMMENT_MARKER));
-      assert.match(md, /run 222/);
-    });
+  assert.match(md, /\*\*Summary:\*\*/);
+  assert.match(md, /metric/);
+  assert.match(md, /<details>/);
+  assert.match(md, /Full metric table/);
+  assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
+  assert.match(md, /Disclaimer — allowed variance/);
+  assert.match(md, /\+10%/);
+  assert.match(md, /Raw profilingSummary JSON/);
+  assert.match(md, new RegExp(COMMENT_MARKER));
+  assert.match(md, /run 222/);
+});
+
+test('buildRegressionSummary lists only warned metrics', () => {
+  const summary = buildRegressionSummary([
+    { label: 'CPU avg', warn: true, deltaText: '+2 (**+20%**) ⚠️' },
+    { label: 'Memory avg', warn: false, deltaText: '+1 (+1%)' },
+  ]);
+  assert.match(summary, /CPU avg/);
+  assert.match(summary, /\+20%/);
+  assert.equal(summary.includes('Memory avg'), false);
+});
 
 test('buildScenarioComment explains missing baseline', () => {
   const md = buildScenarioComment({
@@ -221,6 +237,8 @@ test('buildScenarioComment explains missing baseline', () => {
   });
 
   assert.match(md, /No usable baseline profiling found/);
+  assert.match(md, /Current profilingSummary JSON/);
+  assert.match(md, /<details>/);
   assert.match(md, new RegExp(COMMENT_MARKER));
 });
 
@@ -261,6 +279,8 @@ test('buildScenarioComment labels non-green baseline fallback', () => {
 
   assert.match(md, /scenario also failing/);
   assert.match(md, /No green baseline was available/);
+  assert.match(md, /\*\*Summary:\*\*/);
+  assert.match(md, /Full metric table/);
   assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
 });
 
