@@ -1017,6 +1017,25 @@ describe('TradeWalletActions', () => {
   });
 
   describe('action navigation', () => {
+    it('navigates to the wallet assistant after dismissing RootModalFlow', async () => {
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.WALLET_ASSISTANT_BUTTON,
+      );
+
+      expect(mockOnDismiss).toHaveBeenCalled();
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.WALLET_ASSISTANT,
+      });
+    });
+
     it('calls goToSwaps after dismissing RootModalFlow when Swap is pressed', async () => {
       const { getByTestId } = renderScreen(
         TradeWalletActions,

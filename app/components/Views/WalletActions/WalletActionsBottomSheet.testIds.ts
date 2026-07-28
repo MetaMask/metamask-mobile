@@ -15,6 +15,7 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   EARN_BUTTON: 'wallet-earn-action',
   PERPS_BUTTON: 'wallet-perps-action',
   PREDICT_BUTTON: 'wallet-predict-action',
+  WALLET_ASSISTANT_BUTTON: 'wallet-assistant-action',
 };
 
 export const WalletActionsBottomSheetSelectorsText = {
