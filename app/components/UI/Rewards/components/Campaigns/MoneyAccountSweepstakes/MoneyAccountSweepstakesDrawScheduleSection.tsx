@@ -171,6 +171,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
     campaign.id,
     status === 'complete',
   );
+
   const [isProofSheetOpen, setIsProofSheetOpen] = useState(false);
 
   const weekTitle = formatWeekTitle(localizedText.weekTitle, weekNumber);
@@ -249,7 +250,11 @@ const WeekRow: React.FC<WeekRowProps> = ({
           >
             {weekTitle} · {localizedText.activeLabel}
           </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+          >
             {dateRange}
           </Text>
         </Box>
@@ -277,7 +282,11 @@ const WeekRow: React.FC<WeekRowProps> = ({
         >
           {weekTitle}
         </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {dateRange}
         </Text>
       </Box>
