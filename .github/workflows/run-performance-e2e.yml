@@ -331,8 +331,10 @@ jobs:
         run: |
           FILE="tests/performance/device-matrix.json"
 
-          # TestMu PoC: Google Pixel 8 Pro only for BrowserStack + TestMu (no Galaxy).
-          ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Pixel"))]' "$FILE")
+          # TestMu PoC: one logical Pixel device only (no Galaxy, no duplicate Pixel aliases).
+          # Matrix keeps BrowserStack catalog name "Google Pixel 8 Pro"; TestMu runner/resolver
+          # maps it to TestMu catalog name "Pixel 8 Pro" for session capabilities.
+          ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name == "Google Pixel 8 Pro")]' "$FILE")
           IOS_MATRIX='[]'
           echo "PoC mode: Google Pixel 8 Pro only (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
 
