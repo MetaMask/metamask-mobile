@@ -3,7 +3,7 @@ import Assertions from '../../../framework/Assertions.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import RequestTypes from '../../../page-objects/Browser/Confirmations/RequestTypes.js';
-import TestDApp from '../../../page-objects/Browser/TestDApp.js';
+import { tapAndroidWebId } from '../../../framework/AndroidWebViewNative.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import {
   navigateToBrowserView,
@@ -17,6 +17,7 @@ import {
   getDappUrlForFixture,
 } from '../../../framework/fixtures/FixtureUtils.js';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents.js';
+import { TestDappSelectorsWebIDs } from '../../../selectors/Browser/TestDapp.selectors.js';
 import { DappVariants } from '../../../framework/Constants.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
@@ -26,7 +27,7 @@ import { AnvilManager } from '../../../seeder/anvil-manager.js';
 const SIGNATURE_LIST = [
   {
     specName: 'Typed V1 Sign',
-    testDappBtn: TestDApp.tapTypedSignButton.bind(TestDApp),
+    testDappBtn: () => tapAndroidWebId(TestDappSelectorsWebIDs.SIGN_TYPE_DATA),
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(
@@ -36,7 +37,8 @@ const SIGNATURE_LIST = [
   },
   {
     specName: 'Typed V3 Sign',
-    testDappBtn: TestDApp.tapTypedV3SignButton.bind(TestDApp),
+    testDappBtn: () =>
+      tapAndroidWebId(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3),
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(() => RowComponents.OriginInfo);
@@ -44,7 +46,8 @@ const SIGNATURE_LIST = [
   },
   {
     specName: 'Typed V4 Sign',
-    testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
+    testDappBtn: () =>
+      tapAndroidWebId(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4),
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(() => RowComponents.OriginInfo);
