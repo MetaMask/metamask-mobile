@@ -32,6 +32,8 @@ export interface WalletAssistantResearchPlan {
   useWebSearch: boolean;
 }
 
+const COINMARKETCAP_DOMAIN = 'coinmarketcap.com';
+
 const NETWORKS: readonly (WalletAssistantNetworkHint & {
   pattern: RegExp;
 })[] = [
@@ -235,6 +237,34 @@ export const buildResearchPlan = (
     searchContextSize,
     useWebSearch,
   };
+};
+
+export const getInitialResearchDomains = (
+  plan: WalletAssistantResearchPlan,
+): string[] | undefined =>
+  plan.intent === 'project_overview' && plan.assetHints.length === 1
+    ? [COINMARKETCAP_DOMAIN]
+    : undefined;
+
+export const shouldBroadenInitialResearch = (
+  plan: WalletAssistantResearchPlan,
+  research: WalletAssistantResearchResponse,
+): boolean => {
+  if (!getInitialResearchDomains(plan)) {
+    return false;
+  }
+
+  return !research.sources.some((source) => {
+    try {
+      const hostname = new URL(source.url).hostname.toLowerCase();
+      return (
+        hostname === COINMARKETCAP_DOMAIN ||
+        hostname.endsWith(`.${COINMARKETCAP_DOMAIN}`)
+      );
+    } catch {
+      return false;
+    }
+  });
 };
 
 /**

@@ -5,8 +5,10 @@ import {
   buildLocalMarketListResponse,
   buildLocalPriceResponse,
   buildResearchPlan,
+  getInitialResearchDomains,
   getResearchPlanInstructions,
   isLocalMarketListRequest,
+  shouldBroadenInitialResearch,
 } from './researchRouting';
 
 const MARKET_TOKENS: TrendingAsset[] = [
@@ -109,6 +111,59 @@ describe('researchRouting', () => {
         useWebSearch: false,
       }),
     );
+  });
+
+  it('starts a single-token overview on CoinMarketCap', () => {
+    const plan = buildResearchPlan('What is JIMOTHY?');
+
+    expect(getInitialResearchDomains(plan)).toEqual(['coinmarketcap.com']);
+  });
+
+  it('does not restrict broader research to CoinMarketCap', () => {
+    expect(
+      getInitialResearchDomains(
+        buildResearchPlan('Compare JIMOTHY with THEHOOD'),
+      ),
+    ).toBeUndefined();
+  });
+
+  it('broadens a token overview only when CoinMarketCap did not answer', () => {
+    const plan = buildResearchPlan('What is JIMOTHY?');
+    const baseResponse = {
+      asOf: '',
+      assets: [],
+      chart: { labels: [], sourceIds: [], title: '', unit: '', values: [] },
+      sections: [],
+      sources: [],
+      summary: '',
+      swapIntent: {
+        amountType: 'unspecified' as const,
+        amountValue: '',
+        enabled: false,
+        mode: 'real' as const,
+        network: '',
+        sourceAmount: '',
+        sourceSymbol: '',
+        destinationSymbol: '',
+      },
+      title: 'JIMOTHY',
+      tokens: ['JIMOTHY'],
+    };
+
+    expect(shouldBroadenInitialResearch(plan, baseResponse)).toBe(true);
+    expect(
+      shouldBroadenInitialResearch(plan, {
+        ...baseResponse,
+        sources: [
+          {
+            date: '',
+            id: 'cmc',
+            title: 'JIMOTHY price',
+            url: 'https://coinmarketcap.com/currencies/jimothy/',
+          },
+        ],
+      }),
+    ).toBe(false);
   });
 
   it('builds a local market-data response for one-token price questions', () => {
