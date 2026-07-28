@@ -258,10 +258,15 @@ jest.mock('../hooks/useGetPredictThePitchOutcomeToast', () => ({
   useGetPredictThePitchOutcomeToast: jest.fn(),
 }));
 
+jest.mock('../hooks/useMoneyAccountSweepstakesOutcomeToast', () => ({
+  useMoneyAccountSweepstakesOutcomeToast: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
+import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
@@ -284,6 +289,10 @@ const mockUsePerpsTradingCampaignEndedOutcomeToast =
 const mockUseGetPredictThePitchOutcomeToast =
   useGetPredictThePitchOutcomeToast as jest.MockedFunction<
     typeof useGetPredictThePitchOutcomeToast
+  >;
+const mockUseMoneyAccountSweepstakesOutcomeToast =
+  useMoneyAccountSweepstakesOutcomeToast as jest.MockedFunction<
+    typeof useMoneyAccountSweepstakesOutcomeToast
   >;
 
 describe('RewardsDashboard', () => {
@@ -451,6 +460,9 @@ describe('RewardsDashboard', () => {
         mockUsePerpsTradingCampaignEndedOutcomeToast,
       ).toHaveBeenCalledTimes(1);
       expect(mockUseGetPredictThePitchOutcomeToast).toHaveBeenCalledTimes(1);
+      expect(mockUseMoneyAccountSweepstakesOutcomeToast).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('renders all child components', () => {

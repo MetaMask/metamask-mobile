@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import MoneyAccountSweepstakesCampaignCTA from './MoneyAccountSweepstakesCampaignCTA';
 import { CAMPAIGN_CTA_TEST_IDS } from '../CampaignOptInCta';
 import {
@@ -14,7 +14,9 @@ let mockIsGeoRestricted = false;
 let mockIsGeoLoading = false;
 let mockOptedInAny = false;
 let mockIsParticipationLoading = false;
-const mockEnsureOptedIn = jest.fn(async () => true);
+let mockBindingConflict = false;
+const mockEnsureOptedIn = jest.fn(async () => ({ success: true }));
+const mockEnsureBound = jest.fn(async () => 'bound' as const);
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
@@ -52,6 +54,13 @@ jest.mock('../../../hooks/useMoneyAccountSweepstakesParticipation', () => ({
 jest.mock('../../../hooks/useMoneyAccountSweepstakesOptIn', () => ({
   useMoneyAccountSweepstakesOptIn: () => ({
     ensureOptedIn: mockEnsureOptedIn,
+  }),
+}));
+
+jest.mock('../../../hooks/useMoneyAccountSweepstakesBinding', () => ({
+  useMoneyAccountSweepstakesBinding: () => ({
+    ensureBound: mockEnsureBound,
+    bindingConflict: mockBindingConflict,
   }),
 }));
 
@@ -127,6 +136,9 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   reserveSuffix: '(reserve)',
   refLabel: 'Ref',
   weightLabel: 'Weight',
+  bindingConflictTitle: 'Money Account already linked',
+  bindingConflictDescription:
+    'Money Account already binds to another Rewards profile.',
 };
 
 function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
@@ -152,7 +164,9 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     mockIsGeoLoading = false;
     mockOptedInAny = false;
     mockIsParticipationLoading = false;
-    mockEnsureOptedIn.mockResolvedValue(true);
+    mockBindingConflict = false;
+    mockEnsureOptedIn.mockResolvedValue({ success: true });
+    mockEnsureBound.mockResolvedValue('bound');
     latestOptInSheetProps = null;
   });
 
@@ -190,7 +204,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to add money when already opted in', () => {
+  it('navigates to add money when already opted in and binding succeeds', async () => {
     mockOptedInAny = true;
 
     const { getByTestId, getByText } = render(
@@ -204,8 +218,56 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     expect(getByText('Add funds')).toBeOnTheScreen();
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    await waitFor(() => {
+      expect(mockEnsureBound).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+  });
+
+  it('shows binding conflict toast instead of navigating when already opted in', async () => {
+    mockOptedInAny = true;
+    mockEnsureBound.mockResolvedValue('conflict');
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign()}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+    await waitFor(() => {
+      expect(mockEntriesClosed).toHaveBeenCalledWith(
+        'Money Account already linked',
+        'Money Account already binds to another Rewards profile.',
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  it('blocks add money when bindingConflict is already known', async () => {
+    mockOptedInAny = true;
+    mockBindingConflict = true;
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign()}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockEnsureBound).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -248,8 +310,34 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     });
   });
 
+  it('shows binding conflict toast and does not navigate when opt-in hits conflict', async () => {
+    mockEnsureOptedIn.mockResolvedValue({
+      success: false,
+      reason: 'binding-conflict',
+    });
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign()}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+    await latestOptInSheetProps?.onOptIn?.();
+    fireEvent.press(getByTestId('campaign-opt-in-sheet-close'));
+
+    expect(mockEntriesClosed).toHaveBeenCalledWith(
+      'Money Account already linked',
+      'Money Account already binds to another Rewards profile.',
+    );
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('does not navigate when opt-in fails before sheet close', async () => {
-    mockEnsureOptedIn.mockResolvedValue(false);
+    mockEnsureOptedIn.mockResolvedValue({ success: false });
 
     const { getByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA

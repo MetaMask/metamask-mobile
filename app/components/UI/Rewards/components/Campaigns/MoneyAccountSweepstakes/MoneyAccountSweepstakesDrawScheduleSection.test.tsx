@@ -120,6 +120,9 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   reserveSuffix: '(reserve)',
   refLabel: 'Ref',
   weightLabel: 'Weight',
+  bindingConflictTitle: 'Money Account already linked',
+  bindingConflictDescription:
+    'Money Account already binds to another Rewards profile.',
 };
 
 const drawProof: MoneyAccountSweepstakesDrawProofDto = {
