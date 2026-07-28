@@ -28,7 +28,7 @@ jobs:
       is_ota: ${{ steps.out.outputs.is_ota }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - id: out
         shell: bash

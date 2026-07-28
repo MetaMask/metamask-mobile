@@ -174,7 +174,7 @@ jobs:
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Select Devices
         id: read-matrix
@@ -507,7 +507,7 @@ jobs:
       browserstack-playground-url: ${{ steps.upload-playground.outputs.browserstack-url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Fetch playground APK from GitHub Releases
         env:
@@ -593,10 +593,10 @@ jobs:
     if: always()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download All Test Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: '*-test-results-*'
           path: ./test-results
@@ -613,7 +613,7 @@ jobs:
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aggregated-reports
           path: |
@@ -629,10 +629,10 @@ jobs:
     if: always() && !cancelled() && inputs.pr_number != ''
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports
@@ -690,10 +690,10 @@ jobs:
     if: always()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports

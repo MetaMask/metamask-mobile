@@ -50,7 +50,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -166,11 +166,11 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -179,7 +179,7 @@ jobs:
 
       - name: Download build environment artifacts
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: build-env-main-rc-*
           path: build-env-artifacts
@@ -203,7 +203,7 @@ jobs:
 
       - name: Upload test plan JSON artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-plan-${{ needs.validate-and-find-pr.outputs.semver }}
           path: release-test-plan.json

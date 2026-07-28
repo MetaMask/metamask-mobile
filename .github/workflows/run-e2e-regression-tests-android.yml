@@ -192,7 +192,7 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Download shards test artifacts (XMLs + Screenshots) (Namespace)
@@ -204,7 +204,7 @@ jobs:
           pattern: '*-android-*-test-*'
       - name: Download shards test artifacts (XMLs + Screenshots) (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         continue-on-error: true
         with:
           path: all-test-artifacts/
@@ -230,7 +230,7 @@ jobs:
           retention-days: 7
       - name: Upload all test artifacts (XMLs + Screenshots) (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         continue-on-error: true
         with:
           name: e2e-regression-android-all-test-artifacts
