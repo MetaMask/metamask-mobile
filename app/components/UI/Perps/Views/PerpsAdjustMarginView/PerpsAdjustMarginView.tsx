@@ -458,11 +458,6 @@ const PerpsAdjustMarginView: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <PerpsAmountDisplay
-          label={
-            isAddMode
-              ? strings('perps.adjust_margin.select_amount_to_add')
-              : strings('perps.adjust_margin.select_amount_to_remove')
-          }
           amount={marginAmountString}
           onPress={handleAmountPress}
           isActive={isInputFocusedEffective}
@@ -489,15 +484,17 @@ const PerpsAdjustMarginView: React.FC = () => {
           </View>
         )}
 
-        {validationErrors.map((error, index) => (
-          <HelpText
-            key={`error-${index}`}
-            severity={HelpTextSeverity.Danger}
-            twClassName="w-full justify-center text-center px-4"
-          >
-            {error}
-          </HelpText>
-        ))}
+        <View style={styles.helpTextContainer}>
+          {validationErrors.map((error, index) => (
+            <HelpText
+              key={`error-${index}`}
+              severity={HelpTextSeverity.Danger}
+              twClassName="w-full justify-center text-center"
+            >
+              {error}
+            </HelpText>
+          ))}
+        </View>
       </ScrollView>
 
       {isInputFocusedEffective && (
