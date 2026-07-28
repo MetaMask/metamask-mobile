@@ -61,8 +61,6 @@ export enum TraceName {
   DepositInputOtp = 'Deposit Input OTP',
   /** Unified Buy E2E CUF: goToBuy → RampsOrderDetails (TRAM-3779). */
   RampBuyToOrderDetails = 'Ramp Buy To Order Details',
-  /** Nested under RampBuyToOrderDetails: quote fetch → quotes rendered/error. */
-  RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   /** Nested under RampBuyToOrderDetails: Continue (widget) → checkout URL ready. */
   RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
   /** Nested under RampBuyToOrderDetails: Continue (native) → order created. */
