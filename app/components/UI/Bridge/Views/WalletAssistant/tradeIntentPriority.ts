@@ -81,6 +81,23 @@ const inferNetwork = (prompt: string) => {
   );
 };
 
+export const getResearchNetworkContext = (
+  research: WalletAssistantResearchResponse | undefined,
+) => {
+  const tradeNetwork = research?.swapIntent.network.trim();
+  if (tradeNetwork) {
+    return tradeNetwork;
+  }
+
+  const assetNetworks = new Set(
+    research?.assets
+      .map((asset) => asset.network.trim())
+      .filter(Boolean) ?? [],
+  );
+
+  return assetNetworks.size === 1 ? [...assetNetworks][0] : '';
+};
+
 const inferPercentAmount = (prompt: string) => {
   const percentage = PERCENT_AMOUNT.exec(prompt)?.[1];
   if (percentage) return percentage;
@@ -202,6 +219,7 @@ const buildTradeResearchResponse = (
 export const buildImmediateTradeResponse = (
   prompt: string,
   previousIntent?: WalletAssistantSwapIntent,
+  researchNetworkContext = '',
 ): WalletAssistantResearchResponse | undefined => {
   if (isDirectTradeRequest(prompt)) {
     const symbols = getTradeSymbols(prompt);
@@ -210,7 +228,7 @@ export const buildImmediateTradeResponse = (
       ...amount,
       enabled: true,
       mode: 'real',
-      network: inferNetwork(prompt),
+      network: inferNetwork(prompt) || researchNetworkContext,
       ...symbols,
     };
 

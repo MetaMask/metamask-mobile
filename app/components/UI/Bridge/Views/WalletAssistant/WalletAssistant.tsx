@@ -105,6 +105,7 @@ import {
 } from './openai';
 import {
   buildImmediateTradeResponse,
+  getResearchNetworkContext,
   prioritizeDirectTradeRequest,
 } from './tradeIntentPriority';
 import {
@@ -1463,9 +1464,13 @@ const WalletAssistant = () => {
       .enabled
       ? previousAssistantMessage.research.swapIntent
       : undefined;
+    const researchNetworkContext = getResearchNetworkContext(
+      previousAssistantMessage?.research,
+    );
     const immediateTradeResponse = buildImmediateTradeResponse(
       text,
       previousTradeIntent,
+      researchNetworkContext,
     );
     const researchPlan = buildResearchPlan(text);
     const immediateResearchResponse =

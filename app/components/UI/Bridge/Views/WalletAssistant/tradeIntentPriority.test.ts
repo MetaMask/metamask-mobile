@@ -1,6 +1,7 @@
 import type { WalletAssistantResearchResponse } from './openai';
 import {
   buildImmediateTradeResponse,
+  getResearchNetworkContext,
   isDirectTradeRequest,
   prioritizeDirectTradeRequest,
 } from './tradeIntentPriority';
@@ -264,5 +265,59 @@ describe('trade intent priority', () => {
     });
 
     expect(result?.swapIntent.network).toBe('Robinhood Chain');
+  });
+
+  it('inherits a single-network research context for the next direct trade', () => {
+    const research = createResearch({
+      assets: [
+        {
+          chainId: 'eip155:4663',
+          contractAddress: '0x1234567890123456789012345678901234567890',
+          name: 'The Hood',
+          network: 'Robinhood Chain',
+          symbol: 'THEHOOD',
+        },
+      ],
+      tokens: ['THEHOOD'],
+    });
+    const networkContext = getResearchNetworkContext(research);
+
+    const result = buildImmediateTradeResponse(
+      'Buy $100 of THEHOOD',
+      undefined,
+      networkContext,
+    );
+
+    expect(result?.swapIntent).toEqual(
+      expect.objectContaining({
+        amountType: 'fiat',
+        amountValue: '100',
+        destinationSymbol: 'THEHOOD',
+        network: 'Robinhood Chain',
+      }),
+    );
+  });
+
+  it('does not infer context from research spanning multiple networks', () => {
+    const research = createResearch({
+      assets: [
+        {
+          chainId: 'eip155:4663',
+          contractAddress: '0x1234567890123456789012345678901234567890',
+          name: 'The Hood',
+          network: 'Robinhood Chain',
+          symbol: 'THEHOOD',
+        },
+        {
+          chainId: 'eip155:1',
+          contractAddress: '0x0987654321098765432109876543210987654321',
+          name: 'Ethereum',
+          network: 'Ethereum',
+          symbol: 'ETH',
+        },
+      ],
+    });
+
+    expect(getResearchNetworkContext(research)).toBe('');
   });
 });
