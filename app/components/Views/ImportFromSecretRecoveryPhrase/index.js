@@ -45,6 +45,7 @@ import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
@@ -235,6 +236,48 @@ const ImportFromSecretRecoveryPhrase = ({
       setCurrentStep(1);
     }
   }, [isQrSyncImport, qrSyncMnemonic]);
+
+  // Ownership marker: this screen is also reachable outside onboarding (e.g. the QR device-sync
+  // flow in AddDeviceToWallet). Onboarding traces must only be ended by the flow that owns them,
+  // so gate cleanup on the explicit PREVIOUS_SCREEN === ONBOARDING marker set by
+  // Onboarding.onPressImport. Do NOT infer ownership from route.params.onboardingTraceCtx:
+  // buffered tracing (consent not yet decided) legitimately returns undefined for a trace that is
+  // still owned by onboarding.
+  const isOnboardingFlow = route?.params?.[PREVIOUS_SCREEN] === ONBOARDING;
+
+  // Fix 2: if the user leaves this screen without completing the import, close the spans this
+  // import flow opened so they are not left running for 5 minutes.
+  //
+  // This MUST be an unmount cleanup, NOT useFocusEffect. useFocusEffect's cleanup fires on any
+  // blur — including forward navigation to the QR scanner, the seed-phrase modal, the support
+  // webview, or OptinMetrics — all of which keep this screen mounted underneath. Ending the spans
+  // on those transient blurs would record success:false for a user who then returns and completes
+  // the import (the success-path endTrace calls would no-op because the spans are already gone,
+  // and OnboardingExistingSrpImport is NOT re-created on return since Onboarding.onPressImport
+  // does not re-run). An unmount cleanup fires only when the screen is actually popped
+  // (back-out = genuine abandonment) or the stack is reset on success (where the success path has
+  // already closed the spans, so this no-ops). Transient sub-route navigation leaves them running.
+  //
+  // Only OnboardingExistingSrpImport + OnboardingSRPAccountImportTime are ended here (the spans
+  // this import flow owns). OnboardingJourneyOverall is intentionally NOT ended: the Onboarding
+  // screen stays mounted underneath and is not re-created on re-entry, so its abandonment close is
+  // owned by Onboarding's own unmount cleanup.
+  useEffect(
+    () => () => {
+      if (!isOnboardingFlow) {
+        return;
+      }
+      endTrace({
+        name: TraceName.OnboardingExistingSrpImport,
+        data: { success: false },
+      });
+      endTrace({
+        name: TraceName.OnboardingSRPAccountImportTime,
+        data: { success: false },
+      });
+    },
+    [isOnboardingFlow],
+  );
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
@@ -621,15 +664,15 @@ const ImportFromSecretRecoveryPhrase = ({
           ]}
         >
           {currentStep === 0 && (
-            <>
-              <Text
-                variant={TextVariant.DisplayMd}
-                color={TextColor.TextDefault}
-                testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
-              >
-                {strings('import_from_seed.title')}
-              </Text>
-              <Box twClassName="mt-1.5">
+            <Box twClassName="gap-y-2">
+              <Box twClassName="gap-y-1.5">
+                <Text
+                  variant={TextVariant.DisplayMd}
+                  color={TextColor.TextDefault}
+                  testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
+                >
+                  {strings('import_from_seed.title')}
+                </Text>
                 {isAddDeviceSyncEnabled ? (
                   <Text
                     variant={TextVariant.BodyMd}
@@ -683,20 +726,21 @@ const ImportFromSecretRecoveryPhrase = ({
                     </TouchableOpacity>
                   </Box>
                 )}
-                <SrpInputGrid
-                  ref={srpInputGridRef}
-                  seedPhrase={seedPhrase}
-                  onSeedPhraseChange={setSeedPhrase}
-                  onError={setError}
-                  externalError={error}
-                  testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
-                  placeholderText={strings('import_from_seed.srp_placeholder')}
-                  uniqueId={uniqueId}
-                  onCurrentWordChange={setCurrentInputWord}
-                  autoFocus={false}
-                />
               </Box>
-            </>
+              <SrpInputGrid
+                ref={srpInputGridRef}
+                seedPhrase={seedPhrase}
+                onSeedPhraseChange={setSeedPhrase}
+                onError={setError}
+                externalError={error}
+                testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+                placeholderText={strings('import_from_seed.srp_placeholder')}
+                uniqueId={uniqueId}
+                onCurrentWordChange={setCurrentInputWord}
+                autoFocus={false}
+                includeTopMargin={false}
+              />
+            </Box>
           )}
 
           {currentStep === 1 && (

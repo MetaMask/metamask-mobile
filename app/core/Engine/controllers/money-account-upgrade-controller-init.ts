@@ -73,10 +73,12 @@ const ensureChainConfigured = async (chainId: Hex): Promise<void> => {
 let bootstrapPromise: Promise<void> | null = null;
 
 /**
- * Promise that resolves once `MoneyAccountUpgradeController.init()` has run.
- * Rejects if bootstrap fails, or if it hasn't been scheduled yet (i.e. the
- * keyring is still locked). Callers that depend on the controller being
- * initialized — e.g. `upgradeAccount` — should `await` this first.
+ * Promise that resolves once the latest `MoneyAccountUpgradeController.init()`
+ * has run. Rejects if that bootstrap fails, or if none has been scheduled yet
+ * (i.e. the keyring is still locked). Because the controller can be re-inited
+ * when the vault config changes, this always tracks the most recent run in the
+ * bootstrap chain. Callers that depend on the controller being initialized —
+ * e.g. `upgradeAccount` — should `await` this first.
  */
 export const whenMoneyAccountUpgradeReady = (): Promise<void> => {
   if (!bootstrapPromise) {
@@ -101,25 +103,36 @@ export const __resetMoneyAccountUpgradeBootstrapForTesting = () => {
  * remote feature flag being on and the keyring being unlocked.
  *
  * The flag value and vault config are sourced from the
- * `RemoteFeatureFlagController` directly (via `getState` at startup and the
- * `stateChange` event for later updates). We deliberately avoid reading
- * vaultConfig from Redux at bootstrap time because Redux is updated via the
- * `EngineService` batcher (a 250ms-debounced dispatch) and would be stale
- * relative to the controller state we are reacting to.
+ * `RemoteFeatureFlagController` directly (via `getState` and the `stateChange`
+ * event). We deliberately avoid reading vaultConfig from Redux because Redux is
+ * updated via the `EngineService` batcher (a 250ms-debounced dispatch) and
+ * would be stale relative to the controller state we are reacting to.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.initMessenger - The init messenger for unlock and feature-flag signals.
+ * @param request.persistedState - The persisted state to hydrate from.
  * @returns The initialized controller.
  */
 export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
   MoneyAccountUpgradeController,
   MoneyAccountUpgradeControllerMessenger,
   MoneyAccountUpgradeControllerInitMessenger
-> = ({ controllerMessenger, initMessenger }) => {
+> = ({ controllerMessenger, initMessenger, persistedState }) => {
   const controller = new MoneyAccountUpgradeController({
     messenger: controllerMessenger,
+    state: persistedState.MoneyAccountUpgradeController,
   });
+
+  const reportBootstrapError = (error: Error) => {
+    Logger.error(error, {
+      tags: { feature: SENTRY_FEATURE_TAG },
+      context: {
+        name: 'money_account_upgrade',
+        data: { phase: 'bootstrap' },
+      },
+    });
+  };
 
   const bootstrap = async (vaultConfig: MoneyAccountVaultConfig) => {
     const chainId = vaultConfig.chainId as Hex;
@@ -132,78 +145,120 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
     });
   };
 
+  const mergedFlags = (state: RemoteFeatureFlagControllerState) => ({
+    ...state.remoteFeatureFlags,
+    ...(state.localOverrides ?? {}),
+  });
+
+  const readVaultConfig = (): MoneyAccountVaultConfig | undefined =>
+    getMoneyAccountVaultConfig(
+      mergedFlags(initMessenger.call('RemoteFeatureFlagController:getState')),
+    );
+
+  const configsEqual = (
+    a: MoneyAccountVaultConfig,
+    b: MoneyAccountVaultConfig,
+  ) =>
+    a.chainId === b.chainId &&
+    a.boringVault === b.boringVault &&
+    a.tellerAddress === b.tellerAddress &&
+    a.accountantAddress === b.accountantAddress &&
+    a.lensAddress === b.lensAddress;
+
+  // The vault config the most recent bootstrap run was given. Used to decide
+  // whether a later state change is a genuine change worth re-initing for.
+  let lastRunConfig: MoneyAccountVaultConfig | null = null;
+
+  // Run a single bootstrap for `vaultConfig`. Re-inits chain onto the previous
+  // run so they are serialized; the previous rejection is swallowed so one
+  // failure doesn't poison later re-inits, but each run still reports its own
+  // failure.
   const runBootstrap = (vaultConfig: MoneyAccountVaultConfig) => {
-    bootstrapPromise = bootstrap(vaultConfig);
-    bootstrapPromise.catch((error) => {
-      Logger.error(error as Error, {
-        tags: { feature: SENTRY_FEATURE_TAG },
-        context: {
-          name: 'money_account_upgrade',
-          data: { phase: 'bootstrap' },
-        },
-      });
-    });
+    lastRunConfig = vaultConfig;
+    const next = bootstrapPromise
+      ? bootstrapPromise
+          .catch(() => undefined)
+          .then(() => bootstrap(vaultConfig))
+      : bootstrap(vaultConfig);
+    bootstrapPromise = next;
+    next.catch(reportBootstrapError);
+  };
+
+  // Runs the first bootstrap using a just-in-time read of the flag state,
+  // falling back to the config that triggered scheduling if the flag has
+  // since vanished.
+  const runFirstBootstrap = (scheduledConfig: MoneyAccountVaultConfig) => {
+    const freshConfig = readVaultConfig();
+    if (!freshConfig) {
+      reportBootstrapError(new Error('Missing Money Account vault config'));
+    }
+    runBootstrap(freshConfig ?? scheduledConfig);
   };
 
   let bootstrapScheduled = false;
+  let bootstrapRan = false;
   const scheduleBootstrap = (vaultConfig: MoneyAccountVaultConfig) => {
     if (bootstrapScheduled) {
       return;
     }
     bootstrapScheduled = true;
 
+    const start = () => {
+      bootstrapRan = true;
+      runFirstBootstrap(vaultConfig);
+    };
+
     const { isUnlocked } = initMessenger.call('KeyringController:getState');
     if (isUnlocked) {
-      runBootstrap(vaultConfig);
+      start();
     } else {
       const onUnlock = () => {
         initMessenger.unsubscribe('KeyringController:unlock', onUnlock);
-        runBootstrap(vaultConfig);
+        start();
       };
       initMessenger.subscribe('KeyringController:unlock', onUnlock);
     }
   };
 
-  const mergedFlags = (state: RemoteFeatureFlagControllerState) => ({
-    ...state.remoteFeatureFlags,
-    ...(state.localOverrides ?? {}),
-  });
-
-  const tryStart = (state: RemoteFeatureFlagControllerState): boolean => {
+  const onFlagState = (state: RemoteFeatureFlagControllerState) => {
     const flags = mergedFlags(state);
     if (!isMoneyAccountEnabled(flags)) {
-      return false;
+      return;
     }
+
     const vaultConfig = getMoneyAccountVaultConfig(flags);
     if (!vaultConfig) {
-      Logger.error(new Error('Missing Money Account vault config'), {
-        tags: { feature: SENTRY_FEATURE_TAG },
-        context: {
-          name: 'money_account_upgrade',
-          data: { phase: 'bootstrap' },
-        },
-      });
-      return false;
+      // Only log before scheduling. We stay subscribed for the whole session,
+      // so logging on every unrelated flag change once we're already running
+      // would just be noise.
+      if (!bootstrapScheduled) {
+        reportBootstrapError(new Error('Missing Money Account vault config'));
+      }
+      return;
     }
-    scheduleBootstrap(vaultConfig);
-    return true;
+
+    if (!bootstrapScheduled) {
+      scheduleBootstrap(vaultConfig);
+      return;
+    }
+
+    // Scheduled but not yet run (awaiting unlock): the just-in-time read at run
+    // time will pick up the latest config, so nothing to do here. Once it has
+    // run, re-init if the vault config genuinely changed.
+    if (
+      bootstrapRan &&
+      lastRunConfig &&
+      !configsEqual(vaultConfig, lastRunConfig)
+    ) {
+      runBootstrap(vaultConfig);
+    }
   };
 
-  const onFlagChange = (state: RemoteFeatureFlagControllerState) => {
-    if (tryStart(state)) {
-      initMessenger.unsubscribe(
-        'RemoteFeatureFlagController:stateChange',
-        onFlagChange,
-      );
-    }
-  };
-
-  if (!tryStart(initMessenger.call('RemoteFeatureFlagController:getState'))) {
-    initMessenger.subscribe(
-      'RemoteFeatureFlagController:stateChange',
-      onFlagChange,
-    );
-  }
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    onFlagState,
+  );
+  onFlagState(initMessenger.call('RemoteFeatureFlagController:getState'));
 
   return { controller };
 };

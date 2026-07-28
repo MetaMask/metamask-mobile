@@ -463,6 +463,11 @@ import {
   TransactionPayControllerState,
 } from '@metamask/transaction-pay-controller';
 import {
+  SentinelApiService,
+  type SentinelApiServiceActions,
+  type SentinelApiServiceEvents,
+} from '@metamask/sentinel-api-service';
+import {
   AiDigestController,
   AiDigestControllerActions,
   AiDigestControllerEvents,
@@ -651,7 +656,8 @@ export type GlobalActions =
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
-  | MoneyAccountUpgradeControllerActions;
+  | MoneyAccountUpgradeControllerActions
+  | SentinelApiServiceActions;
 
 export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -745,7 +751,8 @@ export type GlobalEvents =
   | ComplianceServiceEvents
   | TransakServiceEvents
   | ChompApiServiceEvents
-  | MoneyAccountUpgradeControllerEvents;
+  | MoneyAccountUpgradeControllerEvents
+  | SentinelApiServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -796,6 +803,7 @@ export type MessengerClients = {
   ConnectivityController: ConnectivityController;
   ConfigRegistryController: ConfigRegistryController;
   ConfigRegistryApiService: ConfigRegistryApiService;
+  SentinelApiService: SentinelApiService;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
@@ -1010,6 +1018,7 @@ export type MessengerClientsToInitialize =
   | 'AssetsController'
   | 'ConfigRegistryController'
   | 'ConfigRegistryApiService'
+  | 'SentinelApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'

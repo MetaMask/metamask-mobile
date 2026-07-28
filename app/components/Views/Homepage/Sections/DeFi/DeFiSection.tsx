@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -93,7 +94,7 @@ const DeFiPositionsSkeleton = ({ rows = 3 }: { rows?: number }) => {
 const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiEnabled = isV2Enabled || isV1Enabled;

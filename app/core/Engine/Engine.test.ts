@@ -26,6 +26,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask.MetaMask'),
 }));
 
 jest.mock('redux-persist-filesystem-storage');
@@ -1108,7 +1109,6 @@ describe('Engine', () => {
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'MoneyAccountUpgradeController' ||
               controllerName === 'DelegationController'),
         )
         .map(([controllerName]) => controllerName);

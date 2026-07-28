@@ -165,6 +165,7 @@ import { moneyAccountControllerInit } from './controllers/money-account-controll
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
 import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-data-service-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
+import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
@@ -330,6 +331,7 @@ export class Engine {
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
         MoneyAccountApiDataService: moneyAccountApiDataServiceInit,
         GeolocationApiService: geolocationApiServiceInit,
+        SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
@@ -582,6 +584,7 @@ export class Engine {
       ConnectivityController: connectivityController,
       ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
       ConfigRegistryApiService: messengerClientsByName.ConfigRegistryApiService,
+      SentinelApiService: messengerClientsByName.SentinelApiService,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,

@@ -14,6 +14,8 @@ import {
   useFocusEffect,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   BottomSheetRef,
   Button,
@@ -103,6 +105,7 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
@@ -160,11 +163,12 @@ const PerpsHomeView = ({
 }: PerpsHomeViewProps) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
@@ -609,13 +613,24 @@ const PerpsHomeView = ({
   }, [navigation, trackEvent, createEventBuilder]);
 
   const navigateToContactSupport = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: SUPPORT_CONFIG.Url,
-        title: strings(SUPPORT_CONFIG.TitleKey),
+    openSupportWithConsent(
+      (url) =>
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings(SUPPORT_CONFIG.TitleKey),
+          },
+        }),
+      SUPPORT_CONFIG.Url,
+      () => {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+          ).build(),
+        );
       },
-    });
+    );
     // Track contact support interaction for Perps analytics
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
@@ -627,11 +642,7 @@ const PerpsHomeView = ({
         })
         .build(),
     );
-    // Also track the general navigation event
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
-    );
-  }, [createEventBuilder, navigation, trackEvent]);
+  }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
   const handleGiveFeedback = useCallback(() => {
     // Track feedback button click
