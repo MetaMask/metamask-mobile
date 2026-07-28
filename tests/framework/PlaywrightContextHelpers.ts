@@ -7,6 +7,7 @@ import { APP_PACKAGE_IDS } from './Constants';
 import { PlatformDetector } from './PlatformLocator';
 import { getDriver, withTimeout } from './PlaywrightUtilities';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
+
 const logger = createPlaywrightLogger('PlaywrightContextHelpers');
 
 type DetailedContext = IosDetailedContext | AndroidDetailedContext;
@@ -23,112 +24,17 @@ export default class PlaywrightContextHelpers {
   private static readonly WEBVIEW_SWITCH_TIMEOUT_MS = 45_000;
   private static readonly WEBVIEW_WARMUP_TIMEOUT_MS = 15_000;
   private static readonly POLL_INTERVAL_MS = 1_000;
-  private static readonly NATIVE_READY_TIMEOUT_MS = 5_000;
-  private static readonly NATIVE_READY_POLL_INTERVAL_MS = 200;
 
   static async switchToNativeContext(): Promise<void> {
     logger.debug('Switching to native app context');
-    const drv = getDriver();
-    await drv.switchContext(NATIVE_APP);
-    // switchContext resolves before UiAutomator2 re-attaches; gate on native
-    // readiness so the first post-switch find does not race the switch.
-    // Android-only — iOS/WDA does not exhibit this.
-    if (!(await PlatformDetector.isAndroid())) {
-      return;
-    }
-    const deadline = Date.now() + this.NATIVE_READY_TIMEOUT_MS;
-    let lastErr: unknown;
-    while (Date.now() < deadline) {
-      try {
-        const ctx = (await drv.getContext()) as string | undefined;
-        if (ctx === NATIVE_APP) {
-          await drv.getPageSource();
-          return;
-        }
-      } catch (err) {
-        lastErr = err;
-      }
-      await new Promise((resolve) =>
-        setTimeout(resolve, this.NATIVE_READY_POLL_INTERVAL_MS),
-      );
-    }
-    logger.debug(
-      `Native context not confirmed ready in ${this.NATIVE_READY_TIMEOUT_MS}ms: ${this.getErrorMessage(
-        lastErr,
-      ).slice(0, 200)}`,
-    );
-  }
-
-  /**
-   * Resolve the dapp's DevTools page id (webviewPageId) using WDIO's native
-   * getContexts(detailed) enumeration, issued safely from the NATIVE context.
-   * Used to pin chromedriver onto the real dapp page instead of one of the
-   * Snaps about:blank pages. Returns undefined when it cannot be resolved.
-   *
-   * Deliberately avoids adb/procfs/loopback-fetch: those are unreliable in
-   * containerized CI runners, silently returned undefined there, and left the
-   * page-lock inert (the root cause of the CI webview-attach hang).
-   */
-  private static async findDappPageId(
-    dappUrl: string,
-  ): Promise<string | undefined> {
-    if (!(await PlatformDetector.isAndroid())) {
-      return undefined;
-    }
-    try {
-      const webviews = await this.getDetailedWebviews();
-      const match = webviews.find((ctx) =>
-        this.contextMatchesDappUrl(ctx, dappUrl),
-      );
-      const pageId = (match as AndroidContextWithPage | undefined)
-        ?.webviewPageId;
-      logger.info(
-        `[webview] resolved ${webviews.length} webview page(s); dapp pageId for ${dappUrl}: ${pageId ?? '(none)'}`,
-      );
-      return pageId;
-    } catch (err) {
-      logger.info(
-        `[webview] page id resolution failed: ${this.getErrorMessage(err).slice(0, 200)}`,
-      );
-      return undefined;
-    }
+    await getDriver().switchContext(NATIVE_APP);
   }
 
   static async switchToWebViewContext(dappUrl: string): Promise<void> {
     logger.debug(`Switching to webview context for URL: ${dappUrl}`);
-    const dappPageId = await this.findDappPageId(dappUrl);
-
-    // Android happy path: pin the dapp page WITHOUT a url-matched switch.
-    // switchContext({ url }) forces chromedriver to Runtime.evaluate every
-    // page to read its URL; the LavaMoat-scuttled Snaps about:blank realms
-    // block that evaluate and wedge the whole chromedriver session. A plain
-    // context switch + switchToWindow(pageId) attaches to the one correct
-    // page without probing the others.
-    if ((await PlatformDetector.isAndroid()) && dappPageId) {
-      try {
-        const webviewContextId = `WEBVIEW_${APP_PACKAGE_IDS.ANDROID}`;
-        await withTimeout(
-          getDriver().switchContext(webviewContextId),
-          this.WEBVIEW_SWITCH_TIMEOUT_MS,
-          `switchContext(${webviewContextId})`,
-        );
-        await withTimeout(
-          getDriver().switchToWindow(dappPageId),
-          this.WEBVIEW_SWITCH_TIMEOUT_MS,
-          `switchToWindow(${dappPageId})`,
-        );
-        await this.warmWebViewContext();
-        logger.debug(`Pinned dapp page ${dappPageId} for ${dappUrl}`);
-        return;
-      } catch (lockErr) {
-        logger.info(
-          `[webview] page-lock path failed, falling back: ${this.getErrorMessage(lockErr).slice(0, 200)}`,
-        );
-      }
-    }
-
-    // Fallback (iOS, or Android pageId unresolved): WebdriverIO's built-in URL
-    // matching, then manual polling on any failure.
+    // Strategy B: Try WebdriverIO's built-in URL matching first.
+    // Falls back to manual polling on any failure (LavaMoat scuttling,
+    // stale URL metadata on BrowserStack, platform quirks, etc.).
     try {
       await withTimeout(
         getDriver().switchContext({
@@ -140,19 +46,7 @@ export default class PlaywrightContextHelpers {
         `switchContext for ${dappUrl}`,
       );
       await this.warmWebViewContext();
-      if (dappPageId) {
-        try {
-          await withTimeout(
-            getDriver().switchToWindow(dappPageId),
-            this.WEBVIEW_SWITCH_TIMEOUT_MS,
-            `switchToWindow(${dappPageId})`,
-          );
-        } catch (lockErr) {
-          logger.debug(
-            `switchToWindow(dapp page) failed (non-fatal): ${this.getErrorMessage(lockErr).slice(0, 200)}`,
-          );
-        }
-      }
+      await this.switchToMatchingWebviewWindow(dappUrl);
       logger.debug(`Switched to webview context for URL: ${dappUrl}`);
       return;
     } catch (err) {
@@ -220,46 +114,13 @@ export default class PlaywrightContextHelpers {
   }
 
   private static async getDetailedWebviews(): Promise<DetailedContext[]> {
-    // `mobile: getContexts` must be issued from the NATIVE_APP context. When
-    // called while attached to a WebView context, Android UiAutomator2 +
-    // chromedriver deadlocks until connectionRetryTimeout (~45s abort). Save
-    // the current context, enumerate from native, then restore.
-    const wdioDriver = getDriver();
-    let previousContext: string | undefined;
-    try {
-      previousContext = (await wdioDriver.getContext()) as string | undefined;
-    } catch {
-      // getContext unavailable/failed — proceed without restore.
-    }
+    const contexts: (Context | DetailedContext)[] =
+      await getDriver().getContexts({ returnDetailedContexts: true });
 
-    const isAlreadyNative = !previousContext || previousContext === NATIVE_APP;
-    if (!isAlreadyNative) {
-      await wdioDriver.switchContext(NATIVE_APP);
-    }
-
-    try {
-      const contexts: (Context | DetailedContext)[] = await withTimeout(
-        wdioDriver.getContexts({ returnDetailedContexts: true }),
-        this.WEBVIEW_TIMEOUT_MS,
-        'getContexts (detailed)',
-      );
-
-      return contexts.filter((ctx): ctx is DetailedContext => {
-        if (typeof ctx === 'string') return false;
-        return ctx.id !== NATIVE_APP;
-      });
-    } finally {
-      if (!isAlreadyNative && previousContext) {
-        try {
-          await wdioDriver.switchContext(previousContext);
-        } catch (error) {
-          logger.debug(
-            'Failed to restore WebView context after getContexts (non-fatal):',
-            this.getErrorMessage(error).slice(0, 200),
-          );
-        }
-      }
-    }
+    return contexts.filter((ctx): ctx is DetailedContext => {
+      if (typeof ctx === 'string') return false;
+      return ctx.id !== NATIVE_APP;
+    });
   }
 
   private static async selectBestWebview(
