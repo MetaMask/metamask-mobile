@@ -6,6 +6,10 @@ import React from 'react';
 import { useRampsQuotes, type GetQuotesOptions } from './useRampsQuotes';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../constants/rampsBuyCufTags';
 
 const mockGetBuyWidgetData = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -15,6 +19,15 @@ jest.mock('../../../../core/Engine', () => ({
       getBuyWidgetData: (...args: unknown[]) => mockGetBuyWidgetData(...args),
     },
   },
+}));
+
+const mockStartRampsBuyQuoteFetchTrace = jest.fn(() => 'quote-cuf-op-1');
+const mockEndRampsBuyQuoteFetchTrace = jest.fn();
+jest.mock('../utils/rampsBuyCufTrace', () => ({
+  startRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+    mockStartRampsBuyQuoteFetchTrace(...args),
+  endRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+    mockEndRampsBuyQuoteFetchTrace(...args),
 }));
 
 const createMockStore = () =>
@@ -180,6 +193,7 @@ describe('useRampsQuotes', () => {
       expect(result.current.loading).toBe(true);
       expect(result.current.status).toBe('loading');
       expect(result.current.data).toBeNull();
+      expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalled();
 
       await waitFor(() => {
         expect(result.current.status).toBe('success');
@@ -189,6 +203,10 @@ describe('useRampsQuotes', () => {
       expect(result.current.data).toEqual(mockQuotesResponse);
       expect(result.current.isSuccess).toBe(true);
       expect(result.current.error).toBeNull();
+      expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-cuf-op-1',
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      });
       expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           amount: 100,
@@ -219,6 +237,13 @@ describe('useRampsQuotes', () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe(networkError);
       expect(result.current.data).toBeNull();
+      expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-cuf-op-1',
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        },
+      });
     });
 
     it('preserves enriched error metadata when the request rejects', async () => {
