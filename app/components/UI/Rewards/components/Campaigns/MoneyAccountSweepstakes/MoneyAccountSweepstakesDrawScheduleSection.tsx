@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import React, { useCallback } from 'react';
 import {
-  BottomSheet,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
-  IconColor,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -31,12 +29,16 @@ import { WEEK_NUMBER_PLACEHOLDER } from './constants';
 export const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-draw-schedule-container',
   WEEK_ROW: 'money-account-sweepstakes-draw-schedule-week-row',
+  DRAW_COMPLETE_BUTTON:
+    'money-account-sweepstakes-draw-schedule-draw-complete-button',
 } as const;
 
 interface MoneyAccountSweepstakesDrawScheduleSectionProps {
   campaigns: CampaignDto[];
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
   activeCampaignId?: string | null;
+  /** Open draw-proof sheet outside ScrollView (parent mounts the modal). */
+  onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
 }
 
 const formatWeekTitle = (
@@ -44,100 +46,6 @@ const formatWeekTitle = (
   weekNumber: number,
 ): string =>
   weekTitleTemplate.replace(WEEK_NUMBER_PLACEHOLDER, String(weekNumber));
-
-const DrawProofSheet: React.FC<{
-  drawProof: MoneyAccountSweepstakesDrawProofDto;
-  localizedText: MoneyAccountSweepstakesLocalizedTextDto;
-  onClose: () => void;
-}> = ({ drawProof, localizedText, onClose }) => {
-  const { explanation, originalDraw } = drawProof;
-
-  return (
-    <BottomSheet onClose={onClose}>
-      <Box twClassName="px-4 pb-4 max-h-[80%]">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.End}
-          twClassName="mb-4"
-        >
-          <ButtonIcon
-            iconName={IconName.Close}
-            iconProps={{ color: IconColor.IconDefault }}
-            onPress={onClose}
-          />
-        </Box>
-
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Box twClassName="gap-3 mb-4">
-            <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-              {localizedText.drawProofTitle}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.merkleRootLabel}: {explanation.merkleRoot}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.formulaLabel}: {explanation.formula}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.drawProofEntriesLabel}: {explanation.entryCount}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.winnersLabel}: {explanation.winnerCount}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.reservesLabel}: {explanation.reserveCount}
-            </Text>
-          </Box>
-
-          <Box twClassName="gap-2">
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {localizedText.originalDrawTitle}
-            </Text>
-            {originalDraw.map((entry) => (
-              <Box
-                key={`${entry.drawOrder}-${entry.addressPrefix}`}
-                twClassName="gap-0.5 py-2 border-b border-border-muted"
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                >
-                  #{entry.drawOrder} · {entry.addressPrefix}
-                  {entry.isReserve ? ` ${localizedText.reserveSuffix}` : ''}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                >
-                  {entry.refCode
-                    ? `${localizedText.refLabel}: ${entry.refCode} · `
-                    : ''}
-                  {localizedText.weightLabel}: {entry.weight}
-                </Text>
-              </Box>
-            ))}
-          </Box>
-        </ScrollView>
-      </Box>
-    </BottomSheet>
-  );
-};
 
 const ActiveWeekPrizePool: React.FC<{ campaignId: string }> = ({
   campaignId,
@@ -159,12 +67,14 @@ interface WeekRowProps {
   campaign: CampaignDto;
   weekNumber: number;
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
+  onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
 }
 
 const WeekRow: React.FC<WeekRowProps> = ({
   campaign,
   weekNumber,
   localizedText,
+  onOpenDrawProof,
 }) => {
   const status = getCampaignStatus(campaign);
   const { drawProof } = useGetMoneyAccountSweepstakesDrawProof(
@@ -172,13 +82,18 @@ const WeekRow: React.FC<WeekRowProps> = ({
     status === 'complete',
   );
 
-  const [isProofSheetOpen, setIsProofSheetOpen] = useState(false);
-
   const weekTitle = formatWeekTitle(localizedText.weekTitle, weekNumber);
   const dateRange = formatCampaignDateRange(
     campaign.startDate,
     campaign.endDate,
   );
+
+  const openDrawProofSheet = useCallback(() => {
+    if (!drawProof) {
+      return;
+    }
+    onOpenDrawProof?.(drawProof);
+  }, [drawProof, onOpenDrawProof]);
 
   if (status === 'complete') {
     const hasProof = drawProof != null;
@@ -203,11 +118,16 @@ const WeekRow: React.FC<WeekRowProps> = ({
             {weekTitle} · {localizedText.completeLabel}
           </Text>
           {hasProof ? (
-            <Pressable onPress={() => setIsProofSheetOpen(true)}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {localizedText.drawCompleteTitle}
-              </Text>
-            </Pressable>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              onPress={openDrawProofSheet}
+              testID={
+                MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON
+              }
+            >
+              {localizedText.drawCompleteTitle}
+            </Button>
           ) : (
             <Text
               variant={TextVariant.BodySm}
@@ -218,14 +138,6 @@ const WeekRow: React.FC<WeekRowProps> = ({
             </Text>
           )}
         </Box>
-
-        {isProofSheetOpen && drawProof && (
-          <DrawProofSheet
-            drawProof={drawProof}
-            localizedText={localizedText}
-            onClose={() => setIsProofSheetOpen(false)}
-          />
-        )}
       </Box>
     );
   }
@@ -296,7 +208,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
 
 const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
   MoneyAccountSweepstakesDrawScheduleSectionProps
-> = ({ campaigns, localizedText }) => {
+> = ({ campaigns, localizedText, onOpenDrawProof }) => {
   if (campaigns.length === 0) {
     return null;
   }
@@ -317,6 +229,7 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
             campaign={campaign}
             weekNumber={index + 1}
             localizedText={localizedText}
+            onOpenDrawProof={onOpenDrawProof}
           />
         </React.Fragment>
       ))}
