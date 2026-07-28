@@ -98,6 +98,7 @@ e2e_relevant_workflows:
   - '.github/workflows/build-android-e2e.yml'
   - '.github/workflows/build-ios-e2e.yml'
   - '.github/workflows/run-e2e-*.yml'
+  - '.github/workflows/run-appium-*.yml'
   - '.github/workflows/update-e2e-fixtures.yml'
   - '.github/workflows/build.yml'
   - '.github/scripts/e2e-*.mjs'
