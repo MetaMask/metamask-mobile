@@ -44,6 +44,10 @@ export default class PlaywrightAssertions {
    * (`isExisting`). This avoids the multiple internal HTTP round-trips that
    * WebdriverIO's `waitForDisplayed` performs on each iteration.
    *
+   * Implicit wait is set once for the whole poll (not per attempt) so cloud
+   * providers (TestMu / BrowserStack) do not pay 2× `setTimeout` RTT every
+   * probe — that overhead was inflating performance timers.
+   *
    * When measuring, only the successful confirm (+ probe) counts as infra.
    * A shorter poll interval reduces detection lag without zeroing app time.
    */
@@ -62,31 +66,41 @@ export default class PlaywrightAssertions {
       ? this.POLL_INTERVAL_WHILE_MEASURING_MS
       : this.POLL_INTERVAL_MS;
     const start = Date.now();
-    while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
-      const remaining = timeout - (Date.now() - start);
-      if (remaining <= 0) {
-        break;
-      }
-      const t0 = Date.now();
-      try {
-        const exists = await withImplicitWait(this.POLL_IMPLICIT_WAIT_MS, () =>
-          el.unwrap().isExisting(),
-        );
-        if (exists) {
-          const displayed = await el.isVisible();
-          if (displayed) {
-            if (tracking) {
-              recordSuccessPollCommand(Date.now() - t0);
-              await this.probeOverhead(el);
-            }
-            return;
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
           }
+          const t0 = Date.now();
+          try {
+            const exists = await el.unwrap().isExisting();
+            if (exists) {
+              const displayed = await el.isVisible();
+              if (displayed) {
+                if (tracking) {
+                  recordSuccessPollCommand(Date.now() - t0);
+                  await this.probeOverhead(el);
+                }
+                return true;
+              }
+            }
+          } catch {
+            // element not ready yet
+          }
+          await sleep(Math.min(interval, remaining));
         }
-      } catch {
-        // element not ready yet
-      }
-      await sleep(Math.min(interval, remaining));
+        return false;
+      },
+    );
+
+    if (found) {
+      return;
     }
+
     const remainingTimeout = timeout - (Date.now() - start);
     await el.waitForDisplayed({
       timeout: Math.max(interval, remainingTimeout),

@@ -11,6 +11,12 @@
       "os_version": "14.0",
       "category": "low",
       "description": "High-end Google flagship device with Android 14"
+    },
+    {
+      "name": "Pixel 8 Pro",
+      "os_version": "14",
+      "category": "low",
+      "description": "Mid-range Google flagship device with Android 14"
     }
   ],
   "ios_devices": [
