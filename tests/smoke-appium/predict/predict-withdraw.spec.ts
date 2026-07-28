@@ -29,37 +29,8 @@ import FooterActions from '../../page-objects/Browser/Confirmations/FooterAction
 import {
   loginForPredictTests,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
+  remoteFeatureFlagWithdrawAnyTokenDisabled,
 } from './helpers/predict-helpers.js';
-
-const POLYGON_USDCE_ADDRESS = '0x2791bca1f2de4661ed88a30c99a7a9449aa84174';
-
-const ENABLE_PREDICT_WITHDRAW_PAY = {
-  confirmations_pay_post_quote: {
-    default: { enabled: true, tokens: {} },
-    overrides: {
-      predictWithdraw: {
-        enabled: true,
-        tokens: {
-          '0x89': [POLYGON_USDCE_ADDRESS],
-        },
-      },
-    },
-  },
-  confirmations_pay_tokens: {
-    preferredTokens: {
-      default: [],
-      overrides: {
-        predictWithdraw: [
-          {
-            name: 'USDC.e',
-            address: POLYGON_USDCE_ADDRESS,
-            chainId: '0x89',
-          },
-        ],
-      },
-    },
-  },
-};
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   // Polygon predict withdraw publishes via EIP-7702 transaction relay, not Infura eth_sendRawTransaction.
@@ -69,7 +40,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
-    ...ENABLE_PREDICT_WITHDRAW_PAY,
+    ...remoteFeatureFlagWithdrawAnyTokenDisabled(),
     carouselBanners: false,
     predictExtendedSportsMarkets: {
       versions: {
