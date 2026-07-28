@@ -237,6 +237,10 @@ builds:
       E2E_MOCK_OAUTH: 'true'
       IS_PERFORMANCE_TEST: 'true'
       RAMP_INTERNAL_BUILD: 'true'
+      # e2e/test LaunchDarkly env has telegram_login_enabled=false; bake the
+      # selector override so Telegram seedless onboarding performance coverage
+      # (TO-916) can see the button without depending on remote test flags.
+      MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
@@ -297,6 +301,9 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
+      # Keep Telegram seedless onboarding available for RC without-srp perf runs
+      # even if remote flag delivery lags; selector reads MM_TELEGRAM_LOGIN_ENABLED.
+      MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
@@ -406,6 +413,7 @@ builds:
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 

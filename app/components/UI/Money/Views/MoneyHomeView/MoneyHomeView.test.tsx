@@ -22,7 +22,6 @@ import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/Mon
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
 import { MoneyMusdTokenRowTestIds } from '../../components/MoneyMusdTokenRow/MoneyMusdTokenRow.testIds';
-import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -32,6 +31,7 @@ import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import {
   selectCardHomeDataStatus,
@@ -63,6 +63,7 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
+const mockRefetchInterest = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'built-event' }));
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -138,6 +139,11 @@ jest.mock(
 );
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useMoneyAccountInterest', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -339,6 +345,7 @@ const CARD_TX: AccountsApiActivity = {
 const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyAccountInterest = jest.mocked(useMoneyAccountInterest);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
 jest.mock(
@@ -431,6 +438,26 @@ describe('MoneyHomeView', () => {
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
     mockInitiateDeposit.mockResolvedValue(undefined);
+    mockRefetchInterest.mockResolvedValue(undefined);
+    mockUseMoneyAccountInterest.mockReturnValue({
+      last30DaysQuery: {
+        data: {
+          interest_earned_usd: '11.37',
+        },
+        isLoading: false,
+        isInitialLoading: false,
+        isError: false,
+      },
+      sinceInceptionQuery: {
+        data: {
+          interest_earned_usd: '139.02',
+        },
+        isLoading: false,
+        isInitialLoading: false,
+        isError: false,
+      },
+      refetchInterest: mockRefetchInterest,
+    } as unknown as ReturnType<typeof useMoneyAccountInterest>);
 
     mockSelectIsCardholder.mockReturnValue(false);
     mockSelectHasMetalCard.mockReturnValue(false);
@@ -573,7 +600,7 @@ describe('MoneyHomeView', () => {
   });
 
   describe('pull to refresh', () => {
-    it('calls refetchBalance when refresh control onRefresh runs', async () => {
+    it('refreshes balance and interest when refresh control onRefresh runs', async () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
 
@@ -582,6 +609,7 @@ describe('MoneyHomeView', () => {
       });
 
       expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
+      expect(mockRefetchInterest).toHaveBeenCalledTimes(1);
     });
 
     it('logs refresh failure when refetchBalance rejects', async () => {
@@ -693,12 +721,12 @@ describe('MoneyHomeView', () => {
       mockSelectPrivacyMode.mockReturnValue(true);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
-        '•'.repeat(9),
-      );
-      expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
-        '•'.repeat(9),
-      );
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+      ).toHaveTextContent('•'.repeat(9));
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
+      ).toHaveTextContent('•'.repeat(9));
     });
 
     it('shows the real earnings values when privacy mode is off', () => {
@@ -706,10 +734,10 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
-        getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE),
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
       ).not.toHaveTextContent('•'.repeat(9));
       expect(
-        getByTestId(MoneyEarningsTestIds.YEARLY_VALUE),
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
       ).not.toHaveTextContent('•'.repeat(9));
     });
   });
@@ -1220,13 +1248,25 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  it('opens the earnings info sheet when the earnings info button is pressed', () => {
+  it('opens the monthly earnings info sheet when the monthly label is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    fireEvent.press(getByTestId(MoneySectionHeaderTestIds.INFO_BUTTON));
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.MONTHLY_LABEL));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { variant: 'monthly' },
+    });
+  });
+
+  it('opens the lifetime earnings info sheet when the lifetime label is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.LIFETIME_LABEL));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { variant: 'lifetime' },
     });
   });
 
@@ -1310,36 +1350,164 @@ describe('MoneyHomeView', () => {
     mockOpenURL.mockRestore();
   });
 
-  describe('monthly and yearly earnings', () => {
-    it('passes the formatted monthly earnings to MoneyEarnings', () => {
+  describe('API-backed earnings', () => {
+    it('passes the formatted last 30 days interest to MoneyEarnings', () => {
       mockMoneyFormatUsd.mockImplementation((value) =>
-        String(value) === '0' ? '$0.00' : '$0.12',
+        String(value) === '11.37' ? '$11.37' : '$0.12',
       );
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
-        '+$0.12',
-      );
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+      ).toHaveTextContent('+$11.37');
     });
 
-    it('passes the formatted yearly earnings to MoneyEarnings', () => {
+    it('passes the formatted since inception interest to MoneyEarnings', () => {
       mockMoneyFormatUsd.mockImplementation((value) =>
-        String(value) === '0' ? '$0.00' : '$0.12',
+        String(value) === '139.02' ? '$139.02' : '$0.12',
       );
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
-        '+$0.12',
-      );
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
+      ).toHaveTextContent('+$139.02');
     });
 
-    it('drops the + prefix when projected earnings round to formatted zero', () => {
+    it('falls back monthly to APY projection and lifetime to zero when interest fails', () => {
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: undefined,
+          isLoading: false,
+          isInitialLoading: false,
+          isError: true,
+        },
+        sinceInceptionQuery: {
+          data: undefined,
+          isLoading: false,
+          isInitialLoading: false,
+          isError: true,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+      mockMoneyFormatUsd.mockImplementation((value) => {
+        if (String(value) === '0') return '$0.00';
+        return '$0.01';
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+      ).toHaveTextContent('+$0.01');
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
+      ).toHaveTextContent(/^\$0\.00$/);
+    });
+
+    it('falls back monthly to projection and lifetime to zero for invalid interest values', () => {
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: { interest_earned_usd: 'invalid' },
+          isLoading: false,
+          isInitialLoading: false,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: { interest_earned_usd: 'NaN' },
+          isLoading: false,
+          isInitialLoading: false,
+          isError: false,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+      mockMoneyFormatUsd.mockImplementation((value) =>
+        String(value) === '0' ? '$0.00' : '$0.01',
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+      ).toHaveTextContent('+$0.01');
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
+      ).toHaveTextContent(/^\$0\.00$/);
+    });
+
+    it('shows skeletons while interest is initially loading', () => {
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: undefined,
+          isLoading: true,
+          isInitialLoading: true,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: undefined,
+          isLoading: true,
+          isInitialLoading: true,
+          isError: false,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show skeletons while interest is refetching with cached data', () => {
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: { interest_earned_usd: '11.37' },
+          isLoading: true,
+          isInitialLoading: false,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: { interest_earned_usd: '139.02' },
+          isLoading: true,
+          isInitialLoading: false,
+          isError: false,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+      mockMoneyFormatUsd.mockImplementation((value) => {
+        if (String(value) === '11.37') return '$11.37';
+        if (String(value) === '139.02') return '$139.02';
+        return '$0.12';
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyEarningsTestIds.LAST_30_DAYS_SKELETON),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+      ).toHaveTextContent('+$11.37');
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
+      ).toHaveTextContent('+$139.02');
+    });
+
+    it('drops the + prefix when earnings round to formatted zero', () => {
       mockMoneyFormatUsd.mockReturnValue('$0.00');
       // totalFiatRaw must be >= DUST_THRESHOLD so hasSpendableBalance is true
       // and MoneyEarnings renders. moneyFormatUsd is mocked to return '$0.00'
-      // for all values, exercising the no-plus-prefix path.
+      // for all API and fallback values, exercising the no-plus-prefix path.
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: '$3.00',
         totalFiatRaw: '3',
@@ -1353,12 +1521,12 @@ describe('MoneyHomeView', () => {
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
-        /^\$0\.00$/,
-      );
-      expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
-        /^\$0\.00$/,
-      );
+      expect(
+        getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+      ).toHaveTextContent(/^\$0\.00$/);
+      expect(
+        getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
+      ).toHaveTextContent(/^\$0\.00$/);
     });
 
     it('hides MoneyEarnings when totalFiatFormatted is absent in non-error, non-loading state', () => {
@@ -1385,7 +1553,7 @@ describe('MoneyHomeView', () => {
         queryByTestId(MoneyEarningsTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyEarningsTestIds.MONTHLY_VALUE),
+        queryByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
       ).not.toBeOnTheScreen();
     });
   });
