@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 export const OnboardingScreenIds = {
   ONBOARDING_LANDING: 'onboarding_landing',
-  CHOOSE_PASSWORD: 'choose_password',
+  CHOOSE_PASSWORD: 'choose_password', // NOSONAR - Sentry screen_id tag, not a credential
   IMPORT_SRP: 'import_srp',
 } as const;
 
