@@ -29,6 +29,7 @@ import FooterActions from '../../page-objects/Browser/Confirmations/FooterAction
 import {
   loginForPredictTests,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
+  remoteFeatureFlagWithdrawAnyTokenDisabled,
 } from './helpers/predict-helpers.js';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
@@ -39,6 +40,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
+    ...remoteFeatureFlagWithdrawAnyTokenDisabled(),
     carouselBanners: false,
     predictExtendedSportsMarkets: {
       versions: {

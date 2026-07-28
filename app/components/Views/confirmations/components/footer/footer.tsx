@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -79,7 +80,7 @@ export const Footer = () => {
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
