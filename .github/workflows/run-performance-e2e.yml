@@ -123,7 +123,6 @@ jobs:
     outputs:
       testmu_ready: ${{ steps.resolve.outputs.testmu_ready }}
       lt_username: ${{ steps.resolve.outputs.lt_username }}
-      lt_access_key: ${{ steps.resolve.outputs.lt_access_key }}
     steps:
       - name: Resolve TestMu AI credentials
         id: resolve
@@ -135,7 +134,6 @@ jobs:
             echo "Using fixed TestMu AI username javiervera + LT_ACCESS_KEY secret"
             {
               echo "lt_username=javiervera"
-              echo "lt_access_key=$SECRET_KEY"
               echo "testmu_ready=true"
             } >> "$GITHUB_OUTPUT"
           else
@@ -423,7 +421,7 @@ jobs:
         id: upload
         env:
           LT_USERNAME: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-          LT_ACCESS_KEY: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
           FIND_FOUND: ${{ steps.find.outputs.found }}
         run: |
           set +e
@@ -496,7 +494,7 @@ jobs:
       # the reusable Android build job fail to start.
       main_branch_only: ${{ inputs.reuse_main_builds == true && inputs.build_variant == 'e2e' }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
     secrets: inherit
 
   # =============================================================================
@@ -575,7 +573,7 @@ jobs:
       branch_name: ${{ inputs.branch_name }}
       testmu_build_name: ${{ needs.prepare.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
@@ -669,7 +667,7 @@ jobs:
       branch_name: ${{ inputs.branch_name }}
       testmu_build_name: ${{ needs.prepare.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      lt_access_key: ${{ secrets.LT_ACCESS_KEY }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
