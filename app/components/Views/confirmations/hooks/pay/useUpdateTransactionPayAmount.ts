@@ -7,7 +7,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import Engine from '../../../../../core/Engine';
 import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
@@ -24,6 +23,7 @@ import {
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { hasTransactionType } from '../../utils/transaction';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
+import { updateMoneyAccountDepositAmount } from '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
@@ -112,10 +112,7 @@ export function useUpdateTransactionPayAmount() {
           isMoneyAccountDepositQuotePipelineEnabled &&
           isOptimizedDepositIntent
         ) {
-          await Engine.context.TransactionPayController.updateAmount({
-            transactionId: transactionMeta.id,
-            amountHuman,
-          });
+          await updateMoneyAccountDepositAmount(transactionMeta, amountHuman);
           return;
         }
 
