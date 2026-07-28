@@ -34,9 +34,12 @@ import {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useTokensFeed } from '../../../../../../Views/TrendingView/feeds/tokens/useTokensFeed';
 import { TokenDetailsSource } from '../../../../../TokenDetails/constants/constants';
+import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
 import { getAssetNavigationParams } from '../../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { type BridgeToken, TokenSelectorType } from '../../../../types';
 import { adaptTokenSecurityData } from '../../../../utils/tokenSecurityUtils';
+import { buildMMPayRampIntent, isUnfundedBuyIntent } from '../../mmpayIntent';
+import MMPayFundingCard from '../MMPayFundingCard';
 import {
   getTradeNetworkChainId,
   resolveTradeSourceAmount,
@@ -104,6 +107,7 @@ const areSameChain = (
 const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const { goToBuy } = useRampNavigation();
   const dispatch = useDispatch();
   const selectedBridgeSourceToken = useSelector(selectSourceToken);
   const selectedBridgeDestinationToken = useSelector(selectDestToken);
@@ -201,6 +205,14 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
     tokensWithBalance,
   ]);
   const initialSourceToken = walletSourceToken ?? resolvedTrendingSourceToken;
+  const shouldOfferAddFunds = isUnfundedBuyIntent(
+    intent,
+    Boolean(walletSourceToken),
+  );
+  const rampIntent = useMemo(
+    () => buildMMPayRampIntent(intent, initialDestinationToken),
+    [initialDestinationToken, intent],
+  );
   const hasSelectedSourceInSwap =
     sourceSelectorBaselineKey !== undefined &&
     getBridgeTokenKey(selectedBridgeSourceToken) !== sourceSelectorBaselineKey;
@@ -295,6 +307,22 @@ const EmbeddedSwapCard = ({ intent, onReview }: EmbeddedSwapCardProps) => {
     sourceAmountForQuote,
     sourceToken,
   ]);
+  const handleAddFunds = useCallback(() => {
+    goToBuy(rampIntent);
+  }, [goToBuy, rampIntent]);
+
+  if (shouldOfferAddFunds) {
+    return (
+      <MMPayFundingCard
+        amount={intent.amountType === 'fiat' ? intent.amountValue : undefined}
+        destinationSymbol={intent.destinationSymbol}
+        destinationToken={destinationToken}
+        isLoading={isDestinationLoading}
+        networkName={getNetworkName(destinationToken)}
+        onAddFunds={handleAddFunds}
+      />
+    );
+  }
 
   return (
     <Box twClassName="mt-4 gap-4 rounded-2xl border border-muted bg-muted p-4">

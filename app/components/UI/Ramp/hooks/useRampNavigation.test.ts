@@ -220,6 +220,7 @@ describe('useRampNavigation', () => {
       expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
         assetId: intent.assetId,
         buyFlowOrigin: undefined,
+        amount: undefined,
       });
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
@@ -235,6 +236,7 @@ describe('useRampNavigation', () => {
       expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
         assetId: intent.assetId,
         buyFlowOrigin: 'tokenInfo',
+        amount: undefined,
       });
     });
 
@@ -248,6 +250,24 @@ describe('useRampNavigation', () => {
       expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
         assetId: intent.assetId,
         buyFlowOrigin: 'homeTokenList',
+        amount: undefined,
+      });
+    });
+
+    it('prefills a valid fiat amount in BuildQuote', () => {
+      const intent = {
+        amount: '20',
+        assetId: 'eip155:1/erc20:0x123',
+      };
+
+      const { result } = renderUseRampNavigation();
+
+      result.current.goToBuy(intent);
+
+      expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+        amount: 20,
+        assetId: intent.assetId,
+        buyFlowOrigin: undefined,
       });
     });
 
@@ -362,6 +382,7 @@ describe('useRampNavigation', () => {
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
           buyFlowOrigin: undefined,
+          amount: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       });
@@ -400,6 +421,7 @@ describe('useRampNavigation', () => {
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: 'eip155:137/slip44:966',
           buyFlowOrigin: 'tokenInfo',
+          amount: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockNavigate).not.toHaveBeenCalledWith(
