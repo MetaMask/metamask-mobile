@@ -7,13 +7,6 @@ import { APP_PACKAGE_IDS } from './Constants';
 import { PlatformDetector } from './PlatformLocator';
 import { getDriver, withTimeout } from './PlaywrightUtilities';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
-// eslint-disable-next-line import-x/no-nodejs-modules -- adb host commands for webview page-lock
-import { exec } from 'child_process';
-// eslint-disable-next-line import-x/no-nodejs-modules -- adb host commands for webview page-lock
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
-
 const logger = createPlaywrightLogger('PlaywrightContextHelpers');
 
 type DetailedContext = IosDetailedContext | AndroidDetailedContext;
@@ -67,10 +60,14 @@ export default class PlaywrightContextHelpers {
   }
 
   /**
-   * Resolve the dapp's DevTools page id by querying the Android WebView
-   * DevTools /json/list endpoint directly (via adb forward + fetch), bypassing
-   * chromedriver. Used to lock chromedriver onto the real dapp page instead of
-   * one of the Snaps about:blank pages. Returns undefined on any failure.
+   * Resolve the dapp's DevTools page id (webviewPageId) using WDIO's native
+   * getContexts(detailed) enumeration, issued safely from the NATIVE context.
+   * Used to pin chromedriver onto the real dapp page instead of one of the
+   * Snaps about:blank pages. Returns undefined when it cannot be resolved.
+   *
+   * Deliberately avoids adb/procfs/loopback-fetch: those are unreliable in
+   * containerized CI runners, silently returned undefined there, and left the
+   * page-lock inert (the root cause of the CI webview-attach hang).
    */
   private static async findDappPageId(
     dappUrl: string,
@@ -78,66 +75,60 @@ export default class PlaywrightContextHelpers {
     if (!(await PlatformDetector.isAndroid())) {
       return undefined;
     }
-    const serial = process.env.ANDROID_SERIAL;
-    const deviceFlag = serial ? `-s ${serial}` : '';
-    const HOST_PROBE_PORT = 19222;
     try {
-      // Discover the io.metamask WebView devtools abstract socket on device.
-      const { stdout: sockets } = await execAsync(
-        `adb ${deviceFlag} shell cat /proc/net/unix`,
-      ).catch((e) => ({ stdout: `cat /proc/net/unix failed: ${e?.message}` }));
-      const abstractSocket = sockets
-        .split('\n')
-        .map((l) => l.match(/@(webview_devtools_remote_\d+)/))
-        .find(Boolean)?.[1];
-      if (!abstractSocket) {
-        return undefined;
-      }
-
-      // Forward host:19222 -> device webview devtools socket, then fetch
-      // /json/list to enumerate every page target and match the dapp URL.
-      await execAsync(
-        `adb ${deviceFlag} forward tcp:${HOST_PROBE_PORT} localabstract:${abstractSocket}`,
+      const webviews = await this.getDetailedWebviews();
+      const match = webviews.find((ctx) =>
+        this.contextMatchesDappUrl(ctx, dappUrl),
       );
-      try {
-        const controller = new AbortController();
-        const t = setTimeout(() => controller.abort(), 10_000);
-        const res = await fetch(
-          `http://127.0.0.1:${HOST_PROBE_PORT}/json/list`,
-          {
-            signal: controller.signal,
-          },
-        );
-        clearTimeout(t);
-        const targets = (await res.json()) as {
-          type?: string;
-          url?: string;
-          webSocketDebuggerUrl?: string;
-        }[];
-        const dappTarget = targets.find(
-          (tgt) => tgt.type === 'page' && tgt.url?.includes(dappUrl),
-        );
-        return dappTarget?.webSocketDebuggerUrl
-          ?.split('/devtools/page/')[1]
-          ?.trim();
-      } finally {
-        await execAsync(
-          `adb ${deviceFlag} forward --remove tcp:${HOST_PROBE_PORT}`,
-        ).catch(() => undefined);
-      }
+      const pageId = (match as AndroidContextWithPage | undefined)
+        ?.webviewPageId;
+      logger.info(
+        `[webview] resolved ${webviews.length} webview page(s); dapp pageId for ${dappUrl}: ${pageId ?? '(none)'}`,
+      );
+      return pageId;
     } catch (err) {
-      logger.debug(
-        `devtools target enumeration failed: ${this.getErrorMessage(err).slice(0, 200)}`,
+      logger.info(
+        `[webview] page id resolution failed: ${this.getErrorMessage(err).slice(0, 200)}`,
       );
+      return undefined;
     }
-    return undefined;
   }
 
   static async switchToWebViewContext(dappUrl: string): Promise<void> {
     logger.debug(`Switching to webview context for URL: ${dappUrl}`);
     const dappPageId = await this.findDappPageId(dappUrl);
-    // Try WebdriverIO's built-in URL matching first; fall back to manual
-    // polling on any failure (LavaMoat scuttling, stale URL metadata, etc.).
+
+    // Android happy path: pin the dapp page WITHOUT a url-matched switch.
+    // switchContext({ url }) forces chromedriver to Runtime.evaluate every
+    // page to read its URL; the LavaMoat-scuttled Snaps about:blank realms
+    // block that evaluate and wedge the whole chromedriver session. A plain
+    // context switch + switchToWindow(pageId) attaches to the one correct
+    // page without probing the others.
+    if ((await PlatformDetector.isAndroid()) && dappPageId) {
+      try {
+        const webviewContextId = `WEBVIEW_${APP_PACKAGE_IDS.ANDROID}`;
+        await withTimeout(
+          getDriver().switchContext(webviewContextId),
+          this.WEBVIEW_SWITCH_TIMEOUT_MS,
+          `switchContext(${webviewContextId})`,
+        );
+        await withTimeout(
+          getDriver().switchToWindow(dappPageId),
+          this.WEBVIEW_SWITCH_TIMEOUT_MS,
+          `switchToWindow(${dappPageId})`,
+        );
+        await this.warmWebViewContext();
+        logger.debug(`Pinned dapp page ${dappPageId} for ${dappUrl}`);
+        return;
+      } catch (lockErr) {
+        logger.info(
+          `[webview] page-lock path failed, falling back: ${this.getErrorMessage(lockErr).slice(0, 200)}`,
+        );
+      }
+    }
+
+    // Fallback (iOS, or Android pageId unresolved): WebdriverIO's built-in URL
+    // matching, then manual polling on any failure.
     try {
       await withTimeout(
         getDriver().switchContext({
@@ -149,10 +140,6 @@ export default class PlaywrightContextHelpers {
         `switchContext for ${dappUrl}`,
       );
       await this.warmWebViewContext();
-      // Lock onto the dapp page. The io.metamask WebView owns several pages
-      // (the dapp + Snaps about:blank pages); chromedriver can park on a Snaps
-      // page and wedge subsequent CDP commands. switchToWindow pins the correct
-      // page without calling getContexts (which deadlocks while attached).
       if (dappPageId) {
         try {
           await withTimeout(
