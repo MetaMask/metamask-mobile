@@ -265,16 +265,15 @@ test('buildScenarioComment labels non-green baseline fallback', () => {
 });
 
 test('downloadAggregatedReports reuses an existing baseline directory', async () => {
-  const { mkdtempSync, writeFileSync, mkdirSync, rmSync } = await import(
-    'node:fs'
-  );
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { tmpdir } = await import('node:os');
-  const mod = await import('./diff-app-profiling.mjs');
+  const { findScenarioWithProfilingInDir } = await import(
+    './diff-app-profiling.mjs'
+  );
 
-  // Access via dynamic re-import after exporting — call through a thin wrapper
-  // by simulating the reuse condition: directory with performance-results.json
-  // must be treated as already downloaded.
+  // Directory already containing performance-results.json must remain usable
+  // for a later scenario in the same --all run (no re-extract needed).
   const dir = mkdtempSync(join(tmpdir(), 'profiling-reuse-'));
   try {
     writeFileSync(
@@ -293,7 +292,7 @@ test('downloadAggregatedReports reuses an existing baseline directory', async ()
       }),
     );
 
-    const found = mod.findScenarioWithProfilingInDir(dir, {
+    const found = findScenarioWithProfilingInDir(dir, {
       testName: 'Fresh SRP wallet creation performance',
       device: { name: 'Pixel 8', osVersion: '14.0' },
       requireGreen: false,
@@ -305,6 +304,7 @@ test('downloadAggregatedReports reuses an existing baseline directory', async ()
   }
 });
 
+test('findScenarioWithProfilingInDir can use failed scenarios with profiling', async () => {
   const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { tmpdir } = await import('node:os');
