@@ -7560,23 +7560,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/context-module@npm:2.1.0":
-  version: 2.1.0
-  resolution: "@ledgerhq/context-module@npm:2.1.0"
-  dependencies:
-    bs58: "npm:^6.0.0"
-    crypto-js: "npm:^4.2.0"
-    ethers: "npm:6.14.1"
-    inversify: "npm:7.5.1"
-    purify-ts: "npm:2.1.0"
-    reflect-metadata: "npm:0.2.2"
-  peerDependencies:
-    "@ledgerhq/device-management-kit": ^1.5.1
-  checksum: 10/b641272c78b2e7b35d5547122e32521473f5e37c1140d61c3b0f52688b63e23eab41f30b084e0448d5722abd202999847ebc3a8bb0e97e89aa54e186d73a484e
-  languageName: node
-  linkType: hard
-
-"@ledgerhq/context-module@npm:^2.0.0":
+"@ledgerhq/context-module@npm:^2.3.1":
   version: 2.3.1
   resolution: "@ledgerhq/context-module@npm:2.3.1"
   dependencies:
@@ -7602,7 +7586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/device-management-kit@npm:^1.5.0, @ledgerhq/device-management-kit@npm:^1.7.1":
+"@ledgerhq/device-management-kit@npm:^1.7.1":
   version: 1.7.1
   resolution: "@ledgerhq/device-management-kit@npm:1.7.1"
   dependencies:
@@ -36070,8 +36054,8 @@ __metadata:
     "@lavamoat/allow-scripts": "npm:^3.0.4"
     "@lavamoat/git-safe-dependencies": "npm:^0.2.1"
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
-    "@ledgerhq/context-module": "npm:^2.0.0"
-    "@ledgerhq/device-management-kit": "npm:^1.5.0"
+    "@ledgerhq/context-module": "npm:^2.3.1"
+    "@ledgerhq/device-management-kit": "npm:^1.7.1"
     "@ledgerhq/device-signer-kit-ethereum": "npm:^1.16.0"
     "@ledgerhq/device-transport-kit-react-native-ble": "npm:^1.3.0"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
