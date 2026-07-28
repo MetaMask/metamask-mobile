@@ -323,11 +323,15 @@ export const buildLocalPriceResponse = (
 };
 
 type LocalMarketListKind = 'gainers' | 'losers' | 'trending';
+type LocalMarketCategory = 'meme';
+
+const MEME_CATEGORY_PATTERN = /\b(?:meme\s*coins?|memecoins?)\b/i;
+const MEME_LABEL_PATTERN = /meme/i;
 
 const getLocalMarketListKind = (
   prompt: string,
 ): LocalMarketListKind | undefined => {
-  if (/\b(why|news|social|meme|under|market cap|volume)\b/i.test(prompt)) {
+  if (/\b(why|news|social|under|market cap|volume)\b/i.test(prompt)) {
     return undefined;
   }
   if (/\b(top\s+)?gainers?\b|\bbiggest\s+(?:gains?|winners?)\b/i.test(prompt)) {
@@ -337,7 +341,7 @@ const getLocalMarketListKind = (
     return 'losers';
   }
   if (
-    /\b(trending|what(?:'s| is)\s+hot|hot\s+(?:tokens?|coins?)|crypto movers?)\b/i.test(
+    /\b(trending|(?:most\s+)?popular|what(?:'s| is)\s+hot|hot\s+(?:tokens?|coins?)|crypto movers?)\b/i.test(
       prompt,
     )
   ) {
@@ -348,6 +352,14 @@ const getLocalMarketListKind = (
 
 export const isLocalMarketListRequest = (prompt: string): boolean =>
   getLocalMarketListKind(prompt) !== undefined;
+
+export const isLocalMemeMarketListRequest = (prompt: string): boolean =>
+  isLocalMarketListRequest(prompt) && MEME_CATEGORY_PATTERN.test(prompt);
+
+const getLocalMarketCategory = (
+  prompt: string,
+): LocalMarketCategory | undefined =>
+  MEME_CATEGORY_PATTERN.test(prompt) ? 'meme' : undefined;
 
 const toFiniteChange = (token: TrendingAsset): number | undefined => {
   const value = Number(token.priceChangePct?.h24);
@@ -380,12 +392,15 @@ export const buildLocalMarketListResponse = (
   prompt: string,
   tokens: readonly TrendingAsset[],
   network?: WalletAssistantNetworkHint,
+  labelsByAssetId: ReadonlyMap<string, readonly string[]> = new Map(),
 ): WalletAssistantResearchResponse | undefined => {
   const kind = getLocalMarketListKind(prompt);
   if (!kind) {
     return undefined;
   }
 
+  const category = getLocalMarketCategory(prompt);
+  const isMostPopular = /\bmost\s+popular\b/i.test(prompt);
   const eligibleTokens = tokens.filter(
     ({ assetId, price, symbol }) =>
       symbol.trim() &&
@@ -393,10 +408,19 @@ export const buildLocalMarketListResponse = (
       (!network ||
         assetId
           .toLowerCase()
-          .startsWith(`${network.caipChainId.toLowerCase()}/`)),
+          .startsWith(`${network.caipChainId.toLowerCase()}/`)) &&
+      (!category ||
+        labelsByAssetId
+          .get(assetId.toLowerCase())
+          ?.some((label) => MEME_LABEL_PATTERN.test(label))),
   );
   const rankedTokens = (
-    kind === 'trending'
+    isMostPopular
+      ? [...eligibleTokens].sort(
+          (left, right) =>
+            right.aggregatedUsdVolume - left.aggregatedUsdVolume,
+        )
+      : kind === 'trending'
       ? eligibleTokens
       : eligibleTokens
           .filter((token) => {
@@ -419,12 +443,17 @@ export const buildLocalMarketListResponse = (
         (candidate) => candidate.symbol.toUpperCase() === symbol.toUpperCase(),
       ) === index,
   );
-  const displayedTokens = rankedTokens.slice(0, 5);
+  const displayedTokens = rankedTokens.slice(0, isMostPopular ? 1 : 5);
   const titleByKind: Record<LocalMarketListKind, string> = {
     gainers: 'Top crypto gainers',
     losers: 'Top crypto losers',
     trending: 'Trending tokens',
   };
+  const title = isMostPopular
+    ? `Most popular ${category === 'meme' ? 'memecoin' : 'token'}`
+    : category === 'meme' && kind === 'trending'
+      ? 'Trending memecoins'
+      : titleByKind[kind];
 
   return {
     asOf: '',
@@ -447,13 +476,17 @@ export const buildLocalMarketListResponse = (
       : [],
     sources: [],
     summary: displayedTokens.length
-      ? `Based on MetaMask market data${
+      ? `Based on MetaMask market ${
+          isMostPopular ? 'activity' : 'data'
+        }${
           network ? ` for ${network.name}` : ''
         }. Tap any token to view its details.`
       : `MetaMask market data${
           network ? ` for ${network.name}` : ''
-        } is not available right now. Please try again shortly.`,
-    title: `${titleByKind[kind]}${network ? ` on ${network.name}` : ''}`,
+        } does not currently include a ${
+          category === 'meme' ? 'classified memecoin' : 'matching token'
+        }.`,
+    title: `${title}${network ? ` on ${network.name}` : ''}`,
     tokens: displayedTokens.map(({ symbol }) => symbol.toUpperCase()),
     swapIntent: {
       amountType: 'unspecified',

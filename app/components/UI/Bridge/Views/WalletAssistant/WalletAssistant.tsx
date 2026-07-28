@@ -29,9 +29,10 @@ import {
 } from '@metamask/bridge-controller';
 import {
   fetchTokenAssets,
+  getTrendingTokens,
   type TrendingAsset,
 } from '@metamask/assets-controllers';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import {
   Box,
   BoxAlignItems,
@@ -120,6 +121,7 @@ import {
   buildResearchPlan,
   getInitialResearchDomains,
   getResearchPlanInstructions,
+  isLocalMemeMarketListRequest,
   shouldBroadenInitialResearch,
 } from './researchRouting';
 import {
@@ -1479,6 +1481,82 @@ const WalletAssistant = () => {
       researchNetworkContext,
     );
     const researchPlan = buildResearchPlan(text);
+    if (isLocalMemeMarketListRequest(text)) {
+      if (messages.length === 0 && !reduceMotion) {
+        LayoutAnimation.configureNext(FIRST_CHAT_LAYOUT_ANIMATION);
+      }
+      shouldAnchorLatestMessage.current = true;
+      setMessages(nextMessages);
+      setDraft('');
+      setError('');
+      setErrorRecovery(undefined);
+      setIsLoading(true);
+      setRequestStatus(AgentProgressStatus.CheckingPrices);
+
+      try {
+        const marketDataTokens =
+          localMarketTokens.length > 0 || !researchPlan.network
+            ? localMarketTokens
+            : await getTrendingTokens({
+                chainIds: [
+                  researchPlan.network.caipChainId as CaipChainId,
+                ],
+                excludeLabels: ['stable_coin', 'blue_chip'],
+                includeTokenSecurityData: true,
+              });
+        const tokens = marketDataTokens.filter(({ securityData }) => {
+          const resultType = securityData?.resultType;
+          return (
+            !resultType ||
+            resultType === 'Verified' ||
+            resultType === 'Benign'
+          );
+        });
+        const assetIds = tokens.map(
+          ({ assetId }) => assetId as CaipAssetType,
+        );
+        const assetIdBatches = Array.from(
+          { length: Math.ceil(assetIds.length / 100) },
+          (_, index) => assetIds.slice(index * 100, (index + 1) * 100),
+        );
+        const assets = (
+          await Promise.all(
+            assetIdBatches.map((batch) =>
+              fetchTokenAssets(batch, {
+                includeLabels: true,
+              }),
+            ),
+          )
+        ).flat();
+        const research = buildLocalMarketListResponse(
+          text,
+          tokens,
+          researchPlan.network,
+          getTokenLabelsByAssetId(assets),
+        );
+
+        if (!research) {
+          throw new Error('Unable to build local market response');
+        }
+        setMessages((current) => [
+          ...current,
+          {
+            id: `assistant-${current.length}`,
+            role: 'assistant',
+            research,
+            text: getResearchPlainText(research),
+          },
+        ]);
+      } catch {
+        setError(
+          'Could not load MetaMask market data. Please try again shortly.',
+        );
+        setDraft(text);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
     const immediateResearchResponse =
       immediateTradeResponse ??
       buildLocalPriceResponse(researchPlan, text) ??
