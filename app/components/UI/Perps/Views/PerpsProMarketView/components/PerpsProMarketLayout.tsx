@@ -72,7 +72,6 @@ const PerpsProMarketLayout = ({
   <Box
     testID={PerpsProMarketViewSelectorsIDs.LAYOUT}
     flexDirection={BoxFlexDirection.Row}
-    twClassName="px-4"
     style={styles.container}
   >
     <Box
@@ -84,7 +83,7 @@ const PerpsProMarketLayout = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.End}
-          twClassName="pt-2"
+          twClassName="px-4 pt-2"
         >
           <ButtonIcon
             iconName={IconName.Expand}
@@ -112,6 +111,7 @@ const PerpsProMarketLayout = ({
         </Box>
         <Box
           testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
+          twClassName="pr-4"
           style={styles.orderBookColumn}
         >
           {orderBook}
