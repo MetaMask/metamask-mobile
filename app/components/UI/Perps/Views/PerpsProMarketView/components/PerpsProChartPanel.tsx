@@ -100,9 +100,14 @@ const PerpsProChartPanel = ({
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
 
+  // Clear the Advanced Chart's synced price whenever it (un)mounts or changes
+  // subject: symbol/period/flag changes, and collapse/expand. While collapsed
+  // the Advanced Chart is unmounted and can no longer report prices, so the
+  // always-visible summary must fall back to the retained candle price instead
+  // of freezing on the last Advanced Chart value.
   useEffect(() => {
     setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, selectedCandlePeriod, symbol]);
+  }, [isAdvancedChartEnabled, isChartExpanded, selectedCandlePeriod, symbol]);
 
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
@@ -131,7 +136,9 @@ const PerpsProChartPanel = ({
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
   }, [candleData]);
   const syncedChartCurrentPrice =
-    isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
+    isChartExpanded &&
+    isAdvancedChartEnabled &&
+    advancedChartCurrentPrice !== undefined
       ? advancedChartCurrentPrice
       : chartCurrentPrice;
 

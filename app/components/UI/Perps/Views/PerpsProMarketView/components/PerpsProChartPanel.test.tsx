@@ -571,5 +571,39 @@ describe('PerpsProChartPanel', () => {
         screen.queryByTestId('mock-perps-fullscreen-chart'),
       ).not.toBeOnTheScreen();
     });
+
+    it('follows the candle price (not the frozen Advanced Chart price) after collapsing', () => {
+      const view = renderChartPanel();
+
+      // Advanced Chart reports a live price while expanded.
+      act(() => {
+        getLastAdvancedChartProps().onLatestPriceChange?.(51000);
+      });
+      expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 51000 }),
+      );
+
+      // Collapse: the Advanced Chart unmounts and can no longer report prices,
+      // so the summary must fall back to the retained candle price (50500).
+      mockUsePerpsProChartExpanded.mockReturnValue({
+        isChartExpanded: false,
+        setChartExpanded: mockSetChartExpanded,
+      });
+      view.rerender(
+        <PerpsProChartPanel
+          symbol="BTC"
+          selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+          isAdvancedChartEnabled
+          effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+          onCandlePeriodChange={mockOnCandlePeriodChange}
+          onMorePress={mockOnMorePress}
+          onChartError={mockOnChartError}
+        />,
+      );
+
+      expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 50500 }),
+      );
+    });
   });
 });
