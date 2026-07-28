@@ -10,9 +10,9 @@ Compare against `MMQA-2042-TestMU-PoC` (direct GHA → TestMu hub).
 
 | Suite | Discovery | Device |
 | --- | --- | --- |
-| onboarding (+ seedless) | `tests/performance/onboarding/**/*.spec.ts` | Pixel 8 Pro |
-| imported-wallet | `tests/performance/login/**/*.spec.ts` | Pixel 8 Pro |
-| mm-connect | `tests/performance/mm-connect/**/*.spec.ts` | Pixel 8 Pro |
+| onboarding (+ seedless) | `tests/performance/onboarding/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 15 |
+| imported-wallet | `tests/performance/login/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 15 |
+| mm-connect | `tests/performance/mm-connect/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 15 |
 
 MM-Connect starts the LT tunnel **inside each HyperExecute task** (not on the GHA runner).
 
@@ -55,8 +55,8 @@ time (that previously crashed setup and produced `Generating reports for 0 tests
 ```bash
 export LT_USERNAME=...
 export LT_ACCESS_KEY=...
-export TESTMU_DEVICE='Pixel 8 Pro'
-export TESTMU_OS_VERSION=14
+export TESTMU_DEVICE='Pixel 7 Pro'
+export TESTMU_OS_VERSION=15
 export TESTMU_ANDROID_APP_URL='lt://...'
 export BUILD_TYPE=onboarding   # or imported-wallet | mm-connect
 bash ./tests/scripts/run-testmu-hyperexecute.sh

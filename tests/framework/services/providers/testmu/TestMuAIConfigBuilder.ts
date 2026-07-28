@@ -71,7 +71,7 @@ export class TestMuAIConfigBuilder {
     );
     logger.info(
       `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, isRealMobile=true` +
-        (process.env.TESTMU_DEVICE_EXACT?.toLowerCase() === 'true'
+        (process.env['TESTMU_DEVICE_EXACT']?.toLowerCase() === 'true'
           ? ' (exact match)'
           : ' (availability regex)'),
     );
