@@ -19,6 +19,7 @@ import {
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isCaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 import { MultichainAddressRow } from '../../../component-library/components-temp/MultichainAccounts';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
@@ -32,6 +33,7 @@ import {
 } from '../../../selectors/networkController';
 import {
   createNavigationDetails,
+  navigateWithDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
 import { useAccountName } from '../../hooks/useAccountName';
@@ -50,7 +52,7 @@ export const createAddressSelectorNavDetails =
 
 const AddressSelector = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { displayOnlyCaipChainIds, isEvmOnly } =
     useParams<AddressSelectorParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -86,8 +88,9 @@ const AddressSelector = () => {
 
   const handleAccountSelectorPress = useCallback(
     () =>
-      navigation.navigate(
-        ...createAccountSelectorNavDetails({
+      navigateWithDetails(
+        navigation,
+        createAccountSelectorNavDetails({
           isSelectOnly: true,
         }),
       ),

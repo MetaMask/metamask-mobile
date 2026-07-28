@@ -41,6 +41,22 @@ class OnboardingSheet {
     });
   }
 
+  get telegramLoginButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON,
+          {
+            exact: true,
+          },
+        ),
+    });
+  }
+
   get importSeedButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -64,6 +80,12 @@ class OnboardingSheet {
   async tapAppleLoginButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.appleLoginButton, {
       description: 'Apple Login Button in Onboarding Sheet',
+    });
+  }
+
+  async tapTelegramLoginButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.telegramLoginButton, {
+      description: 'Telegram Login Button in Onboarding Sheet',
     });
   }
 

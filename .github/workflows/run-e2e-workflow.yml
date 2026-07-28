@@ -33,7 +33,7 @@ on:
         description: 'The timeout in minutes for the test command'
         required: false
         type: number
-        default: 40
+        default: 25
       build_type:
         description: 'The type of build to perform'
         required: false

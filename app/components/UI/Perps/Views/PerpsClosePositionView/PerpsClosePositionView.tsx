@@ -663,7 +663,6 @@ const PerpsClosePositionView: React.FC = () => {
       hasRewardsError={rewardsState.hasError}
       accountOptedIn={rewardsState.accountOptedIn}
       rewardsAccount={rewardsState.account}
-      isInputFocused={isInputFocused}
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
         receiveTooltip:
@@ -841,27 +840,29 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleConfirm}
-            isDisabled={
-              isClosing ||
-              (effectiveOrderType === 'limit' &&
-                (!limitPrice || parseFloat(limitPrice) <= 0)) ||
-              (effectiveOrderType === 'market' && closePercentage === 0) ||
-              !validationResult.isValid
-            }
-            isLoading={isClosing}
-            testID={
-              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
-            }
-          >
-            {isClosing
-              ? strings('perps.close_position.closing')
-              : strings('perps.close_position.button')}
-          </Button>
+          <View style={styles.footerButton}>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleConfirm}
+              isDisabled={
+                isClosing ||
+                (effectiveOrderType === 'limit' &&
+                  (!limitPrice || parseFloat(limitPrice) <= 0)) ||
+                (effectiveOrderType === 'market' && closePercentage === 0) ||
+                !validationResult.isValid
+              }
+              isLoading={isClosing}
+              testID={
+                PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
+              }
+            >
+              {isClosing
+                ? strings('perps.close_position.closing')
+                : strings('perps.close_position.button')}
+            </Button>
+          </View>
         )}
       </View>
 
