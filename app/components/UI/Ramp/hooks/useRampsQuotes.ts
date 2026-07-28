@@ -1,19 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BuyWidget, QuotesResponse } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import type { RampsQueryStatus } from './useRampsPaymentMethods';
-import {
-  endRampsBuyCufChildTrace,
-  startRampsBuyCufChildTrace,
-} from '../utils/rampsBuyCufTrace';
-import {
-  RAMPS_BUY_CUF_END_REASON,
-  RAMPS_BUY_CUF_TAG,
-} from '../constants/rampsBuyCufTags';
-import { TraceName } from '../../../../util/trace';
 
 export interface GetQuotesOptions {
   region?: string;
@@ -71,46 +62,6 @@ export function useRampsQuotes(
     }),
     enabled: queryEnabled,
   });
-
-  const quoteCufOpIdRef = useRef<string | null>(null);
-
-  // Nested Buy Quote Fetch CUF: fetch start → quotes rendered or error.
-  useEffect(() => {
-    if (!queryEnabled) {
-      if (quoteCufOpIdRef.current) {
-        endRampsBuyCufChildTrace({
-          id: quoteCufOpIdRef.current,
-          data: {
-            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.CANCELLED,
-          },
-        });
-        quoteCufOpIdRef.current = null;
-      }
-      return;
-    }
-
-    if (quotesQuery.isFetching && !quoteCufOpIdRef.current) {
-      quoteCufOpIdRef.current = startRampsBuyCufChildTrace({
-        name: TraceName.RampBuyQuoteFetch,
-      });
-      return;
-    }
-
-    if (!quotesQuery.isFetching && quoteCufOpIdRef.current) {
-      const opId = quoteCufOpIdRef.current;
-      quoteCufOpIdRef.current = null;
-      endRampsBuyCufChildTrace({
-        id: opId,
-        data: quotesQuery.isError
-          ? {
-              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-            }
-          : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-      });
-    }
-  }, [queryEnabled, quotesQuery.isFetching, quotesQuery.isError]);
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
