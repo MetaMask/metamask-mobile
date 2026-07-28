@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useEffect } from 'react';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -15,7 +16,7 @@ const useNavbar = (
   addBackButton = true,
   overrides?: NavbarOverrides,
 ) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { onReject } = useConfirmActions();
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
@@ -47,7 +48,7 @@ const useNavbar = (
 };
 
 export function useModalNavbar() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { onReject } = useConfirmActions();
 

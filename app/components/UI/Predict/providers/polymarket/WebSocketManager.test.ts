@@ -461,7 +461,7 @@ describe('WebSocketManager', () => {
         payload: { symbol: 'eth/usd', timestamp: 1700000001, value: 3500 },
       });
 
-      expect(() => jest.advanceTimersByTime(16)).not.toThrow();
+      expect(() => jest.advanceTimersByTime(250)).not.toThrow();
       expect(endTrace).toHaveBeenCalledWith({
         name: TraceName.CryptoUpDownBufferFlush,
       });
@@ -479,7 +479,7 @@ describe('WebSocketManager', () => {
         timestamp: 1700000001,
         payload: { symbol: 'eth/usd', timestamp: 1700000001, value: 3500 },
       });
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith({
@@ -511,7 +511,7 @@ describe('WebSocketManager', () => {
       (endTrace as jest.Mock).mockClear();
 
       try {
-        expect(() => jest.advanceTimersByTime(16)).toThrow(traceError);
+        expect(() => jest.advanceTimersByTime(250)).toThrow(traceError);
       } finally {
         WebSocketManager.resetInstance();
       }
@@ -1326,7 +1326,7 @@ describe('WebSocketManager', () => {
       });
 
       // Throttled - advance timer to trigger flush
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).toHaveBeenCalledWith({
         symbol: 'btc/usd',
@@ -1354,7 +1354,7 @@ describe('WebSocketManager', () => {
       // Send pong as raw string (not JSON)
       rtdsInstance.onmessage?.({ data: 'pong' } as MessageEvent);
 
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).not.toHaveBeenCalled();
     });
@@ -1378,7 +1378,7 @@ describe('WebSocketManager', () => {
         },
       });
 
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).not.toHaveBeenCalled();
     });
@@ -1451,7 +1451,7 @@ describe('WebSocketManager', () => {
         timestamp: 1700000000,
         payload: { symbol: 'eth/usd', timestamp: 1700000000, value: 3500 },
       });
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(btcCallback).not.toHaveBeenCalled();
       expect(ethCallback).toHaveBeenCalledWith({
@@ -1521,7 +1521,7 @@ describe('WebSocketManager', () => {
       expect(callback).not.toHaveBeenCalled();
 
       // Advance past throttle interval
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       // Only latest value delivered (buffer overwrites per symbol)
       expect(callback).toHaveBeenCalledTimes(1);
@@ -1544,7 +1544,7 @@ describe('WebSocketManager', () => {
         data: 'not valid json',
       } as MessageEvent);
 
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).not.toHaveBeenCalled();
     });
@@ -1954,7 +1954,7 @@ describe('WebSocketManager', () => {
         payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
 
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback1).toHaveBeenCalled();
       expect(callback2).toHaveBeenCalled();
@@ -1977,7 +1977,7 @@ describe('WebSocketManager', () => {
         timestamp: 1700000000,
         payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callbackA).toHaveBeenCalledTimes(1);
       expect(callbackB).toHaveBeenCalledTimes(1);
@@ -1991,7 +1991,7 @@ describe('WebSocketManager', () => {
         timestamp: 1700000001,
         payload: { symbol: 'eth/usd', timestamp: 1700000001, value: 3500.0 },
       });
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callbackA).not.toHaveBeenCalled();
       expect(callbackB).toHaveBeenCalledTimes(1);
@@ -2012,7 +2012,7 @@ describe('WebSocketManager', () => {
         payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
 
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).not.toHaveBeenCalled();
       expect(trace).not.toHaveBeenCalledWith({
@@ -2035,7 +2035,7 @@ describe('WebSocketManager', () => {
         timestamp: 1700000000,
       });
 
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).not.toHaveBeenCalled();
     });
@@ -2169,11 +2169,11 @@ describe('WebSocketManager', () => {
         payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
 
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
       expect(callback).toHaveBeenCalledTimes(1);
 
       callback.mockClear();
-      jest.advanceTimersByTime(16);
+      jest.advanceTimersByTime(250);
 
       expect(callback).not.toHaveBeenCalled();
     });

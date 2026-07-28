@@ -39,11 +39,7 @@ import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import {
-  navigateToExplorePredictionsList,
-  navigateToExploreWorldCupPredictions,
-} from '../feeds/predictions/predictionsNavigation';
-import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import {
   STOCKS_FEED_PREVIEW_PAGE_SIZE,
   useStocksFeed,
@@ -238,17 +234,10 @@ const NowTabContent: React.FC<TabProps> = ({
     void refreshWhatsHappening();
   }, [refresh.trigger, refreshWhatsHappening]);
 
-  const worldCupPredictions = useWorldCupPredictionsFeed({
+  const displayedPredictions = usePredictionsFeed({
+    refresh,
     enabled: isPredictEnabled,
-    refresh,
   });
-  const predictions = usePredictionsFeed({
-    refresh,
-    enabled: !worldCupPredictions.isEnabled,
-  });
-  const displayedPredictions = worldCupPredictions.isEnabled
-    ? worldCupPredictions
-    : predictions;
   const perpsFeed = usePerpsFeed({
     variant: 'all',
     refresh,
@@ -309,17 +298,11 @@ const NowTabContent: React.FC<TabProps> = ({
             feed={displayedPredictions}
             tabName="Now"
             sectionName="predictions_trending"
-            title={
-              worldCupPredictions.isEnabled
-                ? strings('predict.world_cup.predictions_title')
-                : strings('wallet.predict')
-            }
+            title={strings('wallet.predict')}
             testIdPrefix="predict-market-row-item"
             idPrefix="predictions"
             onViewAll={() =>
-              worldCupPredictions.isEnabled
-                ? navigateToExploreWorldCupPredictions(navigation)
-                : navigateToExplorePredictionsList(navigation, 'trending')
+              navigateToExplorePredictionsList(navigation, 'trending')
             }
             isEnabled={isPredictEnabled}
           />
@@ -435,7 +418,6 @@ const NowTabContent: React.FC<TabProps> = ({
     showStocks,
     whatsHappening,
     displayedPredictions,
-    worldCupPredictions.isEnabled,
     isPredictEnabled,
     navigation,
     cryptoMovers.data,

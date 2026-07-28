@@ -23,6 +23,7 @@ export function ActivityListItemRowLayout({
   styles,
   subtitle,
   subtitleLeadingAccessory,
+  subtitleParts,
   title,
   titleAccessory,
 }: {
@@ -41,6 +42,7 @@ export function ActivityListItemRowLayout({
   styles: ActivityListItemRowStyles;
   subtitle?: string;
   subtitleLeadingAccessory?: React.ReactNode;
+  subtitleParts?: { pre: string; avatar: React.ReactNode; name: string };
   title: string;
   titleAccessory?: React.ReactNode;
 }) {
@@ -68,7 +70,30 @@ export function ActivityListItemRowLayout({
   ) : (
     titleText
   );
-  const subtitleNode = subtitle ? (
+  const subtitleNode = subtitleParts ? (
+    <View style={[styles.subtitleRow, styles.subtitleRowSpaced]}>
+      {subtitleLeadingAccessory}
+      <Text
+        numberOfLines={1}
+        style={[styles.subtitleText, styles.statusText]}
+        testID={`activity-subtitle-${testIdSuffix}`}
+      >
+        {subtitleParts.pre}
+      </Text>
+      {subtitleParts.avatar}
+      <Text
+        numberOfLines={1}
+        style={[
+          styles.subtitleText,
+          styles.statusText,
+          styles.subtitleAccountName,
+        ]}
+        testID={`activity-subtitle-account-name-${testIdSuffix}`}
+      >
+        {subtitleParts.name}
+      </Text>
+    </View>
+  ) : subtitle ? (
     subtitleLeadingAccessory ? (
       <View style={styles.subtitleRow}>
         {subtitleLeadingAccessory}

@@ -15,7 +15,18 @@ interface PerpsSliderProps {
   maximumValue?: number;
   step?: number;
   showPercentageLabels?: boolean;
+  /** Renders a dot marker on the track at each 0/25/50/75/100 mark, independent of the labels below the track. */
+  showPercentageMarkers?: boolean;
   disabled?: boolean;
+  /**
+   * `'compact'` tightens the vertical spacing and removes the horizontal
+   * track inset for dense layouts (e.g. footer sliders). The design system
+   * `Slider` does not expose a smaller track/thumb size, so `compact` only
+   * adjusts the spacing it can control via `trackInset`/`twClassName`.
+   */
+  variant?: 'default' | 'compact';
+  testID?: string;
+  accessibilityLabel?: string;
 }
 
 /**
@@ -30,7 +41,11 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   maximumValue = 100,
   step = 1,
   showPercentageLabels = true,
+  showPercentageMarkers = true,
   disabled = false,
+  variant = 'default',
+  testID,
+  accessibilityLabel,
 }) => {
   const handleGrip = useCallback(() => {
     playImpact(ImpactMoment.SliderGrip);
@@ -39,6 +54,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   const handleMark = useCallback(() => {
     playImpact(ImpactMoment.SliderTick);
   }, []);
+
+  const isCompact = variant === 'compact';
 
   return (
     <Slider
@@ -49,10 +66,14 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       maximumValue={maximumValue}
       step={step}
       showRangeLabels={showPercentageLabels}
-      showRangeDots={showPercentageLabels}
+      showRangeDots={showPercentageMarkers}
       onGrip={handleGrip}
       onMark={handleMark}
       isDisabled={disabled}
+      trackInset={isCompact ? 0 : undefined}
+      twClassName={isCompact ? '-my-1.5' : undefined}
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
     />
   );
 };

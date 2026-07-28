@@ -66,7 +66,7 @@ describe('PerpsSlider', () => {
     expect(getSliderProps().isDisabled).toBe(true);
   });
 
-  it('defaults showRangeLabels/showRangeDots to true when showPercentageLabels is omitted', () => {
+  it('defaults showRangeLabels/showRangeDots to true when omitted', () => {
     render(<PerpsSlider {...defaultProps} />);
 
     expect(getSliderProps()).toMatchObject({
@@ -75,8 +75,32 @@ describe('PerpsSlider', () => {
     });
   });
 
-  it('maps showPercentageLabels={false} to both showRangeLabels and showRangeDots being false', () => {
+  it('maps showPercentageLabels={false} to showRangeLabels being false without affecting showRangeDots', () => {
     render(<PerpsSlider {...defaultProps} showPercentageLabels={false} />);
+
+    expect(getSliderProps()).toMatchObject({
+      showRangeLabels: false,
+      showRangeDots: true,
+    });
+  });
+
+  it('maps showPercentageMarkers={false} to showRangeDots being false without affecting showRangeLabels', () => {
+    render(<PerpsSlider {...defaultProps} showPercentageMarkers={false} />);
+
+    expect(getSliderProps()).toMatchObject({
+      showRangeLabels: true,
+      showRangeDots: false,
+    });
+  });
+
+  it('supports hiding both labels and dots independently', () => {
+    render(
+      <PerpsSlider
+        {...defaultProps}
+        showPercentageLabels={false}
+        showPercentageMarkers={false}
+      />,
+    );
 
     expect(getSliderProps()).toMatchObject({
       showRangeLabels: false,
@@ -122,5 +146,40 @@ describe('PerpsSlider', () => {
     getSliderProps().onMark?.();
 
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
+  });
+
+  describe('variant', () => {
+    it('defaults to the default variant (no track inset override, no dense spacing)', () => {
+      render(<PerpsSlider {...defaultProps} />);
+
+      expect(getSliderProps()).toMatchObject({
+        trackInset: undefined,
+        twClassName: undefined,
+      });
+    });
+
+    it('removes the track inset and applies dense vertical spacing for the compact variant', () => {
+      render(<PerpsSlider {...defaultProps} variant="compact" />);
+
+      expect(getSliderProps()).toMatchObject({
+        trackInset: 0,
+        twClassName: '-my-1.5',
+      });
+    });
+  });
+
+  it('forwards testID and accessibilityLabel', () => {
+    render(
+      <PerpsSlider
+        {...defaultProps}
+        testID="perps-slider"
+        accessibilityLabel="Order size percentage"
+      />,
+    );
+
+    expect(getSliderProps()).toMatchObject({
+      testID: 'perps-slider',
+      accessibilityLabel: 'Order size percentage',
+    });
   });
 });

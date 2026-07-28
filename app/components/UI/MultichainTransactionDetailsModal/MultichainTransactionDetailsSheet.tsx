@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Transaction } from '@metamask/keyring-api';
 import { capitalize } from 'lodash';
 
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
 });
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<MultichainTransactionDetailsSheetRouteProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
