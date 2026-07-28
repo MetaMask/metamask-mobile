@@ -1433,20 +1433,9 @@ export function useQuickBuyController(
       // notification once submitTx resolves.
       beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
-      // bridge-controller v77 (used by app selectors) has `string | null` in
-      // TokenAmountValues, while bridge-status-controller v74 was compiled
-      // against bridge-controller v78 which uses plain `string`. The values
-      // are runtime-equivalent; the double cast bridges the declared type gap.
-      type SubmitTxQuoteArg = Parameters<
-        (typeof Engine)['context']['BridgeStatusController']['submitTx']
-      >[1];
-      const quoteArg = {
-        ...activeQuote,
-        approval: activeQuote.approval ?? undefined,
-      } as unknown as SubmitTxQuoteArg;
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
-        quoteArg,
+        { ...activeQuote, approval: activeQuote.approval ?? undefined },
         stxEnabled,
       );
       const txHash =
