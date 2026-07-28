@@ -620,10 +620,6 @@ class TestSnaps {
     origin: string | null;
     blockNumber: string | null;
   }): Promise<void> {
-    const resultElement = (await this.getTestSnapsWebElement(
-      TestSnapResultSelectorWebIDS.networkAccessResultSpan,
-    )) as IndexableWebElement;
-
     await Utilities.waitUntil(
       async () => {
         try {
@@ -632,7 +628,10 @@ class TestSnaps {
           // eslint-disable-next-line no-restricted-syntax
           await TestHelpers.delay(250);
 
-          const text = await resultElement.getText();
+          const text = await WebView.readTextById(
+            TestSnapResultSelectorWebIDS.networkAccessResultSpan,
+            TEST_SNAPS_WEBVIEW_OPTIONS,
+          );
 
           const { open, origin, blockNumber } = JSON.parse(text);
 
