@@ -433,6 +433,7 @@
     "buffer": "6.0.3",
     "cockatiel": "^3.1.2",
     "compare-versions": "^3.6.0",
+    "compression-streams-polyfill": "^0.1.7",
     "content-hash": "2.5.2",
     "contentful": "^11.5.22",
     "cron-parser": "^4.9.0",
