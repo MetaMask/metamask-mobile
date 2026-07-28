@@ -181,9 +181,28 @@ jobs:
               ;;
           esac
 
+          # Map BrowserStack matrix names → TestMu AI catalog names (same as TestMuDeviceResolver).
+          MATRIX_DEVICE="${{ matrix.device.name }}"
+          MATRIX_OS="${{ matrix.device.os_version }}"
+          case "$MATRIX_DEVICE" in
+            "Google Pixel 8 Pro"|"Pixel 8 Pro")
+              TESTMU_DEVICE_NAME="Pixel 8 Pro"
+              TESTMU_OS_VERSION="14"
+              ;;
+            "Samsung Galaxy S25 Ultra"|"Galaxy S25 Ultra")
+              TESTMU_DEVICE_NAME="Galaxy S25 Ultra"
+              TESTMU_OS_VERSION="15"
+              ;;
+            *)
+              TESTMU_DEVICE_NAME="$MATRIX_DEVICE"
+              TESTMU_OS_VERSION="$MATRIX_OS"
+              ;;
+          esac
+          echo "Matrix device '$MATRIX_DEVICE' ($MATRIX_OS) → TestMu '$TESTMU_DEVICE_NAME' ($TESTMU_OS_VERSION)"
+
           {
-            echo "TESTMU_DEVICE=${{ matrix.device.name }}"
-            echo "TESTMU_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "TESTMU_DEVICE=$TESTMU_DEVICE_NAME"
+            echo "TESTMU_OS_VERSION=$TESTMU_OS_VERSION"
             echo "TESTMU_ANDROID_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.testmu_app_url }}"
             if [ -n "${{ inputs.testmu_playground_url }}" ]; then
               echo "TESTMU_RN_PLAYGROUND_URL=${{ inputs.testmu_playground_url }}"
