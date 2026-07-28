@@ -297,11 +297,7 @@ type LocalMarketListKind = 'gainers' | 'losers' | 'trending';
 const getLocalMarketListKind = (
   prompt: string,
 ): LocalMarketListKind | undefined => {
-  if (
-    /\b(why|news|social|meme|under|market cap|volume|on\s+\w+\s+(?:chain|network))\b/i.test(
-      prompt,
-    )
-  ) {
+  if (/\b(why|news|social|meme|under|market cap|volume)\b/i.test(prompt)) {
     return undefined;
   }
   if (/\b(top\s+)?gainers?\b|\bbiggest\s+(?:gains?|winners?)\b/i.test(prompt)) {
@@ -330,6 +326,7 @@ const toFiniteChange = (token: TrendingAsset): number | undefined => {
 
 const toResearchAsset = (
   token: TrendingAsset,
+  network?: WalletAssistantNetworkHint,
 ): WalletAssistantResearchResponse['assets'][number] => {
   const [chainId = '', assetReference = ''] = token.assetId.split('/');
   const separatorIndex = assetReference.indexOf(':');
@@ -339,7 +336,7 @@ const toResearchAsset = (
     contractAddress:
       separatorIndex === -1 ? '' : assetReference.slice(separatorIndex + 1),
     name: token.name,
-    network: '',
+    network: network?.name ?? '',
     symbol: token.symbol.toUpperCase(),
   };
 };
@@ -352,6 +349,7 @@ const toResearchAsset = (
 export const buildLocalMarketListResponse = (
   prompt: string,
   tokens: readonly TrendingAsset[],
+  network?: WalletAssistantNetworkHint,
 ): WalletAssistantResearchResponse | undefined => {
   const kind = getLocalMarketListKind(prompt);
   if (!kind) {
@@ -359,7 +357,13 @@ export const buildLocalMarketListResponse = (
   }
 
   const eligibleTokens = tokens.filter(
-    ({ price, symbol }) => symbol.trim() && Number(price) > 0,
+    ({ assetId, price, symbol }) =>
+      symbol.trim() &&
+      Number(price) > 0 &&
+      (!network ||
+        assetId
+          .toLowerCase()
+          .startsWith(`${network.caipChainId.toLowerCase()}/`)),
   );
   const rankedTokens = (
     kind === 'trending'
@@ -394,7 +398,7 @@ export const buildLocalMarketListResponse = (
 
   return {
     asOf: '',
-    assets: displayedTokens.map(toResearchAsset),
+    assets: displayedTokens.map((token) => toResearchAsset(token, network)),
     chart: { labels: [], sourceIds: [], title: '', unit: '', values: [] },
     sections: displayedTokens.length
       ? [
@@ -413,9 +417,13 @@ export const buildLocalMarketListResponse = (
       : [],
     sources: [],
     summary: displayedTokens.length
-      ? 'Based on MetaMask market data. Tap any token to view its details.'
-      : 'MetaMask market data is not available right now. Please try again shortly.',
-    title: titleByKind[kind],
+      ? `Based on MetaMask market data${
+          network ? ` for ${network.name}` : ''
+        }. Tap any token to view its details.`
+      : `MetaMask market data${
+          network ? ` for ${network.name}` : ''
+        } is not available right now. Please try again shortly.`,
+    title: `${titleByKind[kind]}${network ? ` on ${network.name}` : ''}`,
     tokens: displayedTokens.map(({ symbol }) => symbol.toUpperCase()),
     swapIntent: {
       amountType: 'unspecified',

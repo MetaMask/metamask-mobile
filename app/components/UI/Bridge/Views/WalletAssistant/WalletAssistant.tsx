@@ -25,6 +25,7 @@ import { fetch as expoFetch } from 'expo/fetch';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { CaipChainId } from '@metamask/utils';
 import {
   Box,
   BoxAlignItems,
@@ -366,6 +367,7 @@ const ResearchTokenMetadataResolver = React.memo(
     symbol: string;
   }) => {
     const { data } = useTokensFeed({
+      chainIds: asset?.chainId ? [asset.chainId as CaipChainId] : undefined,
       query: symbol,
       hideRiskyTokens: true,
     });
@@ -1104,6 +1106,8 @@ const WalletAssistant = () => {
   const hasHydratedPersistence = useRef(false);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const allowedChainRanking = useSelector(selectAllowedChainRanking);
+  const [draft, setDraft] = useState('');
+  const draftResearchPlan = useMemo(() => buildResearchPlan(draft), [draft]);
   const walletChainIds = useMemo(
     () =>
       selectedSourceChainIds?.length
@@ -1115,6 +1119,9 @@ const WalletAssistant = () => {
     chainIds: walletChainIds,
   });
   const { data: localMarketTokens } = useTokensFeed({
+    chainIds: draftResearchPlan.network
+      ? [draftResearchPlan.network.caipChainId as CaipChainId]
+      : undefined,
     hideRiskyTokens: true,
   });
   const { tokens: popularTokens } = usePopularTokens();
@@ -1172,7 +1179,6 @@ const WalletAssistant = () => {
   const newConversationSheetRef = useRef<BottomSheetRef>(null);
   const shouldAnchorLatestMessage = useRef(false);
   const requestControllerRef = useRef<AbortController | null>(null);
-  const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [apiKey, setApiKey] = useState('');
   const [keyDraft, setKeyDraft] = useState('');
@@ -1339,7 +1345,11 @@ const WalletAssistant = () => {
     const immediateResearchResponse =
       immediateTradeResponse ??
       buildLocalPriceResponse(researchPlan, text) ??
-      buildLocalMarketListResponse(text, localMarketTokens);
+      buildLocalMarketListResponse(
+        text,
+        localMarketTokens,
+        researchPlan.network,
+      );
     if (messages.length === 0 && !reduceMotion) {
       LayoutAnimation.configureNext(FIRST_CHAT_LAYOUT_ANIMATION);
     }

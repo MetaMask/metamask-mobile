@@ -30,6 +30,16 @@ const MARKET_TOKENS: TrendingAsset[] = [
     priceChangePct: { h24: '-8.25' },
     symbol: 'BBB',
   },
+  {
+    aggregatedUsdVolume: 3_000,
+    assetId: 'eip155:4663/erc20:0xccc',
+    decimals: 18,
+    marketCap: 30_000,
+    name: 'Robinhood Token',
+    price: '4',
+    priceChangePct: { h24: '12' },
+    symbol: 'RHC',
+  },
 ];
 
 describe('researchRouting', () => {
@@ -149,7 +159,7 @@ describe('researchRouting', () => {
     ).toEqual(
       expect.objectContaining({
         title: 'Trending tokens',
-        tokens: ['AAA', 'BBB'],
+        tokens: ['AAA', 'BBB', 'RHC'],
       }),
     );
     expect(
@@ -157,7 +167,7 @@ describe('researchRouting', () => {
     ).toEqual(
       expect.objectContaining({
         title: 'Top crypto gainers',
-        tokens: ['AAA'],
+        tokens: ['RHC', 'AAA'],
       }),
     );
     expect(
@@ -166,6 +176,34 @@ describe('researchRouting', () => {
       expect.objectContaining({
         title: 'Top crypto losers',
         tokens: ['BBB'],
+      }),
+    );
+  });
+
+  it('uses MetaMask market data for network-specific trending requests', () => {
+    const plan = buildResearchPlan(
+      'What tokens are trending on Robinhood Chain?',
+    );
+
+    expect(
+      isLocalMarketListRequest('What tokens are trending on Robinhood Chain?'),
+    ).toBe(true);
+    expect(
+      buildLocalMarketListResponse(
+        'What tokens are trending on Robinhood Chain?',
+        MARKET_TOKENS,
+        plan.network,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        title: 'Trending tokens on Robinhood Chain',
+        tokens: ['RHC'],
+        assets: [
+          expect.objectContaining({
+            chainId: 'eip155:4663',
+            network: 'Robinhood Chain',
+          }),
+        ],
       }),
     );
   });
