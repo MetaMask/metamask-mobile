@@ -1,3 +1,5 @@
+import type { TrendingAsset } from '@metamask/assets-controllers';
+
 import { isDirectTradeRequest } from './tradeIntentPriority';
 import type { WalletAssistantResearchResponse } from './openai';
 
@@ -277,6 +279,144 @@ export const buildLocalPriceResponse = (
     summary: `The latest verified ${hint.symbol} price is shown below.`,
     title: `${hint.symbol} price`,
     tokens: [hint.symbol],
+    swapIntent: {
+      amountType: 'unspecified',
+      amountValue: '',
+      enabled: false,
+      mode: 'real',
+      network: '',
+      sourceAmount: '',
+      sourceSymbol: '',
+      destinationSymbol: '',
+    },
+  };
+};
+
+type LocalMarketListKind = 'gainers' | 'losers' | 'trending';
+
+const getLocalMarketListKind = (
+  prompt: string,
+): LocalMarketListKind | undefined => {
+  if (
+    /\b(why|news|social|meme|under|market cap|volume|on\s+\w+\s+(?:chain|network))\b/i.test(
+      prompt,
+    )
+  ) {
+    return undefined;
+  }
+  if (/\b(top\s+)?gainers?\b|\bbiggest\s+(?:gains?|winners?)\b/i.test(prompt)) {
+    return 'gainers';
+  }
+  if (/\b(top\s+)?losers?\b|\bbiggest\s+(?:drops?|losses?)\b/i.test(prompt)) {
+    return 'losers';
+  }
+  if (
+    /\b(trending|what(?:'s| is)\s+hot|hot\s+(?:tokens?|coins?)|crypto movers?)\b/i.test(
+      prompt,
+    )
+  ) {
+    return 'trending';
+  }
+  return undefined;
+};
+
+export const isLocalMarketListRequest = (prompt: string): boolean =>
+  getLocalMarketListKind(prompt) !== undefined;
+
+const toFiniteChange = (token: TrendingAsset): number | undefined => {
+  const value = Number(token.priceChangePct?.h24);
+  return Number.isFinite(value) ? value : undefined;
+};
+
+const toResearchAsset = (
+  token: TrendingAsset,
+): WalletAssistantResearchResponse['assets'][number] => {
+  const [chainId = '', assetReference = ''] = token.assetId.split('/');
+  const separatorIndex = assetReference.indexOf(':');
+
+  return {
+    chainId,
+    contractAddress:
+      separatorIndex === -1 ? '' : assetReference.slice(separatorIndex + 1),
+    name: token.name,
+    network: '',
+    symbol: token.symbol.toUpperCase(),
+  };
+};
+
+/**
+ * Builds broad market rankings from the same verified token feed used by
+ * MetaMask Explore. Feed order is preserved for trending; gainers and losers
+ * are ranked by the feed's 24-hour change.
+ */
+export const buildLocalMarketListResponse = (
+  prompt: string,
+  tokens: readonly TrendingAsset[],
+): WalletAssistantResearchResponse | undefined => {
+  const kind = getLocalMarketListKind(prompt);
+  if (!kind) {
+    return undefined;
+  }
+
+  const eligibleTokens = tokens.filter(
+    ({ price, symbol }) => symbol.trim() && Number(price) > 0,
+  );
+  const rankedTokens = (
+    kind === 'trending'
+      ? eligibleTokens
+      : eligibleTokens
+          .filter((token) => {
+            const change = toFiniteChange(token);
+            return (
+              change !== undefined &&
+              (kind === 'gainers' ? change > 0 : change < 0)
+            );
+          })
+          .sort((left, right) => {
+            const leftChange = toFiniteChange(left) ?? 0;
+            const rightChange = toFiniteChange(right) ?? 0;
+            return kind === 'gainers'
+              ? rightChange - leftChange
+              : leftChange - rightChange;
+          })
+  ).filter(
+    ({ symbol }, index, ranked) =>
+      ranked.findIndex(
+        (candidate) => candidate.symbol.toUpperCase() === symbol.toUpperCase(),
+      ) === index,
+  );
+  const displayedTokens = rankedTokens.slice(0, 5);
+  const titleByKind: Record<LocalMarketListKind, string> = {
+    gainers: 'Top crypto gainers',
+    losers: 'Top crypto losers',
+    trending: 'Trending tokens',
+  };
+
+  return {
+    asOf: '',
+    assets: displayedTokens.map(toResearchAsset),
+    chart: { labels: [], sourceIds: [], title: '', unit: '', values: [] },
+    sections: displayedTokens.length
+      ? [
+          {
+            heading: kind === 'trending' ? 'Trending now' : '24-hour movement',
+            bullets: displayedTokens.map((token, index) => {
+              const change = toFiniteChange(token);
+              const changeLabel =
+                change === undefined
+                  ? ''
+                  : ` · ${change >= 0 ? '+' : ''}${change.toFixed(2)}% over 24h`;
+              return `${index + 1}. ${token.symbol.toUpperCase()}${changeLabel}`;
+            }),
+          },
+        ]
+      : [],
+    sources: [],
+    summary: displayedTokens.length
+      ? 'Based on MetaMask market data. Tap any token to view its details.'
+      : 'MetaMask market data is not available right now. Please try again shortly.',
+    title: titleByKind[kind],
+    tokens: displayedTokens.map(({ symbol }) => symbol.toUpperCase()),
     swapIntent: {
       amountType: 'unspecified',
       amountValue: '',

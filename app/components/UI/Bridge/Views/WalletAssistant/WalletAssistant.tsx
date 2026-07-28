@@ -103,6 +103,7 @@ import {
 } from './networkContext';
 import {
   applyResearchPlanIdentity,
+  buildLocalMarketListResponse,
   buildLocalPriceResponse,
   buildResearchPlan,
   getResearchPlanInstructions,
@@ -584,9 +585,7 @@ const TokenizedText = React.memo(
         cleanText: nextCleanText,
         normalizedTokens: nextNormalizedTokens,
         parts: tokenPattern
-          ? nextCleanText.split(
-              new RegExp(`(\\$?(?:${tokenPattern})\\b)`, 'gi'),
-            )
+          ? nextCleanText.split(new RegExp(`(\\$?(?:${tokenPattern})\\b)`, 'g'))
           : [nextCleanText],
         tokenSet: nextTokenSet,
       };
@@ -1072,6 +1071,9 @@ const WalletAssistant = () => {
   const { tokensWithBalance: walletTokens } = useBalancesByAssetId({
     chainIds: walletChainIds,
   });
+  const { data: localMarketTokens } = useTokensFeed({
+    hideRiskyTokens: true,
+  });
   const walletSnapshot = useMemo(
     () =>
       walletTokens
@@ -1267,7 +1269,9 @@ const WalletAssistant = () => {
     );
     const researchPlan = buildResearchPlan(text);
     const immediateResearchResponse =
-      immediateTradeResponse ?? buildLocalPriceResponse(researchPlan, text);
+      immediateTradeResponse ??
+      buildLocalPriceResponse(researchPlan, text) ??
+      buildLocalMarketListResponse(text, localMarketTokens);
     if (messages.length === 0 && !reduceMotion) {
       LayoutAnimation.configureNext(FIRST_CHAT_LAYOUT_ANIMATION);
     }
@@ -1419,7 +1423,15 @@ const WalletAssistant = () => {
       }
       setIsLoading(false);
     }
-  }, [apiKey, draft, isLoading, messages, reduceMotion, walletSnapshot]);
+  }, [
+    apiKey,
+    draft,
+    isLoading,
+    localMarketTokens,
+    messages,
+    reduceMotion,
+    walletSnapshot,
+  ]);
 
   const handleStop = useCallback(() => {
     requestControllerRef.current?.abort();

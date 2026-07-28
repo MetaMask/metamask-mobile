@@ -1,9 +1,36 @@
+import type { TrendingAsset } from '@metamask/assets-controllers';
+
 import {
   applyResearchPlanIdentity,
+  buildLocalMarketListResponse,
   buildLocalPriceResponse,
   buildResearchPlan,
   getResearchPlanInstructions,
+  isLocalMarketListRequest,
 } from './researchRouting';
+
+const MARKET_TOKENS: TrendingAsset[] = [
+  {
+    aggregatedUsdVolume: 1_000,
+    assetId: 'eip155:1/erc20:0xaaa',
+    decimals: 18,
+    marketCap: 10_000,
+    name: 'Alpha',
+    price: '2',
+    priceChangePct: { h24: '4.5' },
+    symbol: 'AAA',
+  },
+  {
+    aggregatedUsdVolume: 2_000,
+    assetId: 'eip155:8453/erc20:0xbbb',
+    decimals: 18,
+    marketCap: 20_000,
+    name: 'Beta',
+    price: '3',
+    priceChangePct: { h24: '-8.25' },
+    symbol: 'BBB',
+  },
+];
 
 describe('researchRouting', () => {
   it('routes direct trades without web research', () => {
@@ -113,6 +140,41 @@ describe('researchRouting', () => {
         'Is ETH risky?',
       ),
     ).toBeUndefined();
+  });
+
+  it('builds trending and mover lists from MetaMask market data', () => {
+    expect(
+      buildLocalMarketListResponse('What tokens are trending?', MARKET_TOKENS),
+    ).toEqual(
+      expect.objectContaining({
+        title: 'Trending tokens',
+        tokens: ['AAA', 'BBB'],
+      }),
+    );
+    expect(
+      buildLocalMarketListResponse('Show me the top gainers', MARKET_TOKENS),
+    ).toEqual(
+      expect.objectContaining({
+        title: 'Top crypto gainers',
+        tokens: ['AAA'],
+      }),
+    );
+    expect(
+      buildLocalMarketListResponse('Show me the top losers', MARKET_TOKENS),
+    ).toEqual(
+      expect.objectContaining({
+        title: 'Top crypto losers',
+        tokens: ['BBB'],
+      }),
+    );
+  });
+
+  it('keeps contextual discovery questions on the research path', () => {
+    expect(isLocalMarketListRequest('What tokens are trending?')).toBe(true);
+    expect(isLocalMarketListRequest('Why are memecoins trending?')).toBe(false);
+    expect(
+      isLocalMarketListRequest('Trending tokens under $50M market cap'),
+    ).toBe(false);
   });
 
   it('applies explicit network and contract identity to the response', () => {
