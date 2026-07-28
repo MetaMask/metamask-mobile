@@ -243,6 +243,16 @@ function getFailedScenariosFromSummary(summaryDir) {
 }
 
 function downloadAggregatedReports(runId, destDir, repo) {
+  const resultsPath = path.join(destDir, 'performance-results.json');
+  // Reuse a prior download in this workRoot (common with --all when multiple
+  // scenarios share the same baseline candidates). Re-extracting into a
+  // non-empty dir fails with "file exists" and would skip a valid baseline.
+  if (fs.existsSync(resultsPath)) {
+    return;
+  }
+  if (fs.existsSync(destDir)) {
+    fs.rmSync(destDir, { recursive: true, force: true });
+  }
   fs.mkdirSync(destDir, { recursive: true });
   runGh([
     'run',
