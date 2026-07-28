@@ -132,6 +132,11 @@ import {
   parsePortfolioPlanRequest,
   type WalletAssistantPortfolioPlan,
 } from './portfolioPlan';
+import {
+  getTokenPillMovement,
+  TOKEN_PILL_MOVEMENT_PRESENTATION,
+  type TokenPillMovement,
+} from './tokenPillMovement';
 
 type ResearchSource = WalletAssistantResearchSource;
 type ResearchResponse = WalletAssistantResearchResponse;
@@ -539,6 +544,21 @@ const ResearchTokenMetadataProvider = ({
     </ResearchTokenMetadataContext.Provider>
   );
 
+const TOKEN_PILL_MOVEMENT_STYLES: Record<
+  TokenPillMovement,
+  { textColor: TextColor }
+> = {
+  gain: {
+    textColor: TextColor.SuccessDefault,
+  },
+  loss: {
+    textColor: TextColor.ErrorDefault,
+  },
+  neutral: {
+    textColor: TextColor.TextAlternative,
+  },
+};
+
 const ResolvedContextualTokenPill = ({
   price,
   symbol,
@@ -553,6 +573,9 @@ const ResolvedContextualTokenPill = ({
     token,
     tokenDetailsSource: TokenDetailsSource.WalletAssistant,
   });
+  const movement = getTokenPillMovement(token.priceChangePct?.h24);
+  const movementPresentation = TOKEN_PILL_MOVEMENT_PRESENTATION[movement];
+  const movementStyle = TOKEN_PILL_MOVEMENT_STYLES[movement];
 
   return (
     <Pressable
@@ -565,7 +588,7 @@ const ResolvedContextualTokenPill = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        twClassName="rounded-full bg-success-muted px-2 py-1"
+        twClassName={`rounded-full px-2 py-1 ${movementPresentation.background}`}
       >
         <TrendingTokenLogo
           assetId={token.assetId}
@@ -575,11 +598,12 @@ const ResolvedContextualTokenPill = ({
         />
         <Text
           variant={TextVariant.BodySm}
-          color={TextColor.SuccessDefault}
+          color={movementStyle.textColor}
           fontWeight={FontWeight.Medium}
         >
           {symbol}
-          {price ? ` · ${price}` : ''} ↗
+          {price ? ` · ${price}` : ''}
+          {movementPresentation.arrow}
         </Text>
       </Box>
     </Pressable>
@@ -611,11 +635,11 @@ const ContextualTokenPill = ({ symbol }: { symbol: string }) => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={1}
-      twClassName="rounded-full bg-success-muted px-2 py-1"
+      twClassName="rounded-full bg-muted px-2 py-1"
     >
       <Text
         variant={TextVariant.BodySm}
-        color={TextColor.SuccessDefault}
+        color={TextColor.TextAlternative}
         fontWeight={FontWeight.Medium}
       >
         {symbol}
