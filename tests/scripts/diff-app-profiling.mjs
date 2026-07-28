@@ -242,19 +242,19 @@ function getFailedScenariosFromSummary(summaryDir) {
   return scenarios;
 }
 
-function downloadAggregatedReports(runId, destDir, repo) {
+function downloadAggregatedReports(runId, destDir, repo, { runGhFn = runGh } = {}) {
   const resultsPath = path.join(destDir, 'performance-results.json');
   // Reuse a prior download in this workRoot (common with --all when multiple
   // scenarios share the same baseline candidates). Re-extracting into a
   // non-empty dir fails with "file exists" and would skip a valid baseline.
   if (fs.existsSync(resultsPath)) {
-    return;
+    return { reused: true };
   }
   if (fs.existsSync(destDir)) {
     fs.rmSync(destDir, { recursive: true, force: true });
   }
   fs.mkdirSync(destDir, { recursive: true });
-  runGh([
+  runGhFn([
     'run',
     'download',
     String(runId),
@@ -265,6 +265,7 @@ function downloadAggregatedReports(runId, destDir, repo) {
     '-D',
     destDir,
   ]);
+  return { reused: false };
 }
 
 function listBaselineCandidateRuns({ repo, workflow, branch, limit = 40 }) {
@@ -832,6 +833,7 @@ export {
   findMatchingArtifact,
   findGreenScenarioInDir,
   findScenarioWithProfilingInDir,
+  downloadAggregatedReports,
   buildScenarioComment,
   parseArgs,
   COMMENT_MARKER,

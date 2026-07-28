@@ -265,40 +265,70 @@ test('buildScenarioComment labels non-green baseline fallback', () => {
 });
 
 test('downloadAggregatedReports reuses an existing baseline directory', async () => {
-  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { mkdtempSync, writeFileSync, rmSync, readFileSync, existsSync } =
+    await import('node:fs');
   const { join } = await import('node:path');
   const { tmpdir } = await import('node:os');
-  const { findScenarioWithProfilingInDir } = await import(
-    './diff-app-profiling.mjs'
-  );
+  const { downloadAggregatedReports } = await import('./diff-app-profiling.mjs');
 
-  // Directory already containing performance-results.json must remain usable
-  // for a later scenario in the same --all run (no re-extract needed).
   const dir = mkdtempSync(join(tmpdir(), 'profiling-reuse-'));
+  const resultsPath = join(dir, 'performance-results.json');
+  const payload = JSON.stringify({ ok: true });
   try {
-    writeFileSync(
-      join(dir, 'performance-results.json'),
-      JSON.stringify({
-        Android: {
-          'Pixel 8+14.0': [
-            {
-              testName: 'Fresh SRP wallet creation performance',
-              testFailed: true,
-              device: { name: 'Pixel 8', osVersion: '14.0' },
-              profilingSummary: { cpu: { avg: 9, max: 18 } },
-            },
-          ],
-        },
-      }),
-    );
+    writeFileSync(resultsPath, payload);
 
-    const found = findScenarioWithProfilingInDir(dir, {
-      testName: 'Fresh SRP wallet creation performance',
-      device: { name: 'Pixel 8', osVersion: '14.0' },
-      requireGreen: false,
+    let ghCalls = 0;
+    const result = downloadAggregatedReports(123, dir, 'MetaMask/metamask-mobile', {
+      runGhFn: () => {
+        ghCalls += 1;
+        throw new Error('gh should not be called when reusing');
+      },
     });
-    assert.equal(found?.artifact?.profilingSummary?.cpu?.avg, 9);
-    assert.equal(found?.isGreen, false);
+
+    assert.equal(result.reused, true);
+    assert.equal(ghCalls, 0);
+    assert.equal(existsSync(resultsPath), true);
+    assert.equal(readFileSync(resultsPath, 'utf8'), payload);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('downloadAggregatedReports downloads when directory is empty', async () => {
+  const { mkdtempSync, writeFileSync, rmSync, existsSync } = await import(
+    'node:fs'
+  );
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const { downloadAggregatedReports } = await import('./diff-app-profiling.mjs');
+
+  const dir = mkdtempSync(join(tmpdir(), 'profiling-download-'));
+  try {
+    let seenArgs = null;
+    const result = downloadAggregatedReports(456, dir, 'MetaMask/metamask-mobile', {
+      runGhFn: (args) => {
+        seenArgs = args;
+        // Simulate gh extracting the artifact into destDir.
+        writeFileSync(
+          join(dir, 'performance-results.json'),
+          JSON.stringify({ downloaded: true }),
+        );
+      },
+    });
+
+    assert.equal(result.reused, false);
+    assert.deepEqual(seenArgs, [
+      'run',
+      'download',
+      '456',
+      '--repo',
+      'MetaMask/metamask-mobile',
+      '-n',
+      'aggregated-reports',
+      '-D',
+      dir,
+    ]);
+    assert.equal(existsSync(join(dir, 'performance-results.json')), true);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
