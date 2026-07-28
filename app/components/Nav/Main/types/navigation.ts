@@ -79,7 +79,9 @@ export type SettingsStackParamList = {
   AccountsMenuView: undefined;
   Settings: undefined;
   GeneralSettings: undefined;
-  AdvancedSettings: { scrollToBottom?: boolean } | undefined;
+  AdvancedSettings:
+    | { scrollToBottom?: boolean; isFullScreenModal?: boolean }
+    | undefined;
   NetworksManagement: undefined;
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;

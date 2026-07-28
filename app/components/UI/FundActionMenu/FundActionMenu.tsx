@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import { selectEvmChainId } from '../../../selectors/networkController';
@@ -35,7 +36,7 @@ import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const surfaceClass = useElevatedSurface();
   const route = useRoute<FundActionMenuRouteProp>();
 

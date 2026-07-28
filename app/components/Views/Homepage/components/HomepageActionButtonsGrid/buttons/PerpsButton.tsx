@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,7 +22,7 @@ const PerpsButton = ({
   actionPosition,
   allowTwoLineLabel,
 }: HomepageActionButtonSlotProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
@@ -44,6 +45,7 @@ const PerpsButton = ({
 
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: {},
     });
   }, [
     actionPosition,
