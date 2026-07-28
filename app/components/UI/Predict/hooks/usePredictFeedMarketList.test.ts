@@ -61,7 +61,7 @@ describe('usePredictFeedMarketList', () => {
         order: 'volume24hr',
         live: true,
       },
-      { enabled: false, filterStaleGameMarkets: true },
+      { enabled: false, filterStaleGameMarkets: false },
     );
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
@@ -69,7 +69,7 @@ describe('usePredictFeedMarketList', () => {
         tagSlugs: ['sports'],
         order: 'start_time',
       },
-      { enabled: true, filterStaleGameMarkets: true },
+      { enabled: true, filterStaleGameMarkets: false },
     );
     expect(result.current.markets.map((market) => market.id)).toEqual([
       'regular-1',
@@ -86,11 +86,31 @@ describe('usePredictFeedMarketList', () => {
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       1,
       { queryParams, live: true },
-      { enabled: true, filterStaleGameMarkets: true },
+      { enabled: true, filterStaleGameMarkets: false },
     );
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
       { queryParams, live: false },
+      { enabled: true, filterStaleGameMarkets: false },
+    );
+  });
+
+  it('passes stale game filtering to both phases when enabled', () => {
+    renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        { showLiveFirst: true, filterStaleGameMarkets: true },
+      ),
+    );
+
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      1,
+      { tagSlugs: ['sports'], live: true, order: 'volume24hr' },
+      { enabled: true, filterStaleGameMarkets: true },
+    );
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      2,
+      { tagSlugs: ['sports'] },
       { enabled: true, filterStaleGameMarkets: true },
     );
   });
@@ -113,7 +133,7 @@ describe('usePredictFeedMarketList', () => {
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
       { tagSlugs: ['sports'] },
-      { enabled: true, filterStaleGameMarkets: true },
+      { enabled: true, filterStaleGameMarkets: false },
     );
     expect(result.current.markets.map((market) => market.id)).toEqual([
       'shared',
@@ -186,7 +206,7 @@ describe('usePredictFeedMarketList', () => {
     expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
       2,
       { tagSlugs: ['sports'] },
-      { enabled: false, filterStaleGameMarkets: true },
+      { enabled: false, filterStaleGameMarkets: false },
     );
     expect(result.current.error).toBe(error);
   });
@@ -268,7 +288,7 @@ describe('usePredictFeedMarketList', () => {
     await waitFor(() => {
       expect(mockUsePredictMarketList).toHaveBeenCalledWith(
         { tagSlugs: ['sports'] },
-        { enabled: true, filterStaleGameMarkets: true },
+        { enabled: true, filterStaleGameMarkets: false },
       );
     });
     expect(result.current.markets.map((market) => market.id)).toEqual([
