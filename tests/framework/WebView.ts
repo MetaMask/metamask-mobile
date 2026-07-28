@@ -11,7 +11,6 @@ import { FrameworkDetector } from './FrameworkDetector.ts';
 import Gestures from './Gestures.ts';
 import Matchers from './Matchers.ts';
 import { type PlaywrightElement } from './PlaywrightAdapter.ts';
-import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
 import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 
@@ -35,19 +34,15 @@ export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };
 export default class WebView {
   /**
    * Run an action in the appropriate WebView context for the current framework.
-   * Android Appium stays in native context; iOS Appium switches into the page;
-   * Detox runs the action as-is.
+   *
+   * Used by iOS Appium (switches into the page) and Detox (runs as-is).
+   * Android Appium callers must use the native UiAutomator helpers instead —
+   * public methods early-return before invoking this.
    */
   static async withContext(
     pageUrl: string | undefined,
     action: () => Promise<void>,
   ): Promise<void> {
-    if (PlatformDetector.isAndroidAppium()) {
-      await PlaywrightContextHelpers.switchToNativeContext();
-      await action();
-      return;
-    }
-
     if (FrameworkDetector.isAppium()) {
       if (!pageUrl) {
         throw new Error(
