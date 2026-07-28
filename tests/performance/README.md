@@ -68,9 +68,8 @@ tests/
 │   ├── login/                       # Tests for logged-in user flows
 │   │   ├── launch-times/            # Cold/warm start measurements
 │   │   └── predict/                 # Predict market features
-│   ├── onboarding/                  # Tests for new user onboarding
-│   │   └── launch-times/            # Onboarding launch metrics
-│   └── mm-connect/                  # MetaMask Connect integration tests
+│   └── onboarding/                  # Tests for new user onboarding
+│       └── launch-times/            # Onboarding launch metrics
 ├── aggregated-reports/              # Combined reports from CI runs
 └── test-reports/                    # Playwright HTML reports
 ```
@@ -81,18 +80,14 @@ The test suite is configured in `tests/playwright.config.ts`, which defines mult
 
 ### Available Projects
 
-| Project Name                      | Platform | Environment     | Test Scope                 |
-| --------------------------------- | -------- | --------------- | -------------------------- |
-| `android`                         | Android  | Local Emulator  | All performance tests      |
-| `ios`                             | iOS      | Local Simulator | All performance tests      |
-| `browserstack-android`            | Android  | BrowserStack    | Login tests only           |
-| `browserstack-ios`                | iOS      | BrowserStack    | Login tests only           |
-| `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only      |
-| `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only      |
-| `mm-connect-android-local`        | Android  | Local Emulator  | connection-multichain only |
-| `mm-connect-android-browserstack` | Android  | BrowserStack    | connection-multichain only |
-| `mm-connect-ios-local`            | iOS      | Local Simulator | MM Connect tests           |
-| `mm-connect-ios-browserstack`     | iOS      | BrowserStack    | MM Connect tests           |
+| Project Name           | Platform | Environment     | Test Scope            |
+| ---------------------- | -------- | --------------- | --------------------- |
+| `android`              | Android  | Local Emulator  | All performance tests |
+| `ios`                  | iOS      | Local Simulator | All performance tests |
+| `browserstack-android` | Android  | BrowserStack    | Login tests only      |
+| `browserstack-ios`     | iOS      | BrowserStack    | Login tests only      |
+| `android-onboarding`   | Android  | BrowserStack    | Onboarding tests only |
+| `ios-onboarding`       | iOS      | BrowserStack    | Onboarding tests only |
 
 ### Configuration Details
 
@@ -142,48 +137,9 @@ yarn run-playwright:ios-bs           # Run login tests on BrowserStack iOS
 yarn run-playwright:android-onboarding-bs  # Run onboarding tests on BrowserStack Android
 yarn run-playwright:ios-onboarding-bs      # Run onboarding tests on BrowserStack iOS
 
-# MM Connect (Multichain API + local Browser Playground dapp)
-yarn run-playwright:mm-connect-android-local    # Local Android emulator (dapp on 10.0.2.2:8090)
-yarn run-playwright:mm-connect-android-bs       # BrowserStack Android (same Playwright project as below)
-yarn run-playwright:mm-connect-android-bs-local # BrowserStack Android (alias; tunnel still required — see below)
 ```
 
-#### MM Connect on BrowserStack (local dapp)
-
-**BrowserStack Local (tunnel) must be enabled** when you run mm-connect tests against BrowserStack: the suite serves the Browser Playground from your machine on port **8090**, and only the tunnel lets cloud devices reach it via `bs-local.com`. Start the tunnel **before** the test and set `BROWSERSTACK_LOCAL=true` (see step 2 below). Performance CI starts the tunnel and sets these variables **only for the mm-connect build type**; other performance jobs do not use the tunnel.
-
-The `connection-multichain` test starts a **local dapp server** (Browser Playground) on port **8090**. To run it on BrowserStack, the cloud device must reach that server via **BrowserStack Local** (tunnel).
-
-1. **Start the BrowserStack Local binary** (in a separate terminal):
-   - Download from [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) if needed.
-   - Run **without** `--local-identifier` (so the test uses your single tunnel):
-     ```bash
-     ./BrowserStackLocal --key $BROWSERSTACK_ACCESS_KEY
-     ```
-     (Optionally add `--verbose --force-local`. If you run multiple tunnels, start with `--local-identifier <id>` and set `BROWSERSTACK_LOCAL_IDENTIFIER=<id>` when running the test.)
-   - Keep it running until you see: `[SUCCESS] You can now access your local server(s) in our remote browser`. Wait 5–10 seconds, then run the test.
-
-2. **Run the test** with Local enabled:
-
-   ```bash
-   yarn run-playwright:mm-connect-android-bs-local
-   ```
-
-   Set `BROWSERSTACK_LOCAL=true` in `.e2e.env` so the patch sends `local: true` in capabilities (and `localIdentifier` only if you set `BROWSERSTACK_LOCAL_IDENTIFIER`). The test uses **`http://bs-local.com:8090`** for the dapp.
-
-3. Ensure `.e2e.env` has `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY`. The mm-connect BrowserStack project uses `BROWSERSTACK_ANDROID_APP_URL` (or the default `bs://...` in config) for the app; override via env for a custom build.
-
-**Local Android (emulator):** When you run `yarn run-playwright:mm-connect-android-local`, Chrome is launched with a single tab: the test clears Chrome data, starts Chrome, and dismisses first-run modals (sign-in, ad privacy, notifications) with short timeouts so the flow reaches the dapp before the app auto-locks. After the connection is confirmed in MetaMask, the test switches back to the browser with `switchToMobileBrowser` (no reload), so the dapp page state is preserved.
-
-**If you see `BROWSERSTACK_LOCAL_CONNECTION_FAILED`:**
-
-- **Start the binary before the test** and wait until it prints: `[SUCCESS] You can now access your local server(s) in our remote browser`. Then wait 5–10 seconds before running the test.
-- **Single tunnel:** start the binary without `--local-identifier` and run the test as-is; the test does not send `localIdentifier` unless you set `BROWSERSTACK_LOCAL_IDENTIFIER`. If you use multiple tunnels, start the binary with `--local-identifier <id>` and set `BROWSERSTACK_LOCAL_IDENTIFIER=<id>` when running the test so they match.
-- **Use the same credentials:** the key passed to `./BrowserStackLocal --key <key>` must be the same as `BROWSERSTACK_ACCESS_KEY` in `.e2e.env` (and the binary must be using the same BrowserStack account as `BROWSERSTACK_USERNAME`).
-- **One tunnel per account:** don't run multiple Local binaries for the same account unless you use different `localIdentifier` values and pass them in capabilities.
-- **Tunnel timeouts** (`TIMEOUT_CONNECTING` to port 45691 in the Local terminal): the cloud device cannot reach your Local binary. Allow incoming connections for ports **45690** and **45691** in your firewall, or try a different network (e.g. avoid strict NAT). See [BrowserStack Local troubleshooting](https://www.browserstack.com/docs/app-automate/appium/troubleshooting/local-issues) for more.
-
-**CI:** For **mm-connect** runs only, the workflow starts BrowserStack Local (`--force-local --verbose`, no `--include-hosts`), sets `BROWSERSTACK_LOCAL=true` and `BROWSERSTACK_LOCAL_IDENTIFIER`, and waits **15s** after the tunnel is up before running tests. Other performance build types (for example onboarding) **do not** start the tunnel or enable local capabilities. Using `--include-hosts localhost 127.0.0.1` can prevent requests to `bs-local.com:8090` from reaching the runner; the device then cannot load the dapp.
+> MetaMask Connect browser/RN playground E2E coverage now lives under [`tests/smoke-appium/mm-connect/`](../smoke-appium/mm-connect/) (`SmokeMMConnect` Appium smoke CI).
 
 ### Using CLI Directly
 
@@ -312,6 +268,7 @@ Tests for new users:
 - `new-wallet-account-creation.spec.ts` - New wallet creation flow
 - `seedless-apple-onboarding.spec.ts` - Apple social sign-in onboarding
 - `seedless-google-onboarding.spec.ts` - Google social sign-in onboarding
+- `seedless-telegram-onboarding.spec.ts` - Telegram social sign-in onboarding (requires `MM_TELEGRAM_LOGIN_ENABLED=true` on without-srp e2e builds)
 - `launch-times/` - Onboarding launch metrics
 
 ### Predict Tests (`tests/performance/login/predict/`)
@@ -322,21 +279,9 @@ Tests for prediction market features:
 - `predict-deposit.spec.ts`
 - `predict-market-details.spec.ts`
 
-### MM Connect Tests (`tests/performance/mm-connect/`)
+### MetaMask Connect
 
-Integration tests for MetaMask Connect:
-
-- `connection-evm.spec.ts` - EVM connection performance
-- `connection-multichain.spec.ts` - Multichain connection performance
-- `connection-wagmi.spec.ts` - Wagmi integration performance
-- `multichain-rn-connect.spec.ts` - Multichain + Solana via the React Native Playground APK
-- `legacy-evm-rn-connect.spec.ts` - Legacy EVM connection via the React Native Playground APK
-
-> The RN playground tests require a separate APK built from the
-> [`playground/react-native-playground`](https://github.com/MetaMask/connect-monorepo/tree/main/playground/react-native-playground)
-> directory of the [connect-monorepo](https://github.com/MetaMask/connect-monorepo).
-> The APK must be installed on the emulator before running.
-> See [`tests/performance/mm-connect/README.md`](mm-connect/README.md) for full setup instructions.
+MMConnect E2E specs were migrated to Appium smoke: [`tests/smoke-appium/mm-connect/`](../smoke-appium/mm-connect/).
 
 ## Performance Tracking System
 
@@ -662,11 +607,12 @@ What gets sent per scenario:
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                       | Content                   |
-| --------- | -------------------------------------------------------------- | ------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html` | Visual report with charts |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`  | Spreadsheet-friendly data |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`   | Raw metrics data          |
+| File Type | Location                                                                      | Content                                             |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
+| Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario BrowserStack app profiling + API calls |
 
 ### HTML Report Contents
 
@@ -703,6 +649,26 @@ node tests/scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/aggregated-performance-report.json` | Same as above (alias)                       |
 | `tests/aggregated-reports/summary.json`                       | Statistics and metadata                     |
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
+| `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
+
+### App profiling check (on-demand PR diff)
+
+When a performance scenario fails on a PR, the results comment includes an
+**App profiling check** command. Paste it as a PR comment to compare BrowserStack
+`profilingSummary` against the last green run of that scenario on `main`:
+
+```text
+@metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run <RUN_ID>
+```
+
+Or compare all failed scenarios from that run:
+
+```text
+@metamaskbot app-profiling-check --all --run <RUN_ID>
+```
+
+This runs `.github/workflows/app-profiling-check.yml`, which downloads
+`aggregated-reports` for the current run + baseline and posts a diff comment.
 
 ### HTML Dashboard Features
 
@@ -837,11 +803,6 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 - Check app URLs are valid
 - Ensure account has available sessions
 
-**BrowserStack Local testing shows "Off" for mm-connect**
-
-- Use `yarn run-playwright:mm-connect-android-bs-local` with `BROWSERSTACK_LOCAL=true` in `.e2e.env`. Ensure the patch is applied (`yarn install`).
-- Start the BrowserStack Local binary before the test and wait for the success message.
-
 **Quality gates failing unexpectedly**
 
 - Review threshold values (remember +10% margin)
@@ -874,7 +835,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
 3. **Enable Webdrverio Logs**:
    Set `WDIO_LOG_LEVEL=debug` to your run command.
-   Example: WDIO_LOG_LEVEL=debug yarn playwright test --project mm-connect-android-browserstack
+   Example: WDIO_LOG_LEVEL=debug yarn playwright test --project browserstack-android
 
 ## Additional Resources
 

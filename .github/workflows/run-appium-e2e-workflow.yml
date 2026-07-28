@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: 'current'
+      android-tag:
+        description: 'Android system image tag (default = AOSP; google_apis includes Chrome for browser dApp tests)'
+        required: false
+        type: string
+        default: 'default'
 
 permissions:
   contents: read
@@ -56,15 +61,16 @@ permissions:
 jobs:
   test-appium-mobile:
     name: ${{ inputs.test-suite-name }}
+    # iOS Appium smoke is not put on low-priority: those runners are often
+    # preempted around ~15m wall-clock, which kills the Playwright step before
+    # reports/logs upload (and before shards that no longer fail-fast can finish).
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
          'namespace-profile-metamask-android-build') ||
         (inputs.platform == 'ios' &&
-          (startsWith(github.base_ref, 'release/') &&
-            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') ||
-            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]'))) ||
+          fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
         (startsWith(github.base_ref, 'release/') &&
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
@@ -87,7 +93,7 @@ jobs:
           setup-simulator: 'true'
           android-avd-name: appium_smoke_avd
           android-api-level: '34'
-          android-tag: default
+          android-tag: ${{ inputs.android-tag }}
           android-abi: x86_64
           android-device: pixel_5
           configure-keystores: 'false'

@@ -11,6 +11,7 @@ import { Animated, PixelRatio, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Rive, {
   AutoBind,
@@ -204,7 +205,7 @@ const markOnboardingSeen = () =>
  * can never navigate the user out early.
  */
 const SocialLeaderboardOnboarding: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const styles = useMemo(() => createStyles(), []);
   const insets = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();

@@ -54,7 +54,8 @@ The following types of changes have zero functional impact and must NOT trigger 
 - Whitespace-only changes (indentation, blank lines, trailing spaces)
 - Comment-only changes (adding, removing, or modifying code comments)
 - Import reordering with no net change in imported symbols
-If a PR only contains cosmetic changes across all files, select zero E2E tags and zero performance tags.`;
+If a PR only contains cosmetic changes across all files, select zero E2E tags and zero performance tags.
+Do NOT treat copy changes as cosmetic — sentence-case or string edits can break E2E text/label selectors`;
 
   const performanceGuidanceSection = `PERFORMANCE TEST GUIDANCE:
 Performance tests measure app responsiveness and render times. Decide performance_tests the same way you decide E2E tags: use the available performance tag list, inspect the changed files and diffs, reason about impacted user flows, and select only the relevant performance tags.
