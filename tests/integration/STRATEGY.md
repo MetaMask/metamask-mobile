@@ -200,7 +200,7 @@ describe('My perps feature', () => {
 });
 ```
 
-Three lines of setup. The harness mocks the I/O boundary; the rest runs real. See [`AGENTS.md`](AGENTS.md) for the framework rules and [`.agents/skills/integration-test/SKILL.md`](../../.agents/skills/integration-test/SKILL.md) for the full skill (decision tree, golden rules, references).
+Three lines of setup. The harness mocks the I/O boundary; the rest runs real. See [`AGENTS.md`](AGENTS.md) for the framework rules and the central [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) for the decision tree, golden rules, and references.
 
 ## Where things live
 
@@ -215,14 +215,6 @@ tests/integration/                           ← framework, mirrors tests/compon
     ├── perps.ts                               Shape A: provider-level harness
     ├── perps-flow.ts                          Shape B: hook-flow harness
     └── perps-component.tsx                    Shape C: rendered-component harness
-
-.agents/skills/integration-test/             ← the skill, mirrors component-view-test
-├── SKILL.md
-├── agents/openai.yaml
-└── references/
-    ├── writing-tests.md                       how to add an integration test
-    ├── harness-extension.md                   how to add or extend a domain harness
-    └── reference.md                           run commands, self-review, failure diagnosis
 
 app/components/UI/Perps/hooks/
 ├── usePerpsFlipPosition.test.ts               unit test (existing)

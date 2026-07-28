@@ -3,6 +3,7 @@ import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -37,6 +38,7 @@ import {
 } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { renderShortAddress } from '../../../../util/address';
@@ -69,10 +71,13 @@ const BalanceEndContainer = ({
   networkImageSource,
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const handleMenuPress = useCallback(() => {
-    navigate(...createAccountGroupDetailsNavigationDetails({ accountGroup }));
+    navigateWithDetails(
+      { navigate },
+      createAccountGroupDetailsNavigationDetails({ accountGroup }),
+    );
   }, [navigate, accountGroup]);
 
   const selectBalanceForGroup = useMemo(
