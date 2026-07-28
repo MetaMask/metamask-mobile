@@ -10,6 +10,8 @@ import {
   endRampsBuyCufTrace,
   startRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
+  startRampsBuyQuoteFetchTrace,
+  endRampsBuyQuoteFetchTrace,
   getRampsBuyCufParentContext,
   hasActiveRampsBuyCufTrace,
   surfaceFromBuyFlowOrigin,
@@ -164,5 +166,93 @@ describe('rampsBuyCufTrace', () => {
         },
       }),
     );
+  });
+
+  describe('Buy Quote Fetch CUF (TRAM-3780)', () => {
+    it('starts a standalone quote span when no E2E parent is active', () => {
+      const opId = startRampsBuyQuoteFetchTrace();
+
+      expect(opId).toContain(TraceName.RampBuyQuoteFetch);
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.RampBuyQuoteFetch,
+          id: opId,
+          op: TraceOperation.RampOperation,
+          parentContext: undefined,
+          tags: expect.objectContaining({
+            [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
+          }),
+        }),
+      );
+    });
+
+    it('nests under the active Buy E2E parent when one is open', () => {
+      startRampsBuyCufTrace();
+      mockTrace.mockClear();
+
+      const opId = startRampsBuyQuoteFetchTrace();
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.RampBuyQuoteFetch,
+          id: opId,
+          parentContext: { mocked: 'parent-span' },
+        }),
+      );
+    });
+
+    it('supersedes a prior open quote fetch', () => {
+      const first = startRampsBuyQuoteFetchTrace();
+      const second = startRampsBuyQuoteFetchTrace();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.RampBuyQuoteFetch,
+          id: first,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+          },
+        }),
+      );
+      expect(second).not.toEqual(first);
+    });
+
+    it('ends success and error completions by op id', () => {
+      const successId = startRampsBuyQuoteFetchTrace();
+      endRampsBuyQuoteFetchTrace({
+        id: successId,
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.RampBuyQuoteFetch,
+          id: successId,
+          data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        }),
+      );
+
+      mockEndTrace.mockClear();
+      const errorId = startRampsBuyQuoteFetchTrace();
+      endRampsBuyQuoteFetchTrace({
+        id: errorId,
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        },
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.RampBuyQuoteFetch,
+          id: errorId,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+          },
+        }),
+      );
+    });
   });
 });

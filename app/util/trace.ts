@@ -62,6 +62,12 @@ export enum TraceName {
   RampBuyToOrderDetails = 'Ramp Buy To Order Details',
   RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
+  /**
+   * Buy Quote Fetch CUF (TRAM-3780): amount/payment/provider change → quotes
+   * rendered or error. Standalone; nests under RampBuyToOrderDetails when that
+   * parent is active.
+   */
+  RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
