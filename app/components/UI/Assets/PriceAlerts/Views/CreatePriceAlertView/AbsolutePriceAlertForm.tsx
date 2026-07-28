@@ -55,7 +55,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
     editingAlert?.recurring ?? true,
   );
 
-  const hasInput = targetAmount !== KEYPAD_EMPTY;
+  const isPlaceholder = targetAmount === KEYPAD_EMPTY;
   const targetPrice = useMemo(() => {
     const parsed = Number.parseFloat(targetAmount);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -79,7 +79,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
     isRecurring === editingAlert?.recurring;
 
   const percentDiff = useMemo(() => {
-    if (!hasInput || currentPrice <= 0 || targetPrice <= 0) {
+    if (isPlaceholder || currentPrice <= 0 || targetPrice <= 0) {
       return { rounded: 0, direction: 'none' as const };
     }
     const percent = ((targetPrice - currentPrice) / currentPrice) * 100;
@@ -89,16 +89,18 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
       return { rounded: Math.abs(rounded), direction: 'below' as const };
     }
     return { rounded: 0, direction: 'none' as const };
-  }, [currentPrice, hasInput, targetPrice]);
+  }, [currentPrice, isPlaceholder, targetPrice]);
 
   const displayText = useMemo(() => {
-    if (!hasInput) {
+    if (isPlaceholder) {
+      // Keypad was cleared back to zero: show the live price in subscript
+      // notation as a visual hint of what the user is overriding.
       return formatPriceWithSubscriptNotation(currentPrice, currentCurrency);
     }
     const currencySymbol =
       CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
     return `${currencySymbol}${targetAmount}`;
-  }, [currentCurrency, currentPrice, hasInput, targetAmount]);
+  }, [currentCurrency, currentPrice, isPlaceholder, targetAmount]);
 
   const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
 
@@ -192,7 +194,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
 
         <AlertAmountInput
           text={displayText}
-          hasInput={hasInput}
+          isPlaceholder={isPlaceholder}
           testID={CreatePriceAlertTestIds.TARGET_PRICE_INPUT}
         />
 

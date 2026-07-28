@@ -62,7 +62,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     editingAlert?.direction ?? 'up',
   );
 
-  const hasInput = percentAmount !== KEYPAD_EMPTY;
+  const isPlaceholder = percentAmount === KEYPAD_EMPTY;
   const percentValue = useMemo(() => {
     const parsed = Number.parseFloat(percentAmount);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -218,7 +218,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
 
         <AlertAmountInput
           text={percentAmount}
-          hasInput={hasInput}
+          isPlaceholder={isPlaceholder}
           prefix={directionToggle}
           suffix={percentSuffix}
           testID={CreatePriceAlertTestIds.PERCENT_INPUT}

@@ -156,7 +156,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
       },
     });
 
-    // Clear the pre-filled current price, then type "3000"
+    // The renderer pre-fills currentPrice=2500 (4 digits); clear it then type 3000.
     for (let i = 0; i < 4; i++) {
       fireEvent.press(getByTestId('keypad-delete-button'));
     }

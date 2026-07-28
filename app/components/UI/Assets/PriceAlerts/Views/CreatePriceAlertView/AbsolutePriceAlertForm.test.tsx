@@ -6,6 +6,7 @@ import {
 } from '../../constants';
 import { type SaveAlertFlowParams } from '../../hooks/useAlertSaveFlow';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
+import { toKeypadString } from './utils';
 
 const mockSubmit = jest.fn();
 const mockSaveAlert = jest.fn(async ({ submit }: SaveAlertFlowParams) => {
@@ -59,10 +60,17 @@ const renderForm = (
   overrides: Partial<React.ComponentProps<typeof AbsolutePriceAlertForm>> = {},
 ) => render(<AbsolutePriceAlertForm {...baseProps} {...overrides} />);
 
+/**
+ * Clears the keypad by pressing delete once per character in the pre-filled
+ * value derived from `price`. Passing `extraPresses` handles edge cases where
+ * further deletions are needed (e.g. after typing additional digits).
+ */
 const clearKeypad = (
   getByTestId: ReturnType<typeof render>['getByTestId'],
-  times = 10,
+  price: number = baseProps.currentPrice,
+  extraPresses = 0,
 ) => {
+  const times = toKeypadString(price).length + extraPresses;
   for (let i = 0; i < times; i++) {
     fireEvent.press(getByTestId('keypad-delete-button'));
   }
@@ -139,10 +147,7 @@ describe('AbsolutePriceAlertForm', () => {
   it('keeps saving disabled when the keypad value is cleared to zero', () => {
     const screen = renderForm();
 
-    // Delete all digits to clear back to zero
-    for (let i = 0; i < 7; i++) {
-      fireEvent.press(screen.getByTestId('keypad-delete-button'));
-    }
+    clearKeypad(screen.getByTestId);
 
     expect(
       screen.getByTestId(
@@ -213,9 +218,7 @@ describe('AbsolutePriceAlertForm', () => {
     const screen = renderForm();
 
     // Clear the pre-filled price and type a lower value (1000)
-    for (let i = 0; i < 7; i++) {
-      fireEvent.press(screen.getByTestId('keypad-delete-button'));
-    }
+    clearKeypad(screen.getByTestId);
     fireEvent.press(screen.getByTestId('keypad-key-1'));
     fireEvent.press(screen.getByTestId('keypad-key-0'));
     fireEvent.press(screen.getByTestId('keypad-key-0'));
@@ -405,7 +408,7 @@ describe('AbsolutePriceAlertForm', () => {
         currentPrice: 0.00001234,
       });
 
-      clearKeypad(screen.getByTestId, 15);
+      clearKeypad(screen.getByTestId, 0.00001234);
       for (const key of [
         '0',
         'dot',
@@ -434,7 +437,7 @@ describe('AbsolutePriceAlertForm', () => {
         displayTicker: 'SHIB',
         currentPrice: 0.0000000001,
       });
-      clearKeypad(screen.getByTestId, 15);
+      clearKeypad(screen.getByTestId, 0.0000000001);
       fireEvent.press(screen.getByTestId('keypad-key-dot'));
       for (let index = 0; index < 15; index++) {
         fireEvent.press(screen.getByTestId('keypad-key-1'));
@@ -533,9 +536,8 @@ describe('AbsolutePriceAlertForm', () => {
           absoluteAlertAt(2000, { id: 'alert-other' }),
         ],
       });
-      for (let index = 0; index < 4; index++) {
-        fireEvent.press(screen.getByTestId('keypad-delete-button'));
-      }
+      // editing starts at threshold 1500; clear it then type 2000
+      clearKeypad(screen.getByTestId, editingAlert.threshold);
       fireEvent.press(screen.getByTestId('keypad-key-2'));
       fireEvent.press(screen.getByTestId('keypad-key-0'));
       fireEvent.press(screen.getByTestId('keypad-key-0'));
