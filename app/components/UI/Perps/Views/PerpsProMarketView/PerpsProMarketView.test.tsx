@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
 import { Box, ButtonBase } from '@metamask/design-system-react-native';
-import { CandlePeriod } from '@metamask/perps-controller';
+import { CandlePeriod, PerpsMode } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -11,13 +11,19 @@ import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
+  PerpsModeToggleSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
 
 interface MockRouteParams {
-  market?: { symbol: string; price?: string };
+  market?: {
+    symbol: string;
+    price?: string;
+    name?: string;
+    maxLeverage?: string;
+  };
   source?: string;
   source_section?: string;
 }
@@ -37,12 +43,28 @@ interface MockCandlePeriodBottomSheetProps {
 }
 
 let mockRouteParams: MockRouteParams | undefined = {
-  market: { symbol: 'BTC', price: '$90,000.00' },
+  market: {
+    symbol: 'BTC',
+    price: '$90,000.00',
+    name: 'Bitcoin',
+    maxLeverage: '40x',
+  },
 };
 const mockTrack = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
   track: mockTrack,
 }));
+
+const mockNavigateBack = jest.fn();
+const mockNavigateToHome = jest.fn();
+const mockNavigateToMarketList = jest.fn();
+let mockCanGoBack = true;
+const mockSetPerpsMode = jest.fn();
+const mockShowPerpsModeFlash = jest.fn();
+const mockShowToast = jest.fn();
+const mockToggleWatchlistMarket = jest.fn();
+const mockGetWatchlistMarkets = jest.fn(() => [] as string[]);
+const mockPerpsModeValue = PerpsMode.Pro;
 
 const mockPerpsProChartPanel = jest.fn(
   ({ symbol, onMorePress }: MockChartPanelProps) => (
@@ -105,6 +127,45 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     mockUsePerpsEventTracking(options),
 }));
 
+jest.mock('../../hooks', () => ({
+  usePerpsNavigation: jest.fn(() => ({
+    navigateBack: mockNavigateBack,
+    navigateToHome: mockNavigateToHome,
+    navigateToMarketList: mockNavigateToMarketList,
+    canGoBack: mockCanGoBack,
+  })),
+  usePerpsMode: jest.fn(() => ({
+    mode: mockPerpsModeValue,
+    setMode: mockSetPerpsMode,
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsToasts', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    PerpsToastOptions: {
+      watchlist: {
+        limitReached: { message: 'watchlist-limit' },
+      },
+    },
+  }),
+}));
+
+jest.mock('../../utils/perpsModeFlash', () => ({
+  showPerpsModeFlash: (...args: unknown[]) => mockShowPerpsModeFlash(...args),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      toggleWatchlistMarket: (...args: unknown[]) =>
+        mockToggleWatchlistMarket(...args),
+      getWatchlistMarkets: () => mockGetWatchlistMarkets(),
+    },
+  },
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -154,7 +215,16 @@ const renderView = () =>
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { market: { symbol: 'BTC', price: '$90,000.00' } };
+    mockCanGoBack = true;
+    mockGetWatchlistMarkets.mockReturnValue([]);
+    mockRouteParams = {
+      market: {
+        symbol: 'BTC',
+        price: '$90,000.00',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      },
+    };
   });
 
   it.each([
@@ -410,15 +480,15 @@ describe('PerpsProMarketView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the asset symbol from route params in the header', () => {
+  it('shows the asset name from route params in the header', () => {
     const { getByTestId } = renderView();
 
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
-    ).toHaveTextContent(/^BTC$/);
+    ).toHaveTextContent(/^Bitcoin$/);
   });
 
-  it('removes the HIP-3 dex prefix from the header symbol', () => {
+  it('falls back to the display symbol when the market has no name', () => {
     mockRouteParams = { market: { symbol: 'xyz:TSLA' } };
 
     const { getByTestId } = renderView();
@@ -454,6 +524,103 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SUBTITLE),
     ).toHaveTextContent('BTC-USD perp');
+  });
+
+  it('navigates back when the header back button is pressed', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(mockNavigateBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+  });
+
+  it('falls back to Perps home when back is pressed with an empty stack', () => {
+    mockCanGoBack = false;
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(mockNavigateToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+  });
+
+  it('opens the market list from the header identity', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON),
+    );
+
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    });
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.MARKET_LIST,
+        [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+      }),
+    );
+  });
+
+  it('navigates to Perps home from the wallet button', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+
+    expect(mockNavigateToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+  });
+
+  it('toggles the watchlist from the favorite button', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    );
+
+    expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
+        [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+      }),
+    );
+  });
+
+  it('blocks adding to a full watchlist and shows a toast', () => {
+    mockGetWatchlistMarkets.mockReturnValue(
+      Array.from({ length: 100 }, (_, index) => `ASSET-${index}`),
+    );
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    );
+
+    expect(mockShowToast).toHaveBeenCalledWith({ message: 'watchlist-limit' });
+    expect(mockToggleWatchlistMarket).not.toHaveBeenCalled();
+  });
+
+  it('switches mode and flashes from the Pro mode pill', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockShowPerpsModeFlash).toHaveBeenCalledWith(PerpsMode.Lite);
   });
 
   it('uses the Figma shell heights', () => {

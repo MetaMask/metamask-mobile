@@ -267,7 +267,7 @@ const PerpsProMarketView = () => {
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
       <PerpsProMarketHeader
-        market={market}
+        market={{ ...market, symbol: market.symbol }}
         mode={perpsMode}
         onBackPress={handleBackPress}
         onIdentityPress={handleMarketListPress}

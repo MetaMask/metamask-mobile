@@ -29,7 +29,11 @@ import PerpsModeToggle from '../../../components/PerpsModeToggle';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 
 interface PerpsProMarketHeaderProps {
-  market: PerpsMarketData;
+  /**
+   * Market payload from route params. After the parent has verified
+   * `symbol`, remaining fields may still be partial (deep-link entries).
+   */
+  market: Partial<PerpsMarketData> & { symbol: string };
   /** Active Perps mode — drives the read-only mode pill on the right. */
   mode: PerpsMode;
   onBackPress?: () => void;
