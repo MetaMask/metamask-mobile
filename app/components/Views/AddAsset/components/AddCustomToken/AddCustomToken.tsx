@@ -574,6 +574,9 @@ const AddCustomToken = ({
                 <Text
                   variant={TextVariant.BodyMd}
                   style={tw.style('text-info-default')}
+                  testID={
+                    ImportTokenViewSelectorsIDs.PRECISION_WARNING_EXPLORER_LINK
+                  }
                   onPress={() => {
                     navigation.navigate('Webview', {
                       screen: 'SimpleWebview',
