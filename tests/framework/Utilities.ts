@@ -13,6 +13,7 @@ import { createLogger } from './logger.ts';
 import { resolveE2EWaitTimeoutMs } from './Constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
+import { Json } from '@metamask/utils';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: resolveE2EWaitTimeoutMs(15000),
@@ -26,6 +27,18 @@ const logger = createLogger({ name: 'Utilities' });
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+export function stripJsonKeys(value: Json, excludedKeys: string[]): Json {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const next = { ...(value as Record<string, Json>) };
+  for (const key of excludedKeys) {
+    delete next[key];
+  }
+  return next;
+}
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
