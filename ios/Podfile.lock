@@ -574,7 +574,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NitroFetch (1.3.3):
+  - NitroFetch (1.5.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -5149,7 +5149,7 @@ SPEC CHECKSUMS:
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
-  NitroFetch: 232232e9d216dc35be48f6478cf9f6cebd077916
+  NitroFetch: c541d07ae2335719879fda44fea045f53d422f5a
   NitroFetchWebsockets: 8ce4909248acd869f7002be2c9b1eefcbb60544a
   NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
   NitroTextDecoder: 9b50be860ed7488349bc31791b6fe96778a43db0
