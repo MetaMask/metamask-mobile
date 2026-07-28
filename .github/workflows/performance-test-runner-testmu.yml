@@ -62,16 +62,16 @@ on:
         required: true
         type: string
         description: 'TestMu AI username'
-      lt_access_key:
-        required: true
-        type: string
-        description: 'TestMu AI access key'
+      # LT_ACCESS_KEY is a secret (passed via secrets: inherit / secrets.LT_ACCESS_KEY).
+      # It cannot be a workflow_call input — secrets.* is illegal in caller `with:`.
       he_concurrency:
         required: false
         type: string
         default: '3'
         description: 'HyperExecute autosplit concurrency'
     secrets:
+      LT_ACCESS_KEY:
+        required: true
       MM_TEST_ACCOUNT_SRP:
         required: true
       TEST_SRP_1:
@@ -173,7 +173,7 @@ jobs:
             echo "TESTMU_BUILD_NAME=${{ inputs.testmu_build_name }}-HyperExecute"
             echo "TESTMU_GEO_LOCATION=$TESTMU_GEO_LOCATION"
             echo "LT_USERNAME=${{ inputs.lt_username }}"
-            echo "LT_ACCESS_KEY=${{ inputs.lt_access_key }}"
+            echo "LT_ACCESS_KEY=${{ secrets.LT_ACCESS_KEY }}"
             echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
             echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
