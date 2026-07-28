@@ -126,8 +126,6 @@ class TestSnaps {
     },
   ): Promise<void> {
     const webId = TestSnapResultSelectorWebIDS[selector];
-    // Normalize quotes for cross-platform compatibility
-    const normalizedExpected = expectedMessage.replace(/^"|"$/g, '');
 
     await Utilities.executeWithRetry(
       async () => {
@@ -135,16 +133,24 @@ class TestSnaps {
           webId,
           TEST_SNAPS_WEBVIEW_OPTIONS,
         );
-        if (!actualText.includes(normalizedExpected)) {
-          throw new Error(
-            `Expected "${webId}" text to contain "${normalizedExpected}", got "${actualText}"`,
-          );
+
+        // Android Appium UiAutomator omits JSON string quotes; Detox/iOS include them
+        if (PlatformDetector.isAndroidAppium()) {
+          const normalizedExpected = expectedMessage.replace(/^"|"$/g, '');
+          if (!actualText.includes(normalizedExpected)) {
+            throw new Error(
+              `Expected "${webId}" text to contain "${normalizedExpected}", got "${actualText}"`,
+            );
+          }
+          return;
         }
+
+        await Assertions.checkIfTextMatches(actualText, expectedMessage);
       },
       {
         timeout: options.timeout ?? 5_000,
         interval: options.interval ?? 100,
-        description: `Assert result "${webId}" contains "${normalizedExpected}"`,
+        description: `Assert result "${webId}" matches expected text`,
       },
     );
   }
