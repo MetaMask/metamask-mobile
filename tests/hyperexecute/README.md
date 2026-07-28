@@ -24,6 +24,13 @@ MM-Connect starts the LT tunnel **inside each HyperExecute task** (not on the GH
 - `tests/scripts/hyperexecute-run-performance-test.sh` — per-file Playwright runner
 - `.hyperexecuteignore` — excludes native build trees from upload
 
+## Secrets handling
+
+`run-testmu-hyperexecute.sh` does **not** embed SRPs, `E2E_PASSWORD`, `LT_ACCESS_KEY`, or
+Sentry DSN in the generated YAML. Those values go to a temp `--job-secret-file` outside the
+repo and are referenced as `${{.secrets.NAME}}`. GHA artifacts only upload test reports
+(not `tmp/hyperexecute/`).
+
 ## Manual local trigger
 
 ```bash
