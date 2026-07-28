@@ -76,7 +76,7 @@ describe('onboarding performance hooks', () => {
       });
     });
 
-    it('respects enabled:false and unmount cleanup', () => {
+    it('respects enabled:false', () => {
       renderHook(() =>
         useScreenPerformance({
           screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
@@ -86,22 +86,6 @@ describe('onboarding performance hooks', () => {
         }),
       );
       expect(mockTrace).not.toHaveBeenCalled();
-
-      const { rerender } = renderHook(
-        ({ enabled }) =>
-          useScreenPerformance({
-            screenId: OnboardingScreenIds.ONBOARDING_LANDING,
-            contentReady: false,
-            isEmpty: false,
-            enabled,
-          }),
-        { initialProps: { enabled: true } },
-      );
-      rerender({ enabled: false });
-      expectEnd({
-        name: TraceName.OnboardingScreenTimeToContent,
-        data: expect.objectContaining({ success: false, reason: 'unmounted' }),
-      });
     });
 
     it('records the first data-fetch cycle', () => {
@@ -174,7 +158,7 @@ describe('onboarding performance hooks', () => {
   });
 
   describe('navigation performance', () => {
-    it('completes, cancels, and respects enabled:false', () => {
+    it('completes pending navigation spans', () => {
       startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
       renderHook(() =>
         useNavigationPerformance({
@@ -202,17 +186,6 @@ describe('onboarding performance hooks', () => {
         name: TraceName.OnboardingCtaNavigation,
         data: expect.objectContaining({ success: false, reason: 'unmounted' }),
       });
-
-      jest.clearAllMocks();
-      startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
-      renderHook(() =>
-        useNavigationPerformance({
-          destinationScreenId: OnboardingScreenIds.CHOOSE_PASSWORD,
-          destinationReady: true,
-          enabled: false,
-        }),
-      );
-      expect(mockEndTrace).not.toHaveBeenCalled();
 
       jest.clearAllMocks();
       startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);

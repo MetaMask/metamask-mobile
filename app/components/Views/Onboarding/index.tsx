@@ -290,12 +290,6 @@ const Onboarding = () => {
     [],
   );
 
-  const failSocialLogin = useCallback(
-    (cancelReason = 'social_login_failed') =>
-      endSocialLoginAttemptTrace(false, cancelReason),
-    [endSocialLoginAttemptTrace],
-  );
-
   // Ending the social-login attempt (or the overall journey) does not automatically end the
   // OAuth child spans started inside OAuthService (provider login, BYOA token request, seedless
   // authenticate). Their finally blocks only run when the underlying promises settle, which never
@@ -702,7 +696,7 @@ const Onboarding = () => {
           error.code === OAuthErrorType.TelegramLoginError
         ) {
           // QA: do not show error sheet if user cancelled
-          failSocialLogin('user_cancelled');
+          endSocialLoginAttemptTrace(false, 'user_cancelled');
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
@@ -758,7 +752,7 @@ const Onboarding = () => {
                 (fallbackError.code === OAuthErrorType.UserCancelled ||
                   fallbackError.code === OAuthErrorType.UserDismissed)
               ) {
-                failSocialLogin('user_cancelled');
+                endSocialLoginAttemptTrace(false, 'user_cancelled');
                 return;
               }
               // Handle both OAuthError and unexpected errors from browser fallback
@@ -778,11 +772,11 @@ const Onboarding = () => {
                 );
                 handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
-              failSocialLogin();
+              endSocialLoginAttemptTrace(false, 'social_login_failed');
               return;
             }
           }
-          failSocialLogin();
+          endSocialLoginAttemptTrace(false, 'social_login_failed');
           return;
         }
         // Show error sheet for auth server or seedless controller errors
@@ -801,7 +795,7 @@ const Onboarding = () => {
               type: 'error',
             },
           });
-          failSocialLogin();
+          endSocialLoginAttemptTrace(false, 'social_login_failed');
           return;
         }
         if (isPreOAuthSocialLoginFailure(error)) {
@@ -817,7 +811,8 @@ const Onboarding = () => {
               type: 'error',
             },
           });
-          failSocialLogin(
+          endSocialLoginAttemptTrace(
+            false,
             error.code === OAuthErrorType.InvalidProvider
               ? 'provider_unavailable'
               : 'unsupported_platform',
@@ -826,7 +821,7 @@ const Onboarding = () => {
         }
         // unexpected oauth login error
         handleOAuthLoginError(error, socialConnectionType, false);
-        failSocialLogin();
+        endSocialLoginAttemptTrace(false, 'social_login_failed');
         return;
       }
 
@@ -840,7 +835,7 @@ const Onboarding = () => {
       });
       endTrace({ name: TraceName.OnboardingSocialLoginError });
 
-      failSocialLogin();
+      endSocialLoginAttemptTrace(false, 'social_login_failed');
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -859,7 +854,7 @@ const Onboarding = () => {
       setLoading,
       unsetLoading,
       handlePostSocialLogin,
-      failSocialLogin,
+      endSocialLoginAttemptTrace,
     ],
   );
 
@@ -1401,7 +1396,7 @@ const Onboarding = () => {
             // Finalize the OAuth child spans (provider login, token request) before the
             // attempt span: their promises may never settle after abandonment.
             finalizeInFlightOAuthTraces();
-            failSocialLogin('oauth_abandoned');
+            endSocialLoginAttemptTrace(false, 'oauth_abandoned');
           }
         }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
       }
@@ -1413,11 +1408,7 @@ const Onboarding = () => {
         abandonmentTimerRef.current = null;
       }
     };
-  }, [
-    endSocialLoginAttemptTrace,
-    finalizeInFlightOAuthTraces,
-    failSocialLogin,
-  ]);
+  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces]);
 
   useEffect(() => {
     updateNavBar();

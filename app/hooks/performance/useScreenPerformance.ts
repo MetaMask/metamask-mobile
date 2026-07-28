@@ -11,22 +11,16 @@ interface UseScreenPerformanceConfig {
   screenId: OnboardingScreenId;
   contentReady: boolean;
   isEmpty: boolean;
-  contentStateForTrace?: 'filled' | 'empty' | 'error';
   isLoading?: boolean;
   enabled?: boolean;
-  reRenderThreshold?: number;
-  reRenderWindowMs?: number;
 }
 
 export const useScreenPerformance = ({
   screenId,
   contentReady,
   isEmpty,
-  contentStateForTrace,
   isLoading,
   enabled = true,
-  reRenderThreshold,
-  reRenderWindowMs,
 }: UseScreenPerformanceConfig): void => {
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
@@ -37,8 +31,7 @@ export const useScreenPerformance = ({
   const fetchEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
 
-  const traceContentState =
-    contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
+  const traceContentState = isEmpty ? 'empty' : 'filled';
 
   useRenderStormMonitor({
     id: screenId,
@@ -46,8 +39,6 @@ export const useScreenPerformance = ({
     entityLabel: 'screen',
     breadcrumbData: { screen_id: screenId },
     enabled,
-    reRenderThreshold,
-    reRenderWindowMs,
   });
 
   useEffect(() => {
