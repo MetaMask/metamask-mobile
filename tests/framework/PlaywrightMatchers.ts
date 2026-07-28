@@ -135,10 +135,12 @@ export default class PlaywrightMatchers {
       const escaped = isAndroid
         ? this.escapeRegexPatternForUiAutomator(text)
         : this.escapeRegexPattern(text);
-      this.logFind('text pattern', text.source);
+      // RegExp flags are not in .source — embed (?i) for Appium/Java/ICU engines.
+      const pattern = text.ignoreCase ? `(?i)${escaped}` : escaped;
+      this.logFind('text pattern', pattern);
       const locator = isAndroid
-        ? `android=new UiSelector().textMatches("${escaped}")`
-        : `-ios predicate string:label MATCHES "${escaped}" OR name MATCHES "${escaped}"`;
+        ? `android=new UiSelector().textMatches("${pattern}")`
+        : `-ios predicate string:label MATCHES "${pattern}" OR name MATCHES "${pattern}"`;
 
       const drv = getDriver();
       if (!drv) throw new Error('Driver is not available');

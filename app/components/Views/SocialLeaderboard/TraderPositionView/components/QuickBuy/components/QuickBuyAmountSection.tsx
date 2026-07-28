@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput } from 'react-native';
+import { TextInput, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -51,6 +51,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   isUnpricedSource = false,
   sourceCryptoAmount,
   sourceSymbol,
+  onAmountAreaPress,
 }) => {
   const tw = useTailwind();
 
@@ -75,7 +76,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
   }
 
-  return (
+  const content = (
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
@@ -123,6 +124,23 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       )}
     </Box>
   );
+
+  // On the keyboard treatment the headline is tappable to (re)open the keypad.
+  // activeOpacity={1} keeps it visually static — no press feedback/caret.
+  if (onAmountAreaPress) {
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onAmountAreaPress}
+        accessibilityRole="button"
+        testID="quick-buy-amount-area-pressable"
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default QuickBuyAmountSection;

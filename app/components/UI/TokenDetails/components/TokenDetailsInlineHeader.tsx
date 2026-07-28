@@ -124,23 +124,12 @@ export const TokenDetailsInlineHeader = ({
     isStockToken,
   ]);
 
+  // Left → right: watchlist star, price alert, share.
   const endAccessory = useMemo(() => {
     const buttons: ReactNode[] = [];
 
     if (starButton) {
       buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
-    }
-    if (onSharePress) {
-      buttons.push(
-        <ButtonIcon
-          key="share"
-          iconName={IconName.Share}
-          size={ButtonIconSize.Md}
-          onPress={onSharePress}
-          testID="share-button"
-          accessibilityLabel="Share token"
-        />,
-      );
     }
     if (onPriceAlertPress) {
       buttons.push(
@@ -154,6 +143,18 @@ export const TokenDetailsInlineHeader = ({
         />,
       );
     }
+    if (onSharePress) {
+      buttons.push(
+        <ButtonIcon
+          key="share"
+          iconName={IconName.Share}
+          size={ButtonIconSize.Md}
+          onPress={onSharePress}
+          testID="share-button"
+          accessibilityLabel="Share token"
+        />,
+      );
+    }
 
     if (buttons.length === 0) return undefined;
     return (
@@ -161,7 +162,7 @@ export const TokenDetailsInlineHeader = ({
         {buttons}
       </Box>
     );
-  }, [starButton, onSharePress, onPriceAlertPress]);
+  }, [starButton, onPriceAlertPress, onSharePress]);
 
   const inlineDescription = useMemo(() => {
     if (!contractAddress) {

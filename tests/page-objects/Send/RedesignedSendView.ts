@@ -14,6 +14,7 @@ import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class SendView {
   get ethereumTokenButton(): EncapsulatedElementType {
@@ -21,7 +22,11 @@ class SendView {
   }
 
   get erc20TokenButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('USD Coin');
+    return Matchers.getElementByID(getAssetTestId('USDC'), 0);
+  }
+
+  get amountScreen(): EncapsulatedElementType {
+    return Matchers.getElementByID(RedesignedSendViewSelectorsIDs.SEND_AMOUNT);
   }
 
   get zeroButton(): EncapsulatedElementType {
@@ -106,9 +111,31 @@ class SendView {
   }
 
   async selectERC20Token(): Promise<void> {
-    await Gestures.waitAndTap(this.erc20TokenButton, {
-      elemDescription: 'Select ERC20 token',
-    });
+    // With device.disableSynchronization(), the asset list can still re-render
+    // (duplicate rows hydrating) when Detox taps. The tap may highlight the row
+    // without firing onPress, so we wait for stability and retry until Amount.
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+          return;
+        } catch {
+          // Still on the asset picker
+        }
+
+        await Gestures.waitAndTap(this.erc20TokenButton, {
+          elemDescription: 'Select ERC20 token',
+          checkStability: true,
+          delay: 1000,
+        });
+
+        await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
+      },
+      {
+        timeout: 25000,
+        description: 'Select ERC20 token and open amount screen',
+      },
+    );
   }
 
   async enterZeroAmount(): Promise<void> {

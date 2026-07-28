@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useRef, useEffect } from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -197,8 +197,6 @@ describe('BottomSheetDialog', () => {
       expect(onCloseMock).toHaveBeenCalledTimes(2);
     });
   });
-  //   Note: Add Gesture tests when react-native-gesture-handler gets updated
-
   describe('swipe gesture', () => {
     it('renders its children inside the GestureDetector', () => {
       const { getByText } = render(

@@ -51,7 +51,10 @@ jest.mock('../gas/useGaslessSupportedSmartTransactions');
 jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 jest.mock('../../../../../util/address');
 jest.mock('../pay/useFiatConfirm');
-jest.mock('../../../../../util/navigation/navUtils');
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
+}));
 jest.mock('../../../../UI/HardwareWallet/Swaps/useHandleHwSend', () => ({
   useHandleHwSend: jest.fn(),
 }));
