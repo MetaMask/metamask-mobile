@@ -428,6 +428,34 @@ describe('PerpsProMarketView', () => {
     ).toHaveTextContent(/^TSLA$/);
   });
 
+  it('renders the redesigned header controls from Figma', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_ASSET_ICON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the perp pair subtitle beneath the asset name', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SUBTITLE),
+    ).toHaveTextContent('BTC-USD perp');
+  });
+
   it('uses the Figma shell heights', () => {
     const { getByTestId } = renderView();
 
