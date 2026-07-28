@@ -48,8 +48,10 @@ on:
         description: >-
           When true, skip fresh Android BrowserStack builds and reuse the latest
           uploaded apps from main-branch CI instead (same behavior as CI test-only PRs).
-          Falls back to a fresh build if no reusable main apps are found. Ignored when
-          manual browserstack_app_url_* inputs are provided.
+          When TestMu benchmark is enabled, also re-uploads those same main APKs to
+          TestMu (lt://) instead of rebuilding. Falls back to a fresh build if no
+          reusable main apps/artifacts are found. Ignored when manual
+          browserstack_app_url_* inputs are provided.
         required: false
         type: boolean
         default: false
@@ -137,7 +139,8 @@ on:
       reuse_main_builds:
         description: >-
           When true, skip fresh Android BrowserStack builds and reuse the latest
-          uploaded apps from main-branch CI instead.
+          uploaded apps from main-branch CI instead. When TestMu benchmark is
+          enabled, also re-uploads those same main APKs to TestMu instead of rebuilding.
         required: false
         type: boolean
         default: false
@@ -449,6 +452,151 @@ jobs:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
+  # When BrowserStack apps are reused from main, re-upload the same APKs to TestMu
+  # (lt://) instead of compiling again. Falls back to a fresh dual build if this
+  # job is skipped or cannot find/upload the artifacts.
+  upload-reused-apks-to-testmu:
+    name: Re-upload main APKs to TestMu AI
+    runs-on: ubuntu-latest
+    needs: [resolve-main-browserstack-urls, check-testmu-credentials]
+    if: >-
+      always() &&
+      !cancelled() &&
+      inputs.enable_testmu_benchmark != false &&
+      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      !inputs.testmu_app_url_android_onboarding &&
+      !inputs.testmu_app_url_android_imported_wallet &&
+      needs.resolve-main-browserstack-urls.result == 'success' &&
+      needs.resolve-main-browserstack-urls.outputs.found == 'true'
+    outputs:
+      found: ${{ steps.upload.outputs.found }}
+      with-srp-testmu-url: ${{ steps.upload.outputs.with-srp-testmu-url }}
+      without-srp-testmu-url: ${{ steps.upload.outputs.without-srp-testmu-url }}
+      with-srp-version: ${{ steps.upload.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.upload.outputs.without-srp-version }}
+    steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            .github/scripts/find-main-performance-apk-run.cjs
+          sparse-checkout-cone-mode: false
+
+      - name: Resolve APK artifact names
+        id: names
+        run: |
+          VARIANT="${{ inputs.build_variant || 'e2e' }}"
+          if [ "$VARIANT" = "exp" ]; then
+            echo "with_srp=android-apk-main-exp-with-srp" >> "$GITHUB_OUTPUT"
+            echo "without_srp=android-apk-main-exp-without-srp" >> "$GITHUB_OUTPUT"
+          elif [ "$VARIANT" = "rc" ]; then
+            echo "with_srp=android-apk-main-rc-with-srp" >> "$GITHUB_OUTPUT"
+            echo "without_srp=android-apk-main-rc-without-srp" >> "$GITHUB_OUTPUT"
+          else
+            echo "with_srp=android-apk-main-e2e-bs-with-srp" >> "$GITHUB_OUTPUT"
+            echo "without_srp=android-apk-main-e2e-bs-without-srp" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Find main performance run with APK artifacts
+        id: find
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          WITH_SRP_ARTIFACT: ${{ steps.names.outputs.with_srp }}
+          WITHOUT_SRP_ARTIFACT: ${{ steps.names.outputs.without_srp }}
+          WORKFLOW_FILE: run-performance-e2e.yml
+          BRANCH: main
+          CURRENT_RUN_ID: ${{ github.run_id }}
+        run: node .github/scripts/find-main-performance-apk-run.cjs
+
+      - name: Download with-SRP APK from main run
+        if: steps.find.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.with_srp }}
+          path: artifacts/with-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find.outputs.run_id }}
+
+      - name: Download without-SRP APK from main run
+        if: steps.find.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.without_srp }}
+          path: artifacts/without-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find.outputs.run_id }}
+
+      - name: Upload reused APKs to TestMu AI
+        id: upload
+        env:
+          LT_USERNAME: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+          LT_ACCESS_KEY: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+          FIND_FOUND: ${{ steps.find.outputs.found }}
+          SOURCE_RUN_ID: ${{ steps.find.outputs.run_id }}
+        run: |
+          set +e
+          if [ "$FIND_FOUND" != "true" ]; then
+            echo "No reusable main APK artifacts found — TestMu will fall back to a fresh build."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Re-uploading APKs from main performance run $SOURCE_RUN_ID to TestMu AI..."
+
+          WITH_SRP_APK=$(find artifacts/with-srp -name "*.apk" | head -1)
+          WITHOUT_SRP_APK=$(find artifacts/without-srp -name "*.apk" | head -1)
+          WITH_SRP_APP_URL=""
+          WITHOUT_SRP_APP_URL=""
+
+          if [ -n "$WITH_SRP_APK" ]; then
+            echo "Uploading with-SRP APK: $WITH_SRP_APK"
+            WITH_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+              -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
+              -F "appFile=@$WITH_SRP_APK" \
+              -F "name=MetaMask-Android-With-SRP-Reuse-${{ github.run_id }}")
+            WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
+            if [ -n "$WITH_SRP_APP_URL" ]; then
+              echo "✅ With-SRP uploaded to TestMu: $WITH_SRP_APP_URL"
+            else
+              echo "❌ With-SRP TestMu upload failed: $WITH_SRP_RESPONSE"
+            fi
+          else
+            echo "❌ With-SRP APK missing after download"
+          fi
+
+          if [ -n "$WITHOUT_SRP_APK" ]; then
+            echo "Uploading without-SRP APK: $WITHOUT_SRP_APK"
+            WITHOUT_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+              -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
+              -F "appFile=@$WITHOUT_SRP_APK" \
+              -F "name=MetaMask-Android-Without-SRP-Reuse-${{ github.run_id }}")
+            WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
+            if [ -n "$WITHOUT_SRP_APP_URL" ]; then
+              echo "✅ Without-SRP uploaded to TestMu: $WITHOUT_SRP_APP_URL"
+            else
+              echo "❌ Without-SRP TestMu upload failed: $WITHOUT_SRP_RESPONSE"
+            fi
+          else
+            echo "❌ Without-SRP APK missing after download"
+          fi
+
+          if [ -n "$WITH_SRP_APP_URL" ] && [ -n "$WITHOUT_SRP_APP_URL" ]; then
+            {
+              echo "found=true"
+              echo "with-srp-testmu-url=$WITH_SRP_APP_URL"
+              echo "without-srp-testmu-url=$WITHOUT_SRP_APP_URL"
+              echo "with-srp-version=main-reuse"
+              echo "without-srp-version=main-reuse"
+            } >> "$GITHUB_OUTPUT"
+            echo "TestMu reuse upload succeeded — skipping fresh Android dual build for TestMu."
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "TestMu reuse upload incomplete — CI will fall back to a fresh dual build."
+          fi
+
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
@@ -458,14 +606,16 @@ jobs:
         resolve-main-browserstack-urls,
         ensure-fingerprint,
         check-testmu-credentials,
+        upload-reused-apks-to-testmu,
       ]
     # Build/upload when BrowserStack apps are needed (not reusing main / reuse miss),
-    # or when TestMu still needs lt:// URLs even if BrowserStack URLs were provided manually.
+    # or when TestMu still needs lt:// URLs and the reuse→TestMu re-upload did not succeed.
     if: >-
       always() &&
       !cancelled() &&
       (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
       needs.ensure-fingerprint.result == 'success' &&
+      (needs.upload-reused-apks-to-testmu.result == 'skipped' || needs.upload-reused-apks-to-testmu.result == 'success') &&
       (
           (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
           (
@@ -477,7 +627,8 @@ jobs:
           inputs.enable_testmu_benchmark != false &&
           needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
           !inputs.testmu_app_url_android_onboarding &&
-          !inputs.testmu_app_url_android_imported_wallet
+          !inputs.testmu_app_url_android_imported_wallet &&
+          needs.upload-reused-apks-to-testmu.outputs.found != 'true'
         )
       )
     with:
@@ -556,20 +707,32 @@ jobs:
       [
         read-device-matrix,
         trigger-android-dual-versions,
+        upload-reused-apks-to-testmu,
         set-build-names,
         determine-branch-name,
         compute-test-selection,
         check-testmu-credentials,
       ]
-    if: always() && !failure() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.testmu_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != '')
+    if: >-
+      always() && !failure() && !cancelled() &&
+      inputs.enable_testmu_benchmark != false &&
+      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
+      (needs.upload-reused-apks-to-testmu.result == 'skipped' || needs.upload-reused-apks-to-testmu.result == 'success') &&
+      (
+        inputs.testmu_app_url_android_onboarding != '' ||
+        needs.upload-reused-apks-to-testmu.outputs.without-srp-testmu-url != '' ||
+        needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != ''
+      )
     with:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-url || inputs.testmu_app_url_android_onboarding }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
+      testmu_app_url: ${{ inputs.testmu_app_url_android_onboarding || needs.upload-reused-apks-to-testmu.outputs.without-srp-testmu-url || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
+      app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-version || needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
@@ -697,21 +860,33 @@ jobs:
       [
         read-device-matrix,
         trigger-android-dual-versions,
+        upload-reused-apks-to-testmu,
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
         compute-test-selection,
         check-testmu-credentials,
       ]
-    if: always() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.testmu_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != '')
+    if: >-
+      always() && !cancelled() &&
+      inputs.enable_testmu_benchmark != false &&
+      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
+      (needs.upload-reused-apks-to-testmu.result == 'skipped' || needs.upload-reused-apks-to-testmu.result == 'success') &&
+      (
+        inputs.testmu_app_url_android_imported_wallet != '' ||
+        needs.upload-reused-apks-to-testmu.outputs.with-srp-testmu-url != '' ||
+        needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != ''
+      )
     with:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-url || inputs.testmu_app_url_android_imported_wallet }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
+      testmu_app_url: ${{ inputs.testmu_app_url_android_imported_wallet || needs.upload-reused-apks-to-testmu.outputs.with-srp-testmu-url || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
+      app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
