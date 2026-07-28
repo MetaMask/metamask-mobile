@@ -240,6 +240,10 @@ class TestSnaps {
     },
   ): Promise<void> {
     const webId = TestSnapResultSelectorWebIDS[selector];
+    // Android Appium UiAutomator omits JSON string quotes; Detox/iOS include them.
+    const formattedExpectedMessage = PlatformDetector.isAndroidAppium()
+      ? expectedMessage.replace(/^"|"$/g, '')
+      : expectedMessage;
 
     await Utilities.executeWithRetry(
       async () => {
@@ -247,14 +251,14 @@ class TestSnaps {
           webId,
           TEST_SNAPS_WEBVIEW_OPTIONS,
         );
-        if (!actualText.includes(expectedMessage)) {
-          throw new Error(`Text did not contain "${expectedMessage}"`);
+        if (!actualText.includes(formattedExpectedMessage)) {
+          throw new Error(`Text did not contain "${formattedExpectedMessage}"`);
         }
       },
       {
         timeout: options.timeout ?? 5_000,
         interval: options.interval ?? 100,
-        description: `Assert result "${webId}" contains "${expectedMessage}"`,
+        description: `Assert result "${webId}" contains "${formattedExpectedMessage}"`,
       },
     );
   }
