@@ -247,11 +247,8 @@ class Browser {
     const deeplink = `dapp://${hostAndPath}`;
 
     await executeMobileDeepLink(deeplink);
-    const isAndroidCi =
-      FrameworkDetector.isAppium() &&
-      PlatformDetector.isAndroid() &&
-      process.env.CI === 'true';
-    const settleMs = isAndroidCi ? 8_000 : 3_000;
+    const settleMs =
+      FrameworkDetector.isAppium() && process.env.CI === 'true' ? 8_000 : 3_000;
     await sleep(settleMs);
   }
 
@@ -294,6 +291,24 @@ class Browser {
     // dismiss a modal (e.g. transaction confirmation) the URL bar focus can
     // be restored under RN 0.81 / React 19, leaving the close button missing.
     // Defensively dismiss the URL editor if the Cancel button is visible.
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      await this.dismissUrlEditorIfOpen();
+      const isCloseVisible = await Utilities.isElementVisible(
+        this.closeBrowserButton,
+        3_000,
+      );
+      if (isCloseVisible) {
+        await Gestures.waitAndTap(this.closeBrowserButton, {
+          elemDescription: 'Close browser button',
+        });
+        return;
+      }
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(1_000);
+      }
+    }
+
     await this.dismissUrlEditorIfOpen();
 
     if (FrameworkDetector.isAppium()) {
@@ -316,7 +331,7 @@ class Browser {
    * unmounted while the URL editor is focused.
    */
   async dismissUrlEditorIfOpen(): Promise<void> {
-    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000)) {
       await Gestures.waitAndTap(this.cancelUrlInputButton, {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
@@ -375,6 +390,30 @@ class Browser {
     await Gestures.waitAndTap(this.closeAllTabsButton, {
       elemDescription: 'Close all tabs button',
     });
+  }
+
+  /**
+   * Closes every open in-app browser tab so WebView/Chromedriver only sees the
+   * upcoming navigation target (CI emulators can accumulate stale tabs).
+   * Always leaves the tabs overview so callers resume on single-tab browser UI.
+   */
+  async closeAllBrowserTabsIfOpen(): Promise<void> {
+    await this.dismissUrlEditorIfOpen();
+    await this.tapOpenAllTabsButton();
+    const canCloseAll = await Utilities.isElementVisible(
+      this.closeAllTabsButton,
+      3_000,
+    );
+    if (canCloseAll) {
+      await this.tapCloseTabsButton();
+      if (await Utilities.isElementVisible(this.noTabsMessage, 3_000)) {
+        await this.tapOpenNewTabButton();
+      }
+      return;
+    }
+
+    // Close-all was unavailable — select an existing tab to exit the overview.
+    await this.tapFirstTabButton();
   }
 
   async tapCloseSecondTabButton(): Promise<void> {
