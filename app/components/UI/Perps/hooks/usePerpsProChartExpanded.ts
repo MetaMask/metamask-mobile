@@ -11,7 +11,7 @@ export interface UsePerpsProChartExpandedReturn {
 }
 
 /**
- * Read and update the persisted Pro chart expand/collapse preference (TAT-3604).
+ * Read and update the persisted Pro chart expand/collapse preference.
  *
  * The flag lives on `PerpsController.proLayoutPreferences.chartExpanded`, so the
  * choice is global across markets and survives app restarts. Uses the

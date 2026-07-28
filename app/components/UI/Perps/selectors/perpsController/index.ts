@@ -186,7 +186,7 @@ const selectPerpsMode = createSelector(
 );
 
 /**
- * Persisted Pro-mode layout preferences (TAT-3604).
+ * Persisted Pro-mode layout preferences.
  *
  * Wraps the core `selectProLayoutPreferences` from `@metamask/perps-controller`,
  * defaulting to `DEFAULT_PRO_LAYOUT_PREFERENCES` when controller state is
