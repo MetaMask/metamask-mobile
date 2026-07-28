@@ -80,7 +80,6 @@ import { ButtonSize as ButtonToggleSize } from '../../../../../component-library
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   buildBatchSellEligibleChains,
-  getBatchSellDestinationToken,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   BatchSellTokenSortDirection,
   sortBatchSellTokens,
@@ -290,6 +289,10 @@ export function BatchSellTokenSelect() {
   const batchSellLocation =
     route.params?.batchSellLocation ?? BatchSellMetricsLocation.Unknown;
   const preserveBridgeState = route.params?.preserveBridgeState === true;
+  const preferredDestinationSymbol = route.params?.preferredDestinationSymbol
+    ?.trim()
+    .toUpperCase();
+  const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
 
   useLayoutEffect(() => {
     Engine.context.BridgeController.setLocation(batchSellLocation);
@@ -306,9 +309,15 @@ export function BatchSellTokenSelect() {
 
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
-  >(() => sortedEligibleChains[0]?.chainId);
-  const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
-  const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
+  >(
+    () =>
+      (preserveBridgeState && committedSourceTokens[0]
+        ? formatChainIdToCaip(committedSourceTokens[0].chainId)
+        : undefined) ?? sortedEligibleChains[0]?.chainId,
+  );
+  const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>(() =>
+    preserveBridgeState ? committedSourceTokens : [],
+  );
 
   useEffect(() => {
     if (preserveBridgeState) {
@@ -379,6 +388,10 @@ export function BatchSellTokenSelect() {
   const destinationStablecoins = useSelector((state: RootState) =>
     selectBatchSellDestStablecoins(state, activeChainId),
   );
+  const preferredDestinationToken =
+    destinationStablecoins.find(
+      (token) => token.symbol.toUpperCase() === preferredDestinationSymbol,
+    ) ?? destinationStablecoins[0];
   const selectedChainTokens = useMemo(
     () =>
       activeChainId
@@ -530,10 +543,7 @@ export function BatchSellTokenSelect() {
         screen: Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL,
         params: {
           sourceToken,
-          destToken: getBatchSellDestinationToken(
-            sourceToken.chainId,
-            destinationStablecoins,
-          ),
+          destToken: preferredDestinationToken,
         },
       });
       return;
@@ -565,14 +575,7 @@ export function BatchSellTokenSelect() {
         getDefaultBatchSellSourceTokenAmounts(orderedSelectedTokens),
       ),
     );
-    dispatch(
-      setBatchSellDestToken(
-        getBatchSellDestinationToken(
-          orderedSelectedTokens[0].chainId,
-          destinationStablecoins,
-        ),
-      ),
-    );
+    dispatch(setBatchSellDestToken(preferredDestinationToken));
     dispatch(
       setBatchSellTokenSlippages(
         getDefaultBatchSellSlippages(orderedSelectedTokens),
@@ -581,12 +584,12 @@ export function BatchSellTokenSelect() {
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
   }, [
     currentChainId,
-    destinationStablecoins,
     dispatch,
     evmNetworkConfigurations,
     navigation,
     onNonEvmNetworkChange,
     onSetRpcTarget,
+    preferredDestinationToken,
     selectedTokens,
     trackBatchSellTokenPageContinueClicked,
     tokenSortDirection,
