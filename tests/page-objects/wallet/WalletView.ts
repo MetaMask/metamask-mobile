@@ -559,6 +559,11 @@ class WalletView extends WalletHomeSectionsBase {
     });
   }
 
+  /** @deprecated Prefer tapOnTokensSection — kept for older specs still using the homepage redesign name. */
+  async tapOnNewTokensSection(): Promise<void> {
+    await this.tapOnTokensSection();
+  }
+
   async tapOnDeFiTab(): Promise<void> {
     await Gestures.waitAndTap(this.defiTab, {
       elemDescription: 'DeFi Tab',
