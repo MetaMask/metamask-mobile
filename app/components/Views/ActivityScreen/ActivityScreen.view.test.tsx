@@ -14,11 +14,14 @@ import {
   ACTIVITY_CV_NFT_CONTRACT,
   ACTIVITY_CV_RECIPIENT,
   activityCvBridgeHistoryEntry,
+  activityCvCrossChainSwapBridgeHistoryEntry,
   activityLineaNetworkOverride,
   buildConfirmedLocalBridgeTransaction,
   buildConfirmedLocalContractInteractionTransaction,
+  buildConfirmedLocalCrossChainSwapTransaction,
   buildConfirmedLocalSendTransaction,
   buildConfirmedLocalUsdcApproveTransaction,
+  buildConfirmedLocalUsdcIncreaseAllowanceTransaction,
   buildConfirmedLocalUsdcRevokeTransaction,
   buildConfirmedLocalUsdcSendTransaction,
   buildConfirmedLocalUsdcUnlimitedApproveTransaction,
@@ -512,6 +515,11 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     );
     expect(primaryAmount).toHaveTextContent(/^-.*ETH/);
 
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(sendHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*USD/);
+
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(sendHash)),
     ).toBeOnTheScreen();
@@ -732,7 +740,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows Bridge under Transactions filter with dual avatar and negative primary amount', async () => {
+  it('shows Bridge under Transactions filter with dual avatar, primary amount and secondary amount', async () => {
     const bridgeTransaction = buildConfirmedLocalBridgeTransaction();
     const bridgeHash = bridgeTransaction.hash as string;
     const state = initialStateActivityWithLocalTransactions([bridgeTransaction])
@@ -766,14 +774,69 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
       await findByTestId(activityListRowSubtitleTestId(bridgeHash)),
     ).toHaveTextContent('Ethereum → Linea');
 
-    // Destination amount omitted in quote → spent ETH stays primary (negative).
+    // Destination amount present → received USDC primary, spent ETH secondary.
     const primaryAmount = await findByTestId(
       activityListRowPrimaryAmountTestId(bridgeHash),
     );
-    expect(primaryAmount).toHaveTextContent(/^-.*ETH/);
+    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(bridgeHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
 
     expect(
       await findByTestId(activityListRowAvatarStackTestId(bridgeHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Swapped under Transactions filter with dual avatar with bridged tokens in the subtitle, primary amount and secondary amount, when bridging different tokens on different networks', async () => {
+    const swapTransaction = buildConfirmedLocalCrossChainSwapTransaction();
+    const swapHash = swapTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([swapTransaction])
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            BridgeStatusController: {
+              txHistory: {
+                [swapTransaction.id]:
+                  activityCvCrossChainSwapBridgeHistoryEntry,
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(swapHash));
+    // Cross-chain different-token unified swap still titles as "Swapped";
+    // the pair (not the network route) is the subtitle.
+    expect(title).toHaveTextContent('Swapped');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(swapHash)),
+    ).toHaveTextContent('ETH → USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(swapHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(swapHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
+
+    expect(
+      await findByTestId(activityListRowAvatarStackTestId(swapHash)),
     ).toBeOnTheScreen();
   });
 
@@ -808,6 +871,40 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
 
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(approveHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows increased spending cap under Transactions filter with amount and a single avatar with subtitle of token', async () => {
+    const increaseTransaction =
+      buildConfirmedLocalUsdcIncreaseAllowanceTransaction();
+    const increaseHash = increaseTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      increaseTransaction,
+    ]).build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(increaseHash));
+    expect(title).toHaveTextContent('Increased spending cap');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(increaseHash)),
+    ).toHaveTextContent('USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(increaseHash),
+    );
+    expect(primaryAmount).toHaveTextContent('100 USDC');
+    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(increaseHash)),
     ).toBeOnTheScreen();
   });
 

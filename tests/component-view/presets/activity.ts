@@ -64,6 +64,15 @@ const buildApproveCalldata = (spender: string, amount: bigint): string =>
     .toString(16)
     .padStart(64, '0')}`;
 
+/** ERC-20 `increaseAllowance(spender, amount)` — selector `0x39509351`. */
+const buildIncreaseAllowanceCalldata = (
+  spender: string,
+  amount: bigint,
+): string =>
+  `0x39509351${spender.slice(2).toLowerCase().padStart(64, '0')}${amount
+    .toString(16)
+    .padStart(64, '0')}`;
+
 /** Confirmed USDC approve (100 USDC) for ActivityScreen transaction-row CV. */
 export const buildConfirmedLocalUsdcApproveTransaction = (): TransactionMeta =>
   ({
@@ -87,6 +96,34 @@ export const buildConfirmedLocalUsdcApproveTransaction = (): TransactionMeta =>
     },
     txReceipt: { status: '0x1' },
   }) as unknown as TransactionMeta;
+
+/** Confirmed USDC increaseAllowance (100 USDC) for ActivityScreen CV. */
+export const buildConfirmedLocalUsdcIncreaseAllowanceTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-usdc-increase-allowance',
+      hash: '0xactivitycvconfirmedusdcincrease',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_786_000,
+      type: TransactionType.tokenMethodIncreaseAllowance,
+      transferInformation: {
+        contractAddress: ACTIVITY_CV_USDC,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDC,
+        value: '0x0',
+        nonce: '0x5',
+        data: buildIncreaseAllowanceCalldata(
+          ACTIVITY_CV_RECIPIENT,
+          100_000_000n,
+        ),
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
 
 const MAX_UINT256 = 2n ** 256n - 1n;
 
@@ -188,9 +225,8 @@ export const buildConfirmedLocalBridgeTransaction = (): TransactionMeta =>
 
 /**
  * BridgeStatusController.txHistory entry that enriches
- * {@link buildConfirmedLocalBridgeTransaction} with ETH → USDC quote legs.
- * Destination amount is omitted so the row keeps the spent ETH as the primary
- * (negative) amount while still showing a dual-token avatar stack.
+ * {@link buildConfirmedLocalBridgeTransaction} with ETH → USDC quote legs and
+ * both token amounts so the row shows +USDC primary and -ETH secondary.
  */
 export const activityCvBridgeHistoryEntry = {
   txMetaId: 'activity-cv-confirmed-bridge',
@@ -209,6 +245,7 @@ export const activityCvBridgeHistoryEntry = {
       assetId: `eip155:59144/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`,
     },
     srcTokenAmount: '1000000000000000000',
+    destTokenAmount: '1000000',
   },
   status: {
     srcChain: {
@@ -221,6 +258,64 @@ export const activityCvBridgeHistoryEntry = {
     },
   },
   startTime: 1_716_367_784_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
+
+/**
+ * Confirmed cross-chain swap (ETH on Ethereum → USDC on Linea). Unified swaps
+ * keep legs in BridgeStatusController; the activity row still maps as `swap`
+ * ("Swapped") with the token pair in the subtitle.
+ */
+export const buildConfirmedLocalCrossChainSwapTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-cross-chain-swap',
+      hash: '0xactivitycvcrosschainswap',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_789_000,
+      type: TransactionType.swap,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x8',
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Bridge quote that enriches {@link buildConfirmedLocalCrossChainSwapTransaction}. */
+export const activityCvCrossChainSwapBridgeHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-cross-chain-swap',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: 59144,
+    srcAsset: {
+      symbol: 'ETH',
+      decimals: 18,
+      assetId: 'eip155:1/slip44:60',
+    },
+    destAsset: {
+      symbol: 'USDC',
+      decimals: 6,
+      assetId: `eip155:59144/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`,
+    },
+    srcTokenAmount: '1000000000000000000',
+    destTokenAmount: '1000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvcrosschainswap',
+    },
+    destChain: {
+      chainId: 59144,
+      txHash: '0xactivitycvcrosschainswapdest',
+    },
+  },
+  startTime: 1_716_367_789_000,
   estimatedProcessingTimeInSeconds: 0,
   slippagePercentage: 0,
 };
