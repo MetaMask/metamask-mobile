@@ -331,28 +331,40 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   } = usePerpsOrderContext();
 
   // Live slider display value for immediate UI feedback while dragging. The
-  // committed `orderForm.amount` only updates on drag end (or immediately for
-  // non-slider input methods), since it drives the expensive fee/rewards/
-  // slippage recompute pipeline (usePerpsOrderFees et al.).
-  const [displayAmount, setDisplayAmount] = useState(orderForm.amount);
-
-  useEffect(() => {
-    setDisplayAmount(orderForm.amount);
-  }, [orderForm.amount]);
+  // committed `orderForm.amount` only updates on drag end, since it drives
+  // the expensive fee/rewards/slippage recompute pipeline (usePerpsOrderFees
+  // et al.). `displayAmount` is derived (not effect-synced) so every other
+  // input method (keypad, percentage, max, clamp, leverage adjustment)
+  // renders the committed amount immediately, with no one-render window
+  // waiting on a `useEffect` to catch up.
+  const [liveDragAmount, setLiveDragAmount] = useState(orderForm.amount);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+  const displayAmount = isDraggingSlider ? liveDragAmount : orderForm.amount;
 
   const handleSliderValueChange = useCallback((value: number) => {
     inputMethodRef.current = 'slider';
-    setDisplayAmount(Math.floor(value).toString());
+    setIsDraggingSlider(true);
+    setLiveDragAmount(Math.floor(value).toString());
   }, []);
 
   const handleSliderDragEnd = useCallback(
     (value: number) => {
       const amount = Math.floor(value).toString();
-      setDisplayAmount(amount);
+      setIsDraggingSlider(false);
+      setLiveDragAmount(amount);
       setAmount(amount);
     },
     [setAmount],
   );
+
+  // A pan gesture cancelled by the OS or gesture arbitration (e.g. a
+  // competing gesture wins, or the touch sequence is torn down mid-drag)
+  // never fires `onDragEnd`. Reset the dragging flag so `displayAmount`
+  // falls back to the last committed `orderForm.amount` instead of staying
+  // stuck on an uncommitted, in-flight drag value.
+  const handleSliderDragCancel = useCallback(() => {
+    setIsDraggingSlider(false);
+  }, []);
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
@@ -1792,7 +1804,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         {/* Amount Slider - Hide when keypad is active */}
         {!isInputFocused && (
-          <View style={styles.sliderSection}>
+          <View
+            style={styles.sliderSection}
+            onTouchCancel={handleSliderDragCancel}
+          >
             <PerpsSlider
               value={parseFloat(displayAmount || '0')}
               onValueChange={handleSliderValueChange}

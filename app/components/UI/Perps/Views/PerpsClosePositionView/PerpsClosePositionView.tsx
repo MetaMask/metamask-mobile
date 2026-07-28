@@ -139,13 +139,17 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Live slider display value for immediate UI feedback while dragging. The
   // committed `closePercentage` only updates on drag end, since it drives the
-  // expensive fee/rewards/validation recompute pipeline (usePerpsOrderFees et al.).
-  const [displayClosePercentage, setDisplayClosePercentage] =
+  // expensive fee/rewards/validation recompute pipeline (usePerpsOrderFees et
+  // al.). `displayClosePercentage` is derived (not effect-synced) so every
+  // other input method (keypad, percentage, max) renders the committed
+  // percentage immediately, with no one-render window waiting on a
+  // `useEffect` to catch up.
+  const [liveDragClosePercentage, setLiveDragClosePercentage] =
     useState(closePercentage);
-
-  useEffect(() => {
-    setDisplayClosePercentage(closePercentage);
-  }, [closePercentage]);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+  const displayClosePercentage = isDraggingSlider
+    ? liveDragClosePercentage
+    : closePercentage;
 
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
@@ -659,18 +663,34 @@ const PerpsClosePositionView: React.FC = () => {
     setIsUserInputActive(false);
   };
 
-  const handleSliderValueChange = (value: number) => {
+  const handleSliderValueChange = useCallback((value: number) => {
     inputMethodRef.current = 'slider';
-    setDisplayClosePercentage(value);
-  };
+    setIsDraggingSlider(true);
+    setLiveDragClosePercentage(value);
+  }, []);
 
-  const handleSliderDragEnd = (value: number) => {
-    setClosePercentage(value);
+  const handleSliderDragEnd = useCallback(
+    (value: number) => {
+      setIsDraggingSlider(false);
+      setLiveDragClosePercentage(value);
+      setClosePercentage(value);
 
-    // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = (value / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
-  };
+      // Update USD input to match calculated value for keypad display consistency
+      const newUSDAmount = (value / 100) * absSize * effectivePrice;
+      setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
+    },
+    [absSize, effectivePrice],
+  );
+
+  // A pan gesture cancelled by the OS or gesture arbitration (e.g. a
+  // competing gesture wins, or the touch sequence is torn down mid-drag)
+  // never fires `onDragEnd`. Reset the dragging flag so
+  // `displayClosePercentage` falls back to the last committed
+  // `closePercentage` instead of staying stuck on an uncommitted, in-flight
+  // drag value.
+  const handleSliderDragCancel = useCallback(() => {
+    setIsDraggingSlider(false);
+  }, []);
 
   // Hide provider-level limit price required error on this UI. Surface the
   // minimum amount error (e.g. minimum $10) and the "limit price too far"
@@ -775,7 +795,10 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
-          <View style={styles.sliderSection}>
+          <View
+            style={styles.sliderSection}
+            onTouchCancel={handleSliderDragCancel}
+          >
             <PerpsSlider
               value={displayClosePercentage}
               onValueChange={handleSliderValueChange}
