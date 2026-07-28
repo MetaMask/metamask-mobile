@@ -5,13 +5,15 @@ export type { ProjectConfig, CommonCapabilities } from './common/types.ts';
 // Base provider
 export { BaseServiceProvider } from './common/base/BaseServiceProvider.ts';
 
-// Providers
+// Providers — factory only here so TestMu/BrowserStack setup does not load
+// EmulatorProvider (local Appium/ADB helpers) at import time.
 export {
   createServiceProvider,
   type ProviderType,
-  EmulatorProvider,
-  BrowserStackProvider,
-} from './providers';
+} from './providers/factory.ts';
+export { EmulatorProvider } from './providers/emulator';
+export { BrowserStackProvider } from './providers/browserstack';
+export { TestMuAIProvider } from './providers/testmu';
 
 // Appium utilities
 export { startAppiumServer, stopAppiumServer } from './appium';
@@ -39,4 +41,4 @@ export {
 
 // Legacy alias for backward compatibility (deprecated)
 /** @deprecated Use createServiceProvider instead */
-export { createServiceProvider as createDeviceServiceProvider } from './providers';
+export { createServiceProvider as createDeviceServiceProvider } from './providers/factory.ts';

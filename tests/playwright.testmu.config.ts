@@ -77,8 +77,9 @@ export default defineConfig({
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
           buildPath:
-            process.env.TESTMU_ANDROID_ONBOARDING_PERF_APP_URL ??
-            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
+            process.env.TESTMU_ANDROID_ONBOARDING_PERF_APP_URL ||
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL ||
+            process.env.TESTMU_ANDROID_APP_URL,
         },
       },
     },
@@ -96,8 +97,9 @@ export default defineConfig({
         app: {
           appId: 'io.metamask.MetaMask',
           buildPath:
-            process.env.TESTMU_IOS_ONBOARDING_PERF_APP_URL ??
-            process.env.TESTMU_IOS_CLEAN_APP_URL,
+            process.env.TESTMU_IOS_ONBOARDING_PERF_APP_URL ||
+            process.env.TESTMU_IOS_CLEAN_APP_URL ||
+            process.env.TESTMU_IOS_APP_URL,
         },
       },
     },
@@ -115,8 +117,9 @@ export default defineConfig({
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
           buildPath:
-            process.env.TESTMU_ANDROID_SEEDLESS_PERF_APP_URL ??
-            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
+            process.env.TESTMU_ANDROID_SEEDLESS_PERF_APP_URL ||
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL ||
+            process.env.TESTMU_ANDROID_APP_URL,
         },
       },
     },
@@ -133,8 +136,9 @@ export default defineConfig({
         app: {
           appId: 'io.metamask.MetaMask',
           buildPath:
-            process.env.TESTMU_IOS_SEEDLESS_PERF_APP_URL ??
-            process.env.TESTMU_IOS_CLEAN_APP_URL,
+            process.env.TESTMU_IOS_SEEDLESS_PERF_APP_URL ||
+            process.env.TESTMU_IOS_CLEAN_APP_URL ||
+            process.env.TESTMU_IOS_APP_URL,
         },
       },
     },

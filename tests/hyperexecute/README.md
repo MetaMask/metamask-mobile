@@ -44,6 +44,12 @@ Generated configs use **YAML `version: "0.1"`** with custom `testDiscovery` +
 `testRunnerCommand`. YAML `0.2` requires `framework.name` and removes those fields
 (orchestration becomes framework-managed), which does not fit Appium-via-Playwright.
 
+## Provider loading
+
+`createServiceProvider` lazy-loads BrowserStack / TestMu / emulator implementations so
+HyperExecute TestMu tasks do not evaluate local emulator/Appium helper modules at import
+time (that previously crashed setup and produced `Generating reports for 0 tests`).
+
 ## Manual local trigger
 
 ```bash
