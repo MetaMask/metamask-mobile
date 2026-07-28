@@ -27,7 +27,8 @@ export enum BOTTOM_SHEET_NAMES {
   CARD_AUTH_SHEET = 'card_auth_sheet',
   CARD_LINK_SHEET = 'card_link_sheet',
   MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
-  MONEY_EARNINGS_INFO_SHEET = 'money_earnings_info_sheet',
+  MONEY_MONTHLY_EARNINGS_INFO_SHEET = 'money_monthly_earnings_info_sheet',
+  MONEY_LIFETIME_EARNINGS_INFO_SHEET = 'money_lifetime_earnings_info_sheet',
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
@@ -70,7 +71,7 @@ export enum COMPONENT_NAMES {
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 
   // — Earnings —
-  MONEY_ESTIMATED_EARNINGS_SECTION = 'money_estimated_earnings_section',
+  MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
@@ -148,7 +149,8 @@ export enum MONEY_BUTTON_TYPES {
 
 export enum MONEY_TOOLTIP_NAMES {
   MONEY_BALANCE = 'money_balance',
-  ESTIMATED_EARNINGS = 'estimated_earnings',
+  MONTHLY_EARNINGS = 'monthly_earnings',
+  LIFETIME_EARNINGS = 'lifetime_earnings',
   EARN_ON_YOUR_CRYPTO = 'earn_on_your_crypto',
   APY = 'apy',
 }
