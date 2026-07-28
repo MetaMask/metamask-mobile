@@ -206,13 +206,13 @@ describe('rampsBuyCufTrace', () => {
     mockTrace.mockClear();
 
     const childId = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyQuoteFetch,
+      name: TraceName.RampBuyContinueToCheckout,
     });
 
-    expect(childId).toContain(TraceName.RampBuyQuoteFetch);
+    expect(childId).toContain(TraceName.RampBuyContinueToCheckout);
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: TraceName.RampBuyQuoteFetch,
+        name: TraceName.RampBuyContinueToCheckout,
         id: childId,
         op: TraceOperation.RampOperation,
         parentContext: { mocked: 'parent-span' },
@@ -225,7 +225,7 @@ describe('rampsBuyCufTrace', () => {
 
   it('skips child start when no parent is active', () => {
     const childId = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyQuoteFetch,
+      name: TraceName.RampBuyContinueToCheckout,
     });
 
     expect(childId).toBeNull();
@@ -264,7 +264,7 @@ describe('rampsBuyCufTrace', () => {
       name: TraceName.RampBuyNativeToOrderCreated,
     });
     const b = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyQuoteFetch,
+      name: TraceName.RampBuyContinueToCheckout,
     });
 
     const ended = endOpenRampsBuyCufChildrenByName(
@@ -280,7 +280,7 @@ describe('rampsBuyCufTrace', () => {
         data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
       }),
     );
-    // Quote child remains open until ended explicitly or parent ends.
+    // Other child remains open until ended explicitly or parent ends.
     expect(mockEndTrace).not.toHaveBeenCalledWith(
       expect.objectContaining({ id: b }),
     );
@@ -289,7 +289,7 @@ describe('rampsBuyCufTrace', () => {
   it('abandons open children when the parent ends', () => {
     startRampsBuyCufTrace();
     const childId = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyQuoteFetch,
+      name: TraceName.RampBuyContinueToCheckout,
     });
     mockEndTrace.mockClear();
 
@@ -297,7 +297,7 @@ describe('rampsBuyCufTrace', () => {
 
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: TraceName.RampBuyQuoteFetch,
+        name: TraceName.RampBuyContinueToCheckout,
         id: childId,
         data: {
           [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
