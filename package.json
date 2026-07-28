@@ -180,7 +180,9 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {},
   "resolutions": {
+    "@metamask/bridge-status-controller": "74.4.0",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
