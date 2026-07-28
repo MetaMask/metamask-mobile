@@ -172,7 +172,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
           onPress={handleBuyPress}
           testID={buyButtonTestID}
         >
-          {strings('social_leaderboard.trader_position.buy')}
+          {strings('social_leaderboard.trader_position.trade')}
         </Button>
       </Box>
 

@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
   Icon,
   IconColor,
   IconName,
@@ -33,7 +32,7 @@ import { navigateToRewardsRoute } from '../../utils';
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { campaigns, isLoading, hasError, hasLoaded, fetchCampaigns } =
     useRewardCampaigns();
@@ -54,24 +53,21 @@ const CampaignsPreview: React.FC = () => {
       twClassName="gap-3 p-4"
       testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}
     >
-      <Pressable onPress={handleNavigateToCampaigns}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
-          {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
-            <ActivityIndicator size="small" color={colors.primary.default} />
-          )}
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.campaigns_preview.title')}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-          />
-        </Box>
+      <Pressable
+        onPress={handleNavigateToCampaigns}
+        style={tw.style('flex-row items-center gap-1')}
+      >
+        {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
+          <ActivityIndicator size="small" color={colors.primary.default} />
+        )}
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('rewards.campaigns_preview.title')}
+        </Text>
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Md}
+          color={IconColor.IconAlternative}
+        />
       </Pressable>
 
       {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (

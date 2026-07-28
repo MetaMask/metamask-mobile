@@ -31,6 +31,7 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import Engine from '../../../../../core/Engine';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { SwapDiscoveryFeedTestIds } from '../../components/SwapDiscoveryFeed/SwapDiscoveryFeed.testIds';
 import {
@@ -331,6 +332,10 @@ jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
+jest.mock('../../../Tokens/hooks/useTokenListSecurityBadgeQuery', () => ({
+  useTokenListSecurityBadgeQuery: jest.fn(() => ({ data: null })),
+}));
+
 const mockUseABTest = jest.mocked(useABTest);
 
 jest.mock(
@@ -426,6 +431,73 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+  });
+
+  it('renders the slippage settings button without an active quote', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementationOnce(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: null,
+        formattedQuoteData: undefined,
+      }));
+
+    const { getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the swap slippage modal from the settings button', () => {
+    const testState = createBridgeTestState();
+    const { getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: testState.bridge.sourceToken?.chainId,
+        destChainId: testState.bridge.destToken?.chainId,
+      },
+    });
+  });
+
+  it('resets slippage and controller quote state when leaving the screen', () => {
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        slippage: '3.5',
+        isSlippageUserOverride: true,
+      },
+    });
+    const { store, unmount } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    unmount();
+
+    expect(store.getState().bridge.slippage).toBeUndefined();
+    expect(store.getState().bridge.isSlippageUserOverride).toBe(false);
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
   });
 
   it('scrolls to top and clears the route param when requested on focus', () => {

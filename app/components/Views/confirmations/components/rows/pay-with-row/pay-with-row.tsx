@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -210,7 +211,7 @@ function PayWithRowLayout({
 }
 
 function PayWithRowInteractive() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -375,12 +376,13 @@ function PayWithRowEmpty({
       showArrow={hasFrom}
       onPress={onPress}
       value={null}
+      placeholder={strings('confirm.label.select_payment_method')}
     />
   );
 }
 
 function PayWithRowMoneyAccount() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isWithdraw } = useTransactionPayWithdraw();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
