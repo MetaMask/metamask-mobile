@@ -313,24 +313,19 @@ describe('AddDeviceToWallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows sync error message when the session fails in dev', () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = true;
+    it('does not show sync error message on the instructions screen', () => {
+      const { queryByText, getByText } = renderComponent({
+        phase: QrSyncPhases.FAILED,
+        error: {
+          code: 'SYNC_FAILED',
+          message: 'Sync failed',
+        },
+      });
 
-      try {
-        const { getByText } = renderComponent({
-          phase: QrSyncPhases.FAILED,
-          error: {
-            code: 'SYNC_FAILED',
-            message: 'Sync failed',
-          },
-        });
-
-        expect(getByText('Sync failed')).toBeOnTheScreen();
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
+      expect(
+        getByText(strings('app_settings.add_device.add_device_to_wallet')),
+      ).toBeOnTheScreen();
+      expect(queryByText('Sync failed')).toBeNull();
     });
   });
 
