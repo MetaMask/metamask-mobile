@@ -126,6 +126,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   >();
   private connectRetryCounts = new Map<string, number>();
   private readonly prewarmRequests = new Set<string>();
+  // Tracks cacheKeys for which subscribeToCandles() has been called and the
+  // initial REST snapshot is still in-flight. Prevents a second connectNow()
+  // (e.g. from reconnect() clearing wsSubscriptions mid-flight) from firing a
+  // duplicate candleSnapshot request before the first one has responded.
+  private readonly connectInFlight = new Set<string>();
   private static readonly MAX_CONNECT_RETRIES = 50;
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
   // so merge-on-update can't cause unbounded memory growth.
@@ -230,6 +235,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
     this.prewarmRequests.clear();
+    this.connectInFlight.clear();
     super.clearCache();
   }
 
@@ -434,6 +440,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     if (this.wsSubscriptions.has(cacheKey)) {
       return;
     }
+    // Guard: a subscribeToCandles() call is already in-flight for this key.
+    // reconnect() clears wsSubscriptions but the underlying REST request is
+    // still pending — skip to avoid a duplicate candleSnapshot call.
+    if (this.connectInFlight.has(cacheKey)) {
+      DevLogger.log(
+        'CandleStreamChannel: connectNow skipped — REST request already in-flight',
+        { cacheKey },
+      );
+      return;
+    }
     if (
       !this.getIsInitialized() ||
       Engine.context.PerpsController.isCurrentlyReinitializing()
@@ -457,11 +473,17 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const hasCachedData = this.cache.has(cacheKey);
     const duration = hasCachedData ? TimeDuration.OneDay : TimeDuration.OneWeek;
 
+    // Mark as in-flight before the call so any re-entrant connectNow() triggered
+    // by reconnect()/clearCache() during the REST round-trip is suppressed.
+    this.connectInFlight.add(cacheKey);
+
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
       duration,
       callback: (candleData: CandleData) => {
+        // First callback received — the initial REST snapshot is done.
+        this.connectInFlight.delete(cacheKey);
         // Merge incoming candles into the existing cache instead of replacing.
         // This preserves older candles on revisit (when we intentionally fetch
         // a lighter OneDay window) and keeps live-tick updates idempotent.
@@ -477,6 +499,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         this.notifySubscribers(cacheKey, merged);
       },
       onError: (error: Error) => {
+        // REST snapshot failed — clear in-flight so a retry can proceed.
+        this.connectInFlight.delete(cacheKey);
         // Log initialization failure
         DevLogger.log(
           'CandleStreamChannel: Subscription initialization failed',
@@ -792,6 +816,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
     this.prewarmRequests.clear();
+    this.connectInFlight.clear();
 
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {

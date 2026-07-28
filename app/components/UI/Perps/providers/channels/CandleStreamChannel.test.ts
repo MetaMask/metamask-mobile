@@ -1884,6 +1884,172 @@ describe('CandleStreamChannel', () => {
     });
   });
 
+  describe('connectInFlight deduplication', () => {
+    it('suppresses a concurrent connectNow for the same key while REST snapshot is in-flight', () => {
+      // The connectInFlight guard prevents a race where:
+      // 1. connectNow fires, adding cacheKey to connectInFlight and calling subscribeToCandles
+      // 2. Before the REST callback resolves, something clears wsSubscriptions (but NOT connectInFlight)
+      //    and schedules another deferConnect for the same key
+      // 3. That second connectNow fires and would duplicate the REST call without the guard
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      // First connectNow fired — REST in-flight
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+      mockSubscribeToCandles.mockClear();
+
+      // Simulate another subscriber arriving while REST is still pending.
+      // The connect() call will skip because wsSubscriptions still has the key
+      // (the in-flight guard isn't needed here). But if wsSubscriptions was
+      // already cleared externally (simulate by clearing it directly), a second
+      // connectNow would fire without the guard.
+      const m = channel as unknown as {
+        wsSubscriptions: Map<string, unknown>;
+      };
+      // Manually clear wsSubscriptions to simulate what reconnect() does
+      m.wsSubscriptions.clear();
+
+      // Now a new subscribe triggers connect() → deferConnect() → connectNow
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      // connectNow is suppressed because connectInFlight still has the cacheKey
+      expect(mockSubscribeToCandles).not.toHaveBeenCalled();
+
+      // Once REST callback arrives, connectInFlight is cleared
+      capturedCallback?.(mockCandleData);
+      mockSubscribeToCandles.mockClear();
+
+      // Now a fresh subscribe should go through normally
+      m.wsSubscriptions.clear();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears connectInFlight on REST error so a retry can proceed', () => {
+      let capturedOnError: ((error: Error) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation((params) => {
+        capturedOnError = params.onError;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+      mockSubscribeToCandles.mockClear();
+
+      // Simulate REST snapshot failure — onError should clear connectInFlight
+      capturedOnError?.(new Error('network error'));
+
+      // Manually clear wsSubscriptions to allow a retry
+      const m = channel as unknown as { wsSubscriptions: Map<string, unknown> };
+      m.wsSubscriptions.clear();
+
+      // A new subscribe now goes through — connectInFlight is cleared
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears connectInFlight on clearCache so fresh connect can proceed after cache wipe', () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      mockSubscribeToCandles.mockClear();
+
+      // clearCache resets connectInFlight along with everything else
+      channel.clearCache();
+
+      // Re-subscribe — connectInFlight was wiped so a fresh connectNow fires
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+
+      // The original in-flight callback arriving after clearCache must not throw
+      expect(() => capturedCallback?.(mockCandleData)).not.toThrow();
+    });
+
+    it('clears connectInFlight on disconnectAll so fresh connect can proceed', () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      mockSubscribeToCandles.mockClear();
+
+      // disconnectAll (called via disconnect with no args) clears connectInFlight
+      channel.disconnect();
+
+      // Re-subscribe — should not be blocked by a stale in-flight entry
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+
+      expect(() => capturedCallback?.(mockCandleData)).not.toThrow();
+    });
+  });
+
   describe('reconnect', () => {
     it('should correctly parse cache keys with coin symbols containing hyphens', () => {
       const mockEthUsdUnsubscribe = jest.fn();
