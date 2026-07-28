@@ -136,6 +136,10 @@ jobs:
           MATRIX_DEVICE="${{ matrix.device.name }}"
           MATRIX_OS="${{ matrix.device.os_version }}"
           case "$MATRIX_DEVICE" in
+            "Google Pixel 7 Pro"|"Pixel 7 Pro")
+              TESTMU_DEVICE_NAME="Pixel 7 Pro"
+              TESTMU_OS_VERSION="15"
+              ;;
             "Google Pixel 8 Pro"|"Pixel 8 Pro")
               TESTMU_DEVICE_NAME="Pixel 8 Pro"
               TESTMU_OS_VERSION="14"
