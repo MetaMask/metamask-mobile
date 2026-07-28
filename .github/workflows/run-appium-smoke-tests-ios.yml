@@ -53,7 +53,7 @@ jobs:
       test_suite_tag: SmokeAccounts
       split_number: ${{ matrix.split }}
       total_splits: 4
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -100,7 +100,7 @@ jobs:
       test_suite_tag: SmokePredictions
       split_number: ${{ matrix.split }}
       total_splits: 3
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -125,7 +125,7 @@ jobs:
       test_suite_tag: 'SmokeSeedlessOnboarding:'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      test-timeout-minutes: 45
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -149,7 +149,7 @@ jobs:
       test_suite_tag: SmokeSeedlessOnboardingExtended
       split_number: ${{ matrix.split }}
       total_splits: 1
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -244,7 +244,7 @@ jobs:
       test_suite_tag: SmokeSwap
       split_number: ${{ matrix.split }}
       total_splits: 2
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -268,7 +268,7 @@ jobs:
       test_suite_tag: SmokeStake
       split_number: ${{ matrix.split }}
       total_splits: 2
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -292,7 +292,7 @@ jobs:
       test_suite_tag: SmokeMoney
       split_number: ${{ matrix.split }}
       total_splits: 1
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
