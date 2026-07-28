@@ -11,6 +11,9 @@ const BROWSERSTACK_TO_TESTMU_DEVICE: Record<
   string,
   { name: string; osVersion?: string }
 > = {
+  // PoC: BS Pixel 7 Pro / 13 → TestMu Pixel 7 Pro / 15
+  'Google Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '15' },
+  'Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '15' },
   'Google Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
   'Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
   'Samsung Galaxy S25 Ultra': { name: 'Galaxy S25 Ultra', osVersion: '15' },

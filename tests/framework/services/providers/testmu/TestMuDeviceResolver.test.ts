@@ -17,12 +17,12 @@ describe('TestMuDeviceResolver', () => {
   });
 
   describe('resolveTestMuDeviceCapabilities', () => {
-    it('maps Google Pixel 8 Pro from BrowserStack naming', () => {
+    it('maps Google Pixel 7 Pro (BS 13) to TestMu Pixel 7 Pro / 15', () => {
       expect(
-        resolveTestMuDeviceCapabilities('Google Pixel 8 Pro', '14.0'),
+        resolveTestMuDeviceCapabilities('Google Pixel 7 Pro', '13.0'),
       ).toEqual({
-        deviceName: 'Pixel 8 Pro',
-        platformVersion: '14',
+        deviceName: 'Pixel 7 Pro',
+        platformVersion: '15',
       });
     });
 
@@ -36,9 +36,9 @@ describe('TestMuDeviceResolver', () => {
     });
 
     it('falls back to prefix stripping for unknown devices', () => {
-      expect(resolveTestMuDeviceCapabilities('Google Pixel 7', '13.0')).toEqual(
+      expect(resolveTestMuDeviceCapabilities('Google Pixel 6', '13.0')).toEqual(
         {
-          deviceName: 'Pixel 7',
+          deviceName: 'Pixel 6',
           platformVersion: '13',
         },
       );

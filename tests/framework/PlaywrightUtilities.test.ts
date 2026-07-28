@@ -305,8 +305,8 @@ describe('PlaywrightUtilities.buildDeviceAccountMapping', () => {
     const mapping = PlaywrightUtilities.buildDeviceAccountMapping();
 
     // Low-tier Android: matrix name + TestMu catalog alias
-    expect(mapping['Google Pixel 8 Pro']).toBe('Account 1');
-    expect(mapping['Pixel 8 Pro']).toBe('Account 1');
+    expect(mapping['Google Pixel 7 Pro']).toBe('Account 1');
+    expect(mapping['Pixel 7 Pro']).toBe('Account 1');
 
     // High-tier Android: matrix name + TestMu catalog alias
     expect(mapping['Samsung Galaxy S25 Ultra']).toBe('Account 3');

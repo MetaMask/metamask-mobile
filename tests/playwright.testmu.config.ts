@@ -36,8 +36,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.TESTMU,
-          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
-          osVersion: process.env.TESTMU_OS_VERSION || '14',
+          name: process.env.TESTMU_DEVICE || 'Pixel 7 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '15',
         },
         app: {
           packageName: 'io.metamask',
