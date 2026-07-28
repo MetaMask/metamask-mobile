@@ -8,7 +8,11 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import {
+  clearAllNockMocks,
+  disableNetConnect,
+  teardownNock,
+} from './nockHelpers';
 
 const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
 const TRANSACTIONS_PATH = '/v4/multiaccount/transactions';
@@ -51,5 +55,7 @@ export function setupAccountsTransactionsApiMock(
 }
 
 export function clearAccountsTransactionsApiMocks(): void {
-  clearAllNockMocks();
+  // Re-enable net connect so later suites in the same Jest worker are not left
+  // blocked by disableNetConnect from setup.
+  teardownNock();
 }

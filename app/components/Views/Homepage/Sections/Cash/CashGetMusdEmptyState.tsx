@@ -103,7 +103,7 @@ const CashGetMusdEmptyState = ({
     lastMerklClaimErrorToastRef.current = merklClaimError;
     toastRef?.current?.showToast({
       variant: ToastVariants.Plain,
-      labelOptions: [{ label: merklClaimError, isBold: false }],
+      labelOptions: [{ label: merklClaimError, isBold: true }],
       hasNoTimeout: false,
     });
   }, [merklClaimError, toastRef]);
