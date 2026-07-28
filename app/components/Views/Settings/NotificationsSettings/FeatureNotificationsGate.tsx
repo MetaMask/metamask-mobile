@@ -25,9 +25,7 @@ import { NotificationSectionContent } from './NotificationSectionContent';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import { strings } from '../../../../../locales/i18n';
 
-export function useFeatureNotificationsStatus(
-  feature: NotificationPreferenceSection,
-) {
+function useFeatureNotificationsStatus(feature: NotificationPreferenceSection) {
   const isMasterEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
   const { preferences, hasNotificationPreferences, isLoading } =
     useNotificationStoragePreferences();
@@ -46,7 +44,7 @@ export function useFeatureNotificationsStatus(
  * When the feature push channel is on but the OS has not granted push, prompt
  * the user: OS dialog if still promptable, otherwise the Settings alert.
  */
-export async function promptOsPushPermissionIfNeeded(): Promise<void> {
+async function promptOsPushPermissionIfNeeded(): Promise<void> {
   if (await isPushPermissionGranted()) {
     return;
   }
