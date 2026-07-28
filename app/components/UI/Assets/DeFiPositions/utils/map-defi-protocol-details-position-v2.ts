@@ -5,7 +5,7 @@ import {
 } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { isCaipChainId, parseCaipAssetType, type Hex } from '@metamask/utils';
-import AppConstants from '../../../../core/AppConstants';
+import AppConstants from '../../../../../core/AppConstants';
 
 /**
  * Mobile token cell shape consumed by DeFi protocol details UI.
@@ -72,7 +72,7 @@ export function mapDefiProtocolDetailsPositionV2ToToken(
   const normalizedBalance = getNormalizedBalance(position);
 
   return {
-    key: `${position.assetId}-${position.poolAddress}-${position.groupId}`,
+    key: `${position.groupId}-${position.poolAddress}-${position.assetId}-${position.positionType}`,
     address: toTokenCellAddress(position),
     name: position.name,
     symbol: position.symbol,

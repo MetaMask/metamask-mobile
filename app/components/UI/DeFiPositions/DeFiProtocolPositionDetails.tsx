@@ -25,7 +25,7 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
-import DeFiProtocolPositionGroupsV2 from './DeFiProtocolPositionGroupsV2';
+import DeFiProtocolPositionGroupsV2 from '../Assets/DeFiPositions/components/DeFiProtocolPositionGroupsV2';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 

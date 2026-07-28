@@ -95,14 +95,20 @@ jest.mock('../../../../UI/DeFiPositions/DeFiPositionsListItem', () => {
   return MockComponent;
 });
 
-jest.mock('../../../../UI/DeFiPositions/DeFiPositionsListItemV2', () => {
-  const { Text } = jest.requireActual('react-native');
-  const ReactActual = jest.requireActual('react');
-  const MockComponent = ({ position }: { position: { protocolId: string } }) =>
-    ReactActual.createElement(Text, null, position.protocolId);
-  MockComponent.displayName = 'DeFiPositionsListItemV2';
-  return MockComponent;
-});
+jest.mock(
+  '../../../../UI/Assets/DeFiPositions/components/DeFiPositionsListItemV2',
+  () => {
+    const { Text } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const MockComponent = ({
+      position,
+    }: {
+      position: { protocolId: string };
+    }) => ReactActual.createElement(Text, null, position.protocolId);
+    MockComponent.displayName = 'DeFiPositionsListItemV2';
+    return MockComponent;
+  },
+);
 
 const createMockPosition = (name: string) => ({
   chainId: '0x1',

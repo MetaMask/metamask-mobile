@@ -24,7 +24,7 @@ import {
 import { toHex } from '@metamask/controller-utils';
 import { sortAssets } from '../Tokens/util';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
-import DeFiPositionsListItemV2 from './DeFiPositionsListItemV2';
+import DeFiPositionsListItemV2 from '../Assets/DeFiPositions/components/DeFiPositionsListItemV2';
 import DeFiPositionsControlBar from './DeFiPositionsControlBar';
 import Text, {
   TextColor,
@@ -45,7 +45,7 @@ import Engine from '../../../core/Engine';
 import { useTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getMaybeHexChainId } from '../../../util/bridge';
-import { useDeFiPositionsV2 } from '../../Views/Homepage/Sections/DeFi/hooks/useDeFiPositionsV2';
+import { useDeFiPositionsV2 } from '../Assets/DeFiPositions/hooks/useDeFiPositionsV2';
 
 export interface DeFiPositionsListProps {
   tabLabel: string;

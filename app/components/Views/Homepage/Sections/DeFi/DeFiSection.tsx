@@ -26,7 +26,7 @@ import {
 } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsListItem';
-import DeFiPositionsListItemV2 from '../../../../UI/DeFiPositions/DeFiPositionsListItemV2';
+import DeFiPositionsListItemV2 from '../../../../UI/Assets/DeFiPositions/components/DeFiPositionsListItemV2';
 import { selectDeFiPositionsSectionEnabled } from '../../../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../../../selectors/deFiPositionsV2SectionEnabled';
 import { strings } from '../../../../../../locales/i18n';

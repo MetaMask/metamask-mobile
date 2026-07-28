@@ -4,12 +4,12 @@ import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import styleSheet from './DeFiProtocolPositionGroups.styles';
-import DeFiProtocolPositionGroupTokens from './DeFiProtocolPositionGroupTokens';
-import Summary from '../../Base/Summary';
-import { useStyles } from '../../hooks/useStyles';
-import { mapDefiProtocolDetailsPositionV2ToToken } from './utils/map-defi-protocol-details-position-v2';
+} from '../../../../../component-library/components/Texts/Text';
+import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionGroups.styles';
+import DeFiProtocolPositionGroupTokens from '../../../DeFiPositions/DeFiProtocolPositionGroupTokens';
+import Summary from '../../../../Base/Summary';
+import { useStyles } from '../../../../hooks/useStyles';
+import { mapDefiProtocolDetailsPositionV2ToToken } from '../utils/map-defi-protocol-details-position-v2';
 
 interface DeFiProtocolPositionGroupsV2Props {
   protocolPositionGroup: DeFiProtocolPositionGroup;

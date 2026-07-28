@@ -1,5 +1,5 @@
 import type { DeFiUnderlyingPosition } from '@metamask/assets-controllers';
-import AppConstants from '../../../../core/AppConstants';
+import AppConstants from '../../../../../core/AppConstants';
 import { mapDefiProtocolDetailsPositionV2ToToken } from './map-defi-protocol-details-position-v2';
 
 describe('mapDefiProtocolDetailsPositionV2ToToken', () => {

@@ -26,18 +26,15 @@ jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
   selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
 }));
 
-jest.mock(
-  '../../Views/Homepage/Sections/DeFi/hooks/useDeFiPositionsV2',
-  () => ({
-    useDeFiPositionsV2: jest.fn(() => ({
-      positions: [],
-      isLoading: false,
-      isError: false,
-      hasFetched: false,
-      refresh: jest.fn().mockResolvedValue(undefined),
-    })),
-  }),
-);
+jest.mock('../Assets/DeFiPositions/hooks/useDeFiPositionsV2', () => ({
+  useDeFiPositionsV2: jest.fn(() => ({
+    positions: [],
+    isLoading: false,
+    isError: false,
+    hasFetched: false,
+    refresh: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({

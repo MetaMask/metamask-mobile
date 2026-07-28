@@ -4,13 +4,13 @@ import {
   mergePositionsForAccounts,
   type DeFiProtocolPositionGroup,
 } from '@metamask/assets-controllers';
-import Engine from '../../../../../../core/Engine';
-import { selectDeFiPositionsV2State } from '../../../../../../selectors/defiPositionsControllerV2';
-import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import Engine from '../../../../../core/Engine';
+import { selectDeFiPositionsV2State } from '../../../../../selectors/defiPositionsControllerV2';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   selectSelectedAccountGroupId,
   selectSelectedAccountGroupInternalAccounts,
-} from '../../../../../../selectors/multichainAccounts/accountTreeController';
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 interface IdleCallbackGlobals {
   requestIdleCallback?: (

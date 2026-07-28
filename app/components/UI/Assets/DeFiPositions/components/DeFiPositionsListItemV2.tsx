@@ -6,26 +6,26 @@ import type { Hex } from '@metamask/utils';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
-} from '../../../component-library/components/Texts/SensitiveText';
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import I18n, { strings } from '../../../../locales/i18n';
-import { formatWithThreshold } from '../../../util/assets';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import type { AvatarProps } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
-import styleSheet from './DeFiPositionsListItem.styles';
-import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
-import { useStyles } from '../../hooks/useStyles';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { getMaybeHexChainId } from '../../../util/bridge';
+} from '../../../../../component-library/components/Avatars/Avatar';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { formatWithThreshold } from '../../../../../util/assets';
+import AvatarGroup from '../../../../../component-library/components/Avatars/AvatarGroup';
+import type { AvatarProps } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import DeFiAvatarWithBadge from '../../../DeFiPositions/DeFiAvatarWithBadge';
+import styleSheet from '../../../DeFiPositions/DeFiPositionsListItem.styles';
+import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { useStyles } from '../../../../hooks/useStyles';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { getMaybeHexChainId } from '../../../../../util/bridge';
 
 interface DeFiPositionsListItemV2Props {
   position: DeFiProtocolPositionGroup;

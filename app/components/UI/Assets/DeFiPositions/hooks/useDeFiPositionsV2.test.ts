@@ -1,19 +1,19 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../../../core/Engine';
-import { selectDeFiPositionsV2State } from '../../../../../../selectors/defiPositionsControllerV2';
-import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import Engine from '../../../../../core/Engine';
+import { selectDeFiPositionsV2State } from '../../../../../selectors/defiPositionsControllerV2';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   selectSelectedAccountGroupId,
   selectSelectedAccountGroupInternalAccounts,
-} from '../../../../../../selectors/multichainAccounts/accountTreeController';
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useDeFiPositionsV2 } from './useDeFiPositionsV2';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     DeFiPositionsControllerV2: {
       fetchDeFiPositions: jest.fn().mockResolvedValue(undefined),

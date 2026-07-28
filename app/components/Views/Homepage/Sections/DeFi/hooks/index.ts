@@ -1,2 +1,2 @@
 export * from './useDeFiPositionsForHomepage';
-export * from './useDeFiPositionsV2';
+export * from '../../../../../UI/Assets/DeFiPositions/hooks/useDeFiPositionsV2';
