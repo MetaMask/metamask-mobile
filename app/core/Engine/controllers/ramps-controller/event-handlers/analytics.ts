@@ -1,4 +1,5 @@
 import {
+  isTerminalOrderStatus,
   type RampsOrder,
   type RampsOrderStatus,
   RampsOrderStatus as Status,
@@ -23,22 +24,6 @@ import type {
   AnalyticsEvents,
   RampSurface,
 } from '../../../../../components/UI/Ramp/types/depositAnalytics';
-
-/**
- * Terminal order statuses. `@metamask/ramps-controller` keeps its
- * `TERMINAL_ORDER_STATUSES` internal, so mirror it here from the exported
- * `RampsOrderStatus` enum. Kept in lockstep with the controller's set.
- */
-const TERMINAL_ORDER_STATUSES = new Set<RampsOrderStatus>([
-  Status.Completed,
-  Status.Failed,
-  Status.Cancelled,
-  Status.IdExpired,
-]);
-
-export function isTerminalOrderStatus(status: RampsOrderStatus): boolean {
-  return TERMINAL_ORDER_STATUSES.has(status);
-}
 
 /**
  * Builds the `RAMPS_TRANSACTION_CONFIRMED` payload for a callback-fetched
@@ -239,7 +224,7 @@ export function handleOrderStatusChangedForMetrics({
   // subscription and the direct callback emit (`emitTerminalOrderAnalyticsFromCallback`),
   // so the two paths cannot double-emit regardless of arrival order.
   if (
-    TERMINAL_ORDER_STATUSES.has(order.status) &&
+    isTerminalOrderStatus(order.status) &&
     hasEmittedTerminalOrderAnalytics(order)
   ) {
     return;

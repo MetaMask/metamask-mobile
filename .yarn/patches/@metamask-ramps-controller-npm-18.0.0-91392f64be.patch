@@ -1,0 +1,143 @@
+diff --git a/dist/RampsController.cjs b/dist/RampsController.cjs
+index 275ce5031e71ef15bc3d80c47eecce1c8f88531f..cf0ce07c19cca81c0f20e7382ed47b7ad1b30ae4 100644
+--- a/dist/RampsController.cjs
++++ b/dist/RampsController.cjs
+@@ -12,7 +12,7 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
+ };
+ var _RampsController_instances, _RampsController_requestCacheTTL, _RampsController_requestCacheMaxSize, _RampsController_getDefaultRedirectUrl, _RampsController_pendingRequests, _RampsController_pendingResourceCount, _RampsController_pendingResourceGeneration, _RampsController_orderPollingMeta, _RampsController_orderPollingTimer, _RampsController_isPolling, _RampsController_initPromise, _RampsController_clearPendingResourceCountForDependentResources, _RampsController_abortDependentRequests, _RampsController_resolveAllProvidersFlag, _RampsController_mutateRequests, _RampsController_removeRequestState, _RampsController_cleanupState, _RampsController_requireRegion, _RampsController_isRegionCurrent, _RampsController_isTokenCurrent, _RampsController_isProviderCurrent, _RampsController_updateResourceField, _RampsController_setResourceLoading, _RampsController_setResourceError, _RampsController_updateRequestState, _RampsController_runInit, _RampsController_syncUserRegionFromCountriesCatalog, _RampsController_pickWidenedQuote, _RampsController_getSupportingProvidersForRegion, _RampsController_filterProviderIdsBySupport, _RampsController_resolveProviderIdsForQuote, _RampsController_getPreferredProviderIdsFromOrders, _RampsController_refreshOrder, _RampsController_pollPendingOrders, _RampsController_syncTransakAuthOnError, _RampsController_getNormalizedTransakError;
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.RampsController = exports.getInternalOrderCode = exports.getDefaultRampsControllerState = exports.RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS = exports.controllerName = void 0;
++exports.RampsController = exports.isTerminalOrderStatus = exports.TERMINAL_ORDER_STATUSES = exports.getInternalOrderCode = exports.getDefaultRampsControllerState = exports.RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS = exports.controllerName = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const featureFlags_js_1 = require("./featureFlags.cjs");
+@@ -360,6 +360,11 @@ const TERMINAL_ORDER_STATUSES = new Set([
+     RampsService_js_1.RampsOrderStatus.Cancelled,
+     RampsService_js_1.RampsOrderStatus.IdExpired,
+ ]);
++exports.TERMINAL_ORDER_STATUSES = TERMINAL_ORDER_STATUSES;
++function isTerminalOrderStatus(status) {
++    return TERMINAL_ORDER_STATUSES.has(status);
++}
++exports.isTerminalOrderStatus = isTerminalOrderStatus;
+ const PENDING_ORDER_STATUSES = new Set([
+     RampsService_js_1.RampsOrderStatus.Pending,
+     RampsService_js_1.RampsOrderStatus.Created,
+diff --git a/dist/RampsController.d.cts b/dist/RampsController.d.cts
+index 5d945b245dfcac214fecebbcf7da3b3526775496..6d73f7919ddfb4c292a245daa948847e75dafa2f 100644
+--- a/dist/RampsController.d.cts
++++ b/dist/RampsController.d.cts
+@@ -85,6 +85,17 @@ export type TransakState = {
+ export type NativeProvidersState = {
+     transak: TransakState;
+ };
++/**
++ * Ramps order statuses that no longer require polling.
++ */
++export declare const TERMINAL_ORDER_STATUSES: ReadonlySet<RampsOrderStatus>;
++/**
++ * Returns whether a ramps order status is terminal.
++ *
++ * @param status - The ramps order status to check.
++ * @returns True if the status is terminal.
++ */
++export declare function isTerminalOrderStatus(status: RampsOrderStatus): boolean;
+ /**
+  * Describes the shape of the state object for {@link RampsController}.
+  */
+diff --git a/dist/RampsController.d.mts b/dist/RampsController.d.mts
+index 93a728b9c5609c812461b7ac756c71727149b1f6..656338c50325fd9bc091aa96602cc0d905c1f95d 100644
+--- a/dist/RampsController.d.mts
++++ b/dist/RampsController.d.mts
+@@ -85,6 +85,17 @@ export type TransakState = {
+ export type NativeProvidersState = {
+     transak: TransakState;
+ };
++/**
++ * Ramps order statuses that no longer require polling.
++ */
++export declare const TERMINAL_ORDER_STATUSES: ReadonlySet<RampsOrderStatus>;
++/**
++ * Returns whether a ramps order status is terminal.
++ *
++ * @param status - The ramps order status to check.
++ * @returns True if the status is terminal.
++ */
++export declare function isTerminalOrderStatus(status: RampsOrderStatus): boolean;
+ /**
+  * Describes the shape of the state object for {@link RampsController}.
+  */
+diff --git a/dist/RampsController.mjs b/dist/RampsController.mjs
+index c4d9988bfd01a1ea45ed4fec4b2d5b3ff31089eb..f1091db31a9e0ff4ef5bdec9be533c231811c10f 100644
+--- a/dist/RampsController.mjs
++++ b/dist/RampsController.mjs
+@@ -349,12 +349,15 @@ export function getInternalOrderCode(orderOrId) {
+     return providerOrderId;
+ }
+ // === ORDER POLLING CONSTANTS ===
+-const TERMINAL_ORDER_STATUSES = new Set([
++export const TERMINAL_ORDER_STATUSES = new Set([
+     RampsOrderStatus.Completed,
+     RampsOrderStatus.Failed,
+     RampsOrderStatus.Cancelled,
+     RampsOrderStatus.IdExpired,
+ ]);
++export function isTerminalOrderStatus(status) {
++    return TERMINAL_ORDER_STATUSES.has(status);
++}
+ const PENDING_ORDER_STATUSES = new Set([
+     RampsOrderStatus.Pending,
+     RampsOrderStatus.Created,
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 570c7cf3c9893cb4c2eb2e38441f8911b864d543..b6a972f31eb4b7b85f8586f910a69f03b209f9e8 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -1,11 +1,13 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.isTransakPhoneRegisteredError = exports.getTransakApiMessage = exports.TransakOrderIdTransformer = exports.TransakEnvironment = exports.TransakService = exports.TransakApiError = exports.normalizeToTypedError = exports.extractExplicitTypedError = exports.getErrorMessage = exports.isInAppOnlyQuote = exports.isCustomActionQuote = exports.isExternalBrowserQuote = exports.isFiatDepositAvailable = exports.regionHasProviderForAsset = exports.getProvidersServingAsset = exports.providerServesAsset = exports.isHeadlessAllProvidersEnabled = exports.getHeadlessProviderAllowlist = exports.MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY = exports.HEADLESS_ALL_PROVIDERS_FEATURE_VERSION = exports.createRequestSelector = exports.RAMPS_ERROR_CODES = exports.createErrorState = exports.createSuccessState = exports.createLoadingState = exports.isCacheExpired = exports.createCacheKey = exports.DEFAULT_REQUEST_CACHE_MAX_SIZE = exports.DEFAULT_REQUEST_CACHE_TTL = exports.RequestStatus = exports.RAMPS_SDK_VERSION = exports.RampsOrderStatus = exports.RampsApiService = exports.RampsEnvironment = exports.RampsService = exports.RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS = exports.getInternalOrderCode = exports.getDefaultRampsControllerState = exports.RampsController = void 0;
++exports.isTransakPhoneRegisteredError = exports.getTransakApiMessage = exports.TransakOrderIdTransformer = exports.TransakEnvironment = exports.TransakService = exports.TransakApiError = exports.normalizeToTypedError = exports.extractExplicitTypedError = exports.getErrorMessage = exports.isInAppOnlyQuote = exports.isCustomActionQuote = exports.isExternalBrowserQuote = exports.isFiatDepositAvailable = exports.regionHasProviderForAsset = exports.getProvidersServingAsset = exports.providerServesAsset = exports.isHeadlessAllProvidersEnabled = exports.getHeadlessProviderAllowlist = exports.MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY = exports.HEADLESS_ALL_PROVIDERS_FEATURE_VERSION = exports.createRequestSelector = exports.RAMPS_ERROR_CODES = exports.createErrorState = exports.createSuccessState = exports.createLoadingState = exports.isCacheExpired = exports.createCacheKey = exports.DEFAULT_REQUEST_CACHE_MAX_SIZE = exports.DEFAULT_REQUEST_CACHE_TTL = exports.RequestStatus = exports.RAMPS_SDK_VERSION = exports.RampsOrderStatus = exports.RampsApiService = exports.RampsEnvironment = exports.RampsService = exports.isTerminalOrderStatus = exports.TERMINAL_ORDER_STATUSES = exports.RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS = exports.getInternalOrderCode = exports.getDefaultRampsControllerState = exports.RampsController = void 0;
+ var RampsController_js_1 = require("./RampsController.cjs");
+ Object.defineProperty(exports, "RampsController", { enumerable: true, get: function () { return RampsController_js_1.RampsController; } });
+ Object.defineProperty(exports, "getDefaultRampsControllerState", { enumerable: true, get: function () { return RampsController_js_1.getDefaultRampsControllerState; } });
+ Object.defineProperty(exports, "getInternalOrderCode", { enumerable: true, get: function () { return RampsController_js_1.getInternalOrderCode; } });
+ Object.defineProperty(exports, "RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS", { enumerable: true, get: function () { return RampsController_js_1.RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS; } });
++Object.defineProperty(exports, "TERMINAL_ORDER_STATUSES", { enumerable: true, get: function () { return RampsController_js_1.TERMINAL_ORDER_STATUSES; } });
++Object.defineProperty(exports, "isTerminalOrderStatus", { enumerable: true, get: function () { return RampsController_js_1.isTerminalOrderStatus; } });
+ var RampsService_js_1 = require("./RampsService.cjs");
+ Object.defineProperty(exports, "RampsService", { enumerable: true, get: function () { return RampsService_js_1.RampsService; } });
+ Object.defineProperty(exports, "RampsEnvironment", { enumerable: true, get: function () { return RampsService_js_1.RampsEnvironment; } });
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index 6614aabfb77aa9cf8496a601817412feb66f7117..f456b168b79082c9c3f65d6503105a52189a4e6c 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -1,6 +1,6 @@
+ export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, RampsControllerOrderStatusChangedEvent, RampsControllerOptions, UserRegion, ResourceState, TransakState, NativeProvidersState, } from "./RampsController.cjs";
+ export type { RampsControllerExecuteRequestAction, RampsControllerAbortRequestAction, RampsControllerGetRequestStateAction, RampsControllerSetUserRegionAction, RampsControllerSetSelectedProviderAction, RampsControllerInitAction, RampsControllerGetCountriesAction, RampsControllerGetTokensAction, RampsControllerSetSelectedTokenAction, RampsControllerGetProvidersAction, RampsControllerGetPaymentMethodsAction, RampsControllerSetSelectedPaymentMethodAction, RampsControllerGetQuotesAction, RampsControllerAddOrderAction, RampsControllerRemoveOrderAction, RampsControllerStartOrderPollingAction, RampsControllerStopOrderPollingAction, RampsControllerGetBuyWidgetDataAction, RampsControllerAddPrecreatedOrderAction, RampsControllerGetOrderAction, RampsControllerGetOrderFromCallbackAction, RampsControllerTransakSetApiKeyAction, RampsControllerTransakSetAccessTokenAction, RampsControllerTransakClearAccessTokenAction, RampsControllerTransakSetAuthenticatedAction, RampsControllerTransakResetStateAction, RampsControllerTransakSendUserOtpAction, RampsControllerTransakVerifyUserOtpAction, RampsControllerTransakLogoutAction, RampsControllerTransakGetUserDetailsAction, RampsControllerTransakGetBuyQuoteAction, RampsControllerTransakGetKycRequirementAction, RampsControllerTransakGetAdditionalRequirementsAction, RampsControllerTransakCreateOrderAction, RampsControllerTransakGetOrderAction, RampsControllerTransakGetUserLimitsAction, RampsControllerTransakRequestOttAction, RampsControllerTransakGeneratePaymentWidgetUrlAction, RampsControllerTransakSubmitPurposeOfUsageFormAction, RampsControllerTransakPatchUserAction, RampsControllerTransakSubmitSsnDetailsAction, RampsControllerTransakConfirmPaymentAction, RampsControllerTransakGetTranslationAction, RampsControllerTransakGetIdProofStatusAction, RampsControllerTransakCancelOrderAction, RampsControllerTransakCancelAllActiveOrdersAction, RampsControllerTransakGetActiveOrdersAction, } from "./RampsController-method-action-types.cjs";
+-export { RampsController, getDefaultRampsControllerState, getInternalOrderCode, RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS, } from "./RampsController.cjs";
++export { RampsController, getDefaultRampsControllerState, getInternalOrderCode, RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS, TERMINAL_ORDER_STATUSES, isTerminalOrderStatus, } from "./RampsController.cjs";
+ export type { RampsServiceActions, RampsServiceEvents, RampsServiceMessenger, Country, State, SupportedActions, CountryPhone, Provider, ProviderLink, ProviderLogos, ProviderBrowserType, ProviderLimit, ProviderFiatLimits, ProviderLimits, RampAction, PaymentMethod, PaymentMethodsResponse, Quote, QuoteError, QuoteSortBy, QuoteSortOrder, QuoteCryptoTranslation, QuoteCustomAction, QuotesResponse, GetQuotesParams, RampsToken, TokensResponse, BuyWidget, RampsOrder, RampsOrderNetwork, RampsOrderCryptoCurrency, RampsOrderFiatCurrency, RampsOrderPaymentMethod, OrderPaymentDetail, } from "./RampsService.cjs";
+ export { RampsService, RampsEnvironment, RampsApiService, RampsOrderStatus, RAMPS_SDK_VERSION, } from "./RampsService.cjs";
+ export type { RampsServiceGetGeolocationAction, RampsServiceGetCountriesAction, RampsServiceGetPaymentMethodsAction, RampsServiceGetQuotesAction, RampsServiceGetBuyWidgetUrlAction, RampsServiceGetOrderAction, RampsServiceGetOrderFromCallbackAction, } from "./RampsService-method-action-types.cjs";
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index 9ca7854d53a94432f99b02ca7ec75cc311c647e3..8257a3a57c28aabe56c8f5223177fc7131c47814 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -1,6 +1,6 @@
+ export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, RampsControllerOrderStatusChangedEvent, RampsControllerOptions, UserRegion, ResourceState, TransakState, NativeProvidersState, } from "./RampsController.mjs";
+ export type { RampsControllerExecuteRequestAction, RampsControllerAbortRequestAction, RampsControllerGetRequestStateAction, RampsControllerSetUserRegionAction, RampsControllerSetSelectedProviderAction, RampsControllerInitAction, RampsControllerGetCountriesAction, RampsControllerGetTokensAction, RampsControllerSetSelectedTokenAction, RampsControllerGetProvidersAction, RampsControllerGetPaymentMethodsAction, RampsControllerSetSelectedPaymentMethodAction, RampsControllerGetQuotesAction, RampsControllerAddOrderAction, RampsControllerRemoveOrderAction, RampsControllerStartOrderPollingAction, RampsControllerStopOrderPollingAction, RampsControllerGetBuyWidgetDataAction, RampsControllerAddPrecreatedOrderAction, RampsControllerGetOrderAction, RampsControllerGetOrderFromCallbackAction, RampsControllerTransakSetApiKeyAction, RampsControllerTransakSetAccessTokenAction, RampsControllerTransakClearAccessTokenAction, RampsControllerTransakSetAuthenticatedAction, RampsControllerTransakResetStateAction, RampsControllerTransakSendUserOtpAction, RampsControllerTransakVerifyUserOtpAction, RampsControllerTransakLogoutAction, RampsControllerTransakGetUserDetailsAction, RampsControllerTransakGetBuyQuoteAction, RampsControllerTransakGetKycRequirementAction, RampsControllerTransakGetAdditionalRequirementsAction, RampsControllerTransakCreateOrderAction, RampsControllerTransakGetOrderAction, RampsControllerTransakGetUserLimitsAction, RampsControllerTransakRequestOttAction, RampsControllerTransakGeneratePaymentWidgetUrlAction, RampsControllerTransakSubmitPurposeOfUsageFormAction, RampsControllerTransakPatchUserAction, RampsControllerTransakSubmitSsnDetailsAction, RampsControllerTransakConfirmPaymentAction, RampsControllerTransakGetTranslationAction, RampsControllerTransakGetIdProofStatusAction, RampsControllerTransakCancelOrderAction, RampsControllerTransakCancelAllActiveOrdersAction, RampsControllerTransakGetActiveOrdersAction, } from "./RampsController-method-action-types.mjs";
+-export { RampsController, getDefaultRampsControllerState, getInternalOrderCode, RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS, } from "./RampsController.mjs";
++export { RampsController, getDefaultRampsControllerState, getInternalOrderCode, RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS, TERMINAL_ORDER_STATUSES, isTerminalOrderStatus, } from "./RampsController.mjs";
+ export type { RampsServiceActions, RampsServiceEvents, RampsServiceMessenger, Country, State, SupportedActions, CountryPhone, Provider, ProviderLink, ProviderLogos, ProviderBrowserType, ProviderLimit, ProviderFiatLimits, ProviderLimits, RampAction, PaymentMethod, PaymentMethodsResponse, Quote, QuoteError, QuoteSortBy, QuoteSortOrder, QuoteCryptoTranslation, QuoteCustomAction, QuotesResponse, GetQuotesParams, RampsToken, TokensResponse, BuyWidget, RampsOrder, RampsOrderNetwork, RampsOrderCryptoCurrency, RampsOrderFiatCurrency, RampsOrderPaymentMethod, OrderPaymentDetail, } from "./RampsService.mjs";
+ export { RampsService, RampsEnvironment, RampsApiService, RampsOrderStatus, RAMPS_SDK_VERSION, } from "./RampsService.mjs";
+ export type { RampsServiceGetGeolocationAction, RampsServiceGetCountriesAction, RampsServiceGetPaymentMethodsAction, RampsServiceGetQuotesAction, RampsServiceGetBuyWidgetUrlAction, RampsServiceGetOrderAction, RampsServiceGetOrderFromCallbackAction, } from "./RampsService-method-action-types.mjs";
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 0e54970561c8ebc2965303288742fd67d820da67..36f736217ec6d1d4d53ebefc14b646ba5b1fb43f 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -1,4 +1,4 @@
+-export { RampsController, getDefaultRampsControllerState, getInternalOrderCode, RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS } from "./RampsController.mjs";
++export { RampsController, getDefaultRampsControllerState, getInternalOrderCode, RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS, TERMINAL_ORDER_STATUSES, isTerminalOrderStatus } from "./RampsController.mjs";
+ export { RampsService, RampsEnvironment, RampsApiService, RampsOrderStatus, RAMPS_SDK_VERSION } from "./RampsService.mjs";
+ export { RequestStatus, DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState } from "./RequestCache.mjs";
+ export { RAMPS_ERROR_CODES } from "./rampsErrorCodes.mjs";

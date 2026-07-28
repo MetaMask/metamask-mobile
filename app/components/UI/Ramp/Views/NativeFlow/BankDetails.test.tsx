@@ -470,6 +470,19 @@ describe('V2BankDetails', () => {
     });
   });
 
+  it('replaces current screen with RAMPS_ORDER_DETAILS when order status is ID_EXPIRED', () => {
+    mockGetOrderById.mockReturnValue(
+      createMockV2Order({ status: 'ID_EXPIRED' as RampsOrder['status'] }),
+    );
+
+    renderWithTheme(<V2BankDetails />);
+
+    expect(mockReplace).toHaveBeenCalledWith('RampsOrderDetails', {
+      orderId: 'test-order-id',
+      showCloseButton: true,
+    });
+  });
+
   it('replaces current screen with RAMPS_ORDER_DETAILS when order status is PENDING', () => {
     mockGetOrderById.mockReturnValue(
       createMockV2Order({ status: 'PENDING' as RampsOrder['status'] }),
