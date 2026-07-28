@@ -9,7 +9,9 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
+  TEST_SNAPS_URL,
 } from '../../selectors/Browser/TestSnaps.selectors';
+import WebView, { type WebViewByIdOptions } from '../../framework/WebView';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
@@ -21,13 +23,19 @@ import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import { RetryOptions, EncapsulatedElementType } from '../../framework';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { testSnapsAndroidScrollOptions } from '../../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
-export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+export { TEST_SNAPS_URL } from '../../selectors/Browser/TestSnaps.selectors';
 
+const TEST_SNAPS_WEBVIEW_OPTIONS: WebViewByIdOptions = {
+  pageUrl: TEST_SNAPS_URL,
+  ...testSnapsAndroidScrollOptions,
+};
 class TestSnaps {
   get getConnectSnapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
@@ -95,6 +103,20 @@ class TestSnaps {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
+  private getTestSnapsWebElement(innerID: string) {
+    if (FrameworkDetector.isAppium()) {
+      return Matchers.getElementByWebID(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        innerID,
+        TEST_SNAPS_URL,
+      );
+    }
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      innerID,
+    );
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -103,15 +125,34 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    const webId = TestSnapResultSelectorWebIDS[selector];
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      await Assertions.checkIfTextMatches(actualText, expectedMessage);
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+
+        // Android Appium UiAutomator omits JSON string quotes; Detox/iOS include them
+        if (PlatformDetector.isAndroidAppium()) {
+          const normalizedExpected = expectedMessage.replace(/^"|"$/g, '');
+          if (!actualText.includes(normalizedExpected)) {
+            throw new Error(
+              `Expected "${webId}" text to contain "${normalizedExpected}", got "${actualText}"`,
+            );
+          }
+          return;
+        }
+
+        await Assertions.checkIfTextMatches(actualText, expectedMessage);
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert result "${webId}" matches expected text`,
+      },
+    );
   }
 
   async checkInstalledSnaps(
@@ -136,22 +177,58 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
+    const webId = TestSnapResultSelectorWebIDS[selector];
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        await Assertions.checkParsedJsonEqual(
+          actualText,
+          expectedJson,
+          `result span "${selector}"`,
+        );
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert JSON result "${webId}"`,
+      },
     );
+  }
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      let actualJson: Json;
-      try {
-        actualJson = JSON.parse(actualText);
-      } catch (error) {
-        throw new Error(`Failed to parse JSON from result span: ${actualText}`);
-      }
+  async checkResultJsonExcluding(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    excludedKeys: string[],
+    expectedJson: Json,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webId = TestSnapResultSelectorWebIDS[selector];
 
-      await Assertions.checkIfJsonEqual(actualJson, expectedJson);
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        await Assertions.checkParsedJsonEqualExcluding(
+          actualText,
+          expectedJson,
+          excludedKeys,
+          `result span "${selector}"`,
+        );
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert JSON result "${webId}" excluding ${excludedKeys.join(', ')}`,
+      },
+    );
   }
 
   async checkResultSpanIncludes(
@@ -162,17 +239,28 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    const webId = TestSnapResultSelectorWebIDS[selector];
+    // Android Appium UiAutomator omits JSON string quotes; Detox/iOS include them.
+    const formattedExpectedMessage = PlatformDetector.isAndroidAppium()
+      ? expectedMessage.replace(/^"|"$/g, '')
+      : expectedMessage;
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      if (!actualText.includes(expectedMessage)) {
-        throw new Error(`Text did not contain "${expectedMessage}"`);
-      }
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        if (!actualText.includes(formattedExpectedMessage)) {
+          throw new Error(`Text did not contain "${formattedExpectedMessage}"`);
+        }
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert result "${webId}" contains "${formattedExpectedMessage}"`,
+      },
+    );
   }
 
   async checkResultSpanNotEmpty(
@@ -182,17 +270,24 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    const webId = TestSnapResultSelectorWebIDS[selector];
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      if (!actualText || actualText.trim() === '') {
-        throw new Error(`Result span is empty`);
-      }
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        if (!actualText || actualText.trim() === '') {
+          throw new Error(`Result span is empty`);
+        }
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert result "${webId}" is not empty`,
+      },
+    );
   }
 
   async checkClientStatus(
@@ -205,50 +300,62 @@ class TestSnaps {
       interval: 100,
     },
   ) {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS.clientStatusResultSpan,
+    const webId = TestSnapResultSelectorWebIDS.clientStatusResultSpan;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        let actualStatusWithVersion;
+        try {
+          actualStatusWithVersion = JSON.parse(actualText);
+        } catch {
+          throw new Error(
+            `Failed to parse JSON from client status span: ${actualText}`,
+          );
+        }
+
+        const { clientVersion: actualClientVersion, ...actualStatus } =
+          actualStatusWithVersion;
+
+        await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
+        if (!actualClientVersion.startsWith(expectedClientVersion)) {
+          throw new Error(
+            `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
+          );
+        }
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert client status JSON "${webId}"`,
+      },
     );
-
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      let actualStatusWithVersion;
-      try {
-        actualStatusWithVersion = JSON.parse(actualText);
-      } catch (error) {
-        throw new Error(
-          `Failed to parse JSON from client status span: ${actualText}`,
-        );
-      }
-
-      const { clientVersion: actualClientVersion, ...actualStatus } =
-        actualStatusWithVersion;
-
-      await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
-      if (!actualClientVersion.startsWith(expectedClientVersion)) {
-        throw new Error(
-          `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
-        );
-      }
-    }, options);
   }
 
-  async navigateToTestSnap(): Promise<void> {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_SNAPS_URL);
+  async navigateToTestSnap(
+    options: { skipTabCleanup?: boolean } = {},
+  ): Promise<void> {
+    // Appium uses dapp:// deeplink for https test-snaps URLs in navigateToURL.
+    // Tapping the URL bar first is unnecessary and races with browser chrome.
+    if (!FrameworkDetector.isAppium()) {
+      await Browser.tapUrlInputBox();
+    }
+    await Browser.navigateToURL(TEST_SNAPS_URL, {
+      closeAllTabsIfOpen: !options.skipTabCleanup,
+    });
     await waitForTestSnapsToLoad();
   }
 
   async tapButton(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
-    const webElement = Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapViewSelectorWebIDS[buttonLocator],
-    );
-    await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tap(webElement, {
-      elemDescription: `tapButton:: ${buttonLocator}`,
+    const webId = TestSnapViewSelectorWebIDS[buttonLocator];
+    await WebView.tapById(webId, {
+      ...TEST_SNAPS_WEBVIEW_OPTIONS,
+      description: `tapButton:: ${buttonLocator}`,
     });
   }
 
@@ -309,8 +416,7 @@ class TestSnaps {
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    const webElement = (await this.getTestSnapsWebElement(
       EntropyDropDownSelectorWebIDS[selector],
     )) as IndexableWebElement;
 
@@ -405,6 +511,25 @@ class TestSnaps {
     });
   }
 
+  async expectSnapDialogLinkDisplayed(
+    options: { timeout?: number } = { timeout: 30_000 },
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed('Confirmation Dialog', options);
+
+    if (PlatformDetector.isIOSAppium()) {
+      // Detox / Android can target `snaps-ui-link-icon`. On iOS Appium, XCUITest
+      // does not expose that testID for inline SnapUILink — it surfaces as Text —
+      // so assert the visible link label instead (same coverage as before for Detox).
+      await Assertions.expectTextDisplayed('link', options);
+      return;
+    }
+
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID('snaps-ui-link-icon'),
+      options,
+    );
+  }
+
   async installSnap(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
@@ -430,12 +555,8 @@ class TestSnaps {
     locator: keyof typeof TestSnapInputSelectorWebIDS,
     message: string,
   ) {
-    const webElement = Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapInputSelectorWebIDS[locator],
-    ) as unknown as Promise<IndexableWebElement>;
-    // New gestures currently don't support web elements
-    await Gestures.typeInWebElement(webElement, message);
+    const webId = TestSnapInputSelectorWebIDS[locator];
+    await WebView.fillById(webId, message, TEST_SNAPS_WEBVIEW_OPTIONS);
   }
 
   async approveSignRequest() {
@@ -493,8 +614,7 @@ class TestSnaps {
     origin: string | null;
     blockNumber: string | null;
   }): Promise<void> {
-    const resultElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    const resultElement = (await this.getTestSnapsWebElement(
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
 

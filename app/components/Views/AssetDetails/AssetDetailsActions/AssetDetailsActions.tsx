@@ -168,7 +168,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         />
       )}
       <MainActionButton
-        iconName={IconName.Send}
+        iconName={IconName.Arrow2UpRight}
         label={strings('asset_overview.send_button')}
         onPress={handleSendPress}
         isDisabled={!canSignTransactions}

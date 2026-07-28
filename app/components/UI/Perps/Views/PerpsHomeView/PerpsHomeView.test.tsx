@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
@@ -15,7 +15,6 @@ import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
-import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   PerpsHomeViewSelectorsIDs,
@@ -27,23 +26,23 @@ import {
 } from '../../constants/perpsConfig';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// Mock useDiscoveryScrollManager
-const mockPerpsOnTabEnter = jest.fn();
-const mockPerpsScrollHandler = jest.fn();
-jest.mock('../../../Predict/hooks/useDiscoveryScrollManager', () => ({
-  useDiscoveryScrollManager: jest.fn(() => ({
-    scrollHandler: mockPerpsScrollHandler,
-    onTabEnter: mockPerpsOnTabEnter,
-    headerHidden: false,
-  })),
-}));
-
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  const mockUseAnimatedScrollHandler = jest.fn(
+    (handlers: { onScroll: (event: unknown) => void }) => handlers.onScroll,
+  );
   Reanimated.default.ScrollView = jest.requireActual('react-native').ScrollView;
+  Reanimated.useAnimatedScrollHandler = mockUseAnimatedScrollHandler;
   return Reanimated;
 });
+
+jest.mock('react-native-worklets', () => ({
+  scheduleOnRN: jest.fn(
+    (callback: (...args: number[]) => void, ...args: number[]) =>
+      callback(...args),
+  ),
+}));
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -121,6 +120,7 @@ const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 const mockSetPerpsMode = jest.fn();
+const mockUsePerpsHomeSectionTracking = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -141,11 +141,7 @@ jest.mock('../../hooks', () => ({
     isProcessing: false,
     error: null,
   })),
-  usePerpsHomeSectionTracking: jest.fn(() => ({
-    handleSectionLayout: jest.fn(() => jest.fn()),
-    handleScroll: jest.fn(),
-    resetTracking: jest.fn(),
-  })),
+  usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
   usePerpsMode: jest.fn(() => ({
     mode: 'lite',
     setMode: mockSetPerpsMode,
@@ -504,6 +500,13 @@ jest.mock(
 
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
+const mockUseAnimatedScrollHandler = jest.requireMock('react-native-reanimated')
+  .useAnimatedScrollHandler as jest.Mock;
+const mockScrollTracking = () => ({
+  handleSectionLayout: jest.fn(() => jest.fn()),
+  handleScroll: jest.fn(),
+  resetTracking: jest.fn(),
+});
 
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
@@ -536,6 +539,7 @@ describe('PerpsHomeView', () => {
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
       data: [],
       isLoading: false,
@@ -549,11 +553,6 @@ describe('PerpsHomeView', () => {
         returnOnEquity: '0',
       },
       isInitialLoading: false,
-    });
-    (useDiscoveryScrollManager as jest.Mock).mockReturnValue({
-      scrollHandler: mockPerpsScrollHandler,
-      onTabEnter: mockPerpsOnTabEnter,
-      headerHidden: false,
     });
   });
 
@@ -678,6 +677,43 @@ describe('PerpsHomeView', () => {
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
+  });
+
+  it('forwards scroll events to the latest section tracking callback', async () => {
+    const initialTracking = mockScrollTracking();
+    const latestTracking = mockScrollTracking();
+    mockUsePerpsHomeSectionTracking.mockReturnValue(initialTracking);
+
+    const { rerender } = render(<PerpsHomeView />);
+    const scrollHandlers = mockUseAnimatedScrollHandler.mock.calls.map(
+      ([handlers]) =>
+        handlers as {
+          onScroll: (event: {
+            contentOffset: { x: number; y: number };
+            layoutMeasurement: { width: number; height: number };
+          }) => void;
+        },
+    );
+    const event = {
+      contentOffset: { x: 0, y: 240 },
+      layoutMeasurement: { width: 390, height: 844 },
+    };
+
+    mockUsePerpsHomeSectionTracking.mockReturnValue(latestTracking);
+    rerender(<PerpsHomeView />);
+
+    await act(async () => {
+      scrollHandlers.forEach(({ onScroll }) => onScroll(event));
+      await Promise.resolve();
+    });
+
+    expect(initialTracking.handleScroll).not.toHaveBeenCalled();
+    expect(latestTracking.handleScroll).toHaveBeenCalledWith({
+      nativeEvent: {
+        contentOffset: { x: 0, y: 240 },
+        layoutMeasurement: { width: 0, height: 844 },
+      },
+    });
   });
 
   it('carries route transactionActiveAbTests when search opens market list', () => {
@@ -1154,88 +1190,13 @@ describe('PerpsHomeView', () => {
     });
   });
 
-  describe('hideHeader prop', () => {
+  describe('header', () => {
     it('renders the header by default', () => {
       const { getByTestId } = render(<PerpsHomeView />);
       expect(
         getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
       ).toBeTruthy();
       expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
-    });
-
-    it('hides the header when hideHeader is true', () => {
-      const { queryByTestId } = render(<PerpsHomeView hideHeader />);
-      expect(
-        queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-      ).toBeNull();
-      expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
-    });
-
-    it('still renders content when hideHeader is true', () => {
-      const { UNSAFE_getByType } = render(<PerpsHomeView hideHeader />);
-      expect(
-        UNSAFE_getByType('PerpsMarketBalanceActions' as never),
-      ).toBeTruthy();
-    });
-
-    it('hides the screen title and testnet badge when hideHeader is true', () => {
-      const { queryByTestId } = render(<PerpsHomeView hideHeader />);
-
-      expect(
-        queryByTestId(`${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`),
-      ).toBeNull();
-    });
-  });
-
-  describe('tabEnterCallbackRef prop', () => {
-    it('populates tabEnterCallbackRef.current with onTabEnter after mount', () => {
-      const ref = { current: null } as React.MutableRefObject<
-        (() => void) | null
-      >;
-      render(<PerpsHomeView tabEnterCallbackRef={ref} />);
-      expect(ref.current).toBe(mockPerpsOnTabEnter);
-    });
-
-    it('updates tabEnterCallbackRef.current when onTabEnter changes', () => {
-      const ref = { current: null } as React.MutableRefObject<
-        (() => void) | null
-      >;
-      const newOnTabEnter = jest.fn();
-      (useDiscoveryScrollManager as jest.Mock).mockReturnValue({
-        scrollHandler: mockPerpsScrollHandler,
-        onTabEnter: newOnTabEnter,
-        headerHidden: false,
-      });
-      render(<PerpsHomeView tabEnterCallbackRef={ref} />);
-      expect(ref.current).toBe(newOnTabEnter);
-    });
-
-    it('does not throw when tabEnterCallbackRef is not provided', () => {
-      expect(() => render(<PerpsHomeView />)).not.toThrow();
-    });
-  });
-
-  describe('useDiscoveryScrollManager integration', () => {
-    it('passes walletHeaderHeight to useDiscoveryScrollManager', () => {
-      render(<PerpsHomeView walletHeaderHeight={56} />);
-      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ walletHeaderHeight: 56 }),
-      );
-    });
-
-    it('passes onHeaderHiddenChange to useDiscoveryScrollManager', () => {
-      const onHeaderHiddenChange = jest.fn();
-      render(<PerpsHomeView onHeaderHiddenChange={onHeaderHiddenChange} />);
-      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ onHeaderHiddenChange }),
-      );
-    });
-
-    it('uses default walletHeaderHeight of 0 when not provided', () => {
-      render(<PerpsHomeView />);
-      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ walletHeaderHeight: 0 }),
-      );
     });
   });
 

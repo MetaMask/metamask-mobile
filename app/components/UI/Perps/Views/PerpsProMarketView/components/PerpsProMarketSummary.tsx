@@ -2,36 +2,38 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import LivePriceHeader from '../../../components/LivePriceDisplay/LivePriceHeader';
 
-const styles = StyleSheet.create({
-  container: {
-    height: 76,
-  },
-});
+interface PerpsProMarketSummaryProps {
+  symbol: string;
+  currentPrice: number;
+}
 
 /**
- * Scroll-contained market price and 24-hour change placeholder.
- *
- * The fixed app header remains outside the scroll view. Price content and the
- * compact chart action are populated by the panel implementation that owns
- * live market data.
+ * Scroll-contained live market price and 24-hour change.
  */
-const PerpsProMarketSummary = () => (
+const PerpsProMarketSummary = ({
+  symbol,
+  currentPrice,
+}: PerpsProMarketSummaryProps) => (
   <Box
     testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    twClassName="px-4"
-    style={styles.container}
+    twClassName="h-[76px] px-4"
   >
-    <Box twClassName="h-12 w-40 rounded-lg bg-muted" />
-    <Box twClassName="h-8 w-8 rounded-full bg-muted" />
+    <Box twClassName="flex-1">
+      <LivePriceHeader
+        symbol={symbol}
+        currentPrice={currentPrice}
+        size="large"
+        testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
+        testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
+      />
+    </Box>
   </Box>
 );
 
