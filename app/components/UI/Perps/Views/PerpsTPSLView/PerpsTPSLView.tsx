@@ -323,29 +323,35 @@ const PerpsTPSLView: React.FC = () => {
       return;
     }
 
-    section.measureInWindow((_sx, sectionY, _sw, sectionHeight) => {
-      scrollView.measureInWindow((_vx, viewY, _vw, viewHeight) => {
-        const margin = 16;
-        const sectionBottom = sectionY + sectionHeight;
-        const visibleBottom = viewY + viewHeight - margin;
-        const sectionTop = sectionY;
-        const visibleTop = viewY + margin;
+    const scrollViewNative = scrollView as unknown as View;
 
-        let delta = 0;
-        if (sectionBottom > visibleBottom) {
-          delta = sectionBottom - visibleBottom;
-        } else if (sectionTop < visibleTop) {
-          delta = sectionTop - visibleTop;
-        }
+    section.measureInWindow(
+      (_sx: number, sectionY: number, _sw: number, sectionHeight: number) => {
+        scrollViewNative.measureInWindow(
+          (_vx: number, viewY: number, _vw: number, viewHeight: number) => {
+            const margin = 16;
+            const sectionBottom = sectionY + sectionHeight;
+            const visibleBottom = viewY + viewHeight - margin;
+            const sectionTop = sectionY;
+            const visibleTop = viewY + margin;
 
-        if (Math.abs(delta) > 1) {
-          scrollView.scrollTo({
-            y: Math.max(0, scrollOffsetRef.current + delta),
-            animated: true,
-          });
-        }
-      });
-    });
+            let delta = 0;
+            if (sectionBottom > visibleBottom) {
+              delta = sectionBottom - visibleBottom;
+            } else if (sectionTop < visibleTop) {
+              delta = sectionTop - visibleTop;
+            }
+
+            if (Math.abs(delta) > 1) {
+              scrollView.scrollTo({
+                y: Math.max(0, scrollOffsetRef.current + delta),
+                animated: true,
+              });
+            }
+          },
+        );
+      },
+    );
   }, []);
 
   // After the custom keypad mounts (and ScrollView shrinks), scroll the focused
