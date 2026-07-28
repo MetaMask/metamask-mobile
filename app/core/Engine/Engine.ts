@@ -169,6 +169,7 @@ import { geolocationControllerInit } from './controllers/geolocation-controller'
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
+import { getDefaultFeatureFlags } from '../../constants/featureFlags';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
@@ -868,11 +869,17 @@ export class Engine {
     this.handleVaultBackup();
 
     const clearRemoteFeatureFlags = () => {
+      // Drop remotely-fetched flags but re-seed the client-side defaults so the
+      // "defaults are always present" invariant holds even while basic
+      // functionality is disabled (or between disable and the next successful
+      // fetch on re-enable). This lets consumers read state directly without a
+      // per-consumer fallback. `cacheTimestamp: 0` keeps the cache stale so the
+      // next enable still triggers a fetch that overlays real server values.
       // @ts-expect-error TS2589 - BaseController.update causes deep type recursion.
       remoteFeatureFlagController.update(
         (state: RemoteFeatureFlagControllerState) => ({
           ...state,
-          remoteFeatureFlags: {},
+          remoteFeatureFlags: getDefaultFeatureFlags(),
           rawRemoteFeatureFlags: {},
           cacheTimestamp: 0,
         }),

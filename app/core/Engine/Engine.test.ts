@@ -13,6 +13,7 @@ import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import { getDefaultFeatureFlags } from '../../constants/featureFlags';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -455,7 +456,8 @@ describe('Engine', () => {
 
       expect(controller.state).toEqual(
         expect.objectContaining({
-          remoteFeatureFlags: {},
+          // Clearing drops fetched flags but re-seeds the client-side defaults.
+          remoteFeatureFlags: getDefaultFeatureFlags(),
           rawRemoteFeatureFlags: {},
           localOverrides: { testOverride: true },
           cacheTimestamp: 0,
@@ -489,7 +491,8 @@ describe('Engine', () => {
       expect(disableSpy).toHaveBeenCalled();
       expect(controller.state).toEqual(
         expect.objectContaining({
-          remoteFeatureFlags: {},
+          // Clearing drops fetched flags but re-seeds the client-side defaults.
+          remoteFeatureFlags: getDefaultFeatureFlags(),
           rawRemoteFeatureFlags: {},
           cacheTimestamp: 0,
         }),
