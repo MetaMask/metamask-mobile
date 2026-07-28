@@ -219,6 +219,51 @@ describe('usePredictGame', () => {
     );
   });
 
+  it('parses esports series scores from WebSocket updates', async () => {
+    const { Wrapper } = createWrapper();
+    const market = createMarket({
+      game: createGame({
+        league: 'lol',
+        score: { away: 0, home: 0, raw: '000-000|0-0|Bo3' },
+      }),
+    });
+    let capturedCallback: (update: GameUpdate) => void = jest.fn();
+    mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
+      capturedCallback = callback;
+      return mockUnsubscribe;
+    });
+
+    const { result } = renderHook(
+      () => usePredictGame(market, { live: true }),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    act(() => {
+      capturedCallback(
+        createUpdate({
+          score: '007-005|1-0|Bo3',
+          elapsed: '',
+          period: '2/3',
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(result.current.game).toEqual(
+        expect.objectContaining({
+          period: '2/3',
+          score: {
+            away: 0,
+            home: 1,
+            raw: '007-005|1-0|Bo3',
+          },
+        }),
+      );
+    });
+  });
+
   it('reads the cached live game immediately after remounting', async () => {
     const { Wrapper } = createWrapper();
     const market = createMarket();

@@ -474,6 +474,39 @@ describe('gameParser', () => {
       expect(result).toBe('ongoing');
     });
 
+    it('returns "scheduled" for an unstarted esports series', () => {
+      const event = createMockEvent({
+        score: '000-000|0-0|Bo3',
+        period: '0/3',
+      });
+
+      const result = getGameStatus(event);
+
+      expect(result).toBe('scheduled');
+    });
+
+    it('returns "ongoing" when an esports series is live', () => {
+      const event = createMockEvent({
+        score: '000-000|0-0|Bo3',
+        period: '0/3',
+        live: true,
+      });
+
+      const result = getGameStatus(event);
+
+      expect(result).toBe('ongoing');
+    });
+
+    it('returns "ongoing" for an active esports map', () => {
+      const event = createMockEvent({
+        score: '007-005|0-0|Bo3',
+      });
+
+      const result = getGameStatus(event);
+
+      expect(result).toBe('ongoing');
+    });
+
     it('returns "scheduled" for event with no game indicators', () => {
       const event = createMockEvent();
 
@@ -886,6 +919,38 @@ describe('gameParser', () => {
       const result = parseScore('42-35');
 
       expect(result).toEqual({ away: 42, home: 35, raw: '42-35' });
+    });
+
+    it.each<PredictSportsLeague>(['cs2', 'lol', 'dota2', 'val', 'r6siege'])(
+      'parses the series score for %s',
+      (league) => {
+        const result = parseScore('007-005|1-0|Bo3', league);
+
+        expect(result).toEqual({
+          away: 0,
+          home: 1,
+          raw: '007-005|1-0|Bo3',
+        });
+      },
+    );
+
+    it('preserves a zero-zero esports series score', () => {
+      const result = parseScore('000-000|0-0|Bo3', 'lol');
+
+      expect(result).toEqual({
+        away: 0,
+        home: 0,
+        raw: '000-000|0-0|Bo3',
+      });
+    });
+
+    it.each([
+      '007-005|1-0',
+      'invalid|1-0|Bo3',
+      '007-005|invalid|Bo3',
+      '007-005|1-0|3',
+    ])('returns null for malformed esports score %s', (score) => {
+      expect(parseScore(score, 'cs2')).toBeNull();
     });
 
     it('parses ATP scores as completed sets won', () => {

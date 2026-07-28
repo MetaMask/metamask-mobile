@@ -381,6 +381,50 @@ export function parseGameSlugTeams(
 const NOT_STARTED_PERIODS = ['NS', 'NOT_STARTED', 'PRE', 'PREGAME', ''];
 const ENDED_PERIODS = ['FT', 'VFT'];
 
+interface ParsedScorePair {
+  first: number;
+  second: number;
+}
+
+interface ParsedEsportsScore {
+  mapScore: ParsedScorePair;
+  seriesScore: ParsedScorePair;
+}
+
+const parseScorePair = (score: string): ParsedScorePair | null => {
+  const parts = score.split('-');
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const first = parseInt(parts[0].trim(), 10);
+  const second = parseInt(parts[1].trim(), 10);
+
+  if (isNaN(first) || isNaN(second)) {
+    return null;
+  }
+
+  return { first, second };
+};
+
+const parseEsportsScore = (score: string): ParsedEsportsScore | null => {
+  const segments = score.split('|');
+  if (segments.length !== 3 || !/^Bo\d+$/u.test(segments[2].trim())) {
+    return null;
+  }
+
+  const mapScore = parseScorePair(segments[0]);
+  const seriesScore = parseScorePair(segments[1]);
+  if (!mapScore || !seriesScore) {
+    return null;
+  }
+
+  return { mapScore, seriesScore };
+};
+
+const isZeroScore = ({ first, second }: ParsedScorePair): boolean =>
+  first === 0 && second === 0;
+
 export function formatPeriodDisplay(period: string): string {
   const normalized = period.toUpperCase().trim();
 
@@ -417,6 +461,18 @@ export function getGameStatus(event: PolymarketApiEvent): PredictGameStatus {
   }
 
   const isNotStartedPeriod = NOT_STARTED_PERIODS.includes(period);
+  const esportsScore = event.score ? parseEsportsScore(event.score) : null;
+  const isUnstartedEsportsGame = Boolean(
+    esportsScore &&
+      isZeroScore(esportsScore.mapScore) &&
+      isZeroScore(esportsScore.seriesScore) &&
+      /^0\/\d+$/u.test(period),
+  );
+
+  if (isUnstartedEsportsGame) {
+    return 'scheduled';
+  }
+
   const hasScore = event.score && event.score !== '0-0' && event.score !== '';
   const hasElapsed = event.elapsed && event.elapsed !== '';
   const hasActivePeriod = event.period && !isNotStartedPeriod;
@@ -467,6 +523,17 @@ export function getLeagueTeamOrder(
 
 const isTennisGame = (league?: PredictSportsLeague): boolean =>
   Boolean(league && TENNIS_LEAGUES.has(league));
+
+const ESPORTS_LEAGUES = new Set<PredictSportsLeague>([
+  'cs2',
+  'lol',
+  'dota2',
+  'val',
+  'r6siege',
+]);
+
+const isEsportsGame = (league?: PredictSportsLeague): boolean =>
+  Boolean(league && ESPORTS_LEAGUES.has(league));
 
 const parseTennisSetSegment = (
   segment: string,
@@ -534,6 +601,20 @@ const parseTennisSetsWonScore = (
   };
 };
 
+const normalizeScore = (
+  { first, second }: ParsedScorePair,
+  scoreString: string,
+  league?: PredictSportsLeague,
+): PredictGameScore => {
+  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
+
+  return {
+    away: isHomeFirst ? second : first,
+    home: isHomeFirst ? first : second,
+    raw: scoreString,
+  };
+};
+
 export function parseScore(
   scoreString?: string,
   league?: PredictSportsLeague,
@@ -546,25 +627,15 @@ export function parseScore(
     return parseTennisSetsWonScore(scoreString);
   }
 
-  const parts = scoreString.split('-');
-  if (parts.length !== 2) {
-    return null;
+  if (isEsportsGame(league)) {
+    const esportsScore = parseEsportsScore(scoreString);
+    return esportsScore
+      ? normalizeScore(esportsScore.seriesScore, scoreString, league)
+      : null;
   }
 
-  const firstScore = parseInt(parts[0].trim(), 10);
-  const secondScore = parseInt(parts[1].trim(), 10);
-
-  if (isNaN(firstScore) || isNaN(secondScore)) {
-    return null;
-  }
-
-  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
-
-  return {
-    away: isHomeFirst ? secondScore : firstScore,
-    home: isHomeFirst ? firstScore : secondScore,
-    raw: scoreString,
-  };
+  const score = parseScorePair(scoreString);
+  return score ? normalizeScore(score, scoreString, league) : null;
 }
 
 export function buildGameData(
