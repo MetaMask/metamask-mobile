@@ -377,10 +377,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // without ever calling `onDragEnd`, and react-native-gesture-handler owns
   // the touch outside RN's responder system, so this `onTouchCancel` is only
   // a best-effort signal, not a guarantee. The real safety net is that every
-  // other input method funnels through `commitAmount`, which unconditionally
-  // clears `isDraggingSlider` — so even if this never fires, the very next
-  // keypad/percentage/max/leverage edit (or the place-order guard below)
-  // self-heals the stuck flag instead of leaving it wedged indefinitely.
+  // other input method explicitly clears `isDraggingSlider` (via
+  // `commitAmount`, or directly for paths — percentage, max, leverage confirm
+  // — whose resulting amount isn't computed at the call site) — so even if
+  // this never fires, the very next keypad/percentage/max/leverage edit (or
+  // the place-order guard below) self-heals the stuck flag instead of
+  // leaving it wedged indefinitely.
   const handleSliderDragCancel = useCallback(() => {
     if (isDraggingSlider) {
       commitAmount(liveDragAmount);
@@ -2287,6 +2289,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         onClose={() => setIsLeverageVisible(false)}
         onConfirm={(leverage, inputMethod) => {
           setLeverage(leverage);
+
+          // Always clear a possibly-stuck dragging flag on leverage confirm,
+          // not only when clamping kicks in below — otherwise a leverage
+          // change that doesn't require clamping would leave a stale
+          // liveDragAmount shadowing the (unchanged, correct) orderForm.amount.
+          setIsDraggingSlider(false);
 
           // Check if current amount exceeds new maximum value and adjust if needed
           const currentAmount = parseFloat(orderForm.amount || '0');
