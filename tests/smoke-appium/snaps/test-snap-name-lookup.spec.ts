@@ -1,7 +1,6 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
 import { Assertions, Gestures, Matchers } from '../../framework/index.js';
-import { PlatformDetector } from '../../framework/PlatformLocator.js';
 import BrowserView from '../../page-objects/Browser/BrowserView.js';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView.js';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView.js';
@@ -14,7 +13,7 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { getDecodedProxiedURL } from '../notifications/utils/helpers.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
-const TOKEN = 'Ethereum';
+const TOKEN = 'ETH';
 
 appiumTest.describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
   appiumTest.describe.configure({ timeout: 150_000 });
@@ -81,28 +80,16 @@ appiumTest.describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
           const domain = 'metamask.domain';
           await RedesignedSendView.enterZeroAmount();
           await RedesignedSendView.pressContinueButton();
-
-          // Use replaceText instead of type+'\n' to avoid flakiness from the
-          // trailing newline added when hiding the keyboard.
-          await Gestures.replaceText(
-            RedesignedSendView.recipientAddressInput,
-            domain,
-            {
-              elemDescription: 'Enter recipient address',
-            },
-          );
+          await RedesignedSendView.inputRecipientAddress(domain);
 
           await RedesignedSendView.pressReviewButton();
           await TransactionConfirmView.tapAdvancedDetails();
 
-          await Gestures.waitAndTap(
-            Matchers.getElementByText(domain, PlatformDetector.isIOS() ? 1 : 0),
-            {
-              elemDescription: 'Recipient address',
-              // There's an animation that can cause flakiness.
-              delay: 1000,
-            },
-          );
+          await Gestures.waitAndTap(Matchers.getElementByText(domain, 0), {
+            elemDescription: 'Recipient address',
+            // There's an animation that can cause flakiness.
+            delay: 1000,
+          });
 
           await Assertions.expectTextDisplayed(
             '0xc0ffee254729296a45a3885639ac7e10f9d54979',

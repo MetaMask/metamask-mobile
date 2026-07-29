@@ -509,6 +509,48 @@ export default class PlaywrightGestures {
   }
 
   /**
+   * Type into the focused iOS soft keyboard by tapping keys.
+   * Use when the RN TextInput is not exposed as XCUIElementTypeTextField
+   * (e.g. parent Pressable is accessible=true) and mobile: type is unavailable.
+   */
+  @boxedStep
+  static async typeViaIosKeyboard(text: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    await drv
+      .$('//XCUIElementTypeKeyboard')
+      .waitForDisplayed({ timeout: 10000 });
+
+    let onNumbers = false;
+    const ensureLetters = async (): Promise<void> => {
+      if (onNumbers) {
+        await drv.$('~more').click();
+        onNumbers = false;
+      }
+    };
+    const ensureNumbers = async (): Promise<void> => {
+      if (!onNumbers) {
+        await drv.$('~more').click();
+        onNumbers = true;
+      }
+    };
+
+    for (const ch of text) {
+      if (ch === '.' || (ch >= '0' && ch <= '9')) {
+        await ensureNumbers();
+        await drv.$(`~${ch}`).click();
+      } else if (ch === ' ') {
+        await ensureLetters();
+        await drv.$('~space').click();
+      } else {
+        await ensureLetters();
+        await drv.$(`~${ch.toLowerCase()}`).click();
+      }
+    }
+  }
+
+  /**
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
