@@ -63,7 +63,18 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
           TestSnapResultSelectorWebIDS.scheduleBackgroundEventResultSpan,
           TEST_SNAPS_WEBVIEW_OPTIONS,
         );
-        const eventId = JSON.parse(scheduleResultText);
+        // Android UiAutomator often omits JSON string quotes that Detox/iOS include.
+        let eventId: unknown;
+        try {
+          eventId = JSON.parse(scheduleResultText);
+        } catch {
+          eventId = scheduleResultText.replace(/^"|"$/g, '');
+        }
+        if (typeof eventId !== 'string' || eventId.length === 0) {
+          throw new Error(
+            `Expected scheduled background event id string, got: ${scheduleResultText}`,
+          );
+        }
         await TestSnaps.fillMessage('cancelBackgroundEventInput', eventId);
         await TestSnaps.tapButton('cancelBackgroundEventButton');
 

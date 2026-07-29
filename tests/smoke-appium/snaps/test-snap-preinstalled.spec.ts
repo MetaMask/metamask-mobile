@@ -3,7 +3,6 @@ import { SmokeSnaps } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../framework/Assertions.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
-import TestHelpers from '../../helpers.js';
 import { testSnapPreinstalledAnalyticsExpectations } from '../../helpers/analytics/expectations/test-snap-preinstalled.analytics.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
@@ -36,7 +35,6 @@ appiumTest.describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
           );
           await TestSnaps.tapCancelButton();
           await TestSnaps.tapButton('trackEventButton');
-          await TestHelpers.delay(1000);
 
           await TestSnaps.tapButton('messengerCallButton');
           await TestSnaps.checkResultSpan('preinstalledResultSpan', 'false');

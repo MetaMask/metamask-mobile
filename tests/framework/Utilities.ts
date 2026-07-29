@@ -104,10 +104,17 @@ export default class Utilities {
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
       const el = await asPlaywrightElement(elem);
-      if (await el.isEnabled()) {
-        throw new Error('🚫 Element is enabled, but should be disabled.');
+      if (!(await el.isEnabled())) {
+        return;
       }
-      return;
+      // Android RN reports isEnabled=true while disabled — use native enabled attr
+      if (PlatformDetector.isAndroidAppium()) {
+        const enabledAttr = await el.getAttribute('enabled');
+        if (enabledAttr === 'false') {
+          return;
+        }
+      }
+      throw new Error('🚫 Element is enabled, but should be disabled.');
     }
 
     const el = (await elem) as Detox.IndexableNativeElement;
