@@ -261,9 +261,8 @@ const MoneyOnboardingView = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
 
   const { riveFile } = useRiveFile(onboardingFlowV25Animation);
-  // The view-model instance is created off the file (async) and explicitly
-  // bound to the view via `dataBind`, so property/trigger hooks and the view
-  // share the same instance (replaces the legacy `AutoBind(true)` mode).
+  // VM instance is created off the file (async) and bound via `dataBind`
+  // (replaces the legacy `AutoBind(true)` mode).
   const { instance } = useViewModelInstance(riveFile, {
     artboardName: RIVE_ARTBOARD_NAME,
     async: true,

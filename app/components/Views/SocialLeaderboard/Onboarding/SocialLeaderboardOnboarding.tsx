@@ -412,15 +412,10 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   const topTradersRef = useRef(topTraders);
   topTradersRef.current = topTraders;
 
-  // Pure safety net: `Wallet` only navigates here once this query's data is in
-  // cache, so the artboard normally mounts with live data on the first effect
-  // run. This guards the rare case the data isn't ready at mount (e.g. cache
-  // evicted between prefetch and navigation) so we don't wait on
-  // `referencedAssets` forever. If the fetch settles after this forced mount,
-  // the name/PnL text bindings above still pick up the real data (they're not
-  // frozen) — only the avatars stay on the placeholder for that session, since
-  // swapping them would re-resolve the assets mid-animation (see the frozen
-  // mapping rationale below).
+  // Safety net so we never wait on `referencedAssets` forever if the trader
+  // data isn't ready at mount. After a forced mount the text bindings still
+  // pick up real data (not frozen); only avatars stay on the placeholder,
+  // since swapping them would re-resolve assets mid-animation (see above).
   const [forceMountAssets, setForceMountAssets] = useState(false);
   useEffect(() => {
     const timer = setTimeout(
@@ -449,10 +444,8 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     setReferencedAssets(mapping);
   }, [referencedAssets, isLoadingTraders, forceMountAssets]);
 
-  // Load the .riv with the frozen asset mapping. The file is created as soon
-  // as the mapping settles (`referencedAssets ?? undefined` keeps the options
-  // identity stable before that), and the artboard is only mounted once file +
-  // view-model instance are both ready.
+  // Load the .riv with the frozen asset mapping; the artboard is only mounted
+  // once file + view-model instance are both ready.
   const { riveFile } = useRiveFile(SocialLeaderboardNuxAnimation, {
     referencedAssets: referencedAssets ?? undefined,
   });

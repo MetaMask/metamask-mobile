@@ -67,8 +67,6 @@ const MoneyNextBestActionParallax = ({
   const hasRiveError = erroredArtboard === artboardName;
 
   const { riveFile } = useRiveFile(NextBestActionParallaxAnimation);
-  // The view-model instance is created off the file (async) per artboard and
-  // explicitly bound to the view via `dataBind`.
   const { instance } = useViewModelInstance(riveFile, {
     artboardName,
     async: true,

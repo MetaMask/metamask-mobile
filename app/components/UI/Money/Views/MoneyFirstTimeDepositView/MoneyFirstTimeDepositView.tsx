@@ -73,9 +73,6 @@ const MoneyFirstTimeDepositView = () => {
   const reduceMotion = useReduceMotion();
 
   const { riveFile } = useRiveFile(MoneyAccountFirstTimeDepositAnimationV4);
-  // The view-model instance is created off the file (async) and explicitly
-  // bound to the view via `dataBind`, so property hooks and the view share
-  // the same instance.
   const { instance } = useViewModelInstance(riveFile, {
     artboardName: RIVE_ARTBOARD_NAME,
     async: true,
