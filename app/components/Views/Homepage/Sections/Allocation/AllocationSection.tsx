@@ -8,6 +8,8 @@ import {
   SectionDivider,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -45,6 +47,14 @@ interface AllocationRow {
   onPress: () => void;
 }
 
+const ALLOCATION_RANK_COLORS = [
+  brandColor.green700,
+  brandColor.green500,
+  brandColor.green300,
+  brandColor.lime300,
+  brandColor.green100,
+] as const;
+
 const styles = StyleSheet.create({
   allocationBar: {
     flexDirection: 'row',
@@ -73,6 +83,11 @@ const styles = StyleSheet.create({
   label: {
     flex: 1,
     minWidth: 0,
+  },
+  labelLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });
 
@@ -171,14 +186,6 @@ const AllocationSectionContent = ({
     return null;
   }
 
-  const categoryColors: Record<AllocationRow['key'], string> = {
-    money: brandColor.green600,
-    tokens: brandColor.green500,
-    perpetuals: brandColor.green400,
-    predictions: brandColor.lime400,
-    defi: brandColor.green200,
-  };
-
   return (
     <View testID={AllocationSectionTestIds.CONTAINER}>
       <SectionDivider />
@@ -194,21 +201,21 @@ const AllocationSectionContent = ({
           style={styles.allocationBar}
           testID={AllocationSectionTestIds.BAR}
         >
-          {rows.map((row) => (
+          {rows.map((row, index) => (
             <View
               key={row.key}
               style={[
                 styles.allocationSegment,
                 {
                   flex: Math.max(row.percentage, 2),
-                  backgroundColor: categoryColors[row.key],
+                  backgroundColor: ALLOCATION_RANK_COLORS[index],
                 },
               ]}
             />
           ))}
         </View>
         <Box gap={1}>
-          {rows.map((row) => (
+          {rows.map((row, index) => (
             <Pressable
               key={row.key}
               onPress={row.onPress}
@@ -223,25 +230,27 @@ const AllocationSectionContent = ({
               <View
                 style={[
                   styles.dot,
-                  { backgroundColor: categoryColors[row.key] },
+                  { backgroundColor: ALLOCATION_RANK_COLORS[index] },
                 ]}
               />
               <View style={styles.label}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  numberOfLines={1}
-                >
-                  {row.label}
-                  <Text color={TextColor.TextAlternative}>
-                    {` · ${row.percentage.toFixed(1)}%`}
+                <View style={styles.labelLine}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
+                  >
+                    {row.label}
+                    <Text color={TextColor.TextAlternative}>
+                      {` · ${row.percentage.toFixed(1)}%`}
+                    </Text>
                   </Text>
                   {row.apy !== undefined && row.apy > 0 ? (
-                    <Text color={TextColor.SuccessDefault}>
-                      {` · ${row.apy}% APY`}
-                    </Text>
+                    <Tag severity={TagSeverity.Success}>
+                      {`${row.apy}% APY`}
+                    </Tag>
                   ) : null}
-                </Text>
+                </View>
               </View>
               <SensitiveText
                 variant={TextVariant.BodyMd}
