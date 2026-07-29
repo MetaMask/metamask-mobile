@@ -708,6 +708,17 @@ export function useQuickBuyController(
     ],
   );
 
+  // When a buy pill exceeds balance the CTA routes to Ramp (Add funds) and no
+  // quote is ever used, so suppress the amount fed to the quotes hook. Passing
+  // undefined makes useQuickBuyQuotes short-circuit via its `!sourceTokenAmount`
+  // guard (resetQuotesIdle) — no bridge request and no blocking loading state,
+  // so the Add funds button is actionable immediately. The exported
+  // `sourceTokenAmount` is intentionally left untouched (still drives balance
+  // checks, the redux dispatch, and display).
+  const quotesSourceTokenAmount = isPresetAddFundsMode
+    ? undefined
+    : sourceTokenAmount;
+
   const {
     activeQuote,
     sortedQuotes,
@@ -725,7 +736,7 @@ export function useQuickBuyController(
   } = useQuickBuyQuotes({
     sourceToken,
     destToken,
-    sourceTokenAmount,
+    sourceTokenAmount: quotesSourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
     immediateFetchToken,
@@ -1685,7 +1696,10 @@ export function useQuickBuyController(
   }
 
   let confirmButtonState: 'idle' | 'loading' | 'success' = 'idle';
-  if (isConfirmLoading || isBlockingQuoteLoad) {
+  // In add-funds mode the CTA routes to Ramp and never needs a quote, so a rare
+  // mid-flight fetch (tapping an over-balance pill while a prior valid-amount
+  // fetch is still settling) must not spin the Add funds button.
+  if (!isPresetAddFundsMode && (isConfirmLoading || isBlockingQuoteLoad)) {
     confirmButtonState = 'loading';
   }
 
