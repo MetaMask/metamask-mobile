@@ -295,6 +295,21 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
+jest.mock('../../../../../core/HardwareWallet', () => ({
+  useHardwareWallet: () => ({
+    ensureDeviceReady: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  }),
+  isUserCancellation: jest.fn(
+    (err: unknown) => err instanceof Error && err.name === 'UserCancellation',
+  ),
+}));
+
+jest.mock('../../../../../core/HardwareWallet/helpers', () => ({
+  getDeviceIdForAddress: jest.fn(),
+}));
+
 jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
   useHwConnectionMonitoring: jest.fn(() => ({
     isDisconnectedRef: { current: false },
