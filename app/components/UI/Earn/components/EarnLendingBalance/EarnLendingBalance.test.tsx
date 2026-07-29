@@ -7,7 +7,6 @@ import { earnSelectors } from '../../../../../selectors/earnController';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createMockToken } from '../../../Stake/testUtils';
-import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
@@ -128,7 +127,6 @@ jest.mock('../../hooks/useEarnings', () => ({
 }));
 
 jest.mock('../../hooks/useEarnTokens');
-jest.mock('../../../Tokens/hooks/useTokenPricePercentageChange');
 jest.mock('../../hooks/useMusdCtaVisibility', () => ({
   __esModule: true,
   useMusdCtaVisibility: jest.fn(),
@@ -251,28 +249,15 @@ describe('EarnLendingBalance', () => {
         typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
       >
     ).mockReturnValue(false);
-
-    (
-      useTokenPricePercentageChange as jest.MockedFunction<
-        typeof useTokenPricePercentageChange
-      >
-    ).mockReturnValue(5.2);
   });
 
-  it('renders balance and buttons when user has lending positions', () => {
-    const { getByTestId } = renderWithProvider(
+  it('renders lending actions without linked receipt token balance', () => {
+    const { getByTestId, queryByText } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
       { state: mockInitialState },
     );
 
-    expect(
-      getByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL),
-    ).toBeOnTheScreen();
+    expect(queryByText(mockADAIMainnet.name)).not.toBeOnTheScreen();
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
     ).toBeOnTheScreen();
@@ -302,7 +287,7 @@ describe('EarnLendingBalance', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('hides underlying token balance when asset prop is an output token', () => {
+  it('renders lending actions when asset prop is an output token', () => {
     (
       earnSelectors.selectEarnToken as jest.MockedFunction<
         typeof earnSelectors.selectEarnToken
@@ -324,22 +309,11 @@ describe('EarnLendingBalance', () => {
       earnToken: mockDaiMainnet,
     });
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockADAIMainnet} />,
       { state: mockInitialState },
     );
 
-    // Hidden
-    expect(
-      queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO,
-      ),
-    ).not.toBeOnTheScreen();
-
-    // Still Rendering Buttons
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
     ).toBeOnTheScreen();

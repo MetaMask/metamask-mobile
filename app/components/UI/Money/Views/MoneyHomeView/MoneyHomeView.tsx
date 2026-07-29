@@ -524,6 +524,7 @@ const MoneyHomeView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {

@@ -65,6 +65,8 @@ import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStar
 import {
   MoneyAssetOverviewBalanceCta,
   MoneyAssetOverviewBalanceCtaSkeleton,
+  MoneyAssetOverviewBalanceDescription,
+  MoneyAssetOverviewBalanceDescriptionSkeleton,
 } from '../../Money/components/MoneyAssetOverviewBalanceCta';
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
@@ -352,9 +354,14 @@ const TokenDetails: React.FC<{
     networkName,
   });
 
-  const moneyBalanceCta = useMemo(() => {
+  const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
     if (moneyAssetOverviewCtas.isBalanceCtaLoading) {
-      return <MoneyAssetOverviewBalanceCtaSkeleton />;
+      return {
+        moneyBalanceCta: <MoneyAssetOverviewBalanceCtaSkeleton />,
+        moneyBalanceDescription: (
+          <MoneyAssetOverviewBalanceDescriptionSkeleton />
+        ),
+      };
     }
 
     if (
@@ -362,18 +369,26 @@ const TokenDetails: React.FC<{
       moneyAssetOverviewCtas.apyPercent === undefined ||
       moneyAssetOverviewCtas.projectedEarningsFormatted === undefined
     ) {
-      return undefined;
+      return {
+        moneyBalanceCta: undefined,
+        moneyBalanceDescription: undefined,
+      };
     }
 
-    return (
-      <MoneyAssetOverviewBalanceCta
-        apy={moneyAssetOverviewCtas.apyPercent}
-        onStartEarning={moneyAssetOverviewCtas.onBalancePress}
-        privacyMode={privacyMode}
-        projectedEarnings={moneyAssetOverviewCtas.projectedEarningsFormatted}
-        tokenSymbol={token.symbol}
-      />
-    );
+    return {
+      moneyBalanceCta: (
+        <MoneyAssetOverviewBalanceCta
+          onStartEarning={moneyAssetOverviewCtas.onBalancePress}
+        />
+      ),
+      moneyBalanceDescription: (
+        <MoneyAssetOverviewBalanceDescription
+          privacyMode={privacyMode}
+          projectedEarnings={moneyAssetOverviewCtas.projectedEarningsFormatted}
+          tokenSymbol={token.symbol}
+        />
+      ),
+    };
   }, [
     moneyAssetOverviewCtas.apyPercent,
     moneyAssetOverviewCtas.isBalanceCtaLoading,
@@ -430,6 +445,7 @@ const TokenDetails: React.FC<{
         token={token}
         balance={balance}
         balanceCta={moneyBalanceCta}
+        balanceDescription={moneyBalanceDescription}
         balancePriceChangeOverride={
           moneyAssetOverviewCtas.isBalanceCtaVisible &&
           moneyAssetOverviewCtas.apyPercent !== undefined
@@ -567,7 +583,7 @@ const TokenDetails: React.FC<{
             moneyAssetOverviewCtas.isFooterCtaVisible
               ? {
                   isLoading: moneyAssetOverviewCtas.isFooterCtaLoading,
-                  label: moneyAssetOverviewCtas.footerLabel,
+                  label: moneyAssetOverviewCtas.footerLabelLocalized,
                   onPress: moneyAssetOverviewCtas.onFooterPress,
                 }
               : undefined

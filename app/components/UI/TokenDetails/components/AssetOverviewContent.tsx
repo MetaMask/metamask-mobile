@@ -145,6 +145,7 @@ export interface AssetOverviewContentProps {
   // Balance data
   balance: string | number | undefined;
   balanceCta?: React.ReactNode;
+  balanceDescription?: React.ReactNode;
   balancePriceChangeOverride?: string;
   balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
@@ -223,6 +224,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   token,
   balance,
   balanceCta,
+  balanceDescription,
   balancePriceChangeOverride,
   balancePriceChangeOverrideColor,
   mainBalance,
@@ -669,6 +671,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             <Balance
               asset={token}
               balanceCta={balanceCta}
+              balanceDescription={balanceDescription}
               mainBalance={mainBalance}
               priceChangeOverride={balancePriceChangeOverride}
               priceChangeOverrideColor={balancePriceChangeOverrideColor}

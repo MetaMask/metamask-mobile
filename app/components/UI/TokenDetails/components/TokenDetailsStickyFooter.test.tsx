@@ -6,6 +6,7 @@ import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -274,6 +275,68 @@ describe('TokenDetailsStickyFooter', () => {
       expect(getByText('Earn 6% APY')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Swap')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Earn button alongside Swap for a held token', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByTestId('money-asset-overview-footer-cta')).toHaveProp(
+        'isLoading',
+        true,
+      );
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Earn button alongside Buy for a token without balance', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance={false}
+          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toHaveProp(
+        'isLoading',
+        true,
+      );
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Swap')).not.toBeOnTheScreen();
+    });
+
+    it('renders disclaimer after the APY resolves', () => {
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(
+        getByText(strings('money.asset_overview.cta.current_apy_disclaimer')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides disclaimer while the APY is loading', () => {
+      const { queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(
+        queryByText(strings('money.asset_overview.cta.current_apy_disclaimer')),
+      ).not.toBeOnTheScreen();
     });
   });
 

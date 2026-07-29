@@ -8,6 +8,7 @@ import {
   IconSize,
   Text,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -33,7 +34,6 @@ import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
-import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 
 const styles = StyleSheet.create({
   footer: {
@@ -56,10 +56,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderRadius: 999,
-  },
-  disclaimer: {
-    marginTop: 8,
-    textAlign: 'center',
   },
 });
 
@@ -327,29 +323,21 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   if (!tradingOpen) return null;
 
   const moneyEarnButton = showMoneyEarnButton ? (
-    moneyEarnCta?.isLoading ? (
-      <View
-        style={showSwapButton ? styles.subsequentButton : styles.button}
-        testID="money-asset-overview-footer-cta-skeleton"
-      >
-        <Skeleton height={48} width={160} />
-      </View>
-    ) : (
-      <Button
-        testID="money-asset-overview-footer-cta"
-        variant={
-          hasTokenBalance ? ButtonVariant.Primary : ButtonVariant.Secondary
-        }
-        style={showSwapButton ? styles.subsequentButton : styles.button}
-        twClassName={
-          hasTokenBalance ? successBg : `bg-transparent ${successBorder}`
-        }
-        textProps={hasTokenBalance ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-        onPress={moneyEarnCta?.onPress}
-      >
-        {moneyEarnCta?.label}
-      </Button>
-    )
+    <Button
+      testID="money-asset-overview-footer-cta"
+      variant={
+        hasTokenBalance ? ButtonVariant.Primary : ButtonVariant.Secondary
+      }
+      style={showSwapButton ? styles.subsequentButton : styles.button}
+      twClassName={
+        hasTokenBalance ? successBg : `bg-transparent ${successBorder}`
+      }
+      textProps={hasTokenBalance ? SUCCESS_TEXT_PROPS : secondaryTextProps}
+      isLoading={moneyEarnCta?.isLoading}
+      onPress={moneyEarnCta?.onPress}
+    >
+      {moneyEarnCta?.label}
+    </Button>
   ) : null;
 
   return (
@@ -460,7 +448,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           )}
         </View>
         {isMoneyEarnCtaActive && !moneyEarnCta?.isLoading && (
-          <Text style={styles.disclaimer} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="mt-2 text-center"
+          >
             {strings('money.asset_overview.cta.current_apy_disclaimer')}
           </Text>
         )}

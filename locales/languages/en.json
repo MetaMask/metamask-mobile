@@ -7498,7 +7498,7 @@
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "Earn {{apy}}% APY",
+        "earn_apy": "{{apy}}% APY",
         "start_earning": "Start earning",
         "current_apy_disclaimer": "Current APY, variable and not guaranteed."
       },

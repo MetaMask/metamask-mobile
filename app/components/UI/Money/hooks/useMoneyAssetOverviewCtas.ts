@@ -43,13 +43,8 @@ export const useMoneyAssetOverviewCtas = ({
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyAccountBalance();
-  const { trackButtonClicked: trackFooterButtonClicked } = useMoneyAnalytics({
+  const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ASSET_DETAIL,
-    component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
-  });
-  const { trackButtonClicked: trackBalanceButtonClicked } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.ASSET_DETAIL,
-    component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
   });
 
   const isFooterEligible = shouldShowMoneyAssetOverviewFooterCta(asset);
@@ -57,11 +52,18 @@ export const useMoneyAssetOverviewCtas = ({
   const hasApy = apyDecimal !== undefined && apyPercent !== undefined;
   const isApyLoading = vaultApyQuery.isLoading;
 
-  const footerLabel = useMemo(
+  const footerLabelLocalized = useMemo(
     () =>
       apyPercent === undefined
         ? undefined
         : strings(FOOTER_LABEL_KEY, { apy: apyPercent }),
+    [apyPercent],
+  );
+  const footerEnglishLabel = useMemo(
+    () =>
+      apyPercent === undefined
+        ? undefined
+        : strings(FOOTER_LABEL_KEY, { apy: apyPercent, locale: 'en' }),
     [apyPercent],
   );
 
@@ -109,21 +111,36 @@ export const useMoneyAssetOverviewCtas = ({
           preferredPaymentToken,
         },
       });
-      const trackButtonClicked =
-        component === 'footer'
-          ? trackFooterButtonClicked
-          : trackBalanceButtonClicked;
-
-      trackButtonClicked({
+      const trackingProperties = {
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: redirectedToOnboarding
           ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
           : MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: labelKey,
+        component_name:
+          component === 'footer'
+            ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
+            : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
         redirect_target: redirectedToOnboarding
           ? SCREEN_NAMES.MONEY_ONBOARDING
           : SCREEN_NAMES.MONEY_DEPOSIT,
-      });
+        token_symbol: asset.symbol ?? '',
+        token_position_in_list: 1,
+        token_chain_id: asset.chainId ?? '',
+        tokens_in_list: 1,
+      } as const;
+
+      if (component === 'footer') {
+        trackTokenButtonClicked({
+          ...trackingProperties,
+          label_en: footerEnglishLabel ?? label,
+          label_localized: label,
+        });
+      } else {
+        trackTokenButtonClicked({
+          ...trackingProperties,
+          label_key: labelKey,
+        });
+      }
 
       if (redirectedToOnboarding) {
         return;
@@ -141,16 +158,17 @@ export const useMoneyAssetOverviewCtas = ({
     [
       asset.address,
       asset.chainId,
+      asset.symbol,
+      footerEnglishLabel,
       initiateDeposit,
       redirectToOnboardingIfNeeded,
-      trackBalanceButtonClicked,
-      trackFooterButtonClicked,
+      trackTokenButtonClicked,
     ],
   );
 
   const onFooterPress = useCallback(
-    () => startDeposit('footer', FOOTER_LABEL_KEY, footerLabel),
-    [footerLabel, startDeposit],
+    () => startDeposit('footer', FOOTER_LABEL_KEY, footerLabelLocalized),
+    [footerLabelLocalized, startDeposit],
   );
 
   const onBalancePress = useCallback(
@@ -164,7 +182,7 @@ export const useMoneyAssetOverviewCtas = ({
   );
 
   return {
-    footerLabel,
+    footerLabelLocalized,
     isFooterCtaEligible: isFooterEligible,
     isBalanceCtaLoading: isBalanceEligible && isApyLoading,
     isBalanceCtaVisible: isBalanceEligible && hasApy,

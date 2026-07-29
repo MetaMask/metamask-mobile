@@ -10,10 +10,16 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PotentialEarningsTokenRowTestIds } from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow.testIds';
+import {
+  COMPONENT_NAMES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+} from '../../constants/moneyEvents';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockInitiateDeposit = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
 let mockTokens: unknown[] = [];
 
 jest.mock('@react-navigation/native', () => {
@@ -134,7 +140,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
     trackScreenViewed: jest.fn(),
     trackTokenButtonClicked: jest.fn(),
     trackTokenSurfaceClicked: jest.fn(),
-    trackTooltipClicked: jest.fn(),
+    trackTooltipClicked: mockTrackTooltipClicked,
   })),
 }));
 
@@ -342,6 +348,18 @@ describe('MoneyPotentialEarningsView', () => {
         screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
       }),
     );
+  });
+
+  it('tracks source context when the info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.INFO_BUTTON));
+
+    expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
+    });
   });
 
   it('renders the bottom Convert CTA with the correct label', () => {

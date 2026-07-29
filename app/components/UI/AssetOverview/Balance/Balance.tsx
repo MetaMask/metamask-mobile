@@ -57,6 +57,7 @@ export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 interface BalanceProps {
   asset: TokenI;
   balanceCta?: ReactNode;
+  balanceDescription?: ReactNode;
   mainBalance: string;
   secondaryBalance?: string;
   priceChangeOverride?: string;
@@ -104,6 +105,7 @@ export const NetworkBadgeSource = (chainId: Hex) => {
 const Balance = ({
   asset,
   balanceCta,
+  balanceDescription,
   mainBalance,
   secondaryBalance,
   priceChangeOverride,
@@ -208,6 +210,7 @@ const Balance = ({
           {strings('asset_overview.your_balance')}
         </Text>
       )}
+      {balanceDescription}
       <AssetElement
         disabled={isDisabled}
         asset={asset}

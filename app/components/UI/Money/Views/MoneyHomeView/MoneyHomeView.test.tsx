@@ -46,6 +46,8 @@ import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
@@ -267,10 +269,11 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 
 const mockTrackButtonClicked = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: mockTrackButtonClicked,
-    trackTooltipClicked: jest.fn(),
+    trackTooltipClicked: mockTrackTooltipClicked,
     trackSurfaceClicked: mockTrackSurfaceClicked,
     trackTokenButtonClicked: jest.fn(),
     trackTokenSurfaceClicked: jest.fn(),
@@ -1297,6 +1300,18 @@ describe('MoneyHomeView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  });
+
+  it('tracks source context when the section info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
+
+    expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
     });
   });
 
