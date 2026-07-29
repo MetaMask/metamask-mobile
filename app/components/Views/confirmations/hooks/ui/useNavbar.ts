@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import {
   getModalNavigationOptions,
   NavbarOverrides,
@@ -11,6 +11,7 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 /**
  * Registers an inline full-screen confirmation header (rendered by Confirm).
  * Stack header stays hidden — see Confirm `headerShown: false`.
+ * Registration runs in useLayoutEffect so the header is present before paint.
  */
 const useNavbar = (
   title: string,
@@ -20,7 +21,7 @@ const useNavbar = (
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { setNavHeaderConfig } = useConfirmationContext();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isFullScreenConfirmation) {
       return;
     }

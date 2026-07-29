@@ -35,7 +35,7 @@ describe('useNavbar', () => {
     } as unknown as ReturnType<typeof useConfirmationContext>);
   });
 
-  it('registers inline nav header config for full screen confirmations', () => {
+  it('registers inline nav header config before paint for full screen confirmations', () => {
     renderHook(() => useNavbar(mockTitle));
 
     expect(mockSetNavHeaderConfig).toHaveBeenCalledWith({
