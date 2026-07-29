@@ -149,6 +149,8 @@ test-results/
 test-reports/
 appwright/reporters/reports/*
 tests/reporters/reports/
+# HyperExecute static discovery lists (generated at job start)
+tests/hyperexecute/discovered-*.txt
 *.apk
 
 # anvil binaries
