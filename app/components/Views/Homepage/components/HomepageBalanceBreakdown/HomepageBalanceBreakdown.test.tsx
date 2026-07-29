@@ -1,4 +1,5 @@
 import React from 'react';
+import { brandColor } from '@metamask/design-tokens';
 import { fireEvent, render } from '@testing-library/react-native';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
@@ -160,6 +161,9 @@ describe('HomepageBalanceBreakdown', () => {
       '4.1% APY',
     );
     expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('money')),
+    ).toHaveTextContent('20%');
+    expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ICON('money')).props.name,
     ).toBe('Musd');
     expect(
@@ -177,6 +181,14 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders allocation segments and colored row dots', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        tokens: makeSlice('tokens', { color: brandColor.blue700 }),
+      },
+    });
+
     const { getByTestId } = render(
       <HomepageBalanceBreakdown layout="allocation" />,
     );
@@ -186,9 +198,63 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('Allocation');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT('tokens')),
-    ).toHaveStyle({ borderRadius: 999 });
+    ).toHaveStyle({
+      backgroundColor: brandColor.blue700,
+      borderRadius: 999,
+    });
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.DOT('tokens')),
+    ).toHaveStyle({ backgroundColor: brandColor.blue700 });
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('tokens')),
+    ).toHaveTextContent('20%');
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
+      '4.1% APY',
+    );
+  });
+
+  it('renders the Money APY loading slot', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        money: makeSlice('money', {
+          apyLoading: true,
+          apyPercentFormatted: undefined,
+        }),
+      },
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="allocation" />,
+    );
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.APY_SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(HomepageBalanceBreakdownTestIds.APY)).toBeNull();
+  });
+
+  it('keeps the category dot when its allocation segment is zero', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        tokens: makeSlice('tokens', { percentOfTotal: 0 }),
+      },
+    });
+
+    const { queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="allocation" />,
+    );
+
+    expect(
+      queryByTestId(
+        HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT('tokens'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.DOT('tokens')),
     ).toBeOnTheScreen();
   });
 
@@ -257,6 +323,7 @@ describe('HomepageBalanceBreakdown', () => {
     const { queryByText } = render(<HomepageBalanceBreakdown layout="icons" />);
 
     expect(queryByText('USD 20.00')).not.toBeOnTheScreen();
+    expect(queryByText('20%')).not.toBeOnTheScreen();
   });
 
   it('does not render rows during the onboarding checklist flow', () => {

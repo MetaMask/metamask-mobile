@@ -68,7 +68,7 @@ function aggregateStatus(
 }
 
 export function useBalanceBreakdown(): BreakdownData {
-  const { colors } = useTheme();
+  const { themeAppearance } = useTheme();
   const { toUserCurrency, userCurrency } = useFiatNormalizer();
   const tokensSlice = useTokensSlice();
   const moneySlice = useMoneySlice(toUserCurrency);
@@ -88,8 +88,8 @@ export function useBalanceBreakdown(): BreakdownData {
   );
 
   const sliceStrokeColors = useMemo(
-    () => getBalanceBreakdownSliceColors(colors),
-    [colors],
+    () => getBalanceBreakdownSliceColors(themeAppearance),
+    [themeAppearance],
   );
 
   const slicesWithThemeColors: Record<SliceKey, SliceData> = useMemo(

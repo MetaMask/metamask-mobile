@@ -1,26 +1,22 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../../../UI/Money/hooks/useMoneyAccountInfo';
-import { selectIsMoneyAccountGeoEligible } from '../../../../UI/Money/selectors/eligibility';
 import type { BalanceSlice, FiatConverter, SliceStatus } from '../../types';
 
 export function getMoneySliceStatus({
   isFeatureEnabled,
-  isGeoEligible,
   hasMoneyAccount,
   isBalanceLoading,
   isBalanceFetchError,
   hasTokenTotal,
 }: {
   isFeatureEnabled: boolean;
-  isGeoEligible: boolean;
   hasMoneyAccount: boolean;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
   hasTokenTotal: boolean;
 }): SliceStatus {
-  if (!isFeatureEnabled || !isGeoEligible || !hasMoneyAccount) {
+  if (!isFeatureEnabled || !hasMoneyAccount) {
     return 'ineligible';
   }
   if (isBalanceFetchError) return 'error';
@@ -29,18 +25,17 @@ export function getMoneySliceStatus({
 }
 
 export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
-  const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
   const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
     useMoneyAccountInfo();
   const {
     tokenTotal,
     isBalanceLoading,
     isBalanceFetchError,
-    apyPercentFormatted,
+    apyPercent,
+    vaultApyQuery,
   } = useMoneyAccountBalance();
   const moneyStatus = getMoneySliceStatus({
     isFeatureEnabled: isMoneyAccountFeatureEnabled,
-    isGeoEligible,
     hasMoneyAccount,
     isBalanceLoading,
     isBalanceFetchError,
@@ -56,14 +51,17 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
       ? 'loading'
       : moneyStatus;
   const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
+  const apyLoading = vaultApyQuery.isLoading;
+  const apyPercentFormatted = apyLoading ? undefined : `${apyPercent ?? 0}%`;
 
   return useMemo(
     () => ({
       key: 'money',
       valueFiat,
       status,
-      apyPercentFormatted: status === 'ready' ? apyPercentFormatted : undefined,
+      apyPercentFormatted,
+      apyLoading,
     }),
-    [apyPercentFormatted, status, valueFiat],
+    [apyLoading, apyPercentFormatted, status, valueFiat],
   );
 }

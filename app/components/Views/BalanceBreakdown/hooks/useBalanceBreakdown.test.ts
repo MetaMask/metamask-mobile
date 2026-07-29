@@ -1,4 +1,3 @@
-import { brandColor } from '@metamask/design-tokens';
 import { renderHook } from '@testing-library/react-hooks';
 import { useBalanceBreakdown } from './useBalanceBreakdown';
 import { useTokensSlice } from './slices/useTokensSlice';
@@ -7,7 +6,12 @@ import { usePerpsSlice } from './slices/usePerpsSlice';
 import { usePredictSlice } from './slices/usePredictSlice';
 import { useDefiSlice } from './slices/useDefiSlice';
 import { mockTheme } from '../../../../util/theme';
-import { getBalanceBreakdownSliceColors } from '../utils/getBalanceBreakdownSliceColors';
+import { AppThemeKey } from '../../../../util/theme/models';
+import {
+  DARK_ALLOCATION_COLORS,
+  getBalanceBreakdownSliceColors,
+  LIGHT_ALLOCATION_COLORS,
+} from '../utils/getBalanceBreakdownSliceColors';
 
 const mockUseTokensSlice = jest.mocked(useTokensSlice);
 const mockUseMoneySlice = jest.mocked(useMoneySlice);
@@ -52,7 +56,7 @@ function makeSlice(
   valueFiat: number,
   status: 'ready' | 'loading' | 'error' | 'ineligible' = 'ready',
 ) {
-  const colors = getBalanceBreakdownSliceColors(mockTheme.colors);
+  const colors = getBalanceBreakdownSliceColors(mockTheme.themeAppearance);
   return {
     key,
     color: colors[key],
@@ -63,14 +67,34 @@ function makeSlice(
 }
 
 describe('getBalanceBreakdownSliceColors', () => {
-  it('uses the allocation blue-to-slate palette', () => {
-    expect(getBalanceBreakdownSliceColors(mockTheme.colors)).toEqual({
-      money: brandColor.blue300,
-      tokens: mockTheme.colors.accent04.light,
-      perps: brandColor.grey200,
-      predict: brandColor.grey300,
-      defi: brandColor.grey500,
-    });
+  it('uses the light allocation palette', () => {
+    expect(getBalanceBreakdownSliceColors(AppThemeKey.light)).toEqual(
+      LIGHT_ALLOCATION_COLORS,
+    );
+    /* eslint-disable @metamask/design-tokens/color-no-hex -- Locks the approved reference palette. */
+    expect(Object.values(LIGHT_ALLOCATION_COLORS)).toEqual([
+      '#190066',
+      '#89b0ff',
+      '#adb6fe',
+      '#c7ceff',
+      '#d6dbff',
+    ]);
+    /* eslint-enable @metamask/design-tokens/color-no-hex */
+  });
+
+  it('uses the dark allocation palette', () => {
+    expect(getBalanceBreakdownSliceColors(AppThemeKey.dark)).toEqual(
+      DARK_ALLOCATION_COLORS,
+    );
+    /* eslint-disable @metamask/design-tokens/color-no-hex -- Locks the approved reference palette. */
+    expect(Object.values(DARK_ALLOCATION_COLORS)).toEqual([
+      '#8b99ff',
+      '#cce7ff',
+      '#abbcce',
+      '#949596',
+      '#66676a',
+    ]);
+    /* eslint-enable @metamask/design-tokens/color-no-hex */
   });
 });
 

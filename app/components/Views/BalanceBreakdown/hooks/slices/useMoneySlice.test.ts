@@ -1,20 +1,16 @@
 import { renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../../../UI/Money/hooks/useMoneyAccountInfo';
 import { getMoneySliceStatus, useMoneySlice } from './useMoneySlice';
 
-jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountInfo');
 
-const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
 const READY_INPUT = {
   isFeatureEnabled: true,
-  isGeoEligible: true,
   hasMoneyAccount: true,
   isBalanceLoading: false,
   isBalanceFetchError: false,
@@ -22,10 +18,13 @@ const READY_INPUT = {
 };
 
 describe('getMoneySliceStatus', () => {
-  it('requires feature, geo, and account eligibility', () => {
-    expect(getMoneySliceStatus({ ...READY_INPUT, isGeoEligible: false })).toBe(
-      'ineligible',
-    );
+  it('requires the feature and an existing account', () => {
+    expect(
+      getMoneySliceStatus({ ...READY_INPUT, hasMoneyAccount: false }),
+    ).toBe('ineligible');
+    expect(
+      getMoneySliceStatus({ ...READY_INPUT, isFeatureEnabled: false }),
+    ).toBe('ineligible');
   });
 
   it('distinguishes loading, error, and a canonical ready value', () => {
@@ -42,7 +41,6 @@ describe('getMoneySliceStatus', () => {
 describe('useMoneySlice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(true);
     mockUseMoneyAccountInfo.mockReturnValue({
       isMoneyAccountFeatureEnabled: true,
       hasMoneyAccount: true,
@@ -51,7 +49,8 @@ describe('useMoneySlice', () => {
       tokenTotal: { toNumber: () => 100 },
       isBalanceLoading: false,
       isBalanceFetchError: false,
-      apyPercentFormatted: '4.1%',
+      apyPercent: 4.1,
+      vaultApyQuery: { isLoading: false },
     } as ReturnType<typeof useMoneyAccountBalance>);
   });
 
@@ -63,6 +62,7 @@ describe('useMoneySlice', () => {
       valueFiat: 200,
       status: 'ready',
       apyPercentFormatted: '4.1%',
+      apyLoading: false,
     });
   });
 
@@ -73,8 +73,37 @@ describe('useMoneySlice', () => {
       key: 'money',
       valueFiat: 0,
       status: 'loading',
-      apyPercentFormatted: undefined,
+      apyPercentFormatted: '4.1%',
+      apyLoading: false,
     });
+  });
+
+  it('exposes APY loading independently of balance readiness', () => {
+    mockUseMoneyAccountBalance.mockReturnValue({
+      tokenTotal: { toNumber: () => 100 },
+      isBalanceLoading: false,
+      isBalanceFetchError: false,
+      apyPercent: undefined,
+      vaultApyQuery: { isLoading: true },
+    } as ReturnType<typeof useMoneyAccountBalance>);
+
+    const { result } = renderHook(() => useMoneySlice((amount) => amount));
+
+    expect(result.current.apyLoading).toBe(true);
+    expect(result.current.apyPercentFormatted).toBeUndefined();
+  });
+
+  it('exposes APY before an eligible user creates a Money account', () => {
+    mockUseMoneyAccountInfo.mockReturnValue({
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: false,
+    } as ReturnType<typeof useMoneyAccountInfo>);
+
+    const { result } = renderHook(() => useMoneySlice((amount) => amount));
+
+    expect(result.current.status).toBe('ineligible');
+    expect(result.current.apyPercentFormatted).toBe('4.1%');
+    expect(result.current.apyLoading).toBe(false);
   });
 
   it('returns an ineligible zero balance without APY', () => {
@@ -82,6 +111,13 @@ describe('useMoneySlice', () => {
       isMoneyAccountFeatureEnabled: false,
       hasMoneyAccount: false,
     } as ReturnType<typeof useMoneyAccountInfo>);
+    mockUseMoneyAccountBalance.mockReturnValue({
+      tokenTotal: undefined,
+      isBalanceLoading: false,
+      isBalanceFetchError: false,
+      apyPercent: undefined,
+      vaultApyQuery: { isLoading: false },
+    } as ReturnType<typeof useMoneyAccountBalance>);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
@@ -89,7 +125,8 @@ describe('useMoneySlice', () => {
       key: 'money',
       valueFiat: 0,
       status: 'ineligible',
-      apyPercentFormatted: undefined,
+      apyPercentFormatted: '0%',
+      apyLoading: false,
     });
   });
 });

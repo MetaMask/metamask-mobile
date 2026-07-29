@@ -16,6 +16,7 @@ export interface BalanceSlice {
   delta?: SliceDelta;
   status: SliceStatus;
   apyPercentFormatted?: string;
+  apyLoading?: boolean;
   value1dAgoFiat?: number;
 }
 

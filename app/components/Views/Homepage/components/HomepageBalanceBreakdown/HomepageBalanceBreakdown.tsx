@@ -60,8 +60,12 @@ const SLICE_LABEL_KEYS = {
 
 const getSliceLabel = (key: SliceKey): string => strings(SLICE_LABEL_KEYS[key]);
 
-const getAllocationSegmentStyle = (slice: SliceData): ViewStyle => ({
+const getAllocationColorStyle = (slice: SliceData): ViewStyle => ({
   backgroundColor: slice.color,
+});
+
+const getAllocationSegmentStyle = (slice: SliceData): ViewStyle => ({
+  ...getAllocationColorStyle(slice),
   borderRadius: 999,
   flexBasis: 0,
   flexGrow: slice.percentOfTotal,
@@ -85,6 +89,10 @@ const BreakdownRow = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const { formatCurrency } = useFormatters();
   const isLoading = slice.status === 'loading';
+  const percentageLabel =
+    slice.status === 'ready'
+      ? `${Math.round(slice.percentOfTotal * 100)}%`
+      : null;
   const displayValue =
     slice.status === 'error' || slice.status === 'ineligible'
       ? '—'
@@ -101,23 +109,20 @@ const BreakdownRow = ({
       onPress={onPress}
       testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
       style={({ pressed }) =>
-        tw.style(
-          'min-h-[52px] flex-row items-center py-1',
-          pressed && 'opacity-80',
-        )
+        tw.style('flex-row items-center', 'min-h-10', pressed && 'opacity-80')
       }
     >
       {showIcon ? (
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="h-10 w-10 rounded-full bg-muted"
+          twClassName="h-8 w-8 rounded-full bg-muted"
         >
           {iconName ? (
             <Icon
               color={IconColor.IconDefault}
               name={iconName}
-              size={IconSize.Lg}
+              size={IconSize.Md}
               testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
             />
           ) : (
@@ -125,7 +130,7 @@ const BreakdownRow = ({
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Medium}
               testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.HeadingSm}
             >
               {iconSymbol}
             </Text>
@@ -145,32 +150,72 @@ const BreakdownRow = ({
             twClassName="min-w-0 flex-1"
             gap={2}
           >
-            {showAllocationDot ? (
-              <View
-                testID={HomepageBalanceBreakdownTestIds.DOT(slice.key)}
-                style={[
-                  tw.style('h-2 w-2 rounded-full'),
-                  { backgroundColor: slice.color },
-                ]}
-              />
-            ) : null}
-            <Text
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Medium}
-              numberOfLines={1}
-              variant={TextVariant.BodyMd}
+            <Box
+              alignItems={BoxAlignItems.Center}
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="min-w-0 shrink"
+              gap={2}
             >
-              {getSliceLabel(slice.key)}
-            </Text>
-            {moneyApy ? (
+              {showAllocationDot ? (
+                <View
+                  testID={HomepageBalanceBreakdownTestIds.DOT(slice.key)}
+                  style={[
+                    tw.style('h-2 w-2 rounded-full'),
+                    getAllocationColorStyle(slice),
+                  ]}
+                />
+              ) : null}
               <Text
-                color={TextColor.SuccessDefault}
+                color={TextColor.TextDefault}
                 fontWeight={FontWeight.Medium}
-                testID={HomepageBalanceBreakdownTestIds.APY}
-                variant={TextVariant.BodySm}
+                numberOfLines={1}
+                twClassName="shrink"
+                variant={TextVariant.BodyMd}
               >
-                {moneyApy} APY
+                {getSliceLabel(slice.key)}
               </Text>
+              {percentageLabel ? (
+                <>
+                  <Text
+                    color={TextColor.TextAlternative}
+                    variant={TextVariant.BodyMd}
+                  >
+                    ·
+                  </Text>
+                  <SensitiveText
+                    color={TextColor.TextAlternative}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Short}
+                    testID={HomepageBalanceBreakdownTestIds.PERCENTAGE(
+                      slice.key,
+                    )}
+                    variant={TextVariant.BodyMd}
+                  >
+                    {percentageLabel}
+                  </SensitiveText>
+                </>
+              ) : null}
+            </Box>
+            {slice.key === 'money' && slice.apyLoading ? (
+              <Skeleton
+                height={20}
+                testID={HomepageBalanceBreakdownTestIds.APY_SKELETON}
+                twClassName="shrink-0"
+                width={60}
+              />
+            ) : moneyApy ? (
+              <Box
+                testID={HomepageBalanceBreakdownTestIds.APY}
+                twClassName="shrink-0 rounded-md bg-success-muted px-1.5 py-0.5"
+              >
+                <Text
+                  color={TextColor.SuccessDefault}
+                  fontWeight={FontWeight.Medium}
+                  variant={TextVariant.BodySm}
+                >
+                  {moneyApy} APY
+                </Text>
+              </Box>
             ) : null}
           </Box>
           <Skeleton

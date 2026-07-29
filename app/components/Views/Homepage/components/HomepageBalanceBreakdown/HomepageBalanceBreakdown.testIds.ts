@@ -11,7 +11,9 @@ export const HomepageBalanceBreakdownTestIds = {
   ROW: (key: SliceKey) => `homepage-balance-breakdown-row-${key}`,
   ICON: (key: SliceKey) => `homepage-balance-breakdown-icon-${key}`,
   DOT: (key: SliceKey) => `homepage-balance-breakdown-dot-${key}`,
+  PERCENTAGE: (key: SliceKey) => `homepage-balance-breakdown-percentage-${key}`,
   VALUE: (key: SliceKey) => `homepage-balance-breakdown-value-${key}`,
   SKELETON: (key: SliceKey) => `homepage-balance-breakdown-skeleton-${key}`,
   APY: 'homepage-balance-breakdown-money-apy',
+  APY_SKELETON: 'homepage-balance-breakdown-money-apy-skeleton',
 } as const;
