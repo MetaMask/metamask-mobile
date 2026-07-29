@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import MoneyCondensedInfoCards from './MoneyCondensedInfoCards';
 import { MoneyCondensedInfoCardsTestIds } from './MoneyCondensedInfoCards.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -42,27 +42,30 @@ describe('MoneyCondensedInfoCards', () => {
     expect(whatYouGetImage.props.style).toEqual({ height: 66, width: 66 });
   });
 
-  it('renders correct titles and subtitles', () => {
+  it('renders correct titles', () => {
     const { getByText } = render(<MoneyCondensedInfoCards />);
 
     expect(
       getByText(strings('money.condensed_cards.how_it_works_title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('money.condensed_cards.how_it_works_subtitle')),
-    ).toBeOnTheScreen();
-    expect(
       getByText(strings('money.condensed_cards.musd_title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.condensed_cards.musd_subtitle')),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('money.condensed_cards.what_you_get_title')),
     ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.condensed_cards.what_you_get_subtitle')),
-    ).toBeOnTheScreen();
+  });
+
+  it('renders each card as a single title line with no subtitle', () => {
+    const { getByTestId } = render(<MoneyCondensedInfoCards />);
+
+    [
+      MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD,
+      MoneyCondensedInfoCardsTestIds.MUSD_CARD,
+      MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_CARD,
+    ].forEach((testID) => {
+      expect(within(getByTestId(testID)).getAllByRole('text')).toHaveLength(1);
+    });
   });
 
   it('calls onHowItWorksPress when How it works card is pressed', () => {

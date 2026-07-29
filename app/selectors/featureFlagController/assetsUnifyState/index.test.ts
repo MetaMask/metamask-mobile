@@ -1,6 +1,7 @@
 import {
   selectIsAssetsUnifyStateEnabled,
   isAssetsUnifyStateFeatureEnabled,
+  isAssetsUnifyStateTracesEnabled,
   getIsDeprecatedController,
   selectIsControllerDeprecated,
   AssetsUnifyStateFeatureFlag,
@@ -56,6 +57,47 @@ describe('isAssetsUnifyStateFeatureEnabled', () => {
 
   it('returns false for undefined flagValue', () => {
     expect(isAssetsUnifyStateFeatureEnabled(undefined)).toBe(false);
+  });
+});
+
+describe('isAssetsUnifyStateTracesEnabled', () => {
+  it('returns true when unify is enabled and tracesEnabled is true', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      tracesEnabled: true,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(true);
+  });
+
+  it('returns false when tracesEnabled is absent', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(false);
+  });
+
+  it('returns false when tracesEnabled is false', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      tracesEnabled: false,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(false);
+  });
+
+  it('returns false when unify itself is disabled', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: false,
+      featureVersion: null,
+      tracesEnabled: true,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(false);
   });
 });
 
