@@ -44,6 +44,15 @@ on:
         required: false
         type: string
         default: ''
+      reuse_main_builds:
+        description: >-
+          When true, skip fresh Android BrowserStack builds and reuse the latest
+          uploaded apps from main-branch CI instead (same behavior as CI test-only PRs).
+          Falls back to a fresh build if no reusable main apps are found. Ignored when
+          manual browserstack_app_url_* inputs are provided.
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       description:

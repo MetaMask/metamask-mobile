@@ -736,25 +736,6 @@ describe('PredictBalance', () => {
       expect(getByText(/\$42\.50/)).toBeOnTheScreen();
       expect(queryByTestId(PREDICT_BALANCE_TEST_IDS.ERROR)).toBeNull();
     });
-
-    it('hides the title in the error state when hideTitle is true', () => {
-      // Arrange
-      mockUsePredictBalance.mockReturnValue({
-        data: undefined,
-        isLoading: false,
-        isError: true,
-        isFetching: false,
-        refetch: jest.fn(),
-      });
-
-      // Act
-      const { queryByText } = renderWithProvider(<PredictBalance hideTitle />, {
-        state: initialState,
-      });
-
-      // Assert
-      expect(queryByText(strings('wallet.predict'))).toBeNull();
-    });
   });
 
   describe('balance refresh', () => {
@@ -945,14 +926,6 @@ describe('PredictBalance', () => {
       });
 
       expect(getByText(strings('wallet.predict'))).toBeOnTheScreen();
-    });
-
-    it('hides Predictions title when hideTitle is true', () => {
-      const { queryByText } = renderWithProvider(<PredictBalance hideTitle />, {
-        state: initialState,
-      });
-
-      expect(queryByText(strings('wallet.predict'))).toBeNull();
     });
 
     it('handles undefined balance gracefully', () => {

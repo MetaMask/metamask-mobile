@@ -10,8 +10,23 @@ import {
 } from '../../../../tests/component-view/renderers/activity';
 import {
   ACTIVITY_CV_ACCOUNT,
+  ACTIVITY_CV_NFT_COLLECTION_NAME,
+  ACTIVITY_CV_NFT_CONTRACT,
+  ACTIVITY_CV_RECIPIENT,
+  activityCvBridgeHistoryEntry,
+  activityCvCrossChainSwapBridgeHistoryEntry,
   activityLineaNetworkOverride,
+  buildConfirmedLocalBridgeTransaction,
+  buildConfirmedLocalContractInteractionTransaction,
+  buildConfirmedLocalCrossChainSwapTransaction,
+  buildConfirmedLocalSendTransaction,
+  buildConfirmedLocalUsdcApproveTransaction,
+  buildConfirmedLocalUsdcIncreaseAllowanceTransaction,
+  buildConfirmedLocalUsdcRevokeTransaction,
+  buildConfirmedLocalUsdcSendTransaction,
+  buildConfirmedLocalUsdcUnlimitedApproveTransaction,
   initialStateActivityWithAccountsApi,
+  initialStateActivityWithLocalTransactions,
 } from '../../../../tests/component-view/presets/activity';
 import {
   clearAccountsTransactionsApiMocks,
@@ -22,6 +37,21 @@ import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
+
+// Row testIDs mirror ActivityListItemRow markup. Defined locally so this route
+// suite does not import from the sibling ActivityList route (ADR 0020).
+const activityListRowTitleTestId = (hash: string): string =>
+  `activity-title-${hash}`;
+const activityListRowSubtitleTestId = (hash: string): string =>
+  `activity-subtitle-${hash}`;
+const activityListRowPrimaryAmountTestId = (hash: string): string =>
+  `activity-primary-amount-${hash}`;
+const activityListRowSecondaryAmountTestId = (hash: string): string =>
+  `activity-secondary-amount-${hash}`;
+const activityListRowAvatarSingleTestId = (hash: string): string =>
+  `activity-row-avatar-single-${hash}`;
+const activityListRowAvatarStackTestId = (hash: string): string =>
+  `activity-row-avatar-stack-${hash}`;
 
 const USDC_MAINNET = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
@@ -444,6 +474,584 @@ describeForPlatforms('ActivityScreen — empty state', () => {
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.CARD.ROOT)),
+    ).toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — transaction rows', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  // Default type filter is Transactions (`All` is off the sheet for now).
+  it('shows Send ETH under Transactions filter with negative primary amount and a single avatar', async () => {
+    const sendTransaction = buildConfirmedLocalSendTransaction();
+    const sendHash = sendTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      sendTransaction,
+    ]).build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(sendHash));
+    expect(title).toHaveTextContent('Sent ETH');
+
+    const subtitle = await findByTestId(
+      activityListRowSubtitleTestId(sendHash),
+    );
+    expect(subtitle).toBeOnTheScreen();
+    expect(subtitle).toHaveTextContent('To: 0x80181...229cC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(sendHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^-.*ETH/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(sendHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*USD/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(sendHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Receive ETH under Transactions filter with positive primary amount and a single avatar', async () => {
+    const receiveHash = '0xactivitycvreceiveeth';
+    setupAccountsTransactionsApiMock([
+      {
+        hash: receiveHash,
+        timestamp: new Date().toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_RECIPIENT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '1000000000000000000',
+        valueTransfers: [
+          {
+            from: ACTIVITY_CV_RECIPIENT,
+            to: ACTIVITY_CV_ACCOUNT,
+            amount: '1000000000000000000',
+            symbol: 'ETH',
+            decimal: 18,
+            // Omit transferType so shouldSkipTransaction keeps this inbound row.
+          },
+        ],
+        isError: false,
+        transactionCategory: 'STANDARD',
+      },
+    ]);
+
+    const state = initialStateActivityWithAccountsApi().build();
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(receiveHash)),
+      { timeout: 10000 },
+    );
+    expect(title).toHaveTextContent('Received ETH');
+
+    const subtitle = await findByTestId(
+      activityListRowSubtitleTestId(receiveHash),
+    );
+    expect(subtitle).toBeOnTheScreen();
+    expect(subtitle).toHaveTextContent('From: 0x80181...229cC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(receiveHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+.*ETH/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(receiveHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Send USDC under Transactions filter with negative primary amount and a single avatar', async () => {
+    const sendTransaction = buildConfirmedLocalUsdcSendTransaction();
+    const sendHash = sendTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      sendTransaction,
+    ]).build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(sendHash));
+    expect(title).toHaveTextContent('Sent USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(sendHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^-.*USDC/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(sendHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Receive USDC under Transactions filter with positive primary amount and a single avatar', async () => {
+    const receiveHash = '0xactivitycvreceiveusdc';
+    setupAccountsTransactionsApiMock([
+      {
+        hash: receiveHash,
+        timestamp: new Date().toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_RECIPIENT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0',
+        valueTransfers: [
+          {
+            from: ACTIVITY_CV_RECIPIENT,
+            to: ACTIVITY_CV_ACCOUNT,
+            amount: '1000000',
+            symbol: 'USDC',
+            decimal: 6,
+            // Omit contractAddress so shouldSkipTransaction keeps this inbound row.
+            name: 'USD Coin',
+            transferType: 'ERC20',
+          },
+        ],
+        isError: false,
+        transactionCategory: 'TRANSFER',
+      },
+    ]);
+
+    const state = initialStateActivityWithAccountsApi().build();
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(receiveHash)),
+      { timeout: 10000 },
+    );
+    expect(title).toHaveTextContent('Received USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(receiveHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(receiveHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Swap ETH to USDC under Transactions filter with dual avatar and negative spent amount', async () => {
+    const swapHash = '0xactivitycvswapethusdc';
+    const aggregator = ACTIVITY_CV_RECIPIENT;
+    setupAccountsTransactionsApiMock([
+      {
+        hash: swapHash,
+        timestamp: new Date().toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0',
+        valueTransfers: [
+          {
+            from: ACTIVITY_CV_ACCOUNT,
+            to: aggregator,
+            amount: '1000000000000000000',
+            decimal: 18,
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+          {
+            from: aggregator,
+            to: ACTIVITY_CV_ACCOUNT,
+            amount: '1000000',
+            decimal: 6,
+            contractAddress: USDC_MAINNET,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            transferType: 'erc20',
+          },
+        ],
+        isError: false,
+        transactionCategory: 'EXCHANGE',
+      },
+    ]);
+
+    const state = initialStateActivityWithAccountsApi().build();
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(swapHash)),
+      { timeout: 10000 },
+    );
+    // Title "Swapped"; pair in subtitle ("ETH → USDC").
+    expect(title).toHaveTextContent('Swapped');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(swapHash)),
+    ).toHaveTextContent('ETH → USDC');
+
+    // Destination (+USDC) primary; spent ETH secondary.
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(swapHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(swapHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
+
+    expect(
+      await findByTestId(activityListRowAvatarStackTestId(swapHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Bridge under Transactions filter with dual avatar, primary amount and secondary amount', async () => {
+    const bridgeTransaction = buildConfirmedLocalBridgeTransaction();
+    const bridgeHash = bridgeTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([bridgeTransaction])
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            BridgeStatusController: {
+              txHistory: {
+                [bridgeTransaction.id]: activityCvBridgeHistoryEntry,
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(bridgeHash));
+    expect(title).toHaveTextContent('Bridged USDC');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(bridgeHash)),
+    ).toHaveTextContent('Ethereum → Linea');
+
+    // Dest amount present → +USDC primary, -ETH secondary.
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(bridgeHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(bridgeHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
+
+    expect(
+      await findByTestId(activityListRowAvatarStackTestId(bridgeHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Swapped under Transactions filter with dual avatar with bridged tokens in the subtitle, primary amount and secondary amount, when bridging different tokens on different networks', async () => {
+    const swapTransaction = buildConfirmedLocalCrossChainSwapTransaction();
+    const swapHash = swapTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([swapTransaction])
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            BridgeStatusController: {
+              txHistory: {
+                [swapTransaction.id]:
+                  activityCvCrossChainSwapBridgeHistoryEntry,
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(swapHash));
+    // Cross-chain different-token unified swap: "Swapped" + token-pair subtitle.
+    expect(title).toHaveTextContent('Swapped');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(swapHash)),
+    ).toHaveTextContent('ETH → USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(swapHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(swapHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
+
+    expect(
+      await findByTestId(activityListRowAvatarStackTestId(swapHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Approve USDC under Transactions filter with unsigned primary amount and a single avatar', async () => {
+    const approveTransaction = buildConfirmedLocalUsdcApproveTransaction();
+    const approveHash = approveTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      approveTransaction,
+    ]).build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(approveHash));
+    expect(title).toHaveTextContent('Approved spending cap');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(approveHash)),
+    ).toHaveTextContent('USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(approveHash),
+    );
+    expect(primaryAmount).toHaveTextContent('100 USDC');
+    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(approveHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows increased spending cap under Transactions filter with amount and a single avatar with subtitle of token', async () => {
+    const increaseTransaction =
+      buildConfirmedLocalUsdcIncreaseAllowanceTransaction();
+    const increaseHash = increaseTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      increaseTransaction,
+    ]).build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(increaseHash));
+    expect(title).toHaveTextContent('Increased spending cap');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(increaseHash)),
+    ).toHaveTextContent('USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(increaseHash),
+    );
+    expect(primaryAmount).toHaveTextContent('100 USDC');
+    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(increaseHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Contract interaction under Transactions filter with no amount sign and a single avatar', async () => {
+    const contractTransaction =
+      buildConfirmedLocalContractInteractionTransaction();
+    const contractHash = contractTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      contractTransaction,
+    ]).build();
+
+    const { findByTestId, queryByTestId, getAllByText } =
+      renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(contractHash));
+    expect(title).toHaveTextContent(
+      strings('transactions.smart_contract_interaction'),
+    );
+
+    // Zero-value interaction has no primary amount.
+    expect(
+      queryByTestId(activityListRowPrimaryAmountTestId(contractHash)),
+    ).toBeNull();
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(contractHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Unlimited Approval of USDC under Transactions filter with unsigned primary amount and a single avatar', async () => {
+    const approveTransaction =
+      buildConfirmedLocalUsdcUnlimitedApproveTransaction();
+    const approveHash = approveTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      approveTransaction,
+    ]).build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(approveHash));
+    expect(title).toHaveTextContent('Approved spending cap');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(approveHash)),
+    ).toHaveTextContent('USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(approveHash),
+    );
+    expect(primaryAmount).toHaveTextContent(
+      `${strings('confirm.unlimited')} USDC`,
+    );
+    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(approveHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows revoke approval of USDC under Transactions filter with unsigned primary amount and a single avatar', async () => {
+    const revokeTransaction = buildConfirmedLocalUsdcRevokeTransaction();
+    const revokeHash = revokeTransaction.hash as string;
+    const state = initialStateActivityWithLocalTransactions([
+      revokeTransaction,
+    ]).build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await findByTestId(activityListRowTitleTestId(revokeHash));
+    expect(title).toHaveTextContent(
+      strings('transactions.activity_revoke_spending_cap'),
+    );
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(revokeHash)),
+    ).toHaveTextContent('USDC');
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(revokeHash),
+    );
+    expect(primaryAmount).toHaveTextContent('0 USDC');
+    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(revokeHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows NFT mint under Transactions filter with the collection name in the title', async () => {
+    const mintHash = '0xactivitycvnftmint';
+    const zeroAddress = '0x0000000000000000000000000000000000000000';
+    setupAccountsTransactionsApiMock([
+      {
+        hash: mintHash,
+        timestamp: new Date().toISOString(),
+        chainId: 1,
+        // from = selected account so shouldSkipTransaction does not drop this mint.
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_NFT_CONTRACT,
+        value: '0',
+        valueTransfers: [
+          {
+            from: zeroAddress,
+            to: ACTIVITY_CV_ACCOUNT,
+            contractAddress: ACTIVITY_CV_NFT_CONTRACT,
+            tokenId: '1',
+            name: ACTIVITY_CV_NFT_COLLECTION_NAME,
+            symbol: 'PUNK',
+            transferType: 'erc721',
+          },
+        ],
+        isError: false,
+        transactionCategory: 'TRANSFER',
+      },
+    ]);
+
+    const state = initialStateActivityWithAccountsApi().build();
+    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(mintHash)),
+      { timeout: 10000 },
+    );
+    expect(title).toHaveTextContent(
+      `${strings('transactions.activity_nft_mint')} ${ACTIVITY_CV_NFT_COLLECTION_NAME}`,
+    );
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(mintHash)),
     ).toBeOnTheScreen();
   });
 });
