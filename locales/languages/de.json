@@ -8973,7 +8973,8 @@
         "title": "Auf die Warteliste setzen",
         "load_error": "Beim Laden des Formulars ist etwas schiefgelaufen. Bitte versuchen Sie es erneut.",
         "try_again": "Erneut versuchen",
-        "success_toast": "Sie sind auf der Warteliste! Wir informieren Sie, sobald die Karte in Ihrem Land erhältlich ist."
+        "success_toast": "Sie sind auf der Warteliste!",
+        "success_toast_description": "Wir informieren Sie, sobald die Karte in Ihrem Land erhältlich ist."
       },
       "region_selector": {
         "title": "Land auswählen"

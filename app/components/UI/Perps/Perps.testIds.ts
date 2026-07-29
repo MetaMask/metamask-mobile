@@ -334,10 +334,15 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
+  CANCEL_BUTTON: 'perps-tpsl-cancel-button',
   DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
+  TAKE_PROFIT_CLEAR_BUTTON: 'perps-tpsl-tp-clear-button',
+  STOP_LOSS_CLEAR_BUTTON: 'perps-tpsl-sl-clear-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
+  TAKE_PROFIT_PERCENTAGE_INPUT: 'perps-tpsl-tp-percentage-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
+  STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -484,7 +489,23 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_BOOK_COLLAPSE_BUTTON: 'perps-pro-market-order-book-collapse',
   ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
+  POSITIONS_PANEL_TABS: 'perps-pro-market-positions-panel-tabs',
+  POSITIONS_PANEL_TAB_POSITIONS:
+    'perps-pro-market-positions-panel-tab-positions',
+  POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
+  POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
+  POSITIONS_LIST: 'perps-pro-market-positions-list',
+  POSITION_ROW: 'perps-pro-market-position-row',
+  ORDERS_LIST: 'perps-pro-market-orders-list',
+  ORDER_ROW: 'perps-pro-market-order-row',
 };
+
+// Helper for dynamic Pro position row test IDs
+export const getPerpsProPositionRowSelector = (symbol: string, index: number) =>
+  `${PerpsProMarketViewSelectorsIDs.POSITION_ROW}-${symbol}-${index}`;
+
+export const getPerpsProOrderRowSelector = (symbol: string, index: number) =>
+  `${PerpsProMarketViewSelectorsIDs.ORDER_ROW}-${symbol}-${index}`;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',

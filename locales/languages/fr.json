@@ -8973,7 +8973,8 @@
         "title": "S’inscrire sur la liste d’attente",
         "load_error": "Une erreur s’est produite lors du chargement du formulaire. Veuillez réessayer.",
         "try_again": "Réessayez",
-        "success_toast": "Vous êtes sur la liste d’attente ! Nous vous informerons lorsque la carte sera disponible dans votre pays."
+        "success_toast": "Vous êtes sur la liste d’attente !",
+        "success_toast_description": "Nous vous informerons lorsque la carte sera disponible dans votre pays."
       },
       "region_selector": {
         "title": "Sélectionnez votre région"
