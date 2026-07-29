@@ -5,10 +5,12 @@ import WebView from '../../framework/WebView.js';
 import TestSnaps, {
   TEST_SNAPS_URL,
 } from '../../page-objects/Browser/TestSnaps.js';
-import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors.js';
+import {
+  TestSnapResultSelectorWebIDS,
+  testSnapsAndroidScrollOptions,
+} from '../../selectors/Browser/TestSnaps.selectors.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
-import { testSnapsAndroidScrollOptions } from './helpers/android-test-snaps-native.helpers.js';
 import { sleep } from '../../framework/Utilities.ts';
 import { logger } from '../../framework/logger.ts';
 

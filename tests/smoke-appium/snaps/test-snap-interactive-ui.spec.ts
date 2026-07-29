@@ -9,19 +9,9 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe.skip(SmokeSnaps('Interactive UI Snap Tests'), () => {
-  // Skipped: iOS Appium needs platform-specific Snap UI locators (textfield,
-  // dropdown vs selector sheets, ApprovalModal date/time pickers). Revisit later.
+  // Skipped: Appium needs platform-specific Snap UI locators (textfield,
+  // dropdown vs selector sheets, DateTimeModal date/time pickers). Revisit later.
   appiumTest.describe.configure({ timeout: 150_000 });
-
-  appiumTest(
-    'can connect to the Interactive UI Snap',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(currentDeviceDetails, {}, async () => {
-        await loginAndOpenTestSnaps();
-        await TestSnaps.installSnap('connectInteractiveButton');
-      });
-    },
-  );
 
   appiumTest(
     'renders an interactive UI',

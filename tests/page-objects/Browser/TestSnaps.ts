@@ -10,6 +10,7 @@ import {
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
   TEST_SNAPS_URL,
+  testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import WebView, { type WebViewByIdOptions } from '../../framework/WebView';
 import Gestures from '../../framework/Gestures';
@@ -26,10 +27,11 @@ import {
   RetryOptions,
   EncapsulatedElementType,
   resolve,
+  encapsulated,
 } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { testSnapsAndroidScrollOptions } from '../../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
@@ -450,16 +452,42 @@ class TestSnaps {
 
     await Gestures.tap(dropdown);
 
-    const selectorItem = element(
-      by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
-    ) as unknown as DetoxElement;
+    const selectorItem = encapsulated({
+      detox: () =>
+        element(
+          by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.resourceIdMatches(".*snap-ui-renderer__selector-item.*").childSelector(new UiSelector().text("${text}"))`,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@name="snap-ui-renderer__selector-item" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="snap-ui-renderer__selector-item"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
+          ),
+      },
+    });
     await Gestures.tap(selectorItem);
   }
 
   async selectRadioButton(text: string) {
-    const radioButton = element(
-      by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
-    ) as unknown as DetoxElement;
+    const radioButton = encapsulated({
+      detox: () =>
+        element(
+          by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.resourceIdMatches(".*snap-ui-renderer__radio-button.*").childSelector(new UiSelector().text("${text}"))`,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@name="snap-ui-renderer__radio-button" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="snap-ui-renderer__radio-button"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
+          ),
+      },
+    });
     await Gestures.tap(radioButton);
   }
 

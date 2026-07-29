@@ -126,6 +126,48 @@ export const NativeDropdownSelectorWebIDS = {
   snapUIDropdown: 'snap-ui-renderer__dropdown',
 };
 
+/**
+ * Visible button labels for Android UiScrollable fallbacks when resource-id
+ * nodes are virtualized off-screen in the WebView accessibility tree.
+ */
+export const TEST_SNAPS_ANDROID_SCROLL_LABELS: Record<string, string> = {
+  connectbip32: 'Connect to BIP-32 Snap',
+  connectbip44: 'Connect to BIP-44 Snap',
+  'connectbackground-events': 'Connect to Background Events Snap',
+  'connectclient-status': 'Connect to Client Status Snap',
+  connectcronjobs: 'Connect to Cronjobs Snap',
+  connectdialogs: 'Connect to Dialogs Snap',
+  connecterrors: 'Connect to Errors Snap',
+  connectGetEntropySnap: 'Connect to Get Entropy Snap',
+  connectgetfile: 'Connect to Get File Snap',
+  connectimages: 'Connect to Image Snap',
+  'connectinteractive-ui': 'Connect to Interactive UI Snap',
+  connectjsx: 'Connect to JSX Snap',
+  'connectjson-rpc': 'Connect to JSON-RPC Snap',
+  'connectlifecycle-hooks': 'Connect to Lifecycle Hooks Snap',
+  'connectmanage-state': 'Connect to Manage State Snap',
+  'connectmultichain-provider': 'Connect to Multichain Provider Snap',
+  'connectname-lookup': 'Connect to Name Lookup Snap',
+  'connectnetwork-access': 'Connect to Network Access Snap',
+  'connectethereum-provider': 'Connect to Ethereum Provider Snap',
+  connectpreferences: 'Connect to Preferences Snap',
+  connectstate: 'Connect to State Snap',
+  connectwasm: 'Connect to WebAssembly Snap',
+  sendError: 'Send Test to Error Snap',
+  sendConfirmationButton: 'Confirmation',
+  sendClientStatusTest: 'Submit',
+  sendRpc: 'Invoke Snap',
+  sendWasmMessage: 'Calculate',
+  getPreferences: 'Submit',
+  showPreinstalledDialog: 'Show dialog',
+  trackEvent: 'Track event',
+  'messenger-call': 'Messenger call',
+};
+
+export const testSnapsAndroidScrollOptions = {
+  scrollLabels: TEST_SNAPS_ANDROID_SCROLL_LABELS,
+};
+
 export const TestSnapResultSelectorWebIDS = {
   bip44ResultSpan: 'bip44Result',
   bip44SignResultSpan: 'bip44SignResult',
