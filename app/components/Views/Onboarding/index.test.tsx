@@ -78,6 +78,8 @@ import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { AccountType, OnboardingMethod } from '../../../constants/onboarding';
+import { OnboardingCtaIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { _resetOnboardingNavigationPerformanceForTesting } from '../../../hooks/performance/onboardingNavigationPerformanceState';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ATTRIBUTION_DEFAULT_TTL_MS } from '../../../core/redux/slices/attribution';
@@ -3521,6 +3523,7 @@ describe('Onboarding', () => {
     };
 
     beforeEach(() => {
+      _resetOnboardingNavigationPerformanceForTesting();
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
       (Device.isIos as jest.Mock).mockReturnValue(false);
@@ -3606,6 +3609,81 @@ describe('Onboarding', () => {
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingJourneyOverall,
+        }),
+      );
+    });
+
+    it('re-annotates the journey with the account type the login resolved to', async () => {
+      (isSentryEnabled as jest.Mock).mockReturnValue(true);
+      // The user asked to create a wallet, but the account already exists, so the
+      // journey turns out to be an import.
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: true,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        await googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(annotateTrace).toHaveBeenCalledWith(expect.anything(), {
+          account_type: AccountType.ImportedGoogle,
+        });
+      });
+    });
+
+    it('does not start a CTA navigation span while OAuth is still in the browser', async () => {
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles: the user is still on the provider's login page.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        void googleLogin(true);
+      });
+
+      // Timing the tap would charge the OAuth round trip to navigation latency.
+      expect(mockTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCtaNavigation,
+        }),
+      );
+    });
+
+    it('starts the CTA navigation span once OAuth resolves the destination', async () => {
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: true,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        await googleLogin(false);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingCtaNavigation,
+            tags: expect.objectContaining({
+              cta_id: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+            }),
+          }),
+        );
+      });
+      // The destination screen ends it, so it is still open here.
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCtaNavigation,
         }),
       );
     });
@@ -3760,7 +3838,7 @@ describe('Onboarding', () => {
       });
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingSocialLoginAttempt,
-        data: { success: false },
+        data: { success: false, reason: 'login_abandoned' },
       });
     });
 

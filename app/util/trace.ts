@@ -342,6 +342,96 @@ const tracesByKey: Map<string, PendingTrace> = new Map();
 
 const localBufferedTraces: BufferedTrace[] = [];
 
+/**
+ * Attribute written to `Onboarding - Overall Journey` holding the summed duration
+ * of the spans listed in `MACHINE_TIME_TRACE_NAMES`.
+ *
+ * The journey's own duration is not comparable between users because it also
+ * contains human time — reading the landing screen, typing a password, and the
+ * OAuth round trip through the external browser. This isolates the part of the
+ * journey the app itself is responsible for.
+ */
+export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
+
+/**
+ * Spans summed into `onboarding.machine.ms`. Every onboarding path contributes its
+ * own terminal work so the totals stay comparable: social rehydration waits in
+ * Password Login Attempt, wallet creation in SRP Account Creation Time, and SRP
+ * import in SRP Account Import Time.
+ *
+ * Members must not overlap in time, or the shared period is counted twice. Create
+ * Key and Backup SRP is therefore absent: it runs inside SRP Account Creation
+ * Time, as do Fetch SRPs and Authenticate User inside Password Login Attempt.
+ *
+ * Also absent are the spans dominated by human time: OAuth Provider Login (the
+ * user is typing credentials in the browser) and Password Setup Attempt (spans
+ * mount → unmount of ChoosePassword, so mostly typing).
+ */
+const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
+  TraceName.OnboardingScreenTimeToContent,
+  TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+  TraceName.OnboardingOAuthSeedlessAuthenticate,
+  TraceName.OnboardingPasswordLoginAttempt,
+  TraceName.OnboardingSRPAccountCreationTime,
+  TraceName.OnboardingSRPAccountImportTime,
+]);
+
+let onboardingMachineTimeMs = 0;
+
+const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
+const ONBOARDING_OP_PREFIX = 'onboarding.';
+
+/**
+ * Account type of the onboarding journey in progress — `metamask_google`,
+ * `imported`, and so on. Sourced from the overall-journey span, which is tagged as
+ * soon as the user picks a path, and inherited by every span in an onboarding
+ * operation so each one can be grouped by account type in Sentry.
+ *
+ * Held here rather than threaded through call sites because the spans that need it
+ * most are started deep inside OAuthService and Authentication, before the account
+ * type is known to Redux: `setAccountType` is only dispatched once the OAuth login
+ * has resolved, by which point the provider and seedless spans have closed.
+ */
+let onboardingAccountType: string | undefined;
+
+/**
+ * Record the journey's account type when the given tags carry one.
+ *
+ * @param tags - Tags from a journey trace request or annotation.
+ */
+function rememberOnboardingAccountType(
+  tags?: Record<string, TraceValue>,
+): void {
+  const accountType = tags?.[ACCOUNT_TYPE_ATTRIBUTE];
+
+  if (typeof accountType === 'string') {
+    onboardingAccountType = accountType;
+  }
+}
+
+/**
+ * Resolve the attributes a span starts with, adding the journey's account type to
+ * onboarding spans that do not already set one of their own.
+ *
+ * @param request - The trace request being started.
+ * @returns The attributes to open the span with.
+ */
+function getSpanAttributes(
+  request: TraceRequest,
+): Record<string, TraceValue> | undefined {
+  const { data, op } = request;
+
+  if (
+    !op?.startsWith(ONBOARDING_OP_PREFIX) ||
+    onboardingAccountType === undefined ||
+    data?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+  ) {
+    return data;
+  }
+
+  return { ...data, [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType };
+}
+
 export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
@@ -552,9 +642,88 @@ export function annotateTrace(
     return;
   }
 
+  rememberOnboardingAccountType(tags);
+
   for (const [key, value] of Object.entries(tags)) {
     context.setAttribute(key, value);
   }
+}
+
+/**
+ * Add a finished span's duration to the machine-time total of the current
+ * onboarding journey.
+ *
+ * Spans ended with `success: false` are skipped. An abandoned OAuth call or a
+ * screen unmounted before its content rendered is finished with a duration capped
+ * at `TRACES_CLEANUP_INTERVAL`, which measures a wait the user never experienced
+ * and would dwarf the real total.
+ *
+ * @param request - The end request for the span that just finished.
+ * @param duration - The recorded duration of that span, in milliseconds.
+ */
+function addOnboardingMachineTime(
+  request: EndTraceRequest,
+  duration: number,
+): void {
+  if (!MACHINE_TIME_TRACE_NAMES.has(request.name)) {
+    return;
+  }
+
+  if (request.data?.success === false || !Number.isFinite(duration)) {
+    return;
+  }
+
+  onboardingMachineTimeMs += Math.max(duration, 0);
+}
+
+/**
+ * Credit machine-time spans that are still open as the journey ends with the part
+ * of their duration that fell inside the journey.
+ *
+ * The social wallet-creation path ends the journey from inside SRP Account
+ * Creation Time, so without this the slowest wait of that path — vault creation
+ * and the SRP backup — would be missing from its own journey's total.
+ *
+ * @param journeyEndTime - The effective end timestamp of the journey span.
+ */
+function addOpenOnboardingMachineTime(journeyEndTime: number): void {
+  for (const pendingTrace of tracesByKey.values()) {
+    if (!MACHINE_TIME_TRACE_NAMES.has(pendingTrace.request.name)) {
+      continue;
+    }
+
+    const { startTime } = pendingTrace;
+    const cappedEndTime = Math.min(
+      journeyEndTime,
+      startTime + TRACES_CLEANUP_INTERVAL,
+    );
+
+    if (!Number.isFinite(cappedEndTime - startTime)) {
+      continue;
+    }
+
+    onboardingMachineTimeMs += Math.max(cappedEndTime - startTime, 0);
+  }
+}
+
+/**
+ * Write the machine-time total to the overall-journey span and clear it for any
+ * later journey in the same session. Must run before the span is finished, since
+ * attributes set afterwards are not recorded.
+ *
+ * @param span - The journey span being finished, if it exists.
+ */
+function finalizeOnboardingMachineTime(span?: Span): void {
+  // Mirrors the guard around span.end(): the tracing layer must never throw into
+  // an onboarding flow because a span implementation is incomplete.
+  if (span?.setAttribute !== undefined) {
+    span.setAttribute(
+      ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+      Math.round(onboardingMachineTimeMs),
+    );
+  }
+
+  onboardingMachineTimeMs = 0;
 }
 
 export function endTrace(request: EndTraceRequest): void {
@@ -584,10 +753,23 @@ export function endTrace(request: EndTraceRequest): void {
     }
   }
 
-  const endTime = finishPendingTrace(key, pendingTrace, timestamp);
+  let endTimeRequest = timestamp;
+
+  if (name === TraceName.OnboardingJourneyOverall) {
+    // Resolved here because the machine-time total needs the journey's end before
+    // the span is finished. Capping is idempotent, so handing the resolved value
+    // to finishPendingTrace records the same timestamp without re-reading the clock.
+    endTimeRequest = getEffectiveEndTime(pendingTrace, timestamp);
+    addOpenOnboardingMachineTime(endTimeRequest);
+    finalizeOnboardingMachineTime(pendingTrace.span);
+  }
+
+  const endTime = finishPendingTrace(key, pendingTrace, endTimeRequest);
 
   const { request: pendingRequest, startTime } = pendingTrace;
   const duration = endTime - startTime;
+
+  addOnboardingMachineTime(request, duration);
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
 }
@@ -798,6 +980,17 @@ function startTrace(request: TraceRequest): TraceContext {
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
 
+  if (name === TraceName.OnboardingJourneyOverall) {
+    // Machine time and account type are scoped to a single journey, and the
+    // social-login path recreates this span once metrics consent is live, so a new
+    // journey span always supersedes what came before it. The account type is
+    // re-seeded from this request, or from the annotation that follows it on paths
+    // that only learn the account type after the span exists.
+    onboardingMachineTimeMs = 0;
+    onboardingAccountType = undefined;
+    rememberOnboardingAccountType(request.tags);
+  }
+
   if (getCachedConsent() !== true) {
     // Extract parent trace name if parentContext exists
     let parentTraceName: string | undefined;
@@ -876,11 +1069,11 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, op } = request;
+  const { name, parentContext, startTime, op } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
-    attributes,
+    attributes: getSpanAttributes(request),
     name,
     op: op || OP_DEFAULT,
     parentSpan,

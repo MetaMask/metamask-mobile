@@ -168,6 +168,19 @@ interface OnboardingRouteParams {
 // redirect and token exchange should finish within this grace period.
 export const OAUTH_TRACE_ABANDONMENT_GRACE_MS = 25_000;
 
+const SOCIAL_CTA_IDS: Partial<Record<AuthConnection, OnboardingCtaId>> = {
+  [AuthConnection.Google]: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+  [AuthConnection.Apple]: OnboardingCtaIds.SOCIAL_LOGIN_APPLE,
+  [AuthConnection.Telegram]: OnboardingCtaIds.SOCIAL_LOGIN_TELEGRAM,
+};
+
+function getSocialCtaId(provider: string): OnboardingCtaId {
+  return (
+    SOCIAL_CTA_IDS[provider as AuthConnection] ??
+    OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE
+  );
+}
+
 /**
  * Kept outside the component so React Compiler can optimize Onboarding.
  * Conditionals / value blocks inside try/catch inside the component bail out.
@@ -275,16 +288,15 @@ const Onboarding = () => {
   const socialLoginTraceCtx = useRef<TraceContext>(undefined);
 
   const endSocialLoginAttemptTrace = useCallback(
-    (success: boolean, cancelReason?: string) => {
+    (success: boolean, failureReason?: string) => {
       if (socialLoginTraceCtx.current) {
         endTrace({
           name: TraceName.OnboardingSocialLoginAttempt,
-          data: { success },
+          data: failureReason
+            ? { success, reason: failureReason }
+            : { success },
         });
         socialLoginTraceCtx.current = undefined;
-      }
-      if (!success && cancelReason) {
-        cancelPendingOnboardingCtaNavigation(cancelReason);
       }
     },
     [],
@@ -555,14 +567,19 @@ const Onboarding = () => {
 
       const accountType = getSocialAccountType(provider, result.existingUser);
       dispatch(setAccountType({ accountType, onboardingVersion }));
+      annotateTrace(onboardingTraceCtx.current, { account_type: accountType });
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
         ...walletSetupAttributionAnalyticsProps,
       });
+      // Anchor the CTA navigation span here rather than at the tap so it covers
+      // only the navigation to the destination screen, not the OAuth round trip.
+      // Each destination below ends it via useNavigationPerformance.
+      startOnboardingCtaNavigation(getSocialCtaId(provider));
+
       if (createWallet) {
         if (result.existingUser) {
-          cancelPendingOnboardingCtaNavigation('account_already_exists');
           navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
@@ -599,7 +616,6 @@ const Onboarding = () => {
           }
         }
       } else if (result.existingUser) {
-        cancelPendingOnboardingCtaNavigation('existing_user_rehydrate');
         trace({
           name: TraceName.OnboardingExistingSocialLogin,
           op: TraceOperation.OnboardingUserJourney,
@@ -622,7 +638,6 @@ const Onboarding = () => {
               onboardingTraceCtx: onboardingTraceCtx.current,
             });
       } else {
-        cancelPendingOnboardingCtaNavigation('account_not_found');
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
           oauthLoginSuccess: true,
@@ -889,16 +904,10 @@ const Onboarding = () => {
         return;
       }
 
-      const socialCtaIdByProvider: Partial<
-        Record<AuthConnection, OnboardingCtaId>
-      > = {
-        [AuthConnection.Google]: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
-        [AuthConnection.Apple]: OnboardingCtaIds.SOCIAL_LOGIN_APPLE,
-        [AuthConnection.Telegram]: OnboardingCtaIds.SOCIAL_LOGIN_TELEGRAM,
-      };
-      const socialCtaId =
-        socialCtaIdByProvider[provider] ?? OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE;
-      startOnboardingCtaNavigation(socialCtaId);
+      // The CTA navigation span is NOT started here: the tap is followed by an
+      // OAuth round trip through an external browser, which is human time and
+      // would swamp the navigation latency this span measures. It is started in
+      // handlePostSocialLogin, once the destination is known.
 
       // Continue with the social login flow
       navigation.navigate('Onboarding');
@@ -995,7 +1004,6 @@ const Onboarding = () => {
                 OAuthErrorType.UnsupportedPlatform,
               ),
             });
-            cancelPendingOnboardingCtaNavigation('unsupported_platform');
             return;
           }
 
@@ -1396,7 +1404,7 @@ const Onboarding = () => {
             // Finalize the OAuth child spans (provider login, token request) before the
             // attempt span: their promises may never settle after abandonment.
             finalizeInFlightOAuthTraces();
-            endSocialLoginAttemptTrace(false, 'oauth_abandoned');
+            endSocialLoginAttemptTrace(false, 'login_abandoned');
           }
         }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
       }
