@@ -8,7 +8,6 @@ import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   assertAccountCount,
-  inputSrp,
   openImportSrpFromAccountList,
   renameAccountAtIndex,
 } from '../../flows/accounts.flow.js';
@@ -21,6 +20,7 @@ import {
 import { createUserStorageController } from '../../smoke/identity/utils/mocks.js';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../../smoke/identity/utils/constants.js';
 import ImportSrpView from '../../page-objects/importSrp/ImportSrpView.js';
+import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { identityFixtureOptions } from './identity-fixture-options.js';
 
 appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
@@ -71,11 +71,14 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
           await assertAccountCount(SECOND_ACCOUNT_NAME, 1);
 
           await openImportSrpFromAccountList();
-          await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+          await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE_2);
           await ImportSrpView.tapImportButton();
           await waitForWalletHomePlaywright(20_000);
+          // Top import-success toast covers the account picker until it dismisses.
+          await ToastModal.waitForToastToDismiss();
 
           await WalletView.tapIdenticon();
+          await AccountListBottomSheet.waitForAccountListVisible();
           await waitUntilSyncedAccountsNumberEquals(3);
 
           await AccountListBottomSheet.tapAddAccountButtonV2({
@@ -103,11 +106,14 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
           walletTimeout: 15_000,
         });
         await openImportSrpFromAccountList();
-        await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+        await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
         await waitForWalletHomePlaywright(20_000);
+        // Top import-success toast covers the account picker until it dismisses.
+        await ToastModal.waitForToastToDismiss();
 
         await WalletView.tapIdenticon();
+        await AccountListBottomSheet.waitForAccountListVisible();
         for (const [accountName, count] of Object.entries({
           [DEFAULT_ACCOUNT_NAME]: 2,
           [SECOND_ACCOUNT_NAME]: 1,

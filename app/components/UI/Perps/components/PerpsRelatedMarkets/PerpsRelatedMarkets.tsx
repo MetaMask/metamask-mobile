@@ -1,5 +1,7 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
@@ -37,7 +39,7 @@ const LIVE_PRICES_THROTTLE_MS = 3000;
 const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   currentMarket,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const { navigateToMarketList } = usePerpsNavigation();
 

@@ -153,7 +153,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Discovery section header values** _(`PERPS_EVENT_VALUE.BUTTON_CLICKED`)_: `'watchlist'` | `'top_movers'` | `'whats_happening'`
   - **Market list filter values:** `'all'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'watchlist'` (used with `interaction_type = market_list_filter`)
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
-  - **Discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — magnifying glass button on the asset details screen
+  - **Legacy discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — formerly the magnifying-glass button on the asset details screen. That button was replaced by the market-list arrow, which now reports `button_location = 'perp_market_details'` with `button_clicked = 'market_list'`.
 - `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(`PERPS_EVENT_PROPERTY.RESULT_COUNT`.)_
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
@@ -490,22 +490,22 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 
 ### Button Location Values
 
-| Value                      | Description                                    |
-| -------------------------- | ---------------------------------------------- |
-| `'perps_home'`             | Perps home screen                              |
-| `'perps_tutorial'`         | Tutorial screen                                |
-| `'perps_home_empty_state'` | Perps home empty state (no balance)            |
-| `'perps_asset_screen'`     | Asset details screen                           |
-| `'perps_tab'`              | Positions tab                                  |
-| `'trade_menu_action'`      | Trade menu action button                       |
-| `'wallet_home'`            | Wallet home screen                             |
-| `'market_list'`            | Market list screen                             |
-| `'screen'`                 | Generic screen location                        |
-| `'tooltip'`                | Tooltip bottom sheet                           |
-| `'perp_market_details'`    | Market details screen                          |
-| `'order_book'`             | Order book screen                              |
-| `'full_screen_chart'`      | Full screen chart view                         |
-| `'asset_details'`          | Asset details screen — magnifying glass button |
+| Value                      | Description                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `'perps_home'`             | Perps home screen                                                                                                                         |
+| `'perps_tutorial'`         | Tutorial screen                                                                                                                           |
+| `'perps_home_empty_state'` | Perps home empty state (no balance)                                                                                                       |
+| `'perps_asset_screen'`     | Asset details screen                                                                                                                      |
+| `'perps_tab'`              | Positions tab                                                                                                                             |
+| `'trade_menu_action'`      | Trade menu action button                                                                                                                  |
+| `'wallet_home'`            | Wallet home screen                                                                                                                        |
+| `'market_list'`            | Market list screen                                                                                                                        |
+| `'screen'`                 | Generic screen location                                                                                                                   |
+| `'tooltip'`                | Tooltip bottom sheet                                                                                                                      |
+| `'perp_market_details'`    | Market details screen                                                                                                                     |
+| `'order_book'`             | Order book screen                                                                                                                         |
+| `'full_screen_chart'`      | Full screen chart view                                                                                                                    |
+| `'asset_details'`          | Legacy — former magnifying-glass button on the asset details screen (replaced by the market-list arrow reporting `'perp_market_details'`) |
 
 ### Usage Example
 

@@ -15,6 +15,7 @@ import {
 import {
   buildMarketListQueryParams,
   calculateConservativeBuyMarketFee,
+  calculateConservativeSellMarketFee,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
   createApiKey,
@@ -1758,6 +1759,43 @@ describe('polymarket utils', () => {
         normalizeRelatedTagsToFilterOptions([], { source: 'hot-tags' }),
       ).toEqual([]);
     });
+
+    it('skips tags with activeEventsCount of 0 (empty chips like "Other")', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Other', slug: 'other', activeEventsCount: 0 },
+          { id: '2', label: 'NBA', slug: 'nba', activeEventsCount: 4 },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba']);
+    });
+
+    it('keeps tags with a missing activeEventsCount (fail-open)', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NFL', slug: 'nfl', activeEventsCount: 2 },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
+
+    it('does not let empty tags consume a limit slot', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Other', slug: 'other', activeEventsCount: 0 },
+          { id: '2', label: 'NBA', slug: 'nba', activeEventsCount: 4 },
+          { id: '3', label: 'NFL', slug: 'nfl', activeEventsCount: 3 },
+        ],
+        { source: 'hot-tags', limit: 2 },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
   });
 
   it('searches events via public-search endpoint', async () => {
@@ -2207,6 +2245,30 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('calculateConservativeSellMarketFee', () => {
+    it('uses the maximum fee in the sell slippage interval', () => {
+      const preview: OrderPreview = {
+        ...buyPreview,
+        side: Side.SELL,
+        maxAmountSpent: 20,
+        minAmountReceived: 12,
+        slippage: 0.5,
+      };
+
+      const fee = calculateConservativeSellMarketFee({
+        preview,
+        marketInfo: {
+          fd: {
+            r: 0.05,
+            e: 1,
+          },
+        },
+      });
+
+      expect(fee).toBe(0.25);
+    });
+  });
+
   it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -2369,11 +2431,22 @@ describe('polymarket utils', () => {
     );
   });
 
-  it('does not fetch CLOB market info for sell previews', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue(orderBook),
-    });
+  it('previews sell orders with the CLOB market fee', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.05,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
 
     const preview = await previewOrder({
       marketId: 'market-1',
@@ -2390,12 +2463,20 @@ describe('polymarket utils', () => {
         outcomeTokenId: 'token-1',
         feeRateBps: '0',
         side: Side.SELL,
+        fees: expect.objectContaining({
+          marketFee: 0.12495,
+        }),
       }),
     );
-    expect(preview.fees).toBeDefined();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
+      { method: 'GET' },
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       { method: 'GET' },
     );
   });

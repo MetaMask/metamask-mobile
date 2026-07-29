@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import type { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   selectDestToken,
   selectSourceAmount,
@@ -22,11 +23,6 @@ import {
   type PostTradeBottomSheetParams,
   PostTradeStatus,
 } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
-import { useABTest } from '../../../../../hooks';
-import {
-  POST_TRADE_MODAL_AB_KEY,
-  POST_TRADE_MODAL_VARIANTS,
-} from '../../components/PostTradeBottomSheet/abTestConfig';
 import Engine from '../../../../../core/Engine';
 import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
 import {
@@ -47,7 +43,7 @@ export const useBridgeConfirm = ({
   transactionActiveAbTests,
 }: Params) => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     ensureDeviceReady,
     setPendingOperationAddress,
@@ -61,11 +57,6 @@ export const useBridgeConfirm = ({
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const { variant: postTradeModalVariant } = useABTest(
-    POST_TRADE_MODAL_AB_KEY,
-    POST_TRADE_MODAL_VARIANTS,
-  );
-  const isPostTradeModalEnabled = postTradeModalVariant.showPostTradeModal;
 
   const handleConfirm = async () => {
     if (!activeQuote || !walletAddress) {
@@ -126,15 +117,14 @@ export const useBridgeConfirm = ({
     try {
       dispatch(setIsSubmittingTx(true));
 
-      const submitTransaction = () =>
-        submitBridgeTx({
-          quoteResponse: activeQuote,
-          location,
-          transactionActiveAbTests,
-        });
-      const submittedTransaction = isPostTradeModalEnabled
-        ? await withPostTradeNotificationSuppression(submitTransaction)
-        : await submitTransaction();
+      const submittedTransaction = await withPostTradeNotificationSuppression(
+        () =>
+          submitBridgeTx({
+            quoteResponse: activeQuote,
+            location,
+            transactionActiveAbTests,
+          }),
+      );
       const transactionHash =
         submittedTransaction &&
         'hash' in submittedTransaction &&
@@ -149,11 +139,9 @@ export const useBridgeConfirm = ({
         transactionHash,
       };
 
-      if (isPostTradeModalEnabled) {
-        dispatch(resetBridgeTokenInputs());
-        Engine.context.BridgeController?.resetState?.();
-        dispatch(incrementBridgeBalanceRefreshKey());
-      }
+      dispatch(resetBridgeTokenInputs());
+      Engine.context.BridgeController?.resetState?.();
+      dispatch(incrementBridgeBalanceRefreshKey());
     } catch (error) {
       console.error('Error submitting bridge tx', error);
       modalParams = {
@@ -162,14 +150,10 @@ export const useBridgeConfirm = ({
       };
     } finally {
       dispatch(setIsSubmittingTx(false));
-      if (isPostTradeModalEnabled) {
-        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-          params: modalParams,
-        });
-      } else {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+        params: modalParams,
+      });
     }
   };
 

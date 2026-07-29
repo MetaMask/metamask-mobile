@@ -16,11 +16,6 @@ import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSel
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { SolScope } from '@metamask/keyring-api';
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import type {
-  MultichainAssetsControllerState,
-  MultichainAssetsRatesControllerState,
-  MultichainBalancesControllerState,
-} from '@metamask/assets-controllers';
 
 const ETH_TOKEN = {
   address: '0x0000000000000000000000000000000000000000',
@@ -182,58 +177,37 @@ function createHomepageTokensFilterFixture() {
     DEFAULT_SOLANA_FIXTURE_ACCOUNT
   ] = SOLANA_ACCOUNT_ID;
 
-  const existingMultichainAssetsController =
-    (backgroundState.MultichainAssetsController ??
-      {}) as Partial<MultichainAssetsControllerState>;
-  backgroundState.MultichainAssetsController = {
-    ...existingMultichainAssetsController,
-    accountsAssets: {
-      ...existingMultichainAssetsController.accountsAssets,
-      [SOLANA_ACCOUNT_ID]: [SOL_ASSET_ID],
-    },
-    assetsMetadata: {
-      ...existingMultichainAssetsController.assetsMetadata,
+  // Non-EVM assets are read from AssetsController when assetsUnifyState is on.
+  const existingAssetsController = (backgroundState.AssetsController ??
+    {}) as Partial<AssetsControllerState>;
+  const now = Date.now();
+  backgroundState.AssetsController = {
+    ...existingAssetsController,
+    assetsInfo: {
+      ...existingAssetsController.assetsInfo,
       [SOL_ASSET_ID]: {
-        fungible: true,
-        iconUrl: '',
-        units: [
-          {
-            decimals: 9,
-            symbol: 'SOL',
-            name: 'Solana',
-          },
-        ],
+        type: 'native' as const,
         symbol: 'SOL',
         name: 'Solana',
+        decimals: 9,
       },
     },
-  };
-
-  const existingMultichainBalancesController =
-    (backgroundState.MultichainBalancesController ??
-      {}) as Partial<MultichainBalancesControllerState>;
-  backgroundState.MultichainBalancesController = {
-    ...existingMultichainBalancesController,
-    balances: {
-      ...existingMultichainBalancesController.balances,
+    assetsBalance: {
+      ...existingAssetsController.assetsBalance,
       [SOLANA_ACCOUNT_ID]: {
+        ...existingAssetsController.assetsBalance?.[SOLANA_ACCOUNT_ID],
         [SOL_ASSET_ID]: {
           amount: '1',
-          unit: 'SOL',
         },
       },
     },
-  };
-
-  const existingMultichainAssetsRatesController =
-    (backgroundState.MultichainAssetsRatesController ??
-      {}) as Partial<MultichainAssetsRatesControllerState>;
-  backgroundState.MultichainAssetsRatesController = {
-    ...existingMultichainAssetsRatesController,
-    conversionRates: {
-      ...existingMultichainAssetsRatesController.conversionRates,
+    assetsPrice: {
+      ...existingAssetsController.assetsPrice,
       [SOL_ASSET_ID]: {
-        rate: '200',
+        assetPriceType: 'fungible' as const,
+        price: 200,
+        usdPrice: 200,
+        lastUpdated: now,
       },
     },
   };

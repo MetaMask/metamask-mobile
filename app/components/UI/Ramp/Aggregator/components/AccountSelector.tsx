@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 
 import SelectorButton from '../../../../Base/SelectorButton';
@@ -30,7 +32,7 @@ const styles = StyleSheet.create({
 });
 
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const accountName = useAccountGroupName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -38,8 +40,9 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const openAccountSelector = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         isEvmOnly,
         disableAddAccountButton: true,
       }),

@@ -5,8 +5,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FontWeight,
@@ -17,6 +24,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { apyDigitCount } from '../../utils/riveApy';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -50,7 +59,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
-import onboardingFlowV24Animation from '../../../../../animations/onboarding_flow_v24.riv';
+import onboardingFlowV25Animation from '../../../../../animations/onboarding_flow_v25.riv';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -60,6 +70,15 @@ const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 const RIVE_ARTBOARD_NAME = 'Money_Account';
 const CARD_CASHBACK_PERCENTAGE = 3;
 const CLOSE_TRIGGER = 'close';
+
+/** Data binding holding the full APY, percent sign included, e.g. "4.6%". */
+const RIVE_APY_VALUE_PATH = 'apyValue';
+
+/**
+ * Data binding holding how many digits that APY has, which the artboard uses
+ * to pick the layout for its APY container on the second step.
+ */
+const RIVE_APY_AMOUNT_DIGIT_PATH = 'apyAmountDigit';
 
 /**
  * The keys in this mapping refer to the step state names in the Rive file.
@@ -117,6 +136,10 @@ const OVERLAY_TEXT_PRESETS = {
   },
 } as const;
 
+type MoneyOnboardingRouteProp = RouteProp<
+  RootStackParamList,
+  'MoneyOnboarding'
+>;
 interface OnboardingTextContent {
   title: string;
   content: string;
@@ -237,6 +260,8 @@ const MoneyOnboardingTextOverlay = ({
 
 const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<MoneyOnboardingRouteProp>();
+  const postOnboardingRedirect = route.params?.postOnboardingRedirect;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -249,7 +274,9 @@ const MoneyOnboardingView = () => {
     component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent, apyPercentFormatted } = useMoneyAccountBalance();
+  const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
+  const { initiateDeposit } = useMoneyAccountDeposit();
 
   const [ref, riveRef] = useRive();
 
@@ -259,6 +286,11 @@ const MoneyOnboardingView = () => {
 
   const [, setButtonText] = useRiveString(riveRef, 'button');
   const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
+  const [, setApyValue] = useRiveString(riveRef, RIVE_APY_VALUE_PATH);
+  const [, setApyAmountDigit] = useRiveNumber(
+    riveRef,
+    RIVE_APY_AMOUNT_DIGIT_PATH,
+  );
 
   // Hardcoded to English to simplify event tracking.
   const stepTitlesEnglish: string[] = useMemo(
@@ -320,6 +352,15 @@ const MoneyOnboardingView = () => {
     );
   }, [riveRef, setTransitionSpeed, setButtonText, overlayOpacity]);
 
+  // Kept out of the config effect above so a rate change re-pushes the APY
+  // without replaying the one-off setup.
+  useEffect(() => {
+    if (!riveRef) return;
+
+    setApyValue(riveApyValue);
+    setApyAmountDigit(apyDigitCount(riveApyValue));
+  }, [riveRef, riveApyValue, setApyValue, setApyAmountDigit]);
+
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
@@ -327,21 +368,54 @@ const MoneyOnboardingView = () => {
     });
   }, [navigation]);
 
+  const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (
+      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+    ) {
+      navigateToMoneyHome();
+      return;
+    }
+
+    try {
+      await initiateDeposit({
+        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: navigateToMoneyHome,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+    }
+  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+
+  const postOnboardingRedirectTarget =
+    postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT
+      ? SCREEN_NAMES.MONEY_DEPOSIT
+      : SCREEN_NAMES.MONEY_HOME;
+
   const handleClose = useCallback(
-    (stepIndex: number) => {
+    async (stepIndex: number) => {
       playImpact(ImpactMoment.PageNavigation);
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: TOTAL_ONBOARDING_STEPS,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
-        redirect_target: SCREEN_NAMES.MONEY_HOME,
+        redirect_target: postOnboardingRedirectTarget,
       });
 
       dispatch(setMoneyOnboardingSeen(true));
-      navigateToMoneyHome();
+      await navigateToPostOnboardingDestination();
     },
-    [dispatch, navigateToMoneyHome, stepTitlesEnglish, trackOnboardingEvent],
+    [
+      dispatch,
+      navigateToPostOnboardingDestination,
+      postOnboardingRedirectTarget,
+      stepTitlesEnglish,
+      trackOnboardingEvent,
+    ],
   );
 
   const handleStepViewed = useCallback(
@@ -358,19 +432,25 @@ const MoneyOnboardingView = () => {
   );
 
   const handleComplete = useCallback(
-    (stepIndex: number) => {
-      dispatch(setMoneyOnboardingSeen(true));
+    async (stepIndex: number) => {
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: TOTAL_ONBOARDING_STEPS,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
-        redirect_target: SCREEN_NAMES.MONEY_HOME,
+        redirect_target: postOnboardingRedirectTarget,
       });
 
-      navigateToMoneyHome();
+      dispatch(setMoneyOnboardingSeen(true));
+      await navigateToPostOnboardingDestination();
     },
-    [dispatch, navigateToMoneyHome, stepTitlesEnglish, trackOnboardingEvent],
+    [
+      dispatch,
+      navigateToPostOnboardingDestination,
+      postOnboardingRedirectTarget,
+      stepTitlesEnglish,
+      trackOnboardingEvent,
+    ],
   );
 
   useRiveTrigger(riveRef, CLOSE_TRIGGER, () => {
@@ -430,7 +510,7 @@ const MoneyOnboardingView = () => {
     <View style={styles.root}>
       <Rive
         ref={ref}
-        source={onboardingFlowV24Animation}
+        source={onboardingFlowV25Animation}
         artboardName={RIVE_ARTBOARD_NAME}
         stateMachineName={RIVE_STATE_MACHINE_NAME}
         dataBinding={AutoBind(true)}

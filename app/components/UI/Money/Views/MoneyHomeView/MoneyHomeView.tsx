@@ -8,6 +8,8 @@ import React, {
 import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
@@ -37,7 +39,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
+import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
@@ -96,13 +98,14 @@ import {
 } from '../../constants/moneyEvents';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
+import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -133,6 +136,8 @@ const MoneyHomeView = () => {
     apyPercent,
     apyDecimal,
   } = useMoneyAccountBalance();
+  const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
+    useMoneyAccountInterest();
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
 
@@ -144,13 +149,17 @@ const MoneyHomeView = () => {
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refetchBalance(), refreshMusdFiatRate()]);
+      await Promise.all([
+        refetchBalance(),
+        refetchInterest(),
+        refreshMusdFiatRate(),
+      ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance, refreshMusdFiatRate]);
+  }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
   // mUSD is USD-pegged 1:1, so show the token balance as dollars — consistent
@@ -162,7 +171,7 @@ const MoneyHomeView = () => {
     [musdTokenBalanceAggregated],
   );
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
   });
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -280,7 +289,7 @@ const MoneyHomeView = () => {
 
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
-  const monthlyEarnings = useMemo(() => {
+  const projectedMonthlyFallback = useMemo(() => {
     if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
@@ -294,19 +303,39 @@ const MoneyHomeView = () => {
     return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyDecimal, formattedZero]);
 
-  const yearlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyDecimal) return formattedZero;
-    const balance = new BigNumber(totalFiatRaw);
-    if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = calculateProjectedEarnings(
-      balance.toNumber(),
-      apyDecimal,
-      1,
-    );
-    if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatUsd(new BigNumber(earnings));
-    return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyDecimal, formattedZero]);
+  const formatInterestEarned = useCallback(
+    (value: string | undefined): string | undefined => {
+      if (value === undefined) return undefined;
+      const earnings = new BigNumber(value);
+      if (earnings.isNaN() || !earnings.isFinite()) return undefined;
+
+      const formatted = moneyFormatUsd(earnings);
+      return earnings.isGreaterThan(0) && formatted !== formattedZero
+        ? `+${formatted}`
+        : formatted;
+    },
+    [formattedZero],
+  );
+
+  const formattedLast30DaysInterest = useMemo(
+    () => formatInterestEarned(last30DaysQuery.data?.interest_earned_usd),
+    [formatInterestEarned, last30DaysQuery.data?.interest_earned_usd],
+  );
+  const formattedSinceInceptionInterest = useMemo(
+    () => formatInterestEarned(sinceInceptionQuery.data?.interest_earned_usd),
+    [formatInterestEarned, sinceInceptionQuery.data?.interest_earned_usd],
+  );
+
+  const last30DaysInterest =
+    formattedLast30DaysInterest ?? projectedMonthlyFallback;
+  const sinceInceptionInterest =
+    formattedSinceInceptionInterest ?? formattedZero;
+
+  const isEarningsLoading =
+    last30DaysQuery.isInitialLoading ||
+    sinceInceptionQuery.isInitialLoading ||
+    (formattedLast30DaysInterest === undefined &&
+      (vaultApyQuery.isLoading || isBalanceLoading));
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
@@ -394,11 +423,15 @@ const MoneyHomeView = () => {
   const navigateToCardHome = useCallback(() => {
     const isUpsell = metamaskCardMode === 'upsell';
 
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-      ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
-    });
+    // Cross-navigator jump into the Card stack + top-level `animation` option.
+    navigateWithDetails(navigation, [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
+      },
+    ]);
   }, [navigation, metamaskCardMode]);
 
   const handleCardHeaderPress = useCallback(() => {
@@ -472,15 +505,29 @@ const MoneyHomeView = () => {
     PreferencesController.setPrivacyMode(!privacyMode);
   }, [PreferencesController, privacyMode]);
 
-  const handleEarningsInfoPress = useCallback(() => {
+  const handleMonthlyEarningsInfoPress = useCallback(() => {
     trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
+      tooltip_name: MONEY_TOOLTIP_NAMES.MONTHLY_EARNINGS,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_ESTIMATED_EARNINGS_SECTION,
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { variant: 'monthly' },
+    });
+  }, [navigation, trackTooltipClicked]);
+
+  const handleLifetimeEarningsInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.LIFETIME_EARNINGS,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION,
+    });
+
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { variant: 'lifetime' },
     });
   }, [navigation, trackTooltipClicked]);
 
@@ -660,17 +707,22 @@ const MoneyHomeView = () => {
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
-  // The Card pipeline reports balanceFiat in the user's selected currency, but
-  // we want to show USD fiat values in this view.
+  // Money Account entries are already valued in USD. Other Card tokens report
+  // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const usd = convertSelectedFiatToUsd(
-      cardPrimaryToken?.rawFiatNumber,
-      currencyRates,
-    );
+    const rawFiat = cardPrimaryToken?.rawFiatNumber;
+    const usd = cardPrimaryToken?.isMoneyAccountEntry
+      ? rawFiat
+      : convertSelectedFiatToUsd(rawFiat, currencyRates);
     return usd === undefined
       ? formattedZero
       : moneyFormatUsd(new BigNumber(usd));
-  }, [cardPrimaryToken?.rawFiatNumber, currencyRates, formattedZero]);
+  }, [
+    cardPrimaryToken?.isMoneyAccountEntry,
+    cardPrimaryToken?.rawFiatNumber,
+    currencyRates,
+    formattedZero,
+  ]);
 
   const cardState = deriveCardState({
     isCardholder,
@@ -717,10 +769,11 @@ const MoneyHomeView = () => {
       key: 'earnings',
       node: (
         <MoneyEarnings
-          monthlyEarnings={monthlyEarnings}
-          yearlyEarnings={yearlyEarnings}
-          isLoading={vaultApyQuery.isLoading || isBalanceLoading}
-          onInfoPress={handleEarningsInfoPress}
+          last30DaysEarnings={last30DaysInterest}
+          sinceInceptionEarnings={sinceInceptionInterest}
+          isLoading={isEarningsLoading}
+          onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
+          onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}
         />
       ),

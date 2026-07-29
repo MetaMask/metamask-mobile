@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   HeaderStandard,
@@ -40,7 +41,7 @@ export const PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD_VIEW_TEST_IDS = {
 
 const PredictThePitchCampaignLeaderboardView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<

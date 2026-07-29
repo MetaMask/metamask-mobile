@@ -109,7 +109,6 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
   HomeSectionNames: {
-    CASH: 'cash',
     TOKENS: 'tokens',
     WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
@@ -284,7 +283,7 @@ describe('TopTradersSection', () => {
   it('opens the Social Leaderboard (routing through the onboarding gate) when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Weekly Top Traders'));
+    fireEvent.press(screen.getByText('Weekly top traders'));
 
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
       expect.any(Function),
@@ -498,7 +497,9 @@ describe('TopTradersSection', () => {
     });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Retry'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Retry'));
+    });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });

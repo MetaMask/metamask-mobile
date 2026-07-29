@@ -83,6 +83,16 @@ describe('useTokenWatchlist', () => {
     expect(result.current.isWatched).toBe(true);
   });
 
+  it('returns isWatched=true when blob casing differs from assetId', () => {
+    mockBlobQuery([
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    ]);
+
+    const { result } = renderHook(() => useTokenWatchlist(ASSET_ID));
+
+    expect(result.current.isWatched).toBe(true);
+  });
+
   it('returns isWatched=false when blob has no data (undefined)', () => {
     (useQuery as jest.Mock).mockReturnValue({ data: undefined });
 

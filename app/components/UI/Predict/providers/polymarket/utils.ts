@@ -573,6 +573,65 @@ export const calculateConservativeBuyMarketFee = ({
   return roundToFiveDecimals(conservativeMarketFee);
 };
 
+export const calculateConservativeSellMarketFee = ({
+  preview,
+  marketInfo,
+}: {
+  preview: OrderPreview;
+  marketInfo?: ClobMarketInfo;
+}): number => {
+  if (preview.side !== Side.SELL || !isValidFeeMetadata(marketInfo)) {
+    return 0;
+  }
+
+  const shareAmount = preview.maxAmountSpent;
+  const minAmountReceivedWithSlippage =
+    getMinAmountReceivedWithSlippage(preview);
+
+  if (
+    shareAmount <= 0 ||
+    preview.minAmountReceived <= 0 ||
+    minAmountReceivedWithSlippage <= 0
+  ) {
+    return 0;
+  }
+
+  const snapshotAvgPrice = preview.minAmountReceived / shareAmount;
+  const worstAllowedAvgPrice = minAmountReceivedWithSlippage / shareAmount;
+  const leftEndpoint = Math.min(snapshotAvgPrice, worstAllowedAvgPrice);
+  const rightEndpoint = Math.max(snapshotAvgPrice, worstAllowedAvgPrice);
+
+  if (
+    !Number.isFinite(leftEndpoint) ||
+    !Number.isFinite(rightEndpoint) ||
+    leftEndpoint <= 0 ||
+    rightEndpoint >= 1
+  ) {
+    return 0;
+  }
+
+  const { r: rate, e: exponent } = marketInfo.fd;
+  const candidates = [leftEndpoint, rightEndpoint];
+
+  // With a fixed share count, the fee curve is symmetric and peaks at 0.5.
+  if (exponent > 0 && leftEndpoint < 0.5 && rightEndpoint > 0.5) {
+    candidates.push(0.5);
+  }
+
+  const conservativeMarketFee = Math.max(
+    ...candidates.map((price) =>
+      calculateMarketFeeAtPrice({
+        amountUsd: shareAmount * price,
+        rate,
+        exponent,
+        price,
+      }),
+    ),
+  );
+
+  return roundToFiveDecimals(conservativeMarketFee);
+};
+
 export const getOrderBook = async ({
   tokenId,
   clobVersion = 'v1',
@@ -1443,6 +1502,12 @@ export interface PolymarketRelatedTag {
   id: string | number;
   label?: string;
   slug: string;
+  /**
+   * Active event count for the tag. `omit_empty=true` only drops globally-empty
+   * tags, so a tag can still surface here with zero markets under the applied
+   * params; we skip those (see `normalizeRelatedTagsToFilterOptions`).
+   */
+  activeEventsCount?: number;
 }
 
 /**
@@ -1509,6 +1574,13 @@ export const normalizeRelatedTagsToFilterOptions = (
     // Check the cap before adding so `limit: 0` yields an empty list.
     if (limit !== undefined && options.length >= limit) {
       break;
+    }
+
+    // Skip tags with no active events so empty chips (e.g. "Other") never render.
+    // Fail-open: a missing count is kept (best-effort, matches prior behavior).
+    // Placed before the limit accounting so empty tags don't consume a slot.
+    if (tag?.activeEventsCount === 0) {
+      continue;
     }
 
     const slug = tag?.slug?.trim();
@@ -2356,13 +2428,11 @@ export const previewOrder = async (
       clobBaseUrl: isV2 ? clobBaseUrl : undefined,
     }),
     Promise.resolve('0'),
-    side === Side.BUY
-      ? getClobMarketInfoSafe({
-          conditionId: outcomeId,
-          clobVersion: isV2 ? 'v2' : 'v1',
-          clobBaseUrl: isV2 ? clobBaseUrl : undefined,
-        })
-      : Promise.resolve(undefined),
+    getClobMarketInfoSafe({
+      conditionId: outcomeId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
@@ -2437,7 +2507,7 @@ export const previewOrder = async (
     marketId,
     userBetAmount: takerAmount,
   });
-  return {
+  const preview: OrderPreview = {
     marketId,
     outcomeId,
     outcomeTokenId,
@@ -2452,6 +2522,17 @@ export const previewOrder = async (
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,
-    fees: serviceFees,
+  };
+  const marketFee = calculateConservativeSellMarketFee({
+    preview,
+    marketInfo,
+  });
+
+  return {
+    ...preview,
+    fees: {
+      ...serviceFees,
+      marketFee,
+    },
   };
 };

@@ -97,13 +97,16 @@ export function toRampOrderToken(
   order: FiatOrder,
   direction: TokenAmount['direction'],
 ): TokenAmount {
-  const { assetId, decimals } = getRampOrderCryptoCurrencyMetadata(order);
+  const { assetId } = getRampOrderCryptoCurrencyMetadata(order);
 
+  // FiatOrder.cryptoAmount is already human-readable. Activity TokenAmount
+  // amounts are treated as atomic when `decimals` is set
+  // (`getHumanReadableTokenAmount` → formatUnits), so do not attach decimals
+  // from cryptoCurrency metadata here.
   return {
     amount:
       order.cryptoAmount === undefined ? undefined : String(order.cryptoAmount),
     assetId,
-    decimals,
     symbol: order.cryptocurrency,
     direction,
   };

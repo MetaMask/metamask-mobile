@@ -29,6 +29,11 @@ const parsedArgs = parseArgs({
 const getPolyfills = () => [
   // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
+  // Must come AFTER @react-native/js-polyfills (which installs RN's Promise)
+  // and BEFORE lockdown's hardenIntrinsics(). Defines Promise.withResolvers so
+  // babel-preset-expo's injected core-js polyfill skips its own (illegal, post-
+  // freeze) definition. See the file header for the full rationale.
+  require.resolve('./polyfills/promise-with-resolvers.js'),
   require.resolve('reflect-metadata'),
   // Expo's `expo/fetch` (used by @metamask/bridge-controller for SSE
   // `getQuoteStream`) constructs a `ReadableStream` for the response
@@ -52,6 +57,15 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// True when the module being resolved was requested from a file inside
+// @metamask/perps-controller. Normalizes separators first so this works on
+// Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
+// the package, not just a package-name prefix.
+const isPerpsControllerOrigin = (context) =>
+  (context.originModulePath ?? '')
+    .replace(/\\/g, '/')
+    .includes('/@metamask/perps-controller/');
+
 module.exports = function (baseConfig) {
   return getSentryExpoConfig(__dirname, {
     getDefaultConfig: (projectRoot, options) => {
@@ -71,7 +85,7 @@ module.exports = function (baseConfig) {
 
       /**
        * E2E Metro redirects under tests/module-mocking.
-       * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+       * Enables both: @metamask/seedless-onboarding-controller + OAuthLoginHandlers mocks.
        * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
        * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
        * even though hasTestOverrides is false (preventing real OAuth calls to production).
@@ -138,7 +152,7 @@ module.exports = function (baseConfig) {
               // to resolve it statically. Return an empty module stub.
               if (
                 moduleName === './providers/MYXProvider' &&
-                context.originModulePath?.includes('@metamask/perps-controller')
+                isPerpsControllerOrigin(context)
               ) {
                 return { type: 'empty' };
               }
@@ -151,7 +165,7 @@ module.exports = function (baseConfig) {
               if (
                 moduleName ===
                   'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
-                context.originModulePath?.includes('@metamask/perps-controller')
+                isPerpsControllerOrigin(context)
               ) {
                 return context.resolveRequest(
                   context,
@@ -216,21 +230,29 @@ module.exports = function (baseConfig) {
                 }
               }
               if (e2eAllowsSeedlessOAuthMetroMocks) {
-                if (
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller',
-                  ) ||
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller/index',
-                  ) ||
-                  moduleName === './seedless-onboarding-controller' ||
-                  moduleName === '../seedless-onboarding-controller'
-                ) {
+                // Wallet owns SeedlessOnboardingController construction, so E2E
+                // replaces the package class. Importers under
+                // tests/module-mocking/seedless still resolve the real package
+                // to avoid a circular mock.
+                if (moduleName === '@metamask/seedless-onboarding-controller') {
+                  const originModulePath = context.originModulePath || '';
+                  if (
+                    originModulePath.includes(
+                      `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
+                    )
+                  ) {
+                    return {
+                      type: 'sourceFile',
+                      filePath: require.resolve(
+                        '@metamask/seedless-onboarding-controller',
+                      ),
+                    };
+                  }
                   return {
                     type: 'sourceFile',
                     filePath: path.resolve(
                       __dirname,
-                      'tests/module-mocking/seedless/index.ts',
+                      'tests/module-mocking/seedless/package.ts',
                     ),
                   };
                 }

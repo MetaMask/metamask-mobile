@@ -35,7 +35,7 @@ const smokeTags = {
   smokeStake: {
     tag: 'SmokeStake:',
     description:
-      'Tests wallet staking and lending flows. Covers stake entry from wallet actions, lending deposits, and lending withdrawals. Validates on-chain operations initiated from wallet surfaces. When selecting SmokeStake, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
+      'Tests wallet staking and lending flows. Covers stake entry from wallet actions, lending deposits, and lending withdrawals. Stake/lending smoke specs live in tests/smoke-appium/stake/ and run via Appium smoke CI (appium-smoke-tests-{android,ios}). Validates on-chain operations initiated from wallet surfaces. When selecting SmokeStake, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
   },
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',
@@ -65,17 +65,27 @@ const smokeTags = {
   smokeSeedlessOnboarding: {
     tag: 'SmokeSeedlessOnboarding:',
     description:
-      'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Tests the SeedlessOnboardingController mock integration, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync after social login.',
+      'Tests core seedless onboarding with social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, SeedlessOnboardingController mock integration, OAuth token exchange, and the onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, Account Already Exists, or the onboarding sheet, select this tag. For QR sync, add-SRP after seedless, attribution analytics, lock/unlock, or reset wallet, also select SmokeSeedlessOnboardingExtended. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync after social login.',
+  },
+  smokeSeedlessOnboardingExtended: {
+    tag: 'SmokeSeedlessOnboardingExtended:',
+    description:
+      'Tests extended seedless onboarding and post-onboard flows. Covers importing an additional SRP after Google seedless onboarding, Wallet Setup Completed attribution analytics for Google and Apple, QR sync SRP (new-user and existing-user mobile ↔ extension), and lock/unlock and reset-wallet after Google social login (may be skipped when flaky). Specs live in tests/smoke-appium/seedless/ under this tag. When changes touch Add Device / QR sync, post-seedless SRP import, onboarding attribution analytics, or seedless lock/reset, select this tag. Often pair with SmokeSeedlessOnboarding when OAuth onboarding UI also changes. Related to SmokeAccounts for multi-SRP after seedless and SmokeWalletPlatform for wallet lifecycle.',
   },
   smokeBrowser: {
     tag: 'SmokeBrowser:',
     description:
-      'Tests the in-app browser (BrowserTab/BrowserUrlBar WebView). Covers browser navigation: visiting invalid URLs and returning home, ENS domain resolution via mocked IPFS gateway, and cross-origin redirect URL bar updates. Tests browser security: camera permission prompts within WebView and history disclosure prevention. Tests file download handling from web pages. Tests phishing detection via mocked dapp-scanning API responses. Browser tests use local HTML fixture servers (DappServer) and testSpecificMock for API mocking rather than live external websites. When changes touch BrowserTab, BrowserUrlBar, WebView configuration, or dapp-scanning integration, select this tag. Related to SmokeWalletPlatform for Trending browser navigation integration.',
+      'Tests the in-app browser (BrowserTab/BrowserUrlBar WebView). Covers browser navigation: visiting invalid URLs and returning home, ENS domain resolution via mocked IPFS gateway, and cross-origin redirect URL bar updates. Tests browser security: camera permission prompts within WebView and history disclosure prevention. Tests file download handling from web pages. Tests phishing detection via mocked dapp-scanning API responses. Browser smoke specs live in tests/smoke-appium/wallet/browser/ and run via Appium smoke CI (appium-smoke-tests-{android,ios}). Browser tests use local HTML fixture servers (DappServer) and testSpecificMock for API mocking rather than live external websites. When changes touch BrowserTab, BrowserUrlBar, WebView configuration, or dapp-scanning integration, select this tag. Related to SmokeWalletPlatform for Trending browser navigation integration.',
   },
   smokeSnaps: {
     tag: 'SmokeSnaps:',
     description:
       'Tests the MetaMask Snaps extensibility platform. Covers snap lifecycle: installation from npm, enabling/disabling installed snaps, and removal with keyring warnings for snaps managing accounts. Tests snap Ethereum provider access: eth_chainId, eth_accounts, personal_sign, eth_signTypedData_v4, and wallet_switchEthereumChain. Validates snap dialog systems for alerts and confirmations with approve/cancel flows. Tests snap capabilities: persistent state management (snap_manageState for set/get/clear), network access for external API calls, WebAssembly (WASM) execution, interactive UI rendering with JSX components, cronjob scheduling for background tasks, entropy generation for randomness, file handling, and BIP-32/BIP-44 key derivation for account management. Also covers preinstalled snaps, snap UI links, lifecycle events, user preference access, image handling in snap UIs, and background event listeners. Snaps enable non-EVM chain support like Solana account derivation.',
+  },
+  smokeMMConnect: {
+    tag: 'SmokeMMConnect:',
+    description:
+      'Tests MetaMask Connect flows via Chrome on Android (google_apis emulator) and the local Browser Playground dApp. Covers Multichain API connect/disconnect, session scopes (eip155:1), and deeplink handoff back to MetaMask for connection approval. Specs live in tests/smoke-appium/mm-connect/ and run via Appium smoke CI (Android). Uses withFixtures + the standard e2e fixture wallet (not baked-SRP performance builds). When changes touch MMConnect connection modals, multichain sessions, native browser deeplinks, or Browser Playground integration, select this tag. Related to SmokeMultiChainAPI and SmokeNetworkExpansion for CAIP-25 / multi-chain provider behavior.',
   },
 };
 
@@ -142,8 +152,10 @@ const {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
+  SmokeSeedlessOnboardingExtended,
   SmokeBrowser,
   SmokeSnaps,
+  SmokeMMConnect,
 } = createSmokeDescribeFunctions(smokeTags);
 
 const {
@@ -176,7 +188,9 @@ export {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
+  SmokeSeedlessOnboardingExtended,
   SmokeBrowser,
+  SmokeMMConnect,
   RegressionAccounts,
   RegressionConfirmations,
   RegressionIdentity,

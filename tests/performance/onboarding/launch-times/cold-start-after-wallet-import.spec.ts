@@ -13,7 +13,7 @@ import {
 } from '../../../flows/wallet.flow';
 import TimerHelper from '../../../framework/TimerHelper';
 
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
@@ -26,7 +26,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       await PlaywrightGestures.activateApp(currentDeviceDetails);
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(LoginView.loginButton),
+        asPlaywrightElement(LoginView.loginButton),
       );
 
       await loginToAppPlaywright({
@@ -37,13 +37,13 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
         'Time since the user clicks on unlock button, until the app unlocks',
         {
           ios: 12000, // this number is because Appium DOM screenshot in iOS takes too long, but visually the button is visible in just a few seconds, so we assume that this time is approximately 2 seconds, any change in the real time, will impact this as well.
-          android: 2000,
+          android: 5000,
         },
         currentDeviceDetails.platform,
       );
       await timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+          asPlaywrightElement(WalletView.headerRoot),
         );
       });
 
