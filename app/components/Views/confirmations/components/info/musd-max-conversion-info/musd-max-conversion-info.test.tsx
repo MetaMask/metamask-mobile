@@ -51,6 +51,9 @@ jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
 
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useIsTransactionPayLoading: jest.fn(),
+  useTransactionPayIsMaxAmount: jest.fn(() => false),
+  useTransactionPayIsPostQuote: jest.fn(() => false),
+  useTransactionPayRequiredTokens: jest.fn(() => []),
 }));
 
 jest.mock('../../../hooks/useConfirmActions', () => ({
