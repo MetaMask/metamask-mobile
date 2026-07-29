@@ -120,9 +120,11 @@ const traceAsControllerCallback: ControllerTraceCallback = <Result>(
   req: ControllerTraceRequest,
   fn?: (ctx?: ControllerTraceContext) => Result,
 ): Promise<Result> => {
+  // Controller TraceContext is `unknown`; mobile TraceContext is a Sentry Span.
   const taggedRequest: TraceRequest = {
     ...req,
     name: req.name as TraceRequest['name'],
+    parentContext: req.parentContext as TraceRequest['parentContext'],
   };
   return Promise.resolve(
     fn ? trace(taggedRequest, fn) : trace(taggedRequest),
