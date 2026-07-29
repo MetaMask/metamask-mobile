@@ -162,6 +162,51 @@ const PerpsProChartPanel = ({
     });
   }, [chartAnalyticsProperties, symbol, track]);
 
+  let chartContent: React.ReactNode;
+  if (isAdvancedChartEnabled) {
+    chartContent = (
+      <PerpsAdvancedChart
+        symbol={symbol}
+        interval={selectedCandlePeriod}
+        visibleCandleCount={visibleCandleCount}
+        height={PRO_CHART_HEIGHT}
+        tpslLines={tpslLines}
+        positionSize={existingPosition?.size}
+        szDecimals={marketData?.szDecimals}
+        onCrosshairDataChange={setOhlcData}
+        onLatestPriceChange={setAdvancedChartCurrentPrice}
+        onError={onChartError}
+        fallbackCandleData={candleData}
+        fallbackFetchMoreHistory={fetchMoreHistory}
+        paginationDuration={TimeDuration.YearToDate}
+      />
+    );
+  } else if (hasHistoricalData) {
+    chartContent = (
+      <TradingViewChart
+        ref={chartRef}
+        candleData={candleData}
+        height={PRO_CHART_HEIGHT}
+        visibleCandleCount={visibleCandleCount}
+        tpslLines={tpslLines}
+        symbol={symbol}
+        showOverlay={false}
+        coloredVolume
+        onOhlcDataChange={setOhlcData}
+        onNeedMoreHistory={fetchMoreHistory}
+        testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
+      />
+    );
+  } else {
+    chartContent = (
+      <Skeleton
+        height={PRO_CHART_HEIGHT}
+        width="100%"
+        testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
+      />
+    );
+  }
+
   return (
     <>
       <PerpsProMarketSummary
@@ -220,43 +265,7 @@ const PerpsProChartPanel = ({
                   />
                 </Box>
               ) : null}
-              {isAdvancedChartEnabled ? (
-                <PerpsAdvancedChart
-                  symbol={symbol}
-                  interval={selectedCandlePeriod}
-                  visibleCandleCount={visibleCandleCount}
-                  height={PRO_CHART_HEIGHT}
-                  tpslLines={tpslLines}
-                  positionSize={existingPosition?.size}
-                  szDecimals={marketData?.szDecimals}
-                  onCrosshairDataChange={setOhlcData}
-                  onLatestPriceChange={setAdvancedChartCurrentPrice}
-                  onError={onChartError}
-                  fallbackCandleData={candleData}
-                  fallbackFetchMoreHistory={fetchMoreHistory}
-                  paginationDuration={TimeDuration.YearToDate}
-                />
-              ) : hasHistoricalData ? (
-                <TradingViewChart
-                  ref={chartRef}
-                  candleData={candleData}
-                  height={PRO_CHART_HEIGHT}
-                  visibleCandleCount={visibleCandleCount}
-                  tpslLines={tpslLines}
-                  symbol={symbol}
-                  showOverlay={false}
-                  coloredVolume
-                  onOhlcDataChange={setOhlcData}
-                  onNeedMoreHistory={fetchMoreHistory}
-                  testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
-                />
-              ) : (
-                <Skeleton
-                  height={PRO_CHART_HEIGHT}
-                  width="100%"
-                  testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
-                />
-              )}
+              {chartContent}
             </Box>
           </ComponentErrorBoundary>
         </Box>
@@ -283,6 +292,7 @@ const PerpsProChartPanel = ({
         symbol={symbol}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
+        fallbackFetchMoreHistory={fetchMoreHistory}
       />
     </>
   );

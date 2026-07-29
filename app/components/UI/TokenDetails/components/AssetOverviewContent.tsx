@@ -158,9 +158,6 @@ export interface AssetOverviewContentProps {
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
 
-  // Feature flags
-  isPerpsEnabled: boolean;
-
   // Currency
   currentCurrency: string;
 
@@ -200,6 +197,11 @@ export interface AssetOverviewContentProps {
   onExitAction?: () => void;
   /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
   isPricePositive?: boolean | null;
+  /** Called whenever the perps market loading state settles. Lets the parent avoid a duplicate hook call. */
+  onPerpsMarketResolved?: (result: {
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }) => void;
 }
 
 /**
@@ -227,7 +229,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   timePeriod,
   setTimePeriod,
   chartNavigationButtons,
-  isPerpsEnabled,
   currentCurrency,
   onBuy,
   onSend,
@@ -244,6 +245,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   useAmbientColor,
   onExitAction,
   isPricePositive,
+  onPerpsMarketResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -265,10 +267,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isLoading: isPerpsLoading,
     handlePerpsAction,
   } = usePerpsActions({
-    symbol: isPerpsEnabled ? token.symbol : null,
+    symbol: token.symbol,
     fromTokenDetails: true,
     transactionActiveAbTests: token.transactionActiveAbTests,
   });
+
+  useEffect(() => {
+    onPerpsMarketResolved?.({ hasPerpsMarket, isLoading: isPerpsLoading });
+  }, [hasPerpsMarket, isPerpsLoading, onPerpsMarketResolved]);
 
   const isEligible = useSelector(selectPerpsEligibility);
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -334,16 +340,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isButtonsLoading = isBuyableLoading || isPerpsLoading;
 
-  // Check if user has a position for this asset (only if perps is enabled and market exists)
+  // Check if user has a position for this asset (only if market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
-    usePerpsPositionForAsset(
-      isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
-    );
+    usePerpsPositionForAsset(hasPerpsMarket ? token.symbol : null);
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   const showPerpsSection =
-    isPerpsEnabled &&
     hasPerpsMarket &&
     Boolean(marketData) &&
     isTokenTrustworthy &&
