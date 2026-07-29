@@ -1,5 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
+import React, { useEffect } from 'react';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import { useTheme } from '../../../../util/theme';
 import { getScreenDimensions } from '../../../../util/onboarding';
 import { hasTestOverrides } from '../../../../util/test/utils';
@@ -19,7 +25,10 @@ interface OnboardingSuccessEndAnimationProps {
 const OnboardingSuccessEndAnimation: React.FC<
   OnboardingSuccessEndAnimationProps
 > = ({ onAnimationComplete: _onAnimationComplete }) => {
-  const riveRef = useRef<RiveRef>(null);
+  const { riveFile } = useRiveFile(onboardingLoaderEndAnimation);
+  // riveViewRef only becomes available once the view is ready to receive
+  // inputs — the Nitro equivalent of the legacy post-mount delay.
+  const { riveViewRef, setHybridRef } = useRive();
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
   const tw = useTailwind();
@@ -27,24 +36,14 @@ const OnboardingSuccessEndAnimation: React.FC<
   const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
 
   useEffect(() => {
-    if (hasTestOverrides) return;
-    const timeoutId = setTimeout(() => {
-      if (riveRef.current) {
-        try {
-          riveRef.current.setInputState(
-            'OnboardingLoader',
-            'Dark mode',
-            isDarkMode,
-          );
-          riveRef.current.fireState('OnboardingLoader', 'Only_End');
-        } catch (error) {
-          console.error('Error with Rive animation:', error);
-        }
-      }
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [isDarkMode]);
+    if (hasTestOverrides || !riveViewRef) return;
+    try {
+      riveViewRef.setBooleanInputValue('Dark mode', isDarkMode);
+      riveViewRef.triggerInput('Only_End');
+    } catch (error) {
+      console.error('Error with Rive animation:', error);
+    }
+  }, [isDarkMode, riveViewRef]);
 
   return (
     <Box
@@ -58,15 +57,16 @@ const OnboardingSuccessEndAnimation: React.FC<
         justifyContent={BoxJustifyContent.Center}
         twClassName="flex-1"
       >
-        {!hasTestOverrides && (
-          <Rive
-            ref={riveRef}
-            source={onboardingLoaderEndAnimation}
+        {!hasTestOverrides && riveFile && (
+          <RiveView
+            hybridRef={setHybridRef}
+            file={riveFile}
+            stateMachineName="OnboardingLoader"
             style={tw.style('self-center', {
               width: screenWidth,
               height: animationHeight,
             })}
-            autoplay
+            autoPlay
             fit={Fit.Contain}
             alignment={Alignment.Center}
           />

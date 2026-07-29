@@ -15,7 +15,13 @@ import {
   Image,
   View,
 } from 'react-native';
-import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -128,7 +134,13 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 }) => {
   const tw = useTailwind();
   const isFocused = useIsFocused();
-  const checklistRiveRef = useRef<RiveRef>(null);
+  const { riveFile: checklistRiveFile } = useRiveFile(
+    onboardChecklistV07Animation,
+  );
+  // `riveRef.current` only becomes populated once the mounted view is ready to
+  // receive inputs; re-registers automatically when the keyed view remounts.
+  const { riveRef: checklistRiveRef, setHybridRef: setChecklistHybridRef } =
+    useRive();
   const prevSuspendRiveForCurtainRef = useRef(false);
   const [checklistFadeOpacity] = useState(() => new Animated.Value(1));
   const dispatch = useDispatch();
@@ -247,7 +259,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       checklistRiveRef.current?.play();
     }
     prevSuspendRiveForCurtainRef.current = suspendRiveForCurtain;
-  }, [suspendRiveForCurtain]);
+  }, [suspendRiveForCurtain, checklistRiveRef]);
 
   /**
    * Decode every hero PNG while step 1 is visible so step 2/3 transitions don't briefly keep
@@ -310,10 +322,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         return;
       }
       try {
-        rive.fireState(
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
-        );
+        rive.triggerInput(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER);
         rive.play();
       } catch (error) {
         Logger.error(
@@ -327,7 +336,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn]);
+  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn, checklistRiveRef]);
 
   const totalSteps = WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length;
   const currentStep =
@@ -456,8 +465,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       const rive = checklistRiveRef.current;
       if (rive) {
         try {
-          rive.fireState(
-            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+          rive.triggerInput(
             WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
           );
         } catch (error) {
@@ -504,6 +512,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     slideX,
     slideY,
     checklistFadeOpacity,
+    checklistRiveRef,
   ]);
 
   useLayoutEffect(() => {
@@ -732,18 +741,18 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               )}
               testID={`${testID}-hero-awaiting-balance`}
             />
-          ) : !hasTestOverrides ? (
-            <Rive
+          ) : !hasTestOverrides && checklistRiveFile ? (
+            <RiveView
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
-              ref={checklistRiveRef}
-              source={onboardChecklistV07Animation}
+              hybridRef={setChecklistHybridRef}
+              file={checklistRiveFile}
               artboardName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD[currentStep.kind]
               }
               style={WALLET_HOME_ONBOARDING_HERO_MEDIA_LAYOUT_STYLE}
               fit={Fit.Contain}
               alignment={Alignment.Center}
-              autoplay={!skipIntroAfterDeferredNavReturn}
+              autoPlay={!skipIntroAfterDeferredNavReturn}
               stateMachineName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE
               }

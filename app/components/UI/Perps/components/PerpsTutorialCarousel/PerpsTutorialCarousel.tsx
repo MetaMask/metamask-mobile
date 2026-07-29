@@ -46,7 +46,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../../constants/perpsConfig';
 import createStyles from './PerpsTutorialCarousel.styles';
-import Rive, { Alignment, Fit } from 'rive-react-native';
+import { Alignment, Fit, RiveView, useRiveFile } from '@rive-app/react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
@@ -180,10 +180,13 @@ const PerpsTutorialCarousel: React.FC = () => {
     shouldShowSkipButton,
   });
 
-  const PerpsOnboardingAnimation = useMemo(
+  const perpsOnboardingAnimationSource = useMemo(
     () =>
       isDarkMode ? PerpsOnboardingAnimationDark : PerpsOnboardingAnimationLight,
     [isDarkMode],
+  );
+  const { riveFile: perpsOnboardingRiveFile } = useRiveFile(
+    perpsOnboardingAnimationSource,
   );
 
   // Track tutorial screen viewed on mount
@@ -462,19 +465,21 @@ const PerpsTutorialCarousel: React.FC = () => {
                     <View style={styles.contentSection}>{screen.content}</View>
                   )}
 
-                  {screen?.riveArtboardName && currentTab === index && (
-                    <View style={styles.animationContainer}>
-                      <Rive
-                        key={screen.id}
-                        style={styles.animation}
-                        artboardName={screen.riveArtboardName}
-                        source={PerpsOnboardingAnimation}
-                        fit={Fit.FitWidth}
-                        alignment={Alignment.Center}
-                        autoplay
-                      />
-                    </View>
-                  )}
+                  {screen?.riveArtboardName &&
+                    currentTab === index &&
+                    perpsOnboardingRiveFile && (
+                      <View style={styles.animationContainer}>
+                        <RiveView
+                          key={screen.id}
+                          style={styles.animation}
+                          artboardName={screen.riveArtboardName}
+                          file={perpsOnboardingRiveFile}
+                          fit={Fit.FitWidth}
+                          alignment={Alignment.Center}
+                          autoPlay
+                        />
+                      </View>
+                    )}
                 </View>
                 {screen.footerText && (
                   <View style={styles.footerTextContainer}>

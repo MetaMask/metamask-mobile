@@ -1,6 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
-import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import {
   Box,
   BoxAlignItems,
@@ -66,14 +72,16 @@ export interface HwSwapAnimationProps {
  * `progress` changes. The parent only needs to pass the current flow state.
  */
 export function HwSwapAnimation({ progress }: HwSwapAnimationProps) {
-  const riveRef = useRef<RiveRef>(null);
-  const [isRivePlaying, setIsRivePlaying] = useState(false);
+  const { riveFile } = useRiveFile(genericHardwareWalletRiveFile);
+  // riveViewRef only becomes available once the view is ready to receive
+  // inputs — the Nitro equivalent of the legacy onPlay gate.
+  const { riveViewRef, setHybridRef } = useRive();
 
   useEffect(() => {
-    if (!isRivePlaying) return;
+    if (!riveViewRef) return;
     const trigger = getHardwareWalletRiveTrigger(progress);
-    riveRef.current?.fireState(HARDWARE_WALLET_RIVE_STATE_MACHINE, trigger);
-  }, [progress, isRivePlaying]);
+    riveViewRef.triggerInput(trigger);
+  }, [progress, riveViewRef]);
 
   return (
     <Box
@@ -81,18 +89,19 @@ export function HwSwapAnimation({ progress }: HwSwapAnimationProps) {
       justifyContent={BoxJustifyContent.Center}
       twClassName="h-32"
     >
-      <Rive
-        ref={riveRef}
-        testID={HardwareWalletsSwapsSelectorsIDs.RIVE_ANIMATION}
-        source={genericHardwareWalletRiveFile}
-        artboardName={HARDWARE_WALLET_RIVE_ARTBOARD}
-        stateMachineName={HARDWARE_WALLET_RIVE_STATE_MACHINE}
-        autoplay
-        fit={Fit.Contain}
-        alignment={Alignment.Center}
-        style={styles.riveAnimation}
-        onPlay={() => setIsRivePlaying(true)}
-      />
+      {riveFile && (
+        <RiveView
+          hybridRef={setHybridRef}
+          testID={HardwareWalletsSwapsSelectorsIDs.RIVE_ANIMATION}
+          file={riveFile}
+          artboardName={HARDWARE_WALLET_RIVE_ARTBOARD}
+          stateMachineName={HARDWARE_WALLET_RIVE_STATE_MACHINE}
+          autoPlay
+          fit={Fit.Contain}
+          alignment={Alignment.Center}
+          style={styles.riveAnimation}
+        />
+      )}
     </Box>
   );
 }

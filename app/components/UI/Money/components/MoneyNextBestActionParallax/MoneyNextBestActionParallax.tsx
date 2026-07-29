@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -9,7 +9,14 @@ import {
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Rive, { AutoBind, Fit, RNRiveError, RiveRef } from 'rive-react-native';
+import {
+  Fit,
+  RiveView,
+  useRiveFile,
+  useViewModelInstance,
+  type RiveError,
+  type ViewModelNumberProperty,
+} from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
@@ -58,26 +65,42 @@ const MoneyNextBestActionParallax = ({
   const reduceMotion = useReduceMotion();
   const [erroredArtboard, setErroredArtboard] = useState<string | null>(null);
   const hasRiveError = erroredArtboard === artboardName;
-  // Written to via a plain ref rather than `useRiveNumber`: that hook echoes
-  // every value back to JS through setState, re-rendering at the accelerometer
-  // sample rate for values this component never reads.
-  const riveRef = useRef<RiveRef>(null);
+
+  const { riveFile } = useRiveFile(NextBestActionParallaxAnimation);
+  // The view-model instance is created off the file (async) per artboard and
+  // explicitly bound to the view via `dataBind`.
+  const { instance } = useViewModelInstance(riveFile, {
+    artboardName,
+    async: true,
+  });
+
+  // Written to via cached property handles rather than `useRiveNumber`: that
+  // hook echoes every value back to JS through setState, re-rendering at the
+  // accelerometer sample rate for values this component never reads.
+  const xPropertyRef = useRef<ViewModelNumberProperty | null>(null);
+  const yPropertyRef = useRef<ViewModelNumberProperty | null>(null);
+
+  useEffect(() => {
+    if (!instance) return undefined;
+    xPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_X) ?? null;
+    yPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_Y) ?? null;
+    return () => {
+      xPropertyRef.current = null;
+      yPropertyRef.current = null;
+    };
+  }, [instance]);
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
   const applyTilt = useCallback((x: number, y: number) => {
-    const rive = riveRef.current;
-    // viewTag() is null while the native Rive view is detached; dispatching
-    // then throws "found null reactTag".
-    if (!rive || rive.viewTag() === null) return;
-    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
-    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
+    xPropertyRef.current?.set(tiltToParallaxValue(x));
+    yPropertyRef.current?.set(pitchToParallaxValue(y));
   }, []);
 
   useDeviceOrientation(applyTilt, { enabled: animate });
 
   const handleError = useCallback(
-    (riveError: RNRiveError) => {
+    (riveError: RiveError) => {
       log(`Rive error: ${riveError.message}`);
       setErroredArtboard(artboardName);
     },
@@ -93,19 +116,22 @@ const MoneyNextBestActionParallax = ({
           style={StyleSheet.absoluteFill}
           testID={MoneyNextBestActionParallaxTestIds.BACKGROUND}
         />
-        <Rive
-          // Remount per artboard: swapping `artboardName` in place reloads the
-          // artboard but leaves data binding pointing at the previous one.
-          key={artboardName}
-          ref={riveRef}
-          source={NextBestActionParallaxAnimation}
-          artboardName={artboardName}
-          dataBinding={AutoBind(true)}
-          fit={Fit.Contain}
-          style={styles.media}
-          onError={handleError}
-          testID={MoneyNextBestActionParallaxTestIds.RIVE}
-        />
+        {riveFile && instance && (
+          <RiveView
+            // Remount per artboard: swapping `artboardName` in place reloads
+            // the artboard but leaves data binding pointing at the previous
+            // one.
+            key={artboardName}
+            file={riveFile}
+            artboardName={artboardName}
+            dataBind={instance}
+            autoPlay
+            fit={Fit.Contain}
+            style={styles.media}
+            onError={handleError}
+            testID={MoneyNextBestActionParallaxTestIds.RIVE}
+          />
+        )}
       </>
     );
   } else {

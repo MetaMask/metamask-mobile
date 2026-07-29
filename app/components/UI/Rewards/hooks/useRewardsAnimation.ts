@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { RiveRef } from 'rive-react-native';
+import { useRive, type RiveViewRef } from '@rive-app/react-native';
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -9,7 +9,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 
 // Rive animation constants - defined in rewards_icon_animations.riv
-const STATE_MACHINE_NAME = 'Rewards_Icon';
+export const REWARDS_ICON_STATE_MACHINE_NAME = 'Rewards_Icon';
 const BASE_FOX_POSITION = -20;
 const ANIMATION_DURATION = {
   BLAZING_FAST: 100,
@@ -44,7 +44,8 @@ interface UseRewardsAnimationParams {
 }
 
 interface UseRewardsAnimationResult {
-  riveRef: React.RefObject<RiveRef | null>;
+  riveRef: React.RefObject<RiveViewRef | null>;
+  setRiveHybridRef: ReturnType<typeof useRive>['setHybridRef'];
   animatedStyle: AnimatedStyle;
   rivePositionStyle: AnimatedStyle;
   displayValue: number;
@@ -70,7 +71,9 @@ export const useRewardsAnimation = ({
   value,
   state = RewardAnimationState.Idle,
 }: UseRewardsAnimationParams): UseRewardsAnimationResult => {
-  const riveRef = useRef<RiveRef>(null);
+  // `riveRef.current` only becomes populated once the view is ready to
+  // receive inputs — the Nitro equivalent of the legacy mount delay.
+  const { riveRef, setHybridRef: setRiveHybridRef } = useRive();
   const previousValueRef = useRef<number | null>(null);
   const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
 
@@ -94,13 +97,16 @@ export const useRewardsAnimation = ({
     );
   }, [value, animatedValue, isAnimating]);
 
-  const triggerRiveAnimation = useCallback((trigger: RewardsIconTriggers) => {
-    try {
-      riveRef.current?.fireState(STATE_MACHINE_NAME, trigger);
-    } catch (error) {
-      console.warn(`Error triggering Rive animation (${trigger}):`, error);
-    }
-  }, []);
+  const triggerRiveAnimation = useCallback(
+    (trigger: RewardsIconTriggers) => {
+      try {
+        riveRef.current?.triggerInput(trigger);
+      } catch (error) {
+        console.warn(`Error triggering Rive animation (${trigger}):`, error);
+      }
+    },
+    [riveRef],
+  );
 
   // Helper function to manage timeouts and prevent memory leaks
   const createTimeout = useCallback((callback: () => void, delay: number) => {
@@ -153,6 +159,7 @@ export const useRewardsAnimation = ({
     triggerRiveAnimation,
     createTimeout,
     clearAllTimeouts,
+    riveRef,
   ]);
 
   const handleErrorState = useCallback(() => {
@@ -179,6 +186,7 @@ export const useRewardsAnimation = ({
     createTimeout,
     isAnimating,
     clearAllTimeouts,
+    riveRef,
   ]);
 
   const handleIdleState = useCallback(() => {
@@ -224,6 +232,7 @@ export const useRewardsAnimation = ({
     triggerRiveAnimation,
     clearAllTimeouts,
     animatedValue,
+    riveRef,
   ]);
 
   const handleRefreshLoadingState = useCallback(() => {
@@ -250,6 +259,7 @@ export const useRewardsAnimation = ({
     createTimeout,
     rivePosition,
     setHideValue,
+    riveRef,
   ]);
 
   const handleRefreshFinishedState = useCallback(() => {
@@ -282,6 +292,7 @@ export const useRewardsAnimation = ({
     rivePosition,
     animatedValue,
     value,
+    riveRef,
   ]);
 
   // State machine effect - triggers appropriate animation based on state
@@ -326,6 +337,7 @@ export const useRewardsAnimation = ({
     handleRefreshFinishedState,
     createTimeout,
     clearAllTimeouts,
+    riveRef,
   ]);
 
   // Update display value when animated value changes
@@ -357,6 +369,7 @@ export const useRewardsAnimation = ({
 
   return {
     riveRef,
+    setRiveHybridRef,
     animatedStyle,
     rivePositionStyle,
     displayValue,

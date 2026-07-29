@@ -1,23 +1,28 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { renderHook, act } from '@testing-library/react-native';
 import {
   useRewardsAnimation,
   RewardAnimationState,
 } from './useRewardsAnimation';
+import {
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
 
-const STATE_MACHINE_NAME = 'Rewards_Icon';
+const riveMockModule =
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  require('../../../../__mocks__/rive-app-react-native') as typeof import('../../../../__mocks__/rive-app-react-native');
 
-// Mock rive-react-native
-const mockFireState = jest.fn();
-jest.mock('rive-react-native', () => ({
-  RiveRef: jest.fn(),
-}));
+// `@rive-app/react-native` is globally mapped to the mock above (jest.config.js).
+// `useRive()` returns a riveRef whose `.current` is populated immediately with
+// mock view methods; `triggerInput` is backed by the shared
+// `__mockRiveTriggerInput` spy.
 
 describe('useRewardsAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetRiveMocks();
+    __mockRiveTriggerInput.mockReset();
     jest.useFakeTimers();
-    mockFireState.mockClear();
   });
 
   afterEach(() => {
@@ -57,6 +62,7 @@ describe('useRewardsAnimation', () => {
       const { result } = renderHook(() => useRewardsAnimation({ value: 100 }));
 
       expect(result.current).toHaveProperty('riveRef');
+      expect(result.current).toHaveProperty('setRiveHybridRef');
       expect(result.current).toHaveProperty('animatedStyle');
       expect(result.current).toHaveProperty('rivePositionStyle');
       expect(result.current).toHaveProperty('displayValue');
@@ -72,11 +78,11 @@ describe('useRewardsAnimation', () => {
       expect(result.current.hideValue).toBe(false);
     });
 
-    it('should return riveRef', () => {
+    it('should return riveRef populated with view methods', () => {
       const { result } = renderHook(() => useRewardsAnimation({ value: 100 }));
 
       expect(result.current.riveRef).toBeDefined();
-      expect(result.current.riveRef.current).toBeNull();
+      expect(result.current.riveRef.current).not.toBeNull();
     });
 
     it('should default to Idle state', () => {
@@ -88,49 +94,33 @@ describe('useRewardsAnimation', () => {
 
   describe('Idle state behavior', () => {
     it('should trigger RefreshLeft for positive value in idle state', () => {
-      const { result } = renderHook(() =>
+      renderHook(() =>
         useRewardsAnimation({
           value: 100,
           state: RewardAnimationState.Idle,
         }),
       );
 
-      // Set up the riveRef with mock fireState
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Mocking ref for testing
-      result.current.riveRef.current = { fireState: mockFireState };
-
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith(
-        STATE_MACHINE_NAME,
-        'Refresh_left',
-      );
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Refresh_left');
     });
 
     it('should trigger Disable for zero value in idle state', () => {
-      const { result } = renderHook(() =>
+      renderHook(() =>
         useRewardsAnimation({
           value: 0,
           state: RewardAnimationState.Idle,
         }),
       );
 
-      // Set up the riveRef with mock fireState
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Mocking ref for testing
-      result.current.riveRef.current = { fireState: mockFireState };
-
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith(
-        STATE_MACHINE_NAME,
-        'Disable_right',
-      );
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Disable_right');
     });
 
     it('should clear display text in idle state', () => {
@@ -158,26 +148,18 @@ describe('useRewardsAnimation', () => {
 
   describe('Loading state behavior', () => {
     it('should trigger Disable in loading state', () => {
-      const { result } = renderHook(() =>
+      renderHook(() =>
         useRewardsAnimation({
           value: 100,
           state: RewardAnimationState.Loading,
         }),
       );
 
-      // Set up the riveRef with mock fireState
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Mocking ref for testing
-      result.current.riveRef.current = { fireState: mockFireState };
-
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith(
-        STATE_MACHINE_NAME,
-        'Disable_right',
-      );
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Disable_right');
     });
 
     it('should clear display text in loading state', () => {
@@ -194,26 +176,18 @@ describe('useRewardsAnimation', () => {
 
   describe('Error state behavior', () => {
     it('should trigger Disable in error state', () => {
-      const { result } = renderHook(() =>
+      renderHook(() =>
         useRewardsAnimation({
           value: 100,
           state: RewardAnimationState.ErrorState,
         }),
       );
 
-      // Set up the riveRef with mock fireState
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Mocking ref for testing
-      result.current.riveRef.current = { fireState: mockFireState };
-
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith(
-        STATE_MACHINE_NAME,
-        'Disable_right',
-      );
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Disable_right');
     });
 
     it('should not hide value in error state', () => {
@@ -230,49 +204,33 @@ describe('useRewardsAnimation', () => {
 
   describe('Refresh state behaviors', () => {
     it('should trigger RefreshRight in RefreshLoading state', () => {
-      const { result } = renderHook(() =>
+      renderHook(() =>
         useRewardsAnimation({
           value: 100,
           state: RewardAnimationState.RefreshLoading,
         }),
       );
 
-      // Set up the riveRef with mock fireState
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Mocking ref for testing
-      result.current.riveRef.current = { fireState: mockFireState };
-
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith(
-        STATE_MACHINE_NAME,
-        'Refresh_right',
-      );
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Refresh_right');
     });
 
     it('should trigger RefreshLeft in RefreshFinished state', () => {
-      const { result } = renderHook(() =>
+      renderHook(() =>
         useRewardsAnimation({
           value: 100,
           state: RewardAnimationState.RefreshFinished,
         }),
       );
 
-      // Set up the riveRef with mock fireState
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Mocking ref for testing
-      result.current.riveRef.current = { fireState: mockFireState };
-
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith(
-        STATE_MACHINE_NAME,
-        'Refresh_left',
-      );
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Refresh_left');
     });
 
     it('should not hide value in RefreshFinished state', () => {
@@ -321,22 +279,18 @@ describe('useRewardsAnimation', () => {
   });
 
   describe('Error handling', () => {
-    it('should handle errors when fireState throws', () => {
+    it('should handle errors when triggerInput throws', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      const { result } = renderHook(() =>
+      __mockRiveTriggerInput.mockImplementationOnce(() => {
+        throw new Error('Rive error');
+      });
+
+      renderHook(() =>
         useRewardsAnimation({
           value: 100,
           state: RewardAnimationState.Idle,
         }),
       );
-
-      // Set up the riveRef with mock fireState that throws
-      const throwingFireState = jest.fn(() => {
-        throw new Error('Rive error');
-      });
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Mocking ref for testing
-      result.current.riveRef.current = { fireState: throwingFireState };
 
       act(() => {
         jest.advanceTimersByTime(150);
@@ -351,6 +305,12 @@ describe('useRewardsAnimation', () => {
     });
 
     it('should handle null riveRef gracefully', () => {
+      const useRiveSpy = jest.spyOn(riveMockModule, 'useRive').mockReturnValue({
+        riveRef: { current: null },
+        riveViewRef: null,
+        setHybridRef: { f: jest.fn() },
+      } as unknown as ReturnType<typeof riveMockModule.useRive>);
+
       const { result } = renderHook(() =>
         useRewardsAnimation({
           value: 100,
@@ -358,13 +318,14 @@ describe('useRewardsAnimation', () => {
         }),
       );
 
-      // riveRef.current is null by default
       act(() => {
         jest.advanceTimersByTime(150);
       });
 
       expect(result.current).toBeDefined();
-      expect(mockFireState).not.toHaveBeenCalled();
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
+
+      useRiveSpy.mockRestore();
     });
   });
 

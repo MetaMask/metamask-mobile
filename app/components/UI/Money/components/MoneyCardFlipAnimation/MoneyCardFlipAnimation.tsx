@@ -2,7 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import Rive, { Fit, RNRiveError } from 'rive-react-native';
+import {
+  Fit,
+  RiveView,
+  useRiveFile,
+  type RiveError,
+} from '@rive-app/react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -23,19 +28,19 @@ const log = createProjectLogger('money-card-flip');
 // These MUST match the names authored in card_tilt_v1.2.riv. If the Rive
 // designer renames any of these, update the constants here.
 //
-// The flip is played as a raw timeline on the per-variant artboards. The
-// MainTilt state machine + ViewModel (cardType / startAnimation) do not
-// respond to the data-bound trigger in this asset version, so the state
-// machine is deliberately bypassed here.
+// The flip lives as a one-shot `yAnimation` timeline on the per-variant
+// artboards. The MainTilt state machine + ViewModel (cardType /
+// startAnimation) do not respond to the data-bound trigger in this asset
+// version, so the state machine is deliberately bypassed here. The Nitro
+// runtime has no `animationName` prop for raw-timeline playback either — the
+// variant artboards exist solely to hold the flip timeline, so `autoPlay`
+// plays it as the artboard's default animation.
 
 /** Artboard holding the virtual-card flip animation. */
 const RIVE_ARTBOARD_VIRTUAL = 'Card Tilt Y Animation - Digital';
 
 /** Artboard holding the metal-card flip animation. */
 const RIVE_ARTBOARD_METAL = 'Card Tilt Y Animation - Metal';
-
-/** One-shot flip timeline present on both variant artboards. */
-const RIVE_FLIP_ANIMATION = 'yAnimation';
 
 const ENTRANCE_DURATION_MS = 250;
 const ENTRANCE_TRANSLATE_Y = 10;
@@ -82,7 +87,9 @@ const MoneyCardFlipAnimation = ({
     });
   }, [animate, variantKnown, entranceOpacity, entranceTranslateY]);
 
-  const handleError = useCallback((riveError: RNRiveError) => {
+  const { riveFile } = useRiveFile(CardTiltAnimation);
+
+  const handleError = useCallback((riveError: RiveError) => {
     log(`Rive error: ${riveError.message}`);
     setHasRiveError(true);
   }, []);
@@ -93,17 +100,19 @@ const MoneyCardFlipAnimation = ({
   } else if (animate) {
     content = (
       <Animated.View style={[styles.media, entranceStyle]}>
-        <Rive
-          source={CardTiltAnimation}
-          artboardName={
-            isMetalCard ? RIVE_ARTBOARD_METAL : RIVE_ARTBOARD_VIRTUAL
-          }
-          animationName={RIVE_FLIP_ANIMATION}
-          fit={Fit.Contain}
-          style={styles.media}
-          onError={handleError}
-          testID={MoneyCardFlipAnimationTestIds.RIVE}
-        />
+        {riveFile && (
+          <RiveView
+            file={riveFile}
+            artboardName={
+              isMetalCard ? RIVE_ARTBOARD_METAL : RIVE_ARTBOARD_VIRTUAL
+            }
+            autoPlay
+            fit={Fit.Contain}
+            style={styles.media}
+            onError={handleError}
+            testID={MoneyCardFlipAnimationTestIds.RIVE}
+          />
+        )}
       </Animated.View>
     );
   } else {

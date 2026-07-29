@@ -1,35 +1,42 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
+import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyCardFlipAnimation from './MoneyCardFlipAnimation';
 import { MoneyCardFlipAnimationTestIds } from './MoneyCardFlipAnimation.testIds';
 import { useReduceMotionState } from '../../hooks/useReduceMotion';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
-const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
-const mockRiveProps: {
-  current?: { artboardName?: string; animationName?: string };
+// Local prop-capturing wrapper around the global Nitro Rive mock so the
+// rendered artboard and the onError callback are observable. The Nitro
+// runtime has no `animationName` prop — the flip timeline is the default
+// animation of the per-variant artboards, played via `autoPlay`.
+const mockRiveViewProps: {
+  current?: {
+    testID?: string;
+    artboardName?: string;
+    autoPlay?: boolean;
+    onError?: (error: RiveError) => void;
+  };
 } = {};
 
-jest.mock('rive-react-native', () => {
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('@rive-app/react-native');
   const ReactActual = jest.requireActual('react');
-  const { View: RNView } = jest.requireActual('react-native');
+  const MockRiveView = (props: {
+    testID?: string;
+    artboardName?: string;
+    autoPlay?: boolean;
+    onError?: (error: RiveError) => void;
+  }) => {
+    mockRiveViewProps.current = props;
+    return ReactActual.createElement(actual.RiveView, props);
+  };
   return {
     __esModule: true,
-    Fit: { Contain: 'contain' },
-    default: (props: {
-      testID?: string;
-      artboardName?: string;
-      animationName?: string;
-      onError?: (error: { message: string }) => void;
-    }) => {
-      mockOnErrorRef.current = props.onError;
-      mockRiveProps.current = {
-        artboardName: props.artboardName,
-        animationName: props.animationName,
-      };
-      return ReactActual.createElement(RNView, { testID: props.testID });
-    },
+    ...actual,
+    RiveView: MockRiveView,
   };
 });
 
@@ -47,8 +54,8 @@ const mockUseReduceMotionState = useReduceMotionState as jest.Mock;
 describe('MoneyCardFlipAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnErrorRef.current = undefined;
-    mockRiveProps.current = undefined;
+    __resetRiveMocks();
+    mockRiveViewProps.current = undefined;
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotionState.mockReturnValue(false);
   });
@@ -117,22 +124,22 @@ describe('MoneyCardFlipAnimation', () => {
     expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
   });
 
-  it('renders the metal artboard with the flip timeline for a metal card', () => {
+  it('renders the metal artboard with autoplay for a metal card', () => {
     render(<MoneyCardFlipAnimation isMetalCard />);
 
-    expect(mockRiveProps.current?.artboardName).toBe(
+    expect(mockRiveViewProps.current?.artboardName).toBe(
       'Card Tilt Y Animation - Metal',
     );
-    expect(mockRiveProps.current?.animationName).toBe('yAnimation');
+    expect(mockRiveViewProps.current?.autoPlay).toBe(true);
   });
 
-  it('renders the digital artboard with the flip timeline for a virtual card', () => {
+  it('renders the digital artboard with autoplay for a virtual card', () => {
     render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-    expect(mockRiveProps.current?.artboardName).toBe(
+    expect(mockRiveViewProps.current?.artboardName).toBe(
       'Card Tilt Y Animation - Digital',
     );
-    expect(mockRiveProps.current?.animationName).toBe('yAnimation');
+    expect(mockRiveViewProps.current?.autoPlay).toBe(true);
   });
 
   it('renders the static image when the feature flag is disabled', () => {
@@ -166,7 +173,12 @@ describe('MoneyCardFlipAnimation', () => {
       <MoneyCardFlipAnimation isMetalCard={false} />,
     );
 
-    act(() => mockOnErrorRef.current?.({ message: 'boom' }));
+    act(() =>
+      mockRiveViewProps.current?.onError?.({
+        message: 'boom',
+        type: RiveErrorType.Unknown,
+      }),
+    );
 
     expect(
       getByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),

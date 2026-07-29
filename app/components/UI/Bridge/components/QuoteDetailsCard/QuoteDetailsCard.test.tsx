@@ -19,18 +19,6 @@ jest.mock(
   () => 'mocked-riv-file',
 );
 
-// Mock rive-react-native
-jest.mock('rive-react-native', () => {
-  const { View } = jest.requireActual('react-native');
-  const MockRive = () => <View testID={'mock-rive-animation'} />;
-
-  return {
-    __esModule: true,
-    ...jest.requireActual('rive-react-native'),
-    default: MockRive,
-  };
-});
-
 jest.mock('react-native-fade-in-image', () => {
   const ReactMock = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

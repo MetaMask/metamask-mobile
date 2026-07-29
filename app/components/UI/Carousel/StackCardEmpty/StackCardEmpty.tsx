@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions } from 'react-native';
-import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import {
   Box,
   Text,
@@ -35,7 +41,8 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
   onTransitionToEmpty,
 }) => {
   const tw = useTailwind();
-  const riveRef = useRef<RiveRef>(null);
+  const { riveFile } = useRiveFile(CarouselConfetti);
+  const { riveRef, setHybridRef } = useRive();
   const [riveError, setRiveError] = useState(false);
 
   // Keep the latest callback in a ref so the parent re-rendering (which passes
@@ -64,7 +71,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
           return;
         }
         try {
-          rive.fireState('Confetti', 'Start');
+          rive.triggerInput('Start');
         } catch (error) {
           console.warn('Error triggering Rive confetti animation:', error);
         }
@@ -97,7 +104,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
       if (confettiTimer) clearTimeout(confettiTimer);
       if (dismissTimer) clearTimeout(dismissTimer);
     };
-  }, [emptyStateOpacity]);
+  }, [emptyStateOpacity, riveRef]);
 
   return (
     <Animated.View
@@ -120,17 +127,18 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
         )}
       >
         {/* Confetti animation background layer */}
-        {!riveError && (
+        {!riveError && riveFile && (
           <Box
             style={tw.style('absolute inset-0 rounded-xl overflow-hidden', {
               height: BANNER_HEIGHT,
               width: BANNER_WIDTH,
             })}
           >
-            <Rive
-              ref={riveRef}
-              source={CarouselConfetti}
+            <RiveView
+              hybridRef={setHybridRef}
+              file={riveFile}
               artboardName="Artboard"
+              stateMachineName="Confetti"
               fit={Fit.Cover}
               alignment={Alignment.Center}
               style={{

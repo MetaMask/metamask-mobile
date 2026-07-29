@@ -4,7 +4,10 @@ import ReactTestRenderer from 'react-test-renderer';
 import { Animated } from 'react-native';
 import { ANIMATION_TIMINGS } from '../animations/animationTimings';
 import { StackCardEmpty } from './StackCardEmpty';
-import { __mockRiveFireState } from '../../../../__mocks__/rive-react-native';
+import {
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -63,7 +66,8 @@ describe('StackCardEmpty', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    __mockRiveFireState.mockReset();
+    __resetRiveMocks();
+    __mockRiveTriggerInput.mockReset();
     jest.useFakeTimers();
   });
 
@@ -270,12 +274,12 @@ describe('StackCardEmpty', () => {
         jest.advanceTimersByTime(50);
       });
 
-      expect(__mockRiveFireState).toHaveBeenCalledWith('Confetti', 'Start');
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
     });
 
-    it('logs a warning when Rive confetti fireState throws', () => {
+    it('logs a warning when Rive confetti triggerInput throws', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      __mockRiveFireState.mockImplementation(() => {
+      __mockRiveTriggerInput.mockImplementation(() => {
         throw new Error('confetti failed');
       });
 
