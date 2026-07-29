@@ -60,6 +60,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -617,7 +618,7 @@ function BuySection() {
   const { goToBuy } = useRampNavigation();
 
   const handleBuyPress = useCallback(() => {
-    goToBuy({ assetId });
+    goToBuy({ assetId }, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
   }, [assetId, goToBuy]);
 
   let message: string | undefined;

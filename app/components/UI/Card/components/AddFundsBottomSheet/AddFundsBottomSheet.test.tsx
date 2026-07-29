@@ -325,10 +325,12 @@ describe('AddFundsBottomSheet', () => {
     // goToBuy is the smart router in useRampNavigation; when V2 is enabled
     // (default for this suite), it dispatches to UB2 (BuildQuote). See
     // useRampNavigation.test.ts > 'goToBuy > when unified V2 is enabled'.
-    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: `${mockPriorityToken.caipChainId}/erc20:${mockPriorityToken.address}`,
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: `${mockPriorityToken.caipChainId}/erc20:${mockPriorityToken.address}`,
+      },
+      { surface: 'card' },
+    );
   });
 
   it('falls back to goToBuy() with no intent when the priority token has no address', () => {
@@ -343,8 +345,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith(undefined);
+    expect(mockGoToBuy).toHaveBeenCalledWith(undefined, { surface: 'card' });
   });
 
   it('renders component correctly', () => {

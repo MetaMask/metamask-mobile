@@ -126,6 +126,7 @@ describe('CashGetMusdEmptyState', () => {
       expect.objectContaining({
         assetId: expect.stringContaining('eip155:1/erc20:'),
       }),
+      { surface: 'cash' },
     );
     expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
   });
