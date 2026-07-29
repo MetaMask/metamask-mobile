@@ -185,9 +185,10 @@ describe('TopTraderCard', () => {
   // host View, so climb to the Pressable that owns the style *function* and
   // invoke it for each state to compare the resolved backgroundColor.
   const cardBackgroundColor = (pressed: boolean) => {
-    let node = screen.getByTestId('top-trader-card-trader-1') as
-      | { props: { style?: unknown }; parent: unknown }
-      | null;
+    let node = screen.getByTestId('top-trader-card-trader-1') as {
+      props: { style?: unknown };
+      parent: unknown;
+    } | null;
     while (node && typeof node.props?.style !== 'function') {
       node = node.parent as typeof node;
     }
