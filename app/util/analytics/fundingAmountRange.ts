@@ -115,8 +115,7 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
             )?.groups?.chainId;
             if (failedChain && !chainIdSet.has(failedChain)) {
               Logger.log(
-                'fetchImportedWalletFundingAmountRange: ignored foreign-chain token import failure',
-                error,
+                `fundingAmountRange: ignoring token-import failure for chain ${failedChain} — it has no NetworkController configuration and was not part of this refresh; requested-chain balances are unaffected`,
               );
               return undefined;
             }
@@ -178,7 +177,10 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
     }
     return getFundingAmountRange(totalBalanceInUserCurrency);
   } catch (error) {
-    Logger.log('fetchImportedWalletFundingAmountRange failed', error);
+    Logger.log(
+      'fundingAmountRange: balance fetch failed — funding_amount_range will be omitted from Wallet Setup Completed',
+      error,
+    );
     return undefined;
   } finally {
     if (timeoutHandle !== undefined) {
