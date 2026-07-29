@@ -8973,7 +8973,8 @@
         "title": "Tham gia danh sách chờ",
         "load_error": "Đã xảy ra lỗi khi tải biểu mẫu. Vui lòng thử lại.",
         "try_again": "Thử lại",
-        "success_toast": "Bạn đã ở trong danh sách chờ! Chúng tôi sẽ thông báo khi thẻ khả dụng tại quốc gia của bạn."
+        "success_toast": "Bạn đã ở trong danh sách chờ!",
+        "success_toast_description": "Chúng tôi sẽ thông báo khi thẻ khả dụng tại quốc gia của bạn."
       },
       "region_selector": {
         "title": "Chọn khu vực của bạn"

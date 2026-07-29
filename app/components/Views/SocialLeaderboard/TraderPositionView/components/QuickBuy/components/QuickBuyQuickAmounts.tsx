@@ -5,13 +5,15 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback } from 'react';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useCallback, useMemo } from 'react';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import {
-  getBuyQuickAmounts,
-  SELL_QUICK_PERCENTAGES,
+  resolveBuyQuickAmounts,
+  resolveSellQuickPercentages,
 } from '../utils/quickBuyQuickAmounts';
 
 /**
@@ -25,6 +27,8 @@ const QUICK_AMOUNT_PILL_PROPS = {
 } as const;
 
 const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
+const QUICK_AMOUNT_PILL_COUNT = 4;
+const QUICK_AMOUNT_PILL_SKELETON_LABEL = 'quick-buy-quick-amount-pill-skeleton';
 
 export interface QuickBuyQuickAmountsProps {
   /** When true, appends a primary Done pill (keyboard-open row above the keypad). */
@@ -36,17 +40,34 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
   showDone = false,
   onDonePress,
 }) => {
+  const tw = useTailwind();
   const { playImpact } = useHaptics();
   const {
     tradeMode,
     currentCurrency,
-    usdToCurrentCurrencyRate,
+    buyQuickAmounts,
+    sellQuickPercentages,
+    isQuickAmountPreferencesLoaded,
     hasSourcePrice,
     isSliderDisabled,
     handleQuickAmountPress,
     handleSliderChange,
     handleSliderDragEnd,
   } = useQuickBuyContext();
+
+  const buyAmounts = useMemo(
+    () => resolveBuyQuickAmounts(buyQuickAmounts, currentCurrency),
+    [buyQuickAmounts, currentCurrency],
+  );
+
+  const sellAmounts = useMemo(
+    () =>
+      resolveSellQuickPercentages(
+        sellQuickPercentages,
+        strings('social_leaderboard.quick_buy.max'),
+      ),
+    [sellQuickPercentages],
+  );
 
   const handleSellPercentPress = useCallback(
     (percent: number) => {
@@ -62,9 +83,9 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
   );
 
   const handleBuyAmountPress = useCallback(
-    (value: number, presetTierUsd: number) => {
+    (value: number, presetValue: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
-      handleQuickAmountPress(value, presetTierUsd);
+      handleQuickAmountPress(value, presetValue);
     },
     [handleQuickAmountPress, playImpact],
   );
@@ -82,21 +103,33 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
       </Button>
     ) : null;
 
-  if (tradeMode === 'sell') {
+  const renderPillSkeletonLabel = () => (
+    <Skeleton
+      width={32}
+      height={14}
+      style={tw.style('rounded-sm')}
+      testID={QUICK_AMOUNT_PILL_SKELETON_LABEL}
+    />
+  );
+
+  if (!isQuickAmountPreferencesLoaded) {
+    const loadingTestIdPrefix =
+      tradeMode === 'sell'
+        ? 'quick-buy-sell-pill-loading'
+        : 'quick-buy-buy-pill-loading';
+
     return (
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
-        {SELL_QUICK_PERCENTAGES.map((percent) => (
+        {Array.from({ length: QUICK_AMOUNT_PILL_COUNT }, (_, index) => (
           <Button
-            key={percent}
+            key={index}
             {...QUICK_AMOUNT_PILL_PROPS}
-            onPress={() => handleSellPercentPress(percent)}
-            isDisabled={isSliderDisabled}
+            onPress={() => undefined}
+            isDisabled
             twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
-            testID={`quick-buy-sell-pill-${percent}`}
+            testID={`${loadingTestIdPrefix}-${index}`}
           >
-            {percent === 100
-              ? strings('social_leaderboard.quick_buy.max')
-              : `${percent}%`}
+            {renderPillSkeletonLabel()}
           </Button>
         ))}
         {doneButton}
@@ -104,23 +137,36 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
     );
   }
 
-  const buyAmounts = getBuyQuickAmounts(
-    currentCurrency,
-    usdToCurrentCurrencyRate,
-  );
+  if (tradeMode === 'sell') {
+    return (
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
+        {sellAmounts.map((option) => (
+          <Button
+            key={option.percent}
+            {...QUICK_AMOUNT_PILL_PROPS}
+            onPress={() => handleSellPercentPress(option.percent)}
+            isDisabled={isSliderDisabled}
+            twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+            testID={`quick-buy-sell-pill-${option.percent}`}
+          >
+            {option.label}
+          </Button>
+        ))}
+        {doneButton}
+      </Box>
+    );
+  }
 
   return (
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
-      {buyAmounts.map((option) => (
+      {buyAmounts.map((option, index) => (
         <Button
-          key={option.presetTierUsd}
+          key={`${option.presetValue}-${index}`}
           {...QUICK_AMOUNT_PILL_PROPS}
-          onPress={() =>
-            handleBuyAmountPress(option.value, option.presetTierUsd)
-          }
+          onPress={() => handleBuyAmountPress(option.value, option.presetValue)}
           isDisabled={isSliderDisabled}
           twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
-          testID={`quick-buy-buy-pill-${option.presetTierUsd}`}
+          testID={`quick-buy-buy-pill-${option.presetValue}`}
         >
           {option.label}
         </Button>
