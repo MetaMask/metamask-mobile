@@ -3,6 +3,8 @@ import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -137,7 +139,7 @@ const MultichainPermissionsSummary = ({
     ],
     [styles.safeArea, insets.top, insets.bottom],
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
@@ -261,17 +263,21 @@ const MultichainPermissionsSummary = ({
             iconName={IconName.Info}
             iconColor={IconColor.Default}
             onPress={() => {
-              navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: Routes.SHEET.CONNECTION_DETAILS,
-                params: {
-                  hostInfo: {
-                    metadata: {
-                      origin: hostname,
+              // Keep hostInfo at runtime; escape hatch avoids UX-owned param type.
+              navigateWithDetails(navigation, [
+                Routes.MODAL.ROOT_MODAL_FLOW,
+                {
+                  screen: Routes.SHEET.CONNECTION_DETAILS,
+                  params: {
+                    hostInfo: {
+                      metadata: {
+                        origin: hostname,
+                      },
                     },
+                    connectionDateTime: new Date().getTime(),
                   },
-                  connectionDateTime: new Date().getTime(),
                 },
-              });
+              ]);
             }}
             testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
           />

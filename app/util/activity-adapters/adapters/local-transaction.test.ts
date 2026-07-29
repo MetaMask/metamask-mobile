@@ -678,6 +678,46 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a zero-amount approve to a revoke spending-cap activity', () => {
+    const transaction = {
+      chainId: base,
+      id: 'revoke-id',
+      hash: '0xrevoke',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, 0n),
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'revokeSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xrevoke',
+      data: {
+        token: {
+          amount: '0',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
   it('uses bridge history token data to map a local swap', () => {
     const transaction = {
       chainId: base,

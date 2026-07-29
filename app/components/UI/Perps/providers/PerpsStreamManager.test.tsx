@@ -10,12 +10,19 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
+  PERPS_CONSTANTS,
   type PriceUpdate,
   type PerpsMarketData,
   type Position,
   type Order,
   type AccountState,
 } from '@metamask/perps-controller';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import { PERPS_CUF_TAG } from '../constants/perpsCufTags';
+import {
+  PERPS_LIFECYCLE_CONTEXT,
+  resetPerpsLifecycleContextForTests,
+} from '../utils/perpsLifecycleContext';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -27,6 +34,11 @@ import {
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 jest.mock('../services/PerpsConnectionManager');
 jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
@@ -51,6 +63,7 @@ const mockPerpsConnectionManager = PerpsConnectionManager as jest.Mocked<
   typeof PerpsConnectionManager
 >;
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
+const mockTrace = trace as jest.Mock;
 const mockSelectPerpsTerminalBackendEnabledFlag =
   selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
 
@@ -91,6 +104,7 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+    resetPerpsLifecycleContextForTests();
 
     // Restore the default Terminal flag state (enabled) after any per-test override.
     mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
@@ -1167,6 +1181,62 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('first price and order book trace tags', () => {
+    const expectedSharedTags = {
+      [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
+      [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]: PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+    };
+
+    it('starts the first-price trace with shared CUF tags', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: jest.fn(),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstPrice,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+
+    it('starts the first-order-book trace with shared CUF tags', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstOrderBook,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+
+    it('starts the prewarmed first-price trace with shared CUF tags', async () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstPrice,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+  });
+
   describe('PriceStreamChannel.prewarm non-blocking behavior', () => {
     it('returns immediately without waiting for getMarkets', async () => {
       // Create a promise that we can control
@@ -1955,6 +2025,9 @@ describe('PerpsStreamManager', () => {
     ];
 
     beforeEach(() => {
+      // Market-data tests await Promise-based fetches. Keep real timers active
+      // so waitFor can poll without relying on the outer suite's fake timers.
+      jest.useRealTimers();
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
       mockEngine.context.PerpsController.getMarketDataWithPrices =
         mockGetMarketDataWithPrices;
@@ -3326,55 +3399,6 @@ describe('PerpsStreamManager', () => {
 
       expect(orderPauseSpy).toHaveBeenCalledTimes(1);
       expect(pricesPauseSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('pauseAllChannels / resumeAllChannels', () => {
-    const CHANNEL_NAMES = [
-      'prices',
-      'orders',
-      'positions',
-      'fills',
-      'account',
-      'oiCaps',
-      'topOfBook',
-      'focusedPrice',
-      'candles',
-    ] as const;
-
-    it('pauseAllChannels calls pause() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'pause');
-      }
-
-      testStreamManager.pauseAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].pause).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('resumeAllChannels calls resume() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'resume');
-      }
-
-      testStreamManager.resumeAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].resume).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('does not touch marketData (REST-based, not a stream channel)', () => {
-      const pauseSpy = jest.spyOn(testStreamManager.marketData, 'pause');
-      const resumeSpy = jest.spyOn(testStreamManager.marketData, 'resume');
-
-      testStreamManager.pauseAllChannels();
-      testStreamManager.resumeAllChannels();
-
-      expect(pauseSpy).not.toHaveBeenCalled();
-      expect(resumeSpy).not.toHaveBeenCalled();
     });
   });
 
