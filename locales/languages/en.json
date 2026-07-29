@@ -9069,7 +9069,8 @@
         "title": "Join waitlist",
         "load_error": "Something went wrong loading the form. Please try again.",
         "try_again": "Try again",
-        "success_toast": "You're on the waitlist! We'll let you know when the card is available in your country."
+        "success_toast": "You're on the waitlist!",
+        "success_toast_description": "We'll let you know when the card is available in your country."
       },
       "region_selector": {
         "title": "Select your Region"
@@ -10522,7 +10523,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "top_traders": "Weekly Top Traders",
+      "top_traders": "Weekly top traders",
       "defi": "DeFi",
       "nfts": "NFTs",
       "watchlist": "Watchlist",
