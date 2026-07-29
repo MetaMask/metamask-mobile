@@ -5,9 +5,12 @@ import { useCliLoginPushNudge } from './useCliLoginPushNudge';
 
 /**
  * Bridges the non-React CLI QR-login service layer to the push-permission
- * bottom sheet (MMAI-925). Mount once near the app root; subscribes to the
- * module-level push-nudge signal and shows the shared "Never miss a move"
- * sheet (with CLI-specific copy) when emitted.
+ * bottom sheet (MMAI-925). Mounted once inside the authenticated Main flow
+ * (alongside PushNotificationOnboardingRoot) so the BottomSheet layers above
+ * native-stack screens on iOS; a sibling of <AppFlow /> in App.tsx would
+ * render behind those screens. Subscribes to the module-level push-nudge
+ * signal and shows the shared "Never miss a move" sheet (with CLI-specific
+ * copy) when emitted.
  */
 const CliLoginPushNudgeListener = () => {
   const { isVisible, onYes, onNotNow, onClose } = useCliLoginPushNudge();
