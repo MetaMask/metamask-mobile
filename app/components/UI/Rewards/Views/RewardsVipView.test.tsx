@@ -873,4 +873,27 @@ describe('RewardsVipView', () => {
       queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
     ).toBeNull();
   });
+
+  it('does not pass a maintain subline when the maintain threshold is 0', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        tiers: defaultDashboard.tiers.map((tier) =>
+          tier.id === defaultDashboard.currentTier.id
+            ? { ...tier, maintainPointsRequirement: 0 }
+            : tier,
+        ),
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(
+      queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toBeNull();
+  });
 });

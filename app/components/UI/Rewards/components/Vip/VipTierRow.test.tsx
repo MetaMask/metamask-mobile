@@ -233,4 +233,13 @@ describe('VipTierRow', () => {
 
     expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD)).toBeNull();
   });
+
+  it('omits the maintain threshold row when maintainPointsRequirement is 0', () => {
+    const tier = { ...baseTier, maintainPointsRequirement: 0 };
+    const { queryByTestId } = render(
+      <VipTierRow tier={tier} localizedText={localizedText} />,
+    );
+
+    expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD)).toBeNull();
+  });
 });

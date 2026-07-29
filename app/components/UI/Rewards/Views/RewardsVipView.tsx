@@ -160,7 +160,7 @@ const RewardsVipViewContent: React.FC = () => {
   })();
   const maintainSubline = (() => {
     const maintainPoints = currentTierDetails?.maintainPointsRequirement;
-    if (maintainPoints == null) return undefined;
+    if (maintainPoints == null || maintainPoints === 0) return undefined;
     return strings('rewards.vip.maintain_this_tier', {
       points: formatCompactValue(maintainPoints),
     });

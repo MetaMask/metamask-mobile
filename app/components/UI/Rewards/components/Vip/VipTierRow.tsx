@@ -254,7 +254,8 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
               value={`${referralPointsPercentage}%`}
               testID={VIP_TIER_ROW_TEST_IDS.REFERRAL_POINTS}
             />
-            {tier.maintainPointsRequirement != null ? (
+            {tier.maintainPointsRequirement != null &&
+            tier.maintainPointsRequirement !== 0 ? (
               <VipTierDetailRow
                 label={strings('rewards.vip.maintain_threshold_label')}
                 value={strings('rewards.vip.tier_thresholds', {
