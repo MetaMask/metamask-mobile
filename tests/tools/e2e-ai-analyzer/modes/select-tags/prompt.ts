@@ -37,7 +37,7 @@ ${availableSkills
 
   const guidanceSection = `GUIDANCE:
 Use your judgment - selecting all tags is acceptable (recommended as conservative approach for risky changes), as well as selecting none of them if the changes are unrisky.
-E2E smoke tags (from tests/tags.js) select which smoke suites run in CI. Select tags based on impacted user flows and app areas. Regression tests (tests/regression/) are NOT in scope for Smart E2E selection — only smoke and performance tags are selected here.
+E2E smoke tags (from tests/tags.js) select which smoke suites run in CI. Select tags based on impacted user flows and app areas. Only smoke and performance tags are in scope for Smart E2E selection.
 Changes to smoke spec files (tests/smoke/, tests/smoke-appium/) or shared test infra they import (page-objects, flows, selectors, locators) — inspect changed specs for their imported tags.
 Changes to wdio/ or tests/performance directories do not require smoke tags from tests/tags.js - select none unless app code is also changed.
 Changes to tests/selectors/, tests/flows/, tests/locators/, or tests/page-objects/ — use find_related_files to identify which smoke spec files import the changed file and select the appropriate tags.
