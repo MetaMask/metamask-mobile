@@ -3,6 +3,7 @@ import {
   accelerationToPitch,
   accelerationToRoll,
   accelerationToTilt,
+  applyResponseCurve,
   normalizeReading,
   trackNeutralAngle,
   useDeviceOrientation,
@@ -379,6 +380,43 @@ describe('trackNeutralAngle', () => {
   });
 });
 
+describe('applyResponseCurve', () => {
+  it('leaves a centred tilt centred', () => {
+    expect(applyResponseCurve(0)).toBe(0);
+  });
+
+  it.each([-1, 1])('leaves a full tilt of %p at full travel', (tilt) => {
+    expect(applyResponseCurve(tilt)).toBeCloseTo(tilt);
+  });
+
+  it('preserves the direction of a negative tilt', () => {
+    expect(applyResponseCurve(-0.5)).toBeLessThan(0);
+  });
+
+  it('attenuates a tremor-sized tilt by an order of magnitude', () => {
+    expect(Math.abs(applyResponseCurve(0.05))).toBeLessThan(0.05 / 10);
+  });
+
+  it('attenuates a deliberate tilt far less than a tremor-sized one', () => {
+    const tremorLoss = 0.05 / applyResponseCurve(0.05);
+    const deliberateLoss = 0.8 / applyResponseCurve(0.8);
+
+    expect(deliberateLoss).toBeLessThan(tremorLoss);
+  });
+
+  it('increases monotonically so the response never reverses', () => {
+    const shaped = [0, 0.2, 0.4, 0.6, 0.8, 1].map(applyResponseCurve);
+
+    shaped.forEach((value, index) => {
+      if (index > 0) expect(value).toBeGreaterThan(shaped[index - 1]);
+    });
+  });
+
+  it('is symmetric about the neutral', () => {
+    expect(applyResponseCurve(-0.35)).toBeCloseTo(-applyResponseCurve(0.35));
+  });
+});
+
 describe('useDeviceOrientation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -452,6 +490,39 @@ describe('useDeviceOrientation', () => {
     const [x, y] = lastEmission(onOrientation);
     expect(x).toBeCloseTo(0);
     expect(y).toBeCloseTo(0);
+  });
+
+  it('keeps a hand tremor around a held posture close to centred', () => {
+    const onOrientation = jest.fn();
+    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    const observer = mockSubscribe.mock.calls[0][0];
+
+    observer.next(pitchedAt(45));
+    onOrientation.mockClear();
+    // A ±1.5 degree wobble, the scale of an unsteady hand rather than a
+    // deliberate tilt.
+    for (let i = 0; i < 100; i++) {
+      observer.next(pitchedAt(i % 2 === 0 ? 46.5 : 43.5));
+    }
+
+    const emitted = onOrientation.mock.calls.map(([, y]) => Math.abs(y));
+    expect(Math.max(...emitted)).toBeLessThan(0.01);
+  });
+
+  it('emits a far larger pitch for a deliberate tilt than for a tremor of the same posture', () => {
+    const onOrientation = jest.fn();
+    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    const observer = mockSubscribe.mock.calls[0][0];
+    observer.next(pitchedAt(45));
+    for (let i = 0; i < 20; i++) {
+      observer.next(pitchedAt(i % 2 === 0 ? 46.5 : 43.5));
+    }
+    const [, tremorY] = lastEmission(onOrientation);
+
+    for (let i = 0; i < 20; i++) observer.next(pitchedAt(65));
+
+    const [, deliberateY] = lastEmission(onOrientation);
+    expect(Math.abs(deliberateY)).toBeGreaterThan(Math.abs(tremorY) * 50);
   });
 
   it('emits a positive pitch once the device tilts up from its reference orientation', () => {
@@ -615,8 +686,8 @@ describe('useDeviceOrientation', () => {
       for (let i = 0; i < 60; i++) observer.next(heldAt(60, 0));
 
       const [rolledLeftX] = lastEmission(onOrientation);
-      expect(rolledRightX).toBeGreaterThan(0.3);
-      expect(rolledLeftX).toBeLessThan(-0.3);
+      expect(rolledRightX).toBeGreaterThan(0.2);
+      expect(rolledLeftX).toBeLessThan(-0.2);
     });
 
     it('resets the roll neutral when the subscription is re-established', () => {

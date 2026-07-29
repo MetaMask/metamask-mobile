@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppState } from 'react-native';
+// eslint-disable-next-line react-native/split-platform-components
+import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { renderHook, act } from '@testing-library/react-native';
 import { ToastContext } from '../../../component-library/components/Toast';
 import type {
@@ -74,6 +75,10 @@ describe('useCliLoginPushNudge', () => {
     mockEnableNotifications.mockResolvedValue(undefined);
     mockIsPushPermissionPromptable.mockResolvedValue(true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
+    jest
+      .spyOn(PermissionsAndroid, 'request')
+      .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+    Platform.OS = 'ios';
     jest.spyOn(AppState, 'addEventListener').mockImplementation(((
       _event: string,
       handler: (state: string) => void,
@@ -266,5 +271,80 @@ describe('useCliLoginPushNudge', () => {
 
     expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
     expect(mockEnableNotifications).not.toHaveBeenCalled();
+  });
+
+  describe('android 13+', () => {
+    let requestMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      Platform.OS = 'android';
+      jest.spyOn(Platform, 'Version', 'get').mockReturnValue(33);
+      requestMock = jest
+        .spyOn(PermissionsAndroid, 'request')
+        .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+    });
+
+    it('opens settings when the OS permanently denied the permission', async () => {
+      requestMock.mockResolvedValue(PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN);
+      const { result } = renderNudge();
+
+      act(() => {
+        result.current.showNudge();
+      });
+      await tapTurnOn();
+
+      expect(PermissionsAndroid.request).toHaveBeenCalledWith(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens settings when the user denies the OS dialog', async () => {
+      const { result } = renderNudge();
+
+      act(() => {
+        result.current.showNudge();
+      });
+      await tapTurnOn();
+
+      expect(PermissionsAndroid.request).toHaveBeenCalledTimes(1);
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it('enables notifications when the OS grants push permission', async () => {
+      requestMock.mockResolvedValue(PermissionsAndroid.RESULTS.GRANTED);
+      const { result } = renderNudge();
+
+      act(() => {
+        result.current.showNudge();
+      });
+      await tapTurnOn();
+
+      expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+      expect(closeToast).toHaveBeenCalled();
+    });
+  });
+
+  describe('android < 13', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+      jest.spyOn(Platform, 'Version', 'get').mockReturnValue(31);
+    });
+
+    it('opens settings without a runtime dialog when push is not granted', async () => {
+      const { result } = renderNudge();
+
+      act(() => {
+        result.current.showNudge();
+      });
+      await tapTurnOn();
+
+      expect(PermissionsAndroid.request).not.toHaveBeenCalled();
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    });
   });
 });
