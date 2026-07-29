@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -37,7 +38,7 @@ export function BalanceProjection({
   amountFiat,
   projectedYears,
 }: BalanceProjectionProps) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
