@@ -26,6 +26,29 @@ export const remoteFeatureFlagPerpsDisabledForPredictSmoke = () => ({
   },
 });
 
+/**
+ * Keeps legacy Predict smoke flows off the extended sports details experience.
+ * Feature flag mocks deep-merge version maps, so every app-supported variation
+ * must be disabled explicitly.
+ */
+export const remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke =
+  () => ({
+    predictExtendedSportsMarkets: {
+      versions: {
+        '8.5.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+        '7.82.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+      },
+    },
+  });
+
 export class PredictHelpers {
   /**
    * Sets the device location to Portugal coordinates.

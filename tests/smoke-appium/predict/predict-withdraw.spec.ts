@@ -28,6 +28,7 @@ import TransactionPayConfirmation from '../../page-objects/Confirmation/Transact
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
 import {
   loginForPredictTests,
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 
@@ -37,18 +38,10 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POLYGON_RELAY_POLLING_MOCKS(mockServer);
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
-    predictExtendedSportsMarkets: {
-      versions: {
-        '7.82.0': {
-          enabled: false,
-          leagues: [],
-          enabledSportsMarketTypes: [],
-        },
-      },
-    },
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   // Keep this smoke test on the legacy Safe withdraw path.
