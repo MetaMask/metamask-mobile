@@ -202,10 +202,13 @@ class WalletView {
   private async tapIfAlreadyVisible(
     target: DetoxElement | EncapsulatedElementType,
     description: string,
+    options: { tapTimeout?: number } = {},
   ): Promise<boolean> {
     if (!FrameworkDetector.isAppium()) {
       return false;
     }
+
+    const { tapTimeout = 30_000 } = options;
 
     try {
       await PlaywrightAssertions.expectElementToBeVisible(
@@ -214,7 +217,7 @@ class WalletView {
       );
       await Gestures.waitAndTap(target, {
         elemDescription: description,
-        timeout: 30_000,
+        timeout: tapTimeout,
       });
       return true;
     } catch {
@@ -237,9 +240,16 @@ class WalletView {
       scrollAmount?: number;
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
       timeout?: number;
+      /** Appium/Detox tap wait after scroll. Defaults to 30s. */
+      tapTimeout?: number;
     } = {},
   ): Promise<void> {
-    const { scrollAmount = 200, overshootSwipe, timeout = 15_000 } = options;
+    const {
+      scrollAmount = 200,
+      overshootSwipe,
+      timeout = 15_000,
+      tapTimeout = 30_000,
+    } = options;
 
     await encapsulatedAction({
       detox: async () => {
@@ -262,7 +272,7 @@ class WalletView {
         }
         await Gestures.waitAndTap(target, {
           elemDescription: description,
-          timeout: 30_000,
+          timeout: tapTimeout,
         });
       },
       appium: async () => {
@@ -294,7 +304,7 @@ class WalletView {
         }
         await PlaywrightGestures.waitAndTap(
           await asPlaywrightElement(target as EncapsulatedElementType),
-          { timeout: 30_000 },
+          { timeout: tapTimeout },
         );
       },
     });
@@ -938,7 +948,10 @@ class WalletView {
 
   private async scrollPredictionsSectionIntoView(
     direction: 'up' | 'down' = 'down',
+    options: { maxAttempts?: number } = {},
   ): Promise<void> {
+    const { maxAttempts = 24 } = options;
+
     await encapsulatedAction({
       detox: async () => {
         await Gestures.scrollToElement(
@@ -957,7 +970,7 @@ class WalletView {
           this.predictionsSectionHeader,
           'Predictions section',
           direction,
-          24,
+          maxAttempts,
         );
       },
     });
@@ -1029,7 +1042,13 @@ class WalletView {
         const marketDetailsScreen = Matchers.getElementByID(
           PredictMarketDetailsSelectorsIDs.SCREEN,
         );
-        const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(30_000);
+        // Keep one attempt well under half of the outer budget so
+        // tryScrollDirections (down+up) can fail and still leave a second try.
+        const scrollAndTapRetryTimeoutMs = 90_000;
+        const intoViewMaxAttempts = 8;
+        const scrollAndTapPerDirectionMs = 15_000;
+        const tapTimeoutMs = 10_000;
+        const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(15_000);
 
         const assertMarketDetailsOpened = async (): Promise<void> => {
           await Assertions.expectElementToBeVisible(marketDetailsScreen, {
@@ -1043,23 +1062,34 @@ class WalletView {
         // visible before scrolling (off-screen rows like Blue Jays).
         await Utilities.executeWithRetry(
           async () => {
-            if (await this.tapIfAlreadyVisible(target, description)) {
+            if (
+              await this.tapIfAlreadyVisible(target, description, {
+                tapTimeout: tapTimeoutMs,
+              })
+            ) {
               await assertMarketDetailsOpened();
               return;
             }
 
             await this.tryScrollDirections((direction) =>
-              this.scrollPredictionsSectionIntoView(direction),
+              this.scrollPredictionsSectionIntoView(direction, {
+                maxAttempts: intoViewMaxAttempts,
+              }),
             );
 
-            if (await this.tapIfAlreadyVisible(target, description)) {
+            if (
+              await this.tapIfAlreadyVisible(target, description, {
+                tapTimeout: tapTimeoutMs,
+              })
+            ) {
               await assertMarketDetailsOpened();
               return;
             }
 
             await this.tryScrollDirections((direction) =>
               this.scrollAndTapSection(target, description, direction, {
-                timeout: 60_000,
+                timeout: scrollAndTapPerDirectionMs,
+                tapTimeout: tapTimeoutMs,
                 overshootSwipe: {
                   direction: direction === 'down' ? 'up' : 'down',
                   percentage: 0.15,
@@ -1070,7 +1100,7 @@ class WalletView {
             await assertMarketDetailsOpened();
           },
           {
-            timeout: 90_000,
+            timeout: scrollAndTapRetryTimeoutMs,
             description: `Scroll and tap ${description}`,
           },
         );
