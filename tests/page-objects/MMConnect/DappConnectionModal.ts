@@ -114,11 +114,16 @@ class DappConnectionModal {
       (await PlaywrightMatchers.countElementsByText(toastText)) > 0;
 
     const appearDeadline = Date.now() + 30_000;
+    let appeared = false;
     while (Date.now() < appearDeadline) {
       if (await isVisible()) {
+        appeared = true;
         break;
       }
-      await new Promise((r) => setTimeout(r, 250));
+      await sleep(250);
+    }
+    if (!appeared) {
+      throw new Error(`"${toastText}" toast did not appear within 30000ms`);
     }
 
     const dismissDeadline = Date.now() + 15_000;
@@ -126,8 +131,9 @@ class DappConnectionModal {
       if (!(await isVisible())) {
         return;
       }
-      await new Promise((r) => setTimeout(r, 250));
+      await sleep(250);
     }
+    throw new Error(`"${toastText}" toast did not dismiss within 15000ms`);
   }
 
   async tapEditAccountsButton(): Promise<void> {
