@@ -176,13 +176,13 @@ testDiscovery:
 
 testRunnerCommand: bash ./tests/scripts/hyperexecute-run-performance-test.sh \$test
 
-jobLabel: ['MMQA', 'HyperExecute', 'TestMu', '${BUILD_TYPE}', 'Pixel8Pro']
+jobLabel: ['MMQA', 'HyperExecute', 'TestMu', '${BUILD_TYPE}', 'Pixel7Pro']
 EOF
 
 echo "=== Generated HyperExecute YAML: $HE_YAML ==="
 echo "Secrets file: (outside workspace, wiped on exit)"
 echo "Primary app env key: $APP_URL_KEY=${!APP_URL_KEY:-<empty>}"
-echo "Device: ${TESTMU_DEVICE:-Pixel 7 Pro} / ${TESTMU_OS_VERSION:-15}"
+echo "Device: ${TESTMU_DEVICE:-Pixel 7 Pro} / ${TESTMU_OS_VERSION:-13}"
 echo "Concurrency: $HE_CONCURRENCY"
 
 # Ensure scripts are executable inside the uploaded payload
@@ -193,12 +193,19 @@ chmod +x \
   ./tests/scripts/stop-testmu-tunnel.sh \
   ./tests/scripts/run-testmu-hyperexecute.sh
 
+# Download HE artefacts onto the GH runner so actions/upload-artifact can publish
+# them (uploadArtefacts alone only stores them on the HyperExecute dashboard).
+HE_ARTIFACTS_DIR="${HE_WORKDIR}/downloaded-artifacts"
+mkdir -p "$HE_ARTIFACTS_DIR"
+
 set +e
 "$HE_BIN" \
   --user "$LT_USERNAME" \
   --key "$LT_ACCESS_KEY" \
   --config "$HE_YAML" \
   --job-secret-file "$SECRETS_FILE" \
+  --download-artifacts \
+  --download-artifacts-path "$HE_ARTIFACTS_DIR" \
   --verbose
 HE_EXIT=$?
 set -e
@@ -206,25 +213,37 @@ set -e
 echo "HyperExecute CLI exit code: $HE_EXIT"
 
 # Collect downloaded artefacts into the paths GHA already uploads.
-mkdir -p tests/reporters/reports tests/test-reports/playwright-report
+mkdir -p tests/reporters/reports tests/test-reports/playwright-report artifacts
+if [[ -d "$HE_ARTIFACTS_DIR" ]] && compgen -G "${HE_ARTIFACTS_DIR}/**" > /dev/null 2>&1; then
+  echo "Copying HyperExecute downloaded artefacts from $HE_ARTIFACTS_DIR..."
+  # Preserve a copy under artifacts/ for the GHA upload-artifact path.
+  cp -R "$HE_ARTIFACTS_DIR"/. artifacts/ 2>/dev/null || true
+fi
+
 if compgen -G "artifacts/**" > /dev/null 2>&1; then
   echo "Copying HyperExecute artifacts/ into reporter paths..."
   find artifacts -type f \( -name '*.json' -o -name '*.html' -o -name '*.csv' -o -name '*.zip' \) -print0 \
     | while IFS= read -r -d '' f; do
       base="$(basename "$f")"
       if [[ "$base" == *playwright* || "$f" == *playwright-report* ]]; then
+        mkdir -p tests/test-reports/playwright-report
         cp -f "$f" "tests/test-reports/playwright-report/" 2>/dev/null || true
       else
         cp -f "$f" "tests/reporters/reports/" 2>/dev/null || true
       fi
     done
+  echo "Reporter files after artefact copy:"
+  find tests/reporters/reports tests/test-reports -type f 2>/dev/null | head -50 || true
 fi
 
-# Also check common HE download folder names
-for dir in hyperexecute-artifacts HyperExecute-Artifacts Artefacts artefacts; do
+# Also check common HE download folder names (CLI defaults)
+for dir in hyperexecute-artifacts HyperExecute-Artifacts Artefacts artefacts artifacts; do
   if [[ -d "$dir" ]]; then
     echo "Found artefact dir: $dir"
-    cp -R "$dir"/. tests/reporters/reports/ 2>/dev/null || true
+    find "$dir" -type f \( -name '*.json' -o -name '*.html' -o -name '*.csv' \) -print0 \
+      | while IFS= read -r -d '' f; do
+          cp -f "$f" "tests/reporters/reports/" 2>/dev/null || true
+        done
   fi
 done
 
