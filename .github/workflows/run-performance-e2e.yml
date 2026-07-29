@@ -458,6 +458,7 @@ jobs:
         with:
           sparse-checkout: |
             .github/scripts/find-main-performance-apk-run.cjs
+            tests/scripts/verify-testmu-app-url.sh
           sparse-checkout-cone-mode: false
 
       - name: Resolve APK artifact names
@@ -523,21 +524,32 @@ jobs:
           fi
 
           echo "Re-uploading APKs from main performance run $SOURCE_RUN_ID to TestMu AI..."
+          chmod +x tests/scripts/verify-testmu-app-url.sh
 
           WITH_SRP_APK=$(find artifacts/with-srp -name "*.apk" | head -1)
           WITHOUT_SRP_APK=$(find artifacts/without-srp -name "*.apk" | head -1)
           WITH_SRP_APP_URL=""
           WITHOUT_SRP_APP_URL=""
 
+          # visibility=team: HyperExecute workers resolve org-scoped storage;
+          # individual uploads can return lt:// that later fail with
+          # "no valid app URL found" on the HE hub.
           if [ -n "$WITH_SRP_APK" ]; then
             echo "Uploading with-SRP APK: $WITH_SRP_APK"
             WITH_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
               -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
               -F "appFile=@$WITH_SRP_APK" \
-              -F "name=MetaMask-Android-With-SRP-Reuse-${{ github.run_id }}")
+              -F "name=MetaMask-Android-With-SRP-Reuse-${{ github.run_id }}" \
+              -F "visibility=team" \
+              -F "custom_id=mm-android-with-srp-reuse-${{ github.run_id }}")
             WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
             if [ -n "$WITH_SRP_APP_URL" ]; then
               echo "✅ With-SRP uploaded to TestMu: $WITH_SRP_APP_URL"
+              if ! LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
+                ./tests/scripts/verify-testmu-app-url.sh "$WITH_SRP_APP_URL"; then
+                echo "❌ With-SRP app URL not resolvable in TestMu storage after upload"
+                WITH_SRP_APP_URL=""
+              fi
             else
               echo "❌ With-SRP TestMu upload failed: $WITH_SRP_RESPONSE"
             fi
@@ -550,10 +562,17 @@ jobs:
             WITHOUT_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
               -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
               -F "appFile=@$WITHOUT_SRP_APK" \
-              -F "name=MetaMask-Android-Without-SRP-Reuse-${{ github.run_id }}")
+              -F "name=MetaMask-Android-Without-SRP-Reuse-${{ github.run_id }}" \
+              -F "visibility=team" \
+              -F "custom_id=mm-android-without-srp-reuse-${{ github.run_id }}")
             WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
             if [ -n "$WITHOUT_SRP_APP_URL" ]; then
               echo "✅ Without-SRP uploaded to TestMu: $WITHOUT_SRP_APP_URL"
+              if ! LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
+                ./tests/scripts/verify-testmu-app-url.sh "$WITHOUT_SRP_APP_URL"; then
+                echo "❌ Without-SRP app URL not resolvable in TestMu storage after upload"
+                WITHOUT_SRP_APP_URL=""
+              fi
             else
               echo "❌ Without-SRP TestMu upload failed: $WITHOUT_SRP_RESPONSE"
             fi
