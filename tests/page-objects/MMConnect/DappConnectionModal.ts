@@ -23,14 +23,6 @@ class DappConnectionModal {
     });
   }
 
-  /** SDKConnectV2 "Return to app" success toast shown after a request completes. */
-  get returnToAppToast(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByText('Return to the app to continue.'),
-    });
-  }
-
   get updateAccountsButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
@@ -115,11 +107,31 @@ class DappConnectionModal {
     }
   }
 
-  /** Waits for the "Return to app" success toast to appear then dismiss. */
+  /**
+   * Waits for the "Return to app" success toast to appear then dismiss. Uses a
+   * count probe (never throws on absence) so the dismiss poll is safe once the
+   * transient toast is gone.
+   */
   async waitForReturnToAppToastToDismiss(): Promise<void> {
-    const toast = await asPlaywrightElement(this.returnToAppToast);
-    await toast.waitForDisplayed({ timeout: 30_000 });
-    await toast.waitForDisplayed({ reverse: true, timeout: 15_000 });
+    const toastText = 'Return to the app to continue.';
+    const isVisible = async () =>
+      (await PlaywrightMatchers.countElementsByText(toastText)) > 0;
+
+    const appearDeadline = Date.now() + 30_000;
+    while (Date.now() < appearDeadline) {
+      if (await isVisible()) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+
+    const dismissDeadline = Date.now() + 15_000;
+    while (Date.now() < dismissDeadline) {
+      if (!(await isVisible())) {
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 250));
+    }
   }
 
   async tapEditAccountsButton(): Promise<void> {
