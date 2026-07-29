@@ -111,6 +111,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 import {
+  OnboardingCtaIds,
+  OnboardingScreenIds,
+  type OnboardingCtaId,
+} from '../../../hooks/performance/onboardingPerformanceIds';
+import {
+  cancelPendingOnboardingCtaNavigation,
+  startOnboardingCtaNavigation,
+} from '../../../hooks/performance/onboardingNavigationPerformanceState';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
+import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
@@ -245,21 +255,40 @@ const Onboarding = () => {
     startFoxAnimation: undefined,
   });
 
+  const [onboardingContentReady, setOnboardingContentReady] =
+    useState(hasTestOverrides);
+
   const [onboardingNotificationVisible, setOnboardingNotificationVisible] =
     useState(false);
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.ONBOARDING_LANDING,
+    contentReady: onboardingContentReady && !state.loading && !loading,
+    isEmpty: false,
+  });
+
+  const handleOnboardingInteractiveContentReady = useCallback(() => {
+    setOnboardingContentReady(true);
+  }, []);
 
   const onboardingTraceCtx = useRef<TraceContext>(undefined);
   const socialLoginTraceCtx = useRef<TraceContext>(undefined);
 
-  const endSocialLoginAttemptTrace = useCallback((success: boolean) => {
-    if (socialLoginTraceCtx.current) {
-      endTrace({
-        name: TraceName.OnboardingSocialLoginAttempt,
-        data: { success },
-      });
-      socialLoginTraceCtx.current = undefined;
-    }
-  }, []);
+  const endSocialLoginAttemptTrace = useCallback(
+    (success: boolean, cancelReason?: string) => {
+      if (socialLoginTraceCtx.current) {
+        endTrace({
+          name: TraceName.OnboardingSocialLoginAttempt,
+          data: { success },
+        });
+        socialLoginTraceCtx.current = undefined;
+      }
+      if (!success && cancelReason) {
+        cancelPendingOnboardingCtaNavigation(cancelReason);
+      }
+    },
+    [],
+  );
 
   // Ending the social-login attempt (or the overall journey) does not automatically end the
   // OAuth child spans started inside OAuthService (provider login, BYOA token request, seedless
@@ -425,6 +454,7 @@ const Onboarding = () => {
         'onboarding.method': OnboardingMethod.Srp,
         account_type: AccountType.Metamask,
       });
+      startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
       trace({
         name: TraceName.OnboardingNewSrpCreateWallet,
         op: TraceOperation.OnboardingUserJourney,
@@ -472,6 +502,7 @@ const Onboarding = () => {
         'onboarding.method': OnboardingMethod.Srp,
         account_type: AccountType.Imported,
       });
+      startOnboardingCtaNavigation(OnboardingCtaIds.IMPORT_WALLET);
       trace({
         name: TraceName.OnboardingExistingSrpImport,
         op: TraceOperation.OnboardingUserJourney,
@@ -531,6 +562,7 @@ const Onboarding = () => {
       });
       if (createWallet) {
         if (result.existingUser) {
+          cancelPendingOnboardingCtaNavigation('account_already_exists');
           navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
@@ -567,6 +599,7 @@ const Onboarding = () => {
           }
         }
       } else if (result.existingUser) {
+        cancelPendingOnboardingCtaNavigation('existing_user_rehydrate');
         trace({
           name: TraceName.OnboardingExistingSocialLogin,
           op: TraceOperation.OnboardingUserJourney,
@@ -589,6 +622,7 @@ const Onboarding = () => {
               onboardingTraceCtx: onboardingTraceCtx.current,
             });
       } else {
+        cancelPendingOnboardingCtaNavigation('account_not_found');
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
           oauthLoginSuccess: true,
@@ -662,7 +696,7 @@ const Onboarding = () => {
           error.code === OAuthErrorType.TelegramLoginError
         ) {
           // QA: do not show error sheet if user cancelled
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(false, 'user_cancelled');
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
@@ -718,7 +752,7 @@ const Onboarding = () => {
                 (fallbackError.code === OAuthErrorType.UserCancelled ||
                   fallbackError.code === OAuthErrorType.UserDismissed)
               ) {
-                endSocialLoginAttemptTrace(false);
+                endSocialLoginAttemptTrace(false, 'user_cancelled');
                 return;
               }
               // Handle both OAuthError and unexpected errors from browser fallback
@@ -738,11 +772,11 @@ const Onboarding = () => {
                 );
                 handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
-              endSocialLoginAttemptTrace(false);
+              endSocialLoginAttemptTrace(false, 'social_login_failed');
               return;
             }
           }
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(false, 'social_login_failed');
           return;
         }
         // Show error sheet for auth server or seedless controller errors
@@ -761,7 +795,7 @@ const Onboarding = () => {
               type: 'error',
             },
           });
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(false, 'social_login_failed');
           return;
         }
         if (isPreOAuthSocialLoginFailure(error)) {
@@ -777,12 +811,17 @@ const Onboarding = () => {
               type: 'error',
             },
           });
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(
+            false,
+            error.code === OAuthErrorType.InvalidProvider
+              ? 'provider_unavailable'
+              : 'unsupported_platform',
+          );
           return;
         }
         // unexpected oauth login error
         handleOAuthLoginError(error, socialConnectionType, false);
-        endSocialLoginAttemptTrace(false);
+        endSocialLoginAttemptTrace(false, 'social_login_failed');
         return;
       }
 
@@ -796,7 +835,7 @@ const Onboarding = () => {
       });
       endTrace({ name: TraceName.OnboardingSocialLoginError });
 
-      endSocialLoginAttemptTrace(false);
+      endSocialLoginAttemptTrace(false, 'social_login_failed');
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -849,6 +888,17 @@ const Onboarding = () => {
         );
         return;
       }
+
+      const socialCtaIdByProvider: Partial<
+        Record<AuthConnection, OnboardingCtaId>
+      > = {
+        [AuthConnection.Google]: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+        [AuthConnection.Apple]: OnboardingCtaIds.SOCIAL_LOGIN_APPLE,
+        [AuthConnection.Telegram]: OnboardingCtaIds.SOCIAL_LOGIN_TELEGRAM,
+      };
+      const socialCtaId =
+        socialCtaIdByProvider[provider] ?? OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE;
+      startOnboardingCtaNavigation(socialCtaId);
 
       // Continue with the social login flow
       navigation.navigate('Onboarding');
@@ -945,6 +995,7 @@ const Onboarding = () => {
                 OAuthErrorType.UnsupportedPlatform,
               ),
             });
+            cancelPendingOnboardingCtaNavigation('unsupported_platform');
             return;
           }
 
@@ -1131,6 +1182,7 @@ const Onboarding = () => {
         <OnboardingAnimation
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
+          onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
           {/*
            * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
@@ -1170,7 +1222,12 @@ const Onboarding = () => {
         </OnboardingAnimation>
       </Box>
     ),
-    [state.startOnboardingAnimation, setStartFoxAnimation, handleCtaActions],
+    [
+      state.startOnboardingAnimation,
+      setStartFoxAnimation,
+      handleCtaActions,
+      handleOnboardingInteractiveContentReady,
+    ],
   );
 
   const handleSimpleNotification =
@@ -1286,6 +1343,7 @@ const Onboarding = () => {
         finalizeInFlightOAuthTraces();
         endSocialLoginAttemptTrace(false);
       }
+      cancelPendingOnboardingCtaNavigation('onboarding_unmounted');
       // Close the overall-journey span on unmount so it is never left open to be force-closed
       // by the 5-min trace cleanup timer (which also does not fire reliably while the app is
       // backgrounded during OAuth). success:false is correct here because every SUCCESSFUL
@@ -1338,7 +1396,7 @@ const Onboarding = () => {
             // Finalize the OAuth child spans (provider login, token request) before the
             // attempt span: their promises may never settle after abandonment.
             finalizeInFlightOAuthTraces();
-            endSocialLoginAttemptTrace(false);
+            endSocialLoginAttemptTrace(false, 'oauth_abandoned');
           }
         }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
       }
