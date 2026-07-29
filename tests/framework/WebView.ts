@@ -33,13 +33,10 @@ export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };
  */
 export default class WebView {
   /**
-   * Run an action in the appropriate WebView context for the current framework.
-   *
-   * Used by iOS Appium (switches into the page) and Detox (runs as-is).
-   * Android Appium callers must use the native UiAutomator helpers instead —
-   * public methods early-return before invoking this.
+   * iOS Appium / Detox only. Android Appium never reaches this — public
+   * methods route to native UiAutomator first.
    */
-  static async withContext(
+  private static async withContext(
     pageUrl: string | undefined,
     action: () => Promise<void>,
   ): Promise<void> {

@@ -9,8 +9,8 @@ import { createPlaywrightLogger } from './playwrightLogger';
 
 const logger = createPlaywrightLogger('AndroidWebViewNative');
 
-const SCROLL_ATTEMPTS = 48;
-const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 90_000;
+const SCROLL_ATTEMPTS = 12;
+const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 15_000;
 const IN_PLACE_FIND_TIMEOUT_MS = 5_000;
 
 export interface AndroidWebViewScrollOptions {
@@ -21,6 +21,10 @@ export interface AndroidWebViewScrollOptions {
 export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
   description?: string;
 };
+
+/** Fill/read share scroll options; Android Appium never uses WebView DOM context. */
+export type AndroidWebViewFillOptions = AndroidWebViewScrollOptions;
+export type AndroidWebViewReadOptions = AndroidWebViewScrollOptions;
 
 function escapeUiAutomatorString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -203,23 +207,39 @@ export async function tapAndroidWebId(
 }
 
 /**
- * Fill a WebView input via native UiAutomator (avoids Chromedriver context issues).
- * Uses W3C key actions instead of setValue/mobile:type for compatibility.
+ * Type into the focused field one character at a time.
+ * Clears leftover characters first by sending backspace keys.
  */
+async function typeAndroidKeysSequentially(value: string): Promise<void> {
+  const BACKSPACE_KEY = '\uE003';
+  const BACKSPACE_COUNT = 24;
+  // Backspace leftover characters clear() may leave in React-controlled fields.
+  await getDriver().keys(BACKSPACE_KEY.repeat(BACKSPACE_COUNT));
+  for (const char of value) {
+    await getDriver().keys(char);
+  }
+}
+
+/** Fill a WebView input via native focus + real key events. */
 export async function fillAndroidWebId(
   webId: string,
   value: string,
-  options: AndroidWebViewScrollOptions = {},
+  options: AndroidWebViewFillOptions = {},
 ): Promise<void> {
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   await elem.click();
-  await getDriver().keys(value.split(''));
+  await elem.clear().catch((error) => {
+    logger.debug(
+      `clear() failed for WebView input "${webId}", continuing with keys: ${String(error)}`,
+    );
+  });
+  await typeAndroidKeysSequentially(value);
   await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }
 
 export async function readAndroidWebIdText(
   webId: string,
-  options: AndroidWebViewScrollOptions = {},
+  options: AndroidWebViewReadOptions = {},
 ): Promise<string> {
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   return elem.getText();

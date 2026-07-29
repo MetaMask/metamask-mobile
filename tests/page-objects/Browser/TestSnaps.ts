@@ -397,7 +397,7 @@ class TestSnaps {
   async dismissAlert() {
     // Matches the native WebView alert on each platform
     const button = Matchers.getElementByText(
-      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+      PlatformDetector.isIOS() ? 'Ok' : 'OK',
     );
     await Gestures.tap(button);
   }
@@ -490,7 +490,7 @@ class TestSnaps {
     });
 
     // Android date and time picker is a two-step process, so we need to tap OK again
-    if (device.getPlatform() === 'android') {
+    if (PlatformDetector.isAndroid()) {
       await Gestures.waitAndTap(this.dateTimePickerOkButton);
     }
   }
