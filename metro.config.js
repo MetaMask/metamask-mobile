@@ -113,7 +113,7 @@ const LEDGER_DMK_ESM_PACKAGES = [
 // the second IIFE execution must be short-circuited.
 const DMK_REFLECT_METADATA_IMPORTERS = [
   'node_modules/@ledgerhq/',
-  'node_modules/inversify',
+  'node_modules/inversify/',
   'node_modules/@inversifyjs/',
 ];
 
