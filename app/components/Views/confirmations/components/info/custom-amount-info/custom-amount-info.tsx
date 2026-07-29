@@ -26,6 +26,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
@@ -240,15 +241,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
     const quotesLastUpdatedRef = useRef<number | undefined>(undefined);
-    const wasKeyboardEverVisible = useRef(isKeyboardVisible);
-    if (isKeyboardVisible) {
-      wasKeyboardEverVisible.current = true;
-    }
-    useMMPayNavigation(
-      isKeyboardVisible,
-      setIsKeyboardVisible,
-      wasKeyboardEverVisible,
+    const stage = isKeyboardVisible
+      ? CustomAmountStage.AmountInput
+      : CustomAmountStage.ShowTotals;
+    const setStage = useCallback(
+      (
+        updater:
+          | CustomAmountStage
+          | null
+          | ((prev: CustomAmountStage | null) => CustomAmountStage | null),
+      ) => {
+        setIsKeyboardVisible((prevKeyboard) => {
+          const prevStage = prevKeyboard
+            ? CustomAmountStage.AmountInput
+            : CustomAmountStage.ShowTotals;
+          const next =
+            typeof updater === 'function' ? updater(prevStage) : updater;
+          return next === CustomAmountStage.AmountInput;
+        });
+      },
+      [],
     );
+    useMMPayNavigation(stage, setStage);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -516,39 +530,40 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [amountFiat, handleDone]);
 
     const handleAmountPress = useCallback(() => {
-      wasKeyboardEverVisible.current = true;
       setIsKeyboardVisible(true);
     }, []);
 
     return (
       <Box twClassName="flex-1 flex-col justify-between">
         <Box twClassName="flex-1 justify-center items-center gap-3.5">
-          <CustomAmount
-            amountFiat={amountFiat}
-            currency={currency}
-            hasAlert={Boolean(resolvedHelpText)}
-            isLoading={
-              !hasAccountNoFunds &&
-              !skipDepositPrefill &&
-              (isPrefillPending || isDepositPrefillLoading)
-            }
-            onPress={showLoadingReview ? undefined : handleAmountPress}
-            disabled={!hasPaymentOption}
-            showCursor={isKeyboardVisible && !showLoadingReview}
-          />
-          <Box
-            twClassName="w-full px-4 items-center justify-center"
-            style={{ minHeight: HELP_TEXT_SLOT_MIN_HEIGHT }}
-            testID={CustomAmountInfoTestIds.HELP_TEXT}
-          >
-            {resolvedHelpText ? (
-              <HelpText
-                severity={HelpTextSeverity.Danger}
-                twClassName="text-center"
-              >
-                {resolvedHelpText}
-              </HelpText>
-            ) : null}
+          <Box twClassName="w-full items-center gap-2">
+            <CustomAmount
+              amountFiat={amountFiat}
+              currency={currency}
+              hasAlert={Boolean(resolvedHelpText)}
+              isLoading={
+                !hasAccountNoFunds &&
+                !skipDepositPrefill &&
+                (isPrefillPending || isDepositPrefillLoading)
+              }
+              onPress={showLoadingReview ? undefined : handleAmountPress}
+              disabled={!hasPaymentOption}
+              showCursor={isKeyboardVisible && !showLoadingReview}
+            />
+            <Box
+              twClassName="w-full px-4 items-center justify-center"
+              style={{ minHeight: HELP_TEXT_SLOT_MIN_HEIGHT }}
+              testID={CustomAmountInfoTestIds.HELP_TEXT}
+            >
+              {resolvedHelpText ? (
+                <HelpText
+                  severity={HelpTextSeverity.Danger}
+                  twClassName="text-center"
+                >
+                  {resolvedHelpText}
+                </HelpText>
+              ) : null}
+            </Box>
           </Box>
           {!hidePayTokenAmount &&
             disablePay !== true &&

@@ -116,6 +116,8 @@ describe('Footer', () => {
 
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
+      navHeaderConfig: null,
+      setNavHeaderConfig: jest.fn(),
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -237,6 +239,8 @@ describe('Footer', () => {
   it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
+      navHeaderConfig: null,
+      setNavHeaderConfig: jest.fn(),
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -306,6 +310,8 @@ describe('Footer', () => {
   it('hides footer by default for moneyAccountDeposit transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
+      navHeaderConfig: null,
+      setNavHeaderConfig: jest.fn(),
       headlessBuyError: undefined,
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,
@@ -348,6 +354,8 @@ describe('Footer', () => {
   it('hides footer by default for moneyAccountWithdraw transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
+      navHeaderConfig: null,
+      setNavHeaderConfig: jest.fn(),
       headlessBuyError: undefined,
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,
@@ -390,6 +398,8 @@ describe('Footer', () => {
   it('hides footer when isFooterVisible is false', () => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
+      navHeaderConfig: null,
+      setNavHeaderConfig: jest.fn(),
       headlessBuyError: undefined,
       isFooterVisible: false,
       isConfirmationSubmitting: false,

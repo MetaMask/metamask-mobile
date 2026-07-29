@@ -48,7 +48,7 @@ describe('MusdConversionInfo', () => {
   const mockUseMusdConversionNavbar = jest.mocked(useMusdConversionNavbar);
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     mockParams.preferredPaymentToken = {
       address: '0xdef' as Hex,
       chainId: '0x1' as Hex,
@@ -57,10 +57,6 @@ describe('MusdConversionInfo', () => {
     mockUseMusdConversionNavbar.mockReturnValue({
       TooltipNode: <></>,
     });
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   describe('rendering', () => {

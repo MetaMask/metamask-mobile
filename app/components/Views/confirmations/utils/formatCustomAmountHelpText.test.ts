@@ -3,9 +3,11 @@ import { Alert, Severity } from '../types/alerts';
 import { strings } from '../../../../../locales/i18n';
 import { formatCustomAmountHelpText } from './formatCustomAmountHelpText';
 
-function alert(
-  partial: Partial<Alert> & Pick<Alert, 'key' | 'message'>,
-): Alert {
+function alert(partial: {
+  key: string;
+  message: string;
+  title?: string;
+}): Alert {
   return {
     severity: Severity.Danger,
     isBlocking: true,
