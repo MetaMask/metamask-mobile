@@ -237,8 +237,8 @@
     "@metamask/bridge-controller@npm:^77.8.0": "patch:@metamask/bridge-controller@npm%3A77.8.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
     "@ledgerhq/context-module": "^2.3.1",
     "@ledgerhq/device-management-kit": "^1.7.1",
-    "@ledgerhq/context-module/ethers": "6.16.0",
-    "@ledgerhq/device-signer-kit-ethereum/ethers": "6.16.0"
+    "@ledgerhq/context-module/ethers": "^6.16.0",
+    "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
