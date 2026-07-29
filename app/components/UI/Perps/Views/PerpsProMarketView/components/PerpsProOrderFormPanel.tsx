@@ -108,51 +108,84 @@ const PerpsProOrderFormContent = ({
         isPlaceOrderLoading={isPlaceOrderLoading}
         onPlaceOrderPress={onPlaceOrderPress}
       />
-      <PerpsOrderTypeBottomSheetView
-        isVisible={isOrderTypeVisible}
-        onClose={closeOrderType}
-        onSelect={onOrderTypeSelect}
-        currentOrderType={orderType}
-        title={strings('perps.pro_order_form.choose_order_type')}
-        showSelectedIcon
-      />
-      <PerpsLeverageBottomSheet
-        isVisible={isLeverageVisible}
-        onClose={closeLeverage}
-        onConfirm={onLeverageConfirm}
-        leverage={leverage}
-        minLeverage={minLeverage}
-        maxLeverage={maxLeverage}
-        currentPrice={currentPrice}
-        direction={direction}
-        asset={market.symbol}
-        limitPrice={limitPrice}
-        orderType={orderType}
-      />
-      <PerpsSlippageBottomSheet
-        isVisible={isSlippageVisible}
-        currentValueBps={maxSlippageBps}
-        onClose={closeSlippage}
-        onSave={onSlippageSave}
-      />
+      {/*
+        The order form is rendered inside the width-constrained left column of
+        PerpsProMarketLayout. The design-system BottomSheet positions itself with
+        `absolute inset-0`, so without a Modal it would be clipped to that column
+        instead of overlaying the full screen (as it does in lite). Wrapping each
+        sheet in a react-native <Modal> renders it from the root at full width;
+        the <View> wrapper is required for correct Android rendering (see the
+        PerpsBottomSheetTooltip docstring). Context still flows through the Modal.
+      */}
+      {isOrderTypeVisible && (
+        <View>
+          <Modal visible transparent animationType="fade" statusBarTranslucent>
+            <PerpsOrderTypeBottomSheetView
+              isVisible
+              onClose={closeOrderType}
+              onSelect={onOrderTypeSelect}
+              currentOrderType={orderType}
+              title={strings('perps.pro_order_form.choose_order_type')}
+              showSelectedIcon
+            />
+          </Modal>
+        </View>
+      )}
+      {isLeverageVisible && (
+        <View>
+          <Modal visible transparent animationType="fade" statusBarTranslucent>
+            <PerpsLeverageBottomSheet
+              isVisible
+              onClose={closeLeverage}
+              onConfirm={onLeverageConfirm}
+              leverage={leverage}
+              minLeverage={minLeverage}
+              maxLeverage={maxLeverage}
+              currentPrice={currentPrice}
+              direction={direction}
+              asset={market.symbol}
+              limitPrice={limitPrice}
+              orderType={orderType}
+            />
+          </Modal>
+        </View>
+      )}
+      {isSlippageVisible && (
+        <View>
+          <Modal visible transparent animationType="fade" statusBarTranslucent>
+            <PerpsSlippageBottomSheet
+              isVisible
+              currentValueBps={maxSlippageBps}
+              onClose={closeSlippage}
+              onSave={onSlippageSave}
+            />
+          </Modal>
+        </View>
+      )}
       {selectedTooltip && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={closeTooltip}
-          contentKey={selectedTooltip}
-          key={selectedTooltip}
-          buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN}
-          data={
-            selectedTooltip === 'fees'
-              ? {
-                  metamaskFeeRate: feeMetamaskFeeRate,
-                  protocolFeeRate: feeProtocolFeeRate,
-                  originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
-                  feeDiscountPercentage,
-                }
-              : undefined
-          }
-        />
+        <View>
+          <Modal visible transparent animationType="fade" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={closeTooltip}
+              contentKey={selectedTooltip}
+              key={selectedTooltip}
+              buttonLocation={
+                PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN
+              }
+              data={
+                selectedTooltip === 'fees'
+                  ? {
+                      metamaskFeeRate: feeMetamaskFeeRate,
+                      protocolFeeRate: feeProtocolFeeRate,
+                      originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
+                      feeDiscountPercentage,
+                    }
+                  : undefined
+              }
+            />
+          </Modal>
+        </View>
       )}
       {isEligibilityModalVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
