@@ -242,6 +242,7 @@ export function startRampsBuyQuoteFetchTrace({
   });
 
   const opId = nextCufOpId(TraceName.RampBuyQuoteFetch);
+  const startTags = buildRampsBuyCufStartTags(tags);
   pendingChildMeta.set(opId, { [CUF_META.NAME]: TraceName.RampBuyQuoteFetch });
   trace({
     name: TraceName.RampBuyQuoteFetch,
@@ -249,8 +250,8 @@ export function startRampsBuyQuoteFetchTrace({
     op: TraceOperation.RampOperation,
     parentContext: parentSpan,
     startTime,
-    data,
-    tags: buildRampsBuyCufStartTags(tags),
+    data: withStartSpanAttributes(startTags, data),
+    tags: startTags,
   });
   return opId;
 }
