@@ -129,6 +129,7 @@ export function startRampsBuyCufTrace({
     id: opId,
     op: TraceOperation.RampOperation,
     startTime,
+    forceTransaction: true,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });

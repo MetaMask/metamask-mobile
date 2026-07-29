@@ -84,6 +84,7 @@ describe('rampsBuyCufTrace', () => {
         name: TraceName.RampBuyToOrderDetails,
         id: opId,
         op: TraceOperation.RampOperation,
+        forceTransaction: true,
         tags: startFields,
         data: startFields,
       }),

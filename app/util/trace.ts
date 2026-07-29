@@ -460,6 +460,12 @@ export interface TraceRequest {
   parentContext?: TraceContext;
 
   /**
+   * When true, emit this span as its own Sentry transaction even if another
+   * span (e.g. navigation.initialization) is currently active on the scope.
+   */
+  forceTransaction?: boolean;
+
+  /**
    * Override the start time of the trace.
    */
   startTime?: number;
@@ -1089,7 +1095,7 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { name, parentContext, startTime, op } = request;
+  const { name, parentContext, startTime, op, forceTransaction } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
@@ -1098,6 +1104,7 @@ function startSpan<T>(
     op: op || OP_DEFAULT,
     parentSpan,
     startTime,
+    forceTransaction,
   };
 
   return withIsolationScope((scope) => {
