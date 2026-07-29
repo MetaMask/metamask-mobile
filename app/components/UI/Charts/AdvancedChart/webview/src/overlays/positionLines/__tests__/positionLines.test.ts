@@ -148,7 +148,7 @@ describe('positionLines/index', () => {
     expect(getPositionShapeIds().length).toBeGreaterThan(0);
   });
 
-  it('draws an emphasized, labeled current-price line when currentPriceLabel is supplied', () => {
+  it('adds a left-aligned "Current" label to the dashed current-price line when currentPriceLabel is supplied', () => {
     const { createShape } = installWidget();
 
     handleSetPositionLines({
@@ -170,12 +170,15 @@ describe('positionLines/index', () => {
     const overrides = options.overrides as Record<string, unknown>;
     expect(overrides).not.toHaveProperty('text');
     expect(overrides.showLabel).toBe(true);
-    expect(overrides.linewidth).toBe(2);
-    // Emphasized = solid line.
-    expect(overrides.linestyle).toBe(0);
+    // The label sits on the left; the price stays on the right axis.
+    expect(overrides.horzLabelsAlign).toBe('left');
+    expect(overrides.showPrice).toBe(false);
+    // The line itself is unchanged — thin and dashed (not restyled).
+    expect(overrides.linewidth).toBe(1);
+    expect(overrides.linestyle).toBe(2);
   });
 
-  it('keeps the Perps current-price line label-less and thin when no label is supplied (regression)', () => {
+  it('keeps the Perps current-price line label-less, thin, dashed and right-aligned when no label is supplied (regression)', () => {
     const { createShape } = installWidget();
 
     handleSetPositionLines({
@@ -190,6 +193,8 @@ describe('positionLines/index', () => {
     expect(options).not.toHaveProperty('text');
     const overrides = options.overrides as Record<string, unknown>;
     expect(overrides.showLabel).toBe(false);
+    expect(overrides.showPrice).toBe(false);
+    expect(overrides.horzLabelsAlign).toBe('right');
     expect(overrides.linewidth).toBe(1);
     // Unlabeled = dashed line (unchanged Perps behavior).
     expect(overrides.linestyle).toBe(2);

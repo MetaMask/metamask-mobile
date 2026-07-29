@@ -4771,20 +4771,22 @@ function handleSetPositionLines(payload) {
     const liquidationColor = colors.liquidation || theme.errorColor;
     const lines = [];
     if (position.currentPrice) {
-        // When a label is supplied (SocialLeaderboard), draw a prominent, labeled
-        // current-price marker: solid, thicker, with the label + price shown. When
-        // absent (Perps), keep the original label-less thin dashed line unchanged.
+        // When a label is supplied (SocialLeaderboard), keep the existing thin
+        // dashed current-price line and only add a left-aligned "Current" label
+        // (matching the entry/liquidation labels); the price value stays on the
+        // right price axis. When absent (Perps), the line is byte-for-byte the
+        // original label-less thin dashed line.
         const currentPriceLabel = position.currentPriceLabel;
         const hasLabel = typeof currentPriceLabel === 'string' && !!currentPriceLabel;
         lines.push({
             price: position.currentPrice,
             ...(hasLabel ? { text: currentPriceLabel } : {}),
             color: currentPriceColor,
-            lineStyle: hasLabel ? 0 : 2,
-            lineWidth: hasLabel ? 2 : 1,
+            lineStyle: 2,
+            lineWidth: 1,
             showLabel: hasLabel,
-            showPrice: hasLabel,
-            horzLabelsAlign: 'right',
+            showPrice: false,
+            horzLabelsAlign: hasLabel ? 'left' : 'right',
         });
     }
     if (position.entryPrice) {
