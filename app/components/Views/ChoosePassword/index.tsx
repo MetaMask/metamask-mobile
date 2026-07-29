@@ -816,6 +816,21 @@ const ChoosePassword = () => {
     [],
   );
 
+  const handleCancelWalletSetup = useCallback(() => {
+    const provider = route.params?.provider;
+    const accountType = provider
+      ? getSocialAccountType(provider, false)
+      : (reduxAccountType ?? AccountType.Metamask);
+
+    track(MetaMetricsEvents.WALLET_SETUP_CANCELLED, {
+      wallet_setup_type: 'new',
+      new_wallet: true,
+      account_type: accountType,
+      screen_name: 'choose_password',
+    });
+    navigation.goBack();
+  }, [navigation, reduxAccountType, route.params?.provider, track]);
+
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const isPasswordTooShort =
@@ -840,7 +855,7 @@ const ChoosePassword = () => {
       >
         <HeaderStandard
           includesTopInset
-          onBack={loading ? undefined : () => navigation.goBack()}
+          onBack={loading ? undefined : handleCancelWalletSetup}
           backButtonProps={
             loading
               ? undefined

@@ -681,7 +681,8 @@ describe('ChoosePassword', () => {
   });
 
   describe('Navigation', () => {
-    it('back button navigates to the previous screen', async () => {
+    it('back button navigates to the previous screen and tracks WALLET_SETUP_CANCELLED', async () => {
+      mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
@@ -691,6 +692,18 @@ describe('ChoosePassword', () => {
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.WALLET_SETUP_CANCELLED,
+          properties: expect.objectContaining({
+            wallet_setup_type: 'new',
+            new_wallet: true,
+            account_type: AccountType.Metamask,
+            screen_name: 'choose_password',
+          }),
+        }),
+        expect.any(Function),
+      );
     });
 
     it('navigates to ManualBackupStep1 with seed phrase after successful SRP wallet creation', async () => {

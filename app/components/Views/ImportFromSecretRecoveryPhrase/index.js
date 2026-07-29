@@ -350,6 +350,15 @@ const ImportFromSecretRecoveryPhrase = ({
       Engine.context.QrSyncController.resetState();
     }
     if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
+      // Leaving the import flow entirely (not stepping between SRP ↔ password).
+      if (isOnboardingFlow) {
+        track(MetaMetricsEvents.WALLET_SETUP_CANCELLED, {
+          wallet_setup_type: 'import',
+          new_wallet: false,
+          account_type: AccountType.Imported,
+          screen_name: 'import_from_seed',
+        });
+      }
       navigation.goBack();
     } else {
       animateToStep(currentStep - 1);
