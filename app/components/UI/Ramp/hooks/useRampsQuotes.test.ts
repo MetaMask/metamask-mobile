@@ -24,9 +24,9 @@ jest.mock('../../../../core/Engine', () => ({
 const mockStartRampsBuyQuoteFetchTrace = jest.fn(() => 'quote-cuf-op-1');
 const mockEndRampsBuyQuoteFetchTrace = jest.fn();
 jest.mock('../utils/rampsBuyCufTrace', () => ({
-  startRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+  startRampsBuyQuoteFetchTrace: (...args: never[]) =>
     mockStartRampsBuyQuoteFetchTrace(...args),
-  endRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+  endRampsBuyQuoteFetchTrace: (...args: never[]) =>
     mockEndRampsBuyQuoteFetchTrace(...args),
 }));
 
