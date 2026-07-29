@@ -1558,7 +1558,7 @@ describe('PerpsOrderView', () => {
 
       fireEvent.press(screen.getByTestId('perps-slider-drag'));
 
-      expect(screen.getByText('Slider Value: 42')).toBeDefined();
+      expect(screen.getByText('Slider Value: 42')).toBeOnTheScreen();
     });
 
     it('commits the live value on drag end', () => {
@@ -1658,9 +1658,11 @@ describe('PerpsOrderView', () => {
 
       fireEvent.press(screen.getByTestId('perps-slider-drag'));
 
-      const leverageText = await screen.findByText('Leverage');
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
       await act(async () => {
-        fireEvent.press(leverageText);
+        fireEvent.press(leverageRow);
       });
       const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
       await act(async () => {
@@ -1687,9 +1689,11 @@ describe('PerpsOrderView', () => {
 
       fireEvent.press(screen.getByTestId('perps-slider-drag'));
 
-      const leverageText = await screen.findByText('Leverage');
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
       await act(async () => {
-        fireEvent.press(leverageText);
+        fireEvent.press(leverageRow);
       });
       const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
       await act(async () => {
