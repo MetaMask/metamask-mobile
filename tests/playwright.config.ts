@@ -49,8 +49,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can changed
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
         },
         app: {
           packageName: 'io.metamask',
@@ -102,8 +102,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
         },
         app: {
           packageName: 'io.metamask',
@@ -140,8 +140,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
         },
         app: {
           packageName: 'io.metamask',
