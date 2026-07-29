@@ -577,6 +577,11 @@ jest.mock('../../hooks', () => ({
     mode: mockPerpsModeValue,
     setMode: mockSetPerpsMode,
   })),
+  usePerpsMarketAboutTracking: jest.fn(() => ({
+    hasDescription: false,
+    handleAboutLayout: jest.fn(),
+    handleAboutScroll: jest.fn(),
+  })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
@@ -966,6 +971,62 @@ describe('PerpsMarketDetailsView', () => {
     // The component fires the controller's own optimistic-update/revert toggle
     // (fire-and-forget) rather than maintaining a separate local optimistic copy.
     expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
+  });
+
+  describe('About section', () => {
+    const { usePerpsMarketAboutTracking } = jest.requireMock('../../hooks');
+
+    it('renders the About section with the description when one is available (AC1)', () => {
+      jest.mocked(usePerpsMarketAboutTracking).mockReturnValue({
+        hasDescription: true,
+        handleAboutLayout: jest.fn(),
+        handleAboutScroll: jest.fn(),
+      });
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$45,000.00',
+        change24h: '+$1,125.00',
+        change24hPercent: '+2.50%',
+        volume: '$1.23B',
+        maxLeverage: '40x',
+        description: 'Bitcoin is the first decentralized cryptocurrency.',
+      };
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
+      ).toBeOnTheScreen();
+      expect(getByText('About Bitcoin')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION),
+      ).toHaveTextContent('Bitcoin is the first decentralized cryptocurrency.');
+    });
+
+    it('does not render the About section when there is no description (AC2)', () => {
+      jest.mocked(usePerpsMarketAboutTracking).mockReturnValue({
+        hasDescription: false,
+        handleAboutLayout: jest.fn(),
+        handleAboutScroll: jest.fn(),
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
+      ).toBeNull();
+    });
   });
 
   const enableProModeFlag = () => {
