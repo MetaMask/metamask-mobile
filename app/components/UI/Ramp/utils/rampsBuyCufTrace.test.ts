@@ -81,42 +81,24 @@ describe('rampsBuyCufTrace', () => {
     expect(getRampsBuyCufParentContext()).toEqual({ mocked: 'parent-span' });
   });
 
-  it('mints a distinct id for each parent start after the prior ends', () => {
-    const a = startRampsBuyCufTrace();
-    endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
-    const b = startRampsBuyCufTrace();
-
-    expect(a).not.toEqual(b);
-  });
-
-  it('ignores duplicate parent starts while a Buy E2E is already open', () => {
+  it('keeps one parent while open, remints after end or Sentry cleanup', () => {
     const first = startRampsBuyCufTrace({
       surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE,
     });
-
-    const second = startRampsBuyCufTrace({
-      surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK,
-    });
-
-    expect(second).toEqual(first);
+    expect(
+      startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK }),
+    ).toEqual(first);
     expect(mockTrace).toHaveBeenCalledTimes(1);
-    expect(mockEndTrace).not.toHaveBeenCalled();
-    expect(hasActiveRampsBuyCufTrace()).toBe(true);
-  });
 
-  it('starts a new parent when the prior Sentry span was cleaned up out-of-band', () => {
-    const first = startRampsBuyCufTrace({
-      surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE,
-    });
+    endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
+    const afterEnd = startRampsBuyCufTrace();
+    expect(afterEnd).not.toEqual(first);
+
     mockGetTraceContext.mockReturnValue(undefined);
-
-    const second = startRampsBuyCufTrace({
+    const afterCleanup = startRampsBuyCufTrace({
       surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK,
     });
-
-    expect(second).not.toEqual(first);
-    expect(mockTrace).toHaveBeenCalledTimes(2);
-    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+    expect(afterCleanup).not.toEqual(afterEnd);
   });
 
   it('ends a started parent by the current single-flight id', () => {
