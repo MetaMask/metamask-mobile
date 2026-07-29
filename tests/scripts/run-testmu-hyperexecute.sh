@@ -217,13 +217,13 @@ set -e
 echo "HyperExecute CLI exit code: $HE_EXIT"
 
 HE_JOB_ID="$(
-  rg -o 'Job ID:[[:space:]]*[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
+  grep -Eo 'Job ID:[[:space:]]*[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
     | tail -1 \
     | awk '{print $NF}'
 )"
 if [[ -z "$HE_JOB_ID" ]]; then
   HE_JOB_ID="$(
-    rg -o 'jobId=[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
+    grep -Eo 'jobId=[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
       | tail -1 \
       | cut -d= -f2
   )"
