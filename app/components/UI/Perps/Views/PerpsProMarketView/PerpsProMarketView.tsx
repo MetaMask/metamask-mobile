@@ -6,7 +6,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
-  PerpsMode,
   TimeDuration,
   getPerpsDisplaySymbol,
   type OrderType,
@@ -23,24 +22,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Engine from '../../../../../core/Engine';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
-import { usePerpsNavigation, usePerpsMode } from '../../hooks';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
-import { createSelectIsWatchlistMarket } from '../../selectors/perpsController';
 import type { PerpsStackParamList } from '../../types/navigation';
 import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
-import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
-import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsProMarketHeader from './components/PerpsProMarketHeader';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
@@ -149,88 +143,15 @@ const PerpsProMarketView = () => {
       onAdvancedChartError: handleAdvancedChartError,
     });
 
-  const { navigateBack, navigateToHome, navigateToMarketList, canGoBack } =
-    usePerpsNavigation();
-  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
-  const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { track } = usePerpsEventTracking();
-
-  const selectIsWatchlist = useMemo(
-    () => createSelectIsWatchlistMarket(market?.symbol || ''),
-    [market?.symbol],
-  );
-  const isWatchlist = useSelector(selectIsWatchlist);
-
-  const handleBackPress = useCallback(() => {
-    if (canGoBack) {
-      navigateBack();
-    } else {
-      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
-    }
-  }, [canGoBack, navigateBack, navigateToHome]);
-
-  const handleMarketListPress = useCallback(() => {
-    if (!market?.symbol) {
-      return;
-    }
-
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.MARKET_LIST,
-      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
-      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
-    });
-
-    navigateToMarketList({
-      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    });
-  }, [market?.symbol, track, navigateToMarketList]);
-
-  const handleWalletPress = useCallback(() => {
-    navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
-  }, [navigateToHome]);
-
-  const handleFavoritePress = useCallback(() => {
-    if (!market?.symbol) {
-      return;
-    }
-
-    const controller = Engine.context.PerpsController;
-    const isAdding = !isWatchlist;
-
-    if (
-      isAdding &&
-      controller.getWatchlistMarkets().length >= WATCHLIST_LIMIT
-    ) {
-      showToast(PerpsToastOptions.watchlist.limitReached);
-      return;
-    }
-
-    controller.toggleWatchlistMarket(market.symbol);
-
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
-      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: isAdding
-        ? PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET
-        : PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
-      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]:
-        controller.getWatchlistMarkets().length,
-    });
-  }, [market?.symbol, isWatchlist, track, showToast, PerpsToastOptions]);
-
-  const handlePerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
-      setPerpsMode(nextMode);
-      showPerpsModeFlash(nextMode);
-    },
-    [setPerpsMode],
-  );
+  const {
+    perpsMode,
+    isWatchlist,
+    handleBackPress,
+    handleMarketListPress,
+    handleWalletPress,
+    handleFavoritePress,
+    handlePerpsModeChange,
+  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
 
   if (!market?.symbol) {
     return (
