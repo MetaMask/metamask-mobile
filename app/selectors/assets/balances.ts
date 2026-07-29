@@ -64,10 +64,21 @@ import {
 import type { NetworkConfig } from '@metamask/network-enablement-controller';
 import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
 import { selectAssetsControllerStateForBalances } from './assets-controller';
+import { ARC_USDC_ERC20_ADDRESS } from '../../enablement/assets/arc';
 import {
-  augmentAssetControllersState,
   filterExcludedTokenBalances,
+  STABLE_USDT0_ERC20_ADDRESS,
 } from '../../enablement/assets/networks-customization';
+
+/**
+ * CAIP-19 ERC-20 asset ids that duplicate native gas tokens (Arc USDC,
+ * Stable USDT0). Stripped only on the unified aggregation path so fiat
+ * totals match the legacy `filterExcludedTokenBalances` behavior.
+ */
+const EXCLUDED_UNIFIED_BALANCE_ASSET_IDS = new Set([
+  `eip155:5042/erc20:${ARC_USDC_ERC20_ADDRESS.toLowerCase()}`,
+  `eip155:988/erc20:${STABLE_USDT0_ERC20_ADDRESS.toLowerCase()}`,
+]);
 
 /**
  * TEMPORARY (until scaleToHumanIfRaw is fixed in core): strip `assetsInfo` so
@@ -83,6 +94,34 @@ function stripAssetsInfoForAggregation(
   return {
     ...state,
     assetsInfo: {},
+  };
+}
+
+/**
+ * Prepares AssetsController state for unified fiat aggregation by removing
+ * ERC-20 balances that duplicate native gas tokens (Arc USDC, Stable USDT0).
+ *
+ * @param assetsControllerState - AssetsController state slice.
+ * @returns Copy of state without excluded ERC-20 balances.
+ */
+export function augmentAssetControllersState(
+  assetsControllerState: AssetsControllerState,
+): AssetsControllerState {
+  return {
+    ...assetsControllerState,
+    assetsBalance: Object.fromEntries(
+      Object.entries(assetsControllerState.assetsBalance ?? {}).map(
+        ([accountId, assets]) => [
+          accountId,
+          Object.fromEntries(
+            Object.entries(assets).filter(
+              ([assetId]) =>
+                !EXCLUDED_UNIFIED_BALANCE_ASSET_IDS.has(assetId.toLowerCase()),
+            ),
+          ),
+        ],
+      ),
+    ),
   };
 }
 

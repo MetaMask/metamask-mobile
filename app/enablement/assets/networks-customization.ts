@@ -2,9 +2,8 @@ import {
   AccountGroupAssets,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
-import type { AssetsControllerState } from '@metamask/assets-controller';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
-import { Hex, hexToNumber, isStrictHexString } from '@metamask/utils';
+import { Hex, isStrictHexString } from '@metamask/utils';
 import { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
@@ -43,30 +42,11 @@ const EXCLUDED_ASSETS_FROM_ASSET_LIST: Record<string, string> =
   );
 
 /**
- * CAIP-19 asset ids for excluded ERC-20s (Arc USDC, Stable USDT0), lowercase.
- * Used by the unified AssetsController balance path.
- */
-const EXCLUDED_CAIP_ASSET_IDS: ReadonlySet<string> = new Set(
-  Object.entries(EXCLUDED_ASSETS_FROM_ASSET_LIST).map(([chainId, address]) => {
-    const decimalChainId = hexToNumber(chainId as Hex);
-    return `eip155:${decimalChainId}/erc20:${address}`;
-  }),
-);
-
-/**
  * Returns the excluded ERC-20 address (lowercase) for a chain, or undefined
  * if the chain has none. Case-insensitive on the chain ID.
  */
 function getExcludedAddress(chainId: string): string | undefined {
   return EXCLUDED_ASSETS_FROM_ASSET_LIST[chainId.toLowerCase()];
-}
-
-/**
- * Whether the CAIP asset id is an excluded ERC-20 duplicate of a native
- * gas token (Arc USDC / Stable USDT0). Case-insensitive.
- */
-function isExcludedCaipAssetId(assetId: string): boolean {
-  return EXCLUDED_CAIP_ASSET_IDS.has(assetId.toLowerCase());
 }
 
 /**
@@ -146,32 +126,4 @@ export function filterExcludedImportAssets(
     return tokens;
   }
   return tokens.filter((t) => !isExcludedAsset(chainId, t.address));
-}
-
-/**
- * Augments AssetsController state for balance aggregation under
- * assets-unify-state. Strips excluded ERC-20 balances (Arc USDC,
- * Stable USDT0) so they are not double-counted with the native gas token.
- *
- * @param assetsControllerState - AssetsController state slice.
- * @returns Copy of state without excluded ERC-20 balances.
- */
-export function augmentAssetControllersState(
-  assetsControllerState: AssetsControllerState,
-): AssetsControllerState {
-  return {
-    ...assetsControllerState,
-    assetsBalance: Object.fromEntries(
-      Object.entries(assetsControllerState.assetsBalance ?? {}).map(
-        ([accountId, assets]) => [
-          accountId,
-          Object.fromEntries(
-            Object.entries(assets).filter(
-              ([assetId]) => !isExcludedCaipAssetId(assetId),
-            ),
-          ),
-        ],
-      ),
-    ),
-  };
 }
