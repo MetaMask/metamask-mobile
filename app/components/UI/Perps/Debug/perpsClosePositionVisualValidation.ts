@@ -217,7 +217,7 @@ export const PERPS_CLOSE_POSITION_VISUAL_PRESETS: PerpsClosePositionVisualPreset
       id: 'error_margin_no_amount',
       label: 'Error — no amount',
       group: 'Errors',
-      description: 'HelpText under limit price; Confirm disabled',
+      description: 'HelpText under amount; Confirm disabled',
       pages: ['margin'],
     },
     {

@@ -484,17 +484,15 @@ const PerpsAdjustMarginView: React.FC = () => {
           </View>
         )}
 
-        <View style={styles.helpTextContainer}>
-          {validationErrors.map((error, index) => (
-            <HelpText
-              key={`error-${index}`}
-              severity={HelpTextSeverity.Danger}
-              twClassName="w-full justify-center text-center"
-            >
-              {error}
-            </HelpText>
-          ))}
-        </View>
+        {validationErrors.map((error, index) => (
+          <HelpText
+            key={`error-${index}`}
+            severity={HelpTextSeverity.Danger}
+            twClassName="w-full justify-center text-center px-4"
+          >
+            {error}
+          </HelpText>
+        ))}
       </ScrollView>
 
       {isInputFocusedEffective && (

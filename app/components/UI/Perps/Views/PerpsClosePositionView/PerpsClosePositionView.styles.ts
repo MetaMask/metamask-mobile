@@ -59,7 +59,7 @@ export const createStyles = (theme: Theme) => {
       alignItems: 'center',
       justifyContent: 'flex-start',
       paddingHorizontal: 16,
-      marginTop: 8,
+      marginTop: 16,
       marginBottom: 16,
       // Reserve space so content below doesn't jump when
       // validation HelpText appears or wraps.

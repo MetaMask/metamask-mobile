@@ -833,6 +833,8 @@ const PerpsClosePositionView: React.FC = () => {
           </View>
         )}
 
+        {/* Order Details moved to footer summary */}
+
         {/* Validation Messages - keep visible while typing */}
         {/* Filter the errors and only show minimum $10 error (or forced visual QA copy) */}
         <View style={styles.helpTextContainer}>
