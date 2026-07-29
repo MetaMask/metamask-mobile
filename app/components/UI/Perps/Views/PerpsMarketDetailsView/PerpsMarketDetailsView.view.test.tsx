@@ -39,6 +39,7 @@ import {
   getPerpsCandlePeriodSelector,
   getPerpsCandlePeriodBottomSheetSelector,
 } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
@@ -888,7 +889,11 @@ describe('PerpsMarketDetailsView', () => {
           PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION,
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('About Ethereum')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.market.about_asset', { assetName: 'Ethereum' }),
+        ),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION,

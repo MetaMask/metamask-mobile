@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketAboutSection, {
   PERPS_MARKET_ABOUT_COLLAPSED_LINES,
 } from './PerpsMarketAboutSection';
@@ -10,20 +11,23 @@ const LONG_DESCRIPTION =
 
 describe('PerpsMarketAboutSection', () => {
   it('renders the About title with the asset name and description', () => {
+    const description = 'Bitcoin is the first cryptocurrency.';
+
     render(
-      <PerpsMarketAboutSection
-        assetName="Bitcoin"
-        description="Bitcoin is the first cryptocurrency."
-      />,
+      <PerpsMarketAboutSection assetName="Bitcoin" description={description} />,
     );
 
-    expect(screen.getByText('About Bitcoin')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.market.about_asset', { assetName: 'Bitcoin' }),
+      ),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION),
-    ).toHaveTextContent('Bitcoin is the first cryptocurrency.');
+    ).toHaveTextContent(description);
   });
 
   it('falls back to a plain About title when assetName is missing', () => {
@@ -31,7 +35,7 @@ describe('PerpsMarketAboutSection', () => {
       <PerpsMarketAboutSection description="Bitcoin is the first cryptocurrency." />,
     );
 
-    expect(screen.getByText('About')).toBeOnTheScreen();
+    expect(screen.getByText(strings('perps.market.about'))).toBeOnTheScreen();
   });
 
   it('trims surrounding whitespace from the description', () => {
@@ -52,8 +56,12 @@ describe('PerpsMarketAboutSection', () => {
 
     expect(
       screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
-    ).toBeNull();
-    expect(screen.queryByText('About Bitcoin')).toBeNull();
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.market.about_asset', { assetName: 'Bitcoin' }),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders nothing when the description is only whitespace', () => {
@@ -61,7 +69,7 @@ describe('PerpsMarketAboutSection', () => {
 
     expect(
       screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('supports a custom testID', () => {
@@ -119,13 +127,15 @@ describe('PerpsMarketAboutSection', () => {
       PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE,
     );
     expect(readMore).toBeOnTheScreen();
-    expect(screen.getByText('Read more')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.market.read_more')),
+    ).toBeOnTheScreen();
 
     fireEvent.press(readMore);
 
     expect(
       screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION)
         .props.numberOfLines,
@@ -153,6 +163,6 @@ describe('PerpsMarketAboutSection', () => {
 
     expect(
       screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 });
