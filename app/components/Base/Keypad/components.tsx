@@ -15,9 +15,6 @@ import {
   TextVariant,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../util/theme';
-import { Colors } from '../../../util/theme/models';
-
 // TODO: @MetaMask/design-system-engineers
 // Use the concrete Box component props here instead of BoxProps.
 // In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
@@ -28,31 +25,33 @@ import { Colors } from '../../../util/theme/models';
 // https://github.com/MetaMask/metamask-design-system/issues/1115
 type BoxComponentProps = React.ComponentProps<typeof Box>;
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    keypadButton: {
-      backgroundColor: colors.background.muted,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      height: 48,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    keypadDeleteButton: {
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      height: 48,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-  });
+// TEMP: Quick Buy keypad look — transparent keys + 24px digits. Revert when settled.
+const styles = StyleSheet.create({
+  keypadButton: {
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  keypadButtonText: {
+    fontSize: 24,
+  },
+  keypadDeleteButton: {
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 interface KeypadContainerProps extends BoxComponentProps {
   children?: React.ReactNode;
 }
 
 const KeypadContainer: React.FC<KeypadContainerProps> = (props) => (
-  <Box gap={3} {...props} />
+  <Box gap={5} {...props} />
 );
 
 interface KeypadRowProps extends BoxComponentProps {
@@ -63,7 +62,7 @@ const KeypadRow: React.FC<KeypadRowProps> = (props) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
-    gap={3}
+    gap={5}
     {...props}
   />
 );
@@ -83,31 +82,27 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   isDisabled,
   boxWrapperProps,
   ...props
-}) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
-  return (
-    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...boxWrapperProps}>
-      <TouchableOpacity
-        style={[styles.keypadButton, style]}
-        disabled={isDisabled}
-        accessibilityRole="button"
-        accessible
-        {...props}
+}) => (
+  // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+  <Box twClassName="flex-1" {...boxWrapperProps}>
+    <TouchableOpacity
+      style={[styles.keypadButton, style]}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessible
+      {...props}
+    >
+      <Text
+        twClassName="font-medium text-center"
+        variant={TextVariant.DisplayMd}
+        style={styles.keypadButtonText}
+        accessibilityRole="none"
       >
-        <Text
-          twClassName="font-medium text-center"
-          variant={TextVariant.DisplayMd}
-          accessibilityRole="none"
-        >
-          {children}
-        </Text>
-      </TouchableOpacity>
-    </Box>
-  );
-};
+        {children}
+      </Text>
+    </TouchableOpacity>
+  </Box>
+);
 
 interface KeypadDeleteButtonProps {
   style?: StyleProp<ViewStyle>;
@@ -122,24 +117,19 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
   style,
   boxWrapperProps,
   ...props
-}) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
-  return (
-    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...boxWrapperProps}>
-      <TouchableOpacity
-        style={[styles.keypadDeleteButton, style]}
-        accessibilityRole="button"
-        accessible
-        {...props}
-      >
-        <Icon name={IconName.Backspace} size={IconSize.Xl} />
-      </TouchableOpacity>
-    </Box>
-  );
-};
+}) => (
+  // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+  <Box twClassName="flex-1" {...boxWrapperProps}>
+    <TouchableOpacity
+      style={[styles.keypadDeleteButton, style]}
+      accessibilityRole="button"
+      accessible
+      {...props}
+    >
+      <Icon name={IconName.Backspace} size={IconSize.Xl} />
+    </TouchableOpacity>
+  </Box>
+);
 
 type KeypadType = React.FC<KeypadContainerProps> & {
   Row: React.FC<KeypadRowProps>;

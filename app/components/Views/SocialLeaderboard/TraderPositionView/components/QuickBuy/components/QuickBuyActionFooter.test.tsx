@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import QuickBuyActionFooter from './QuickBuyActionFooter';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
@@ -50,6 +50,18 @@ jest.mock('../QuickBuyConfirmButton', () => {
   };
 });
 
+jest.mock(
+  '../../../../../../../component-library/components-temp/Skeleton',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+    return {
+      Skeleton: ({ testID }: { testID?: string }) =>
+        ReactMock.createElement(Text, { testID }, 'skeleton'),
+    };
+  },
+);
+
 const baseContext = {
   sliderPercent: 0,
   isSliderDisabled: false,
@@ -72,6 +84,8 @@ const baseContext = {
   setActiveScreen: jest.fn(),
   useKeyboard: false,
   isKeypadOpen: false,
+  totalAmountFiat: '$0.00',
+  isTotalLoading: false,
 };
 
 describe('QuickBuyActionFooter', () => {
@@ -141,10 +155,50 @@ describe('QuickBuyActionFooter', () => {
 
     expect(screen.getByTestId('quick-buy-footer-reveal')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-pay-with-button')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-total-row')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
     expect(
       screen.getByTestId('quick-buy-footer-reveal-content').props.pointerEvents,
     ).toBe('none');
+  });
+
+  it('renders the total amount beneath pay with', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      totalAmountFiat: '$20.18',
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(screen.getByTestId('quick-buy-total-row')).toBeOnTheScreen();
+    expect(screen.getByText('$20.18')).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.total'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows a loading skeleton while the total is loading', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      isTotalLoading: true,
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(screen.getByTestId('quick-buy-total-loading')).toBeOnTheScreen();
+  });
+
+  it('navigates to quote details when the total row is pressed', () => {
+    const setActiveScreen = jest.fn();
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      setActiveScreen,
+    });
+
+    render(<QuickBuyActionFooter />);
+    fireEvent.press(screen.getByTestId('quick-buy-total-row'));
+
+    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
   });
 });

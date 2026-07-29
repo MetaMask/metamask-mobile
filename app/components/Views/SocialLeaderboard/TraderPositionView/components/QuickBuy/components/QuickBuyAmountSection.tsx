@@ -73,7 +73,9 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   } else {
     const isCryptoPrimary = amountDisplayMode === 'crypto';
     primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
-    secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
+    secondaryLabel = isCryptoPrimary
+      ? `≈ ${fiatAmountLabel}`
+      : `≈ ${cryptoAmountLabel}`;
   }
 
   const content = (
@@ -85,7 +87,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       testID="quick-buy-amount-area"
     >
       <Text
-        variant={TextVariant.DisplayMd}
+        variant={TextVariant.DisplayLg}
         fontWeight={FontWeight.Bold}
         color={TextColor.TextDefault}
       >

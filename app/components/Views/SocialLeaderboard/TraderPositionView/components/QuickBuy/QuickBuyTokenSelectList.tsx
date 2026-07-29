@@ -3,6 +3,9 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  ButtonIconSize,
+  ButtonIconVariant,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -113,8 +116,14 @@ const QuickBuyTokenSelectList: React.FC<QuickBuyTokenSelectListProps> = ({
     <>
       <BottomSheetHeader
         onBack={onBack}
-        backButtonProps={{ testID: 'quick-buy-pay-with-back' }}
+        backButtonProps={{
+          testID: 'quick-buy-pay-with-back',
+          variant: ButtonIconVariant.Filled,
+          size: ButtonIconSize.Lg,
+          iconProps: { size: IconSize.Md },
+        }}
         testID="quick-buy-pay-with-header"
+        twClassName="h-12 px-4 pt-0 mb-3"
       >
         <Text variant={TextVariant.HeadingSm}>{title}</Text>
       </BottomSheetHeader>

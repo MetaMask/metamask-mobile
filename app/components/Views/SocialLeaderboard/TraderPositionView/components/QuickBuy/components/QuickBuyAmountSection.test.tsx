@@ -15,7 +15,7 @@ describe('QuickBuyAmountSection', () => {
     render(<QuickBuyAmountSection {...baseProps} />);
 
     expect(screen.getByText('$2.55')).toBeOnTheScreen();
-    expect(screen.getByText('56.52037 GIGA')).toBeOnTheScreen();
+    expect(screen.getByText('≈ 56.52037 GIGA')).toBeOnTheScreen();
     expect(
       screen.queryByTestId('quick-buy-amount-loading'),
     ).not.toBeOnTheScreen();
@@ -35,7 +35,7 @@ describe('QuickBuyAmountSection', () => {
     expect(
       screen.queryByTestId('quick-buy-amount-loading-icon'),
     ).not.toBeOnTheScreen();
-    expect(screen.queryByText('56.52037 GIGA')).not.toBeOnTheScreen();
+    expect(screen.queryByText('≈ 56.52037 GIGA')).not.toBeOnTheScreen();
   });
 
   it('is not pressable when no onAmountAreaPress is provided (control)', () => {

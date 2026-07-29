@@ -36,8 +36,9 @@ const QuickBuyPayWithChainFilter: React.FC<QuickBuyPayWithChainFilterProps> = ({
       activeChipKey={getChainChipKey(selectedChainId)}
       onChipSelect={(key) => onSelect(key === 'all' ? null : key)}
       testID={testID}
-      containerTwClassName="pb-3"
-      chipTwClassName="rounded-lg px-3 py-1.5"
+      containerTwClassName="pb-4"
+      // TEMP: pill shape for Quick Buy polish — revert when settled.
+      chipTwClassName="rounded-[99px] px-3 py-1.5"
       getChipTestId={getChainFilterTestId}
       useGestureHandlerScrollView
     />

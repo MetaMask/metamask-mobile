@@ -8,6 +8,7 @@ const defaultProps = {
   hasValidAmount: false,
   isDisabled: false,
   onPress: jest.fn(),
+  tradeMode: 'buy' as const,
   testID: 'confirm-button',
 };
 
@@ -66,5 +67,25 @@ describe('QuickBuyConfirmButton', () => {
     );
     fireEvent.press(screen.getByTestId('confirm-button'));
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('applies the success color in buy mode', () => {
+    render(<QuickBuyConfirmButton {...defaultProps} tradeMode="buy" />);
+
+    expect(screen.getByTestId('confirm-button').props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ backgroundColor: expect.any(String) }),
+      ]),
+    );
+  });
+
+  it('applies the orange sell color in sell mode', () => {
+    render(<QuickBuyConfirmButton {...defaultProps} tradeMode="sell" />);
+
+    expect(screen.getByTestId('confirm-button').props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ backgroundColor: expect.any(String) }),
+      ]),
+    );
   });
 });

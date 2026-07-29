@@ -11,11 +11,14 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { brandColor } from '@metamask/design-tokens';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../../util/theme';
+import type { QuickBuyTradeMode } from './types';
 
 export type ConfirmButtonState = 'idle' | 'loading' | 'success';
 
@@ -23,7 +26,8 @@ const styles = StyleSheet.create({
   successContainer: {
     height: 48,
     width: '100%',
-    borderRadius: 12,
+    // Temporary override — match primary button pill until DS default updates.
+    borderRadius: 99,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -36,6 +40,7 @@ interface QuickBuyConfirmButtonProps {
   hasValidAmount: boolean;
   isDisabled: boolean;
   onPress: () => void;
+  tradeMode: QuickBuyTradeMode;
   testID?: string;
 }
 
@@ -44,9 +49,13 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   label,
   isDisabled,
   onPress,
+  tradeMode,
   testID,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
+  const actionColor =
+    tradeMode === 'sell' ? brandColor.orange400 : colors.success.default;
   const checkScale = useSharedValue(0);
 
   useEffect(() => {
@@ -61,7 +70,7 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   if (state === 'success') {
     return (
       <Box
-        style={[styles.successContainer, tw.style('bg-icon-default')]}
+        style={[styles.successContainer, { backgroundColor: actionColor }]}
         testID={testID}
       >
         <Animated.View style={checkmarkStyle}>
@@ -84,6 +93,9 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
       isFullWidth
       testID={testID}
       isDisabled={state !== 'idle' || isDisabled}
+      // Temporary override — pill radius + buy/sell action colors.
+      twClassName="rounded-[99px]"
+      style={{ backgroundColor: actionColor }}
     >
       {label}
     </Button>
