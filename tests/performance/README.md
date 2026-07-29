@@ -610,6 +610,25 @@ What gets sent per scenario:
 - Each test timer as a numeric measurement (duration in milliseconds)
 - Scenario metadata (test name, project, tags, team, retry, worker)
 - Timer details (thresholds and pass/fail validation) in `extra.timer_steps`
+- RC track-only tags when running release builds: `ci_build_variant`,
+  `release_version`, `github_ref`, `github_run_id`, `tracking_mode=observe`
+
+### RC performance tracking (observe-only)
+
+`run-performance-e2e-release.yml` already runs performance E2E on `release/*`
+pushes. This path is **track-only** (does not block the release):
+
+- Uploads scenario + profiling metrics to the **test** Sentry project by default
+  (`sentry_target: test`)
+- Tags events with `ci_build_variant:rc` and `release_version` (from
+  `release/X.Y.Z`) so RC runs are filterable in Discover
+- Slack summary is labeled `RC <version> (track-only)`
+
+Filter example in Sentry:
+
+```text
+ci_build_variant:rc release_version:7.58.0
+```
 
 ## Reports and Metrics
 

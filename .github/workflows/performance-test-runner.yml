@@ -144,6 +144,8 @@ jobs:
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
           FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
+          CI_BUILD_VARIANT="${{ inputs.build_variant }}"
+          BRANCH_NAME="${{ inputs.branch_name }}"
           BROWSERSTACK_GEO_LOCATION="${BROWSERSTACK_GEO_LOCATION:-SE}"
 
           if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
@@ -177,6 +179,20 @@ jobs:
               ;;
           esac
 
+          # Track-only RC observability: distinct Sentry environment + release version tag.
+          RELEASE_VERSION=""
+          if [[ "$BRANCH_NAME" =~ ^release/(.+)$ ]]; then
+            RELEASE_VERSION="${BASH_REMATCH[1]}"
+          fi
+          if [[ "$CI_BUILD_VARIANT" == "rc" ]]; then
+            SENTRY_ENVIRONMENT="${SENTRY_ENVIRONMENT}-rc"
+          fi
+
+          SENTRY_RELEASE="mm-mobile-perf-${CI_BUILD_VARIANT}-${{ github.sha }}"
+          if [[ -n "$RELEASE_VERSION" ]]; then
+            SENTRY_RELEASE="mm-mobile-rc-${RELEASE_VERSION}"
+          fi
+
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
@@ -195,8 +211,11 @@ jobs:
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
-            echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
+            echo "E2E_PERFORMANCE_SENTRY_RELEASE=$SENTRY_RELEASE"
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
+            echo "E2E_PERFORMANCE_CI_BUILD_VARIANT=$CI_BUILD_VARIANT"
+            echo "E2E_PERFORMANCE_RELEASE_VERSION=$RELEASE_VERSION"
+            echo "GITHUB_REF_NAME=$BRANCH_NAME"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
 
