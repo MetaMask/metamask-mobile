@@ -39,7 +39,6 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import { setMusdConversionAssetDetailCtaSeen } from '../../../../../actions/user';
 import { toHexadecimal } from '../../../../../util/number';
 import Earnings from '../Earnings';
-import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
 import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
@@ -220,18 +219,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
       return renderMusdConversionCta();
     }
 
-    const shouldRenderLendingEmptyStateCta =
-      !isAssetReceiptToken &&
-      !userHasLendingPositions &&
-      earnToken?.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
-
-    if (shouldRenderLendingEmptyStateCta) {
-      return (
-        <View style={styles.EarnEmptyStateCta}>
-          <EarnEmptyStateCta token={asset} />
-        </View>
-      );
-    }
     return null;
   };
 

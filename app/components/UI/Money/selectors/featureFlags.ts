@@ -128,6 +128,48 @@ export const selectIsMoneyTokenListItemCtaEnabledFlag = createSelector(
 );
 
 /**
+ * Selects whether the Money deposit CTA replaces Asset Overview footer
+ * actions. The Money account feature must be enabled before this CTA appears.
+ */
+export const selectIsMoneyAssetOverviewFooterCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag =
+      process.env.MM_MONEY_ASSET_OVERVIEW_FOOTER_CTA_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyAssetOverviewFooterCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Money deposit CTA is displayed in Asset Overview's
+ * balance section. The Money account feature must be enabled before it appears.
+ */
+export const selectIsMoneyAssetOverviewBalanceCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag =
+      process.env.MM_MONEY_ASSET_OVERVIEW_BALANCE_CTA_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyAssetOverviewBalanceCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selects stablecoins that can display the Money account deposit CTA.
  * Remote config takes precedence over the local environment override.
  */

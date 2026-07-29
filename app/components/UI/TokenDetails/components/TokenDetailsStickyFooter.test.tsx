@@ -241,6 +241,42 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
+  describe('Money Earn CTA', () => {
+    const moneyEarnCta = {
+      isLoading: false,
+      label: 'Earn 6% APY',
+      onPress: jest.fn(),
+    };
+
+    it('renders Swap and primary Earn actions for a held token', () => {
+      const { getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders secondary Earn and Buy actions for a token without balance', () => {
+      const { getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance={false}
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Swap')).not.toBeOnTheScreen();
+    });
+  });
+
   describe('success button logic - single button', () => {
     it('applies success style to the swap button when it is the only button', () => {
       mockIsBuyable.mockReturnValue(false);

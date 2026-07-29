@@ -19,7 +19,6 @@ import {
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { EarnTokenDetails } from '../../types/lending.types';
-import { EARN_EMPTY_STATE_CTA_TEST_ID } from '../EmptyStateCta';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
@@ -344,88 +343,6 @@ describe('EarnLendingBalance', () => {
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('displays earn empty state cta when user has no lending positions', () => {
-    const mockEmptyReceiptToken = {
-      ...mockADAIMainnet,
-      balanceMinimalUnit: '0',
-      balanceFormatted: '0 ADAI',
-      balanceFiatNumber: 0,
-    };
-
-    (
-      earnSelectors.selectEarnToken as jest.MockedFunction<
-        typeof earnSelectors.selectEarnToken
-      >
-    ).mockReturnValueOnce(mockDaiMainnet);
-
-    (
-      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
-        typeof earnSelectors.selectEarnOutputToken
-      >
-    ).mockReturnValueOnce(undefined);
-
-    (
-      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
-        typeof earnSelectors.selectEarnTokenPair
-      >
-    ).mockReturnValueOnce({
-      outputToken: mockEmptyReceiptToken,
-      earnToken: mockDaiMainnet,
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <EarnLendingBalance asset={mockDaiMainnet} />,
-      { state: mockInitialState },
-    );
-
-    expect(getByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('earn.empty_state_cta.heading', {
-          tokenSymbol: 'DAI',
-        }),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not display earn empty state cta when user is not eligible', () => {
-    const mockEmptyReceiptToken = {
-      ...mockADAIMainnet,
-      balanceMinimalUnit: '0',
-      balanceFormatted: '0 ADAI',
-      balanceFiatNumber: 0,
-    };
-
-    (
-      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
-        typeof earnSelectors.selectEarnOutputToken
-      >
-    ).mockReturnValueOnce(undefined);
-
-    (
-      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
-        typeof earnSelectors.selectEarnTokenPair
-      >
-    ).mockReturnValueOnce({
-      outputToken: mockEmptyReceiptToken,
-      earnToken: mockDaiMainnet,
-    });
-
-    mockUseStakingEligibility.mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      error: null,
-      refreshPooledStakingEligibility: jest.fn(),
-    });
-
-    const { queryByTestId } = renderWithProvider(
-      <EarnLendingBalance asset={mockDaiMainnet} />,
-      { state: mockInitialState },
-    );
-
-    expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('does not render when lending is disabled and token is not mUSD convertible', () => {
@@ -787,66 +704,6 @@ describe('EarnLendingBalance', () => {
     expect(
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();
-  });
-
-  it('favors mUSD conversion CTA over lending empty state CTA when both conditions are met', () => {
-    const mockEmptyReceiptToken = {
-      ...mockADAIMainnet,
-      balanceMinimalUnit: '0',
-      balanceFormatted: '0 ADAI',
-      balanceFiatNumber: 0,
-    };
-
-    (
-      selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
-        typeof selectIsMusdConversionFlowEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    (
-      useMusdConversionTokens as jest.MockedFunction<
-        typeof useMusdConversionTokens
-      >
-    ).mockReturnValue({
-      isConversionToken: jest.fn().mockReturnValue(true),
-      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
-      filterAllowedTokens: jest.fn().mockReturnValue([]),
-      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-      tokens: [],
-    });
-
-    (
-      earnSelectors.selectEarnToken as jest.MockedFunction<
-        typeof earnSelectors.selectEarnToken
-      >
-    ).mockReturnValue(mockDaiMainnet);
-
-    (
-      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
-        typeof earnSelectors.selectEarnOutputToken
-      >
-    ).mockReturnValue(undefined);
-
-    (
-      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
-        typeof earnSelectors.selectEarnTokenPair
-      >
-    ).mockReturnValue({
-      outputToken: mockEmptyReceiptToken,
-      earnToken: mockDaiMainnet,
-    });
-
-    mockShouldShowAssetOverviewCta.mockReturnValue(true);
-
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <EarnLendingBalance asset={mockDaiMainnet} />,
-      { state: mockInitialState },
-    );
-
-    expect(
-      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('updates user state when close button is pressed on mUSD CTA', async () => {

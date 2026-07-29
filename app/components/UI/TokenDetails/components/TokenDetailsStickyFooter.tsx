@@ -6,6 +6,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  Text,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -32,6 +33,7 @@ import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 
 const styles = StyleSheet.create({
   footer: {
@@ -55,12 +57,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 999,
   },
+  disclaimer: {
+    marginTop: 8,
+    textAlign: 'center',
+  },
 });
 
 const BALANCE_THRESHOLD_USD = 100;
 
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
+
+type StickyButtonLayout =
+  | 'both'
+  | 'buy'
+  | 'swap'
+  | 'swap_earn'
+  | 'earn_buy'
+  | 'earn'
+  | null;
+
+export interface MoneyEarnCtaConfig {
+  isLoading: boolean;
+  label?: string;
+  onPress: () => void;
+}
 
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
@@ -71,7 +92,9 @@ interface TokenStickyFooterProps {
   networkName?: string;
   /** Up-to-date token balance for useTokenActions swap logic */
   currentTokenBalance?: string;
-  onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
+  hasTokenBalance?: boolean;
+  moneyEarnCta?: MoneyEarnCtaConfig;
+  onStickyButtonsResolved?: (shown: StickyButtonLayout) => void;
   /** When true the footer omits its built-in safe-area bottom inset so the parent can manage spacing. */
   skipBottomInset?: boolean;
   /** Optional testID for the swap button (used by E2E tests in different screens) */
@@ -98,6 +121,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   balanceFiatUsd,
   networkName,
   currentTokenBalance,
+  hasTokenBalance = false,
+  moneyEarnCta,
   onStickyButtonsResolved,
   skipBottomInset = false,
   swapTestID,
@@ -171,10 +196,17 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const trackStickyFooterTapped = useStickyFooterTracking();
 
-  const showSwapButton = hasEligibleSwapTokens;
-  const showBuyButton = isBuyable || !hasEligibleSwapTokens;
+  const isMoneyEarnCtaActive = Boolean(moneyEarnCta);
+  const showSwapButton = isMoneyEarnCtaActive
+    ? hasTokenBalance && hasEligibleSwapTokens
+    : hasEligibleSwapTokens;
+  const showBuyButton = isMoneyEarnCtaActive
+    ? !hasTokenBalance && (isBuyable || !hasEligibleSwapTokens)
+    : isBuyable || !hasEligibleSwapTokens;
+  const showMoneyEarnButton = isMoneyEarnCtaActive;
   const showBothButtons = showSwapButton && showBuyButton;
-  const showQuickBuyButton = Boolean(onQuickBuyPress) && hasEligibleSwapTokens;
+  const showQuickBuyButton =
+    !isMoneyEarnCtaActive && Boolean(onQuickBuyPress) && hasEligibleSwapTokens;
 
   const tradingOpen = isTokenTradingOpen(token as BridgeToken);
   useEffect(() => {
@@ -183,10 +215,27 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         onStickyButtonsResolved(null);
         return;
       }
-      const shown = showBothButtons ? 'both' : showSwapButton ? 'swap' : 'buy';
+      const shown: StickyButtonLayout = isMoneyEarnCtaActive
+        ? showSwapButton
+          ? 'swap_earn'
+          : showBuyButton
+            ? 'earn_buy'
+            : 'earn'
+        : showBothButtons
+          ? 'both'
+          : showSwapButton
+            ? 'swap'
+            : 'buy';
       onStickyButtonsResolved(shown);
     }
-  }, [tradingOpen, showBothButtons, showSwapButton, onStickyButtonsResolved]);
+  }, [
+    isMoneyEarnCtaActive,
+    onStickyButtonsResolved,
+    showBothButtons,
+    showBuyButton,
+    showSwapButton,
+    tradingOpen,
+  ]);
 
   const balanceUsd = balanceFiatUsd ?? 0;
 
@@ -194,10 +243,16 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
    * When only one button is shown it always gets the success style.
    * When both are shown, swap gets success if balance >= $100, buy gets success otherwise.
    */
-  const swapIsSuccess = showBothButtons
-    ? balanceUsd >= BALANCE_THRESHOLD_USD
-    : showSwapButton;
-  const buyIsSuccess = showBothButtons ? !swapIsSuccess : showBuyButton;
+  const swapIsSuccess = isMoneyEarnCtaActive
+    ? false
+    : showBothButtons
+      ? balanceUsd >= BALANCE_THRESHOLD_USD
+      : showSwapButton;
+  const buyIsSuccess = isMoneyEarnCtaActive
+    ? showBuyButton
+    : showBothButtons
+      ? !swapIsSuccess
+      : showBuyButton;
 
   const handleFooterAction = useCallback(
     (action: () => void, source: string, onNavigate?: () => void) => {
@@ -271,102 +326,143 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   if (!tradingOpen) return null;
 
+  const moneyEarnButton = showMoneyEarnButton ? (
+    moneyEarnCta?.isLoading ? (
+      <View
+        style={showSwapButton ? styles.subsequentButton : styles.button}
+        testID="money-asset-overview-footer-cta-skeleton"
+      >
+        <Skeleton height={48} width={160} />
+      </View>
+    ) : (
+      <Button
+        testID="money-asset-overview-footer-cta"
+        variant={
+          hasTokenBalance ? ButtonVariant.Primary : ButtonVariant.Secondary
+        }
+        style={showSwapButton ? styles.subsequentButton : styles.button}
+        twClassName={
+          hasTokenBalance ? successBg : `bg-transparent ${successBorder}`
+        }
+        textProps={hasTokenBalance ? SUCCESS_TEXT_PROPS : secondaryTextProps}
+        onPress={moneyEarnCta?.onPress}
+      >
+        {moneyEarnCta?.label}
+      </Button>
+    )
+  ) : null;
+
   return (
     <>
-      <View testID="bottomsheetfooter" style={[styles.footer, footerStyle]}>
-        {showSwapButton && (
-          <Button
-            testID={swapTestID}
-            variant={
-              swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
-            }
-            style={styles.button}
-            twClassName={
-              swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
-            }
-            textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-            startIconName={IconName.SwapVertical}
-            startIconProps={
-              swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-            }
-            onPress={() => {
-              trackStickyFooterTapped({
-                ctaType: 'swap',
-                balanceFiatUsd,
-                tokenAddress: token.address ?? '',
-                chainId: token.chainId ?? '',
-                indicatorsActive,
-              });
-              handleFooterAction(
-                onSwap,
-                strings('asset_overview.swap'),
-                onSwapPress,
-              );
-            }}
-          >
-            {strings('asset_overview.swap')}
-          </Button>
-        )}
-        {showBuyButton && (
-          <Button
-            testID={buyTestID}
-            variant={
-              buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
-            }
-            style={showSwapButton ? styles.subsequentButton : styles.button}
-            twClassName={
-              buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
-            }
-            textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-            startIconName={IconName.Bank}
-            startIconProps={
-              buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-            }
-            onPress={() => {
-              trackStickyFooterTapped({
-                ctaType: 'buy',
-                balanceFiatUsd,
-                tokenAddress: token.address ?? '',
-                chainId: token.chainId ?? '',
-                indicatorsActive,
-              });
-              handleFooterAction(
-                onBuy,
-                strings('asset_overview.buy_button'),
-                onBuyPress,
-              );
-            }}
-          >
-            {strings('asset_overview.buy_button')}
-          </Button>
-        )}
-        {showQuickBuyButton && (
-          <ButtonAnimated
-            testID={quickBuyTestID}
-            accessibilityRole="button"
-            accessibilityLabel={strings('asset_overview.buy_button')}
-            style={[styles.quickBuyButton, { borderColor: successColorHex }]}
-            onPress={() => {
-              if (!onQuickBuyPress) return;
-              trackStickyFooterTapped({
-                ctaType: 'quick_buy',
-                balanceFiatUsd,
-                tokenAddress: token.address ?? '',
-                chainId: token.chainId ?? '',
-                indicatorsActive,
-              });
-              handleFooterAction(
-                onQuickBuyPress,
-                strings('asset_overview.buy_button'),
-              );
-            }}
-          >
-            <Icon
-              name={IconName.FlashFilled}
-              size={IconSize.Md}
-              twClassName={successText}
-            />
-          </ButtonAnimated>
+      <View style={footerStyle}>
+        <View testID="bottomsheetfooter" style={styles.footer}>
+          {showSwapButton && (
+            <Button
+              testID={swapTestID}
+              variant={
+                swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+              }
+              style={styles.button}
+              twClassName={
+                swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
+              }
+              textProps={
+                swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps
+              }
+              startIconName={IconName.SwapVertical}
+              startIconProps={
+                swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
+              }
+              onPress={() => {
+                trackStickyFooterTapped({
+                  ctaType: 'swap',
+                  balanceFiatUsd,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  indicatorsActive,
+                });
+                handleFooterAction(
+                  onSwap,
+                  strings('asset_overview.swap'),
+                  onSwapPress,
+                );
+              }}
+            >
+              {strings('asset_overview.swap')}
+            </Button>
+          )}
+          {!hasTokenBalance && moneyEarnButton}
+          {showBuyButton && (
+            <Button
+              testID={buyTestID}
+              variant={
+                buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+              }
+              style={
+                showSwapButton || (isMoneyEarnCtaActive && !hasTokenBalance)
+                  ? styles.subsequentButton
+                  : styles.button
+              }
+              twClassName={
+                buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
+              }
+              textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
+              startIconName={IconName.Bank}
+              startIconProps={
+                buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
+              }
+              onPress={() => {
+                trackStickyFooterTapped({
+                  ctaType: 'buy',
+                  balanceFiatUsd,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  indicatorsActive,
+                });
+                handleFooterAction(
+                  onBuy,
+                  strings('asset_overview.buy_button'),
+                  onBuyPress,
+                );
+              }}
+            >
+              {strings('asset_overview.buy_button')}
+            </Button>
+          )}
+          {hasTokenBalance && moneyEarnButton}
+          {showQuickBuyButton && (
+            <ButtonAnimated
+              testID={quickBuyTestID}
+              accessibilityRole="button"
+              accessibilityLabel={strings('asset_overview.buy_button')}
+              style={[styles.quickBuyButton, { borderColor: successColorHex }]}
+              onPress={() => {
+                if (!onQuickBuyPress) return;
+                trackStickyFooterTapped({
+                  ctaType: 'quick_buy',
+                  balanceFiatUsd,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  indicatorsActive,
+                });
+                handleFooterAction(
+                  onQuickBuyPress,
+                  strings('asset_overview.buy_button'),
+                );
+              }}
+            >
+              <Icon
+                name={IconName.FlashFilled}
+                size={IconSize.Md}
+                twClassName={successText}
+              />
+            </ButtonAnimated>
+          )}
+        </View>
+        {isMoneyEarnCtaActive && !moneyEarnCta?.isLoading && (
+          <Text style={styles.disclaimer} color={TextColor.TextAlternative}>
+            {strings('money.asset_overview.cta.current_apy_disclaimer')}
+          </Text>
         )}
       </View>
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />

@@ -5,6 +5,8 @@ import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
+  selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+  selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokens,
@@ -43,6 +45,8 @@ const createToken = (overrides: Partial<TokenI> = {}) =>
 
 interface SelectorState {
   ctaEnabled: boolean;
+  assetOverviewFooterCtaEnabled: boolean;
+  assetOverviewBalanceCtaEnabled: boolean;
   ctaTokens: Record<string, string[]>;
   geoEligible: boolean;
   vaultConfig: object | undefined;
@@ -54,6 +58,8 @@ interface SelectorState {
 
 const setupSelectors = ({
   ctaEnabled = true,
+  assetOverviewFooterCtaEnabled = true,
+  assetOverviewBalanceCtaEnabled = true,
   ctaTokens = { '*': ['USDC'] },
   geoEligible = true,
   earnBannerEnabled = true,
@@ -70,6 +76,12 @@ const setupSelectors = ({
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectIsMoneyTokenListItemCtaEnabledFlag) {
       return ctaEnabled;
+    }
+    if (selector === selectIsMoneyAssetOverviewFooterCtaEnabledFlag) {
+      return assetOverviewFooterCtaEnabled;
+    }
+    if (selector === selectIsMoneyAssetOverviewBalanceCtaEnabledFlag) {
+      return assetOverviewBalanceCtaEnabled;
     }
     if (selector === selectMoneyDepositCtaTokens) {
       return ctaTokens;
@@ -174,6 +186,62 @@ describe('useMoneyCtaVisibility', () => {
     const { result } = renderHook(() => useMoneyCtaVisibility());
 
     expect(result.current.shouldShowMoneyTokenListItemCta(asset)).toBe(false);
+  });
+
+  describe('Asset Overview CTAs', () => {
+    it('shows footer CTA for an allowlisted token that is not held', () => {
+      mockUseMoneyDepositTokens.mockReturnValue({
+        isNoFeeToken: jest.fn(),
+        tokens: [],
+      } as ReturnType<typeof useMoneyDepositTokens>);
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(ctaToken),
+      ).toBe(true);
+    });
+
+    it('hides footer CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewFooterCtaEnabled: false });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(ctaToken),
+      ).toBe(false);
+    });
+
+    it('shows balance CTA only for a held deposit-eligible token', () => {
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewBalanceCta(ctaToken),
+      ).toBe(true);
+    });
+
+    it('hides balance CTA for a token that is not held', () => {
+      mockUseMoneyDepositTokens.mockReturnValue({
+        isNoFeeToken: jest.fn(),
+        tokens: [],
+      } as ReturnType<typeof useMoneyDepositTokens>);
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewBalanceCta(ctaToken),
+      ).toBe(false);
+    });
+
+    it('hides balance CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewBalanceCtaEnabled: false });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewBalanceCta(ctaToken),
+      ).toBe(false);
+    });
   });
 
   describe('shouldShowMoneyEarnBanner', () => {

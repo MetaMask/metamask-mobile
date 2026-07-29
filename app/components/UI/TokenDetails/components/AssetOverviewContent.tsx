@@ -83,6 +83,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
@@ -143,6 +144,9 @@ export interface AssetOverviewContentProps {
 
   // Balance data
   balance: string | number | undefined;
+  balanceCta?: React.ReactNode;
+  balancePriceChangeOverride?: string;
+  balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
   secondaryBalance: string | undefined;
 
@@ -218,6 +222,9 @@ export interface AssetOverviewContentProps {
 const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   token,
   balance,
+  balanceCta,
+  balancePriceChangeOverride,
+  balancePriceChangeOverrideColor,
   mainBalance,
   secondaryBalance,
   currentPrice,
@@ -661,7 +668,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {balance != null && (
             <Balance
               asset={token}
+              balanceCta={balanceCta}
               mainBalance={mainBalance}
+              priceChangeOverride={balancePriceChangeOverride}
+              priceChangeOverrideColor={balancePriceChangeOverrideColor}
               secondaryBalance={secondaryBalance}
             />
           )}

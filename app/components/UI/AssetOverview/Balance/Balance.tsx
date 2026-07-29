@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { type ReactNode, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import {
   CaipAssetId,
@@ -56,8 +56,11 @@ export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 interface BalanceProps {
   asset: TokenI;
+  balanceCta?: ReactNode;
   mainBalance: string;
   secondaryBalance?: string;
+  priceChangeOverride?: string;
+  priceChangeOverrideColor?: TextColor;
   hideTitleHeading?: boolean;
   hidePercentageChange?: boolean;
 }
@@ -100,8 +103,11 @@ export const NetworkBadgeSource = (chainId: Hex) => {
 
 const Balance = ({
   asset,
+  balanceCta,
   mainBalance,
   secondaryBalance,
+  priceChangeOverride,
+  priceChangeOverrideColor,
   hideTitleHeading,
   hidePercentageChange,
 }: BalanceProps) => {
@@ -206,9 +212,15 @@ const Balance = ({
         disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
-        secondaryBalance={hidePercentageChange ? undefined : percentageText}
+        secondaryBalance={
+          hidePercentageChange
+            ? undefined
+            : (priceChangeOverride ?? percentageText)
+        }
         secondaryBalanceColor={
-          hidePercentageChange ? undefined : percentageColor
+          hidePercentageChange
+            ? undefined
+            : (priceChangeOverrideColor ?? percentageColor)
         }
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
@@ -253,6 +265,7 @@ const Balance = ({
           </View>
         </View>
       </AssetElement>
+      {balanceCta}
       <EarnBalance asset={asset} />
     </View>
   );

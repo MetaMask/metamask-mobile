@@ -87,10 +87,13 @@ describe('MoneyEarnBanner', () => {
       trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
     mockUseMoneyCtaVisibility.mockReturnValue({
+      shouldShowMoneyAssetOverviewBalanceCta: jest.fn(),
+      shouldShowMoneyAssetOverviewFooterCta: jest.fn(),
       shouldShowMoneyTokenListItemCta: jest.fn(),
       shouldShowMoneyEarnBanner: mockShouldShowMoneyEarnBanner,
     });
     mockUseMoneyOnboardingNavigation.mockReturnValue({
+      isOnboardingRedirectNeeded: false,
       redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
     });
   });

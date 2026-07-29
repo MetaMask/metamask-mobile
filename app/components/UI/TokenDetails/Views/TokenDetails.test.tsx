@@ -21,6 +21,26 @@ import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/Tra
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
+
+jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
+  useMoneyAssetOverviewCtas: () => ({
+    apyPercent: undefined,
+    footerLabel: undefined,
+    isBalanceCtaLoading: false,
+    isBalanceCtaVisible: false,
+    isFooterCtaEligible: false,
+    isFooterCtaLoading: false,
+    isFooterCtaVisible: false,
+    onBalancePress: jest.fn(),
+    onFooterPress: jest.fn(),
+    projectedEarningsFormatted: undefined,
+  }),
+}));
+
+jest.mock('../../Money/components/MoneyAssetOverviewBalanceCta', () => ({
+  MoneyAssetOverviewBalanceCta: () => null,
+  MoneyAssetOverviewBalanceCtaSkeleton: () => null,
+}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) =>

@@ -68,10 +68,13 @@ describe('useMoneyTokenListCta', () => {
       trackTokenButtonClicked: mockTrackTokenButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
     mockUseMoneyCtaVisibility.mockReturnValue({
+      shouldShowMoneyAssetOverviewBalanceCta: jest.fn(),
+      shouldShowMoneyAssetOverviewFooterCta: jest.fn(),
       shouldShowMoneyTokenListItemCta: mockShouldShowMoneyTokenListItemCta,
       shouldShowMoneyEarnBanner: jest.fn(),
     });
     mockUseMoneyOnboardingNavigation.mockReturnValue({
+      isOnboardingRedirectNeeded: false,
       redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
     });
   });

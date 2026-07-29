@@ -18,6 +18,8 @@ import {
   selectMoneyVaultApyRemoteConfig,
   selectMoneyEarnBannerTokens,
   MONEY_EARN_BANNER_TOKENS_FALLBACK,
+  selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+  selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokens,
@@ -266,6 +268,67 @@ describe('selectIsMoneyTokenListItemCtaEnabledFlag', () => {
     const state = createState({ _unique: 'token-list-cta-local-flag' });
 
     const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+});
+
+describe.each([
+  [
+    'selectIsMoneyAssetOverviewFooterCtaEnabledFlag',
+    selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
+    'earnMoneyAssetOverviewFooterCtaEnabled',
+    'MM_MONEY_ASSET_OVERVIEW_FOOTER_CTA_ENABLED',
+  ],
+  [
+    'selectIsMoneyAssetOverviewBalanceCtaEnabledFlag',
+    selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+    'earnMoneyAssetOverviewBalanceCtaEnabled',
+    'MM_MONEY_ASSET_OVERVIEW_BALANCE_CTA_ENABLED',
+  ],
+])('%s', (_name, selector, remoteFlagName, localFlagName) => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false when Money account feature is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(false);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      [remoteFlagName]: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns remote version-gated flag when Money account feature is enabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      [remoteFlagName]: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('falls back to local flag when remote flag is unavailable', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    process.env[localFlagName] = 'true';
+    const state = createState({ _unique: `${remoteFlagName}-local` });
+
+    const result = selector(state as never);
 
     expect(result).toBe(true);
   });
