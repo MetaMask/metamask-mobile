@@ -41,15 +41,19 @@ const dismissChromeAdPrivacyIfPresent = async (
     if (Date.now() > deadlineMs) {
       return;
     }
-    if ((await PlaywrightMatchers.countElementsByText(text, true)) === 0) {
-      continue;
+    try {
+      if ((await PlaywrightMatchers.countElementsByText(text, true)) === 0) {
+        continue;
+      }
+      const dismissControl = await PlaywrightMatchers.getElementByText(
+        text,
+        true,
+      );
+      await PlaywrightGestures.waitAndTap(dismissControl, { timeout: 1500 });
+      return;
+    } catch {
+      // Try the next label.
     }
-    const dismissControl = await PlaywrightMatchers.getElementByText(
-      text,
-      true,
-    );
-    await PlaywrightGestures.waitAndTap(dismissControl, { timeout: 1500 });
-    return;
   }
 };
 
@@ -224,16 +228,31 @@ export const navigateToDappAndroid = async (url: string) => {
       url,
     );
   } catch {
-    const editText = await PlaywrightMatchers.getElementByXPath(
-      '//android.widget.EditText',
-    );
-    await PlaywrightGestures.typeText(editText, url);
+    try {
+      const editText = await PlaywrightMatchers.getElementByXPath(
+        '//android.widget.EditText',
+      );
+      await PlaywrightGestures.typeText(editText, url);
+    } catch {
+      // No editable field (e.g. tab switcher) — VIEW-intent retry recovers below.
+    }
   }
   try {
     await ChromeBrowserView.tapSelectDappUrl();
   } catch {
     // Suggestion row resource IDs vary; Enter submits the omnibox URL.
     await PlaywrightGestures.submitAndroidUrlBar();
+  }
+
+  // Recover from the tab switcher (CDP downstream verifies the load).
+  if (!(await chromeUrlBarShowsTarget(url))) {
+    PlaywrightUtilities.openUrlInChrome(url);
+    await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
+    try {
+      await dismissChromeAdPrivacyIfPresent();
+    } catch {
+      // No post-navigation dialog
+    }
   }
 };
 
