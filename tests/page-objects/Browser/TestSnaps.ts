@@ -22,7 +22,11 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
-import { RetryOptions, EncapsulatedElementType } from '../../framework';
+import {
+  RetryOptions,
+  EncapsulatedElementType,
+  resolve,
+} from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { testSnapsAndroidScrollOptions } from '../../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
@@ -366,22 +370,22 @@ class TestSnaps {
   }
 
   async tapOkButton() {
-    const button = Matchers.getElementByText('OK');
+    const button = Matchers.getElementByText(/^OK$/i);
     await Gestures.waitAndTap(button);
   }
 
   async tapApproveButton() {
-    const button = Matchers.getElementByText('Approve');
+    const button = Matchers.getElementByText(/^Approve$/i);
     await Gestures.waitAndTap(button);
   }
 
   async tapConfirmButton() {
-    const button = Matchers.getElementByText('Confirm');
+    const button = Matchers.getElementByText(/^Confirm$/i);
     await Gestures.waitAndTap(button);
   }
 
   async tapCancelButton() {
-    const button = Matchers.getElementByText('Cancel');
+    const button = Matchers.getElementByText(/^Cancel$/i);
     await Gestures.waitAndTap(button);
   }
 
@@ -418,6 +422,20 @@ class TestSnaps {
 
   async fillInput(name: string, text: string) {
     const input = Matchers.getElementByID(`${name}-snap-ui-input`);
+    await Gestures.typeText(input, text, { hideKeyboard: true });
+  }
+
+  /**
+   * Dialog Snap custom input. iOS uses textfield selector as testID
+   * is not exposed in page source.
+   */
+  async fillCustomDialogInput(text: string) {
+    const input = resolve({
+      detoxTestID: 'custom-input-snap-ui-input',
+      androidAppiumTestID: 'custom-input-snap-ui-input',
+      iosAppiumXPath:
+        '//*[@name="snap-ui-renderer__scrollview"]//*[@name="textfield"]',
+    });
 
     await Gestures.typeText(input, text, { hideKeyboard: true });
   }

@@ -1,8 +1,6 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
-import Gestures from '../../framework/Gestures.js';
-import Matchers from '../../framework/Matchers.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
@@ -34,8 +32,7 @@ appiumTest.describe(SmokeSnaps('Dialog Snap Tests'), () => {
 
         await TestSnaps.tapButton('sendCustomButton');
         await Assertions.expectTextDisplayed('Custom Dialog');
-        const input = Matchers.getElementByID('custom-input-snap-ui-input');
-        await Gestures.typeText(input, 'Hello, World!', { hideKeyboard: true });
+        await TestSnaps.fillCustomDialogInput('Hello, World!');
         await TestSnaps.tapConfirmButton();
         await TestSnaps.checkResultSpan('dialogResultSpan', '"Hello, World!"');
       });
