@@ -19,7 +19,6 @@ import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/component
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
-import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
