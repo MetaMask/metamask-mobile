@@ -74,6 +74,8 @@ describe('useTransactionCustomAmountAlerts', () => {
     const { result } = runHook();
 
     expect(result.current.alertTitle).toBe(TITLE_MOCK);
+    expect(result.current.hasBlockingError).toBe(true);
+    expect(result.current.helpText).toBeDefined();
   });
 
   it('returns message as alert title if no title', () => {
@@ -89,6 +91,7 @@ describe('useTransactionCustomAmountAlerts', () => {
     const { result } = runHook();
 
     expect(result.current.alertTitle).toBe(MESSAGE_MOCK);
+    expect(result.current.helpText).toBe(MESSAGE_MOCK);
   });
 
   it('returns alert message as message if title', () => {
@@ -128,6 +131,9 @@ describe('useTransactionCustomAmountAlerts', () => {
 
     expect(result.current.alertTitle).toBe(PENDING_ALERT_MOCK.title);
     expect(result.current.alertMessage).toBe(PENDING_ALERT_MOCK.message);
+    expect(result.current.hasBlockingError).toBe(true);
+    // Non-deposit SignedOrSubmitted titles format as error-only.
+    expect(result.current.helpText).toBe(PENDING_ALERT_MOCK.message);
   });
 
   it('does not return alert if on change alert and input not changed', () => {

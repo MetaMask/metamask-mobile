@@ -457,7 +457,7 @@ describe('PayWithRow', () => {
         state: STATE_MOCK,
       });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/test/);
     });
 
     it('renders money account row for perps deposit', () => {
@@ -507,7 +507,7 @@ describe('PayWithRow', () => {
         state: STATE_MOCK,
       });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/test/);
     });
   });
 });

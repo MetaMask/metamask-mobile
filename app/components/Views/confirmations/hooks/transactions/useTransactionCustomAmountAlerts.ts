@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { useAlerts } from '../../context/alert-system-context';
 import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
+import { formatCustomAmountHelpText } from '../../utils/formatCustomAmountHelpText';
+import { Alert } from '../../types/alerts';
 
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
@@ -43,8 +45,13 @@ export function useTransactionCustomAmountAlerts({
   pendingTokenAmount: string;
   pendingFiatAmount?: string;
 }): {
+  /** @deprecated Prefer helpText for UI; kept for tests / debug. */
   alertMessage?: string;
+  /** @deprecated Prefer helpText for UI; kept for tests / debug. */
   alertTitle?: string;
+  helpText?: string;
+  hasBlockingError: boolean;
+  firstAlert?: Alert;
 } {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({
@@ -86,19 +93,26 @@ export function useTransactionCustomAmountAlerts({
 
   const firstAlert = alerts?.[0];
 
-  if (!firstAlert) {
-    return {};
-  }
+  return useMemo(() => {
+    if (!firstAlert) {
+      return {
+        hasBlockingError: false,
+      };
+    }
 
-  const alertTitle =
-    firstAlert.title ?? (firstAlert.message as string | undefined);
+    const alertTitle =
+      firstAlert.title ?? (firstAlert.message as string | undefined);
 
-  const alertMessage = firstAlert.title
-    ? (firstAlert.message as string | undefined)
-    : undefined;
+    const alertMessage = firstAlert.title
+      ? (firstAlert.message as string | undefined)
+      : undefined;
 
-  return {
-    alertMessage,
-    alertTitle,
-  };
+    return {
+      alertTitle,
+      alertMessage,
+      helpText: formatCustomAmountHelpText(firstAlert),
+      hasBlockingError: true,
+      firstAlert,
+    };
+  }, [firstAlert]);
 }
