@@ -50,6 +50,7 @@ export function resetLoginAppStartTypeForTesting(): void {
 export interface LoginPerformanceTags {
   locked: boolean;
   app_start_type: LoginAppStartType;
+  [key: string]: boolean | string;
 }
 
 export function getLoginPerformanceTags(locked: boolean): LoginPerformanceTags {
