@@ -9,6 +9,10 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { selectDefiControllerV2Enabled } from '../../../../selectors/featureFlagController/defiControllerV2';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
+import {
+  DEFAULT_FEATURE_FLAG_VALUES,
+  FeatureFlagNames,
+} from '../../../../constants/featureFlags';
 
 /**
  * Initialize the DeFiPositionsController (V1).
@@ -32,9 +36,22 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
       const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
         store.getState(),
       );
+
+      const assetsDefiPositionsEnabled = Boolean(
+        initMessenger.call('RemoteFeatureFlagController:getState')
+          ?.remoteFeatureFlags?.[FeatureFlagNames.assetsDefiPositionsEnabled] ??
+          DEFAULT_FEATURE_FLAG_VALUES[
+            FeatureFlagNames.assetsDefiPositionsEnabled
+          ],
+      );
+
       const isV2Enabled = selectDefiControllerV2Enabled(store.getState());
 
-      return isBasicFunctionalityToggleEnabled && !isV2Enabled;
+      return (
+        isBasicFunctionalityToggleEnabled &&
+        assetsDefiPositionsEnabled &&
+        !isV2Enabled
+      );
     },
     trackEvent: (params: {
       event: string;

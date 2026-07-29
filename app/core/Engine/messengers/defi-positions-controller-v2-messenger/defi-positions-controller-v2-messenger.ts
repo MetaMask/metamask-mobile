@@ -1,7 +1,4 @@
-import {
-  CurrencyRateControllerGetStateAction,
-  DeFiPositionsControllerV2Messenger,
-} from '@metamask/assets-controllers';
+import { DeFiPositionsControllerV2Messenger } from '@metamask/assets-controllers';
 import {
   Messenger,
   MessengerActions,
@@ -10,6 +7,7 @@ import {
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
+import { AssetsControllerGetStateAction } from '@metamask/assets-controller';
 
 /**
  * Get a restricted messenger for the DeFiPositionsControllerV2.
@@ -38,7 +36,7 @@ export function getDeFiPositionsControllerV2Messenger(
 
 type DeFiPositionsControllerV2InitMessengerActions =
   | RemoteFeatureFlagControllerGetStateAction
-  | CurrencyRateControllerGetStateAction
+  | AssetsControllerGetStateAction
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
 
 export type DeFiPositionsControllerV2InitMessenger = ReturnType<
@@ -66,7 +64,7 @@ export function getDeFiPositionsControllerV2InitMessenger(
   rootMessenger.delegate({
     actions: [
       'RemoteFeatureFlagController:getState',
-      'CurrencyRateController:getState',
+      'AssetsController:getState',
       'AuthenticationController:getBearerToken',
     ],
     messenger,

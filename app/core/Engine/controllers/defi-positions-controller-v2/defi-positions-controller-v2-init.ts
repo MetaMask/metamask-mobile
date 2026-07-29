@@ -75,7 +75,7 @@ export const defiPositionsControllerV2Init: MessengerClientInitFunction<
       selectCompletedOnboarding(store.getState()) &&
       selectDefiControllerV2Enabled(store.getState()),
     getVsCurrency: () =>
-      initMessenger.call('CurrencyRateController:getState').currentCurrency,
+      initMessenger.call('AssetsController:getState').selectedCurrency,
   });
 
   return { controller };
