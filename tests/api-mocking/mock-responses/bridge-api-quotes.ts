@@ -1019,17 +1019,7 @@ export const DummyQuoteMetadata: QuoteMetadata = {
     usd: '9.8128810694176015',
   },
   gasFee: {
-    effective: {
-      amount: '0.000330764431277595',
-      valueInCurrency: '0.64914834989246961915',
-      usd: '0.64914834989246961915',
-    },
     total: {
-      amount: '0.000330764431277595',
-      valueInCurrency: '0.64914834989246961915',
-      usd: '0.64914834989246961915',
-    },
-    max: {
       amount: '0.000330764431277595',
       valueInCurrency: '0.64914834989246961915',
       usd: '0.64914834989246961915',
@@ -1039,11 +1029,6 @@ export const DummyQuoteMetadata: QuoteMetadata = {
     amount: '0.000330764431277595',
     valueInCurrency: '0.64914834989246961915',
     usd: '0.64914834989246961915',
-  },
-  totalMaxNetworkFee: {
-    amount: '0.000677325191980185',
-    valueInCurrency: '1.32929810202455167545',
-    usd: '1.32929810202455167545',
   },
   toTokenAmount: {
     amount: '0.004946243543883951',

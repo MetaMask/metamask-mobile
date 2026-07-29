@@ -513,8 +513,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const handlePercentagePress = useCallback(
       (percentage: number) => {
-        updatePendingAmountPercentage(percentage);
-        if (percentage === 100) {
+        const didApplyAmount = updatePendingAmountPercentage(percentage);
+        // Max must not submit the page when there is no balance to deposit /
+        // withdraw — the amount stays $0, so leave the keyboard open instead of
+        // stranding the user on a loading screen.
+        if (percentage === 100 && didApplyAmount) {
           isMaxAutoSubmitPending.current = true;
           setIsKeyboardVisible(false);
         }

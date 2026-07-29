@@ -229,7 +229,7 @@ export interface UseQuickBuyControllerResult {
   handleSliderChange: (percent: number) => void;
   handleSliderDragEnd: (percent: number) => void;
   /** Buy-mode preset fiat pill tap — commits amount and fetches quote immediately. */
-  handleQuickAmountPress: (fiatValue: number, presetTierUsd?: number) => void;
+  handleQuickAmountPress: (fiatValue: number, presetValue?: number) => void;
   /** USD → user display currency rate for fallback pill conversion. */
   usdToCurrentCurrencyRate: number | undefined;
   handleAmountAreaPress: () => void;
@@ -787,7 +787,7 @@ export function useQuickBuyController(
     }
     const total = activeQuote.totalNetworkFee?.valueInCurrency;
     if (total != null && isNumberValue(total)) return parseFloat(total);
-    const effective = activeQuote.gasFee?.effective?.valueInCurrency;
+    const effective = activeQuote.gasFee?.total?.valueInCurrency;
     if (effective != null && isNumberValue(effective))
       return parseFloat(effective);
     return null;
@@ -1097,7 +1097,7 @@ export function useQuickBuyController(
   );
 
   const handleQuickAmountPress = useCallback(
-    (fiatValue: number, presetTierUsd?: number) => {
+    (fiatValue: number, presetValue?: number) => {
       if (!Number.isFinite(fiatValue) || fiatValue <= 0) {
         return;
       }
@@ -1131,7 +1131,7 @@ export function useQuickBuyController(
         tradeMode === 'buy' ? sourceToken?.symbol : undefined,
         undefined,
         tradeMode === 'sell' ? destToken?.symbol : undefined,
-        presetTierUsd,
+        presetValue,
       );
     },
     [
@@ -1602,7 +1602,7 @@ export function useQuickBuyController(
         sourceToken.decimals,
       ).toFixed(0);
       const sent = calcTokenValue(
-        activeQuote.sentAmount.amount,
+        activeQuote.sentAmount?.amount,
         sourceToken.decimals,
       ).toFixed(0);
       return sent === requested;
