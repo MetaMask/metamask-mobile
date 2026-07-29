@@ -92,7 +92,6 @@ const BreakdownRow = ({
   const moneyApy = slice.apyPercentFormatted;
   const showIcon = layout === 'icons';
   const showAllocationDot = layout === 'allocation';
-  const showArrow = layout === 'arrows';
   const iconName = SLICE_ICONS[slice.key];
   const iconSymbol = SLICE_ICON_SYMBOLS[slice.key];
 
@@ -187,14 +186,6 @@ const BreakdownRow = ({
               {displayValue}
             </SensitiveText>
           </Skeleton>
-          {showArrow ? (
-            <Icon
-              color={IconColor.IconAlternative}
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              testID={HomepageBalanceBreakdownTestIds.ARROW(slice.key)}
-            />
-          ) : null}
         </Box>
       </Box>
     </Pressable>

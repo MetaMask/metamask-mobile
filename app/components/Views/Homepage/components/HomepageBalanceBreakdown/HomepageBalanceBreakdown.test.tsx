@@ -176,19 +176,6 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('%');
   });
 
-  it('renders chevrons without allocation dots for the arrows layout', () => {
-    const { getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="arrows" />,
-    );
-
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ARROW('tokens')),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.DOT('tokens')),
-    ).not.toBeOnTheScreen();
-  });
-
   it('renders allocation segments and colored row dots', () => {
     const { getByTestId } = render(
       <HomepageBalanceBreakdown layout="allocation" />,

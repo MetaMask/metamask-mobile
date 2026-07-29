@@ -50,7 +50,7 @@ const AccountGroupBalanceChange = ({
   );
   const percentageTextColor = getPercentageTextColor(
     Boolean(privacyMode),
-    percentChange ?? 0,
+    percentChange ?? amountChangeInUserCurrency,
   );
 
   return (

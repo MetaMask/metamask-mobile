@@ -113,11 +113,10 @@ jest.mock('../../../hooks', () => ({
         variantName: mockBalanceBreakdownVariantName,
         variant: {
           layout:
-            mockBalanceBreakdownVariantName === 'arrows'
-              ? 'arrows'
-              : mockBalanceBreakdownVariantName === 'allocation'
-                ? 'allocation'
-                : 'icons',
+            mockBalanceBreakdownVariantName === 'icons' ||
+            mockBalanceBreakdownVariantName === 'allocation'
+              ? mockBalanceBreakdownVariantName
+              : null,
         },
         isActive: mockBalanceBreakdownVariantName !== 'unresolved',
       };
@@ -1900,7 +1899,7 @@ describe('MoneyBalanceCard slot', () => {
 
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
     mockMoneyAccountEnabled = true;
-    mockBalanceBreakdownVariantName = 'control';
+    mockBalanceBreakdownVariantName = 'icons';
 
     const { getByTestId, queryByTestId } = render(Wallet);
 
@@ -1933,9 +1932,19 @@ describe('Homepage balance breakdown ABC test', () => {
     expect(mockHomepageBalanceBreakdown).not.toHaveBeenCalled();
   });
 
+  it('keeps the current homepage for the control assignment', () => {
+    mockBalanceBreakdownVariantName = 'control';
+
+    const { queryByTestId } = render(Wallet);
+
+    expect(
+      queryByTestId('homepage-balance-breakdown-mock'),
+    ).not.toBeOnTheScreen();
+    expect(mockHomepageBalanceBreakdown).not.toHaveBeenCalled();
+  });
+
   it.each([
-    ['control', 'icons'],
-    ['arrows', 'arrows'],
+    ['icons', 'icons'],
     ['allocation', 'allocation'],
   ])('maps %s assignment to the %s layout', (variantName, layout) => {
     mockBalanceBreakdownVariantName = variantName;
