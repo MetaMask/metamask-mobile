@@ -4,6 +4,8 @@ import { AvatarAccountType } from '../component-library/components/Avatars/Avata
 
 const selectSettings = (state: RootState) => state.settings;
 
+export const selectLockTime = (state: RootState) => state.settings.lockTime;
+
 export const selectShowFiatInTestnets = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>

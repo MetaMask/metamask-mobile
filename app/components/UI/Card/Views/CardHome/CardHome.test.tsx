@@ -583,6 +583,7 @@ import { CardHomeSelectors } from './CardHome.testIds';
 import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CardEntryPoint } from '../../util/metrics';
+import { MoneyMetaMaskCardTestIds } from '../../../Money/components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -722,7 +723,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Change your Card funding source',
       'money.metamask_card.unlink_card_sheet_another_money_account':
         'another Money account',
-      'money.metamask_card.link_title': 'Link MetaMask Card',
+      'money.metamask_card.link_title': 'Link card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
         'Spend your balance and earn on purchases.',
@@ -6868,10 +6869,10 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('money.metamask_card.link_title')),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('money.metamask_card.link_card')),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -6908,25 +6909,7 @@ describe('CardHome Component', () => {
 
       render();
 
-      fireEvent.press(
-        screen.getByText(strings('money.metamask_card.link_card')),
-      );
-
-      expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
-        screen: Routes.CARD.HOME,
-        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
-      });
-    });
-
-    it('calls startLinkFlow when the title row (header) is pressed', () => {
-      setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock();
-
-      render();
-
-      fireEvent.press(
-        screen.getByText(strings('money.metamask_card.link_title')),
-      );
+      fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
         screen: Routes.CARD.HOME,

@@ -39,6 +39,7 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 import { useDepositPrefillAmount } from './useDepositPrefillAmount';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -112,11 +113,13 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
   const { payToken } = useTransactionPayToken();
+  const { setIsMaxDeposit } = useConfirmationContext();
 
   useEffect(() => {
     depositMaxHumanRef.current = null;
     userHasEditedRef.current = false;
-  }, [payToken?.address, payToken?.chainId]);
+    setIsMaxDeposit(false);
+  }, [payToken?.address, payToken?.chainId, setIsMaxDeposit]);
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
@@ -243,6 +246,7 @@ export function useTransactionCustomAmount({
       depositMaxHumanRef.current = null;
       userHasEditedRef.current = true;
       amountChangeTimeRef.current = Date.now();
+      setIsMaxDeposit(false);
 
       if (lastAmountInputTypeRef.current !== 'manual') {
         lastAmountInputTypeRef.current = 'manual';
@@ -261,14 +265,17 @@ export function useTransactionCustomAmount({
       fiatMaxAmount,
       isMaxAmount,
       setIsMax,
+      setIsMaxDeposit,
       setConfirmationMetric,
     ],
   );
 
   const updatePendingAmountPercentage = useCallback(
-    (percentage: number) => {
+    (percentage: number): boolean => {
       if (!balanceUsd) {
-        return;
+        // No balance to derive a percentage/Max amount from — signal the caller
+        // that nothing was applied so it can avoid submitting the page.
+        return false;
       }
 
       const newAmount = formatFiatAmount(
@@ -309,7 +316,10 @@ export function useTransactionCustomAmount({
       // derived directly from the raw token balance. This bypasses the lossy
       // fiat roundtrip (ROUND_DOWN → ÷ rate → × 10^decimals → ROUND_UP) that
       // can inflate the required amount past the actual balance.
-      if (percentage === 100 && isMoneyAccountDeposit && payToken?.balanceRaw) {
+      const isMaxMoneyAccountDeposit =
+        percentage === 100 && isMoneyAccountDeposit;
+
+      if (isMaxMoneyAccountDeposit && payToken?.balanceRaw) {
         depositMaxHumanRef.current = new BigNumber(payToken.balanceRaw)
           .shiftedBy(-(payToken.decimals ?? 6))
           .toString(10);
@@ -317,7 +327,13 @@ export function useTransactionCustomAmount({
         depositMaxHumanRef.current = null;
       }
 
+      // Flag a Max money account deposit so the insufficient-funds alert can
+      // skip it — the submitted token amount is clamped to the raw balance, so
+      // it can never truly exceed the balance despite fiat-rounding drift.
+      setIsMaxDeposit(isMaxMoneyAccountDeposit);
+
       setAmountFiat(newAmount);
+      return true;
     },
     [
       balanceUsd,
@@ -328,6 +344,7 @@ export function useTransactionCustomAmount({
       payToken?.balanceRaw,
       payToken?.decimals,
       setIsMax,
+      setIsMaxDeposit,
       setConfirmationMetric,
     ],
   );
