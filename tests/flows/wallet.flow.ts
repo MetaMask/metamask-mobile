@@ -57,10 +57,8 @@ import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper'
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import {
   isLoginScreenDisplayed,
-  isWalletHomeReadyOnAndroid,
   isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnAppium,
-  isWalletHomeReadyOnIOS,
 } from './wallet-home-readiness';
 
 const logger = createLogger({
@@ -81,22 +79,19 @@ export const waitForWalletHomePlaywright = async (
 ): Promise<void> => {
   const deadline = Date.now() + timeout;
   const isAndroid = PlatformDetector.isAndroid();
+  const platform = isAndroid ? 'Android' : 'iOS';
 
   while (Date.now() < deadline) {
-    if (isAndroid) {
-      if (await isWalletHomeReadyOnAndroid()) {
-        logger.debug('Wallet home ready on Android');
-        return;
-      }
-      await dismissAndroidSystemOverlaysPlaywright();
-    } else if (await isWalletHomeReadyOnIOS()) {
-      logger.debug('Wallet home ready on iOS');
+    if (await isWalletHomeReadyOnAppium()) {
+      logger.debug(`Wallet home ready on ${platform}`);
       return;
+    }
+    if (isAndroid) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
     await sleep(WALLET_HOME_POLL_INTERVAL_MS);
   }
 
-  const platform = isAndroid ? 'Android' : 'iOS';
   throw new Error(
     `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
   );
@@ -140,10 +135,7 @@ export const ensureAccountListOpenPlaywright = async (
       // list not visible yet
     }
 
-    const isWalletHomeReady = PlatformDetector.isAndroid()
-      ? await isWalletHomeReadyOnAndroid()
-      : await isWalletHomeReadyOnIOS();
-    if (isWalletHomeReady) {
+    if (await isWalletHomeReadyOnAppium()) {
       await WalletView.tapIdenticon();
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,
@@ -153,6 +145,10 @@ export const ensureAccountListOpenPlaywright = async (
         },
       );
       return;
+    }
+
+    if (PlatformDetector.isAndroid()) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
 
     try {
@@ -176,11 +172,12 @@ export const dismissToWalletHomePlaywright = async (
   const deadline = Date.now() + timeout;
 
   while (Date.now() < deadline) {
-    const isWalletHomeReady = PlatformDetector.isAndroid()
-      ? await isWalletHomeReadyOnAndroid()
-      : await isWalletHomeReadyOnIOS();
-    if (isWalletHomeReady) {
+    if (await isWalletHomeReadyOnAppium()) {
       return;
+    }
+
+    if (PlatformDetector.isAndroid()) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
 
     try {
@@ -809,12 +806,10 @@ export const loginAndOpenAccountList = async (
   options: {
     scenarioType?: string;
     dismissModals?: boolean;
-    walletTimeout?: number;
     accountListDescription?: string;
   } = {},
 ): Promise<void> => {
   const {
-    walletTimeout = resolveE2EWaitTimeoutMs(30_000),
     accountListDescription = 'Account list should be visible',
     ...loginOptions
   } = options;
