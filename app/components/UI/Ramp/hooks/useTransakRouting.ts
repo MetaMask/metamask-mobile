@@ -53,9 +53,12 @@ import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/
 import {
   endOpenRampsBuyCufChildrenByName,
   endRampsBuyCufTrace,
+  hasOpenRampsBuyCufChildByName,
+  startRampsBuyCufChildTrace,
 } from '../utils/rampsBuyCufTrace';
 import {
   RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_TAG,
 } from '../constants/rampsBuyCufTags';
 import { TraceName } from '../../../../util/trace';
@@ -447,6 +450,13 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
         orderId,
       });
+      endOpenRampsBuyCufChildrenByName(
+        TraceName.RampBuyNativeKycAndOrderCreation,
+        {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          orderId,
+        },
+      );
 
       // Headless mode: fire `onOrderCreated`, close the session, and pop
       // out of the ramp stack so the caller regains foreground. The
@@ -770,6 +780,28 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const routeAfterAuthentication = useCallback(
     async (quote: TransakBuyQuote, amount?: number, depth = 0) => {
+      // Sub-spans (TRAM-3781): this function is the single funnel every
+      // native auth path (existing token, or the EnterEmail/OTP/
+      // VerifyIdentity loop) routes through, and it's also re-entered by
+      // each KYC sub-screen (BasicInfo, KycWebview, KycProcessing,
+      // EnterAddress) after the user completes it. Guard on "KYC span not
+      // already open" rather than `depth` — depth only tracks the
+      // purpose-of-usage auto-submit recursion below, not these external
+      // re-entries, so it can't tell a fresh auth hand-off from a
+      // continuation.
+      if (
+        !hasOpenRampsBuyCufChildByName(
+          TraceName.RampBuyNativeKycAndOrderCreation,
+        )
+      ) {
+        endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeAuth, {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        });
+        startRampsBuyCufChildTrace({
+          name: TraceName.RampBuyNativeKycAndOrderCreation,
+          tags: { [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.NATIVE },
+        });
+      }
       try {
         const userDetails = await getUserDetails();
         const previousFormData = {

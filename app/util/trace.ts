@@ -68,6 +68,34 @@ export enum TraceName {
    * parent is active.
    */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
+  /**
+   * Buy Token Selection CUF (TRAM-3781): TokenSelection screen mount → a
+   * token is picked (or the user backs out). Nests under
+   * RampBuyToOrderDetails when that parent is active.
+   */
+  RampBuyTokenSelection = 'Ramp Buy Token Selection',
+  /**
+   * Buy Quote Decision CUF (TRAM-3781): quotes finish rendering on
+   * BuildQuote → Continue tapped (or quotes are superseded by a new fetch).
+   * Nests under RampBuyToOrderDetails when that parent is active.
+   */
+  RampBuyQuoteDecision = 'Ramp Buy Quote Decision',
+  /**
+   * Buy Native Auth CUF (TRAM-3781): Continue tapped on the native (Transak)
+   * path → the user is authenticated (existing token, or the
+   * EnterEmail/OTP/VerifyIdentity loop completes). Sub-span of
+   * RampBuyNativeToOrderCreated.
+   */
+  RampBuyNativeAuth = 'Ramp Buy Native Auth',
+  /**
+   * Buy Native KYC + Order Creation CUF (TRAM-3781): authentication done →
+   * order created (or checkout webview opened). Spans the
+   * BasicInfo/KycWebview/KycProcessing/EnterAddress loop, which can bounce
+   * through `routeAfterAuthentication` multiple times — this span stays
+   * open across all of it and only closes at the same points that close
+   * RampBuyNativeToOrderCreated. Sub-span of RampBuyNativeToOrderCreated.
+   */
+  RampBuyNativeKycAndOrderCreation = 'Ramp Buy Native KYC And Order Creation',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',

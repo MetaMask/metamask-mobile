@@ -58,6 +58,15 @@ import {
   navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import {
+  startRampsBuyCufChildTrace,
+  endRampsBuyCufChildTrace,
+} from '../../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../../util/trace';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -429,6 +438,49 @@ function BuildQuote() {
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
   const hasQuoteFetchError = quoteFetchError !== null;
 
+  // Quote Decision CUF (TRAM-3781): quotes finish rendering → Continue
+  // tapped. The Continue handler below ends this with success; here we only
+  // start it, and end it (superseded) if the quotes go stale — amount,
+  // payment method, or provider changed — before Continue is tapped.
+  const quoteDecisionCufOpIdRef = useRef<string | null>(null);
+  const quotesReadyForDecision =
+    !selectedQuoteLoading && !hasQuoteFetchError && Boolean(quotesResponse);
+  useEffect(() => {
+    if (quotesReadyForDecision && !quoteDecisionCufOpIdRef.current) {
+      quoteDecisionCufOpIdRef.current = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyQuoteDecision,
+      });
+      return;
+    }
+    if (!quotesReadyForDecision && quoteDecisionCufOpIdRef.current) {
+      const opId = quoteDecisionCufOpIdRef.current;
+      quoteDecisionCufOpIdRef.current = null;
+      endRampsBuyCufChildTrace({
+        id: opId,
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+        },
+      });
+    }
+  }, [quotesReadyForDecision]);
+
+  useEffect(
+    () => () => {
+      if (quoteDecisionCufOpIdRef.current) {
+        endRampsBuyCufChildTrace({
+          id: quoteDecisionCufOpIdRef.current,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.CANCELLED,
+          },
+        });
+        quoteDecisionCufOpIdRef.current = null;
+      }
+    },
+    [],
+  );
+
   /*
    * Tracks RAMPS_QUOTE_ERROR
    */
@@ -586,6 +638,14 @@ function BuildQuote() {
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote || !selectedProvider) return;
     setRampsError(null);
+
+    if (quoteDecisionCufOpIdRef.current) {
+      endRampsBuyCufChildTrace({
+        id: quoteDecisionCufOpIdRef.current,
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      });
+      quoteDecisionCufOpIdRef.current = null;
+    }
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)

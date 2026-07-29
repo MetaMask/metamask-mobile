@@ -191,6 +191,24 @@ export function useContinueWithQuote(
         name: TraceName.RampBuyNativeToOrderCreated,
         tags: { [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.NATIVE },
       });
+      // Sub-spans (TRAM-3781): reset both in case a prior native attempt
+      // never reached a terminal state (e.g. abandoned mid-KYC, then
+      // retried) so this attempt starts from a clean slate.
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeAuth, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+      });
+      endOpenRampsBuyCufChildrenByName(
+        TraceName.RampBuyNativeKycAndOrderCreation,
+        {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+        },
+      );
+      const nativeAuthCufOpId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeAuth,
+        tags: { [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.NATIVE },
+      });
       try {
         const hasToken = await transakCheckExistingToken();
 
@@ -237,6 +255,25 @@ export function useContinueWithQuote(
             },
           });
         }
+        if (nativeAuthCufOpId) {
+          endRampsBuyCufChildTrace({
+            id: nativeAuthCufOpId,
+            data: {
+              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+            },
+          });
+        }
+        // No-ops if Auth never handed off (id above already covered it) or
+        // if it's already closed on a success path — only closes it when
+        // the error happened during KYC/order creation itself.
+        endOpenRampsBuyCufChildrenByName(
+          TraceName.RampBuyNativeKycAndOrderCreation,
+          {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+          },
+        );
         throw new Error(
           reportRampsError(
             error,
