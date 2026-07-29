@@ -1,4 +1,5 @@
 import { Assertions } from '../framework';
+import Utilities from '../framework/Utilities';
 import AccountMenu from '../page-objects/AccountMenu/AccountMenu';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestSnaps from '../page-objects/Browser/TestSnaps';
@@ -6,7 +7,7 @@ import SettingsView from '../page-objects/Settings/SettingsView';
 import SnapSettingsView from '../page-objects/Settings/SnapSettingsView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
-import { navigateToBrowserView } from './browser.flow';
+import { navigateToBrowserView, waitForTestSnapsToLoad } from './browser.flow';
 import { loginToAppPlaywright } from './wallet.flow';
 
 /**
@@ -60,4 +61,5 @@ export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
   await AccountMenu.tapBack();
 
   await navigateToBrowserView();
+  await waitForTestSnapsToLoad();
 };

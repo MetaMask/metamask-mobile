@@ -24,9 +24,13 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
         await navigateFromSnapSettingsToBrowser();
 
         await TestSnaps.tapButton('sendAlertButton');
-        await Assertions.expectTextDisplayed(
-          `Snap "npm:@metamask/dialog-example-snap" is disabled.`,
-        );
+        // Android Appium often omits/escapes quotes in alert copy; assert stable substrings.
+        await Assertions.expectTextDisplayed('dialog-example-snap', {
+          timeout: 30_000,
+        });
+        await Assertions.expectTextDisplayed('is disabled', {
+          timeout: 30_000,
+        });
         await TestSnaps.dismissAlert();
 
         await navigateFromBrowserToSnapSettings();
