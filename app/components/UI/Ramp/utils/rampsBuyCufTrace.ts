@@ -243,12 +243,14 @@ export function startRampsBuyQuoteFetchTrace({
 
   const opId = nextCufOpId(TraceName.RampBuyQuoteFetch);
   const startTags = buildRampsBuyCufStartTags(tags);
+  const parentContext = resolveParentContext();
   pendingChildMeta.set(opId, { [CUF_META.NAME]: TraceName.RampBuyQuoteFetch });
   trace({
     name: TraceName.RampBuyQuoteFetch,
     id: opId,
     op: TraceOperation.RampOperation,
-    parentContext: parentSpan,
+    parentContext,
+    forceTransaction: !parentContext,
     startTime,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
