@@ -2290,17 +2290,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         onConfirm={(leverage, inputMethod) => {
           setLeverage(leverage);
 
-          // Always clear a possibly-stuck dragging flag on leverage confirm,
-          // not only when clamping kicks in below — otherwise a leverage
-          // change that doesn't require clamping would leave a stale
-          // liveDragAmount shadowing the (unchanged, correct) orderForm.amount.
-          setIsDraggingSlider(false);
+          // Resolve the amount to clamp against: flush a possibly-stuck live
+          // drag value forward (matching handleSliderDragCancel and the
+          // place-order guard above) instead of discarding it back to the
+          // stale, pre-drag orderForm.amount — a plain setIsDraggingSlider(false)
+          // here would silently drop whatever the user last dragged to.
+          const effectiveAmount = isDraggingSlider
+            ? liveDragAmount
+            : orderForm.amount;
 
           // Check if current amount exceeds new maximum value and adjust if needed
-          const currentAmount = parseFloat(orderForm.amount || '0');
+          const currentAmount = parseFloat(effectiveAmount || '0');
           const newMaxAmount = spendableBalance * leverage;
           if (currentAmount > newMaxAmount) {
             commitAmount(Math.floor(newMaxAmount).toString());
+          } else if (isDraggingSlider) {
+            commitAmount(effectiveAmount);
           }
 
           setIsLeverageVisible(false);
