@@ -5,6 +5,8 @@ import {
 import {
   formatQuickBuyPillLabel,
   getBuyQuickAmounts,
+  resolveBuyQuickAmounts,
+  resolveSellQuickPercentages,
   snapToNiceFiatAmount,
   USD_QUICK_BUY_BASE,
 } from './quickBuyQuickAmounts';
@@ -72,18 +74,18 @@ describe('quickBuyQuickAmounts', () => {
       const options = getBuyQuickAmounts('USD', 1);
 
       expect(options).toHaveLength(4);
-      expect(options.map((option) => option.presetTierUsd)).toEqual(
+      expect(options.map((option) => option.presetValue)).toEqual(
         Array.from(USD_QUICK_BUY_BASE),
       );
       expect(options[0]).toEqual({
         value: 10,
         label: 'USD:10',
-        presetTierUsd: 10,
+        presetValue: 10,
       });
       expect(options[3]).toEqual({
         value: 250,
         label: 'USD:250',
-        presetTierUsd: 250,
+        presetValue: 250,
       });
     });
 
@@ -92,7 +94,7 @@ describe('quickBuyQuickAmounts', () => {
 
       expect(options[0]?.value).toBe(10);
       expect(options[1]?.value).toBe(50);
-      expect(options[0]?.presetTierUsd).toBe(10);
+      expect(options[0]?.presetValue).toBe(10);
       expect(options[0]?.label).toBe('EUR:10');
     });
 
@@ -102,7 +104,7 @@ describe('quickBuyQuickAmounts', () => {
       expect(options[0]).toEqual({
         value: 1500,
         label: '$JPY1.5K',
-        presetTierUsd: 10,
+        presetValue: 1500,
       });
       expect(options[3]?.value).toBe(50000);
       expect(options[3]?.label).toBe('$JPY50K');
@@ -119,7 +121,33 @@ describe('quickBuyQuickAmounts', () => {
       const options = getBuyQuickAmounts('SEK', undefined);
 
       expect(options[0]?.value).toBe(10);
-      expect(options[0]?.presetTierUsd).toBe(10);
+      expect(options[0]?.presetValue).toBe(10);
+    });
+  });
+
+  describe('resolveBuyQuickAmounts', () => {
+    it('maps custom persisted amounts to pill options', () => {
+      const options = resolveBuyQuickAmounts([5, 35, 50, 99], 'USD');
+
+      expect(options).toEqual([
+        { value: 5, label: 'USD:5', presetValue: 5 },
+        { value: 35, label: 'USD:35', presetValue: 35 },
+        { value: 50, label: 'USD:50', presetValue: 50 },
+        { value: 99, label: 'USD:99', presetValue: 99 },
+      ]);
+    });
+  });
+
+  describe('resolveSellQuickPercentages', () => {
+    it('maps 100 to the localized max label', () => {
+      const options = resolveSellQuickPercentages([25, 50, 75, 100], 'Max');
+
+      expect(options).toEqual([
+        { percent: 25, label: '25%' },
+        { percent: 50, label: '50%' },
+        { percent: 75, label: '75%' },
+        { percent: 100, label: 'Max' },
+      ]);
     });
   });
 });

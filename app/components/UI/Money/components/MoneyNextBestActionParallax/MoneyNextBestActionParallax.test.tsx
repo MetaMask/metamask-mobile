@@ -4,7 +4,7 @@ import MoneyNextBestActionParallax from './MoneyNextBestActionParallax';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import { PARALLAX_REST_VALUE } from './parallax';
+import { PARALLAX_REST_VALUE } from '../../utils/parallax';
 import fallbackImage from '../../../../../images/money-onboarding-stepper-step-1.png';
 
 const mockSetNumber = jest.fn();

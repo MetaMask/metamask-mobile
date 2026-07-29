@@ -8,6 +8,7 @@ import {
   type StartSpanOptions,
   type Span,
   withIsolationScope,
+  SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
@@ -111,6 +112,11 @@ export enum TraceName {
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
   OnboardingSRPAccountCreationTime = 'Onboarding SRP Account Creation Time',
   OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
+  // Onboarding screen / Rive / navigation performance
+  OnboardingScreenTimeToContent = 'Onboarding Screen Time To Content',
+  OnboardingScreenDataFetch = 'Onboarding Screen Data Fetch',
+  OnboardingRiveReady = 'Onboarding Rive Ready',
+  OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
   Card = 'Card',
@@ -293,6 +299,9 @@ export enum TraceOperation {
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  OnboardingScreenPerformance = 'onboarding.screen.performance',
+  OnboardingRivePerformance = 'onboarding.rive.performance',
+  OnboardingNavigationPerformance = 'onboarding.navigation.performance',
   // Accounts
   AccountCreate = 'account.create',
   AccountDiscover = 'account.discover',
@@ -836,7 +845,13 @@ function startTrace(request: TraceRequest): TraceContext {
       }
 
       log('Trace cleanup due to timeout', name, id);
-
+      if (span) {
+        span.setStatus({
+          code: SPAN_STATUS_ERROR,
+          message: 'deadline_exceeded',
+        });
+        span.setAttribute('trace.timed_out', true);
+      }
       // The timer only fires at or after the maximum lifetime (possibly hours
       // late when the app was backgrounded), so record the capped timestamp
       // rather than the current time.

@@ -3,7 +3,12 @@ import {
   startSpan,
   startSpanManual,
 } from '@sentry/react-native';
-import { Scope, type Span, withIsolationScope } from '@sentry/core';
+import {
+  Scope,
+  type Span,
+  withIsolationScope,
+  SPAN_STATUS_ERROR,
+} from '@sentry/core';
 import {
   endTrace,
   trace,
@@ -87,9 +92,16 @@ describe('Trace', () => {
     startSpanMock.mockImplementation((_, fn) => fn({} as Span));
 
     startSpanManualMock.mockImplementation((_, fn) =>
-      fn({} as Span, () => {
-        // Intentionally empty
-      }),
+      fn(
+        {
+          end: jest.fn(),
+          setStatus: jest.fn(),
+          setAttribute: jest.fn(),
+        } as unknown as Span,
+        () => {
+          // Intentionally empty
+        },
+      ),
     );
 
     withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
@@ -98,6 +110,10 @@ describe('Trace', () => {
 
     flushBufferedTraces();
     updateCachedConsent(false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('trace', () => {
@@ -166,7 +182,7 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
       });
 
-      endTrace({ name: NAME_MOCK });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(3);
 
@@ -220,7 +236,7 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
         startTime: 123,
       });
-      endTrace({ name: NAME_MOCK });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
@@ -339,7 +355,11 @@ describe('Trace', () => {
       updateCachedConsent(true);
 
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementationOnce((_, fn) =>
         fn(spanMock, () => {
@@ -364,7 +384,11 @@ describe('Trace', () => {
       updateCachedConsent(true);
 
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementationOnce((_, fn) =>
         fn(spanMock, () => {
@@ -388,7 +412,11 @@ describe('Trace', () => {
       updateCachedConsent(true);
 
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementationOnce((_, fn) =>
         fn(spanMock, () => {
@@ -412,7 +440,11 @@ describe('Trace', () => {
 
     it('does not end Sentry span if name and ID does not match', () => {
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementationOnce((_, fn) =>
         fn(spanMock, () => {
@@ -431,13 +463,20 @@ describe('Trace', () => {
       endTrace({ name: NAME_MOCK, id: 'invalidId' });
 
       expect(spanEndMock).toHaveBeenCalledTimes(0);
+
+      // Clean up the pending trace/timeout to prevent Jest open-handle warnings
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
     });
 
     it('clears timeout when trace ends', () => {
       updateCachedConsent(true);
 
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
 
       startSpanManualMock.mockImplementationOnce((_, fn) =>
@@ -463,7 +502,11 @@ describe('Trace', () => {
   describe('trace lifecycle limits', () => {
     const createSpanMock = () => {
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
       return { spanEndMock, spanMock };
     };
 
@@ -644,7 +687,11 @@ describe('Trace', () => {
       updateCachedConsent(true);
 
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementationOnce((_, fn) =>
         fn(spanMock, () => {
@@ -666,6 +713,41 @@ describe('Trace', () => {
 
       expect(spanEndMock).toHaveBeenCalledTimes(1);
     });
+
+    it('marks span as timed out with deadline_exceeded status when cleanup fires for open span', () => {
+      updateCachedConsent(true);
+
+      const spanEndMock = jest.fn();
+      const setStatusMock = jest.fn();
+      const setAttributeMock = jest.fn();
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: setStatusMock,
+        setAttribute: setAttributeMock,
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        tags: TAGS_MOCK,
+        data: DATA_MOCK,
+      });
+
+      jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL);
+
+      expect(setStatusMock).toHaveBeenCalledWith({
+        code: SPAN_STATUS_ERROR,
+        message: 'deadline_exceeded',
+      });
+      expect(setAttributeMock).toHaveBeenCalledWith('trace.timed_out', true);
+      expect(spanEndMock).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('flushBufferedTraces', () => {
@@ -673,7 +755,7 @@ describe('Trace', () => {
     const storageGetItemMock = jest.mocked(StorageWrapper.getItem);
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      jest.resetAllMocks();
       discardBufferedTraces();
 
       const mockSpanEnd = jest.fn();

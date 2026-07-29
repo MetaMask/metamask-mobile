@@ -16,12 +16,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 const SecuritySettings = () => {
   const tw = useTailwind();
   const { isEnabled } = useAnalytics();
   const analyticsEnabled = isEnabled();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const shouldShowSocialLoginFeatures =

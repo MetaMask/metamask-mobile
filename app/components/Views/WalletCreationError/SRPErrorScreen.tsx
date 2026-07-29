@@ -2,6 +2,7 @@ import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
 import { connect } from 'react-redux';
@@ -58,7 +59,7 @@ const SRPErrorScreen = ({
   saveOnboardingEvent,
   accountType = AccountType.Metamask,
 }: SRPErrorScreenProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { openSupportWithConsent } = useSupportConsent();
   const [copied, setCopied] = useState(false);

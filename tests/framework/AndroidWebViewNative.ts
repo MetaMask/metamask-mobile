@@ -1,8 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
-import type { EncapsulatedElementType } from './EncapsulatedElement';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
-import Gestures from './Gestures';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { getDriver } from './PlaywrightUtilities';
 import PlaywrightGestures from './PlaywrightGestures';
 import { sleep } from './Utilities';
@@ -19,12 +18,12 @@ export interface AndroidWebViewScrollOptions {
   scrollLabels?: Record<string, string>;
 }
 
+export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
+  description?: string;
+};
+
 function escapeUiAutomatorString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
-
-function asEncapsulated(elem: PlaywrightElement): EncapsulatedElementType {
-  return elem as unknown as EncapsulatedElementType;
 }
 
 async function findNativeWebIdElement(
@@ -162,11 +161,15 @@ async function scrollNativeWebIdIntoViewViaScrollGesture(
 /**
  * Scroll an Android WebView accessibility node (resource-id) into view.
  * Prefer this over Chromedriver WebView context on CI where context switching flakes.
+ * Always switches to NATIVE_APP first so UiAutomator works even if a prior step
+ * left the session in a WEBVIEW context.
  */
 export async function scrollAndroidWebIdIntoView(
   webId: string,
   options: AndroidWebViewScrollOptions = {},
 ): Promise<PlaywrightElement> {
+  await PlaywrightContextHelpers.switchToNativeContext();
+
   // Generous in-place wait: nodes often appear in the current viewport, and a
   // UiScrollable sweep from the top is far costlier than waiting a few seconds.
   const alreadyVisible = await tryFindNativeWebIdElement(
@@ -190,13 +193,13 @@ export async function scrollAndroidWebIdIntoView(
 
 export async function tapAndroidWebId(
   webId: string,
-  options: AndroidWebViewScrollOptions & { description?: string } = {},
+  options: AndroidWebViewTapOptions = {},
 ): Promise<void> {
   const elem = await scrollAndroidWebIdIntoView(webId, options);
-  await Gestures.tap(asEncapsulated(elem), {
-    elemDescription:
-      options.description ?? `Android native WebView tap: ${webId}`,
-  });
+  const description =
+    options.description ?? `Android native WebView tap: ${webId}`;
+  logger.debug(description);
+  await PlaywrightGestures.waitAndTap(elem);
 }
 
 /**

@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
@@ -41,7 +42,7 @@ import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredi
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
-interface PayWithModalParams {
+export interface PayWithModalParams {
   /**
    * When > 1, PayWithModal owns navigation on close by dispatching
    * `StackActions.pop(N)` atomically instead of relying on the legacy
@@ -55,7 +56,7 @@ interface PayWithModalParams {
 }
 
 export function PayWithModal() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
