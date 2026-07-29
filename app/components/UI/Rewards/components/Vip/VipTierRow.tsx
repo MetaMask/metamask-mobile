@@ -46,6 +46,7 @@ export const VIP_TIER_ROW_TEST_IDS = {
   SWAPS_FEE: 'vip-tier-row-swaps-fee',
   PERPS_FEE: 'vip-tier-row-perps-fee',
   REFERRAL_POINTS: 'vip-tier-row-referral-points',
+  MAINTAIN_THRESHOLD: 'vip-tier-row-maintain-threshold',
   CURRENT_TIER_GRADIENT: 'vip-tier-row-current-tier-gradient',
 } as const;
 
@@ -253,6 +254,15 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
               value={`${referralPointsPercentage}%`}
               testID={VIP_TIER_ROW_TEST_IDS.REFERRAL_POINTS}
             />
+            {tier.maintainPointsRequirement != null ? (
+              <VipTierDetailRow
+                label={strings('rewards.vip.maintain_threshold_label')}
+                value={strings('rewards.vip.tier_thresholds', {
+                  points: formatCompactValue(tier.maintainPointsRequirement),
+                })}
+                testID={VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD}
+              />
+            ) : null}
           </Box>
         </Animated.View>
       ) : null}

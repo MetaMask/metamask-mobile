@@ -9562,6 +9562,7 @@
       "retry_button": "Retry",
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
+      "maintain_threshold_label": "Maintain threshold",
       "bps_value": "{{bps}} bps",
       "referee_splash_continue": "Continue",
       "referee_referred_by": "Referred by {{code}}",

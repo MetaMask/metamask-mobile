@@ -317,6 +317,7 @@ const defaultDashboard: VipDashboardState = {
       swapsBps: 42.5,
       perpsBps: 7,
       referralCarryoverBps: 4242,
+      maintainPointsRequirement: null,
       status: 'current',
     },
     {
@@ -328,6 +329,7 @@ const defaultDashboard: VipDashboardState = {
       swapsBps: 11,
       perpsBps: 6,
       referralCarryoverBps: 5151,
+      maintainPointsRequirement: null,
       status: 'upcoming',
     },
   ],

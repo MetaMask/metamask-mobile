@@ -25,9 +25,46 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
     }
+    if (key === 'rewards.vip.maintain_threshold_label') {
+      return 'Maintain threshold';
+    }
     return key;
   },
 }));
+
+/**
+ * Collects, in render order, the testIDs of the elements matching `ids` from
+ * the rendered tree. Used to assert the maintain-threshold row is the LAST
+ * detail row.
+ */
+const collectOrderedTestIds = (
+  node: unknown,
+  ids: readonly string[],
+): string[] => {
+  const found: string[] = [];
+  const walk = (current: unknown): void => {
+    if (!current || typeof current !== 'object') {
+      return;
+    }
+    if (Array.isArray(current)) {
+      current.forEach(walk);
+      return;
+    }
+    const treeNode = current as {
+      props?: { testID?: string };
+      children?: unknown;
+    };
+    const testID = treeNode.props?.testID;
+    if (typeof testID === 'string' && ids.includes(testID)) {
+      found.push(testID);
+    }
+    if (treeNode.children) {
+      walk(treeNode.children);
+    }
+  };
+  walk(node);
+  return found;
+};
 
 const baseTier = {
   id: 'mock-tier-alpha-3',
@@ -38,6 +75,7 @@ const baseTier = {
   swapsBps: 11,
   perpsBps: 7,
   referralCarryoverBps: 4242,
+  maintainPointsRequirement: null,
   status: 'current' as const,
 };
 
@@ -163,5 +201,36 @@ describe('VipTierRow', () => {
       />,
     );
     expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toBeNull();
+  });
+
+  it('renders the maintain threshold as the last detail row when set', () => {
+    const tier = { ...baseTier, maintainPointsRequirement: 30_000 };
+    const { getByTestId, toJSON } = render(
+      <VipTierRow tier={tier} localizedText={localizedText} />,
+    );
+
+    const maintainRow = getByTestId(VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD);
+    expect(maintainRow).toBeOnTheScreen();
+    expect(maintainRow).toHaveTextContent(/30k points/);
+
+    const orderedDetailRows = collectOrderedTestIds(toJSON(), [
+      VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE,
+      VIP_TIER_ROW_TEST_IDS.SWAPS_FEE,
+      VIP_TIER_ROW_TEST_IDS.PERPS_FEE,
+      VIP_TIER_ROW_TEST_IDS.REFERRAL_POINTS,
+      VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD,
+    ]);
+    expect(orderedDetailRows[orderedDetailRows.length - 1]).toBe(
+      VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD,
+    );
+  });
+
+  it('omits the maintain threshold row when maintainPointsRequirement is null', () => {
+    const tier = { ...baseTier, maintainPointsRequirement: null };
+    const { queryByTestId } = render(
+      <VipTierRow tier={tier} localizedText={localizedText} />,
+    );
+
+    expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD)).toBeNull();
   });
 });
