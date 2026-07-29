@@ -1,0 +1,14 @@
+package.json
+  h_d6a04d82b61d5e 605
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "69fd4fe06881f941e4ebbabd2ea5858054ce97b1",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
