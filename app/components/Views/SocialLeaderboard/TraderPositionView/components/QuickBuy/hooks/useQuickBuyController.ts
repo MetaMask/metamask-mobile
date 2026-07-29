@@ -787,7 +787,7 @@ export function useQuickBuyController(
     }
     const total = activeQuote.totalNetworkFee?.valueInCurrency;
     if (total != null && isNumberValue(total)) return parseFloat(total);
-    const effective = activeQuote.gasFee?.effective?.valueInCurrency;
+    const effective = activeQuote.gasFee?.total?.valueInCurrency;
     if (effective != null && isNumberValue(effective))
       return parseFloat(effective);
     return null;
@@ -1602,7 +1602,7 @@ export function useQuickBuyController(
         sourceToken.decimals,
       ).toFixed(0);
       const sent = calcTokenValue(
-        activeQuote.sentAmount.amount,
+        activeQuote.sentAmount?.amount,
         sourceToken.decimals,
       ).toFixed(0);
       return sent === requested;
