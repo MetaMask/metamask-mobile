@@ -267,7 +267,7 @@
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.14.2",
     "@metamask/bitcoin-wallet-standard": "^1.0.0",
-    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
+    "@metamask/bridge-controller": "^77.6.0",
     "@metamask/bridge-status-controller": "^74.3.0",
     "@metamask/chain-agnostic-permission": "^1.5.0",
     "@metamask/chomp-api-service": "^4.0.0",

@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BridgeToken } from '../../types';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { exchangeRateFromMarketData } from '../../utils/exchange-rates';
 import {
   setSourceTokenExchangeRate,
   setDestTokenExchangeRate,
@@ -25,6 +27,7 @@ export const useBridgeExchangeRates = ({
 }) => {
   const dispatch = useThunkDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const evmMarketData = useSelector(selectTokenMarketData);
 
   // If a currency override is provided, use it, otherwise use the current currency
   // Used in places like metrics, when we want to get a rate specifically in USD
@@ -33,13 +36,29 @@ export const useBridgeExchangeRates = ({
   // Fetch exchange rates for selected token if not found in marketData
   useEffect(() => {
     if (token?.chainId && token?.address) {
-      dispatch(
-        action({
-          chainId: token.chainId,
-          tokenAddress: token.address,
-          currency,
-        }),
+      const exchangeRateInNativeAsset = exchangeRateFromMarketData(
+        token.chainId,
+        token.address,
+        evmMarketData,
       );
+
+      if (!exchangeRateInNativeAsset && !token.currencyExchangeRate) {
+        dispatch(
+          action({
+            chainId: token.chainId,
+            tokenAddress: token.address,
+            currency,
+          }),
+        );
+      }
     }
-  }, [currency, dispatch, token?.chainId, token?.address, action]);
+  }, [
+    currency,
+    dispatch,
+    token?.chainId,
+    token?.address,
+    evmMarketData,
+    action,
+    token?.currencyExchangeRate,
+  ]);
 };
