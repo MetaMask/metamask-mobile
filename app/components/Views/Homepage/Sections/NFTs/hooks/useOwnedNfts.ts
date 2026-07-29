@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Nft } from '@metamask/assets-controllers';
-import { RootState } from '../../../../../../reducers';
-import { multichainCollectiblesByEnabledNetworksSelector } from '../../../../../../reducers/collectibles';
 import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { makeSelectMultichainCollectiblesByEnabledNetworks } from '../../../../../../selectors/nftController';
 
 /**
  * Hook to get all owned NFTs for the currently selected account.
@@ -29,20 +28,21 @@ const useOwnedNfts = (): Nft[] => {
         : undefined,
     [selectedGroupAccounts],
   );
+  const popularChainIdsKey = (popularNetworks ?? []).join(',');
   const popularChainIds = useMemo(
-    () => (popularNetworks?.length > 0 ? popularNetworks : undefined),
-    [popularNetworks],
+    () => (popularChainIdsKey ? popularChainIdsKey.split(',') : undefined),
+    [popularChainIdsKey],
   );
 
-  const nftsByChain = useSelector((state: RootState) =>
-    (
-      multichainCollectiblesByEnabledNetworksSelector as (
-        s: RootState,
-        preferredChainIds?: string[],
-        addressesOverride?: string[],
-      ) => Record<string, Nft[]>
-    )(state, popularChainIds, addressesOverride),
-  ) as Record<string, Nft[]>;
+  const selectNftsByChain = useMemo(
+    () =>
+      makeSelectMultichainCollectiblesByEnabledNetworks(
+        popularChainIds,
+        addressesOverride,
+      ),
+    [popularChainIds, addressesOverride],
+  );
+  const nftsByChain = useSelector(selectNftsByChain);
 
   return useMemo(() => {
     const allNfts = Object.values(nftsByChain ?? {}).flat();
