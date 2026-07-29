@@ -21,6 +21,7 @@ import { useQuickBuyContext } from '../useQuickBuyContext';
 import CollapsibleReveal from './CollapsibleReveal';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
+import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
@@ -42,6 +43,9 @@ const QuickBuyActionFooter: React.FC = () => {
     destBalanceFiat,
     selectedDestStable,
     features,
+    formattedRate,
+    formattedExchangeRate,
+    isPriceImpactError,
     setActiveScreen,
     useKeyboard,
     isKeypadOpen,
@@ -50,6 +54,7 @@ const QuickBuyActionFooter: React.FC = () => {
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
   const pickerBalanceFiat =
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
+  const rateLabel = formattedRate ?? formattedExchangeRate;
   // Collapse footer while the keypad expands (same CollapsibleReveal timing) so
   // sheet height lerps closed→open instead of dipping then growing.
   const isFooterExpanded = !(useKeyboard && isKeypadOpen);
@@ -109,6 +114,29 @@ const QuickBuyActionFooter: React.FC = () => {
           </Box>
         </TouchableOpacity>
       </Box>
+
+      {rateLabel || isPriceImpactError ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="pb-5"
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.rate')}
+          </Text>
+
+          <QuickBuyRateTag
+            label={rateLabel}
+            onPress={
+              features.quoteDetails
+                ? () => setActiveScreen('quoteDetails')
+                : undefined
+            }
+            isHighPriceImpact={isPriceImpactError}
+          />
+        </Box>
+      ) : null}
 
       <QuickBuyConfirmButton
         state={confirmButtonState}
