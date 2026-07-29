@@ -57,9 +57,6 @@ const SUBSCRIPTION_ID = 'sub-1';
 let lastSetup: {
   campaigns: CampaignDto[];
   subscriptionId: string | null;
-} = {
-  campaigns: [],
-  subscriptionId: SUBSCRIPTION_ID,
 };
 
 function buildCampaign(id: string): CampaignDto {
@@ -77,8 +74,12 @@ function buildCampaign(id: string): CampaignDto {
   };
 }
 
+function defaultCampaigns() {
+  return [buildCampaign('week-1'), buildCampaign('week-2')];
+}
+
 function setupHooks({
-  campaigns = [buildCampaign('week-1'), buildCampaign('week-2')],
+  campaigns = defaultCampaigns(),
   subscriptionId = SUBSCRIPTION_ID as string | null,
   statuses = {} as Record<string, { optedIn: boolean }>,
 } = {}) {
@@ -131,6 +132,10 @@ describe('useMoneyAccountSweepstakesParticipation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    lastSetup = {
+      campaigns: defaultCampaigns(),
+      subscriptionId: SUBSCRIPTION_ID,
+    };
     mockUseDispatch.mockReturnValue(mockDispatch);
     mockCall.mockResolvedValue({
       optedIn: true,

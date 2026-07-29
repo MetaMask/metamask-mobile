@@ -10,10 +10,7 @@ import {
   type MoneyAccountSweepstakesLocalizedTextDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
-const mockDrawProofByCampaignId: Record<
-  string,
-  MoneyAccountSweepstakesDrawProofDto | null
-> = {};
+const mockGetDrawProof = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -47,12 +44,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../hooks/useGetMoneyAccountSweepstakesDrawProof', () => ({
-  useGetMoneyAccountSweepstakesDrawProof: (campaignId: string) => ({
-    drawProof: mockDrawProofByCampaignId[campaignId] ?? null,
-    isLoading: false,
-    hasError: false,
-    refetch: jest.fn(),
-  }),
+  useGetMoneyAccountSweepstakesDrawProof: (campaignId: string) =>
+    mockGetDrawProof(campaignId),
 }));
 
 jest.mock('../../../hooks/useGetMoneyAccountSweepstakesPrizePool', () => ({
@@ -189,9 +182,12 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-01-10T12:00:00.000Z'));
     jest.clearAllMocks();
-    Object.keys(mockDrawProofByCampaignId).forEach((key) => {
-      delete mockDrawProofByCampaignId[key];
-    });
+    mockGetDrawProof.mockImplementation(() => ({
+      drawProof: null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    }));
   });
 
   afterEach(() => {
@@ -283,7 +279,12 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       startDate: '2024-12-01T00:00:00.000Z',
       endDate: '2024-12-08T00:00:00.000Z',
     });
-    mockDrawProofByCampaignId[complete.id] = drawProof;
+    mockGetDrawProof.mockImplementation((campaignId: string) => ({
+      drawProof: campaignId === complete.id ? drawProof : null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    }));
 
     const { getByTestId } = render(
       <MoneyAccountSweepstakesDrawScheduleSection

@@ -39,7 +39,7 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: () => 'sub-1',
 }));
 
-const mockStatuses: Record<
+let mockStatuses: Record<
   string,
   { optedIn: boolean; participantCount: number }
 > = {};
@@ -101,7 +101,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     jest.useFakeTimers();
     jest.setSystemTime(FIXED_NOW);
     jest.clearAllMocks();
-    Object.keys(mockStatuses).forEach((key) => delete mockStatuses[key]);
+    mockStatuses = {};
     setupSeries();
     mockEnsureBound.mockResolvedValue('bound');
     mockUseBinding.mockReturnValue({
@@ -118,13 +118,21 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     jest.useRealTimers();
   });
 
+  async function runEnsureOptedIn(
+    ensureOptedIn: () => Promise<{ success: boolean; reason?: string }>,
+  ) {
+    let optInResult: { success: boolean; reason?: string } | undefined;
+    await act(async () => {
+      optInResult = await ensureOptedIn();
+      jest.runAllTimers();
+    });
+    return optInResult;
+  }
+
   it('binds first, then batches active then upcoming weeks into one optInToCampaigns call', async () => {
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let optInResult: { success: boolean; reason?: string } | undefined;
-    await act(async () => {
-      optInResult = await result.current.ensureOptedIn();
-    });
+    const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({ success: true });
     expect(mockEnsureBound).toHaveBeenCalledTimes(1);
@@ -142,10 +150,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let optInResult: { success: boolean; reason?: string } | undefined;
-    await act(async () => {
-      optInResult = await result.current.ensureOptedIn();
-    });
+    const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({
       success: false,
@@ -159,10 +164,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let optInResult: { success: boolean; reason?: string } | undefined;
-    await act(async () => {
-      optInResult = await result.current.ensureOptedIn();
-    });
+    const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({ success: true });
     expect(mockCall).toHaveBeenCalledTimes(1);
@@ -179,9 +181,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    await act(async () => {
-      await result.current.ensureOptedIn();
-    });
+    await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:optInToCampaigns',
@@ -202,10 +202,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let optInResult: { success: boolean; reason?: string } | undefined;
-    await act(async () => {
-      optInResult = await result.current.ensureOptedIn();
-    });
+    const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({ success: true });
     expect(mockEnsureBound).toHaveBeenCalledTimes(1);
@@ -220,10 +217,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let optInResult: { success: boolean; reason?: string } | undefined;
-    await act(async () => {
-      optInResult = await result.current.ensureOptedIn();
-    });
+    const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({ success: false });
   });
@@ -233,10 +227,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
 
-    let optInResult: { success: boolean; reason?: string } | undefined;
-    await act(async () => {
-      optInResult = await result.current.ensureOptedIn();
-    });
+    const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({ success: false });
   });
