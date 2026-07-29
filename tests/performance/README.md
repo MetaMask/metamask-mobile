@@ -663,21 +663,14 @@ node tests/scripts/aggregate-performance-reports.mjs
 
 ### App profiling check (automatic on PR failures)
 
-When a PR performance run has failed scenarios, the
-`Post Performance Results to PR` job automatically runs
-`tests/scripts/diff-app-profiling.mjs --all` and posts a separate comment with
-BrowserStack `profilingSummary` vs the last green baseline on `main`
-(⚠️ only when Current > Baseline + 10%).
+When a PR performance run has failed scenarios, the results comment includes
+an inline **App profiling check** under each failed scenario that has a prior
+usable baseline on `main` (short summary + collapsed metric table). Scenarios
+without a prior baseline are omitted from that block.
 
-Baseline preference:
-1. Last **green** scenario on `main` with usable profiling
-2. Else latest usable profiling on `main` even if that scenario is also
-   failing (labeled as such in the comment)
+Header uses ⚠️ when there are failed tests.
 
-Failed scenarios **without** a prior usable baseline on `main` are skipped
-(not listed in the profiling comment), since there is nothing to compare.
-
-Manual re-run is still available via PR comment:
+Manual re-run remains available via:
 
 ```text
 @metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run <RUN_ID>
@@ -690,9 +683,8 @@ Or compare all failed scenarios from that run:
 ```
 
 This uses `.github/workflows/app-profiling-check.yml` (bot command /
-`workflow_dispatch`). The automatic path runs the same script from
-`run-performance-e2e.yml` with `--current-dir` (local aggregated reports) and
-`--replace` (updates the previous profiling comment).
+`workflow_dispatch`). The automatic PR path embeds profiling into the
+performance results comment from `run-performance-e2e.yml`.
 
 ### HTML Dashboard Features
 

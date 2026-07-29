@@ -619,6 +619,82 @@ function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
   );
 }
 
+/**
+ * Compact profiling block for embedding under a failed performance test.
+ * Returns null when there is no usable baseline comparison.
+ */
+function buildEmbeddedProfilingSection({
+  currentRunId,
+  currentArtifact,
+  baseline,
+  repo,
+  baselineBranch = DEFAULT_BASELINE_BRANCH,
+  includeRawJson = false,
+}) {
+  if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
+    return null;
+  }
+
+  const currentUrl = `https://github.com/${repo}/actions/runs/${currentRunId}`;
+  const baselineUrl =
+    baseline.run.url ||
+    `https://github.com/${repo}/actions/runs/${baseline.run.databaseId}`;
+  const baselineSha = (baseline.run.headSha || '').slice(0, 7);
+  const baselineKind =
+    baseline.isGreen === false
+      ? `last run on \`${baselineBranch}\` (scenario also failing)`
+      : `last green on \`${baselineBranch}\``;
+
+  const rows = getMetricRows(
+    baseline.artifact.profilingSummary,
+    currentArtifact.profilingSummary,
+  );
+
+  let md = `🔬 **App profiling check** · Current [run ${currentRunId}](${currentUrl}) · Baseline (${baselineKind}) [run ${baseline.run.databaseId}](${baselineUrl})`;
+  if (baselineSha) {
+    md += ` @ \`${baselineSha}\``;
+  }
+  md += '\n\n';
+
+  if (baseline.isGreen === false) {
+    md += `> ⚠️ No green baseline on \`${baselineBranch}\` — comparing against the latest usable profiling.\n\n`;
+  }
+
+  md += `**Summary:** ${buildRegressionSummary(rows)}\n`;
+
+  if (currentArtifact.apiCallsError) {
+    md += `\n> ℹ️ API calls unavailable: \`${currentArtifact.apiCallsError}\`\n`;
+  }
+
+  md += `\n<details>\n<summary>Full metric table (+10% variance rules)</summary>\n\n`;
+  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
+  md += `> - If \`Current <= Baseline + 10%\`, treated as acceptable noise.\n`;
+  md += `> - If \`Current > Baseline + 10%\`, **Current** and **variance %** are highlighted with ⚠️.\n\n`;
+  md += `| Metric | Baseline | Current | Δ |\n`;
+  md += `|--------|----------|---------|---|\n`;
+  for (const row of rows) {
+    md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
+  }
+  md += `\n</details>\n`;
+
+  if (includeRawJson) {
+    md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
+    md += `**Baseline**\n\n\`\`\`json\n${JSON.stringify(
+      baseline.artifact.profilingSummary,
+      null,
+      2,
+    )}\n\`\`\`\n\n`;
+    md += `**Current**\n\n\`\`\`json\n${JSON.stringify(
+      currentArtifact.profilingSummary,
+      null,
+      2,
+    )}\n\`\`\`\n\n`;
+    md += `</details>\n`;
+  }
+
+  return md;
+}
+
 function buildScenarioComment({
   testName,
   platform,
@@ -640,7 +716,6 @@ function buildScenarioComment({
   md += `**Current:** [run ${currentRunId}](${currentUrl})`;
 
   if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
-    // Kept for callers/tests; main() skips these scenarios before posting.
     md += `\n\n⚠️ Skipping scenario: need usable current profiling and a baseline on \`${baselineBranch}\`.\n`;
     md += `\n${COMMENT_MARKER}\n`;
     return md;
@@ -660,45 +735,22 @@ function buildScenarioComment({
   }
   md += '\n';
 
-  if (baseline.isGreen === false) {
-    md += `\n> ⚠️ No green baseline was available for this scenario on \`${baselineBranch}\`. Comparing against the latest usable profiling anyway.\n`;
-  }
+  const embedded = buildEmbeddedProfilingSection({
+    currentRunId,
+    currentArtifact,
+    baseline,
+    repo,
+    baselineBranch,
+    includeRawJson: true,
+  });
 
-  const rows = getMetricRows(
-    baseline.artifact.profilingSummary,
-    currentArtifact.profilingSummary,
-  );
-
-  md += `\n**Summary:** ${buildRegressionSummary(rows)}\n`;
-
-  if (currentArtifact.apiCallsError) {
-    md += `\n> ℹ️ API calls unavailable on current run: \`${currentArtifact.apiCallsError}\`\n`;
-  }
-
-  md += `\n<details>\n<summary>Full metric table (+10% variance rules)</summary>\n\n`;
-  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
-  md += `> - If \`Current <= Baseline + 10%\`, the change is treated as acceptable noise (no highlight).\n`;
-  md += `> - If \`Current > Baseline + 10%\`, **Current** and the **variance %** are highlighted and marked with ⚠️.\n\n`;
-  md += `| Metric | Baseline | Current | Δ |\n`;
-  md += `|--------|----------|---------|---|\n`;
-  for (const row of rows) {
-    md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
-  }
-  md += `\n</details>\n`;
-
-  md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
-  md += `**Baseline**\n\n\`\`\`json\n${JSON.stringify(
-    baseline.artifact.profilingSummary,
-    null,
-    2,
-  )}\n\`\`\`\n\n`;
-  md += `**Current**\n\n\`\`\`json\n${JSON.stringify(
-    currentArtifact.profilingSummary,
-    null,
-    2,
-  )}\n\`\`\`\n\n`;
-  md += `</details>\n\n`;
-  md += `${COMMENT_MARKER}\n`;
+  // Reuse summary + collapsed details from the embedded builder; drop its
+  // leading "App profiling check · Current/Baseline" line (already above).
+  const detailsOnly = embedded
+    .replace(/^🔬 \*\*App profiling check\*\*[^\n]*\n\n/, '')
+    .replace(/^\n+/, '\n');
+  md += detailsOnly;
+  md += `\n${COMMENT_MARKER}\n`;
   return md;
 }
 
@@ -875,8 +927,11 @@ export {
   findScenarioWithProfilingInDir,
   downloadAggregatedReports,
   buildRegressionSummary,
+  buildEmbeddedProfilingSection,
   buildScenarioComment,
   shouldIncludeScenarioInComment,
+  findBaselineScenario,
+  findProfilingArtifacts,
   parseArgs,
   COMMENT_MARKER,
 };

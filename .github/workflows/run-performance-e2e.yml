@@ -554,17 +554,19 @@ jobs:
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node tests/scripts/generate-performance-pr-comment.mjs \
             aggregated-reports/summary.json \
             performance-pr-comment.md
 
-      - name: Delete previous performance results comments
+      - name: Delete previous performance / app-profiling comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments?per_page=100" \
-            --jq '.[] | select(.body | contains("<!-- perf-test-results -->")) | .id')
+            --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
             echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
@@ -573,7 +575,7 @@ jobs:
                   --method DELETE > /dev/null 2>&1 || true
               fi
             done
-            echo "Deleted previous performance results comments"
+            echo "Deleted previous performance / app-profiling comments"
           fi
 
       - name: Post PR comment
@@ -585,38 +587,6 @@ jobs:
           FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
           gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
           echo "Performance results posted to PR #${{ inputs.pr_number }}"
-
-      - name: Auto app profiling check for failed tests
-        if: always() && !cancelled()
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-          CURRENT_RUN_ID: ${{ github.run_id }}
-        run: |
-          set -euo pipefail
-
-          SUMMARY="aggregated-reports/summary.json"
-          if [ ! -f "$SUMMARY" ]; then
-            echo "⚠️ No aggregated summary found — skipping auto app profiling check"
-            exit 0
-          fi
-
-          FAILED=$(node -p "JSON.parse(require('fs').readFileSync('aggregated-reports/summary.json','utf8')).failedTestsStats?.uniqueFailedTests ?? 0")
-          if [ "${FAILED}" = "0" ]; then
-            echo "✅ No failed performance tests — skipping auto app profiling check"
-            exit 0
-          fi
-
-          echo "🔬 Auto-running app profiling check for ${FAILED} failed scenario(s)..."
-          node tests/scripts/diff-app-profiling.mjs \
-            --pr "${PR_NUMBER}" \
-            --run "${CURRENT_RUN_ID}" \
-            --all \
-            --current-dir aggregated-reports \
-            --replace
 
   slack-notification:
     name: Send Slack Notification

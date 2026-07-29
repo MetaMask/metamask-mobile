@@ -12,6 +12,7 @@ import {
   parseArgs,
   buildRegressionSummary,
   shouldIncludeScenarioInComment,
+  buildEmbeddedProfilingSection,
   COMMENT_MARKER,
 } from './diff-app-profiling.mjs';
 
@@ -241,6 +242,95 @@ test('buildScenarioComment explains missing baseline', () => {
   assert.match(md, new RegExp(COMMENT_MARKER));
 });
 
+test('buildEmbeddedProfilingSection returns null without baseline', () => {
+  assert.equal(
+    buildEmbeddedProfilingSection({
+      currentRunId: '111',
+      currentArtifact: { profilingSummary: { cpu: { avg: 1 } } },
+      baseline: null,
+      repo: 'MetaMask/metamask-mobile',
+    }),
+    null,
+  );
+});
+
+test('buildEmbeddedProfilingSection returns compact summary and collapsed table', () => {
+  const md = buildEmbeddedProfilingSection({
+    currentRunId: '111',
+    currentArtifact: {
+      profilingSummary: {
+        cpu: { avg: 20, max: 40 },
+        memory: { avg: 200, max: 250 },
+        uiRendering: { slowFrames: 2, frozenFrames: 0, anrs: 0 },
+        issues: 1,
+        criticalIssues: 0,
+      },
+    },
+    baseline: {
+      isGreen: true,
+      run: {
+        databaseId: 222,
+        headSha: 'abcdef123456',
+        url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/222',
+      },
+      artifact: {
+        profilingSummary: {
+          cpu: { avg: 10, max: 20 },
+          memory: { avg: 180, max: 220 },
+          uiRendering: { slowFrames: 1, frozenFrames: 0, anrs: 0 },
+          issues: 0,
+          criticalIssues: 0,
+        },
+      },
+    },
+    repo: 'MetaMask/metamask-mobile',
+  });
+
+  assert.match(md, /App profiling check/);
+  assert.match(md, /\*\*Summary:\*\*/);
+  assert.match(md, /Full metric table/);
+  assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
+  assert.equal(md.includes('Raw profilingSummary JSON'), false);
+});
+
+test('buildEmbeddedProfilingSection labels non-green baseline fallback', () => {
+  const md = buildEmbeddedProfilingSection({
+    currentRunId: '111',
+    currentArtifact: {
+      profilingSummary: {
+        cpu: { avg: 10, max: 20 },
+        memory: { avg: 200, max: 250 },
+        uiRendering: { slowFrames: 10, frozenFrames: 0, anrs: 0 },
+        issues: 1,
+        criticalIssues: 0,
+      },
+    },
+    baseline: {
+      isGreen: false,
+      run: {
+        databaseId: 222,
+        headSha: 'abcdef123456',
+        url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/222',
+      },
+      artifact: {
+        profilingSummary: {
+          cpu: { avg: 8, max: 18 },
+          memory: { avg: 190, max: 240 },
+          uiRendering: { slowFrames: 7, frozenFrames: 0, anrs: 0 },
+          issues: 1,
+          criticalIssues: 0,
+        },
+      },
+    },
+    repo: 'MetaMask/metamask-mobile',
+  });
+
+  assert.match(md, /scenario also failing/);
+  assert.match(md, /No green baseline on `main`/);
+  assert.match(md, /\*\*Summary:\*\*/);
+  assert.match(md, /Full metric table/);
+});
+
 test('shouldIncludeScenarioInComment requires baseline and usable current', () => {
   assert.equal(
     shouldIncludeScenarioInComment({
@@ -301,7 +391,7 @@ test('buildScenarioComment labels non-green baseline fallback', () => {
   });
 
   assert.match(md, /scenario also failing/);
-  assert.match(md, /No green baseline was available/);
+  assert.match(md, /No green baseline on `main`/);
   assert.match(md, /\*\*Summary:\*\*/);
   assert.match(md, /Full metric table/);
   assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
