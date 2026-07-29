@@ -726,7 +726,9 @@ describe('QuickBuyRoot', () => {
       expect(screen.getByTestId('active-screen')).toHaveTextContent(
         'editQuickAmounts',
       );
-      expect(StyleSheet.flatten(container.props.style)?.height).toBeUndefined();
+      expect(StyleSheet.flatten(container.props.style)).toMatchObject({
+        height: 480,
+      });
     });
   });
 });

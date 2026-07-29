@@ -4,7 +4,9 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo } from 'react';
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../../locales/i18n';
 import KeypadComponent from '../../../../../Base/Keypad';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
@@ -13,6 +15,7 @@ import { useQuickBuyEditAmountsForm } from './hooks/useQuickBuyEditAmountsForm';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 const QuickBuyEditQuickAmountsScreen: React.FC = () => {
+  const tw = useTailwind();
   const {
     currentCurrency,
     usdToCurrentCurrencyRate,
@@ -70,42 +73,49 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
   const keypadDecimals = focusedField.kind === 'sell' ? 0 : undefined;
 
   return (
-    <Box>
+    <Box twClassName="flex-1">
       <QuickBuySubScreenHeader
         title={strings('social_leaderboard.quick_buy.edit_quick_amounts_title')}
         onBack={handleBack}
         onClose={onClose}
       />
 
-      <Box twClassName="gap-2 px-4">
-        <QuickBuyEditAmountRow
-          label={strings(
-            'social_leaderboard.quick_buy.edit_quick_amounts_set_buy',
-          )}
-          kind="buy"
-          values={buyValues}
-          errors={buyErrors}
-          focusedField={focusedField}
-          currentCurrency={currentCurrency}
-          validationContext={validationContext}
-          onFieldPress={(index) => handleFieldPress('buy', index)}
-        />
-
-        <Box twClassName="pb-3">
+      <GestureHandlerScrollView
+        style={tw.style('flex-1')}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        testID="quick-buy-edit-amounts-scroll"
+      >
+        <Box twClassName="gap-2 px-4">
           <QuickBuyEditAmountRow
             label={strings(
-              'social_leaderboard.quick_buy.edit_quick_amounts_set_sell',
+              'social_leaderboard.quick_buy.edit_quick_amounts_set_buy',
             )}
-            kind="sell"
-            values={sellValues}
-            errors={sellErrors}
+            kind="buy"
+            values={buyValues}
+            errors={buyErrors}
             focusedField={focusedField}
             currentCurrency={currentCurrency}
             validationContext={validationContext}
-            onFieldPress={(index) => handleFieldPress('sell', index)}
+            onFieldPress={(index) => handleFieldPress('buy', index)}
           />
+
+          <Box twClassName="pb-3">
+            <QuickBuyEditAmountRow
+              label={strings(
+                'social_leaderboard.quick_buy.edit_quick_amounts_set_sell',
+              )}
+              kind="sell"
+              values={sellValues}
+              errors={sellErrors}
+              focusedField={focusedField}
+              currentCurrency={currentCurrency}
+              validationContext={validationContext}
+              onFieldPress={(index) => handleFieldPress('sell', index)}
+            />
+          </Box>
         </Box>
-      </Box>
+      </GestureHandlerScrollView>
 
       <Box twClassName="px-4 pt-1 pb-2">
         <Button
