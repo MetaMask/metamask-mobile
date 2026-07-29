@@ -6,6 +6,7 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import Assertions from '../../framework/Assertions';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { ConnectedAccountsSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
@@ -20,6 +21,14 @@ class DappConnectionModal {
         PlaywrightMatchers.getElementById(
           ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
         ),
+    });
+  }
+
+  /** SDKConnectV2 "Return to app" success toast shown after a request completes. */
+  get returnToAppToast(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () =>
+        PlaywrightMatchers.getElementByText('Return to the app to continue.'),
     });
   }
 
@@ -107,31 +116,14 @@ class DappConnectionModal {
     }
   }
 
-  /**
-   * Waits for the "Return to app" success toast to appear then dismiss. Uses a
-   * count probe (never throws on absence) so the dismiss poll is safe once the
-   * transient toast is gone.
-   */
+  /** Waits for the "Return to app" success toast to appear then dismiss. */
   async waitForReturnToAppToastToDismiss(): Promise<void> {
-    const toastText = 'Return to the app to continue.';
-    const isVisible = async () =>
-      (await PlaywrightMatchers.countElementsByText(toastText)) > 0;
-
-    const appearDeadline = Date.now() + 30_000;
-    while (Date.now() < appearDeadline) {
-      if (await isVisible()) {
-        break;
-      }
-      await new Promise((r) => setTimeout(r, 250));
-    }
-
-    const dismissDeadline = Date.now() + 15_000;
-    while (Date.now() < dismissDeadline) {
-      if (!(await isVisible())) {
-        return;
-      }
-      await new Promise((r) => setTimeout(r, 250));
-    }
+    await Assertions.expectElementToBeVisible(this.returnToAppToast, {
+      timeout: 30_000,
+    });
+    await Assertions.expectElementToNotBeVisible(this.returnToAppToast, {
+      timeout: 15_000,
+    });
   }
 
   async tapEditAccountsButton(): Promise<void> {
