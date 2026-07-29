@@ -23,7 +23,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 
 interface AccountGroupBalanceChangeProps {
   amountChangeInUserCurrency: number;
-  percentChange: number;
+  percentChange?: number;
   userCurrency: string;
   label?: string;
 }
@@ -42,12 +42,15 @@ const AccountGroupBalanceChange = ({
 
   const privacyMode = useSelector(selectPrivacyMode);
   const percentText = useMemo(
-    () => getFormattedPercentageChange(percentChange, 'en-US'),
+    () =>
+      percentChange === undefined
+        ? undefined
+        : getFormattedPercentageChange(percentChange, 'en-US'),
     [percentChange],
   );
   const percentageTextColor = getPercentageTextColor(
     Boolean(privacyMode),
-    percentChange,
+    percentChange ?? 0,
   );
 
   return (
@@ -61,15 +64,17 @@ const AccountGroupBalanceChange = ({
       >
         {amountText}
       </SensitiveText>
-      <SensitiveText
-        isHidden={Boolean(privacyMode)}
-        length="10"
-        color={percentageTextColor}
-        variant={LegacyTextVariant.BodyMDMedium}
-        testID={FORMATTED_PERCENTAGE_TEST_ID}
-      >
-        {percentText}
-      </SensitiveText>
+      {percentText !== undefined ? (
+        <SensitiveText
+          isHidden={Boolean(privacyMode)}
+          length="10"
+          color={percentageTextColor}
+          variant={LegacyTextVariant.BodyMDMedium}
+          testID={FORMATTED_PERCENTAGE_TEST_ID}
+        >
+          {percentText}
+        </SensitiveText>
+      ) : null}
       {label ? (
         <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
           {label}

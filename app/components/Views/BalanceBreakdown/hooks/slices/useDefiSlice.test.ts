@@ -77,14 +77,14 @@ describe('useDefiSlice', () => {
     isEnabled = true;
     mockUseNetworkEnablement.mockReturnValue({
       popularEvmNetworks: ['0x1'],
-    } as ReturnType<typeof useNetworkEnablement>);
+    } as unknown as ReturnType<typeof useNetworkEnablement>);
     mockSelectDefiPositionsByChainIds.mockReturnValue({
       '0x1': {
         protocols: {
           aave: protocol('Aave', 100),
         },
       },
-    } as ReturnType<typeof selectDefiPositionsByChainIds>);
+    } as unknown as ReturnType<typeof selectDefiPositionsByChainIds>);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectDeFiPositionsSectionEnabled) return isEnabled;
       return selector({} as never);

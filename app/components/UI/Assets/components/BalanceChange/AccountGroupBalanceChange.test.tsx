@@ -335,6 +335,19 @@ describe('AccountGroupBalanceChange', () => {
   });
 
   describe('component structure', () => {
+    it('omits the percentage when it is unavailable', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AccountGroupBalanceChange
+          amountChangeInUserCurrency={12.34}
+          userCurrency="usd"
+        />,
+        { state: baseState },
+      );
+
+      expect(getByTestId(FORMATTED_VALUE_PRICE_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(FORMATTED_PERCENTAGE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
     it('renders an optional period label', () => {
       const { getByText } = renderWithProvider(
         <AccountGroupBalanceChange

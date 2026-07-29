@@ -76,6 +76,7 @@ describe('getBalanceBreakdownSliceColors', () => {
 
 describe('useBalanceBreakdown', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseTokensSlice.mockReturnValue(
       makeSlice('tokens', 50000) as ReturnType<typeof useTokensSlice>,
     );
@@ -92,8 +93,6 @@ describe('useBalanceBreakdown', () => {
       makeSlice('defi', 10000) as ReturnType<typeof useDefiSlice>,
     );
   });
-
-  afterEach(() => jest.clearAllMocks());
 
   it('computes totalFiat as sum of all eligible slice values', () => {
     const { result } = renderHook(() => useBalanceBreakdown());
@@ -134,6 +133,31 @@ describe('useBalanceBreakdown', () => {
     );
     const { result } = renderHook(() => useBalanceBreakdown());
     expect(result.current.hero.status).toBe('ready');
+  });
+
+  it('keeps a zero-value hero loading while an eligible slice is unresolved', () => {
+    mockUseTokensSlice.mockReturnValue(
+      makeSlice('tokens', 0) as ReturnType<typeof useTokensSlice>,
+    );
+    mockUseMoneySlice.mockReturnValue(
+      makeSlice('money', 0, 'ineligible') as ReturnType<typeof useMoneySlice>,
+    );
+    mockUsePerpsSlice.mockReturnValue(
+      makeSlice('perps', 0, 'loading') as ReturnType<typeof usePerpsSlice>,
+    );
+    mockUsePredictSlice.mockReturnValue(
+      makeSlice('predict', 0, 'ineligible') as ReturnType<
+        typeof usePredictSlice
+      >,
+    );
+    mockUseDefiSlice.mockReturnValue(
+      makeSlice('defi', 0, 'ineligible') as ReturnType<typeof useDefiSlice>,
+    );
+
+    const { result } = renderHook(() => useBalanceBreakdown());
+
+    expect(result.current.hero.totalFiat).toBe(0);
+    expect(result.current.hero.status).toBe('loading');
   });
 
   it('hero status is loading when all eligible slices are loading', () => {

@@ -5,6 +5,10 @@ import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.test
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
+import {
+  FORMATTED_PERCENTAGE_TEST_ID,
+  FORMATTED_VALUE_PRICE_TEST_ID,
+} from '../BalanceChange/constants';
 
 jest.mock('../../../BalanceEmptyState', () => {
   const { View: V } = jest.requireActual('react-native');
@@ -168,6 +172,36 @@ describe('AccountGroupBalance', () => {
 
     expect(getByText('$987.65')).toBeOnTheScreen();
     expect(getByText('Today')).toBeOnTheScreen();
+  });
+
+  it('does not mix a legacy percentage into an aggregate delta', () => {
+    const { selectBalanceChangeBySelectedAccountGroup } = jest.requireMock(
+      '../../../../../selectors/assets/balances',
+    );
+    (selectBalanceChangeBySelectedAccountGroup as jest.Mock).mockImplementation(
+      () => () => ({
+        amountChangeInUserCurrency: 1,
+        percentChange: 99,
+        userCurrency: 'USD',
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AccountGroupBalance
+        heroOverride={{
+          totalFiat: 100,
+          userCurrency: 'USD',
+          status: 'ready',
+          delta: { amount: 12.34 },
+        }}
+      />,
+      { state: testState },
+    );
+
+    expect(getByTestId(FORMATTED_VALUE_PRICE_TEST_ID)).toHaveTextContent(
+      '+12.34 USD',
+    );
+    expect(queryByTestId(FORMATTED_PERCENTAGE_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('renders empty state when fetched account group balance is zero', () => {

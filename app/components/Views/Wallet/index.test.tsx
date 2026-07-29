@@ -771,6 +771,18 @@ const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
     },
   );
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockPerpsEnabled = true;
+  mockPerpsGTMModalEnabled = false;
+  mockPredictEnabled = true;
+  mockPredictGTMModalEnabled = false;
+  mockMoneyAccountEnabled = false;
+  mockDiscoveryPillsVariantName = 'control';
+  mockActionButtonsGridVariantName = 'control';
+  mockBalanceBreakdownVariantName = 'unresolved';
+});
+
 describe('Wallet', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -1507,6 +1519,7 @@ describe('Homepage deep links', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
 
     mockNavigation = {
       navigate: mockNavigate,
@@ -1531,8 +1544,12 @@ describe('Homepage deep links', () => {
       );
   });
 
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
   it('navigates to Perps screen for Perps deeplinks', () => {
-    jest.useFakeTimers();
     jest.mocked(useRoute).mockReturnValue({
       key: 'route',
       name: 'route',
@@ -1555,12 +1572,9 @@ describe('Homepage deep links', () => {
       screen: Routes.PERPS.PERPS_HOME,
       params: { source: 'deeplink' },
     });
-
-    jest.useRealTimers();
   });
 
   it('navigates to network selector from deeplink params', () => {
-    jest.useFakeTimers();
     jest.mocked(useRoute).mockReturnValue({
       key: 'route',
       name: 'route',
@@ -1582,8 +1596,6 @@ describe('Homepage deep links', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-
-    jest.useRealTimers();
   });
 });
 
@@ -1901,7 +1913,6 @@ describe('Homepage balance breakdown ABC test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBalanceBreakdownVariantName = 'unresolved';
-    mockDiscoveryTabsVariantName = 'control';
     jest
       .mocked(useSelector)
       .mockImplementation((callback: (state: unknown) => unknown) =>

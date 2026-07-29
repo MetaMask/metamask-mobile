@@ -218,8 +218,10 @@ const AccountGroupBalance = ({
                 0
               }
               percentChange={
-                heroOverride?.delta?.percent !== undefined
-                  ? heroOverride.delta.percent * 100
+                heroOverride
+                  ? heroOverride.delta?.percent === undefined
+                    ? undefined
+                    : heroOverride.delta.percent * 100
                   : (balanceChange1d?.percentChange ?? 0)
               }
               userCurrency={

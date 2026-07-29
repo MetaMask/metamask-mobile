@@ -38,16 +38,25 @@ function computePercentages(
 
 function aggregateStatus(
   slices: Record<SliceKey, SliceData>,
+  totalFiat: number,
 ): HeroData['status'] {
   const eligibleSlices = SLICE_ORDER.filter(
     (k) => slices[k].status !== 'ineligible',
   );
+  const hasReadySlice = eligibleSlices.some(
+    (k) => slices[k].status === 'ready',
+  );
+  const hasLoadingSlice = eligibleSlices.some(
+    (k) => slices[k].status === 'loading',
+  );
 
-  if (eligibleSlices.some((k) => slices[k].status === 'ready')) {
+  // A zero-valued ready slice is not enough to conclude the portfolio is empty
+  // while another eligible balance is still loading.
+  if (hasReadySlice && (totalFiat !== 0 || !hasLoadingSlice)) {
     return 'ready';
   }
 
-  if (eligibleSlices.some((k) => slices[k].status === 'loading')) {
+  if (hasLoadingSlice) {
     return 'loading';
   }
 
@@ -112,7 +121,10 @@ export function useBalanceBreakdown(): BreakdownData {
     [slices],
   );
 
-  const heroStatus = useMemo(() => aggregateStatus(slices), [slices]);
+  const heroStatus = useMemo(
+    () => aggregateStatus(slices, totalFiat),
+    [slices, totalFiat],
+  );
 
   const hero = useMemo<HeroData>(() => {
     /** A missing Perps baseline must not turn session PnL into a “Today” value. */
