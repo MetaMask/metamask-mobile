@@ -13,6 +13,7 @@ const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockSetQueryData = jest.fn();
 const mockSubmit = jest.fn();
+const mockAddToWatchlistMutate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -26,6 +27,12 @@ jest.mock('@tanstack/react-query', () => ({
 
 jest.mock('../api', () => ({
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
+}));
+
+jest.mock('../../watchlist/hooks/useTokenWatchlistMutations', () => ({
+  useTokenWatchlistAddItemMutation: () => ({
+    mutate: mockAddToWatchlistMutate,
+  }),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -61,6 +68,7 @@ const renderSaveFlow = (
     assetId: string;
     displayTicker: string;
     fromManage: boolean;
+    shouldAutoWatchlistOnCreate: boolean;
   }> = {},
 ) =>
   renderHook(
@@ -233,6 +241,72 @@ describe('useAlertSaveFlow', () => {
     });
 
     expect(mockSetQueryData).not.toHaveBeenCalled();
+  });
+
+  it('adds the asset to the watchlist after creating the first alert', async () => {
+    const { result } = renderSaveFlow({
+      shouldAutoWatchlistOnCreate: true,
+    });
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+
+    expect(mockAddToWatchlistMutate).toHaveBeenCalledWith('eip155:1/slip44:60');
+  });
+
+  it('keeps the watchlist unchanged when creating an alert for an asset with existing alerts', async () => {
+    const { result } = renderSaveFlow({
+      shouldAutoWatchlistOnCreate: false,
+    });
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+
+    expect(mockAddToWatchlistMutate).not.toHaveBeenCalled();
+  });
+
+  it('keeps the watchlist unchanged after editing an alert', async () => {
+    const { result } = renderSaveFlow({
+      shouldAutoWatchlistOnCreate: true,
+    });
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert,
+        patch: { threshold: 1500, recurring: false },
+        analyticsProperties: {
+          ...baseAnalyticsProperties,
+          alert_recurring: false,
+        },
+      });
+    });
+
+    expect(mockAddToWatchlistMutate).not.toHaveBeenCalled();
+  });
+
+  it('keeps the watchlist unchanged when alert creation fails', async () => {
+    mockSubmit.mockRejectedValueOnce(new Error('HTTP 500'));
+    const { result } = renderSaveFlow({
+      shouldAutoWatchlistOnCreate: true,
+    });
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+
+    expect(mockAddToWatchlistMutate).not.toHaveBeenCalled();
   });
 
   it('tracks created analytics properties', async () => {

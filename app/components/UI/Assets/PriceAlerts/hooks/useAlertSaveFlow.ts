@@ -1,6 +1,7 @@
 import { useCallback, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import type { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ToastContext,
@@ -11,6 +12,7 @@ import type { AppStackNavigationProp } from '../../../../../core/NavigationServi
 import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useTokenWatchlistAddItemMutation } from '../../watchlist/hooks/useTokenWatchlistMutations';
 import { priceAlertsQueryKey } from '../api';
 import {
   type Alert,
@@ -23,6 +25,7 @@ interface UseAlertSaveFlowParams {
   assetId: string;
   displayTicker: string;
   fromManage?: boolean;
+  shouldAutoWatchlistOnCreate?: boolean;
 }
 
 type AlertPatch = Partial<{
@@ -57,9 +60,11 @@ const useAlertSaveFlow = ({
   assetId,
   displayTicker,
   fromManage,
+  shouldAutoWatchlistOnCreate,
 }: UseAlertSaveFlowParams) => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const queryClient = useQueryClient();
+  const { mutate: addToWatchlist } = useTokenWatchlistAddItemMutation();
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -131,6 +136,10 @@ const useAlertSaveFlow = ({
       try {
         await submit();
 
+        if (!editingAlert && shouldAutoWatchlistOnCreate) {
+          addToWatchlist(assetId as CaipAssetType);
+        }
+
         if (editingAlert && patch) {
           patchAlertCache(editingAlert.id, patch);
         }
@@ -166,11 +175,13 @@ const useAlertSaveFlow = ({
       }
     },
     [
+      addToWatchlist,
       assetId,
       createEventBuilder,
       displayTicker,
       navigateAfterSave,
       patchAlertCache,
+      shouldAutoWatchlistOnCreate,
       showErrorToast,
       showSuccessToast,
       trackEvent,
