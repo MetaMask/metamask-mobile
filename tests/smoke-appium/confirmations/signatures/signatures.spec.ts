@@ -3,7 +3,7 @@ import Assertions from '../../../framework/Assertions.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import RequestTypes from '../../../page-objects/Browser/Confirmations/RequestTypes.js';
-import { tapAndroidWebId } from '../../../framework/AndroidWebViewNative.js';
+import WebView from '../../../framework/WebView.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import {
   navigateToBrowserView,
@@ -15,6 +15,7 @@ import {
   buildPermissions,
   AnvilPort,
   getDappUrlForFixture,
+  getDappUrl,
 } from '../../../framework/fixtures/FixtureUtils.js';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents.js';
 import { TestDappSelectorsWebIDs } from '../../../selectors/Browser/TestDapp.selectors.js';
@@ -27,7 +28,10 @@ import { AnvilManager } from '../../../seeder/anvil-manager.js';
 const SIGNATURE_LIST = [
   {
     specName: 'Personal Sign',
-    testDappBtn: () => tapAndroidWebId(TestDappSelectorsWebIDs.PERSONAL_SIGN),
+    testDappBtn: () =>
+      WebView.tapById(TestDappSelectorsWebIDs.PERSONAL_SIGN, {
+        pageUrl: getDappUrl(0),
+      }),
     requestType: () => RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(
@@ -37,7 +41,10 @@ const SIGNATURE_LIST = [
   },
   {
     specName: 'SIWE Sign',
-    testDappBtn: () => tapAndroidWebId(TestDappSelectorsWebIDs.ETHEREUM_SIGN),
+    testDappBtn: () =>
+      WebView.tapById(TestDappSelectorsWebIDs.ETHEREUM_SIGN, {
+        pageUrl: getDappUrl(0),
+      }),
     requestType: () => RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(
