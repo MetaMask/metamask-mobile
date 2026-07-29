@@ -9070,12 +9070,8 @@
         "title": "加入等待列表",
         "load_error": "表单加载出错。请重试。",
         "try_again": "请重试",
-<<<<<<< HEAD
-        "success_toast": "您已加入等待列表！待卡片在您所在国家/地区上线时，我们将第一时间通知您。"
-=======
         "success_toast": "You're on the waitlist!",
         "success_toast_description": "We'll let you know when the card is available in your country."
->>>>>>> e4dc380622 (chore: New Crowdin Translations by GitHub Action cp-8.5.0 (#33682))
       },
       "region_selector": {
         "title": "选择您所在的地区"
