@@ -230,6 +230,9 @@ describe('AgenticCliQrLoginService', () => {
       type: 'auth-token',
       token: 'cli-token',
     });
+    expect(conn.client.sendResponse).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'auth-cancelled' }),
+    );
     expect(showSimpleNotification).toHaveBeenCalledWith({
       id: '11111111-2222-3333-4444-555555555555-cli-link-success',
       autodismiss: 3000,
@@ -241,6 +244,58 @@ describe('AgenticCliQrLoginService', () => {
     expect(mockMaybePromptPushPermissionAfterCliLogin).toHaveBeenCalledTimes(1);
     expect(cleanupConnection).toHaveBeenCalledWith(conn);
     expect(setStage).toHaveBeenCalledWith('send-auth-token-to-cli');
+  });
+
+  it('sends auth-cancelled to CLI before cleanup when dashboard WebView is cancelled', async () => {
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
+    const conn = createMockConnection();
+    const cleanupConnection = jest.fn().mockResolvedValue(undefined);
+    (AgenticCliDashboardWebviewService.open as jest.Mock).mockRejectedValue(
+      new Error('WebView closed'),
+    );
+
+    await expect(
+      handleAgenticCliQrLogin({
+        connReq: mockConnectionRequest({ name: 'agentic-cli' }),
+        conn,
+        setStage: jest.fn(),
+        cleanupConnection,
+      }),
+    ).rejects.toThrow('WebView closed');
+
+    expect(conn.client.sendResponse).toHaveBeenCalledWith({
+      type: 'auth-cancelled',
+      reason: 'WebView closed',
+    });
+    expect(conn.client.sendResponse).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'auth-token' }),
+    );
+    expect(cleanupConnection).toHaveBeenCalledWith(conn);
+    expect(showSimpleNotification).not.toHaveBeenCalled();
+    expect(mockMaybePromptPushPermissionAfterCliLogin).not.toHaveBeenCalled();
+  });
+
+  it('still cleans up when sending auth-cancelled fails', async () => {
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
+    const conn = createMockConnection();
+    const cleanupConnection = jest.fn().mockResolvedValue(undefined);
+    (AgenticCliDashboardWebviewService.open as jest.Mock).mockRejectedValue(
+      new Error('Request rejected'),
+    );
+    (conn.client.sendResponse as jest.Mock).mockRejectedValue(
+      new Error('relay down'),
+    );
+
+    await expect(
+      handleAgenticCliQrLogin({
+        connReq: mockConnectionRequest({ name: 'agentic-cli' }),
+        conn,
+        setStage: jest.fn(),
+        cleanupConnection,
+      }),
+    ).rejects.toThrow('Request rejected');
+
+    expect(cleanupConnection).toHaveBeenCalledWith(conn);
   });
 
   it('uses dev auth API and develop dashboard for main_dev builds', async () => {
