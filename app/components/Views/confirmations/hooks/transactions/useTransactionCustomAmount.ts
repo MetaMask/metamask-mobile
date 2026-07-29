@@ -100,6 +100,11 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyPaymentOverride =
+    paymentOverride === PaymentOverride.MoneyAccount;
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   const musdFiatRate =
@@ -292,17 +297,21 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
+      // Do NOT set isMaxAmount=true for perps or money-account flows. TPC's
       // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
       // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
       // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
-      // amount through as token.amountRaw.
+      // vmUSD fiat total). This includes deposits funded from the money
+      // account (e.g. Send to Perps): the pay token is bare mUSD on Monad, so
+      // substituting its raw balance collapses Max to the un-vaulted mUSD
+      // portion instead of the full withdrawable (mUSD + vmUSD). Keeping
+      // isMaxAmount false routes the typed amount through as token.amountRaw.
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&
         !isMoneyAccountWithdraw &&
-        !isMoneyAccountDeposit;
+        !isMoneyAccountDeposit &&
+        !isMoneyPaymentOverride;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -338,6 +347,7 @@ export function useTransactionCustomAmount({
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
+      isMoneyPaymentOverride,
       payToken?.balanceRaw,
       payToken?.decimals,
       setIsMax,
