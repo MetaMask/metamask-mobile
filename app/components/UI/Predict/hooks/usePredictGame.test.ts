@@ -113,7 +113,6 @@ describe('usePredictGame', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     __resetPredictGameCacheForTest();
     statusCallbacks = [];
 
@@ -130,7 +129,6 @@ describe('usePredictGame', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 

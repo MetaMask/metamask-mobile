@@ -53,6 +53,7 @@ jest.mock('../../hooks/usePredictGame');
 const mockUsePredictGame = usePredictGame as jest.MockedFunction<
   typeof usePredictGame
 >;
+const FIXED_LAST_UPDATE_TIME = new Date('2024-12-15T13:00:00Z').getTime();
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
@@ -432,7 +433,7 @@ describe('PredictGameDetailsFooter', () => {
       mockUsePredictGame.mockReturnValue({
         game: cachedEndedGame,
         isConnected: false,
-        lastUpdateTime: Date.now(),
+        lastUpdateTime: FIXED_LAST_UPDATE_TIME,
       });
       const props = createDefaultProps({ market });
 
