@@ -15,6 +15,7 @@ import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 import {
   ActivityIndicator,
   DeviceEventEmitter,
+  LayoutAnimation,
   Linking,
   RefreshControl,
   ScrollView,
@@ -208,8 +209,8 @@ const createStyles = ({ colors }: Theme) =>
     homepageActionButtonsGrid: {
       marginTop: 20,
     },
-    homepageActionButtonsGridBeforeDiscovery: {
-      marginBottom: 20,
+    homepageActionButtonsGridWithoutBanner: {
+      marginBottom: 12,
     },
     tabContainer: {
       flex: 1,
@@ -735,6 +736,28 @@ const Wallet = ({
   );
 
   const homeGrowthBanner = useHomeGrowthBanner();
+  const [isBrazeHomeBannerVisible, setIsBrazeHomeBannerVisible] =
+    useState(false);
+  const isBrazeHomeBannerVisibleRef = useRef(false);
+  const handleBrazeHomeBannerVisibilityChange = useCallback(
+    (isVisible: boolean) => {
+      if (isBrazeHomeBannerVisibleRef.current && !isVisible) {
+        LayoutAnimation.configureNext({
+          duration: 250,
+          update: {
+            type: LayoutAnimation.Types.easeInEaseOut,
+          },
+          delete: {
+            type: LayoutAnimation.Types.easeInEaseOut,
+            property: LayoutAnimation.Properties.opacity,
+          },
+        });
+      }
+      isBrazeHomeBannerVisibleRef.current = isVisible;
+      setIsBrazeHomeBannerVisible(isVisible);
+    },
+    [],
+  );
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -966,7 +989,10 @@ const Wallet = ({
         componentLabel="BrazeBanner"
         onError={handleBannerError}
       >
-        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+        <BrazeBanner
+          placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID}
+          onVisibilityChange={handleBrazeHomeBannerVisibilityChange}
+        />
       </ComponentErrorBoundary>
     ) : homeGrowthBanner === 'carousel' ? (
       <View accessible={false}>
@@ -975,7 +1001,9 @@ const Wallet = ({
     ) : null;
   const isHomeGrowthBannerVisible =
     (!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
-    Boolean(homeGrowthBannerContent);
+    (homeGrowthBanner === 'braze'
+      ? isBrazeHomeBannerVisible
+      : Boolean(homeGrowthBannerContent));
 
   const bannerContent = (
     <View style={styles.banner}>
@@ -1011,9 +1039,7 @@ const Wallet = ({
         style={[
           styles.homepageActionButtonsGrid,
           !isHomeGrowthBannerVisible &&
-            (showDiscoveryPills
-              ? styles.homepageActionButtonsGridBeforeDiscovery
-              : undefined),
+            styles.homepageActionButtonsGridWithoutBanner,
         ]}
       >
         <HomepageActionButtonsGrid

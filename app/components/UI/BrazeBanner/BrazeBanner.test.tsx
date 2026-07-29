@@ -301,6 +301,24 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'empty');
   });
 
+  it('reports rendered visibility and dismissal to its parent', () => {
+    const onVisibilityChange = jest.fn();
+    const { getByTestId } = render(
+      <BrazeBanner
+        placementId={TEST_PLACEMENT_ID}
+        onVisibilityChange={onVisibilityChange}
+      />,
+    );
+
+    expect(onVisibilityChange).toHaveBeenLastCalledWith(false);
+
+    fireBannerEvent([makeBanner()]);
+    expect(onVisibilityChange).toHaveBeenLastCalledWith(true);
+
+    fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
+    expect(onVisibilityChange).toHaveBeenLastCalledWith(false);
+  });
+
   it('dispatches setLastDismissedBrazeBanner on dismiss when banner_name and dismissable:true are set', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,

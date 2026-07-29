@@ -174,6 +174,10 @@ const AllocationSectionContent = ({
       onPress: navigationByKey[key as keyof typeof navigationByKey],
     })) as AllocationRow[];
 
+    if (allocationRows.length === 0) {
+      return allocationRows;
+    }
+
     if (moneyBalance <= 0) {
       allocationRows.push({
         key: 'money',
