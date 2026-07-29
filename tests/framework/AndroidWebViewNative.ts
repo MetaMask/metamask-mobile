@@ -215,15 +215,16 @@ export async function tapAndroidWebId(
   await PlaywrightGestures.waitAndTap(elem);
 }
 
-/**
- * Type into the focused field one character at a time.
- * Clears leftover characters first by sending backspace keys.
- */
-async function typeAndroidKeysSequentially(value: string): Promise<void> {
+/** Type into focused field one character at a time, clearing leftover text first. */
+async function typeAndroidKeysSequentially(
+  value: string,
+  residualText = '',
+): Promise<void> {
   const BACKSPACE_KEY = '\uE003';
-  const BACKSPACE_COUNT = 24;
-  // Backspace leftover characters clear() may leave in React-controlled fields.
-  await getDriver().keys(BACKSPACE_KEY.repeat(BACKSPACE_COUNT));
+  const MIN_BACKSPACE_COUNT = 24;
+  // Clear leftover characters and size backspace burst to residual text length
+  const backspaceCount = Math.max(MIN_BACKSPACE_COUNT, residualText.length + 4);
+  await getDriver().keys(BACKSPACE_KEY.repeat(backspaceCount));
   for (const char of value) {
     await getDriver().keys(char);
   }
@@ -242,7 +243,8 @@ export async function fillAndroidWebId(
       `clear() failed for WebView input "${webId}", continuing with keys: ${String(error)}`,
     );
   });
-  await typeAndroidKeysSequentially(value);
+  const residualText = await elem.getText().catch(() => '');
+  await typeAndroidKeysSequentially(value, residualText);
   await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }
 

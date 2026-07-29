@@ -510,8 +510,7 @@ export default class PlaywrightGestures {
 
   /**
    * Type into the focused iOS soft keyboard by tapping keys.
-   * Use when the RN TextInput is not exposed as XCUIElementTypeTextField
-   * (e.g. parent Pressable is accessible=true) and mobile: type is unavailable.
+   * Supports lowercase letters, digits 0-9, '.', and space only.
    */
   @boxedStep
   static async typeViaIosKeyboard(text: string): Promise<void> {
@@ -544,8 +543,14 @@ export default class PlaywrightGestures {
         await ensureLetters();
         await drv.$('~space').click();
       } else {
+        const letter = ch.toLowerCase();
+        if (letter < 'a' || letter > 'z') {
+          throw new Error(
+            `typeViaIosKeyboard: unsupported character "${ch}". Only letters, digits, "." and space are supported.`,
+          );
+        }
         await ensureLetters();
-        await drv.$(`~${ch.toLowerCase()}`).click();
+        await drv.$(`~${letter}`).click();
       }
     }
   }
