@@ -154,7 +154,12 @@ export const TEST_SNAPS_ANDROID_SCROLL_LABELS: Record<string, string> = {
   connectstate: 'Connect to State Snap',
   connectwasm: 'Connect to WebAssembly Snap',
   sendError: 'Send Test to Error Snap',
+  sendAlertButton: 'Alert',
+  // Dialogs section button label is literally "Confirmation"; result/dialog
+  // assertions use the native "Confirmation Dialog" title separately.
   sendConfirmationButton: 'Confirmation',
+  sendPromptButton: 'Prompt',
+  sendCustomButton: 'Custom',
   sendClientStatusTest: 'Submit',
   sendRpc: 'Invoke Snap',
   sendWasmMessage: 'Calculate',
@@ -162,6 +167,28 @@ export const TEST_SNAPS_ANDROID_SCROLL_LABELS: Record<string, string> = {
   showPreinstalledDialog: 'Show dialog',
   trackEvent: 'Track event',
   'messenger-call': 'Messenger call',
+  // Get File — action buttons + nearby label for virtualized result spans.
+  sendGetFileTextButton: 'Get Text',
+  sendGetFileBase64Button: 'Get Base64',
+  sendGetFileHexButton: 'Get Hex',
+  getFileResult: 'Get Text',
+  // State snap actions (encrypted/unencrypted share the same visible labels).
+  sendState: 'Set State',
+  sendUnencryptedState: 'Set State',
+  sendGetState: 'Get State',
+  sendGetUnencryptedState: 'Get State',
+  clearState: 'Clear State',
+  clearStateUnencrypted: 'Clear State',
+  encryptedStateResult: 'Clear State',
+  unencryptedStateResult: 'Clear State',
+  getStateResult: 'Get State',
+  getStateUnencryptedResult: 'Get State',
+  // Network Access — prefer section-unique labels (avoid "Get State", shared with State snap).
+  sendNetworkAccessTest: 'Fetch',
+  startWebSocket: 'Start WebSocket',
+  stopWebSocket: 'Stop WebSocket',
+  getWebSocketState: 'Start WebSocket',
+  networkAccessResult: 'Fetch',
 };
 
 export const testSnapsAndroidScrollOptions = {

@@ -9,8 +9,8 @@ import { createPlaywrightLogger } from './playwrightLogger';
 
 const logger = createPlaywrightLogger('AndroidWebViewNative');
 
-const SCROLL_ATTEMPTS = 12;
-const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 15_000;
+const SCROLL_ATTEMPTS = 24;
+const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 30_000;
 const IN_PLACE_FIND_TIMEOUT_MS = 5_000;
 
 export interface AndroidWebViewScrollOptions {
