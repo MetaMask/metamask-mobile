@@ -963,6 +963,26 @@ class WalletView {
     });
   }
 
+  /**
+   * Tries scroll actions down then up (or a custom order) without nested try/catch
+   * at call sites. Rethrows the last failure if every direction fails.
+   */
+  private async tryScrollDirections(
+    action: (direction: 'up' | 'down') => Promise<void>,
+    directions: readonly ('up' | 'down')[] = ['down', 'up'],
+  ): Promise<void> {
+    let lastError: unknown;
+    for (const direction of directions) {
+      try {
+        await action(direction);
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  }
+
   async scrollAndTapPredictionsPosition(
     positionName: string,
     positionId?: string,
@@ -982,11 +1002,9 @@ class WalletView {
           return;
         }
 
-        try {
-          await this.scrollPredictionsSectionIntoView('down');
-        } catch {
-          await this.scrollPredictionsSectionIntoView('up');
-        }
+        await this.tryScrollDirections((direction) =>
+          this.scrollPredictionsSectionIntoView(direction),
+        );
 
         if (
           await this.tapIfAlreadyVisible(
@@ -997,21 +1015,14 @@ class WalletView {
           return;
         }
 
-        try {
-          await this.scrollAndTapSection(
+        await this.tryScrollDirections((direction) =>
+          this.scrollAndTapSection(
             target,
             `Predictions Position: ${positionName}`,
-            'down',
+            direction,
             { timeout: 60_000 },
-          );
-        } catch {
-          await this.scrollAndTapSection(
-            target,
-            `Predictions Position: ${positionName}`,
-            'up',
-            { timeout: 60_000 },
-          );
-        }
+          ),
+        );
       },
       appium: async () => {
         const description = `Predictions Position: ${positionName}`;
@@ -1020,18 +1031,43 @@ class WalletView {
         );
         const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(30_000);
 
+        const assertMarketDetailsOpened = async (): Promise<void> => {
+          await Assertions.expectElementToBeVisible(marketDetailsScreen, {
+            timeout: predictNavigationTimeoutMs,
+            description: 'Predict market details screen after position tap',
+          });
+        };
+
+        // Align with Detox: tap-if-visible → section into view → tap →
+        // scrollAndTap with overshoot (down/up). Do not require the row to be
+        // visible before scrolling (off-screen rows like Blue Jays).
         await Utilities.executeWithRetry(
           async () => {
-            await this.scrollWalletHomeToElement(target, description);
+            if (await this.tapIfAlreadyVisible(target, description)) {
+              await assertMarketDetailsOpened();
+              return;
+            }
 
-            await UnifiedGestures.waitAndTap(target, {
-              description,
-              timeout: 30_000,
-            });
-            await Assertions.expectElementToBeVisible(marketDetailsScreen, {
-              timeout: predictNavigationTimeoutMs,
-              description: 'Predict market details screen after position tap',
-            });
+            await this.tryScrollDirections((direction) =>
+              this.scrollPredictionsSectionIntoView(direction),
+            );
+
+            if (await this.tapIfAlreadyVisible(target, description)) {
+              await assertMarketDetailsOpened();
+              return;
+            }
+
+            await this.tryScrollDirections((direction) =>
+              this.scrollAndTapSection(target, description, direction, {
+                timeout: 60_000,
+                overshootSwipe: {
+                  direction: direction === 'down' ? 'up' : 'down',
+                  percentage: 0.15,
+                },
+              }),
+            );
+
+            await assertMarketDetailsOpened();
           },
           {
             timeout: 90_000,

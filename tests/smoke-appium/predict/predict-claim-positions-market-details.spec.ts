@@ -24,7 +24,6 @@ import {
   claimPositions,
   postClaimMocks,
   predictionMarketFeatureForMarketDetails,
-  verifyResolvedPositionsRemoved,
 } from './helpers/predict-claim-positions.helpers.js';
 
 appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
@@ -101,7 +100,12 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
             description: 'Claim button should not be visible',
           });
 
-          await verifyResolvedPositionsRemoved();
+          // Only assert the position this flow claimed (full list is ~2m on Appium).
+          await Assertions.expectTextNotDisplayed(claimPositions.Won, {
+            timeout: resolveE2EWaitTimeoutMs(1_000),
+            description:
+              'Claimed winning position should not be visible after claiming',
+          });
 
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
