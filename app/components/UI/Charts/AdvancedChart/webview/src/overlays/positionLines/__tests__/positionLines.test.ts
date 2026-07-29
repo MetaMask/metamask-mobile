@@ -169,9 +169,10 @@ describe('positionLines/index', () => {
     expect(options.text).toBe('Current');
     const overrides = options.overrides as Record<string, unknown>;
     expect(overrides).not.toHaveProperty('text');
-    // Pill on the left (label + price), matching the Entry/Liquidation pills.
+    // Left-aligned "Current" label; the price is NOT shown here (the native
+    // last-value axis pill shows it on the right — avoids a duplicate pill).
     expect(overrides.showLabel).toBe(true);
-    expect(overrides.showPrice).toBe(true);
+    expect(overrides.showPrice).toBe(false);
     expect(overrides.horzLabelsAlign).toBe('left');
     // Original thin dotted line (dotted = 1), not restyled solid/thick.
     expect(overrides.linewidth).toBe(1);
