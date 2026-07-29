@@ -596,10 +596,12 @@ describe('TraderAdvancedChart', () => {
     );
 
     // Bumping the nonce focuses the fit range's midpoint at its full span,
-    // reproducing [visibleFromMs, visibleToMs].
+    // reproducing [visibleFromMs, visibleToMs]. `force` bypasses the
+    // "already visible → don't move" guard so a reset always re-frames.
     expect(mockFocusTime).toHaveBeenCalledWith(center, {
       spanMs,
       animate: true,
+      force: true,
     });
   });
 

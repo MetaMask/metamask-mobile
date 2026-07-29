@@ -849,7 +849,7 @@ export interface AdvancedChartRef {
    */
   focusTime: (
     timeMs: number,
-    options?: { spanMs?: number; animate?: boolean },
+    options?: { spanMs?: number; animate?: boolean; force?: boolean },
   ) => void;
   /**
    * Briefly pulse the trade marker with this `id` (matches {@link TradeMarker.id})

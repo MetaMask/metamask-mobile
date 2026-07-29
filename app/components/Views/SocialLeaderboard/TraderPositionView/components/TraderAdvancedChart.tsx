@@ -656,9 +656,13 @@ const TraderAdvancedChart = ({
     const spanMs = visibleToMs - visibleFromMs;
     if (!(spanMs > 0)) return;
 
+    // `force` bypasses focusTime's "already visible → don't move" guard so the
+    // reset always re-frames to the full default range, even when the range's
+    // center is currently on screen (e.g. after zooming into the middle).
     chartRef.current?.focusTime((visibleFromMs + visibleToMs) / 2, {
       spanMs,
       animate: true,
+      force: true,
     });
   }, [resetRangeNonce, shouldFallback, visibleFromMs, visibleToMs]);
 
