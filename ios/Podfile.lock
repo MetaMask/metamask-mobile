@@ -634,7 +634,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NitroModules (0.35.5):
+  - NitroModules (0.35.10):
     - boost
     - DoubleConversion
     - fast_float
@@ -5151,7 +5151,7 @@ SPEC CHECKSUMS:
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
   NitroFetch: 232232e9d216dc35be48f6478cf9f6cebd077916
   NitroFetchWebsockets: 8ce4909248acd869f7002be2c9b1eefcbb60544a
-  NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
+  NitroModules: b5c5baefa71a65c40e129876a8b7943a9aef6aa5
   NitroTextDecoder: 9b50be860ed7488349bc31791b6fe96778a43db0
   OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47

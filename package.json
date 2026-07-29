@@ -526,7 +526,7 @@
     "react-native-mmkv": "^3.2.0",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-nitro-fetch": "patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch",
-    "react-native-nitro-modules": "0.35.5",
+    "react-native-nitro-modules": "0.35.10",
     "react-native-nitro-text-decoder": "^0.2.0",
     "react-native-nitro-websockets": "^1.0.3",
     "react-native-os": "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch",
