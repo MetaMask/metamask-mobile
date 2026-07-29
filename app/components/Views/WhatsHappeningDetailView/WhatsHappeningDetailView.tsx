@@ -14,11 +14,16 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
-  FontWeight,
+  HeaderStandard,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
@@ -256,24 +261,11 @@ const WhatsHappeningDetailView = () => {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default`}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-2 py-2"
-      >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={handleBackPress}
-          testID="whats-happening-detail-back-button"
-        />
-        <Box twClassName="flex-1 items-center">
-          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('whats_happening.title')}
-          </Text>
-        </Box>
-        <Box twClassName="w-10" />
-      </Box>
+      <HeaderStandard
+        title={strings('whats_happening.title')}
+        onBack={handleBackPress}
+        backButtonProps={{ testID: 'whats-happening-detail-back-button' }}
+      />
 
       <PerpsStreamProvider>
         <Box twClassName="flex-1">
@@ -328,10 +320,47 @@ const WhatsHappeningDetailView = () => {
                       onSourcesPress={(articles) =>
                         handleSourcesPress(articles, item, index)
                       }
-                      onAIDisclaimerPress={handleAIDisclaimerPress}
                     />
                   ))}
               </ScrollView>
+
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="mt-1 mb-4"
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Icon
+                    name={IconName.Sparkle}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('whats_happening.ai_generated')}
+                  </Text>
+                  <ButtonIcon
+                    iconName={IconName.Info}
+                    size={ButtonIconSize.Sm}
+                    iconProps={{
+                      color: IconColor.IconAlternative,
+                      size: IconSize.Sm,
+                    }}
+                    onPress={handleAIDisclaimerPress}
+                    accessibilityLabel={strings(
+                      'market_insights.disclaimer_modal.title',
+                    )}
+                    testID="whats-happening-ai-disclaimer-button"
+                  />
+                </Box>
+              </Box>
 
               <PageIndicator count={items.length} activeIndex={currentIndex} />
             </>

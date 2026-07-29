@@ -10550,6 +10550,7 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
+    "ai_generated": "AI Generated",
     "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",

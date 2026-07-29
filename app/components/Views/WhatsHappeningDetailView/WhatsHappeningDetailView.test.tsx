@@ -116,10 +116,8 @@ describe('WhatsHappeningDetailView', () => {
     (WhatsHappeningExpandedCard as unknown as jest.Mock).mockImplementation(
       ({
         onSourcesPress,
-        onAIDisclaimerPress,
       }: {
         onSourcesPress?: (articles: unknown[]) => void;
-        onAIDisclaimerPress?: () => void;
       }) => (
         <View>
           <Pressable
@@ -134,10 +132,6 @@ describe('WhatsHappeningDetailView', () => {
                 },
               ])
             }
-          />
-          <Pressable
-            testID="mock-ai-disclaimer-button"
-            onPress={onAIDisclaimerPress}
           />
         </View>
       ),
@@ -457,7 +451,7 @@ describe('WhatsHappeningDetailView', () => {
     expect(screen.queryByTestId('mock-sources-bottom-sheet')).toBeNull();
   });
 
-  it('shows the AI disclaimer bottom sheet when onAIDisclaimerPress is called from a card', () => {
+  it('renders the AI Generated row below the carousel', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
       isLoading: false,
@@ -465,12 +459,22 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'layout', {
-      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
-    });
+    expect(screen.getByText('AI Generated')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('whats-happening-ai-disclaimer-button'),
+    ).toBeOnTheScreen();
+  });
 
-    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+  it('shows the AI disclaimer bottom sheet when the AI info button is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+
+    fireEvent.press(screen.getByTestId('whats-happening-ai-disclaimer-button'));
 
     expect(
       screen.getByTestId('mock-ai-disclaimer-bottom-sheet'),
@@ -485,11 +489,7 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'layout', {
-      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
-    });
-    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+    fireEvent.press(screen.getByTestId('whats-happening-ai-disclaimer-button'));
 
     fireEvent.press(screen.getByTestId('mock-ai-disclaimer-close'));
 

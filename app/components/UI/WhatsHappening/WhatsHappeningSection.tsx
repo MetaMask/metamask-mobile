@@ -15,11 +15,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  SectionHeader,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import ExploreSectionHeader from '../../Views/TrendingView/components/SectionHeader';
 import type {
   ExploreTabName,
@@ -34,6 +30,8 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
   MAX_ITEMS_DISPLAYED,
+  WHATS_HAPPENING_CARD_MIN_HEIGHT,
+  WHATS_HAPPENING_CARD_WIDTH,
   WhatsHappeningInteractionType,
   WhatsHappeningView,
   WhatsHappeningSource,
@@ -51,8 +49,8 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getWhatsHappeningEventProps } from './eventProperties';
 
-const CARD_WIDTH = 280;
-const VIEW_MORE_MIN_HEIGHT_CLASS = 'min-h-[230px]';
+const CARD_WIDTH = WHATS_HAPPENING_CARD_WIDTH;
+const VIEW_MORE_MIN_HEIGHT_CLASS = `min-h-[${WHATS_HAPPENING_CARD_MIN_HEIGHT}px]`;
 const GAP = 12;
 
 const SNAP_OFFSETS = Array.from(
@@ -203,7 +201,6 @@ const WhatsHappeningSection = forwardRef<
             <ViewMoreCard
               onPress={handleViewAll}
               twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-              textVariant={TextVariant.BodyLg}
             />
           </>
         )}
