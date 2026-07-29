@@ -1,4 +1,7 @@
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { readFileSync } from 'fs';
 import { renderHook, act } from '@testing-library/react-native';
+import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation } from '../../util/trace';
 import {
   OnboardingCtaIds,
@@ -209,5 +212,16 @@ describe('onboarding performance hooks', () => {
         }),
       });
     });
+  });
+
+  // A CTA span starts in Onboarding and must be ended by the screen its route
+  // registers; screen directories are named after their route.
+  it.each([
+    [Routes.ONBOARDING.CHOOSE_PASSWORD, 'index.tsx'],
+    [Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, 'index.js'],
+  ])('instruments the registered %s destination', (routeName, entry) => {
+    const path = `${__dirname}/../../components/Views/${routeName}/${entry}`;
+
+    expect(readFileSync(path, 'utf8')).toContain('useNavigationPerformance({');
   });
 });

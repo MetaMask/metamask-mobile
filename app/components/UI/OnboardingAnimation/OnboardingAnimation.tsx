@@ -68,6 +68,7 @@ const OnboardingAnimation = ({
   children: React.ReactNode;
   startOnboardingAnimation: boolean;
   setStartFoxAnimation: (value: boolean) => void;
+  // Must be referentially stable; it feeds the animation callbacks' dependencies.
   onInteractiveContentReady?: () => void;
 }) => {
   const logoRef = useRef<RiveRef>(null);

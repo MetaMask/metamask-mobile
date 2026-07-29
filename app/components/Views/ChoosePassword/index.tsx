@@ -201,17 +201,17 @@ const ChoosePassword = () => {
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
-  const choosePasswordContentReady = !loading && isGeolocationResolved;
-
+  // The form renders synchronously; geolocation is the only async dependency.
   useScreenPerformance({
     screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
-    contentReady: choosePasswordContentReady,
+    contentReady: true,
     isEmpty: false,
+    isLoading: isSocialLoginUser && !isGeolocationResolved,
   });
 
   useNavigationPerformance({
     destinationScreenId: OnboardingScreenIds.CHOOSE_PASSWORD,
-    destinationReady: choosePasswordContentReady,
+    destinationReady: true,
   });
 
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
