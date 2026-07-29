@@ -4,7 +4,7 @@ import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
 import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { getDriver } from './PlaywrightUtilities';
 import PlaywrightGestures from './PlaywrightGestures';
-import { sleep } from './Utilities';
+import Utilities, { sleep } from './Utilities';
 import { createPlaywrightLogger } from './playwrightLogger';
 
 const logger = createPlaywrightLogger('AndroidWebViewNative');
@@ -20,6 +20,7 @@ export interface AndroidWebViewScrollOptions {
 
 export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
   description?: string;
+  timeout?: number;
 };
 
 /** Fill/read share scroll options; Android Appium never uses WebView DOM context. */
@@ -199,10 +200,18 @@ export async function tapAndroidWebId(
   webId: string,
   options: AndroidWebViewTapOptions = {},
 ): Promise<void> {
-  const elem = await scrollAndroidWebIdIntoView(webId, options);
-  const description =
-    options.description ?? `Android native WebView tap: ${webId}`;
-  logger.debug(description);
+  logger.debug(options.description ?? `Android native WebView tap: ${webId}`);
+
+  // Re-find until enabled so we don't hold a stale disabled node across React re-renders.
+  let elem!: PlaywrightElement;
+  await Utilities.waitUntil(
+    async () => {
+      elem = await scrollAndroidWebIdIntoView(webId, options);
+      return elem.isEnabled();
+    },
+    { timeout: options.timeout ?? 30_000, interval: 250 },
+  );
+
   await PlaywrightGestures.waitAndTap(elem);
 }
 

@@ -54,6 +54,9 @@ export const TEST_SNAPS_ANDROID_SCROLL_LABELS: Record<string, string> = {
   sendRpc: 'Invoke Snap',
   sendWasmMessage: 'Calculate',
   getPreferences: 'Submit',
+  showPreinstalledDialog: 'Show dialog',
+  trackEvent: 'Track event',
+  'messenger-call': 'Messenger call',
 };
 
 export const testSnapsAndroidScrollOptions = {
