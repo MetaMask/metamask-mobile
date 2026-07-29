@@ -333,7 +333,9 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(
       await screen.findByTestId(PerpsStopLossPromptSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Stop loss set')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.stop_loss_prompt.success_title')),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON),
     ).toBeOnTheScreen();

@@ -4,6 +4,7 @@ import PerpsStopLossPromptBanner from './PerpsStopLossPromptBanner';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const initialState = {
   engine: {
@@ -241,7 +242,9 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      expect(getByText('Stop loss set')).toBeOnTheScreen();
+      expect(
+        getByText(strings('perps.stop_loss_prompt.success_title')),
+      ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON),
       ).toBeOnTheScreen();
