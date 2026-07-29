@@ -158,13 +158,7 @@ const setupIosTask = {
       tasks.push({
         title: 'Install CocoaPods',
         task: async () => {
-          // CI runners can have a stale CocoaPods Specs repo ("Unable to find a
-          // specification for FirebaseCore"). Refresh specs before install there.
-          if (GITHUB_CI || IS_CI) {
-            await $`bundle exec pod install --project-directory=ios --repo-update`;
-          } else {
-            await $`yarn pod:install`;
-          }
+          await $`yarn pod:install`;
         },
       });
     }
