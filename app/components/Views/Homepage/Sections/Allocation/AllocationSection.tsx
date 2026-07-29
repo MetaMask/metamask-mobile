@@ -8,13 +8,16 @@ import {
   SectionDivider,
   SensitiveText,
   SensitiveTextLength,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
+import TagBase from '../../../../../component-library/base-components/TagBase';
+import {
+  TagSeverity,
+  TagShape,
+} from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -48,11 +51,11 @@ interface AllocationRow {
 }
 
 const ALLOCATION_RANK_COLORS = [
-  brandColor.green700,
-  brandColor.green500,
-  brandColor.green300,
-  brandColor.lime300,
-  brandColor.green100,
+  brandColor.blue600,
+  brandColor.blue500,
+  brandColor.blue300,
+  brandColor.indigo300,
+  brandColor.blue100,
 ] as const;
 
 const styles = StyleSheet.create({
@@ -246,9 +249,12 @@ const AllocationSectionContent = ({
                     </Text>
                   </Text>
                   {row.apy !== undefined && row.apy > 0 ? (
-                    <Tag severity={TagSeverity.Success}>
+                    <TagBase
+                      severity={TagSeverity.Success}
+                      shape={TagShape.Rectangle}
+                    >
                       {`${row.apy}% APY`}
-                    </Tag>
+                    </TagBase>
                   ) : null}
                 </View>
               </View>
