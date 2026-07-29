@@ -9261,7 +9261,7 @@ __metadata:
 
 "@metamask/kyc-controller@file:../core/packages/kyc-controller::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/kyc-controller@file:../core/packages/kyc-controller#../core/packages/kyc-controller::hash=d3c36c&locator=metamask%40workspace%3A."
+  resolution: "@metamask/kyc-controller@file:../core/packages/kyc-controller#../core/packages/kyc-controller::hash=cd7d8d&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
@@ -9275,7 +9275,8 @@ __metadata:
     "@noble/hashes": "npm:^1.8.0"
     "@scure/base": "npm:^1.2.6"
     reselect: "npm:^5.1.1"
-  checksum: 10/f5ea19f6dd73da710f6aadf432d648525a73c4cd95efd09cc3eaf1a6757ef5e7cda48b1b6a85b66f533b7104311020e9f98a3757938490850b9cf2ee3d579ba1
+    tweetnacl: "npm:^1.0.3"
+  checksum: 10/5e98749a62d64a8c03ee7bb407ea1b2ecabdba8b194b4325fb8ee897e8e4d09d7a9b80a18343daa7b14b9295c0fd3816028da677e6151eba4faaf44ff2effae1
   languageName: node
   linkType: hard
 
