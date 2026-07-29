@@ -315,7 +315,7 @@ const NetworkDetailsView = () => {
         bottomOffset={Platform.OS === 'android' ? 120 : 20}
         disableScrollOnKeyboardHide
       >
-        <Box twClassName="flex-1 gap-4 pt-4 mb-6">
+        <Box twClassName="flex-1 gap-6 pt-6 mb-6">
           {/* Network Name */}
           <NetworkNameField
             formHook={formHook}

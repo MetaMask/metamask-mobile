@@ -29,7 +29,7 @@ const ChainIdWarning: React.FC<{
 }> = ({ warningChainId, goToNetworkEdit }) => {
   if (warningChainId === strings('app_settings.unMatched_chain_name')) {
     return (
-      <Box twClassName="gap-1">
+      <Box twClassName="gap-2">
         <Text variant={TextVariant.BodySm} twClassName="text-error-default">
           {warningChainId}
         </Text>
@@ -246,7 +246,7 @@ const NetworkChainSymbolFields: React.FC<NetworkChainSymbolFieldsProps> = ({
   return (
     <>
       {/* Chain ID */}
-      <Box twClassName="gap-1">
+      <Box twClassName="gap-2">
         <Label>{strings('app_settings.network_chain_id_label')}</Label>
         <TextField
           ref={inputChainId}
@@ -274,7 +274,7 @@ const NetworkChainSymbolFields: React.FC<NetworkChainSymbolFieldsProps> = ({
       </Box>
 
       {/* Symbol */}
-      <Box twClassName="gap-1">
+      <Box twClassName="gap-2">
         <Label>{strings('app_settings.network_symbol_label')}</Label>
         <TextField
           ref={inputSymbol}

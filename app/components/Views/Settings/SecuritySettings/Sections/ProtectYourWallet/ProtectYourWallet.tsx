@@ -8,6 +8,9 @@ import {
   ButtonVariant,
   ButtonSize,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -128,22 +131,28 @@ const ProtectYourWallet = ({
 
       {!oauthFlow &&
         (srpBackedup ? (
-          <Banner
-            variant={BannerVariant.Alert}
-            severity={BannerAlertSeverity.Success}
-            title={strings('app_settings.seedphrase_backed_up')}
-            description={
-              hintText ? (
-                <OldButton
-                  variant={ButtonVariants.Link}
-                  style={styles.viewHint}
-                  onPress={toggleHint}
-                  label={strings('app_settings.view_hint')}
-                />
-              ) : null
-            }
-            style={styles.accessory}
-          />
+          <View style={styles.statusRow}>
+            <Icon
+              name={IconName.Check}
+              size={IconSize.Lg}
+              style={styles.statusIcon}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              style={styles.statusText}
+            >
+              {strings('app_settings.seedphrase_backed_up')}
+            </Text>
+            {hintText ? (
+              <OldButton
+                variant={ButtonVariants.Link}
+                style={styles.viewHint}
+                onPress={toggleHint}
+                label={strings('app_settings.view_hint')}
+              />
+            ) : null}
+          </View>
         ) : (
           <Banner
             variant={BannerVariant.Alert}

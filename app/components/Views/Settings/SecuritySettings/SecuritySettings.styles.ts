@@ -21,9 +21,10 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     },
     desc: {
       marginTop: 8,
+      lineHeight: 20,
     },
     accessory: {
-      marginTop: 16,
+      marginTop: 12,
     },
     titleContainer: {
       flexDirection: 'row',
@@ -42,27 +43,88 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
       alignItems: 'center',
     },
     setting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     firstSetting: {
       marginTop: 0,
     },
     halfSetting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
     },
-    modalView: {
-      alignItems: 'center',
+    groupDivider: {
+      backgroundColor: colors.border.muted,
+      height: 1,
+    },
+    transactionRow: {
+      flexDirection: 'row',
+      paddingVertical: 16,
+    },
+    transactionFirstRow: {
+      paddingTop: 8,
+    },
+    transactionContent: {
       flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
     },
-    modalText: {
+    sectionBreak: {
+      backgroundColor: colors.background.muted,
+      height: 6,
+      marginHorizontal: -16,
+    },
+    transactionHeaderBreak: {
+      height: 0,
+    },
+    sheetContent: {
+      paddingBottom: 24,
+      paddingHorizontal: 16,
+    },
+    sheetText: {
+      lineHeight: 20,
+      marginBottom: 16,
+    },
+    sheetSecondaryAction: {
+      marginBottom: 12,
+    },
+    destructiveSheetContent: {
+      alignItems: 'stretch',
+      paddingBottom: 24,
+      paddingHorizontal: 16,
+      paddingTop: 40,
+      rowGap: 16,
+    },
+    destructiveSheetIcon: {
+      alignSelf: 'center',
+      marginBottom: 8,
+    },
+    destructiveSheetTitle: {
       textAlign: 'center',
     },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
+    destructiveSheetText: {
+      lineHeight: 24,
+      marginBottom: 8,
+    },
+    sheetOptionsContent: {
+      maxHeight: 420,
+    },
+    sheetOptionsList: {
+      paddingBottom: 24,
+    },
+    optionButton: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 48,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+    },
+    optionButtonSelected: {
+      backgroundColor: colors.background.muted,
+    },
+    optionLabel: {
+      flex: 1,
+    },
+    optionIcon: {
+      paddingLeft: 16,
     },
     protect: {
       flexDirection: 'row',
@@ -74,6 +136,7 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     inner: {
       paddingBottom: 112,
       paddingHorizontal: 16,
+      paddingTop: 8,
     },
     picker: {
       borderColor: colors.border.default,
@@ -88,14 +151,6 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     },
     switch: {
       alignSelf: 'flex-start',
-    },
-    subHeading: {
-      marginTop: 40,
-      marginHorizontal: -16,
-      paddingHorizontal: 16,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-      paddingTop: 36,
     },
   });
 

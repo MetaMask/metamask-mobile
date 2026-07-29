@@ -14,11 +14,12 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
   return StyleSheet.create({
     permissionCell: {
-      borderRadius: 10,
       borderWidth: 0,
+      backgroundColor: colors.background.default,
     },
     cellBase: {
       flexDirection: 'row',
+      paddingVertical: 16,
     },
     cellBaseInfo: {
       flex: 1,
@@ -28,7 +29,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
     },
     iconWrapper: {
-      marginTop: 16,
       marginRight: 16,
       width: 32,
       height: 32,

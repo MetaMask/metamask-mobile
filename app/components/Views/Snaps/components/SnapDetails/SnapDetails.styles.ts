@@ -15,28 +15,40 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     snapInfoContainer: {
       backgroundColor: colors.background.default,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.default,
+      paddingHorizontal: 16,
     },
     snapCell: {
-      borderRadius: 8,
-      borderWidth: 0,
+      paddingVertical: 20,
+    },
+    snapId: {
+      marginTop: 4,
     },
     detailsContainerWithBorder: {
-      padding: 16,
-      borderColor: colors.border.default,
+      paddingVertical: 16,
+      borderColor: colors.border.muted,
       borderTopWidth: 1,
-      borderBottomWidth: 1,
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
     detailsContainer: {
-      padding: 16,
+      paddingVertical: 16,
+      borderColor: colors.border.muted,
+      borderTopWidth: 1,
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
+    },
+    detailsLabel: {
+      flex: 1,
+      marginRight: 16,
+    },
+    detailsValue: {
+      alignItems: 'flex-end',
+      flex: 1,
+    },
+    installOrigin: {
+      textTransform: 'capitalize',
     },
   });
 };

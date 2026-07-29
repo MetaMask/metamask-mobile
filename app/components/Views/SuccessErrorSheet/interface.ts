@@ -19,6 +19,7 @@ export interface SuccessErrorSheetParams {
   closeOnPrimaryButtonPress?: boolean;
   closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
+  buttonLayout?: 'horizontal' | 'vertical';
   descriptionAlign?: 'center' | 'left';
   iconColor?: IconColor;
 }

@@ -8,7 +8,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Card from '../../../../../component-library/components/Cards/Card';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -40,7 +39,7 @@ const SnapPermissionCell = ({ title, date }: SnapPermissionCellProps) => {
 
   const { styles } = useStyles(stylesheet, {});
   return (
-    <Card style={styles.permissionCell}>
+    <View style={styles.permissionCell}>
       <View testID={SNAP_PERMISSION_CELL} style={styles.cellBase}>
         <View style={styles.iconWrapper}>
           <Icon
@@ -67,7 +66,7 @@ const SnapPermissionCell = ({ title, date }: SnapPermissionCellProps) => {
           </Text>
         </View>
       </View>
-    </Card>
+    </View>
   );
 };
 

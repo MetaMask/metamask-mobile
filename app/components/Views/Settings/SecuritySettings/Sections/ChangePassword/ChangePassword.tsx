@@ -15,9 +15,10 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
+import { useStyles } from '../../../../../../component-library/hooks';
 
 const ChangePassword = () => {
-  const styles = createStyles();
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<AppNavigationProp>();
 
   const resetPassword = (): void => {

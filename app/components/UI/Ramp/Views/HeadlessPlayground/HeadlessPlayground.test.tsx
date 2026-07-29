@@ -33,7 +33,6 @@ import HeadlessPlayground, {
   HEADLESS_SIM_ASSET_ID,
   HEADLESS_SIM_PAYMENT_METHOD_ID,
   HEADLESS_SIM_PROVIDER_ID,
-  HeadlessPlaygroundAccordionIndex,
 } from './HeadlessPlayground';
 import useRampsController from '../../hooks/useRampsController';
 import { useHeadlessBuy } from '../../headless';
@@ -41,10 +40,8 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 
-const ACCORDION_HEADER_TEST_ID = 'accordionheader';
-
-function pressAccordion(index: HeadlessPlaygroundAccordionIndex) {
-  fireEvent.press(screen.getAllByTestId(ACCORDION_HEADER_TEST_ID)[index]);
+function openPicker(testID: string) {
+  fireEvent.press(screen.getByTestId(testID));
 }
 
 function render(Component: React.ComponentType) {
@@ -221,40 +218,15 @@ describe('HeadlessPlayground', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  describe('Selected values section', () => {
-    it('is collapsed by default — only the title is visible', () => {
+  describe('Current setup section', () => {
+    it('renders the current setup card by default', () => {
       render(HeadlessPlayground);
-      expect(screen.getByText('Selected values (1/4)')).toBeOnTheScreen();
-      expect(screen.queryByText('User region')).not.toBeOnTheScreen();
-    });
-
-    it('reflects the count of selected items in the title', () => {
-      mockUseRampsControllerValues = {
-        ...mockUseRampsControllerInitialValues,
-        selectedProvider: mockProviders[0],
-        selectedToken: mockTokens[0],
-        selectedPaymentMethod: mockPaymentMethods[0],
-      };
-      render(HeadlessPlayground);
-      expect(screen.getByText('Selected values (4/4)')).toBeOnTheScreen();
-    });
-
-    it('reveals the rows when expanded', () => {
-      render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Selected);
+      expect(screen.getByText('Current setup')).toBeOnTheScreen();
       expect(screen.getByText('User region')).toBeOnTheScreen();
-      expect(screen.getByText('fr')).toBeOnTheScreen();
+      expect(screen.getAllByText('fr').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('shows "None selected" placeholders when nothing is selected and expanded', () => {
-      render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Selected);
-      // 3 unselected rows in the accordion (provider, token, payment method)
-      // plus 2 unselected rows in the summary section (token, provider).
-      expect(screen.getAllByText('None selected').length).toBe(5);
-    });
-
-    it('renders the selected provider, token and payment method when present and expanded', () => {
+    it('renders the configure section', () => {
       mockUseRampsControllerValues = {
         ...mockUseRampsControllerInitialValues,
         selectedProvider: mockProviders[0],
@@ -262,9 +234,30 @@ describe('HeadlessPlayground', () => {
         selectedPaymentMethod: mockPaymentMethods[0],
       };
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Selected);
-      // Selected provider/token also appear in the summary section, so we
-      // assert at least one occurrence rather than a unique match.
+      expect(screen.getByText('Configure')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('headless-playground-config-provider'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('headless-playground-config-token'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows "None selected" placeholders when nothing is selected', () => {
+      render(HeadlessPlayground);
+      expect(
+        screen.getAllByText('None selected').length,
+      ).toBeGreaterThanOrEqual(3);
+    });
+
+    it('renders the selected provider, token and payment method when present', () => {
+      mockUseRampsControllerValues = {
+        ...mockUseRampsControllerInitialValues,
+        selectedProvider: mockProviders[0],
+        selectedToken: mockTokens[0],
+        selectedPaymentMethod: mockPaymentMethods[0],
+      };
+      render(HeadlessPlayground);
       expect(
         screen.getAllByText('Provider One (provider-1)').length,
       ).toBeGreaterThanOrEqual(1);
@@ -272,11 +265,12 @@ describe('HeadlessPlayground', () => {
         screen.getAllByText('USDC — eip155:1/erc20:0xabc').length,
       ).toBeGreaterThanOrEqual(1);
       expect(
-        screen.getByText('Debit / Credit Card (/payments/debit-credit-card)'),
-      ).toBeOnTheScreen();
+        screen.getAllByText('Debit / Credit Card (/payments/debit-credit-card)')
+          .length,
+      ).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders the no_data fallback when there is no user region and expanded', () => {
+    it('renders the no_data fallback when there is no user region', () => {
       mockUseRampsControllerValues = {
         ...mockUseRampsControllerInitialValues,
         userRegion: null,
@@ -286,18 +280,18 @@ describe('HeadlessPlayground', () => {
         userRegion: null,
       };
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Selected);
-      expect(screen.getByText('No data')).toBeOnTheScreen();
+      expect(screen.getAllByText('No data').length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  describe('Data accordions', () => {
-    it('renders provider, token, payment method and countries accordions collapsed with item counts', () => {
+  describe('Configure pickers', () => {
+    it('renders provider, token, payment method and countries rows with item counts', () => {
       render(HeadlessPlayground);
-      expect(screen.getByText('Providers (2 item(s))')).toBeOnTheScreen();
-      expect(screen.getByText('Tokens (2 item(s))')).toBeOnTheScreen();
-      expect(screen.getByText('Payment methods (2 item(s))')).toBeOnTheScreen();
-      expect(screen.getByText('Countries (2 item(s))')).toBeOnTheScreen();
+      expect(screen.getByText('Providers')).toBeOnTheScreen();
+      expect(screen.getByText('Tokens')).toBeOnTheScreen();
+      expect(screen.getByText('Payment methods')).toBeOnTheScreen();
+      expect(screen.getByText('Countries')).toBeOnTheScreen();
+      expect(screen.getAllByText('2 item(s)').length).toBeGreaterThanOrEqual(4);
 
       expect(
         screen.queryByText('Provider One (provider-1)'),
@@ -311,43 +305,44 @@ describe('HeadlessPlayground', () => {
       expect(screen.queryByText(/United States/)).not.toBeOnTheScreen();
     });
 
-    it('reveals provider items when the providers accordion is expanded', () => {
+    it('reveals provider items when the providers row is pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Providers);
+      openPicker('headless-playground-config-provider');
       expect(screen.getByText('Provider One (provider-1)')).toBeOnTheScreen();
       expect(screen.getByText('Provider Two (provider-2)')).toBeOnTheScreen();
     });
 
-    it('reveals token items when the tokens accordion is expanded', () => {
+    it('reveals token items when the tokens row is pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Tokens);
+      openPicker('headless-playground-config-token');
       expect(screen.getByText('USDC — eip155:1/erc20:0xabc')).toBeOnTheScreen();
     });
 
-    it('reveals payment method items when the payment methods accordion is expanded', () => {
+    it('reveals payment method items when the payment methods row is pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.PaymentMethods);
+      openPicker('headless-playground-config-payment-method');
       expect(
-        screen.getByText('Debit / Credit Card (/payments/debit-credit-card)'),
-      ).toBeOnTheScreen();
+        screen.getAllByText('Debit / Credit Card (/payments/debit-credit-card)')
+          .length,
+      ).toBeGreaterThanOrEqual(1);
     });
 
-    it('reveals country items when the countries accordion is expanded', () => {
+    it('reveals country items when the countries row is pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Countries);
+      openPicker('headless-playground-config-country');
       expect(screen.getByText('🇺🇸 United States (US)')).toBeOnTheScreen();
     });
 
-    it('renders the loading status in the title when data is loading', () => {
+    it('renders the loading status when data is loading', () => {
       mockUseHeadlessBuyValues = {
         ...mockUseHeadlessBuyInitialValues,
         isLoading: true,
       };
       render(HeadlessPlayground);
-      expect(screen.getByText('Providers (Loading…)')).toBeOnTheScreen();
+      expect(screen.getAllByText('Loading…').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders the error status in the title when a section has an error', () => {
+    it('renders the error status when a section has an error', () => {
       mockUseHeadlessBuyValues = {
         ...mockUseHeadlessBuyInitialValues,
         errors: {
@@ -358,14 +353,14 @@ describe('HeadlessPlayground', () => {
         },
       };
       render(HeadlessPlayground);
-      expect(screen.getByText('Providers (Error: Boom)')).toBeOnTheScreen();
+      expect(screen.getByText('Error: Boom')).toBeOnTheScreen();
     });
   });
 
   describe('Selecting a provider', () => {
     it('calls setSelectedProvider with the chosen provider when pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Providers);
+      openPicker('headless-playground-config-provider');
       fireEvent.press(
         screen.getByTestId('headless-playground-provider-provider-1'),
       );
@@ -378,7 +373,7 @@ describe('HeadlessPlayground', () => {
         selectedProvider: mockProviders[0],
       };
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Providers);
+      openPicker('headless-playground-config-provider');
       fireEvent.press(
         screen.getByTestId('headless-playground-provider-provider-1'),
       );
@@ -391,7 +386,7 @@ describe('HeadlessPlayground', () => {
         selectedProvider: mockProviders[0],
       };
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Providers);
+      openPicker('headless-playground-config-provider');
       const selectedRow = screen.getByTestId(
         'headless-playground-provider-provider-1',
       );
@@ -408,7 +403,7 @@ describe('HeadlessPlayground', () => {
   describe('Selecting a token', () => {
     it('calls setSelectedToken with the asset id when a token row is pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Tokens);
+      openPicker('headless-playground-config-token');
       fireEvent.press(
         screen.getByTestId('headless-playground-token-eip155:1/erc20:0xabc'),
       );
@@ -421,7 +416,7 @@ describe('HeadlessPlayground', () => {
         selectedToken: mockTokens[0],
       };
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Tokens);
+      openPicker('headless-playground-config-token');
       const selectedRow = screen.getByTestId(
         'headless-playground-token-eip155:1/erc20:0xabc',
       );
@@ -432,7 +427,7 @@ describe('HeadlessPlayground', () => {
   describe('Selecting a payment method', () => {
     it('calls setSelectedPaymentMethod when a payment method row is pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.PaymentMethods);
+      openPicker('headless-playground-config-payment-method');
       fireEvent.press(
         screen.getByTestId(
           'headless-playground-payment-method-/payments/debit-credit-card',
@@ -449,7 +444,7 @@ describe('HeadlessPlayground', () => {
         selectedPaymentMethod: mockPaymentMethods[0],
       };
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.PaymentMethods);
+      openPicker('headless-playground-config-payment-method');
       fireEvent.press(
         screen.getByTestId(
           'headless-playground-payment-method-/payments/debit-credit-card',
@@ -462,21 +457,21 @@ describe('HeadlessPlayground', () => {
   describe('Selecting a country', () => {
     it('calls setUserRegion with the lowercased iso code when a country row is pressed', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Countries);
+      openPicker('headless-playground-config-country');
       fireEvent.press(screen.getByTestId('headless-playground-country-US'));
       expect(mockSetUserRegion).toHaveBeenCalledWith('us');
     });
 
     it('marks the currently active region as selected via accessibility state', () => {
       render(HeadlessPlayground);
-      pressAccordion(HeadlessPlaygroundAccordionIndex.Countries);
+      openPicker('headless-playground-config-country');
       const activeRow = screen.getByTestId('headless-playground-country-FR');
       expect(activeRow.props.accessibilityState).toEqual({ selected: true });
     });
   });
 
-  describe('Summary section', () => {
-    it('renders the divider and summary container', () => {
+  describe('Current setup summary', () => {
+    it('renders the divider and current setup container', () => {
       render(HeadlessPlayground);
       expect(
         screen.getByTestId(HEADLESS_PLAYGROUND_SUMMARY_DIVIDER_TEST_ID),
@@ -484,14 +479,14 @@ describe('HeadlessPlayground', () => {
       expect(
         screen.getByTestId(HEADLESS_PLAYGROUND_SUMMARY_TEST_ID),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Summary')).toBeOnTheScreen();
+      expect(screen.getByText('Current setup')).toBeOnTheScreen();
     });
 
-    it('shows "None selected" for both rows when nothing is selected', () => {
+    it('shows "None selected" for unselected rows', () => {
       render(HeadlessPlayground);
       const summary = screen.getByTestId(HEADLESS_PLAYGROUND_SUMMARY_TEST_ID);
       const noneSelectedRows = within(summary).getAllByText('None selected');
-      expect(noneSelectedRows.length).toBe(2);
+      expect(noneSelectedRows.length).toBe(3);
     });
 
     it('renders the selected token and provider values', () => {
@@ -630,18 +625,15 @@ describe('HeadlessPlayground', () => {
   });
 
   describe('Headless consumer simulation section', () => {
-    it('renders the delimited headless sandbox container with the warning banner', () => {
+    it('renders the headless sandbox container', () => {
       render(HeadlessPlayground);
       expect(
         screen.getByTestId(HEADLESS_PLAYGROUND_HEADLESS_SECTION_TEST_ID),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByText('⚠️ HEADLESS CONSUMER SIMULATION'),
-      ).toBeOnTheScreen();
       expect(screen.getByText('useHeadlessBuy sandbox')).toBeOnTheScreen();
       expect(
         screen.getByText(
-          /Inputs default to hardcoded sim values\. Pick a different token, payment method or provider in the accordions above to override/,
+          /Inputs default to hardcoded sim values\. Pick a different token, payment method, or provider in Configure to override/,
         ),
       ).toBeOnTheScreen();
     });

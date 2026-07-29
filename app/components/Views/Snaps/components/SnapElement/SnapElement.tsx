@@ -1,14 +1,14 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
-import { View } from 'react-native';
-import Cell, {
-  CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { Pressable, View } from 'react-native';
 import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 import stylesheet from './SnapElement.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -27,22 +27,30 @@ const SnapElement = (snap: Snap) => {
   };
 
   return (
-    <Cell
+    <Pressable
       testID={SNAP_ElEMENT}
       style={styles.snapCell}
-      variant={CellVariant.Display}
-      title={snap.manifest.proposedName}
-      secondaryText={snap.id}
       onPress={onPress}
-      avatarProps={{
-        variant: AvatarVariant.Icon,
-        name: IconName.Snaps,
-      }}
+      accessibilityRole="button"
+      accessibilityLabel={snap.manifest.proposedName}
     >
+      <View style={styles.snapInfo}>
+        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+          {snap.manifest.proposedName}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+          style={styles.snapId}
+        >
+          {snap.id}
+        </Text>
+      </View>
       <View style={styles.arrowContainer}>
         <Icon name={IconName.ArrowRight} />
       </View>
-    </Cell>
+    </Pressable>
   );
 };
 

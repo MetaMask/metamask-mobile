@@ -1,5 +1,6 @@
 // Third party dependencies
 import React, { useCallback, useState } from 'react';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,12 +8,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // External dependencies
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
-import { Label, HeaderStandard } from '@metamask/design-system-react-native';
-import TextField from '../../../../../../component-library/components/Form/TextField';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
   ButtonSize,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+  HeaderStandard,
+  Label,
+  TextField,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
@@ -64,10 +67,6 @@ function ActivationKeyForm() {
     navigation.goBack();
   }, [activationKey, navigation, onSubmit, active, label]);
 
-  const handleCancel = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   const title = key
     ? strings('app_settings.fiat_on_ramp.edit_activation_key')
     : strings('app_settings.fiat_on_ramp.add_activation_key');
@@ -81,63 +80,66 @@ function ActivationKeyForm() {
         backButtonProps={{ testID: ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID }}
       />
       <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content>
-            <Row>
-              <Label>{strings('app_settings.fiat_on_ramp.label')}</Label>
-              <TextField
-                autoCapitalize={'none'}
-                onChangeText={setLabel}
-                placeholder={strings('app_settings.fiat_on_ramp.add_label')}
-                numberOfLines={1}
-                value={label}
-                returnKeyType={'done'}
-                onSubmitEditing={handleSubmit}
-                autoFocus
-              />
-            </Row>
-            <Row>
-              <Label>{strings('app_settings.fiat_on_ramp.key')}</Label>
-              <TextField
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                onChangeText={setActivationKey}
-                placeholder={strings(
-                  'app_settings.fiat_on_ramp.paste_or_type_activation_key',
-                )}
-                spellCheck={false}
-                numberOfLines={1}
-                value={activationKey}
-                returnKeyType={'done'}
-                onSubmitEditing={handleSubmit}
-                isReadonly={Boolean(key)}
-                autoFocus
-              />
-            </Row>
-
-            <Row style={style.buttons}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={style.activationKeyFormBody}
+        >
+          <ScreenLayout.Body style={style.activationKeyFormBody}>
+            <ScreenLayout.Content style={style.activationKeyFormContent}>
+              <View style={style.activationKeyFormFields}>
+                <Row style={style.activationKeyFormField}>
+                  <Label>{strings('app_settings.fiat_on_ramp.label')}</Label>
+                  <TextField
+                    onChangeText={setLabel}
+                    placeholder={strings('app_settings.fiat_on_ramp.add_label')}
+                    style={style.activationKeyTextField}
+                    value={label}
+                    autoFocus
+                    inputProps={{
+                      autoCapitalize: 'none',
+                      numberOfLines: 1,
+                      returnKeyType: 'next',
+                    }}
+                  />
+                </Row>
+                <Row style={style.activationKeyFormField}>
+                  <Label>{strings('app_settings.fiat_on_ramp.key')}</Label>
+                  <TextField
+                    onChangeText={setActivationKey}
+                    placeholder={strings(
+                      'app_settings.fiat_on_ramp.paste_or_type_activation_key',
+                    )}
+                    style={style.activationKeyTextField}
+                    value={activationKey}
+                    isReadOnly={Boolean(key)}
+                    inputProps={{
+                      autoCapitalize: 'none',
+                      autoCorrect: false,
+                      spellCheck: false,
+                      numberOfLines: 1,
+                      returnKeyType: 'done',
+                      onSubmitEditing: handleSubmit,
+                    }}
+                  />
+                </Row>
+              </View>
+            </ScreenLayout.Content>
+            <ScreenLayout.Footer style={style.activationKeyFormFooter}>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                style={style.button}
-                onPress={handleCancel}
-                label={strings('app_settings.fiat_on_ramp.cancel')}
-              />
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                style={style.button}
+                style={style.activationKeyFormButton}
                 onPress={handleSubmit}
-                label={
-                  key
-                    ? strings('app_settings.fiat_on_ramp.update')
-                    : strings('app_settings.fiat_on_ramp.add')
-                }
                 isDisabled={!regex.activationKey.test(activationKey)}
-              />
-            </Row>
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
+                isFullWidth
+              >
+                {key
+                  ? strings('app_settings.fiat_on_ramp.update')
+                  : strings('app_settings.fiat_on_ramp.add')}
+              </Button>
+            </ScreenLayout.Footer>
+          </ScreenLayout.Body>
+        </KeyboardAvoidingView>
       </ScreenLayout>
     </SafeAreaView>
   );

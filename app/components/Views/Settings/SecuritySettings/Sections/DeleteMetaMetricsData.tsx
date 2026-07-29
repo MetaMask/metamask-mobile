@@ -29,6 +29,13 @@ import useDataDeletion from './useDataDeletion';
 
 interface DeleteMetaMetricsDataProps {
   metricsOptin: boolean;
+  openConfirmSheet?: (config: {
+    title: string;
+    message: string;
+    confirmText: string;
+    cancelText: string;
+    onConfirm: () => void | Promise<void>;
+  }) => void;
 }
 
 /**
@@ -87,7 +94,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
    * We don't need the value to determine if the deletion button should be enabled or not
    * but we need to track the switch change to update the component.
    */
-  const { metricsOptin } = props;
+  const { metricsOptin, openConfirmSheet } = props;
 
   const {
     isDataDeletionAvailable,
@@ -183,11 +190,32 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
   const openMetametricsHowto = () => Linking.openURL(HOWTO_MANAGE_METAMETRICS);
+  const modalTitleText = strings(
+    'app_settings.delete_metrics_confirm_modal_title',
+  );
+  const modalDescriptionText = strings(
+    'app_settings.delete_metrics_confirm_modal_description',
+  );
+  const modalConfirmButtonText = strings('app_settings.clear');
+  const modalCancelButtonText = strings(
+    'app_settings.reset_account_cancel_button',
+  );
+
+  const openDeleteMetaMetricsSheet = openConfirmSheet
+    ? () =>
+        openConfirmSheet({
+          title: modalTitleText,
+          message: modalDescriptionText,
+          confirmText: modalConfirmButtonText,
+          cancelText: modalCancelButtonText,
+          onConfirm: deleteMetaMetrics,
+        })
+    : undefined;
 
   return (
     <SettingsButtonSection
       testID="delete-metrics-button"
-      needsModal
+      needsModal={!openConfirmSheet}
       sectionTitle={strings('app_settings.delete_metrics_title')}
       sectionButtonText={strings('app_settings.delete_metrics_button')}
       descriptionText={
@@ -273,17 +301,12 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
         )
       }
       buttonDisabled={!dataDeletionAvailable}
-      modalTitleText={strings(
-        'app_settings.delete_metrics_confirm_modal_title',
-      )}
-      modalDescriptionText={strings(
-        'app_settings.delete_metrics_confirm_modal_description',
-      )}
-      modalConfirmButtonText={strings('app_settings.clear')}
-      modalCancelButtonText={strings(
-        'app_settings.reset_account_cancel_button',
-      )}
+      modalTitleText={modalTitleText}
+      modalDescriptionText={modalDescriptionText}
+      modalConfirmButtonText={modalConfirmButtonText}
+      modalCancelButtonText={modalCancelButtonText}
       modalOnConfirm={deleteMetaMetrics}
+      onPress={openDeleteMetaMetricsSheet}
     />
   );
 };

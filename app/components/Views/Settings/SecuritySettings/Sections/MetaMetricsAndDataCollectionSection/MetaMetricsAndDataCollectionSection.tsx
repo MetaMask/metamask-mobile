@@ -4,6 +4,7 @@ import {
   META_METRICS_SECTION,
 } from '../../SecuritySettings.constants';
 import {
+  Box,
   FontWeight,
   Text,
   TextColor,
@@ -314,7 +315,12 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   return (
     <>
       {renderMetaMetricsSection()}
-      {!hideMarketingSection && renderDataCollectionSection()}
+      {!hideMarketingSection ? (
+        <>
+          <Box style={styles.groupDivider} />
+          {renderDataCollectionSection()}
+        </>
+      ) : null}
     </>
   );
 };

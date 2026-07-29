@@ -1,5 +1,8 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  SectionDivider,
+} from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -40,8 +43,13 @@ const BackupAndSyncSettings = () => {
           testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
         }}
       />
-      <ScrollView style={styles.wrapper}>
+      <ScrollView style={styles.wrapper} contentContainerStyle={styles.inner}>
         <BackupAndSyncToggle />
+        <SectionDivider
+          borderWidth={0}
+          marginVertical={4}
+          style={styles.sectionDivider}
+        />
         <BackupAndSyncFeaturesToggles />
       </ScrollView>
     </SafeAreaView>

@@ -1,38 +1,30 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { ScrollView } from 'react-native-gesture-handler';
 import isUrl from 'is-url';
 import {
   Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Label,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Cell, {
-  CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useExpandableFormAnimation } from '../../hooks/useExpandableFormAnimation';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import SelectField from './SelectField';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
 import {
   appendBlockExplorerItemToFormState,
   applyBlockExplorerSelectionToFormState,
-  removeBlockExplorerUrlFromFormState,
 } from '../NetworkDetailsView.utils';
 import type {
   UrlSheetMutationCommittedHandler,
@@ -70,7 +62,7 @@ const BlockExplorerSection: React.FC<BlockExplorerSectionProps> = ({
 
   if (addMode) {
     return (
-      <Box twClassName="gap-1">
+      <Box twClassName="gap-2">
         <Label>{strings('app_settings.network_block_explorer_label')}</Label>
         <TextField
           ref={inputBlockExplorerURL}
@@ -91,7 +83,7 @@ const BlockExplorerSection: React.FC<BlockExplorerSectionProps> = ({
 
   return (
     <>
-      <Box>
+      <Box twClassName="gap-2">
         <Label>{strings('app_settings.network_block_explorer_label')}</Label>
         <SelectField
           value={blockExplorerUrl}
@@ -111,30 +103,41 @@ interface BlockExplorerListItemProps {
   url: string;
   isSelected: boolean;
   onSelect: (url: string) => void | Promise<void>;
-  onDelete: (url: string) => void | Promise<void>;
+  styles: NetworkDetailsStyles;
 }
 
 const BlockExplorerListItem: React.FC<BlockExplorerListItemProps> = React.memo(
-  ({ url, isSelected, onSelect, onDelete }) => {
+  ({ url, isSelected, onSelect, styles }) => {
     const handlePress = useCallback(async () => {
       await onSelect(url);
     }, [onSelect, url]);
-    const handleDelete = useCallback(async () => {
-      await onDelete(url);
-    }, [onDelete, url]);
 
     return (
-      <Cell
-        variant={CellVariant.SelectWithMenu}
-        title={url}
-        isSelected={isSelected}
-        withAvatar={false}
+      <TouchableOpacity
         onPress={handlePress}
-        showButtonIcon={!isSelected}
-        buttonIcon={IconName.Trash}
-        buttonProps={{ onButtonClick: handleDelete }}
-        avatarProps={{ variant: AvatarVariant.Network }}
-      />
+        style={[
+          styles.sheetOptionRow,
+          isSelected && styles.sheetOptionRowSelected,
+        ]}
+        accessibilityRole="button"
+        accessibilityState={{ selected: isSelected }}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          style={styles.sheetOptionTitle}
+          numberOfLines={1}
+        >
+          {url}
+        </Text>
+        {isSelected ? (
+          <Icon
+            name={IconName.Check}
+            size={IconSize.Md}
+            color={IconColor.IconDefault}
+            style={styles.sheetOptionIcon}
+          />
+        ) : null}
+      </TouchableOpacity>
     );
   },
 );
@@ -158,7 +161,6 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
     onBlockExplorerItemAdd,
     onBlockExplorerUrlChange,
     onBlockExplorerSelect,
-    onBlockExplorerUrlDelete,
     inputBlockExplorerURL,
     modals: {
       showMultiBlockExplorerAddModal,
@@ -227,36 +229,6 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
     [onBlockExplorerSelect, handleDismiss, onUrlSheetMutationCommitted],
   );
 
-  const onBlockExplorerUrlDeletePersisted = useCallback(
-    async (url: string) => {
-      setBlockExplorerSheetError(undefined);
-      const nextForm = removeBlockExplorerUrlFromFormState(
-        latestFormRef.current,
-        url,
-      );
-      const persisted = await onUrlSheetMutationCommitted?.(
-        nextForm,
-        BLOCK_EXPLORER_SHEET_PERSIST_OPTS,
-      );
-      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
-        setBlockExplorerSheetError(
-          strings('app_settings.url_sheet_network_update_failed'),
-        );
-        return;
-      }
-      onBlockExplorerUrlDelete(url);
-    },
-    [onBlockExplorerUrlDelete, onUrlSheetMutationCommitted],
-  );
-
-  const handleBack = () => {
-    if (showForm && blockExplorerUrls.length > 0) {
-      setShowForm(false);
-    } else {
-      handleDismiss();
-    }
-  };
-
   const handleFormSubmit = async () => {
     if (
       !blockExplorerUrlForm ||
@@ -309,7 +281,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
       onClose={closeBlockExplorerModal}
       shouldNavigateBack={false}
     >
-      <BottomSheetHeader onBack={handleBack}>
+      <BottomSheetHeader onClose={handleDismiss}>
         {strings('app_settings.add_block_explorer_url')}
       </BottomSheetHeader>
       <ScrollView
@@ -318,7 +290,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
       >
         {/* Block explorer list — always visible when items exist */}
         {blockExplorerUrls.length > 0 && (
-          <Box twClassName="mx-4 rounded-xl overflow-hidden border border-border-muted">
+          <Box>
             {blockExplorerUrls.map((url, index) => (
               <React.Fragment key={url}>
                 {index > 0 && <Box twClassName="h-px bg-border-muted" />}
@@ -326,7 +298,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
                   url={url}
                   isSelected={blockExplorerUrl === url}
                   onSelect={handleSelectAndDismiss}
-                  onDelete={onBlockExplorerUrlDeletePersisted}
+                  styles={styles}
                 />
               </React.Fragment>
             ))}
@@ -386,19 +358,35 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
                     </Text>
                   )}
                 </Box>
-                <ButtonPrimary
-                  label={strings('app_settings.add_block_explorer_url')}
-                  testID={NetworkDetailsViewSelectorsIDs.ADD_BLOCK_EXPLORER}
-                  size={ButtonSize.Lg}
+                <TouchableOpacity
                   onPress={handleFormSubmit}
-                  width={ButtonWidthTypes.Full}
-                  loading={isBlockExplorerSheetSubmitting}
-                  isDisabled={
+                  disabled={
                     !blockExplorerUrlForm ||
                     !isUrl(blockExplorerUrlForm) ||
                     isBlockExplorerSheetSubmitting
                   }
-                />
+                  style={[
+                    styles.sheetAddRow,
+                    (!blockExplorerUrlForm ||
+                      !isUrl(blockExplorerUrlForm) ||
+                      isBlockExplorerSheetSubmitting) &&
+                      styles.sheetAddRowDisabled,
+                  ]}
+                  accessibilityRole="button"
+                  testID={NetworkDetailsViewSelectorsIDs.ADD_BLOCK_EXPLORER}
+                >
+                  <Icon
+                    name={IconName.Add}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
+                  />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={styles.sheetAddRowText}
+                  >
+                    {strings('app_settings.add_block_explorer_url')}
+                  </Text>
+                </TouchableOpacity>
               </Box>
             </View>
           </View>
@@ -409,16 +397,22 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
           style={toggleButtonStyle}
           pointerEvents={showForm ? 'none' : 'auto'}
         >
-          <Box twClassName="self-center pt-4">
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('app_settings.add_block_explorer_url')}
-              startIconName={IconName.Add}
-              size={ButtonSize.Md}
-              width={ButtonWidthTypes.Auto}
+          <Box twClassName="pt-2">
+            <TouchableOpacity
               onPress={handleShowForm}
+              style={styles.sheetAddRow}
+              accessibilityRole="button"
               testID={NetworkDetailsViewSelectorsIDs.ADD_BLOCK_EXPLORER}
-            />
+            >
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Md}
+                color={IconColor.IconDefault}
+              />
+              <Text variant={TextVariant.BodyMd} style={styles.sheetAddRowText}>
+                {strings('app_settings.add_block_explorer_url')}
+              </Text>
+            </TouchableOpacity>
           </Box>
         </Animated.View>
       </ScrollView>

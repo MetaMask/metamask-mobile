@@ -8,6 +8,7 @@ import {
   TextVariant,
   Icon,
   IconName,
+  Box,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import styles from './BackupAndSyncFeaturesToggles.styles';
@@ -125,6 +126,7 @@ const FeatureToggle = ({
 };
 
 const BackupAndSyncFeaturesToggles = () => {
+  const { colors } = useTheme();
   const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isBackupAndSyncUpdateLoading = useSelector(
     selectIsBackupAndSyncUpdateLoading,
@@ -133,7 +135,7 @@ const BackupAndSyncFeaturesToggles = () => {
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingSm}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('backupAndSync.manageWhatYouSync.title')}
         </Text>
         <Text
@@ -145,13 +147,22 @@ const BackupAndSyncFeaturesToggles = () => {
         </Text>
       </View>
 
-      {backupAndSyncFeaturesTogglesSections.map((section) => (
-        <FeatureToggle
-          key={section.id}
-          section={section}
-          isBackupAndSyncUpdateLoading={isBackupAndSyncUpdateLoading}
-          isBackupAndSyncEnabled={isBackupAndSyncEnabled}
-        />
+      {backupAndSyncFeaturesTogglesSections.map((section, index) => (
+        <React.Fragment key={section.id}>
+          <FeatureToggle
+            section={section}
+            isBackupAndSyncUpdateLoading={isBackupAndSyncUpdateLoading}
+            isBackupAndSyncEnabled={isBackupAndSyncEnabled}
+          />
+          {index < backupAndSyncFeaturesTogglesSections.length - 1 ? (
+            <Box
+              style={[
+                styles.settingsPageSeparator,
+                { backgroundColor: colors.border.muted },
+              ]}
+            />
+          ) : null}
+        </React.Fragment>
       ))}
     </View>
   );

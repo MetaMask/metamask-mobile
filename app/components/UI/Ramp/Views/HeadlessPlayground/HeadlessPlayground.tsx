@@ -10,7 +10,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Button,
+  ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
@@ -22,12 +25,11 @@ import {
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Row from '../../Aggregator/components/Row';
-import Accordion from '../../../../../component-library/components/Accordions/Accordion/Accordion';
-import { AccordionHeaderHorizontalAlignment } from '../../../../../component-library/components/Accordions/Accordion';
 
 import { strings } from '../../../../../../locales/i18n';
 
@@ -74,15 +76,6 @@ export const HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID =
 export const HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID =
   'headless-playground-event-log';
 
-export enum HeadlessPlaygroundAccordionIndex {
-  Selected = 0,
-  Providers = 1,
-  Tokens = 2,
-  PaymentMethods = 3,
-  Countries = 4,
-  Quotes = 5,
-}
-
 export const HEADLESS_PLAYGROUND_DEFAULT_TOKEN_ASSET_ID =
   'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
 export const HEADLESS_PLAYGROUND_DEFAULT_PROVIDER_ID_SUFFIX = 'transak-native';
@@ -99,56 +92,6 @@ export const HEADLESS_PLAYGROUND_DEFAULT_PROVIDER_ID_SUFFIX = 'transak-native';
 export const HEADLESS_SIM_ASSET_ID = HEADLESS_PLAYGROUND_DEFAULT_TOKEN_ASSET_ID;
 export const HEADLESS_SIM_PAYMENT_METHOD_ID = '/payments/debit-credit-card';
 export const HEADLESS_SIM_PROVIDER_ID = '/providers/transak-native';
-
-interface DataAccordionProps {
-  title: string;
-  status: string;
-  children: React.ReactNode;
-  isEmpty: boolean;
-  isExpanded?: boolean;
-  styles: ReturnType<typeof styleSheet>;
-}
-
-function DataAccordion({
-  title,
-  status,
-  children,
-  isEmpty,
-  isExpanded = false,
-  styles,
-}: DataAccordionProps) {
-  return (
-    <View style={styles.section}>
-      <Accordion
-        title={`${title} (${status})`}
-        isExpanded={isExpanded}
-        horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
-      >
-        <View style={styles.box}>
-          {isEmpty ? (
-            <View style={styles.emptyState}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings(
-                  'app_settings.fiat_on_ramp.headless_playground.no_data',
-                )}
-              </Text>
-            </View>
-          ) : (
-            <ScrollView
-              contentContainerStyle={styles.boxScroll}
-              nestedScrollEnabled
-            >
-              {children}
-            </ScrollView>
-          )}
-        </View>
-      </Accordion>
-    </View>
-  );
-}
 
 interface SelectedRowProps {
   label: string;
@@ -241,6 +184,67 @@ function SandboxParamRow({
   );
 }
 
+interface ConfigurationRowProps {
+  label: string;
+  value: string;
+  status?: string;
+  onPress: () => void;
+  isDisabled?: boolean;
+  styles: ReturnType<typeof styleSheet>;
+  testID?: string;
+}
+
+function ConfigurationRow({
+  label,
+  value,
+  status,
+  onPress,
+  isDisabled = false,
+  styles,
+  testID,
+}: ConfigurationRowProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={isDisabled}
+      style={({ pressed }) => [
+        styles.configurationRow,
+        isDisabled && styles.configurationRowDisabled,
+        pressed && !isDisabled && styles.configurationRowPressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled }}
+      testID={testID}
+    >
+      <View style={styles.configurationRowContent}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {label}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+          style={styles.configurationRowValue}
+        >
+          {value}
+        </Text>
+        {status ? (
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {status}
+          </Text>
+        ) : null}
+      </View>
+      {isDisabled ? null : (
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Sm}
+          color={IconColor.Muted}
+        />
+      )}
+    </Pressable>
+  );
+}
+
 interface SelectableRowProps {
   label: string;
   isSelected: boolean;
@@ -266,8 +270,8 @@ function SelectableRow({
     >
       <Text
         variant={TextVariant.BodySm}
-        fontWeight={isSelected ? FontWeight.Medium : FontWeight.Regular}
-        color={isSelected ? TextColor.PrimaryDefault : TextColor.TextDefault}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
         style={styles.selectableRowLabel}
       >
         {label}
@@ -275,8 +279,8 @@ function SelectableRow({
       {isSelected ? (
         <Icon
           name={IconName.Check}
-          size={IconSize.Sm}
-          color={IconColor.PrimaryDefault}
+          size={IconSize.Md}
+          color={IconColor.IconDefault}
         />
       ) : null}
     </Pressable>
@@ -284,10 +288,19 @@ function SelectableRow({
 }
 
 type QuotesStatus = 'idle' | 'loading' | 'success' | 'error';
+type PickerType = 'provider' | 'token' | 'paymentMethod' | 'country';
 
 function HeadlessPlayground() {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
+  const pickerSheetRef = useRef<BottomSheetRef>(null);
+  const [activePicker, setActivePicker] = useState<PickerType | null>(null);
+
+  useEffect(() => {
+    if (activePicker) {
+      pickerSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [activePicker]);
 
   // Setters live in the controller hook — `useHeadlessBuy` is read-only on
   // purpose. The playground simulates an external consumer pre-seeding
@@ -384,7 +397,7 @@ function HeadlessPlayground() {
   //     consumer).
   //   • The asset / payment method / provider IDs default to the
   //     HEADLESS_SIM_* hardcoded constants above. They can be *overridden*
-  //     by selecting a different option in the picker accordions higher up
+  //     by selecting a different option in the Configure pickers higher up
   //     (which write to `useRampsController`'s selected* state). When an
   //     override is active a "Reset" link surfaces here so you can flip back
   //     to the hardcoded sim value.
@@ -626,12 +639,169 @@ function HeadlessPlayground() {
 
   const tokensList = tokens?.allTokens ?? [];
 
-  const selectedValuesCount = [
-    userRegion,
-    selectedProvider,
-    selectedToken,
-    selectedPaymentMethod,
-  ].filter(Boolean).length;
+  const closePicker = useCallback(() => {
+    pickerSheetRef.current?.onCloseBottomSheet(() => setActivePicker(null));
+  }, []);
+
+  const handleProviderSelect = useCallback(
+    (provider: (typeof providers)[number]) => {
+      setSelectedProvider(
+        selectedProvider?.id === provider.id ? null : provider,
+      );
+      closePicker();
+    },
+    [closePicker, selectedProvider?.id, setSelectedProvider],
+  );
+
+  const handleTokenSelect = useCallback(
+    (assetId: string) => {
+      setSelectedToken(assetId);
+      closePicker();
+    },
+    [closePicker, setSelectedToken],
+  );
+
+  const handlePaymentMethodSelect = useCallback(
+    (paymentMethod: PaymentMethod) => {
+      setSelectedPaymentMethod(
+        selectedPaymentMethod?.id === paymentMethod.id ? null : paymentMethod,
+      );
+      closePicker();
+    },
+    [closePicker, selectedPaymentMethod?.id, setSelectedPaymentMethod],
+  );
+
+  const handleCountrySelect = useCallback(
+    (regionCode: string) => {
+      setUserRegion(regionCode).catch(() => undefined);
+      closePicker();
+    },
+    [closePicker, setUserRegion],
+  );
+
+  const selectedProviderLabel = selectedProvider
+    ? `${selectedProvider.name} (${selectedProvider.id})`
+    : noneSelected;
+  const selectedTokenLabel = selectedToken
+    ? `${selectedToken.symbol} — ${selectedToken.assetId}`
+    : noneSelected;
+  const selectedPaymentMethodLabel = selectedPaymentMethod
+    ? `${selectedPaymentMethod.name} (${selectedPaymentMethod.id})`
+    : noneSelected;
+  const selectedCountryLabel = userRegion?.regionCode || noData;
+
+  const isProviderPickerDisabled =
+    headlessIsLoading ||
+    Boolean(headlessErrors.providers) ||
+    providers.length === 0;
+  const isTokenPickerDisabled =
+    headlessIsLoading ||
+    Boolean(headlessErrors.tokens) ||
+    tokensList.length === 0;
+  const isPaymentMethodPickerDisabled =
+    headlessIsLoading ||
+    Boolean(headlessErrors.paymentMethods) ||
+    paymentMethods.length === 0;
+  const isCountryPickerDisabled =
+    headlessIsLoading ||
+    Boolean(headlessErrors.countries) ||
+    countries.length === 0;
+
+  const renderPickerSheet = () => {
+    if (!activePicker) {
+      return null;
+    }
+
+    const titleKey =
+      activePicker === 'provider'
+        ? 'choose_provider'
+        : activePicker === 'token'
+          ? 'choose_token'
+          : activePicker === 'paymentMethod'
+            ? 'choose_payment_method'
+            : 'choose_country';
+
+    return (
+      <BottomSheet
+        ref={pickerSheetRef}
+        onClose={() => setActivePicker(null)}
+        testID={`headless-playground-${activePicker}-sheet`}
+      >
+        <BottomSheetHeader onClose={closePicker}>
+          {strings(`app_settings.fiat_on_ramp.headless_playground.${titleKey}`)}
+        </BottomSheetHeader>
+        <View style={styles.pickerSheetContent}>
+          <ScrollView
+            contentContainerStyle={styles.pickerSheetList}
+            nestedScrollEnabled
+          >
+            {activePicker === 'provider'
+              ? providers.map((provider) => {
+                  const isSelected = selectedProvider?.id === provider.id;
+                  return (
+                    <SelectableRow
+                      key={provider.id}
+                      label={`${provider.name} (${provider.id})`}
+                      isSelected={isSelected}
+                      onPress={() => handleProviderSelect(provider)}
+                      testID={`headless-playground-provider-${provider.id}`}
+                      styles={styles}
+                    />
+                  );
+                })
+              : null}
+            {activePicker === 'token'
+              ? tokensList.map((token) => {
+                  const isSelected = selectedToken?.assetId === token.assetId;
+                  return (
+                    <SelectableRow
+                      key={token.assetId}
+                      label={`${token.symbol} — ${token.assetId}`}
+                      isSelected={isSelected}
+                      onPress={() => handleTokenSelect(token.assetId)}
+                      testID={`headless-playground-token-${token.assetId}`}
+                      styles={styles}
+                    />
+                  );
+                })
+              : null}
+            {activePicker === 'paymentMethod'
+              ? paymentMethods.map((paymentMethod) => {
+                  const isSelected =
+                    selectedPaymentMethod?.id === paymentMethod.id;
+                  return (
+                    <SelectableRow
+                      key={paymentMethod.id}
+                      label={`${paymentMethod.name} (${paymentMethod.id})`}
+                      isSelected={isSelected}
+                      onPress={() => handlePaymentMethodSelect(paymentMethod)}
+                      testID={`headless-playground-payment-method-${paymentMethod.id}`}
+                      styles={styles}
+                    />
+                  );
+                })
+              : null}
+            {activePicker === 'country'
+              ? countries.map((country) => {
+                  const regionCode = country.isoCode.toLowerCase();
+                  const isSelected = userRegion?.regionCode === regionCode;
+                  return (
+                    <SelectableRow
+                      key={country.isoCode}
+                      label={`${country.flag ?? ''} ${country.name} (${country.isoCode})`.trim()}
+                      isSelected={isSelected}
+                      onPress={() => handleCountrySelect(regionCode)}
+                      testID={`headless-playground-country-${country.isoCode}`}
+                      styles={styles}
+                    />
+                  );
+                })
+              : null}
+          </ScrollView>
+        </View>
+      </BottomSheet>
+    );
+  };
 
   const quotesSummary = useMemo(() => {
     if (headlessQuotesStatus === 'loading') {
@@ -663,192 +833,43 @@ function HeadlessPlayground() {
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <Row first>
-              <View style={styles.accordionStack}>
-                <View style={styles.accordionItem}>
-                  <Accordion
-                    title={`${strings(
-                      'app_settings.fiat_on_ramp.headless_playground.selected_values',
-                    )} (${selectedValuesCount}/4)`}
-                    horizontalAlignment={
-                      AccordionHeaderHorizontalAlignment.Start
-                    }
-                  >
-                    <View style={styles.box}>
-                      <ScrollView
-                        contentContainerStyle={styles.boxScroll}
-                        nestedScrollEnabled
-                      >
-                        <SelectedRow
-                          label={strings(
-                            'app_settings.fiat_on_ramp.headless_playground.selected_user_region',
-                          )}
-                          value={userRegion?.regionCode || noData}
-                          styles={styles}
-                        />
-                        <SelectedRow
-                          label={strings(
-                            'app_settings.fiat_on_ramp.headless_playground.selected_provider',
-                          )}
-                          value={
-                            selectedProvider
-                              ? `${selectedProvider.name} (${selectedProvider.id})`
-                              : noneSelected
-                          }
-                          styles={styles}
-                        />
-                        <SelectedRow
-                          label={strings(
-                            'app_settings.fiat_on_ramp.headless_playground.selected_token',
-                          )}
-                          value={
-                            selectedToken
-                              ? `${selectedToken.symbol} — ${selectedToken.assetId}`
-                              : noneSelected
-                          }
-                          styles={styles}
-                        />
-                        <SelectedRow
-                          label={strings(
-                            'app_settings.fiat_on_ramp.headless_playground.selected_payment_method',
-                          )}
-                          value={
-                            selectedPaymentMethod
-                              ? `${selectedPaymentMethod.name} (${selectedPaymentMethod.id})`
-                              : noneSelected
-                          }
-                          styles={styles}
-                        />
-                      </ScrollView>
-                    </View>
-                  </Accordion>
-                </View>
-
-                <View style={styles.accordionItem}>
-                  <DataAccordion
-                    title={strings(
-                      'app_settings.fiat_on_ramp.headless_playground.providers',
-                    )}
-                    status={formatStatus(
-                      headlessIsLoading,
-                      headlessErrors.providers,
-                      providers.length,
-                    )}
-                    isEmpty={providers.length === 0}
-                    styles={styles}
-                  >
-                    {providers.map((provider) => {
-                      const isSelected = selectedProvider?.id === provider.id;
-                      return (
-                        <SelectableRow
-                          key={provider.id}
-                          label={`${provider.name} (${provider.id})`}
-                          isSelected={isSelected}
-                          onPress={() =>
-                            setSelectedProvider(isSelected ? null : provider)
-                          }
-                          testID={`headless-playground-provider-${provider.id}`}
-                          styles={styles}
-                        />
-                      );
-                    })}
-                  </DataAccordion>
-                </View>
-
-                <View style={styles.accordionItem}>
-                  <DataAccordion
-                    title={strings(
-                      'app_settings.fiat_on_ramp.headless_playground.tokens',
-                    )}
-                    status={formatStatus(
-                      headlessIsLoading,
-                      headlessErrors.tokens,
-                      tokensList.length,
-                    )}
-                    isEmpty={tokensList.length === 0}
-                    styles={styles}
-                  >
-                    {tokensList.map((token) => {
-                      const isSelected =
-                        selectedToken?.assetId === token.assetId;
-                      return (
-                        <SelectableRow
-                          key={token.assetId}
-                          label={`${token.symbol} — ${token.assetId}`}
-                          isSelected={isSelected}
-                          onPress={() => setSelectedToken(token.assetId)}
-                          testID={`headless-playground-token-${token.assetId}`}
-                          styles={styles}
-                        />
-                      );
-                    })}
-                  </DataAccordion>
-                </View>
-
-                <View style={styles.accordionItem}>
-                  <DataAccordion
-                    title={strings(
-                      'app_settings.fiat_on_ramp.headless_playground.payment_methods',
-                    )}
-                    status={formatStatus(
-                      headlessIsLoading,
-                      headlessErrors.paymentMethods,
-                      paymentMethods.length,
-                    )}
-                    isEmpty={paymentMethods.length === 0}
-                    styles={styles}
-                  >
-                    {paymentMethods.map((paymentMethod) => {
-                      const isSelected =
-                        selectedPaymentMethod?.id === paymentMethod.id;
-                      return (
-                        <SelectableRow
-                          key={paymentMethod.id}
-                          label={`${paymentMethod.name} (${paymentMethod.id})`}
-                          isSelected={isSelected}
-                          onPress={() =>
-                            setSelectedPaymentMethod(
-                              isSelected ? null : paymentMethod,
-                            )
-                          }
-                          testID={`headless-playground-payment-method-${paymentMethod.id}`}
-                          styles={styles}
-                        />
-                      );
-                    })}
-                  </DataAccordion>
-                </View>
-
-                <View style={styles.accordionItem}>
-                  <DataAccordion
-                    title={strings(
-                      'app_settings.fiat_on_ramp.headless_playground.countries',
-                    )}
-                    status={formatStatus(
-                      headlessIsLoading,
-                      headlessErrors.countries,
-                      countries.length,
-                    )}
-                    isEmpty={countries.length === 0}
-                    styles={styles}
-                  >
-                    {countries.map((country) => {
-                      const regionCode = country.isoCode.toLowerCase();
-                      const isSelected = userRegion?.regionCode === regionCode;
-                      return (
-                        <SelectableRow
-                          key={country.isoCode}
-                          label={`${country.flag ?? ''} ${country.name} (${country.isoCode})`.trim()}
-                          isSelected={isSelected}
-                          onPress={() => {
-                            setUserRegion(regionCode).catch(() => undefined);
-                          }}
-                          testID={`headless-playground-country-${country.isoCode}`}
-                          styles={styles}
-                        />
-                      );
-                    })}
-                  </DataAccordion>
-                </View>
+              <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+                {strings(
+                  'app_settings.fiat_on_ramp.headless_playground.current_setup',
+                )}
+              </Text>
+              <View
+                style={styles.currentSetupSection}
+                testID={HEADLESS_PLAYGROUND_SUMMARY_TEST_ID}
+              >
+                <SelectedRow
+                  label={strings(
+                    'app_settings.fiat_on_ramp.headless_playground.selected_user_region',
+                  )}
+                  value={selectedCountryLabel}
+                  styles={styles}
+                />
+                <SelectedRow
+                  label={strings(
+                    'app_settings.fiat_on_ramp.headless_playground.summary_provider',
+                  )}
+                  value={selectedProviderLabel}
+                  styles={styles}
+                />
+                <SelectedRow
+                  label={strings(
+                    'app_settings.fiat_on_ramp.headless_playground.summary_token',
+                  )}
+                  value={selectedTokenLabel}
+                  styles={styles}
+                />
+                <SelectedRow
+                  label={strings(
+                    'app_settings.fiat_on_ramp.headless_playground.selected_payment_method',
+                  )}
+                  value={selectedPaymentMethodLabel}
+                  styles={styles}
+                />
               </View>
             </Row>
 
@@ -857,39 +878,71 @@ function HeadlessPlayground() {
                 style={styles.divider}
                 testID={HEADLESS_PLAYGROUND_SUMMARY_DIVIDER_TEST_ID}
               />
-              <View
-                style={styles.summarySection}
-                testID={HEADLESS_PLAYGROUND_SUMMARY_TEST_ID}
-              >
-                <Text
-                  variant={TextVariant.HeadingSm}
-                  style={styles.summaryTitle}
-                >
-                  {strings(
-                    'app_settings.fiat_on_ramp.headless_playground.summary',
-                  )}
-                </Text>
-                <SelectedRow
+              <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+                {strings(
+                  'app_settings.fiat_on_ramp.headless_playground.configure',
+                )}
+              </Text>
+              <View style={styles.configurationSection}>
+                <ConfigurationRow
                   label={strings(
-                    'app_settings.fiat_on_ramp.headless_playground.summary_token',
+                    'app_settings.fiat_on_ramp.headless_playground.countries',
                   )}
-                  value={
-                    selectedToken
-                      ? `${selectedToken.symbol} — ${selectedToken.assetId}`
-                      : noneSelected
-                  }
+                  value={selectedCountryLabel}
+                  status={formatStatus(
+                    headlessIsLoading,
+                    headlessErrors.countries,
+                    countries.length,
+                  )}
+                  onPress={() => setActivePicker('country')}
+                  isDisabled={isCountryPickerDisabled}
                   styles={styles}
+                  testID="headless-playground-config-country"
                 />
-                <SelectedRow
+                <ConfigurationRow
                   label={strings(
-                    'app_settings.fiat_on_ramp.headless_playground.summary_provider',
+                    'app_settings.fiat_on_ramp.headless_playground.providers',
                   )}
-                  value={
-                    selectedProvider
-                      ? `${selectedProvider.name} (${selectedProvider.id})`
-                      : noneSelected
-                  }
+                  value={selectedProviderLabel}
+                  status={formatStatus(
+                    headlessIsLoading,
+                    headlessErrors.providers,
+                    providers.length,
+                  )}
+                  onPress={() => setActivePicker('provider')}
+                  isDisabled={isProviderPickerDisabled}
                   styles={styles}
+                  testID="headless-playground-config-provider"
+                />
+                <ConfigurationRow
+                  label={strings(
+                    'app_settings.fiat_on_ramp.headless_playground.tokens',
+                  )}
+                  value={selectedTokenLabel}
+                  status={formatStatus(
+                    headlessIsLoading,
+                    headlessErrors.tokens,
+                    tokensList.length,
+                  )}
+                  onPress={() => setActivePicker('token')}
+                  isDisabled={isTokenPickerDisabled}
+                  styles={styles}
+                  testID="headless-playground-config-token"
+                />
+                <ConfigurationRow
+                  label={strings(
+                    'app_settings.fiat_on_ramp.headless_playground.payment_methods',
+                  )}
+                  value={selectedPaymentMethodLabel}
+                  status={formatStatus(
+                    headlessIsLoading,
+                    headlessErrors.paymentMethods,
+                    paymentMethods.length,
+                  )}
+                  onPress={() => setActivePicker('paymentMethod')}
+                  isDisabled={isPaymentMethodPickerDisabled}
+                  styles={styles}
+                  testID="headless-playground-config-payment-method"
                 />
               </View>
             </Row>
@@ -912,17 +965,6 @@ function HeadlessPlayground() {
                 style={styles.headlessSection}
                 testID={HEADLESS_PLAYGROUND_HEADLESS_SECTION_TEST_ID}
               >
-                <View style={styles.headlessSectionBadge}>
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    fontWeight={FontWeight.Bold}
-                    color={TextColor.TextDefault}
-                  >
-                    {strings(
-                      'app_settings.fiat_on_ramp.headless_playground.headless_section_badge',
-                    )}
-                  </Text>
-                </View>
                 <Text
                   variant={TextVariant.HeadingSm}
                   fontWeight={FontWeight.Bold}
@@ -1021,6 +1063,8 @@ function HeadlessPlayground() {
                 <View style={styles.actionsRow}>
                   <Button
                     variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    style={styles.getQuotesButton}
                     onPress={handleHeadlessGetQuotes}
                     isDisabled={
                       !canGetQuotes || headlessQuotesStatus === 'loading'
@@ -1048,68 +1092,66 @@ function HeadlessPlayground() {
                   style={styles.section}
                   testID={HEADLESS_PLAYGROUND_QUOTES_SECTION_TEST_ID}
                 >
-                  <Accordion
-                    title={`${strings(
+                  <Text
+                    variant={TextVariant.HeadingSm}
+                    style={styles.sectionTitle}
+                  >
+                    {`${strings(
                       'app_settings.fiat_on_ramp.headless_playground.quotes',
                     )} (${quotesSummary})`}
-                    isExpanded
-                    horizontalAlignment={
-                      AccordionHeaderHorizontalAlignment.Start
-                    }
-                  >
-                    <View style={styles.box}>
-                      <ScrollView
-                        contentContainerStyle={styles.boxScroll}
-                        nestedScrollEnabled
-                      >
-                        {headlessQuotesStatus === 'idle' ? (
-                          <Text
-                            variant={TextVariant.BodySm}
-                            color={TextColor.TextAlternative}
-                          >
-                            {strings(
-                              'app_settings.fiat_on_ramp.headless_playground.quotes_idle',
-                            )}
-                          </Text>
-                        ) : null}
-                        {headlessQuotesStatus === 'loading' ? (
-                          <Text
-                            variant={TextVariant.BodySm}
-                            color={TextColor.TextAlternative}
-                          >
-                            {strings(
-                              'app_settings.fiat_on_ramp.headless_playground.loading',
-                            )}
-                          </Text>
-                        ) : null}
-                        {headlessQuotesStatus === 'error' ? (
-                          <Text
-                            variant={TextVariant.BodySm}
-                            color={TextColor.ErrorDefault}
-                          >
-                            {`${strings(
-                              'app_settings.fiat_on_ramp.headless_playground.error',
-                            )}: ${headlessQuotesError ?? ''}`}
-                          </Text>
-                        ) : null}
-                        {headlessQuotesStatus === 'success' ? (
-                          <QuotesList
-                            quotes={headlessQuotesResult}
-                            paymentMethods={paymentMethods}
-                            cryptoSymbol={headlessResolvedToken?.symbol}
-                            fiatCurrency={fiatCurrency?.toUpperCase()}
-                            canStart={canGetQuotes}
-                            hasActiveSession={activeSession !== null}
-                            activeSessionQuoteIndex={
-                              activeSession?.quoteIndex ?? null
-                            }
-                            onStartHeadlessBuy={handleStartHeadlessBuyForQuote}
-                            styles={styles}
-                          />
-                        ) : null}
-                      </ScrollView>
-                    </View>
-                  </Accordion>
+                  </Text>
+                  <View style={styles.box}>
+                    <ScrollView
+                      contentContainerStyle={styles.boxScroll}
+                      nestedScrollEnabled
+                    >
+                      {headlessQuotesStatus === 'idle' ? (
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                        >
+                          {strings(
+                            'app_settings.fiat_on_ramp.headless_playground.quotes_idle',
+                          )}
+                        </Text>
+                      ) : null}
+                      {headlessQuotesStatus === 'loading' ? (
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                        >
+                          {strings(
+                            'app_settings.fiat_on_ramp.headless_playground.loading',
+                          )}
+                        </Text>
+                      ) : null}
+                      {headlessQuotesStatus === 'error' ? (
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.ErrorDefault}
+                        >
+                          {`${strings(
+                            'app_settings.fiat_on_ramp.headless_playground.error',
+                          )}: ${headlessQuotesError ?? ''}`}
+                        </Text>
+                      ) : null}
+                      {headlessQuotesStatus === 'success' ? (
+                        <QuotesList
+                          quotes={headlessQuotesResult}
+                          paymentMethods={paymentMethods}
+                          cryptoSymbol={headlessResolvedToken?.symbol}
+                          fiatCurrency={fiatCurrency?.toUpperCase()}
+                          canStart={canGetQuotes}
+                          hasActiveSession={activeSession !== null}
+                          activeSessionQuoteIndex={
+                            activeSession?.quoteIndex ?? null
+                          }
+                          onStartHeadlessBuy={handleStartHeadlessBuyForQuote}
+                          styles={styles}
+                        />
+                      ) : null}
+                    </ScrollView>
+                  </View>
                 </View>
 
                 {activeSession ? (
@@ -1183,6 +1225,7 @@ function HeadlessPlayground() {
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
+      {renderPickerSheet()}
     </SafeAreaView>
   );
 }

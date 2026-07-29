@@ -2,6 +2,7 @@ export const ChoosePasswordSelectorsIDs = {
   TITLE_ID: 'create-password-screen-title-id',
   DESCRIPTION_ID: 'create-password-screen-description-id',
   CONTAINER_ID: 'create-password-screen',
+  CURRENT_PASSWORD_INPUT_ID: 'change-password-current-input-field',
   NEW_PASSWORD_INPUT_ID: 'create-password-first-input-field',
   CONFIRM_PASSWORD_INPUT_ID: 'create-password-second-input-field',
   ANDROID_I_UNDERSTAND_BUTTON_ID: 'i-understand-text',

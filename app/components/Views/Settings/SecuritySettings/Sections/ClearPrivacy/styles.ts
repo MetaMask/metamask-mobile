@@ -5,25 +5,13 @@ export const styleSheet = () =>
   StyleSheet.create({
     setting: {
       marginTop: 0,
+      paddingVertical: 16,
     },
     desc: {
       marginTop: 8,
+      lineHeight: 20,
     },
     accessory: {
-      marginTop: 16,
-    },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalText: {
-      textAlign: 'center',
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
+      marginTop: 12,
     },
   });

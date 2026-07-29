@@ -59,7 +59,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   };
 
   const renderWalletConnectSettings = () => (
-    <>
+    <View style={styles.setting}>
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.BodyMd}
@@ -84,7 +84,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       >
         {strings('experimental_settings.wallet_connect_dapps_cta')}
       </Button>
-    </>
+    </View>
   );
 
   const handleDaimoDemoToggle = (value: boolean) => {
@@ -92,7 +92,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   };
 
   const renderDaimoDemoSettings = () => (
-    <View style={styles.heading}>
+    <View style={styles.setting}>
       <View style={styles.titleContainer}>
         <Text
           color={TextColor.TextDefault}
@@ -163,7 +163,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   };
 
   const renderPerformanceSettings = () => (
-    <View style={styles.heading}>
+    <View style={styles.setting}>
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.BodyMd}
@@ -194,10 +194,23 @@ const ExperimentalSettings = ({ navigation }: Props) => {
         testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
         includesTopInset
       />
-      <ScrollView style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+      >
         {renderWalletConnectSettings()}
-        {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
-        {isTestEnvironment && renderPerformanceSettings()}
+        {canShowDaimoDemoToggle && (
+          <>
+            <View style={styles.lineDivider} />
+            {renderDaimoDemoSettings()}
+          </>
+        )}
+        {isTestEnvironment && (
+          <>
+            <View style={styles.lineDivider} />
+            {renderPerformanceSettings()}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

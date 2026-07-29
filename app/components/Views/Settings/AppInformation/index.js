@@ -48,55 +48,98 @@ const createStyles = (colors) =>
       flex: 1,
     },
     wrapperContent: {
-      paddingHorizontal: 16,
-      paddingVertical: 24,
+      paddingBottom: 100,
+      paddingTop: 8,
     },
     title: {
-      fontSize: 18,
+      fontSize: 16,
       textAlign: 'left',
-      marginBottom: 20,
-      ...fontStyles.normal,
-      color: colors.text.default,
+      marginBottom: 0,
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: 8,
+      ...fontStyles.medium,
+      color: colors.text.alternative,
     },
     link: {
-      fontSize: 18,
+      fontSize: 16,
       textAlign: 'left',
-      marginBottom: 20,
-      ...fontStyles.normal,
-      color: colors.primary.default,
+      ...fontStyles.medium,
+      color: colors.text.default,
+      flex: 1,
+    },
+    chevron: {
+      fontSize: 28,
+      lineHeight: 28,
+      color: colors.text.alternative,
+      marginLeft: 16,
+    },
+    linkRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 56,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    },
+    links: {
+      marginHorizontal: 16,
+      borderColor: colors.border.muted,
+      borderRadius: 16,
+      borderWidth: StyleSheet.hairlineWidth,
+      overflow: 'hidden',
+      backgroundColor: colors.background.alternative,
     },
     division: {
-      borderBottomColor: colors.border.muted,
-      borderBottomWidth: 1,
-      width: '30%',
-      marginBottom: 20,
+      backgroundColor: colors.border.muted,
+      height: 6,
+      marginTop: 24,
+      marginBottom: 0,
+    },
+    line: {
+      backgroundColor: colors.border.muted,
+      height: 1,
+      opacity: 0.75,
+      marginLeft: 16,
     },
     image: {
-      width: 100,
-      height: 100,
+      width: 112,
+      height: 112,
     },
     logoWrapper: {
-      flex: 1,
-      backgroundColor: colors.background.default,
       alignItems: 'center',
       justifyContent: 'center',
-      top: 20,
-      marginBottom: 40,
+      marginHorizontal: 16,
+      marginTop: 8,
+      paddingVertical: 28,
+      paddingHorizontal: 16,
+      borderRadius: 24,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border.muted,
+      backgroundColor: colors.background.alternative,
     },
     versionInfo: {
       marginTop: 20,
-      fontSize: 18,
-      textAlign: 'left',
-      marginBottom: 20,
+      fontSize: 20,
+      lineHeight: 28,
+      textAlign: 'center',
+      marginBottom: 8,
+      color: colors.text.default,
+      ...fontStyles.medium,
+    },
+    branchInfo: {
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: 'center',
+      marginBottom: 6,
       color: colors.text.alternative,
       ...fontStyles.normal,
     },
-    branchInfo: {
-      fontSize: 18,
-      textAlign: 'left',
-      marginBottom: 20,
-      color: colors.text.alternative,
-      ...fontStyles.normal,
+    environmentInfo: {
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border.muted,
+      alignSelf: 'stretch',
     },
   });
 
@@ -210,6 +253,12 @@ class AppInformation extends PureComponent {
     const otaUpdateMessage = this.getOtaUpdateMessage();
 
     const aboutTitle = strings('app_settings.info_title');
+    const renderLinkRow = (label, onPress) => (
+      <TouchableOpacity onPress={onPress} style={styles.linkRow}>
+        <Text style={styles.link}>{label}</Text>
+        <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
+    );
 
     return (
       <SafeAreaView
@@ -244,7 +293,7 @@ class AppInformation extends PureComponent {
             ) : null}
 
             {this.state.showEnvironmentInfo && (
-              <>
+              <View style={styles.environmentInfo}>
                 <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                 </Text>
@@ -291,44 +340,40 @@ class AppInformation extends PureComponent {
                     {snap.name}: {snap.version} ({snap.status})
                   </Text>
                 ))}
-              </>
+              </View>
             )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
-            <TouchableOpacity onPress={this.onPrivacyPolicy}>
-              <Text style={styles.link}>
-                {strings('app_information.privacy_policy')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onTermsOfUse}>
-              <Text style={styles.link}>
-                {strings('app_information.terms_of_use')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onAttributions}>
-              <Text style={styles.link}>
-                {strings('app_information.attributions')}
-              </Text>
-            </TouchableOpacity>
+            {renderLinkRow(
+              strings('app_information.privacy_policy'),
+              this.onPrivacyPolicy,
+            )}
+            <View style={styles.line} />
+            {renderLinkRow(
+              strings('app_information.terms_of_use'),
+              this.onTermsOfUse,
+            )}
+            <View style={styles.line} />
+            {renderLinkRow(
+              strings('app_information.attributions'),
+              this.onAttributions,
+            )}
           </View>
           <View style={styles.division} />
+          <Text style={styles.title}>{strings('accounts_menu.resources')}</Text>
           <View style={styles.links}>
-            <TouchableOpacity onPress={this.onSupportCenter}>
-              <Text style={styles.link}>
-                {strings('app_information.support_center')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onWebSite}>
-              <Text style={styles.link}>
-                {strings('app_information.web_site')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onContactUs}>
-              <Text style={styles.link}>
-                {strings('app_information.contact_us')}
-              </Text>
-            </TouchableOpacity>
+            {renderLinkRow(
+              strings('app_information.support_center'),
+              this.onSupportCenter,
+            )}
+            <View style={styles.line} />
+            {renderLinkRow(strings('app_information.web_site'), this.onWebSite)}
+            <View style={styles.line} />
+            {renderLinkRow(
+              strings('app_information.contact_us'),
+              this.onContactUs,
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>

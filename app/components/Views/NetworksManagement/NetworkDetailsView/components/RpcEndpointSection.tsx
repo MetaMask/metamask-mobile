@@ -1,34 +1,25 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Label,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Cell, {
-  CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useExpandableFormAnimation } from '../../hooks/useExpandableFormAnimation';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
 import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
-import { CellComponentSelectorsIDs } from '../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
-import { RpcEndpointType } from '@metamask/network-controller';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import RpcFormFields from './RpcFormFields';
 import SelectField from './SelectField';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
@@ -36,7 +27,6 @@ import {
   appendRpcItemToFormState,
   applyRpcSelectionToFormState,
   formatNetworkRpcUrl,
-  removeRpcUrlFromFormState,
 } from '../NetworkDetailsView.utils';
 import type {
   RpcEndpoint,
@@ -131,7 +121,7 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
   return (
     <>
       {/* RPC URL Label + Dropdown */}
-      <Box>
+      <Box twClassName="gap-2">
         <Label>{strings('app_settings.network_rpc_url_label')}</Label>
         <SelectField
           value={displayName}
@@ -163,7 +153,7 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
       {isRpcFailoverEnabled &&
         failoverRpcUrls &&
         failoverRpcUrls.length > 0 && (
-          <Box>
+          <Box twClassName="gap-2">
             <Label>
               {strings('app_settings.network_failover_rpc_url_label')}
             </Label>
@@ -188,19 +178,11 @@ interface RpcListItemProps {
     name: string,
     type: string,
   ) => void | Promise<void>;
-  onDelete: (url: string) => void | Promise<void>;
   styles: NetworkDetailsStyles;
 }
 
 const RpcListItem: React.FC<RpcListItemProps> = React.memo(
-  ({
-    endpoint,
-    isSelected,
-    isRpcFailoverEnabled,
-    onSelect,
-    onDelete,
-    styles,
-  }) => {
+  ({ endpoint, isSelected, isRpcFailoverEnabled, onSelect, styles }) => {
     const { url, failoverUrls, name, type } = endpoint;
     const formattedName = type === 'infura' ? 'Infura' : name;
 
@@ -208,42 +190,50 @@ const RpcListItem: React.FC<RpcListItemProps> = React.memo(
       await onSelect(url, failoverUrls, name ?? '', type);
     }, [onSelect, url, failoverUrls, name, type]);
 
-    const handleDelete = useCallback(async () => {
-      await onDelete(url);
-    }, [onDelete, url]);
-
     return (
-      <Cell
-        variant={CellVariant.SelectWithMenu}
-        title={
+      <TouchableOpacity
+        onPress={handleSelect}
+        style={[
+          styles.sheetOptionRow,
+          isSelected && styles.sheetOptionRowSelected,
+        ]}
+        accessibilityRole="button"
+        accessibilityState={{ selected: isSelected }}
+      >
+        <View style={styles.sheetOptionTextWrapper}>
           <View style={styles.rpcTitleWrapper}>
-            <View>
-              <Text
-                numberOfLines={1}
-                variant={TextVariant.BodyMd}
-                testID={CellComponentSelectorsIDs.BASE_TITLE}
-              >
-                {formattedName || formatNetworkRpcUrl(url)}
-              </Text>
-            </View>
+            <Text
+              numberOfLines={1}
+              variant={TextVariant.BodyMd}
+              style={styles.sheetOptionTitle}
+            >
+              {formattedName || formatNetworkRpcUrl(url)}
+            </Text>
             {isRpcFailoverEnabled &&
               failoverUrls &&
               failoverUrls.length > 0 && (
                 <Tag label={strings('app_settings.failover')} />
               )}
           </View>
-        }
-        secondaryText={formattedName ? formatNetworkRpcUrl(url) : ''}
-        showSecondaryTextIcon={false}
-        isSelected={isSelected}
-        withAvatar={false}
-        onPress={handleSelect}
-        showButtonIcon={!isSelected && type !== RpcEndpointType.Infura}
-        buttonIcon={IconName.Trash}
-        buttonProps={{ onButtonClick: handleDelete }}
-        onTextClick={handleSelect}
-        avatarProps={{ variant: AvatarVariant.Token }}
-      />
+          {formattedName ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              style={styles.sheetOptionSecondaryText}
+              numberOfLines={1}
+            >
+              {formatNetworkRpcUrl(url)}
+            </Text>
+          ) : null}
+        </View>
+        {isSelected ? (
+          <Icon
+            name={IconName.Check}
+            size={IconSize.Md}
+            color={IconColor.IconDefault}
+            style={styles.sheetOptionIcon}
+          />
+        ) : null}
+      </TouchableOpacity>
     );
   },
 );
@@ -273,7 +263,6 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     onRpcNameAdd,
     onRpcItemAdd,
     onRpcUrlChangeWithName,
-    onRpcUrlDelete,
     onRpcUrlFocused,
     onRpcUrlBlur,
     jumpToChainId,
@@ -324,14 +313,6 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
   const handleDismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  const handleBack = () => {
-    if (showForm && rpcUrls.length > 0) {
-      setShowForm(false);
-    } else {
-      handleDismiss();
-    }
-  };
 
   const handleFormSubmit = async () => {
     if (
@@ -413,24 +394,6 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     [onRpcUrlChangeWithName, onUrlSheetMutationCommitted, handleDismiss],
   );
 
-  const onRpcUrlDeletePersisted = useCallback(
-    async (url: string) => {
-      setRpcSheetSubmitError(undefined);
-      const nextForm = removeRpcUrlFromFormState(latestFormRef.current, url);
-      const persisted = await onUrlSheetMutationCommitted?.(nextForm, {
-        skipChainIdSubmitValidation: true,
-      });
-      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
-        setRpcSheetSubmitError(
-          strings('app_settings.url_sheet_network_update_failed'),
-        );
-        return;
-      }
-      onRpcUrlDelete(url);
-    },
-    [onRpcUrlDelete, onUrlSheetMutationCommitted],
-  );
-
   const handleShowForm = () => setShowForm(true);
 
   if (!showMultiRpcAddModal) return null;
@@ -441,7 +404,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
       onClose={closeRpcModal}
       shouldNavigateBack={false}
     >
-      <BottomSheetHeader onBack={handleBack}>
+      <BottomSheetHeader onClose={handleDismiss}>
         {strings('app_settings.add_rpc_url')}
       </BottomSheetHeader>
       <ScrollView
@@ -450,7 +413,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
       >
         {/* RPC list — always visible when items exist */}
         {rpcUrls.length > 0 && (
-          <Box twClassName="mx-4 rounded-xl overflow-hidden border border-border-muted">
+          <Box>
             {rpcUrls.map((endpoint, index) => (
               <React.Fragment key={`${endpoint.url}-${endpoint.name}`}>
                 {index > 0 && <Box twClassName="h-px bg-border-muted" />}
@@ -459,7 +422,6 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                   isSelected={rpcUrl === endpoint.url}
                   isRpcFailoverEnabled={isRpcFailoverEnabled}
                   onSelect={onRpcUrlChangeWithNamePersisted}
-                  onDelete={onRpcUrlDeletePersisted}
                   styles={styles}
                 />
               </React.Fragment>
@@ -508,20 +470,37 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                   themeAppearance={themeAppearance}
                   placeholderTextColor={placeholderTextColor}
                 />
-                <ButtonPrimary
-                  label={strings('app_settings.add_rpc_url')}
-                  size={ButtonSize.Lg}
+                <TouchableOpacity
                   onPress={handleFormSubmit}
-                  width={ButtonWidthTypes.Full}
-                  loading={isRpcSheetSubmitting}
-                  isDisabled={
+                  disabled={
                     !rpcUrlForm ||
                     !validatedRpcURL ||
                     !!warningRpcUrl ||
                     isRpcSheetSubmitting
                   }
+                  style={[
+                    styles.sheetAddRow,
+                    (!rpcUrlForm ||
+                      !validatedRpcURL ||
+                      !!warningRpcUrl ||
+                      isRpcSheetSubmitting) &&
+                      styles.sheetAddRowDisabled,
+                  ]}
+                  accessibilityRole="button"
                   testID={NetworkDetailsViewSelectorsIDs.ADD_RPC_BUTTON}
-                />
+                >
+                  <Icon
+                    name={IconName.Add}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
+                  />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    style={styles.sheetAddRowText}
+                  >
+                    {strings('app_settings.add_rpc_url')}
+                  </Text>
+                </TouchableOpacity>
               </Box>
             </View>
           </View>
@@ -532,16 +511,22 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
           style={toggleButtonStyle}
           pointerEvents={showForm ? 'none' : 'auto'}
         >
-          <Box twClassName="self-center pt-4">
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('app_settings.add_rpc_url')}
-              startIconName={IconName.Add}
-              size={ButtonSize.Md}
-              width={ButtonWidthTypes.Auto}
+          <Box twClassName="pt-2">
+            <TouchableOpacity
               onPress={handleShowForm}
+              style={styles.sheetAddRow}
+              accessibilityRole="button"
               testID={NetworkDetailsViewSelectorsIDs.ADD_RPC_BUTTON}
-            />
+            >
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Md}
+                color={IconColor.IconDefault}
+              />
+              <Text variant={TextVariant.BodyMd} style={styles.sheetAddRowText}>
+                {strings('app_settings.add_rpc_url')}
+              </Text>
+            </TouchableOpacity>
           </Box>
         </Animated.View>
       </ScrollView>

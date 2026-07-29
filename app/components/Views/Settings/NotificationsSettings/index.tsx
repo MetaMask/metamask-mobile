@@ -121,7 +121,10 @@ const NotificationsSettings = ({ navigation }: Props) => {
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <HeaderCompactStandard onBack={navigation.goBack} />
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
         <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
           {strings('app_settings.notifications_title')}
         </Text>
@@ -129,6 +132,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
 
         {isMetamaskNotificationsEnabled && (
           <>
+            <Box style={styles.sectionDivider} />
             <NotificationRow
               title={strings(
                 'app_settings.notifications_opts.wallet_activity_title',
@@ -147,6 +151,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
                 )
               }
             />
+            <Box style={styles.line} />
 
             <NotificationRow
               title={strings('app_settings.notifications_opts.perps_title')}
@@ -160,6 +165,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
                 )
               }
             />
+            <Box style={styles.line} />
 
             <NotificationRow
               title={strings(
@@ -177,22 +183,28 @@ const NotificationsSettings = ({ navigation }: Props) => {
             />
 
             {isSocialLeaderboardEnabled && (
-              <NotificationRow
-                title={strings(
-                  'app_settings.notifications_opts.social_ai_title',
-                )}
-                status={getStatusText(preferences?.socialAI)}
-                iconName={IconName.Flash}
-                onPress={() =>
-                  navigateToSection(
-                    'socialAI',
-                    strings('app_settings.notifications_opts.social_ai_title'),
-                    strings('app_settings.notifications_opts.social_ai_desc'),
-                  )
-                }
-              />
+              <>
+                <Box style={styles.line} />
+                <NotificationRow
+                  title={strings(
+                    'app_settings.notifications_opts.social_ai_title',
+                  )}
+                  status={getStatusText(preferences?.socialAI)}
+                  iconName={IconName.Flash}
+                  onPress={() =>
+                    navigateToSection(
+                      'socialAI',
+                      strings(
+                        'app_settings.notifications_opts.social_ai_title',
+                      ),
+                      strings('app_settings.notifications_opts.social_ai_desc'),
+                    )
+                  }
+                />
+              </>
             )}
 
+            <Box style={styles.line} />
             <NotificationRow
               title={strings('app_settings.notifications_opts.marketing_title')}
               status={getStatusText(preferences?.marketing)}
@@ -206,6 +218,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
+            <Box style={styles.line} />
             <NotificationRow
               title={strings(
                 'app_settings.notifications_opts.price_alerts_title',

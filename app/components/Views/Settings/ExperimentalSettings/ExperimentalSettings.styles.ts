@@ -10,11 +10,14 @@ const createStyles = (colors: Colors) =>
     },
     content: {
       flex: 1,
-      padding: 16,
-      paddingBottom: 48,
+    },
+    contentContainer: {
+      paddingBottom: 100,
+      paddingHorizontal: 16,
+      paddingTop: 8,
     },
     heading: {
-      marginTop: 24,
+      marginTop: 0,
     },
     titleContainer: {
       flexDirection: 'row',
@@ -35,7 +38,12 @@ const createStyles = (colors: Colors) =>
       marginTop: 16,
     },
     setting: {
-      marginVertical: 16,
+      marginTop: 0,
+      paddingVertical: 16,
+    },
+    lineDivider: {
+      backgroundColor: colors.border.muted,
+      height: 1,
     },
     clearHistoryConfirm: {
       marginTop: 18,

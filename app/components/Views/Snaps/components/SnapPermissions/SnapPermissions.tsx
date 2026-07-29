@@ -289,14 +289,17 @@ const SnapPermissions = ({
   return (
     <View testID={SNAP_PERMISSIONS} style={styles.section}>
       {showLabel ? (
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
           {strings(
             'app_settings.snaps.snap_permissions.permission_section_title',
           )}
         </Text>
       ) : null}
       {permissionsToRender.map((item, index) => (
-        <SnapPermissionCell title={item.label} date={item.date} key={index} />
+        <React.Fragment key={`${item.label}-${index}`}>
+          {index > 0 ? <View style={styles.divider} /> : null}
+          <SnapPermissionCell title={item.label} date={item.date} />
+        </React.Fragment>
       ))}
     </View>
   );

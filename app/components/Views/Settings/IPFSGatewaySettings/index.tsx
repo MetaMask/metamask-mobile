@@ -17,7 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import { timeoutFetch } from '../../../../util/general';
-import SelectComponent from '../../../UI/SelectComponent';
+import PickerBase from '../../../../component-library/components/Pickers/PickerBase';
 import styleSheet from './index.styles';
 import {
   IPFS_GATEWAY_SECTION,
@@ -27,7 +27,16 @@ import {
 } from './index.constants';
 import { Gateway } from './index.types';
 
-const IPFSGatewaySettings = () => {
+interface IPFSGatewaySettingsProps {
+  openOptionSheet?: (config: {
+    title: string;
+    options: { key: string | number; label: string; value: string }[];
+    selectedValue: string;
+    onSelect: (value: string) => void;
+  }) => void;
+}
+
+const IPFSGatewaySettings = ({ openOptionSheet }: IPFSGatewaySettingsProps) => {
   const { PreferencesController } = Engine.context;
   const theme = useTheme();
   const { colors } = theme;
@@ -82,6 +91,18 @@ const IPFSGatewaySettings = () => {
     PreferencesController.setIpfsGateway(gateway);
   };
 
+  const selectedGateway =
+    onlineIpfsGateways.find((gateway) => gateway.value === ipfsGateway) ??
+    onlineIpfsGateways[0];
+
+  const openSheet = () =>
+    openOptionSheet?.({
+      title: strings('app_settings.ipfs_gateway'),
+      options: onlineIpfsGateways,
+      selectedValue: ipfsGateway,
+      onSelect: setIpfsGateway,
+    });
+
   useEffect(() => {
     handleAvailableIpfsGateways();
   }, [handleAvailableIpfsGateways]);
@@ -131,14 +152,22 @@ const IPFSGatewaySettings = () => {
           </Text>
           <View style={styles.picker}>
             {gotAvailableGateways ? (
-              <SelectComponent
+              <PickerBase
                 testID={IPFS_GATEWAY_SELECTED}
-                selectedValue={ipfsGateway}
-                defaultValue={strings('app_settings.ipfs_gateway_down')}
-                onValueChange={setIpfsGateway}
-                label={strings('app_settings.ipfs_gateway')}
-                options={onlineIpfsGateways}
-              />
+                onPress={openSheet}
+                style={styles.pickerTrigger}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  style={styles.selectedLabel}
+                  numberOfLines={1}
+                >
+                  {selectedGateway?.label ??
+                    strings('app_settings.ipfs_gateway_down')}
+                </Text>
+              </PickerBase>
             ) : (
               <View>
                 <ActivityIndicator size="small" />

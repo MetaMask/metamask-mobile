@@ -490,17 +490,19 @@ describe('AccountsMenu', () => {
     });
   });
 
-  describe('Permissions Row', () => {
-    it('render Permissions row', () => {
+  describe('Manage Connections Row', () => {
+    it('render Manage connections row', () => {
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
-      expect(getByText('accounts_menu.permissions')).toBeOnTheScreen();
+      expect(
+        getByText('app_settings.manage_sdk_connections_title'),
+      ).toBeOnTheScreen();
       expect(
         getByTestId(AccountsMenuSelectorsIDs.PERMISSIONS),
       ).toBeOnTheScreen();
     });
 
-    it('navigate to SDKSessionsManager when Permissions is pressed', () => {
+    it('navigate to SDKSessionsManager when Manage connections is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const permissionsButton = getByTestId(
         AccountsMenuSelectorsIDs.PERMISSIONS,
@@ -674,41 +676,26 @@ describe('AccountsMenu', () => {
         expect(getByTestId(AccountsMenuSelectorsIDs.LOCK)).toBeOnTheScreen();
       });
 
-      it('show confirmation alert when Log Out is pressed', () => {
-        const { getByTestId } = render(<AccountsMenu />);
+      it('show destructive confirmation sheet when Log Out is pressed', () => {
+        const { getByTestId, getByText } = render(<AccountsMenu />);
         const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
         fireEvent.press(logOutButton);
 
-        expect(mockAlert).toHaveBeenCalledWith(
-          'drawer.lock_title',
-          '',
-          [
-            {
-              text: 'drawer.lock_cancel',
-              onPress: expect.any(Function),
-              style: 'cancel',
-            },
-            {
-              text: 'drawer.lock_ok',
-              onPress: expect.any(Function),
-            },
-          ],
-          { cancelable: false },
-        );
+        expect(mockAlert).not.toHaveBeenCalled();
+        expect(getByText('drawer.lock_title')).toBeOnTheScreen();
+        expect(getByText('drawer.lock_ok')).toBeOnTheScreen();
+        expect(getByText('drawer.lock_cancel')).toBeOnTheScreen();
       });
 
       it('call Authentication.lockApp when confirmation is accepted', async () => {
-        const { getByTestId } = render(<AccountsMenu />);
+        const { getByTestId, getByText } = render(<AccountsMenu />);
         const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
         fireEvent.press(logOutButton);
 
-        // Get the onPress callback from the OK button
-        const alertCall = mockAlert.mock.calls[0];
-        const okButton = alertCall[2][1]; // Second button in the array
         await act(async () => {
-          await okButton.onPress();
+          fireEvent.press(getByText('drawer.lock_ok'));
         });
 
         expect(Authentication.lockApp).toHaveBeenCalledWith({
@@ -718,20 +705,17 @@ describe('AccountsMenu', () => {
       });
 
       it('track NAVIGATION_TAPS_LOGOUT event only when logout is confirmed', async () => {
-        const { getByTestId } = render(<AccountsMenu />);
+        const { getByTestId, getByText } = render(<AccountsMenu />);
         const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
         // Press the logout button
         fireEvent.press(logOutButton);
 
-        // At this point, analytics NOT be tracked yet (just showing alert)
+        // At this point, analytics NOT be tracked yet (just showing the sheet)
         expect(mockCreateEventBuilder).not.toHaveBeenCalledWith('Logout');
 
-        // Get the onPress callback from the OK button and execute it
-        const alertCall = mockAlert.mock.calls[0];
-        const okButton = alertCall[2][1]; // Second button in the array
         await act(async () => {
-          await okButton.onPress();
+          fireEvent.press(getByText('drawer.lock_ok'));
         });
 
         // Now analytics be tracked (user confirmed)

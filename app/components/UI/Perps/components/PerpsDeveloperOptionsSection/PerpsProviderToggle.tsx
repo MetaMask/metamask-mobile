@@ -4,7 +4,7 @@ import {
 } from '../../../../../component-library/components/Icons/Icon';
 import React, { useState, useContext, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { View, Switch, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Switch, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ToastContext,
@@ -19,18 +19,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-
-const PerpsProviderToggleStyles = () =>
-  StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
-    },
-  });
+import styleSheet from '../../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 
 const PerpsProviderToggleContent = () => {
-  const { styles, theme } = useStyles(PerpsProviderToggleStyles, {});
+  const { styles, theme } = useStyles(styleSheet, {});
 
   const { switchProvider } = usePerpsNetworkConfig();
   const currentProvider = useSelector(selectPerpsProvider);
@@ -78,30 +70,34 @@ const PerpsProviderToggleContent = () => {
   }
 
   return (
-    <View
-      style={styles.container}
-      testID={PerpsProviderToggleSelectorsIDs.ROOT}
-    >
-      <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
-        {strings('perps.developer_options.provider_mode_toggle')}
-      </Text>
+    <View style={styles.row} testID={PerpsProviderToggleSelectorsIDs.ROOT}>
+      <View style={styles.rowContent}>
+        <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
+          {strings('perps.developer_options.provider_mode_toggle')}
+        </Text>
+        {isLoading ? (
+          <ActivityIndicator
+            size="small"
+            color={theme.colors.primary.default}
+            testID={PerpsProviderToggleSelectorsIDs.LOADING_INDICATOR}
+            style={styles.rowValue}
+          />
+        ) : (
+          <Text
+            color={TextColor.TextAlternative}
+            variant={TextVariant.BodySm}
+            style={styles.rowValue}
+          >
+            {currentProvider}
+          </Text>
+        )}
+      </View>
       <Switch
         value={isAggregated}
         onValueChange={handleProviderToggle}
         disabled={isLoading}
         testID={PerpsProviderToggleSelectorsIDs.SWITCH}
       />
-      {isLoading ? (
-        <ActivityIndicator
-          size="small"
-          color={theme.colors.primary.default}
-          testID={PerpsProviderToggleSelectorsIDs.LOADING_INDICATOR}
-        />
-      ) : (
-        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
-          {currentProvider}
-        </Text>
-      )}
     </View>
   );
 };

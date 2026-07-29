@@ -9,11 +9,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Cell, {
-  CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
 import stylesheet from './SnapDetails.styles';
 import { SnapVersionBadge } from '../SnapVersionTag';
@@ -60,17 +55,18 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
 
   return (
     <View style={styles.snapInfoContainer}>
-      <Cell
-        testID={SNAP_DETAILS_CELL}
-        style={styles.snapCell}
-        variant={CellVariant.Display}
-        title={snap.manifest.proposedName}
-        secondaryText={snap.id}
-        avatarProps={{
-          variant: AvatarVariant.Icon,
-          name: IconName.Snaps,
-        }}
-      />
+      <View testID={SNAP_DETAILS_CELL} style={styles.snapCell}>
+        <Text variant={TextVariant.BodyLGMedium}>
+          {snap.manifest.proposedName}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.snapId}
+        >
+          {snap.id}
+        </Text>
+      </View>
       <View style={styles.detailsContainerWithBorder}>
         <Label>{strings('app_settings.snaps.snap_details.enabled')}</Label>
         <Switch
@@ -85,14 +81,15 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         />
       </View>
       <View style={styles.detailsContainer}>
-        <Label>
+        <Label style={styles.detailsLabel}>
           {strings('app_settings.snaps.snap_details.install_origin')}
         </Label>
-        <View>
+        <View style={styles.detailsValue}>
           <Text
             testID={SNAP_DETAILS_INSTALL_ORIGIN}
             variant={TextVariant.BodyMD}
-            color={TextColor.Primary}
+            color={TextColor.Default}
+            style={styles.installOrigin}
           >
             {snap.versionHistory[0].origin}
           </Text>
@@ -106,7 +103,9 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         </View>
       </View>
       <View style={styles.detailsContainer}>
-        <Label>{strings('app_settings.snaps.snap_details.version')}</Label>
+        <Label style={styles.detailsLabel}>
+          {strings('app_settings.snaps.snap_details.version')}
+        </Label>
         <SnapVersionBadge version={snap.version} />
       </View>
     </View>

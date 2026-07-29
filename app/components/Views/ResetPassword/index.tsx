@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
   Platform,
-  KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
   InteractionManager,
@@ -30,7 +29,6 @@ import {
   BoxJustifyContent,
   BoxBackgroundColor,
   IconColor,
-  Checkbox,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -82,10 +80,6 @@ import {
 } from '../../../constants/urls';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-enum ViewState {
-  ResetForm = 'reset_form',
-  ConfirmCurrent = 'confirm_current',
-}
 
 const getCommonButtonProps = () => ({
   variant: ButtonVariant.Primary,
@@ -126,16 +120,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   );
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 
-  const [isSelected, setIsSelected] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [view, setView] = useState(ViewState.ConfirmCurrent);
   const [originalPassword, setOriginalPassword] = useState<string | null>(null);
-  const [ready, setReady] = useState(true);
   const [showPasswordIndex, setShowPasswordIndex] = useState<number[]>([0, 1]);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
@@ -145,18 +137,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const confirmPasswordInput = useRef<TextInput | null>(null);
 
   const reauthenticate = useCallback(async (pwd?: string) => {
-    setReady(false);
-    let reauthError: Error | undefined;
     try {
       const { password: verifiedPassword } =
         await Authentication.reauthenticate(pwd);
-      setPassword('');
       setOriginalPassword(verifiedPassword);
-      setView(ViewState.ResetForm);
+      setWarningIncorrectPassword(undefined);
+      return verifiedPassword;
     } catch (e) {
-      reauthError = e as Error;
-    }
-    if (reauthError) {
+      const reauthError = e as Error;
       if (
         !reauthError.message.includes(
           ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
@@ -166,8 +154,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           strings('reveal_credential.warning_incorrect_password'),
         );
       }
+      return undefined;
     }
-    setReady(true);
   }, []);
 
   useEffect(() => {
@@ -185,7 +173,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           await StorageWrapper.getItem(PASSCODE_DISABLED);
       } catch (e) {
         Logger.error(e as Error);
-        setView(ViewState.ConfirmCurrent);
         return;
       }
 
@@ -199,16 +186,10 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        reauthenticate();
       }
-      setView(ViewState.ConfirmCurrent);
     };
 
     initAuth();
-  }, [reauthenticate]);
-
-  const toggleSelection = useCallback(() => {
-    setIsSelected((prev) => !prev);
   }, []);
 
   const handleSeedlessChangePasswordError = useCallback(() => {
@@ -258,13 +239,16 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     });
   }, [navigation, handleSeedlessChangePasswordError]);
 
-  const recreateVault = useCallback(async () => {
-    await recreateVaultsWithNewPassword(
-      originalPassword || '',
-      password,
-      selectedAddress || '',
-    );
-  }, [originalPassword, password, selectedAddress]);
+  const recreateVault = useCallback(
+    async (verifiedPassword: string) => {
+      await recreateVaultsWithNewPassword(
+        verifiedPassword,
+        password,
+        selectedAddress || '',
+      );
+    },
+    [password, selectedAddress],
+  );
 
   const onPressCreate = useCallback(async () => {
     if (loading) return;
@@ -287,7 +271,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         return;
       }
 
-      await recreateVault();
+      const verifiedPassword =
+        originalPassword ?? (await reauthenticate(currentPassword));
+      if (!verifiedPassword) {
+        setLoading(false);
+        return;
+      }
+
+      await recreateVault(verifiedPassword);
       await Authentication.resetPassword();
 
       try {
@@ -351,11 +342,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [
     loading,
     password,
+    currentPassword,
     confirmPassword,
+    originalPassword,
     biometryChoice,
     rememberMe,
     biometryType,
     recreateVault,
+    reauthenticate,
     handleSeedlessPasswordOutdated,
     handleSeedlessChangePasswordError,
     dispatch,
@@ -375,6 +369,11 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const onPasswordChange = useCallback((val: string) => {
     setPassword(val);
     setConfirmPassword((prev) => (val === '' ? '' : prev));
+  }, []);
+
+  const onCurrentPasswordChange = useCallback((val: string) => {
+    setCurrentPassword(val);
+    setWarningIncorrectPassword(undefined);
   }, []);
 
   const learnMore = useCallback(() => {
@@ -398,10 +397,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       },
     });
   }, [navigation]);
-
-  const reauthenticateWithPassword = useCallback(() => {
-    reauthenticate(password);
-  }, [reauthenticate, password]);
 
   const isError = useCallback(
     () =>
@@ -449,6 +444,52 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       },
     });
   }, [isSeedlessOnboardingLoginFlow, learnMoreSocialLogin, onPressCreate]);
+
+  const handlePasswordRecoveryAcknowledgement = useCallback(() => {
+    const isSrp =
+      authConnection !== AuthConnection.Apple &&
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Telegram;
+
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('reset_password.warning_password_change_title'),
+        description: (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {isSrp
+              ? strings('reset_password.i_understand')
+              : strings('reset_password.checkbox_forgot_password')}{' '}
+            <Text
+              onPress={learnMore}
+              testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryDefault}
+            >
+              {strings('reset_password.learn_more')}
+            </Text>
+          </Text>
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        secondaryButtonLabel: strings(
+          'reset_password.warning_password_cancel_button',
+        ),
+        primaryButtonLabel: strings('send.i_understand'),
+        buttonLayout: 'vertical',
+        onPrimaryButtonPress: isSeedlessOnboardingLoginFlow
+          ? handleConfirmAction
+          : onPressCreate,
+        closeOnPrimaryButtonPress: true,
+      },
+    });
+  }, [
+    authConnection,
+    handleConfirmAction,
+    isSeedlessOnboardingLoginFlow,
+    learnMore,
+    onPressCreate,
+  ]);
 
   const renderPasswordHelperText = () => {
     if (password && password.length >= MIN_PASSWORD_LENGTH) return null;
@@ -528,72 +569,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     />
   );
 
-  const renderLoader = () => (
-    <Box
-      alignItems={BoxAlignItems.Center}
-      paddingHorizontal={10}
-      twClassName="flex-1 pb-[30px]"
-    >
-      <ActivityIndicator size="small" />
-    </Box>
-  );
-
-  const renderConfirmPassword = () => (
-    <KeyboardAvoidingView
-      style={tw.style('flex-1 flex-row self-center h-full')}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <KeyboardAwareScrollView
-        style={tw.style('flex-1 h-full')}
-        enableOnAndroid
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          justifyContent={BoxJustifyContent.Between}
-          padding={4}
-          twClassName="flex-1 gap-y-4 h-full"
-        >
-          <Box alignItems={BoxAlignItems.Start} twClassName="flex-1 h-full">
-            <Label
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              style={tw.style('mb-1')}
-            >
-              {strings('manual_backup_step_1.enter_current_password')}
-            </Label>
-            <TextField
-              placeholder={strings('password_reset.password_title')}
-              onChangeText={onPasswordChange}
-              value={password}
-              inputProps={{
-                secureTextEntry: true,
-                onSubmitEditing: reauthenticateWithPassword,
-                testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                keyboardAppearance: themeAppearance,
-                autoComplete: 'password',
-              }}
-            />
-            {renderWarningText(warningIncorrectPassword)}
-          </Box>
-          <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
-            <Button
-              {...getCommonButtonProps()}
-              onPress={reauthenticateWithPassword}
-              testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-              isDisabled={!password}
-            >
-              {strings('manual_backup_step_1.confirm')}
-            </Button>
-          </Box>
-        </Box>
-      </KeyboardAwareScrollView>
-    </KeyboardAvoidingView>
-  );
-
   const renderResetPassword = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
+    const hasCurrentPassword =
+      originalPassword !== null || currentPassword !== '';
     const canSubmit =
-      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+      hasCurrentPassword &&
+      passwordsMatch &&
+      password.length >= MIN_PASSWORD_LENGTH;
     const isSrp =
       authConnection !== AuthConnection.Apple &&
       authConnection !== AuthConnection.Google &&
@@ -608,8 +591,10 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           renderLoadingState()
         ) : (
           <KeyboardAwareScrollView
-            style={tw.style('flex-1 px-4')}
-            contentContainerStyle={tw.style('flex-grow')}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('flex-grow px-4 pt-2 pb-6')}
+            automaticallyAdjustContentInsets={false}
+            contentInsetAdjustmentBehavior="never"
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
             <Box twClassName="flex-1 flex-col">
@@ -617,7 +602,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
                 flexDirection={BoxFlexDirection.Column}
                 gap={4}
-                twClassName="grow pt-4"
+                twClassName="grow"
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -627,6 +612,32 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     ? strings('choose_password.description')
                     : strings('choose_password.description_social_login')}
                 </Text>
+
+                {/* Current password field */}
+                <Box twClassName="relative flex-col gap-2">
+                  <Label
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                    style={tw.style('-mb-1')}
+                  >
+                    {strings('manual_backup_step_1.enter_current_password')}
+                  </Label>
+                  <TextField
+                    placeholder={strings('password_reset.password_title')}
+                    onChangeText={onCurrentPasswordChange}
+                    value={currentPassword}
+                    inputProps={{
+                      secureTextEntry: true,
+                      testID:
+                        ChoosePasswordSelectorsIDs.CURRENT_PASSWORD_INPUT_ID,
+                      returnKeyType: 'next',
+                      autoComplete: 'password',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
+                  />
+                  {renderWarningText(warningIncorrectPassword)}
+                </Box>
 
                 {/* New password field */}
                 <Box twClassName="relative flex-col gap-2">
@@ -720,45 +731,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                   {renderErrorText()}
                 </Box>
 
-                {/* I understand checkbox */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Start}
-                  justifyContent={BoxJustifyContent.Start}
-                  marginBottom={4}
-                  marginTop={2}
-                  gap={2}
-                >
-                  <Checkbox
-                    onChange={toggleSelection}
-                    isSelected={isSelected}
-                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                    accessibilityLabel={
-                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                    }
-                    style={tw.style('flex items-start')}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
-                    onPress={toggleSelection}
-                    twClassName="flex-row items-center w-[90%]"
-                  >
-                    {isSrp
-                      ? strings('reset_password.i_understand')
-                      : strings('reset_password.checkbox_forgot_password')}
-                    <Text
-                      onPress={learnMore}
-                      testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.PrimaryDefault}
-                    >
-                      {' ' + strings('reset_password.learn_more')}
-                    </Text>
-                  </Text>
-                </Box>
-
                 <Box
                   flexDirection={BoxFlexDirection.Column}
                   twClassName={`w-full gap-[18px] mt-auto ${
@@ -768,13 +740,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                   {renderSwitch()}
                   <Button
                     {...getCommonButtonProps()}
-                    onPress={() => {
-                      if (isSeedlessOnboardingLoginFlow) {
-                        handleConfirmAction();
-                      } else {
-                        onPressCreate();
-                      }
-                    }}
+                    onPress={handlePasswordRecoveryAcknowledgement}
                     testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                     isDisabled={!canSubmit}
                   >
@@ -789,8 +755,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     );
   };
 
-  if (!ready) return renderLoader();
-
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -804,9 +768,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         includesTopInset
       />
       <Box twClassName="flex-1" testID={'account-backup-step-4-screen'}>
-        {view === ViewState.ResetForm
-          ? renderResetPassword()
-          : renderConfirmPassword()}
+        {renderResetPassword()}
       </Box>
     </SafeAreaView>
   );

@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import Logger from '../../../../../util/Logger';
-import ActionModal from '../../../../UI/ActionModal';
 import {
   Button,
   ButtonVariant,
@@ -18,32 +17,31 @@ import {
 const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     desc: {
       marginTop: 8,
+      lineHeight: 20,
     },
     accessory: {
-      marginTop: 16,
-    },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
-    },
-    modalText: {
-      textAlign: 'center',
+      marginTop: 12,
     },
   });
 
-const ClearCookiesSection = () => {
-  const [cookiesModalVisible, setCookiesModalVisible] = useState(false);
+interface ClearCookiesSectionProps {
+  openConfirmSheet: (config: {
+    title: string;
+    message: string;
+    confirmText: string;
+    cancelText: string;
+    onConfirm: () => void | Promise<void>;
+  }) => void;
+}
+
+const ClearCookiesSection = ({
+  openConfirmSheet,
+}: ClearCookiesSectionProps) => {
   const [hasCookies, setHasCookies] = useState(false);
   const styles = createStyles();
 
@@ -63,9 +61,6 @@ const ClearCookiesSection = () => {
     run();
   }, []);
 
-  const toggleClearCookiesModal = () =>
-    setCookiesModalVisible(!cookiesModalVisible);
-
   const clearCookies = async () => {
     const useWebKit = true;
     await CookieManager.clearAll(useWebKit);
@@ -75,9 +70,16 @@ const ClearCookiesSection = () => {
       const cookies = await CookieManager.getAll(useWebKit);
       setHasCookies(Object.keys(cookies).length > 0);
     }
-
-    toggleClearCookiesModal();
   };
+
+  const openClearCookiesSheet = () =>
+    openConfirmSheet({
+      title: strings('app_settings.clear_cookies_modal_title'),
+      message: strings('app_settings.clear_cookies_modal_message'),
+      confirmText: strings('app_settings.clear'),
+      cancelText: strings('app_settings.reset_account_cancel_button'),
+      onConfirm: clearCookies,
+    });
 
   return (
     <>
@@ -98,30 +100,13 @@ const ClearCookiesSection = () => {
             size={ButtonSize.Lg}
             variant={ButtonVariant.Secondary}
             isFullWidth
-            onPress={toggleClearCookiesModal}
+            onPress={openClearCookiesSheet}
             isDisabled={!hasCookies}
           >
             {strings('app_settings.clear_browser_cookies_desc')}
           </Button>
         </View>
       </View>
-      <ActionModal
-        modalVisible={cookiesModalVisible}
-        confirmText={strings('app_settings.clear')}
-        cancelText={strings('app_settings.reset_account_cancel_button')}
-        onCancelPress={toggleClearCookiesModal}
-        onRequestClose={toggleClearCookiesModal}
-        onConfirmPress={clearCookies}
-      >
-        <View style={styles.modalView}>
-          <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
-            {strings('app_settings.clear_cookies_modal_title')}
-          </Text>
-          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
-            {strings('app_settings.clear_cookies_modal_message')}
-          </Text>
-        </View>
-      </ActionModal>
     </>
   );
 };

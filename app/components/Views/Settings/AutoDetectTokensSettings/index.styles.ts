@@ -4,7 +4,8 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
     },
     titleContainer: {
       flexDirection: 'row',

@@ -63,7 +63,7 @@ const DeveloperOptions = () => {
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderStandard
         title={strings('app_settings.developer_options.title')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
+        titleProps={{ color: TextColor.TextDefault }}
         onBack={isFullScreenModal ? undefined : handleBack}
         onClose={isFullScreenModal ? handleClose : undefined}
         includesTopInset

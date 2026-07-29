@@ -1,30 +1,28 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  ActionListItem,
+  HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../../../../../util/theme';
 
 import { useRampSDK, withRampSDK } from '../../sdk';
 import useRampsController from '../../../hooks/useRampsController';
 import ScreenLayout from '../../components/ScreenLayout';
-import Row from '../../components/Row';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
-import useAnalytics from '../../../hooks/useAnalytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import ActivationKeys from './ActivationKeys';
-
-import ListItem from '../../../../../../component-library/components/List/ListItem';
-import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
 
 import styles from './Settings.styles';
 
@@ -36,9 +34,9 @@ export const RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID =
 function Settings() {
   const navigation = useNavigation<AppNavigationProp>();
   const { isInternalBuild } = useRampSDK();
-  const trackEvent = useAnalytics();
+  const { colors } = useTheme();
   const { userRegion } = useRampsController();
-  const style = styles();
+  const style = styles(colors);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -51,6 +49,21 @@ function Settings() {
   const handleOpenHeadlessPlayground = useCallback(() => {
     navigation.navigate(Routes.RAMP.HEADLESS_PLAYGROUND);
   }, [navigation]);
+
+  const regionLabel =
+    userRegion?.state?.name ||
+    userRegion?.country?.name ||
+    strings('app_settings.fiat_on_ramp.no_region_selected');
+
+  const regionFlag = userRegion?.country?.flag || '🏳️';
+
+  const arrowRightIcon = (
+    <Icon
+      name={IconName.ArrowRight}
+      size={IconSize.Sm}
+      color={IconColor.IconAlternative}
+    />
+  );
 
   return (
     <SafeAreaView edges={['top']} style={style.container}>
@@ -66,51 +79,53 @@ function Settings() {
       >
         <ScreenLayout scrollable>
           <ScreenLayout.Body>
-            <ScreenLayout.Content>
-              <Row first>
-                <Text variant={TextVariant.BodyLGMedium}>
-                  {strings('app_settings.fiat_on_ramp.current_region')}
-                </Text>
+            <ScreenLayout.Content style={style.scrollContent}>
+              <View style={style.inner}>
+                <View style={style.setting}>
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={style.settingTitle}
+                  >
+                    {strings('app_settings.fiat_on_ramp.current_region')}
+                  </Text>
 
-                <ListItem>
-                  <ListItemColumn>
-                    <Text>{userRegion?.country?.flag || '🏳️'}</Text>
-                  </ListItemColumn>
-                  <ListItemColumn>
-                    <Text>
-                      {userRegion?.state?.name ||
-                        userRegion?.country?.name ||
-                        strings('app_settings.fiat_on_ramp.no_region_selected')}
-                    </Text>
-                  </ListItemColumn>
-                </ListItem>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  onPress={handleChangeRegion}
-                  label={strings('app_settings.fiat_on_ramp.change_region')}
-                />
-              </Row>
-              {isInternalBuild ? (
-                <Row>
-                  <ActivationKeys />
-                </Row>
-              ) : null}
-              {isInternalBuild ? (
-                <Row>
-                  <Button
-                    variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
-                    onPress={handleOpenHeadlessPlayground}
-                    label={strings(
-                      'app_settings.fiat_on_ramp.headless_playground.entry_button',
+                  <ActionListItem
+                    label={regionLabel}
+                    startAccessory={
+                      <Text variant={TextVariant.BodyMD} style={style.rowFlag}>
+                        {regionFlag}
+                      </Text>
+                    }
+                    endAccessory={arrowRightIcon}
+                    onPress={handleChangeRegion}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings(
+                      'app_settings.fiat_on_ramp.change_region',
                     )}
-                    testID={RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID}
+                    style={style.actionRow}
                   />
-                </Row>
-              ) : null}
+                </View>
+                {isInternalBuild ? (
+                  <>
+                    <View style={style.groupDivider} />
+                    <ActivationKeys />
+                    <View style={style.groupDivider} />
+                    <ActionListItem
+                      label={strings(
+                        'app_settings.fiat_on_ramp.headless_playground.title',
+                      )}
+                      description={strings(
+                        'app_settings.fiat_on_ramp.headless_playground.entry_description',
+                      )}
+                      endAccessory={arrowRightIcon}
+                      onPress={handleOpenHeadlessPlayground}
+                      accessibilityRole="button"
+                      testID={RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID}
+                      style={style.actionRow}
+                    />
+                  </>
+                ) : null}
+              </View>
             </ScreenLayout.Content>
           </ScreenLayout.Body>
         </ScreenLayout>

@@ -1,18 +1,22 @@
-import { colors } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   setting: {
-    marginTop: 24,
+    marginTop: 0,
+    paddingVertical: 16,
   },
   heading: {
     flexDirection: 'column',
     paddingBottom: 8,
   },
+  settingsPageSeparator: {
+    height: 1,
+    opacity: 0.75,
+  },
   featureView: {
-    marginVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 16,
   },
   featureNameAndIcon: {
     flexDirection: 'row',

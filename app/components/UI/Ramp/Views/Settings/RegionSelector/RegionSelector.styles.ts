@@ -7,26 +7,23 @@ const createStyles = () =>
     },
     searchContainer: {
       paddingHorizontal: 16,
-      paddingTop: 16,
+      paddingTop: 12,
       paddingBottom: 16,
     },
     descriptionText: {
+      alignSelf: 'stretch',
       marginBottom: 16,
-      textAlign: 'center',
+      textAlign: 'left',
+      width: '100%',
     },
     list: {
       flex: 1,
     },
-    region: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    row: {
+      minHeight: 56,
     },
     emoji: {
-      paddingRight: 16,
-      justifyContent: 'center',
-    },
-    textContainer: {
-      flex: 1,
+      minWidth: 32,
     },
     emptyList: {
       padding: 16,
@@ -42,10 +39,7 @@ const createStyles = () =>
       marginTop: 16,
     },
     nestedStateItem: {
-      paddingLeft: 40,
-    },
-    nestedStateRegion: {
-      paddingLeft: 0,
+      paddingLeft: 48,
     },
   });
 

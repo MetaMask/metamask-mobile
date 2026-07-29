@@ -7,8 +7,16 @@ const styleSheet = (params: { theme: Theme }) =>
     wrapper: {
       backgroundColor: params.theme.colors.background.default,
       flex: 1,
-      padding: 16,
-      paddingBottom: 48,
+    },
+    inner: {
+      paddingBottom: 100,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    sectionDivider: {
+      backgroundColor: params.theme.colors.background.muted,
+      height: 6,
+      marginHorizontal: -16,
     },
     heading: {
       marginTop: 16,

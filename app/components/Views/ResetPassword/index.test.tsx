@@ -251,18 +251,12 @@ const navigateToResetForm = async (
   );
 
   const currentPasswordInput = component.getByTestId(
-    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    ChoosePasswordSelectorsIDs.CURRENT_PASSWORD_INPUT_ID,
   );
 
   await act(async () => {
     fireEvent.changeText(currentPasswordInput, 'CurrentPassword123');
   });
-
-  const submitButton = component.getByTestId(
-    ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-  );
-
-  fireEvent.press(submitButton);
 
   await waitFor(() => {
     expect(
@@ -275,11 +269,7 @@ const navigateToResetForm = async (
 
 const fillResetForm = async (
   component: ReturnType<typeof renderComponent>,
-  {
-    newPassword = 'NewPassword123',
-    confirmPassword = 'NewPassword123',
-    pressCheckbox = true,
-  } = {},
+  { newPassword = 'NewPassword123', confirmPassword = 'NewPassword123' } = {},
 ) => {
   const newPasswordInput = component.getByTestId(
     ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -294,15 +284,6 @@ const fillResetForm = async (
   await act(async () => {
     fireEvent.changeText(confirmPasswordInput, confirmPassword);
   });
-
-  if (pressCheckbox) {
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-    await act(async () => {
-      fireEvent.press(checkbox);
-    });
-  }
 };
 
 const submitResetForm = async (
@@ -316,10 +297,28 @@ const submitResetForm = async (
   });
 };
 
-const getWarningModalPrimaryButton = () => {
+const getModalPrimaryButtonByLabel = (label: string) => {
   const navMock = NavigationService.navigation.navigate as jest.Mock;
-  const warningCall = navMock.mock.calls[0];
-  return warningCall[1].params.onPrimaryButtonPress;
+  const modalCall = navMock.mock.calls.find(
+    (call) => call[1]?.params?.primaryButtonLabel === label,
+  );
+  return modalCall?.[1].params.onPrimaryButtonPress;
+};
+
+const getWarningModalPrimaryButton = () =>
+  getModalPrimaryButtonByLabel(
+    strings('reset_password.warning_password_change_button'),
+  );
+
+const pressRecoveryAcknowledgement = async () => {
+  const onPrimaryButtonPress = getModalPrimaryButtonByLabel(
+    strings('send.i_understand'),
+  );
+  expect(onPrimaryButtonPress).toBeDefined();
+  await act(async () => {
+    onPrimaryButtonPress();
+    await Promise.resolve();
+  });
 };
 
 const findPressHandler = (
@@ -340,12 +339,10 @@ const findPressHandler = (
   return pressableNodes[pressableNodes.length - 1]?.props.onPress;
 };
 
-const getWarningModalLearnMoreOnPress = (): (() => void) => {
+const getModalLearnMoreOnPress = (primaryButtonLabel: string): (() => void) => {
   const navMock = NavigationService.navigation.navigate as jest.Mock;
   const modalCall = navMock.mock.calls.find(
-    (call) =>
-      call[1]?.params?.title ===
-      strings('reset_password.warning_password_change_title'),
+    (call) => call[1]?.params?.primaryButtonLabel === primaryButtonLabel,
   );
   const description = modalCall?.[1].params.description as React.ReactElement<{
     children: React.ReactNode;
@@ -368,6 +365,20 @@ const getWarningModalLearnMoreOnPress = (): (() => void) => {
 describe('ResetPassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(Authentication.reauthenticate).mockResolvedValue({
+      password: 'CurrentPassword123',
+    });
+    jest
+      .mocked(Authentication.checkIsSeedlessPasswordOutdated)
+      .mockResolvedValue(false);
+    jest.mocked(Authentication.resetPassword).mockResolvedValue(undefined);
+    jest.mocked(Authentication.storePassword).mockResolvedValue(undefined);
+    jest.mocked(recreateVaultsWithNewPassword).mockResolvedValue(undefined);
+    jest
+      .mocked(passwordRequirementsMet)
+      .mockImplementation(
+        jest.requireActual('../../../util/password').passwordRequirementsMet,
+      );
     mockTrackOnboarding.mockClear();
     mockExportSeedPhrase.mockClear();
     mockTrackEvent.mockClear();
@@ -376,7 +387,7 @@ describe('ResetPassword', () => {
 
   describe('confirm current password view', () => {
     it('renders header with Change password title', async () => {
-      const component = renderComponent();
+      const component = renderComponent(defaultProps, null);
       await flushMicrotasks();
 
       expect(
@@ -387,11 +398,13 @@ describe('ResetPassword', () => {
     it('renders current password input and submit button', async () => {
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
 
-      const component = renderComponent();
+      const component = renderComponent(defaultProps, null);
       await flushMicrotasks();
 
       expect(
-        component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        component.getByTestId(
+          ChoosePasswordSelectorsIDs.CURRENT_PASSWORD_INPUT_ID,
+        ),
       ).toBeOnTheScreen();
       expect(
         component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
@@ -399,7 +412,7 @@ describe('ResetPassword', () => {
     });
 
     it('navigates back when header back button is pressed', async () => {
-      const component = renderComponent();
+      const component = renderComponent(defaultProps, null);
       await flushMicrotasks();
 
       const header = component.getByTestId('header');
@@ -409,23 +422,21 @@ describe('ResetPassword', () => {
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
 
-    it('transitions to reset form after entering correct current password', async () => {
+    it('renders current and new password fields on one screen', async () => {
       mockExportSeedPhrase.mockResolvedValue('test result');
-      const component = renderComponent();
-
-      const currentPasswordInput = component.getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-      );
-      await act(async () => {
-        fireEvent.changeText(currentPasswordInput, 'CurrentPassword123');
-      });
-
-      const submitButton = component.getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(submitButton);
+      const component = renderComponent(defaultProps, null);
 
       await waitFor(() => {
+        expect(
+          component.getByTestId(
+            ChoosePasswordSelectorsIDs.CURRENT_PASSWORD_INPUT_ID,
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          component.getByTestId(
+            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+          ),
+        ).toBeOnTheScreen();
         expect(
           component.getByText(strings('reset_password.password')),
         ).toBeOnTheScreen();
@@ -437,22 +448,19 @@ describe('ResetPassword', () => {
         .spyOn(Authentication, 'reauthenticate')
         .mockRejectedValueOnce(new Error('Invalid password'));
 
-      const component = renderComponent();
+      const component = renderComponent(defaultProps, null);
       await flushMicrotasks();
 
       const currentPasswordInput = component.getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        ChoosePasswordSelectorsIDs.CURRENT_PASSWORD_INPUT_ID,
       );
       await act(async () => {
         fireEvent.changeText(currentPasswordInput, 'WrongPassword');
       });
 
-      const submitButton = component.getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      await act(async () => {
-        fireEvent.press(submitButton);
-      });
+      await fillResetForm(component);
+      await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(
@@ -472,22 +480,19 @@ describe('ResetPassword', () => {
           ),
         );
 
-      const component = renderComponent();
+      const component = renderComponent(defaultProps, null);
       await flushMicrotasks();
 
       const currentPasswordInput = component.getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        ChoosePasswordSelectorsIDs.CURRENT_PASSWORD_INPUT_ID,
       );
       await act(async () => {
         fireEvent.changeText(currentPasswordInput, 'WrongPassword');
       });
 
-      const submitButton = component.getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      await act(async () => {
-        fireEvent.press(submitButton);
-      });
+      await fillResetForm(component);
+      await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(Authentication.reauthenticate).toHaveBeenCalled();
@@ -691,21 +696,24 @@ describe('ResetPassword', () => {
       });
     });
 
-    it('toggles checkbox via label text press', async () => {
+    it('shows password recovery acknowledgement sheet on submit', async () => {
       const component = await navigateToResetForm();
 
-      const labelText = component.getByTestId(
-        ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      await act(async () => {
-        fireEvent.press(labelText);
-      });
-
-      await fillResetForm(component, { pressCheckbox: false });
+      await fillResetForm(component);
       await submitResetForm(component);
 
       await waitFor(() => {
-        expect(NavigationService.navigation.navigate).toHaveBeenCalled();
+        expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: expect.objectContaining({
+              description: expect.anything(),
+              primaryButtonLabel: strings('send.i_understand'),
+              buttonLayout: 'vertical',
+            }),
+          }),
+        );
       });
     });
 
@@ -717,7 +725,7 @@ describe('ResetPassword', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays social-login description and checkbox copy for Google auth connection', async () => {
+    it('displays social-login description for Google auth connection', async () => {
       const component = await navigateToResetForm(
         'vault string',
         AuthConnection.Google,
@@ -728,26 +736,20 @@ describe('ResetPassword', () => {
           strings('choose_password.description_social_login'),
         ),
       ).toBeOnTheScreen();
-      expect(
-        component.getByTestId(ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID),
-      ).toHaveTextContent(strings('reset_password.checkbox_forgot_password'), {
-        exact: false,
-      });
-      expect(
-        component.queryByText(strings('reset_password.i_understand')),
-      ).toBeNull();
     });
   });
 
   describe('learn more link', () => {
     it('opens seedless support URL for seedless onboarding flow', async () => {
       const component = await navigateToResetForm();
+      await fillResetForm(component);
+      await submitResetForm(component);
 
-      const learnMoreLink = component.getByTestId(
-        ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+      const learnMoreOnPress = getModalLearnMoreOnPress(
+        strings('send.i_understand'),
       );
       await act(async () => {
-        fireEvent.press(learnMoreLink);
+        learnMoreOnPress();
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
@@ -761,12 +763,14 @@ describe('ResetPassword', () => {
 
     it('opens SRP support URL for non-seedless flow', async () => {
       const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
 
-      const learnMoreLink = component.getByTestId(
-        ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+      const learnMoreOnPress = getModalLearnMoreOnPress(
+        strings('send.i_understand'),
       );
       await act(async () => {
-        fireEvent.press(learnMoreLink);
+        learnMoreOnPress();
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
@@ -782,6 +786,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm();
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
@@ -794,7 +799,9 @@ describe('ResetPassword', () => {
         );
       });
 
-      const learnMoreOnPress = getWarningModalLearnMoreOnPress();
+      const learnMoreOnPress = getModalLearnMoreOnPress(
+        strings('reset_password.warning_password_change_button'),
+      );
       await act(async () => {
         learnMoreOnPress();
       });
@@ -832,6 +839,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm();
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
@@ -860,6 +868,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -879,6 +888,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(
@@ -901,6 +911,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(Alert.alert).toHaveBeenCalledWith(
@@ -921,6 +932,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -943,6 +955,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm();
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
@@ -976,6 +989,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(recreateVaultsWithNewPassword).toHaveBeenCalled();
@@ -995,6 +1009,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       expect(Alert.alert).toHaveBeenCalledWith(
         'Error',
@@ -1008,7 +1023,6 @@ describe('ResetPassword', () => {
       await fillResetForm(component, {
         newPassword: 'NewPassword123',
         confirmPassword: 'DifferentPassword1',
-        pressCheckbox: true,
       });
 
       const onPress = findPressHandler(
@@ -1020,6 +1034,7 @@ describe('ResetPassword', () => {
       await act(async () => {
         onPress?.();
       });
+      await pressRecoveryAcknowledgement();
 
       expect(Alert.alert).toHaveBeenCalledWith(
         'Error',
@@ -1039,6 +1054,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(Logger.error).toHaveBeenCalled();
@@ -1140,7 +1156,7 @@ describe('ResetPassword', () => {
       expect(Authentication.getType).toHaveBeenCalled();
     });
 
-    it('auto-reauthenticates with biometric credentials when available', async () => {
+    it('does not auto-reauthenticate with biometric credentials when available', async () => {
       jest.spyOn(Authentication, 'getType').mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         availableBiometryType: BIOMETRY_TYPE.FACE_ID,
@@ -1171,6 +1187,7 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:biometryChoiceDisabled',
       );
+      expect(Authentication.reauthenticate).not.toHaveBeenCalled();
     });
   });
 
@@ -1195,6 +1212,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm();
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
@@ -1238,9 +1256,13 @@ describe('ResetPassword', () => {
         }),
       );
 
-      const errorSheetCall = mockNavigation.navigate.mock.calls[1];
+      const errorSheetCall = mockNavigation.navigate.mock.calls.find(
+        (call) =>
+          call[1]?.params?.title ===
+          strings('login.seedless_password_outdated_modal_title'),
+      );
       const onErrorSheetPrimaryButtonPress =
-        errorSheetCall[1].params.onPrimaryButtonPress;
+        errorSheetCall?.[1].params.onPrimaryButtonPress;
       await act(async () => {
         await onErrorSheetPrimaryButtonPress();
       });
@@ -1268,9 +1290,13 @@ describe('ResetPassword', () => {
         }),
       );
 
-      const errorSheetCall = mockNavigation.navigate.mock.calls[1];
+      const errorSheetCall = mockNavigation.navigate.mock.calls.find(
+        (call) =>
+          call[1]?.params?.title ===
+          strings('reset_password.seedless_change_password_error_modal_title'),
+      );
       const onErrorSheetPrimaryButtonPress =
-        errorSheetCall[1].params.onPrimaryButtonPress;
+        errorSheetCall?.[1].params.onPrimaryButtonPress;
       await act(async () => {
         await onErrorSheetPrimaryButtonPress();
       });
@@ -1319,6 +1345,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm();
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
@@ -1345,6 +1372,7 @@ describe('ResetPassword', () => {
       const component = await navigateToResetForm();
       await fillResetForm(component);
       await submitResetForm(component);
+      await pressRecoveryAcknowledgement();
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(

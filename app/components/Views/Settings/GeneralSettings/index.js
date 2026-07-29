@@ -6,9 +6,11 @@ import {
   Switch,
   View,
   TouchableOpacity,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
+import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import Engine from '../../../../core/Engine';
 import I18n, {
@@ -16,7 +18,6 @@ import I18n, {
   getLanguages,
   setLocale,
 } from '../../../../../locales/i18n';
-import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
 import {
   setSearchEngine,
@@ -25,8 +26,6 @@ import {
   setHideZeroBalanceTokens,
   setHapticsEnabled,
 } from '../../../../actions/settings';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import PickComponent from '../../PickComponent';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -36,15 +35,21 @@ import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import {
+  Box,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
   HeaderStandard,
+  FilterButton,
+  SegmentedControl,
+  SectionDivider,
+  BottomSheet,
+  BottomSheetHeader,
 } from '@metamask/design-system-react-native';
+import PickerBase from '../../../../component-library/components/Pickers/PickerBase';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { colors as staticColors } from '../../../../styles/common';
 import { enablePushNotifications } from '../../../../actions/notification/helpers';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 
@@ -52,7 +57,6 @@ export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
   'general-settings-currency-selector';
 
 const diameter = 40;
-const spacing = 8;
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
   a.quote.code
@@ -95,27 +99,73 @@ const createStyles = (colors) =>
       flex: 1,
     },
     content: {
-      padding: 16,
       flex: 1,
     },
     titleContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      minHeight: 32,
     },
     title: {
       flex: 1,
     },
     toggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
       marginLeft: 16,
     },
     desc: {
       marginTop: 8,
+      lineHeight: 20,
     },
     accessory: {
-      marginTop: 16,
+      marginTop: 12,
+    },
+    pickerTrigger: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
+      borderWidth: 0,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    selectedLabel: {
+      flex: 1,
+    },
+    sheetContent: {
+      maxHeight: 420,
+    },
+    sheetList: {
+      paddingBottom: 24,
+    },
+    optionButton: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 48,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+    },
+    optionButtonSelected: {
+      backgroundColor: colors.background.muted,
+    },
+    optionLabel: {
+      flex: 1,
+    },
+    optionIcon: {
+      paddingLeft: 16,
     },
     setting: {
-      marginTop: 24,
+      marginTop: 0,
+      paddingVertical: 16,
+    },
+    settingsPageSeparator: {
+      backgroundColor: colors.border.muted,
+      height: 1,
+      opacity: 0.75,
+    },
+    sectionDivider: {
+      backgroundColor: colors.background.muted,
+      height: 6,
+      marginHorizontal: -16,
     },
     switch: {
       alignSelf: 'flex-start',
@@ -124,37 +174,35 @@ const createStyles = (colors) =>
       marginTop: 0,
     },
     inner: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
       paddingBottom: 100,
     },
-    identicon_container: {
+    identiconOptionsRow: {
       flexDirection: 'row',
+      paddingTop: 8,
     },
-    identicon_row: {
-      width: '33%',
+    identiconOption: {
       alignItems: 'center',
-      flexDirection: 'column',
+      borderColor: colors.border.muted,
+      borderRadius: 16,
+      borderWidth: 1,
+      flex: 1,
+      minHeight: 112,
+      paddingHorizontal: 8,
+      paddingVertical: 14,
     },
-    identiconText: {
-      marginTop: 12,
+    identiconOptionSpacing: {
+      marginRight: 10,
     },
-    blockie: {
-      height: diameter,
-      width: diameter,
-      borderRadius: diameter / 2,
-    },
-    avatarWrapper: {
-      borderRadius: 12,
-      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      borderWidth: 2,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    selectedAvatarWrapper: {
+    identiconOptionSelected: {
+      backgroundColor: colors.background.muted,
       borderColor: colors.primary.default,
+      borderWidth: 2,
     },
-    unselectedAvatarWrapper: {
-      borderColor: staticColors.transparent,
+    identiconLabel: {
+      marginTop: 12,
+      textAlign: 'center',
     },
   });
 
@@ -226,9 +274,12 @@ class Settings extends PureComponent {
   };
 
   state = {
+    activePicker: null,
     currentLanguage: I18n.locale.substr(0, 2),
     languages: {},
   };
+
+  pickerSheetRef = React.createRef();
 
   selectCurrency = async (currency) => {
     const { CurrencyRateController, AssetsController } = Engine.context;
@@ -273,6 +324,124 @@ class Settings extends PureComponent {
     this.props.setHapticsEnabled(hapticsEnabled);
   };
 
+  getSelectedPickerLabel = (options, selectedValue, defaultValue = '') => {
+    const selectedOption = options?.find(
+      (option) => option.value === selectedValue,
+    );
+    return selectedOption?.label ?? defaultValue;
+  };
+
+  showPickerSheet = (picker) => {
+    Keyboard.dismiss();
+    this.setState({ activePicker: picker }, () => {
+      this.pickerSheetRef.current?.onOpenBottomSheet();
+    });
+  };
+
+  hidePickerSheet = () => {
+    this.pickerSheetRef.current?.onCloseBottomSheet(() => {
+      this.setState({ activePicker: null });
+    });
+  };
+
+  selectPickerValue = (value) => {
+    this.state.activePicker?.onValueChange(value);
+    this.hidePickerSheet();
+  };
+
+  renderPickerTrigger = ({
+    label,
+    options,
+    selectedValue,
+    onValueChange,
+    testID,
+  }) => {
+    const themeTokens = this.context || mockTheme;
+    const { colors } = themeTokens;
+    const styles = createStyles(colors);
+
+    return (
+      <PickerBase
+        onPress={() =>
+          this.showPickerSheet({
+            label,
+            options,
+            selectedValue,
+            onValueChange,
+          })
+        }
+        testID={testID}
+        style={styles.pickerTrigger}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          style={styles.selectedLabel}
+          numberOfLines={1}
+        >
+          {this.getSelectedPickerLabel(options, selectedValue)}
+        </Text>
+      </PickerBase>
+    );
+  };
+
+  renderPickerSheet = () => {
+    const { activePicker } = this.state;
+    if (!activePicker) {
+      return null;
+    }
+
+    const themeTokens = this.context || mockTheme;
+    const { colors } = themeTokens;
+    const styles = createStyles(colors);
+
+    return (
+      <BottomSheet
+        ref={this.pickerSheetRef}
+        onClose={() => this.setState({ activePicker: null })}
+      >
+        <BottomSheetHeader onClose={this.hidePickerSheet}>
+          {activePicker.label}
+        </BottomSheetHeader>
+        <ScrollView
+          style={styles.sheetContent}
+          contentContainerStyle={styles.sheetList}
+        >
+          {activePicker.options.map((option) => (
+            <TouchableOpacity
+              key={option.key}
+              onPress={() => this.selectPickerValue(option.value)}
+              style={[
+                styles.optionButton,
+                activePicker.selectedValue === option.value &&
+                  styles.optionButtonSelected,
+              ]}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                style={styles.optionLabel}
+                numberOfLines={1}
+              >
+                {option.label}
+              </Text>
+              {activePicker.selectedValue === option.value ? (
+                <IconCheck
+                  style={styles.optionIcon}
+                  name="check"
+                  size={24}
+                  color={themeTokens.brandColors.white}
+                />
+              ) : null}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </BottomSheet>
+    );
+  };
+
   componentDidMount = () => {
     const languages = getLanguages();
     this.setState({ languages });
@@ -285,18 +454,6 @@ class Settings extends PureComponent {
       { value: 'Google', label: 'Google', key: 'Google' },
       { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
       { value: 'Brave', label: 'Brave', key: 'Brave' },
-    ];
-    this.primaryCurrencyOptions = [
-      {
-        value: 'ETH',
-        label: strings('app_settings.primary_currency_text_first'),
-        key: 'Native',
-      },
-      {
-        value: 'Fiat',
-        label: strings('app_settings.primary_currency_text_second'),
-        key: 'Fiat',
-      },
     ];
   };
 
@@ -365,15 +522,16 @@ class Settings extends PureComponent {
                 {strings('app_settings.conversion_desc')}
               </Text>
               <View style={styles.accessory}>
-                <SelectComponent
-                  testID={GENERAL_SETTINGS_CURRENCY_SELECTOR}
-                  selectedValue={currentCurrency}
-                  onValueChange={this.selectCurrency}
-                  label={strings('app_settings.current_conversion')}
-                  options={infuraCurrencyOptions}
-                />
+                {this.renderPickerTrigger({
+                  testID: GENERAL_SETTINGS_CURRENCY_SELECTOR,
+                  selectedValue: currentCurrency,
+                  onValueChange: this.selectCurrency,
+                  label: strings('app_settings.current_conversion'),
+                  options: infuraCurrencyOptions,
+                })}
               </View>
             </View>
+            <Box style={styles.settingsPageSeparator} />
             <View style={styles.setting}>
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.primary_currency_title')}
@@ -386,23 +544,26 @@ class Settings extends PureComponent {
               >
                 {strings('app_settings.primary_currency_desc')}
               </Text>
-              {this.primaryCurrencyOptions && (
-                <View style={styles.accessory}>
-                  <PickComponent
-                    pick={this.selectPrimaryCurrency}
-                    textFirst={strings(
-                      'app_settings.primary_currency_text_first',
-                    )}
-                    valueFirst={'ETH'}
-                    textSecond={strings(
-                      'app_settings.primary_currency_text_second',
-                    )}
-                    valueSecond={'Fiat'}
-                    selectedValue={primaryCurrency}
-                  />
-                </View>
-              )}
+              <View style={styles.accessory}>
+                <SegmentedControl
+                  value={primaryCurrency === 'Fiat' ? 'Fiat' : 'ETH'}
+                  onChange={this.selectPrimaryCurrency}
+                  isFullWidth
+                >
+                  <FilterButton value="ETH">
+                    {strings('app_settings.primary_currency_text_first')}
+                  </FilterButton>
+                  <FilterButton value="Fiat">
+                    {strings('app_settings.primary_currency_text_second')}
+                  </FilterButton>
+                </SegmentedControl>
+              </View>
             </View>
+            <SectionDivider
+              borderWidth={0}
+              marginVertical={4}
+              style={styles.sectionDivider}
+            />
             <View style={styles.setting}>
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.current_language')}
@@ -417,15 +578,16 @@ class Settings extends PureComponent {
               </Text>
               {this.languageOptions && (
                 <View style={styles.accessory}>
-                  <SelectComponent
-                    selectedValue={this.state.currentLanguage}
-                    onValueChange={this.selectLanguage}
-                    label={strings('app_settings.current_language')}
-                    options={this.languageOptions}
-                  />
+                  {this.renderPickerTrigger({
+                    selectedValue: this.state.currentLanguage,
+                    onValueChange: this.selectLanguage,
+                    label: strings('app_settings.current_language'),
+                    options: this.languageOptions,
+                  })}
                 </View>
               )}
             </View>
+            <Box style={styles.settingsPageSeparator} />
             <View style={styles.setting}>
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.search_engine')}
@@ -440,15 +602,20 @@ class Settings extends PureComponent {
               </Text>
               {this.searchEngineOptions && (
                 <View style={styles.accessory}>
-                  <SelectComponent
-                    selectedValue={this.props.searchEngine}
-                    onValueChange={this.selectSearchEngine}
-                    label={strings('app_settings.search_engine')}
-                    options={this.searchEngineOptions}
-                  />
+                  {this.renderPickerTrigger({
+                    selectedValue: this.props.searchEngine,
+                    onValueChange: this.selectSearchEngine,
+                    label: strings('app_settings.search_engine'),
+                    options: this.searchEngineOptions,
+                  })}
                 </View>
               )}
             </View>
+            <SectionDivider
+              borderWidth={0}
+              marginVertical={4}
+              style={styles.sectionDivider}
+            />
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
                 <Text
@@ -481,6 +648,7 @@ class Settings extends PureComponent {
                 {strings('app_settings.hide_zero_balance_tokens_desc')}
               </Text>
             </View>
+            <Box style={styles.settingsPageSeparator} />
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
                 <Text
@@ -513,6 +681,11 @@ class Settings extends PureComponent {
                 {strings('app_settings.haptic_feedback_desc')}
               </Text>
             </View>
+            <SectionDivider
+              borderWidth={0}
+              marginVertical={4}
+              style={styles.sectionDivider}
+            />
             <View style={styles.setting}>
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.accounts_identicon_title')}
@@ -526,94 +699,58 @@ class Settings extends PureComponent {
                 {strings('app_settings.accounts_identicon_desc')}
               </Text>
               <View style={styles.accessory}>
-                <View style={styles.identicon_container}>
-                  <TouchableOpacity
-                    onPress={() =>
-                      setAvatarAccountType(AvatarAccountType.Maskicon)
-                    }
-                    style={styles.identicon_row}
-                  >
-                    <View
-                      style={[
-                        styles.avatarWrapper,
-                        avatarAccountType === AvatarAccountType.Maskicon
-                          ? styles.selectedAvatarWrapper
-                          : styles.unselectedAvatarWrapper,
-                      ]}
-                    >
-                      <AvatarAccount
-                        type={AvatarAccountType.Maskicon}
-                        accountAddress={selectedAddress}
-                        size={diameter}
-                      />
-                    </View>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      style={styles.identiconText}
-                    >
-                      Polycons
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() =>
-                      setAvatarAccountType(AvatarAccountType.JazzIcon)
-                    }
-                    style={styles.identicon_row}
-                  >
-                    <View
-                      style={[
-                        styles.avatarWrapper,
-                        avatarAccountType === AvatarAccountType.JazzIcon
-                          ? styles.selectedAvatarWrapper
-                          : styles.unselectedAvatarWrapper,
-                      ]}
-                    >
-                      <AvatarAccount
-                        type={AvatarAccountType.JazzIcon}
-                        accountAddress={selectedAddress}
-                        size={diameter}
-                      />
-                    </View>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      style={styles.identiconText}
-                    >
-                      {strings('app_settings.jazzicons')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() =>
-                      setAvatarAccountType(AvatarAccountType.Blockies)
-                    }
-                    style={styles.identicon_row}
-                  >
-                    <View
-                      style={[
-                        styles.avatarWrapper,
-                        avatarAccountType === AvatarAccountType.Blockies
-                          ? styles.selectedAvatarWrapper
-                          : styles.unselectedAvatarWrapper,
-                      ]}
-                    >
-                      <AvatarAccount
-                        type={AvatarAccountType.Blockies}
-                        accountAddress={selectedAddress}
-                        size={diameter}
-                      />
-                    </View>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      style={styles.identiconText}
-                    >
-                      {strings('app_settings.blockies')}
-                    </Text>
-                  </TouchableOpacity>
+                <View style={styles.identiconOptionsRow}>
+                  {[
+                    {
+                      label: 'Polycons',
+                      type: AvatarAccountType.Maskicon,
+                    },
+                    {
+                      label: strings('app_settings.jazzicons'),
+                      type: AvatarAccountType.JazzIcon,
+                    },
+                    {
+                      label: strings('app_settings.blockies'),
+                      type: AvatarAccountType.Blockies,
+                    },
+                  ].map((option, index, options) => {
+                    const isSelected = avatarAccountType === option.type;
+
+                    return (
+                      <TouchableOpacity
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: isSelected }}
+                        key={option.type}
+                        onPress={() => setAvatarAccountType(option.type)}
+                        style={[
+                          styles.identiconOption,
+                          index < options.length - 1 &&
+                            styles.identiconOptionSpacing,
+                          isSelected && styles.identiconOptionSelected,
+                        ]}
+                      >
+                        <AvatarAccount
+                          type={option.type}
+                          accountAddress={selectedAddress}
+                          size={diameter}
+                        />
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                          style={styles.identiconLabel}
+                        >
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
             </View>
             {/* {this.renderThemeSettingsSection()} */}
           </View>
         </ScrollView>
+        {this.renderPickerSheet()}
       </SafeAreaView>
     );
   }

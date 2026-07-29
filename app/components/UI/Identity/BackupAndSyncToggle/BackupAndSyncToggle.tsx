@@ -150,7 +150,7 @@ const BackupAndSyncToggle = ({
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingSm}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('backupAndSync.title')}
         </Text>
         <Switch

@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Switch } from 'react-native';
+import { ActivityIndicator, Switch, View } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -23,7 +23,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 
-import Row from '../../components/Row';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import useActivationKeys from '../../hooks/useActivationKeys';
@@ -37,11 +36,13 @@ import ListItem from '../../../../../../component-library/components/List/ListIt
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
+import styles from './Settings.styles';
 
 function ActivationKeys() {
   const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { colors } = theme;
+  const style = styles(colors);
   const { isInternalBuild } = useRampSDK();
 
   const {
@@ -94,95 +95,103 @@ function ActivationKeys() {
   );
 
   return (
-    <>
-      <Text>
-        <Text variant={TextVariant.BodyLGMedium}>
+    <View style={style.setting}>
+      <View style={style.activationKeysHeader}>
+        <Text variant={TextVariant.BodyMDMedium} style={style.settingTitle}>
           {strings('app_settings.fiat_on_ramp.sdk_activation_keys')}
         </Text>
-        <Text>
-          {'  '}
-          {isLoadingKeys ? <ActivityIndicator size="small" /> : null}
-        </Text>
-      </Text>
-      <Row>
+        {isLoadingKeys ? <ActivityIndicator size="small" /> : null}
+      </View>
+      <View>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('app_settings.fiat_on_ramp.activation_keys_description')}
         </Text>
-      </Row>
-      {activationKeys.map((activationKey) => (
-        <ListItem key={activationKey.key}>
-          <ListItemColumn>
-            <Switch
-              onValueChange={() =>
-                updateActivationKey(
-                  activationKey.key,
-                  activationKey.label ?? '',
-                  !activationKey.active,
-                )
-              }
-              value={activationKey.active}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              ios_backgroundColor={colors.border.muted}
-              disabled={isLoadingKeys}
-            />
-          </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Fill}>
-            {activationKey.label ? (
-              <Text
-                color={
-                  activationKey.active ? TextColor.Default : TextColor.Muted
-                }
-                selectable
-              >
-                {activationKey.label}
-              </Text>
-            ) : null}
-            <Text
-              color={activationKey.active ? TextColor.Default : TextColor.Muted}
-              selectable
-            >
-              {activationKey.key}
-            </Text>
-          </ListItemColumn>
-          <ListItemColumn>
-            <ButtonIcon
-              accessibilityLabel={strings(
-                'app_settings.fiat_on_ramp.edit_activation_key',
-              )}
-              accessibilityRole="button"
-              disabled={isLoadingKeys}
-              onPress={() =>
-                handleEditPress(
-                  activationKey.key,
-                  activationKey.label || '',
-                  activationKey.active,
-                )
-              }
-              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-              iconName={IconName.Edit}
-              iconColor={IconColor.Primary}
-              size={ButtonIconSizes.Lg}
-            />
-          </ListItemColumn>
-          <ListItemColumn>
-            <ButtonIcon
-              accessibilityRole="button"
-              accessibilityLabel="Delete activation key"
-              disabled={isLoadingKeys}
-              onPress={() => removeActivationKey(activationKey.key)}
-              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-              iconName={IconName.Trash}
-              iconColor={IconColor.Error}
-              size={ButtonIconSizes.Lg}
-            />
-          </ListItemColumn>
-        </ListItem>
-      ))}
-      <Row>
+      </View>
+      {activationKeys.length > 0 ? (
+        <View style={style.activationKeyList}>
+          {activationKeys.map((activationKey, index) => (
+            <React.Fragment key={activationKey.key}>
+              {index > 0 ? <View style={style.groupDivider} /> : null}
+              <ListItem style={style.activationKeyRow}>
+                <ListItemColumn>
+                  <Switch
+                    onValueChange={() =>
+                      updateActivationKey(
+                        activationKey.key,
+                        activationKey.label ?? '',
+                        !activationKey.active,
+                      )
+                    }
+                    value={activationKey.active}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white}
+                    ios_backgroundColor={colors.border.muted}
+                    disabled={isLoadingKeys}
+                  />
+                </ListItemColumn>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  {activationKey.label ? (
+                    <Text
+                      color={
+                        activationKey.active
+                          ? TextColor.Default
+                          : TextColor.Muted
+                      }
+                      selectable
+                    >
+                      {activationKey.label}
+                    </Text>
+                  ) : null}
+                  <Text
+                    color={
+                      activationKey.active ? TextColor.Default : TextColor.Muted
+                    }
+                    selectable
+                  >
+                    {activationKey.key}
+                  </Text>
+                </ListItemColumn>
+                <ListItemColumn>
+                  <ButtonIcon
+                    accessibilityLabel={strings(
+                      'app_settings.fiat_on_ramp.edit_activation_key',
+                    )}
+                    accessibilityRole="button"
+                    disabled={isLoadingKeys}
+                    onPress={() =>
+                      handleEditPress(
+                        activationKey.key,
+                        activationKey.label || '',
+                        activationKey.active,
+                      )
+                    }
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    iconName={IconName.Edit}
+                    iconColor={IconColor.Primary}
+                    size={ButtonIconSizes.Lg}
+                  />
+                </ListItemColumn>
+                <ListItemColumn>
+                  <ButtonIcon
+                    accessibilityRole="button"
+                    accessibilityLabel="Delete activation key"
+                    disabled={isLoadingKeys}
+                    onPress={() => removeActivationKey(activationKey.key)}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    iconName={IconName.Trash}
+                    iconColor={IconColor.Error}
+                    size={ButtonIconSizes.Lg}
+                  />
+                </ListItemColumn>
+              </ListItem>
+            </React.Fragment>
+          ))}
+        </View>
+      ) : null}
+      <View style={style.settingAccessory}>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}
@@ -191,8 +200,8 @@ function ActivationKeys() {
           onPress={handleAddNewKeyPress}
           label={strings('app_settings.fiat_on_ramp.add_activation_key')}
         />
-      </Row>
-    </>
+      </View>
+    </View>
   );
 }
 

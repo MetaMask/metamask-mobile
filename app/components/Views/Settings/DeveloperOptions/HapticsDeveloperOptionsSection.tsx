@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { ImpactFeedbackStyle } from '../../../../util/haptics';
 import {
   Button,
@@ -7,6 +8,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -125,10 +127,10 @@ export default function HapticsDeveloperOptionsSection() {
   }, []);
 
   return (
-    <>
+    <View style={styles.sectionCard}>
       <Text
         color={TextColor.TextDefault}
-        variant={TextVariant.HeadingLg}
+        variant={TextVariant.HeadingSm}
         style={styles.heading}
       >
         {strings('app_settings.developer_options.haptics.title')}
@@ -143,8 +145,9 @@ export default function HapticsDeveloperOptionsSection() {
 
       <Text
         color={TextColor.TextDefault}
-        variant={TextVariant.HeadingMd}
-        style={styles.heading}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        style={styles.subsectionHeading}
       >
         {strings(
           'app_settings.developer_options.haptics.catalog_impacts_heading',
@@ -154,7 +157,7 @@ export default function HapticsDeveloperOptionsSection() {
         <Button
           key={moment}
           variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
+          size={ButtonSize.Md}
           onPress={() => playCatalogImpact(moment)}
           isFullWidth
           style={styles.accessory}
@@ -165,8 +168,9 @@ export default function HapticsDeveloperOptionsSection() {
 
       <Text
         color={TextColor.TextDefault}
-        variant={TextVariant.HeadingMd}
-        style={styles.heading}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        style={styles.subsectionHeading}
       >
         {strings(
           'app_settings.developer_options.haptics.notifications_heading',
@@ -174,7 +178,7 @@ export default function HapticsDeveloperOptionsSection() {
       </Text>
       <Button
         variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+        size={ButtonSize.Md}
         onPress={playSuccess}
         isFullWidth
         style={styles.accessory}
@@ -185,7 +189,7 @@ export default function HapticsDeveloperOptionsSection() {
       </Button>
       <Button
         variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+        size={ButtonSize.Md}
         onPress={playError}
         isFullWidth
         style={styles.accessory}
@@ -196,7 +200,7 @@ export default function HapticsDeveloperOptionsSection() {
       </Button>
       <Button
         variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+        size={ButtonSize.Md}
         onPress={playWarning}
         isFullWidth
         style={styles.accessory}
@@ -208,14 +212,15 @@ export default function HapticsDeveloperOptionsSection() {
 
       <Text
         color={TextColor.TextDefault}
-        variant={TextVariant.HeadingMd}
-        style={styles.heading}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        style={styles.subsectionHeading}
       >
         {strings('app_settings.developer_options.haptics.selection_heading')}
       </Text>
       <Button
         variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
+        size={ButtonSize.Md}
         onPress={playSelectionHaptic}
         isFullWidth
         style={styles.accessory}
@@ -225,8 +230,9 @@ export default function HapticsDeveloperOptionsSection() {
 
       <Text
         color={TextColor.TextDefault}
-        variant={TextVariant.HeadingMd}
-        style={styles.heading}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        style={styles.subsectionHeading}
       >
         {strings('app_settings.developer_options.haptics.raw_impacts_heading')}
       </Text>
@@ -241,7 +247,7 @@ export default function HapticsDeveloperOptionsSection() {
         <Button
           key={style}
           variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
+          size={ButtonSize.Md}
           onPress={() => playRawImpact(style)}
           isFullWidth
           style={styles.accessory}
@@ -249,6 +255,6 @@ export default function HapticsDeveloperOptionsSection() {
           {strings(RAW_IMPACT_LABEL_KEYS[style])}
         </Button>
       ))}
-    </>
+    </View>
   );
 }
