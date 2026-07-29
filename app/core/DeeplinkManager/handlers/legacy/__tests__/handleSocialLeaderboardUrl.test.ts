@@ -83,7 +83,7 @@ describe('handleSocialLeaderboardUrl', () => {
     });
   });
 
-  it('still navigates when a notification param is malformed', () => {
+  it('still navigates when analytics event building throws', () => {
     mockAddProperties.mockImplementationOnce(() => {
       throw new Error('analytics failure');
     });
