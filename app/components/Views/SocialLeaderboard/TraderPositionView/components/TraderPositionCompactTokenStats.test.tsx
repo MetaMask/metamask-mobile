@@ -131,6 +131,34 @@ describe('TraderPositionCompactTokenStats', () => {
     expect(onTokenNavigate).toHaveBeenCalledWith('xyz:SPCX');
   });
 
+  it('wraps the spot token symbol in a tappable link that opens the token page', () => {
+    const onTokenPress = jest.fn();
+
+    renderWithProvider(
+      <TraderPositionCompactTokenStats
+        symbol="PEPE"
+        pricePercentChange={12.54}
+        activeTimePeriodLabel="1M"
+        traderName="trader1"
+        onTokenPress={onTokenPress}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    const link = screen.getByTestId(
+      TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
+    );
+    expect(
+      within(link).getByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL,
+      ),
+    ).toHaveTextContent('PEPE');
+
+    fireEvent.press(link);
+
+    expect(onTokenPress).toHaveBeenCalledTimes(1);
+  });
+
   it('renders a non-tappable token symbol for spot (no navigate handler)', () => {
     renderWithProvider(
       <TraderPositionCompactTokenStats

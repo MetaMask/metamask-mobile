@@ -45,7 +45,9 @@ export interface TraderTokenInfoRowProps {
   perpMarketSymbol?: string;
   /** Called with the resolved xyz market symbol when the perp token box is tapped. */
   onTokenNavigate?: (targetSymbol: string) => void;
-  /** testID for the perp token nav Pressable. */
+  /** Opens the spot token page when the (spot) token box is tapped. */
+  onTokenPress?: () => void;
+  /** testID for the token nav Pressable (perp market link or spot token link). */
   tokenNavigateTestID?: string;
 }
 
@@ -58,6 +60,7 @@ interface TraderTokenIdentityProps {
   copyTokenAddressTestID?: string;
   perpMarketSymbol?: string;
   onTokenNavigate?: (targetSymbol: string) => void;
+  onTokenPress?: () => void;
   tokenNavigateTestID?: string;
 }
 
@@ -83,7 +86,7 @@ const TokenIdentityPerpLinkInner: React.FC<TokenIdentityPerpLinkProps> = ({
 
   // Mirror the disabled Trade CTA — never link to an unsupported market.
   if (!isSupported) {
-    return <Box twClassName="flex-1 min-w-0 mr-3">{children}</Box>;
+    return <Box twClassName="flex-1 min-w-0">{children}</Box>;
   }
 
   return (
@@ -96,7 +99,7 @@ const TokenIdentityPerpLinkInner: React.FC<TokenIdentityPerpLinkProps> = ({
         { symbol: displaySymbol },
       )}
       style={({ pressed }) => [
-        tw.style('flex-1 min-w-0 mr-3'),
+        tw.style('flex-1 min-w-0'),
         pressed ? { opacity: 0.7 } : null,
       ]}
     >
@@ -125,6 +128,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   copyTokenAddressTestID,
   perpMarketSymbol,
   onTokenNavigate,
+  onTokenPress,
   tokenNavigateTestID,
 }) => {
   const tw = useTailwind();
@@ -169,15 +173,6 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
               testID="trader-position-perp-badges"
             />
           ) : null}
-          {canCopyTokenAddress ? (
-            <Box twClassName="translate-y-0.5">
-              <Icon
-                name={IconName.Copy}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Box>
-          ) : null}
         </Box>
         {pricePercentChange != null ? (
           <Text
@@ -206,10 +201,13 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
     </Box>
   );
 
-  // Perps: the whole token box links to the market page (same navigation as
-  // the Trade CTA). Only for perps — spot keeps its copy-address affordance.
+  // The identity (avatar + symbol + change) is the navigation target: perps
+  // link to the market page (same nav as the Trade CTA), spot links to the
+  // token page. The copy-address control sits beside it as its own tap target
+  // (spot only — perps have no on-chain address).
+  let identity: React.ReactNode;
   if (isPerp && onTokenNavigate && perpMarketSymbol) {
-    return (
+    identity = (
       <TokenIdentityPerpLink
         symbol={perpMarketSymbol}
         displaySymbol={symbol}
@@ -219,23 +217,52 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
         {content}
       </TokenIdentityPerpLink>
     );
-  }
-
-  if (!canCopyTokenAddress) {
-    return <Box twClassName="flex-1 min-w-0 mr-3">{content}</Box>;
+  } else if (onTokenPress) {
+    identity = (
+      <Pressable
+        onPress={onTokenPress}
+        testID={tokenNavigateTestID}
+        accessibilityRole="button"
+        accessibilityLabel={strings(
+          'social_leaderboard.trader_position.view_token',
+          { symbol },
+        )}
+        style={({ pressed }) => [
+          tw.style('flex-1 min-w-0'),
+          pressed ? { opacity: 0.7 } : null,
+        ]}
+      >
+        {content}
+      </Pressable>
+    );
+  } else {
+    identity = <Box twClassName="flex-1 min-w-0">{content}</Box>;
   }
 
   return (
-    <TouchableOpacity
-      onPress={onCopyTokenAddress}
-      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      testID={copyTokenAddressTestID}
-      accessibilityRole="button"
-      accessibilityLabel={`Copy ${symbol} token address`}
-      style={tw.style('flex-1 min-w-0 mr-3')}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={2}
+      twClassName="flex-1 min-w-0 mr-3"
     >
-      {content}
-    </TouchableOpacity>
+      {identity}
+      {canCopyTokenAddress ? (
+        <TouchableOpacity
+          onPress={onCopyTokenAddress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          testID={copyTokenAddressTestID}
+          accessibilityRole="button"
+          accessibilityLabel={`Copy ${symbol} token address`}
+        >
+          <Icon
+            name={IconName.Copy}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </TouchableOpacity>
+      ) : null}
+    </Box>
   );
 };
 
@@ -293,6 +320,7 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
   copyTokenAddressTestID,
   perpMarketSymbol,
   onTokenNavigate,
+  onTokenPress,
   tokenNavigateTestID,
 }) => (
   <Box
@@ -309,6 +337,7 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
       copyTokenAddressTestID={copyTokenAddressTestID}
       perpMarketSymbol={perpMarketSymbol}
       onTokenNavigate={onTokenNavigate}
+      onTokenPress={onTokenPress}
       tokenNavigateTestID={tokenNavigateTestID}
     />
     <TraderHeaderStat

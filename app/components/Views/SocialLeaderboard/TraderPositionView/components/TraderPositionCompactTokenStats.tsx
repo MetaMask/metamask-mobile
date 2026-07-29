@@ -8,6 +8,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { Pressable } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import PerpBadges from '../../components/PerpBadges';
 import { formatPercent } from '../../utils/formatters';
@@ -32,6 +34,8 @@ export interface TraderPositionCompactTokenStatsProps {
   perpMarketSymbol?: string;
   /** Navigates to the resolved perp market. Perp positions only. */
   onTokenNavigate?: (targetSymbol: string) => void;
+  /** Opens the spot token page. Spot positions only. */
+  onTokenPress?: () => void;
   onTraderPress: () => void;
 }
 
@@ -48,10 +52,25 @@ const TraderPositionCompactTokenStats: React.FC<
   perpLeverage,
   perpMarketSymbol,
   onTokenNavigate,
+  onTokenPress,
   onTraderPress,
 }) => {
   const hasChange = pricePercentChange != null;
-  const isTokenTappable = perpMarketSymbol != null && onTokenNavigate != null;
+  const isPerpTokenTappable =
+    perpMarketSymbol != null && onTokenNavigate != null;
+
+  const symbolText = (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Bold}
+      color={TextColor.TextDefault}
+      numberOfLines={1}
+      twClassName="shrink"
+      testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+    >
+      {symbol}
+    </Text>
+  );
 
   return (
     <Box
@@ -89,7 +108,7 @@ const TraderPositionCompactTokenStats: React.FC<
         twClassName="max-w-full px-1"
         testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE}
       >
-        {isTokenTappable ? (
+        {isPerpTokenTappable ? (
           <TraderPositionHeaderTokenLink
             symbol={perpMarketSymbol}
             display={symbol}
@@ -99,17 +118,21 @@ const TraderPositionCompactTokenStats: React.FC<
               TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK
             }
           />
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            twClassName="shrink"
-            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+        ) : onTokenPress ? (
+          <Pressable
+            onPress={onTokenPress}
+            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK}
+            accessibilityRole="button"
+            accessibilityLabel={strings(
+              'social_leaderboard.trader_position.view_token',
+              { symbol },
+            )}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
           >
-            {symbol}
-          </Text>
+            {symbolText}
+          </Pressable>
+        ) : (
+          symbolText
         )}
         {hasChange ? (
           <>

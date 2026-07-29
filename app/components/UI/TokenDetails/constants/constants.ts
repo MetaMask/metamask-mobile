@@ -45,6 +45,8 @@ export enum TokenDetailsSource {
   ExploreWatchlistFilter = 'explore_watchlist_filter',
   /** Swap/Bridge token picker — watchlist filter pill active */
   SwapWatchlistFilter = 'swap_watchlist_filter',
+  /** Top-traders / follow-trading — a trader's spot position token */
+  SocialLeaderboard = 'social_leaderboard',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }

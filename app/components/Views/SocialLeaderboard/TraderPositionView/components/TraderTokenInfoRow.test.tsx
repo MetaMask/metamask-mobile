@@ -106,6 +106,43 @@ describe('TraderTokenInfoRow', () => {
     ).toBeNull();
   });
 
+  it('links the spot token box to the token page and keeps copy as a separate control', () => {
+    setTradableSymbols([]);
+    const onTokenPress = jest.fn();
+    const onCopyTokenAddress = jest.fn();
+
+    renderWithProvider(
+      <TraderTokenInfoRow
+        symbol="PEPE"
+        position={spotPosition}
+        marketCap={1_000_000}
+        currentPrice={undefined}
+        pricePercentChange={1.2}
+        activeTimePeriodLabel="1H"
+        onCopyTokenAddress={onCopyTokenAddress}
+        copyTokenAddressTestID={
+          TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+        }
+        onTokenPress={onTokenPress}
+        tokenNavigateTestID={TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW_LINK}
+      />,
+    );
+
+    // The token box navigates to the token page.
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW_LINK),
+    );
+    expect(onTokenPress).toHaveBeenCalledTimes(1);
+
+    // Copy is now a separate, independent control (not the whole box).
+    fireEvent.press(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
+      ),
+    );
+    expect(onCopyTokenAddress).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps the spot copy affordance and never renders the perp link', () => {
     setTradableSymbols(['xyz:SPCX']);
     const onCopyTokenAddress = jest.fn();

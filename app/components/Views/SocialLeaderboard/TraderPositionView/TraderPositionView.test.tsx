@@ -351,19 +351,29 @@ describe('TraderPositionView', () => {
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('does not make the compact header token tappable for a spot position', () => {
+  it('links the spot token box and compact header token to the token page', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
+    // Compact header token is a link (presence proves it is wired; the compact
+    // layer is pointerEvents 'none' until scrolled, so the press→navigate path
+    // is exercised directly in the component tests).
     expect(
       screen.getByTestId(
-        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(
         TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
       ),
-    ).toBeNull();
+    ).toBeOnTheScreen();
+
+    // The resting token box navigates to the token (Asset) page.
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW_LINK),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        symbol: 'PEPE',
+        source: 'social_leaderboard',
+      }),
+    );
   });
 
   it('does not render the floating sticky day header at rest', () => {
