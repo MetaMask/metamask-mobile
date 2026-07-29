@@ -16,7 +16,7 @@ jest.mock('../../../contexts/PerpsOrderContext', () => ({
   PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-const mockHookResult = {
+const DEFAULT_MOCK_HOOK_RESULT = {
   direction: 'long' as 'long' | 'short',
   onDirectionChange: jest.fn(),
   leverage: 5,
@@ -36,7 +36,7 @@ const mockHookResult = {
   onReduceOnlyChange: jest.fn(),
   isTPSLConfigured: false,
   onTPSLPress: jest.fn(),
-  notices: [],
+  notices: [] as { id: string; variant: string; message?: string }[],
   summary: { margin: '$20.00', liquidationPrice: '$80,000', slippage: '1%' },
   isPlaceOrderDisabled: false,
   isPlaceOrderLoading: false,
@@ -63,6 +63,11 @@ const mockHookResult = {
   feeOriginalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
 };
+
+// Mutated in place by tests; fully restored in beforeEach via Object.assign so
+// no property mutation leaks across tests. The mock closure below captures this
+// reference, so it must never be reassigned.
+const mockHookResult = { ...DEFAULT_MOCK_HOOK_RESULT };
 
 jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
   usePerpsProOrderForm: () => mockHookResult,
@@ -144,11 +149,9 @@ const renderPanel = () => render(<PerpsProOrderFormPanel market={market} />);
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHookResult.direction = 'long';
-    mockHookResult.orderType = 'market';
-    mockHookResult.isLeverageVisible = false;
-    mockHookResult.isSlippageVisible = false;
-    mockHookResult.isOrderTypeVisible = false;
+    // Fully restore every property (not just the few tests currently mutate) so
+    // added tests can safely set any field without bleeding into later tests.
+    Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
   });
 
   it('renders the order form panel and presentational form', () => {
