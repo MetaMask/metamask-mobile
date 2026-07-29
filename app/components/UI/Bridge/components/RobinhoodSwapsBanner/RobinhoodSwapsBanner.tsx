@@ -61,6 +61,9 @@ interface RobinhoodSwapsBannerProps {
   onPress: () => void;
 }
 
+const ICON_SIZE = 40;
+const ICON_SCALE = 1.2;
+
 const createStyles = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
     container: {
@@ -75,18 +78,17 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       alignItems: 'center',
     },
     imageContainer: {
-      width: 46,
-      height: 46,
-      borderRadius: 8,
+      width: ICON_SIZE,
+      height: ICON_SIZE,
+      borderRadius: ICON_SIZE / 2,
       overflow: 'hidden',
-      backgroundColor: theme.colors.primary.muted,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 16,
     },
     image: {
-      width: 40,
-      height: 40,
+      width: ICON_SIZE * ICON_SCALE,
+      height: ICON_SIZE * ICON_SCALE,
     },
     copyContainer: {
       flex: 1,
@@ -119,11 +121,7 @@ export function RobinhoodSwapsBanner({
       testID={ROBINHOOD_SWAPS_BANNER_TEST_ID}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={robinhoodIcon}
-          resizeMode="contain"
-          style={styles.image}
-        />
+        <Image source={robinhoodIcon} resizeMode="cover" style={styles.image} />
       </View>
       <View style={styles.copyContainer}>
         <View style={styles.titleRow}>
