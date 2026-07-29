@@ -194,22 +194,6 @@ describe('enrichWithABTests', () => {
     });
   });
 
-  it('enriches Home Viewed events with hub page discovery tabs assignment', () => {
-    const event =
-      AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
-
-    const result = enrichWithABTests(event, {
-      coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(
-        'coreMCU589AbtestHubPageDiscoveryTabs',
-        'treatment',
-      ),
-    ]);
-  });
-
   it('enriches Explore Page Interacted events with Whats Happening Explore assignment', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.EXPLORE_INTERACTED,
@@ -312,40 +296,6 @@ describe('enrichWithABTests', () => {
         'control',
       ),
     ]);
-  });
-
-  it('injects onboarding checklist stepper assignment on checklist Home Viewed', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
-      .addProperties({
-        interaction_type: 'onboarding_checklist',
-        section_name: 'on_ramp',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      homeTMCU828AbtestOnboardingChecklistStepper: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(
-        'homeTMCU828AbtestOnboardingChecklistStepper',
-        'treatment',
-      ),
-    ]);
-  });
-
-  it('skips onboarding checklist stepper mapping on non-checklist Home Viewed', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
-      .addProperties({
-        section_name: 'tokens',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      homeTMCU828AbtestOnboardingChecklistStepper: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toBeUndefined();
   });
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {

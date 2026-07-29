@@ -20,11 +20,13 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { getPerpsCandlePeriodBottomSheetSelector } from '../../Perps.testIds';
+import {
+  getPerpsCandlePeriodBottomSheetSelector,
+  PerpsCandlePeriodBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -57,7 +59,6 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   testID,
   asset,
 }) => {
-  const surfaceClass = useElevatedSurface();
   const { track } = usePerpsEventTracking();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -169,15 +170,12 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      testID={testID}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'close-button' }}
+        closeButtonProps={{
+          testID: PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        }}
       >
         {strings('perps.chart.candle_intervals')}
       </BottomSheetHeader>

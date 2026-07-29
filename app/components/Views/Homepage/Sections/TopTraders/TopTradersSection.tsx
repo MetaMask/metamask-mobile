@@ -39,6 +39,8 @@ import type { TopTrader } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useOpenTradingSignalsSetup } from '../../../SocialLeaderboard/hooks/useOpenTradingSignalsSetup';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const HOME_TRADER_DISPLAY_COUNT = 10;
@@ -171,7 +173,7 @@ const TopTradersSection = forwardRef<
   }, [traders, showViewMore]);
 
   const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW, {
+    navigateToSocialLeaderboard(navigation.navigate, {
       source: 'home_carousel',
     });
   }, [navigation]);
@@ -200,6 +202,7 @@ const TopTradersSection = forwardRef<
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
+          traderAvatarUri: trader?.avatarUri,
         });
       if (!wasFollowing && openSetupIfNeeded(performFollow)) {
         return;

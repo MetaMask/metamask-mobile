@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   AvatarIcon,
@@ -63,6 +64,18 @@ import {
 } from '../../utils/postTradeNotifications';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  ImpactMoment,
+  playErrorNotification,
+  playImpact,
+  playSuccessNotification,
+} from '../../../../../util/haptics';
+import { useABTest } from '../../../../../hooks';
+import {
+  SWAPS_HAPTICS_AB_KEY,
+  SWAPS_HAPTICS_EXPOSURE_METADATA,
+  SWAPS_HAPTICS_VARIANTS,
+} from '../../haptics/abTestConfig';
 import {
   getAnalyticsStatus,
   getPostTradeSharedAnalyticsProperties,
@@ -133,7 +146,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
 };
 
 export const PostTradeBottomSheet = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasRefreshedBalancesRef = useRef(false);
@@ -159,6 +172,16 @@ export const PostTradeBottomSheet = () => {
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
+  const { variant: swapsHapticsVariant, isActive: isSwapsHapticsAbActive } =
+    useABTest(
+      SWAPS_HAPTICS_AB_KEY,
+      SWAPS_HAPTICS_VARIANTS,
+      SWAPS_HAPTICS_EXPOSURE_METADATA,
+    );
+  const shouldPlaySwapsHaptics = Boolean(
+    isSwapsHapticsAbActive && swapsHapticsVariant.enableSwapHaptics,
+  );
+  const lastHapticStatusRef = useRef<PostTradeStatus | null>(null);
 
   const getTimeModalOpenMs = useCallback(
     () => Date.now() - modalOpenedAtRef.current,
@@ -172,6 +195,44 @@ export const PostTradeBottomSheet = () => {
       hidePostTradeNotificationSurface();
     };
   }, []);
+
+  useEffect(() => {
+    if (!shouldPlaySwapsHaptics) {
+      return;
+    }
+
+    if (lastHapticStatusRef.current === status) {
+      return;
+    }
+
+    const hasSubmittedTransaction =
+      Boolean(params.transactionMetaId) || Boolean(params.transactionHash);
+
+    if (status === PostTradeStatus.InProgress) {
+      if (!hasSubmittedTransaction) {
+        return;
+      }
+      lastHapticStatusRef.current = status;
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+      return;
+    }
+
+    if (status === PostTradeStatus.Success) {
+      lastHapticStatusRef.current = status;
+      playSuccessNotification().catch(() => undefined);
+      return;
+    }
+
+    if (status === PostTradeStatus.Failed) {
+      lastHapticStatusRef.current = status;
+      playErrorNotification().catch(() => undefined);
+    }
+  }, [
+    params.transactionHash,
+    params.transactionMetaId,
+    shouldPlaySwapsHaptics,
+    status,
+  ]);
 
   useEffect(() => {
     if (hasTrackedViewedRef.current) {

@@ -86,7 +86,6 @@ export const MultichainAssetDetailsActivityListItem = ({
         item={activityItem}
         index={index}
         onPress={handlePress}
-        title={displayData.title}
       />
     </Box>
   );

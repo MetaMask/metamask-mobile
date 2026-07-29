@@ -645,6 +645,31 @@ export type RewardsControllerGetBenefitsAction = {
   handler: RewardsController['getBenefits'];
 };
 
+export type RewardsControllerGetVipTransactionsAction = {
+  type: `RewardsController:getVipTransactions`;
+  handler: RewardsController['getVipTransactions'];
+};
+
+export type RewardsControllerGetVipTransactionsIfChangedAction = {
+  type: `RewardsController:getVipTransactionsIfChanged`;
+  handler: RewardsController['getVipTransactionsIfChanged'];
+};
+
+export type RewardsControllerGetVipTransactionsLastUpdatedAction = {
+  type: `RewardsController:getVipTransactionsLastUpdated`;
+  handler: RewardsController['getVipTransactionsLastUpdated'];
+};
+
+export type RewardsControllerHasVipTransactionsChangedAction = {
+  type: `RewardsController:hasVipTransactionsChanged`;
+  handler: RewardsController['hasVipTransactionsChanged'];
+};
+
+export type RewardsControllerLookupVipTransactionAction = {
+  type: `RewardsController:lookupVipTransaction`;
+  handler: RewardsController['lookupVipTransaction'];
+};
+
 /**
  * Get the VIP dashboard with caching.
  * @param subscriptionId - The subscription ID for authentication
@@ -711,6 +736,16 @@ export type RewardsControllerApplyBonusCodeAction = {
 export type RewardsControllerGetClientVersionRequirementsAction = {
   type: `RewardsController:getClientVersionRequirements`;
   handler: RewardsController['getClientVersionRequirements'];
+};
+
+/**
+ * Fetch the visible first predict on us content from the public API.
+ * Cached for 1 minute using controller state, matching the API Cache-Control header.
+ * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
+ */
+export type RewardsControllerGetFirstPredictOnUsAction = {
+  type: `RewardsController:getFirstPredictOnUs`;
+  handler: RewardsController['getFirstPredictOnUs'];
 };
 
 /**
@@ -872,12 +907,18 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
+  | RewardsControllerGetVipTransactionsAction
+  | RewardsControllerGetVipTransactionsIfChangedAction
+  | RewardsControllerGetVipTransactionsLastUpdatedAction
+  | RewardsControllerHasVipTransactionsChangedAction
+  | RewardsControllerLookupVipTransactionAction
   | RewardsControllerGetVIPDashboardAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
+  | RewardsControllerGetFirstPredictOnUsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction

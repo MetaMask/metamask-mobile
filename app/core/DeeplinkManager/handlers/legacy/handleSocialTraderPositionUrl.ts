@@ -120,6 +120,7 @@ export const handleSocialTraderPositionUrl = ({
       positionId,
       traderId,
       source: 'notification',
+      originalEntryPoint: 'notification',
       notificationSubtype,
       notificationTemplateVariant,
     });

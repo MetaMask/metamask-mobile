@@ -16,6 +16,7 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 import {
   Box,
@@ -30,6 +31,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -54,7 +56,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
   successFlow,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const accountType = useSelector(selectOnboardingAccountType);
   const isBasicFunctionalityEnabled = useSelector(
@@ -63,6 +65,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const walletSetupAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const tw = useTailwind();
 
@@ -84,6 +87,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       walletSetupAttributionProps,
       dispatch,
       discoverAccountsLogContext: 'OnboardingSuccess',
+      needsQrProvisioning,
     });
 
     queueMicrotask(() => {
@@ -93,6 +97,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     accountType,
     dispatch,
     isBasicFunctionalityEnabled,
+    needsQrProvisioning,
     onDone,
     successFlow,
     walletSetupAttributionProps,
@@ -178,7 +183,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 };
 
 export const OnboardingSuccess = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>>();
   const successFlow =

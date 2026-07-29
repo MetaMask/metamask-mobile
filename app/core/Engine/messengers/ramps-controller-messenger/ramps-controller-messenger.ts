@@ -39,6 +39,9 @@ export function getRampsControllerMessenger(
   rootMessenger.delegate({
     messenger,
     actions: [
+      // The controller reads the `moneyHeadlessAllProviders` feature flag
+      // itself for quote widening.
+      'RemoteFeatureFlagController:getState',
       'RampsService:getGeolocation',
       'RampsService:getCountries',
       'RampsService:getTokens',
@@ -63,6 +66,7 @@ export function getRampsControllerMessenger(
       'TransakService:getUserLimits',
       'TransakService:requestOtt',
       'TransakService:generatePaymentWidgetUrl',
+      'TransakService:createWidgetUrl',
       'TransakService:submitPurposeOfUsageForm',
       'TransakService:patchUser',
       'TransakService:submitSsnDetails',

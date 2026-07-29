@@ -1,9 +1,59 @@
 import { create, StructError } from '@metamask/superstruct';
-import { PredictFeeCollectionSchema, PredictWorldCupSchema } from './flags';
+import {
+  PredictFeeCollectionSchema,
+  PredictFeedBannerSchema,
+  PredictWorldCupSchema,
+} from './flags';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../constants/feedBanner';
+
+describe('PredictFeedBannerSchema', () => {
+  const validFlag = {
+    enabled: true,
+    minimumVersion: '1.0.0',
+    id: 'predict-incident-1',
+    title: 'Service update',
+    description: 'Predict markets are temporarily unavailable.',
+    position: PredictFeedBannerPosition.AfterWorldCupBanner,
+    severity: PredictFeedBannerSeverity.Warning,
+    dismissible: true,
+  };
+
+  it('returns safe disabled defaults when input is undefined', () => {
+    const result = create(undefined, PredictFeedBannerSchema);
+
+    expect(result).toStrictEqual(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+  });
+
+  it('preserves a valid remote banner and tolerates future fields', () => {
+    const result = create(
+      { ...validFlag, futureRemoteField: 'ignored' },
+      PredictFeedBannerSchema,
+    );
+
+    expect(result).toStrictEqual({
+      ...validFlag,
+      futureRemoteField: 'ignored',
+    });
+  });
+
+  it.each([
+    ['position', 'between-everything'],
+    ['severity', 'critical'],
+    ['dismissible', 'yes'],
+  ])('throws for invalid %s', (field, value) => {
+    const input = { ...validFlag, [field]: value };
+
+    expect(() => create(input, PredictFeedBannerSchema)).toThrow(StructError);
+  });
+});
 
 describe('PredictFeeCollectionSchema', () => {
   describe('defaults', () => {

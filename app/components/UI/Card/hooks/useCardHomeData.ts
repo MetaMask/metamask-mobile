@@ -10,6 +10,8 @@ import {
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
+import { ensureCardFundingTokensImported } from '../util/ensureCardFundingTokensImported';
+import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import type { CardFundingTokenWithBalance } from '../types';
 
 export const useCardHomeData = () => {
@@ -18,6 +20,7 @@ export const useCardHomeData = () => {
   const primaryTokenRaw = useSelector(selectCardPrimaryToken);
   const availableTokensRaw = useSelector(selectCardAvailableTokens);
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
+  const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
   // Safety net: if the controller hasn't started a fetch yet (e.g. deep link
   // before KeyringController:unlock fires), kick one off on mount.
@@ -50,6 +53,14 @@ export const useCardHomeData = () => {
       return true;
     });
   }, [primaryTokenRaw, availableTokensRaw, fundingTokensRaw]);
+
+  useEffect(() => {
+    ensureCardFundingTokensImported(
+      tokensForBalanceLookup,
+      ensureNetworkExists,
+    );
+  }, [tokensForBalanceLookup, ensureNetworkExists]);
+
   const balanceMap = useAssetBalances(tokensForBalanceLookup);
 
   // Merge balance info into enriched token objects.

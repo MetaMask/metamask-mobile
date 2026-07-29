@@ -25,6 +25,25 @@ export const selectIsSignedIn = createSelector(
 );
 
 /**
+ * Selector that exposes the canonical profile ID from the active
+ * AuthenticationController session.
+ *
+ * The canonical profile ID is the unified identifier across all paired SRPs,
+ * so any single session profile suffices. Reads the first available session
+ * entry — before pairing there is only one, and after pairing every session
+ * shares the same canonical id (the controller propagates it to all cached
+ * sessions on `refreshCanonicalProfileId`).
+ *
+ * Returns `undefined` when there is no session profile (e.g. signed out).
+ */
+export const selectCanonicalProfileId = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    Object.entries(authenticationControllerState.srpSessionData ?? {})?.[0]?.[1]
+      ?.profile?.canonicalProfileId,
+);
+
+/**
  * Selector that exposes the `needsProfilePairing` flag from the
  * `AuthenticationController` state.
  *

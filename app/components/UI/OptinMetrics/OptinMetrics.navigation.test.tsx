@@ -11,6 +11,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { analytics } from '../../../util/analytics/analytics';
 import Logger from '../../../util/Logger';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -114,12 +115,18 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
 }));
 
+const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
     KeyringController: {
       state: {
         keyrings: [{ metadata: { id: 'mock-keyring-id' } }],
       },
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
     },
   },
 }));
@@ -132,6 +139,11 @@ jest.mock('../../../multichain-accounts/discovery', () => ({
 
 jest.mock('../../../util/metrics/metricsOptInUIUtils', () => ({
   markMetricsOptInUISeen: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../selectors/qrSyncController', () => ({
+  ...jest.requireActual('../../../selectors/qrSyncController'),
+  selectQrSyncNeedsProvisioning: jest.fn(),
 }));
 
 const mockSetWalletHomeOnboardingStepsEligibleAction = jest
@@ -183,6 +195,8 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     mockEligibility.variantName = 'treatment';
     mockEligibility.isActive = true;
     jest.clearAllMocks();
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(false);
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: (event) => mockAnalytics.trackEvent(event),
@@ -421,6 +435,86 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
       await waitFor(() => {
         expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
+      });
+      expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
+    });
+
+    it('calls provisionFromMetadata instead of discoverAccounts for QR sync users via onComplete', async () => {
+      jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+      });
+      expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+    });
+
+    it('logs provisionFromMetadata failure without blocking navigation via onComplete', async () => {
+      jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+      mockProvisionFromMetadata.mockRejectedValueOnce(
+        new Error('provisioning failed'),
+      );
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockOnContinue).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'provisioning failed' }),
+          expect.objectContaining({
+            tags: expect.objectContaining({
+              feature: 'qr-sync',
+              surface: 'import',
+              operation: 'provision_from_metadata',
+              source: 'finalizeOnboardingCompletion',
+              syncFlow: 'new_user',
+            }),
+          }),
+        );
       });
     });
 

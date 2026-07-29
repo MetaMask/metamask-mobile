@@ -192,6 +192,17 @@ export const DefaultSwapDestTokens: Partial<
       decimals: 6,
     },
   },
+  [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: {
+    '*': {
+      symbol: 'USDe',
+      name: 'Ethena USDe',
+      address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+      decimals: 18,
+      image:
+        'https://static.cx.metamask.io/api/v1/tokenIcons/4663/0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34.png',
+      chainId: NETWORK_CHAIN_ID.ROBINHOOD_CHAIN,
+    },
+  },
   [SolScope.Mainnet]: {
     '*': {
       address:

@@ -60,9 +60,7 @@
       }
     }
   },
-  "DelegationController": {
-    "delegations": {}
-  },
+  "DelegationController": {},
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": {
@@ -313,6 +311,7 @@
     "whitelistPaths": {}
   },
   "PreferencesController": {
+    "advancedGasFee": {},
     "featureFlags": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
     "useTokenDetection": true,
@@ -518,6 +517,10 @@
       "mainnet": [],
       "testnet": []
     },
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "tradeConfigurations": {
       "mainnet": {},
       "testnet": {}
@@ -526,8 +529,15 @@
       "optionId": "volume",
       "direction": "desc"
     },
+    "mode": "lite",
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
+    "proLayoutPreferences": {
+      "chartExpanded": false,
+      "orderBookExpanded": false,
+      "orderBookPosition": "left",
+      "orderFormPosition": "right"
+    },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
@@ -704,10 +714,8 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
-    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": [],
-    "inputPrimaryDenomination": "token_amount"
+    "tokenWarnings": []
   },
   "BridgeStatusController": {
     "quoteUpdateStatusStore": {},
@@ -715,6 +723,7 @@
   },
   "CardController": {
     "selectedCountry": null,
+    "selectedCardProgramId": null,
     "activeProviderId": "baanx",
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
@@ -725,7 +734,9 @@
     "lastUnauthenticatedReason": null
   },
   "ConfigRegistryController": {
-    "configs": { "networks": {} },
+    "configs": {
+      "networks": {}
+    },
     "etag": null,
     "lastFetched": null,
     "version": null
@@ -821,6 +832,7 @@
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
+    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -829,6 +841,7 @@
     "vipDashboard": {},
     "vipPerpsFees": {},
     "vipRefereeDashboard": {},
+    "vipTransactions": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -851,9 +864,12 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "syncFlow": null,
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
     "otp": null,
-    "error": null,
-    "importPlan": null
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},
@@ -918,11 +934,12 @@
         "timestamp": 123
       }
     },
-    "orders": [],
-    "providerAutoSelected": false
+    "orders": []
   },
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
-  "MoneyAccountUpgradeController": {}
+  "MoneyAccountUpgradeController": {
+    "upgradedAccounts": {}
+  }
 }

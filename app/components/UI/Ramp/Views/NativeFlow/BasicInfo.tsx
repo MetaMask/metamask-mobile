@@ -8,6 +8,7 @@ import React, {
 import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Text,
   TextVariant,
@@ -23,7 +24,10 @@ import {
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  useParams,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
@@ -64,7 +68,7 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
-interface V2BasicInfoParams {
+export interface V2BasicInfoParams {
   quote: TransakBuyQuote;
   previousFormData?: BasicInfoFormData & AddressFormData;
   /**
@@ -76,7 +80,7 @@ interface V2BasicInfoParams {
 }
 
 const V2BasicInfo = (): React.JSX.Element => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData, headlessSessionId } =
@@ -275,8 +279,9 @@ const V2BasicInfo = (): React.JSX.Element => {
   const handleLogout = useCallback(async () => {
     try {
       await logoutFromProvider(false);
-      navigation.navigate(
-        ...createV2EnterEmailNavDetails(enterEmailParamsForLogout),
+      navigateWithDetails(
+        navigation,
+        createV2EnterEmailNavDetails(enterEmailParamsForLogout),
       );
     } catch (logoutError) {
       Logger.error(

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View, Linking } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -21,8 +22,8 @@ import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   BOTTOM_SHEET_NAMES,
@@ -40,13 +41,13 @@ interface MenuOption {
 
 const MoneyMoreSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
   });
+  const { openSupportWithConsent } = useSupportConsent();
 
   useMountEffect(trackBottomSheetViewed);
 
@@ -87,9 +88,17 @@ const MoneyMoreSheet = () => {
     });
 
     closeAndNavigate(() => {
-      Linking.openURL(METAMASK_SUPPORT_URL);
+      openSupportWithConsent(
+        (url) => openInAppBrowser(navigation, url),
+        METAMASK_SUPPORT_URL,
+      );
     });
-  }, [closeAndNavigate, trackSurfaceClicked]);
+  }, [
+    closeAndNavigate,
+    navigation,
+    trackSurfaceClicked,
+    openSupportWithConsent,
+  ]);
 
   const options: MenuOption[] = [
     {
@@ -106,7 +115,7 @@ const MoneyMoreSheet = () => {
     },
     {
       label: strings('money.more_sheet.contact_support'),
-      icon: IconName.MessageQuestion,
+      icon: IconName.Sms,
       onPress: handleContactSupport,
       testID: MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION,
     },
@@ -118,7 +127,6 @@ const MoneyMoreSheet = () => {
       goBack={handleGoBack}
       testID={MoneyMoreSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

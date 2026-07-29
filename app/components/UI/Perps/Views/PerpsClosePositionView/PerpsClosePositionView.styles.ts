@@ -59,10 +59,9 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
-    detailItem: {
-      marginBottom: 8,
+    inputGroupContainer: {
       backgroundColor: colors.background.section,
-      borderRadius: 8,
+      borderRadius: 12,
       overflow: 'hidden',
     },
     detailsSection: {
@@ -109,20 +108,19 @@ export const createStyles = (theme: Theme) => {
       marginBottom: 8,
     },
     footer: {
-      paddingHorizontal: 16,
       paddingVertical: 16,
       gap: 12,
     },
     footerWithSummary: {
       paddingTop: 0,
     },
+    footerButton: {
+      paddingHorizontal: 16,
+    },
     summaryContainer: {
       paddingTop: 16,
       paddingBottom: 16,
       gap: 4,
-    },
-    paddingHorizontal: {
-      paddingHorizontal: 16,
     },
     summaryRow: {
       flexDirection: 'row',
@@ -170,14 +168,6 @@ export const createStyles = (theme: Theme) => {
     },
     marketButtonIcon: {
       marginLeft: 2,
-    },
-    detailListItem: {
-      borderRadius: 12,
-    },
-    detailLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
     },
     infoIcon: {
       marginLeft: 0,

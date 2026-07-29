@@ -42,9 +42,14 @@ import type {
   PredictThePitchPositionsDto,
   PredictThePitchCampaignParticipantOutcomeDto,
   PredictThePitchPrizePoolDto,
+  FirstPredictOnUsDto,
   VipDashboardDto,
   VipRefereeMeDto,
   VipFeesResponseDto,
+  VipTransactionDto,
+  VipTransactionType,
+  PaginatedVipTransactionsDto,
+  VipTransactionsLastUpdatedDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -233,6 +238,11 @@ export interface RewardsDataServiceGetClientVersionRequirementsAction {
   handler: RewardsDataService['getClientVersionRequirements'];
 }
 
+export interface RewardsDataServiceGetFirstPredictOnUsAction {
+  type: `${typeof SERVICE_NAME}:getFirstPredictOnUs`;
+  handler: RewardsDataService['getFirstPredictOnUs'];
+}
+
 export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
   type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboard`;
   handler: RewardsDataService['getOndoCampaignLeaderboard'];
@@ -352,6 +362,21 @@ export interface RewardsDataServiceGetVipFeesAction {
   handler: RewardsDataService['getVipFees'];
 }
 
+export interface RewardsDataServiceGetVipTransactionsAction {
+  type: `${typeof SERVICE_NAME}:getVipTransactions`;
+  handler: RewardsDataService['getVipTransactions'];
+}
+
+export interface RewardsDataServiceLookupVipTransactionAction {
+  type: `${typeof SERVICE_NAME}:lookupVipTransaction`;
+  handler: RewardsDataService['lookupVipTransaction'];
+}
+
+export interface RewardsDataServiceGetVipTransactionsLastUpdatedAction {
+  type: `${typeof SERVICE_NAME}:getVipTransactionsLastUpdated`;
+  handler: RewardsDataService['getVipTransactionsLastUpdated'];
+}
+
 export interface RewardsDataServicePostBenefitImpressionAction {
   type: `${typeof SERVICE_NAME}:postBenefitImpression`;
   handler: RewardsDataService['postBenefitImpression'];
@@ -391,9 +416,13 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
+  | RewardsDataServiceGetVipTransactionsAction
+  | RewardsDataServiceLookupVipTransactionAction
+  | RewardsDataServiceGetVipTransactionsLastUpdatedAction
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
+  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -649,12 +678,28 @@ export class RewardsDataService {
       this.getVipFees.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVipTransactions`,
+      this.getVipTransactions.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:lookupVipTransaction`,
+      this.lookupVipTransaction.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVipTransactionsLastUpdated`,
+      this.getVipTransactionsLastUpdated.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:postBenefitImpression`,
       this.postBenefitImpression.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
       this.getClientVersionRequirements.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getFirstPredictOnUs`,
+      this.getFirstPredictOnUs.bind(this),
     );
   }
 
@@ -719,6 +764,26 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as ClientVersionRequirementDto;
+  }
+
+  /**
+   * Fetch the visible first predict on us content from the public API.
+   * @returns The first predict on us DTO, or null when no visible entry exists.
+   */
+  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
+    const response = await this.makeRequest('/public/first-predict-on-us', {
+      method: 'GET',
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get first predict on us failed: ${response.status}`);
+    }
+
+    return (await response.json()) as FirstPredictOnUsDto;
   }
 
   /**
@@ -1655,6 +1720,62 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as VipFeesResponseDto;
+  }
+
+  async getVipTransactions(
+    subscriptionId: string,
+    type: VipTransactionType,
+    cursor: string | null,
+  ): Promise<PaginatedVipTransactionsDto> {
+    const query = [`type=${encodeURIComponent(type)}`];
+    if (cursor) {
+      query.push(`cursor=${encodeURIComponent(cursor)}`);
+    }
+    const response = await this.makeRequest(
+      `/vip/transactions?${query.join('&')}`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get VIP transactions failed: ${response.status}`);
+    }
+    return (await response.json()) as PaginatedVipTransactionsDto;
+  }
+
+  async lookupVipTransaction(
+    subscriptionId: string,
+    key: string,
+  ): Promise<VipTransactionDto> {
+    const response = await this.makeRequest(
+      `/vip/transactions/lookup?key=${encodeURIComponent(key)}`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Lookup VIP transaction failed: ${response.status}`);
+    }
+    return (await response.json()) as VipTransactionDto;
+  }
+
+  async getVipTransactionsLastUpdated(
+    subscriptionId: string,
+    type: VipTransactionType,
+  ): Promise<Date | null> {
+    const response = await this.makeRequest(
+      `/vip/transactions/last-updated?type=${encodeURIComponent(type)}`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get VIP transactions last updated failed: ${response.status}`,
+      );
+    }
+    const result = (await response.json()) as VipTransactionsLastUpdatedDto;
+    return result.lastUpdated ? new Date(result.lastUpdated) : null;
   }
 
   /**

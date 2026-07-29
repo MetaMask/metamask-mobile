@@ -12,13 +12,14 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AdditionalVerification.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import additionalVerificationImage from '../../assets/additional-verification.png';
 import { strings } from '../../../../../../locales/i18n';
 import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
-interface V2AdditionalVerificationParams {
+export interface V2AdditionalVerificationParams {
   quote: TransakBuyQuote;
   kycUrl: string;
   workFlowRunId: string;
@@ -27,7 +28,7 @@ interface V2AdditionalVerificationParams {
 }
 
 const V2AdditionalVerification = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     quote,
     kycUrl,

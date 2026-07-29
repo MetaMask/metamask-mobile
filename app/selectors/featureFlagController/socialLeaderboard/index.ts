@@ -15,6 +15,16 @@ export const selectSocialLeaderboardEnabled = createSelector(
   },
 );
 
+export const selectSocialLeaderboardOptFlowEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialLeaderboardOptFlowEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export const selectSocialLeaderboardPerpsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -25,11 +35,41 @@ export const selectSocialLeaderboardPerpsEnabled = createSelector(
   },
 );
 
+export const selectSocialFeedEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialFeedEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialLeaderboardOnboardingEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export const selectSocialAIQuickBuyStreamQuotesEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.socialAIQuickBuyStreamQuotes as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectAiSocialAusCacheRefreshEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialAusCacheRefreshEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

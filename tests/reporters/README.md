@@ -17,7 +17,7 @@ tests/reporters/
 ├── generators/
 │   ├── HtmlReportGenerator.ts          # HTML report generation
 │   ├── CsvReportGenerator.ts           # CSV report generation
-│   └── JsonReportGenerator.ts          # JSON device reports + failed-tests-by-team
+│   └── JsonReportGenerator.ts          # JSON device reports + per-scenario app profiling + failed-tests-by-team
 └── utils/
     └── DeviceInfoExtractor.ts          # Device info extraction helper
 ```
@@ -46,7 +46,7 @@ Each generator takes a `ReportData` object and produces output in a specific for
 
 - **HtmlReportGenerator** — Full HTML report with test tables, quality gates, profiling cards
 - **CsvReportGenerator** — CSV with per-test step rows and profiling summaries
-- **JsonReportGenerator** — Device-specific JSON files + `failed-tests-by-team.json`
+- **JsonReportGenerator** — Device-specific JSON files + one `reports/app-profiling/app-profiling-*.json` file per scenario (profiling + API calls) + `failed-tests-by-team.json`
 
 ### utils/DeviceInfoExtractor.ts
 

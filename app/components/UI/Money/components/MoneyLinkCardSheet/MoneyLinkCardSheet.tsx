@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
@@ -17,7 +17,6 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
 import {
   selectCardHomeData,
   selectCardHomeDataStatus,
@@ -25,11 +24,8 @@ import {
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { CardType } from '../../../Card/types';
-import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
-import styleSheet from './MoneyLinkCardSheet.styles';
+import MoneyCardFlipAnimation from '../MoneyCardFlipAnimation';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -54,15 +50,13 @@ interface MoneyLinkCardSheetRouteParams {
 const MoneyLinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedViewRef = useRef(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
-  const { styles } = useStyles(styleSheet, {});
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyAccountBalance();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const cardHomeData = useSelector(selectCardHomeData);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
-  const surfaceClass = useElevatedSurface();
   const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
   const routeParams = route.params as MoneyLinkCardSheetRouteParams | undefined;
   const originEntryPoint =
@@ -163,7 +157,6 @@ const MoneyLinkCardSheet = () => {
       goBack={handleGoBack}
       testID={MoneyLinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}
@@ -175,10 +168,8 @@ const MoneyLinkCardSheet = () => {
           justifyContent={BoxJustifyContent.Center}
           testID={MoneyLinkCardSheetTestIds.ILLUSTRATION}
         >
-          <Image
-            source={isMetalCard ? mmCardMetal : mmCardRegular}
-            style={styles.cardImage}
-            resizeMode="contain"
+          <MoneyCardFlipAnimation
+            isMetalCard={isCardDataReady ? isMetalCard : undefined}
           />
         </Box>
         <Box twClassName="gap-2 items-center">

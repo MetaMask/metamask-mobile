@@ -65,15 +65,15 @@ export const useOpenOutcomes = ({
       enabled: shouldFetchPrices,
     });
 
-  // The live WebSocket feed is the primary source of truth for prices. When it
-  // is connected we only keep a slow REST poll as a freshness fallback; this
-  // avoids both sources driving full re-renders at the same time.
+  // The live WebSocket feed is the primary source of truth for prices. Keep
+  // REST enabled for initial/retained fallback data, but only poll while the
+  // WebSocket is unavailable.
   const { prices } = usePredictPrices({
     queries: activePriceQueries,
     enabled: shouldFetchPrices,
     pollingInterval: shouldFetchPrices
       ? isLiveConnected
-        ? 10000
+        ? undefined
         : 2000
       : undefined,
   });

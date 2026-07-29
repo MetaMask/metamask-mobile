@@ -100,6 +100,19 @@ describe('activityKindMatchesTypeFilter', () => {
       ).toBe(true);
     }
   });
+
+  it('groups earn/staking kinds (incl. stake) under Transactions', () => {
+    for (const kind of [
+      'stake',
+      'deposit',
+      'claim',
+      'unstake',
+    ] as ActivityKind[]) {
+      expect(
+        activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Transactions),
+      ).toBe(true);
+    }
+  });
 });
 
 describe('resolveInitialActivityTypeFilter', () => {

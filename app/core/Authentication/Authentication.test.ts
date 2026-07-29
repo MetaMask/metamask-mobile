@@ -49,7 +49,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
-import { TraceName, TraceOperation } from '../../util/trace';
+import { TraceName, TraceOperation, type TraceContext } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
@@ -78,6 +78,11 @@ const mockAddress = '0x1234567890abcdef';
 const mockMnemonicPhraseToBytes = jest
   .fn()
   .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+const mockClearBrazeUser = jest.fn();
+
+jest.mock('../Braze', () => ({
+  clearBrazeUser: () => mockClearBrazeUser(),
+}));
 
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
@@ -207,8 +212,15 @@ jest.mock('../Engine', () => ({
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
-      createMultichainAccountWallet: jest.fn(),
+      createMultichainAccountWallet: jest.fn().mockResolvedValue({
+        entropySource: 'primary-entropy-source',
+      }),
       removeMultichainAccountWallet: jest.fn(),
+    },
+
+    QrSyncController: {
+      enrichPrimaryProvisioningEntry: jest.fn(),
+      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -354,6 +366,7 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
 const mockGetTraceTags = jest.fn();
+const mockGetTraceContext = jest.fn();
 
 jest.mock('../../util/sentry/tags', () => ({
   getTraceTags: () => mockGetTraceTags(),
@@ -365,6 +378,8 @@ jest.mock('../../util/trace', () => ({
   trace: (...args: any[]) => mockTrace(...args),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTrace: (...args: any[]) => mockEndTrace(...args),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getTraceContext: (...args: any[]) => mockGetTraceContext(...args),
 }));
 
 const mockMultichainAccountGroup = {
@@ -1406,6 +1421,42 @@ describe('Authentication', () => {
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('imports remaining QR sync secrets after primary vault restore', async () => {
+        const Engine = jest.requireMock('../Engine');
+        const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+          true,
+        );
+
+        expect(
+          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
+        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).toHaveBeenCalledWith();
+      });
+
+      it('does not import remaining QR sync secrets when isQrSync is false', async () => {
+        const Engine = jest.requireMock('../Engine');
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+          false,
+        );
+
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).not.toHaveBeenCalled();
+      });
+
       it('resyncs accounts after login', async () => {
         const Engine = jest.requireMock('../Engine');
         Engine.context.KeyringController.state.keyrings = [
@@ -1526,6 +1577,57 @@ describe('Authentication', () => {
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
 
       createWalletSpy.mockRestore();
+    });
+
+    it('nests Create Key and Backup SRP under the open New Social Create Wallet span', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const parentContext = {
+        _name: TraceName.OnboardingNewSocialCreateWallet,
+      } as unknown as TraceContext;
+      mockGetTraceContext.mockReturnValue(parentContext);
+
+      Engine.context.SeedlessOnboardingController = {
+        state: {},
+        createToprfKeyAndBackupSeedPhrase: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+        exportEncryptionKey: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        setMigrationVersion: jest.fn(),
+      };
+      Engine.context.KeyringController.state.keyrings = [
+        { metadata: { id: 'test-keyring' } },
+      ];
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+      Engine.context.KeyringController.exportEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      const createWalletSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+        .mockResolvedValue(undefined);
+
+      await Authentication.createAndBackupSeedPhrase('test-password');
+
+      expect(mockGetTraceContext).toHaveBeenCalledWith({
+        name: TraceName.OnboardingNewSocialCreateWallet,
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
+        }),
+      );
+
+      createWalletSpy.mockRestore();
+      mockGetTraceContext.mockReturnValue(undefined);
     });
 
     it('sets migration version on successful backup', async () => {
@@ -1968,6 +2070,100 @@ describe('Authentication', () => {
       );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('forwards parentContext from unlockWallet to rehydrateSeedPhrase when supplied', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+        parentContext: mockParentContext,
+      });
+
+      expect(rehydrateSpy).toHaveBeenCalledWith(
+        mockPassword,
+        mockParentContext,
+      );
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('passes an undefined parent context for ordinary unlockWallet callers', async () => {
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      });
+
+      expect(rehydrateSpy).toHaveBeenCalledWith(mockPassword, undefined);
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('nests OnboardingFetchSrps under the provided parent context', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword, mockParentContext);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: mockParentContext,
+        }),
+      );
+    });
+
+    it('starts OnboardingFetchSrps without a parent context when called with one argument', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: undefined,
+        }),
+      );
     });
 
     it('rehydrate with multiple seed phrases', async () => {
@@ -3036,6 +3232,7 @@ describe('Authentication', () => {
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
+      mockHdKeyringV2.getAccounts.mockResolvedValue([{ address: mockAddress }]);
 
       // Setup Engine context mocks
       Engine.context.KeyringController = {
@@ -3061,6 +3258,7 @@ describe('Authentication', () => {
         createMultichainAccountWallet: jest
           .fn()
           .mockResolvedValue(mockMultichainAccountWallet),
+        removeMultichainAccountWallet: jest.fn(),
       } as unknown as MultichainAccountService;
 
       Engine.context.SeedlessOnboardingController = {
@@ -4234,10 +4432,14 @@ describe('Authentication', () => {
       await Authentication.deleteWallet();
 
       // Assert
+      expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
       expect(resetWalletStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteUserSpy).toHaveBeenCalledTimes(1);
+      const clearBrazeCallOrder =
+        mockClearBrazeUser.mock.invocationCallOrder[0];
       const resetCallOrder = resetWalletStateSpy.mock.invocationCallOrder[0];
       const deleteCallOrder = deleteUserSpy.mock.invocationCallOrder[0];
+      expect(clearBrazeCallOrder).toBeLessThan(resetCallOrder);
       expect(resetCallOrder).toBeLessThan(deleteCallOrder);
     });
 
@@ -5416,7 +5618,10 @@ describe('Authentication', () => {
         });
 
         // Verify that the rehydrateSeedPhrase is called.
-        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(passwordToUse);
+        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(
+          passwordToUse,
+          undefined,
+        );
       });
 
       it('syncs password and unlocks wallet when seedless password is outdated', async () => {

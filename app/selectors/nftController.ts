@@ -25,14 +25,20 @@ export const selectAllNfts = createSelector(
   (nftControllerState: NftControllerState) => nftControllerState.allNfts,
 );
 
-export const selectAllNftsFlat = createSelector(
+const EMPTY_NFTS: Nft[] = Object.freeze([] as Nft[]) as Nft[];
+
+export const selectAllNftsFlat = createDeepEqualSelector(
   selectAllNfts,
-  (nftsByChainByAccount) => {
+  (nftsByChainByAccount: NftControllerState['allNfts']): Nft[] => {
     const nftsByChainArray = Object.values(nftsByChainByAccount);
-    return nftsByChainArray.reduce((acc, nftsByChain) => {
+    if (nftsByChainArray.length === 0) {
+      return EMPTY_NFTS;
+    }
+
+    return nftsByChainArray.reduce<Nft[]>((acc, nftsByChain) => {
       const nftsArrays = Object.values(nftsByChain);
       return acc.concat(...nftsArrays);
-    }, [] as Nft[]);
+    }, []);
   },
 );
 

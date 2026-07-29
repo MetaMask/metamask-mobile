@@ -127,6 +127,21 @@ describe('worldCup queries', () => {
       id: 'later',
       title: 'Later',
       game: baseGame,
+      outcomes: [
+        {
+          id: 'later-advance',
+          providerId: 'polymarket',
+          marketId: 'later',
+          title: 'Advance',
+          description: 'Advance',
+          image: '',
+          status: 'open',
+          tokens: [{ id: 'later-token', title: 'Yes', price: 0.5 }],
+          volume: 0,
+          groupItemTitle: 'Advance',
+          sportsMarketType: 'soccer_team_to_advance',
+        },
+      ],
     });
     const earlierMarket = createMarket({
       id: 'earlier',
@@ -136,6 +151,21 @@ describe('worldCup queries', () => {
         id: 'game-earlier',
         startTime: '2026-06-12T20:00:00.000Z',
       },
+      outcomes: [
+        {
+          id: 'earlier-advance',
+          providerId: 'polymarket',
+          marketId: 'earlier',
+          title: 'Advance',
+          description: 'Advance',
+          image: '',
+          status: 'open',
+          tokens: [{ id: 'earlier-token', title: 'Yes', price: 0.5 }],
+          volume: 0,
+          groupItemTitle: 'Advance',
+          sportsMarketType: 'soccer_team_to_advance',
+        },
+      ],
     });
     mockGetMarkets.mockResolvedValue({
       markets: [laterMarket, earlierMarket],

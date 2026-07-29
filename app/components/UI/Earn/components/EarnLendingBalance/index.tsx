@@ -1,5 +1,6 @@
 import { Hex, add0x } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import React, { useMemo, useCallback } from 'react';
 import { View } from 'react-native';
@@ -83,7 +84,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   );
   const privacyMode = useSelector(selectPrivacyMode);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { outputToken: receiptToken, earnToken } = useSelector(
     (state: RootState) => selectEarnTokenPair(state, asset),

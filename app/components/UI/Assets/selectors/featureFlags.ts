@@ -5,7 +5,7 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 
-export const ASSET_GLOBAL_WATCHLIST_FLAG_KEY = 'assets-global-watchlist-v1';
+export const ASSET_GLOBAL_WATCHLIST_FLAG_KEY = 'assetsGlobalWatchlistV1';
 
 /**
  * Whether the global token watchlist feature is enabled for the current

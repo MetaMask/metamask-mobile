@@ -1,6 +1,7 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
+import Button from '../../../../../component-library/components/Buttons/Button';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -183,6 +184,26 @@ describe('PredictMarketSingle', () => {
     });
   });
 
+  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictMarketSingle
+        market={mockMarket}
+        onBuyButtonPress={onBuyButtonPress}
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(UNSAFE_getAllByType(Button)[0]);
+
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[0],
+    });
+    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+  });
+
   it('handle missing or invalid market data gracefully', () => {
     const invalidOutcome: PredictOutcome = {
       ...mockOutcome,
@@ -341,6 +362,21 @@ describe('PredictMarketSingle', () => {
         image: mockMarket.image,
       },
     });
+  });
+
+  it('does not navigate to market details when card press is disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketSingle
+        market={mockMarket}
+        cardPressDisabled
+        testID="predict-market-single-card"
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('predict-market-single-card'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('forwards predictFeedTab and predictScreen to market details navigation', () => {
