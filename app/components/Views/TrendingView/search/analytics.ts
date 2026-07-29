@@ -84,7 +84,8 @@ export type ExploreSectionName =
   | 'sites_favorites'
   | 'sites_ecosystems'
   | 'sites_popular'
-  | 'whats_happening';
+  | 'whats_happening'
+  | 'explore_cards';
 
 export interface ExploreInteractedProperties {
   interaction_type:
@@ -103,6 +104,10 @@ export interface ExploreInteractedProperties {
   item_clicked?: string;
   /** Entry surface when the user arrived on Explore (e.g. `homescreen_pill`). */
   source?: string;
+  /** Explore Cards deck: content type of the interacted card. */
+  item_type?: 'crypto' | 'perp' | 'prediction' | 'news' | 'trader';
+  /** Explore Cards deck: which CTA was tapped (swap/long/short/yes/no/follow/read/deck_completed). */
+  cta?: string;
 }
 
 export const trackExploreInteracted = (

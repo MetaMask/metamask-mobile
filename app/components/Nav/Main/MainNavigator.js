@@ -68,6 +68,7 @@ import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
 import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
+import ExploreCardsView from '../../UI/ExploreCards/ExploreCardsView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -1439,6 +1440,11 @@ const MainNavigator = () => {
           name={Routes.WHATS_HAPPENING_DETAIL}
           component={WhatsHappeningDetailView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+        <NativeStack.Screen
+          name={Routes.EXPLORE_CARDS}
+          component={ExploreCardsView}
+          options={{ ...fullScreenModalSlideFromBottomNativeOptions }}
         />
         <NativeStack.Screen
           name={Routes.BROWSER.HOME}
