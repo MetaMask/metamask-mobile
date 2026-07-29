@@ -79,7 +79,7 @@ const useIsInsufficientBalance = ({
   const gasSponsored = ignoreGasFees ? false : bestQuote?.quote?.gasSponsored;
   const gasAmount = ignoreGasFees
     ? undefined
-    : bestQuote?.gasFee?.effective?.amount;
+    : bestQuote?.gasFee?.total?.amount;
 
   return useMemo(() => {
     const isValidAmount =
