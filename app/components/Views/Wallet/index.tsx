@@ -15,6 +15,7 @@ import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 import {
   ActivityIndicator,
   DeviceEventEmitter,
+  LayoutAnimation,
   Linking,
   RefreshControl,
   ScrollView,
@@ -45,7 +46,6 @@ import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
-import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -60,6 +60,7 @@ import {
   ButtonIconSize,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  SectionDivider,
   Text as CustomText,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -200,7 +201,16 @@ const createStyles = ({ colors }: Theme) =>
     portfolioHeaderCluster: {
       flexDirection: 'column',
       gap: 16,
-      paddingBottom: 12,
+    },
+    growthBannerWithoutOnboarding: {
+      marginTop: 20,
+      marginBottom: 12,
+    },
+    homepageActionButtonsGrid: {
+      marginTop: 20,
+    },
+    homepageActionButtonsGridWithoutBanner: {
+      marginBottom: 12,
     },
     tabContainer: {
       flex: 1,
@@ -218,6 +228,9 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
+    },
+    thickSectionDivider: {
+      borderTopWidth: 6,
     },
     headerActionButtonsContainer: {
       flexDirection: 'row',
@@ -723,6 +736,28 @@ const Wallet = ({
   );
 
   const homeGrowthBanner = useHomeGrowthBanner();
+  const [isBrazeHomeBannerVisible, setIsBrazeHomeBannerVisible] =
+    useState(false);
+  const isBrazeHomeBannerVisibleRef = useRef(false);
+  const handleBrazeHomeBannerVisibilityChange = useCallback(
+    (isVisible: boolean) => {
+      if (isBrazeHomeBannerVisibleRef.current && !isVisible) {
+        LayoutAnimation.configureNext({
+          duration: 250,
+          update: {
+            type: LayoutAnimation.Types.easeInEaseOut,
+          },
+          delete: {
+            type: LayoutAnimation.Types.easeInEaseOut,
+            property: LayoutAnimation.Properties.opacity,
+          },
+        });
+      }
+      isBrazeHomeBannerVisibleRef.current = isVisible;
+      setIsBrazeHomeBannerVisible(isVisible);
+    },
+    [],
+  );
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -954,13 +989,21 @@ const Wallet = ({
         componentLabel="BrazeBanner"
         onError={handleBannerError}
       >
-        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+        <BrazeBanner
+          placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID}
+          onVisibilityChange={handleBrazeHomeBannerVisibilityChange}
+        />
       </ComponentErrorBoundary>
     ) : homeGrowthBanner === 'carousel' ? (
       <View accessible={false}>
         <Carousel style={styles.carousel} />
       </View>
     ) : null;
+  const isHomeGrowthBannerVisible =
+    (!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
+    (homeGrowthBanner === 'braze'
+      ? isBrazeHomeBannerVisible
+      : Boolean(homeGrowthBannerContent));
 
   const bannerContent = (
     <View style={styles.banner}>
@@ -992,11 +1035,19 @@ const Wallet = ({
 
   const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
     actionButtonsGridVariant.layout === 'eightCircular' ? (
-      <HomepageActionButtonsGrid
-        onSend={onSendWithoutTracking}
-        onReceive={onReceiveWithoutTracking}
-        rowOrder={actionButtonsGridVariant.rowOrder}
-      />
+      <View
+        style={[
+          styles.homepageActionButtonsGrid,
+          !isHomeGrowthBannerVisible &&
+            styles.homepageActionButtonsGridWithoutBanner,
+        ]}
+      >
+        <HomepageActionButtonsGrid
+          onSend={onSendWithoutTracking}
+          onReceive={onReceiveWithoutTracking}
+          rowOrder={actionButtonsGridVariant.rowOrder}
+        />
+      </View>
     ) : (
       <AssetDetailsActions
         displayBuyButton={displayBuyButton}
@@ -1023,10 +1074,23 @@ const Wallet = ({
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {/* Hide growth banners when money account is enabled but user is geo-blocked */}
-      {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
-        homeGrowthBannerContent}
+      {isHomeGrowthBannerVisible && homeGrowthBannerContent && (
+        <>
+          {inWalletHomePostOnboardingFlow && (
+            <SectionDivider style={styles.thickSectionDivider} />
+          )}
+          <View
+            style={
+              !inWalletHomePostOnboardingFlow
+                ? styles.growthBannerWithoutOnboarding
+                : undefined
+            }
+          >
+            {homeGrowthBannerContent}
+          </View>
+        </>
+      )}
       {homepageDiscoveryPills}
-      {isMoneyAccountVisible && <MoneyBalanceCard />}
     </View>
   );
 

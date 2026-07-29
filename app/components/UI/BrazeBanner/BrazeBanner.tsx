@@ -16,6 +16,7 @@ import BrazeBannerCard from './BrazeBannerCard';
 
 interface BrazeBannerProps {
   placementId: string;
+  onVisibilityChange?: (isVisible: boolean) => void;
 }
 
 /**
@@ -31,7 +32,7 @@ interface BrazeBannerProps {
  * - `empty`     → returns null (no campaign / timeout reached)
  * - `dismissed` → returns null immediately, no skeleton shown again
  */
-const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
+const BrazeBanner = ({ placementId, onVisibilityChange }: BrazeBannerProps) => {
   const tw = useTailwind();
   const {
     status,
@@ -49,6 +50,10 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
       logBrazeBannerImpression(placementId, eventProperties);
     }
   }, [status, placementId, eventProperties]);
+
+  useEffect(() => {
+    onVisibilityChange?.(status === 'visible' && Boolean(body));
+  }, [body, onVisibilityChange, status]);
 
   const handlePress = useCallback(() => {
     if (!deeplink) return;
@@ -69,6 +74,11 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
       });
   }, [deeplink, placementId]);
 
+  const handleDismiss = useCallback(() => {
+    onVisibilityChange?.(false);
+    dismiss();
+  }, [dismiss, onVisibilityChange]);
+
   if (status === 'empty' || status === 'dismissed' || status === 'loading')
     return null;
 
@@ -80,7 +90,7 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
           body={body}
           imageUrl={imageUrl}
           ctaLabel={ctaLabel}
-          onDismiss={dismiss}
+          onDismiss={handleDismiss}
         />
       </Pressable>
     </Box>

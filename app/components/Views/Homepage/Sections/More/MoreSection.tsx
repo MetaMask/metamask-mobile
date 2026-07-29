@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
@@ -21,6 +21,15 @@ import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { HomepageMoreSelectorsIDs } from '../../Homepage.testIds';
+
+const styles = StyleSheet.create({
+  section: {
+    marginTop: -20,
+  },
+  thickSectionDivider: {
+    borderTopWidth: 6,
+  },
+});
 
 const MoreSection = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -82,8 +91,11 @@ const MoreSection = () => {
   }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
   return (
-    <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>
-      <SectionDivider />
+    <View
+      style={styles.section}
+      testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}
+    >
+      <SectionDivider style={styles.thickSectionDivider} />
       <SectionHeader title={strings('homepage.sections.more.title')} />
       <ListItem
         isInteractive

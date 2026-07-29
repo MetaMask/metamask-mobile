@@ -16,6 +16,7 @@ import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import WatchlistSection from './Sections/Watchlist';
 import MoreSection from './Sections/More';
+import AllocationSection from './Sections/Allocation';
 import { SectionRefreshHandle } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
@@ -32,6 +33,7 @@ import { useNftDetection } from '../../hooks/useNftDetection';
 import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import { HOMEPAGE_SECTION_GAP } from './constants';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -153,9 +155,11 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
   return (
     <Box
       marginBottom={8}
+      gap={HOMEPAGE_SECTION_GAP}
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
       accessible={false}
     >
+      <AllocationSection />
       <TokensSection
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}

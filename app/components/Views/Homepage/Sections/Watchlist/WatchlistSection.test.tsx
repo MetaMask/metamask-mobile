@@ -82,6 +82,27 @@ jest.mock(
   },
 );
 
+jest.mock('./components/PopularWatchlistTokens', () => {
+  const { Text } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(() =>
+      ReactActual.createElement(
+        ReactActual.Fragment,
+        null,
+        ['Ethereum', 'Bitcoin', 'Solana'].map((name) =>
+          ReactActual.createElement(
+            Text,
+            { key: name, testID: `popular-row-${name}` },
+            name,
+          ),
+        ),
+      ),
+    ),
+  };
+});
+
 jest.mock(
   '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress',
   () => ({
@@ -159,20 +180,21 @@ describe('WatchlistSection', () => {
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
-  it('shows empty state when watchlist has no items', () => {
+  it('shows three popular tokens when watchlist has no items', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
       refetch: jest.fn(),
     });
 
-    const { getByTestId, getAllByText, getByText } = render(
+    const { getByTestId, queryByTestId } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
-    expect(getByTestId('watchlist-empty-icon')).toBeDefined();
-    expect(getAllByText('Watchlist').length).toBeGreaterThanOrEqual(1);
-    expect(getByText('You have no watchlist items yet')).toBeDefined();
+    expect(getByTestId('popular-row-Ethereum')).toBeDefined();
+    expect(getByTestId('popular-row-Bitcoin')).toBeDefined();
+    expect(getByTestId('popular-row-Solana')).toBeDefined();
+    expect(queryByTestId('watchlist-empty-icon')).toBeNull();
   });
 
   it('renders up to 3 tokens when watchlist has items (newest first)', () => {
