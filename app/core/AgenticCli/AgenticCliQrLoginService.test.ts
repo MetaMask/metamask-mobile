@@ -231,7 +231,7 @@ describe('AgenticCliQrLoginService', () => {
       token: 'cli-token',
     });
     expect(conn.client.sendResponse).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'auth-cancelled' }),
+      expect.objectContaining({ type: 'pairing-cancelled' }),
     );
     expect(showSimpleNotification).toHaveBeenCalledWith({
       id: '11111111-2222-3333-4444-555555555555-cli-link-success',
@@ -246,7 +246,7 @@ describe('AgenticCliQrLoginService', () => {
     expect(setStage).toHaveBeenCalledWith('send-auth-token-to-cli');
   });
 
-  it('sends auth-cancelled to CLI before cleanup when dashboard WebView is cancelled', async () => {
+  it('sends pairing-cancelled to CLI before cleanup when dashboard WebView is cancelled', async () => {
     const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
     const conn = createMockConnection();
     const cleanupConnection = jest.fn().mockResolvedValue(undefined);
@@ -264,8 +264,7 @@ describe('AgenticCliQrLoginService', () => {
     ).rejects.toThrow('WebView closed');
 
     expect(conn.client.sendResponse).toHaveBeenCalledWith({
-      type: 'auth-cancelled',
-      reason: 'WebView closed',
+      type: 'pairing-cancelled',
     });
     expect(conn.client.sendResponse).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'auth-token' }),
@@ -275,7 +274,7 @@ describe('AgenticCliQrLoginService', () => {
     expect(mockMaybePromptPushPermissionAfterCliLogin).not.toHaveBeenCalled();
   });
 
-  it('still cleans up when sending auth-cancelled fails', async () => {
+  it('still cleans up when sending pairing-cancelled fails', async () => {
     const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
     const conn = createMockConnection();
     const cleanupConnection = jest.fn().mockResolvedValue(undefined);

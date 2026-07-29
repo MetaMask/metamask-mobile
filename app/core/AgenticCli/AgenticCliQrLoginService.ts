@@ -8,7 +8,7 @@ import { maybePromptPushPermissionAfterCliLogin } from './promptPushNotification
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import { Connection } from '../SDKConnectV2/services/connection';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
-import { sendAuthCancelledToClient } from './sendAuthCancelled';
+import { sendPairingCancelledToClient } from './sendPairingCancelled';
 import { sendAuthTokenToClient } from './sendAuthToken';
 import {
   ENGINE_READY_POLL_MS,
@@ -159,13 +159,13 @@ export async function handleAgenticCliQrLogin({
   } catch (error) {
     // Mobile Cancel / WebView close / other failures never send auth-token.
     // Notify CLI before disconnect so it can abort instead of hanging (MMAI-979).
+    // Payload matches CLI PAIRING_CANCELLED_TYPE from the browser cancel path.
     if (!authTokenSent) {
-      const reason = error instanceof Error ? error.message : String(error);
       try {
-        await sendAuthCancelledToClient(conn.client, conn.id, reason);
+        await sendPairingCancelledToClient(conn.client, conn.id);
       } catch (cancelError) {
         logger.error(
-          'Failed to send auth-cancelled to CLI:',
+          'Failed to send pairing-cancelled to CLI:',
           conn.id,
           cancelError,
         );
