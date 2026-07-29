@@ -78,16 +78,28 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPerpsClosePositionLimitOrderEnabledFlag: jest.fn(() => false),
 }));
 
+jest.mock('../../Debug/usePerpsClosePositionVisualStatePicker', () => ({
+  usePerpsClosePositionVisualStatePicker: jest.fn(() => ({
+    visualOverrides: null,
+    renderFlask: () => null,
+    sheet: null,
+    openSheet: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Only mock components that would cause issues in tests
 // Following best practice: "Use mocks only when necessary"
 jest.mock('../../../../Base/Keypad', () => 'Keypad');
 
-jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
-  __esModule: true,
-  default: 'PerpsSlider',
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    Slider: 'Slider',
+  };
+});
 
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple
 jest.mock('../../components/PerpsAmountDisplay');

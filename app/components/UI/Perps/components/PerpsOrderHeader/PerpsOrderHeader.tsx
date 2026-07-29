@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
+  Box,
   HeaderSubpage,
   SelectButton,
   SelectButtonSize,
@@ -27,6 +28,11 @@ interface PerpsOrderHeaderProps {
   title?: string;
   onOrderTypePress?: () => void;
   isLoading?: boolean;
+  /**
+   * Optional leading content for the header end accessory (e.g. __DEV__ flask).
+   * Composed before the Market/Limit SelectButton when present.
+   */
+  endAccessoryLeading?: React.ReactNode;
 }
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
@@ -38,6 +44,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   onOrderTypePress,
   title,
   isLoading,
+  endAccessoryLeading,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -127,22 +134,40 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   );
 
   const endAccessory = useMemo(() => {
-    if (!orderType || !orderTypeLabel) {
+    const orderTypeButton =
+      orderType && orderTypeLabel ? (
+        <SelectButton
+          testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
+          variant={SelectButtonVariant.Primary}
+          size={SelectButtonSize.Md}
+          placeholder={orderTypeLabel}
+          value={orderTypeLabel}
+          onPress={handleOrderTypePress}
+          isDisabled={isLoading}
+        />
+      ) : null;
+
+    if (!endAccessoryLeading && !orderTypeButton) {
       return undefined;
     }
 
-    return (
-      <SelectButton
-        testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
-        variant={SelectButtonVariant.Primary}
-        size={SelectButtonSize.Md}
-        placeholder={orderTypeLabel}
-        value={orderTypeLabel}
-        onPress={handleOrderTypePress}
-        isDisabled={isLoading}
-      />
-    );
-  }, [handleOrderTypePress, isLoading, orderType, orderTypeLabel]);
+    if (endAccessoryLeading && orderTypeButton) {
+      return (
+        <Box twClassName="flex-row items-center gap-2">
+          {endAccessoryLeading}
+          {orderTypeButton}
+        </Box>
+      );
+    }
+
+    return endAccessoryLeading ?? orderTypeButton ?? undefined;
+  }, [
+    endAccessoryLeading,
+    handleOrderTypePress,
+    isLoading,
+    orderType,
+    orderTypeLabel,
+  ]);
 
   return (
     <HeaderSubpage

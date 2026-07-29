@@ -55,9 +55,19 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       paddingVertical: 16,
     },
+    helpTextContainer: {
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      paddingHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 16,
+      // Reserve space so content below doesn't jump when
+      // validation HelpText appears or wraps.
+      minHeight: 40,
+    },
     detailsWrapper: {
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingBottom: 0,
     },
     inputGroupContainer: {
       backgroundColor: colors.background.section,
@@ -84,28 +94,6 @@ export const createStyles = (theme: Theme) => {
       paddingTop: 20,
       borderTopColor: colors.border.muted,
       borderTopWidth: 1,
-    },
-    validationSection: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
-    errorMessage: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      backgroundColor: colors.error.muted,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    warningMessage: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      backgroundColor: colors.warning.muted,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 8,
     },
     footer: {
       paddingVertical: 16,
