@@ -261,6 +261,10 @@ describe('V2BankDetails', () => {
     mockRefreshOrder.mockResolvedValue(undefined);
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('renders loader when order is not available', () => {
     const { getByTestId } = renderWithTheme(<V2BankDetails />);
     expect(getByTestId('loader')).toBeOnTheScreen();
@@ -404,7 +408,9 @@ describe('V2BankDetails', () => {
 
     expect(queryByText('Test Bank')).not.toBeOnTheScreen();
 
-    fireEvent.press(getByText('deposit.bank_details.show_bank_info'));
+    await act(async () => {
+      fireEvent.press(getByText('deposit.bank_details.show_bank_info'));
+    });
 
     expect(getByText('Test Bank')).toBeOnTheScreen();
   });
@@ -460,6 +466,19 @@ describe('V2BankDetails', () => {
   it('replaces current screen with RAMPS_ORDER_DETAILS when order status is CANCELLED', () => {
     mockGetOrderById.mockReturnValue(
       createMockV2Order({ status: 'CANCELLED' as RampsOrder['status'] }),
+    );
+
+    renderWithTheme(<V2BankDetails />);
+
+    expect(mockReplace).toHaveBeenCalledWith('RampsOrderDetails', {
+      orderId: 'test-order-id',
+      showCloseButton: true,
+    });
+  });
+
+  it('replaces current screen with RAMPS_ORDER_DETAILS when order status is ID_EXPIRED', () => {
+    mockGetOrderById.mockReturnValue(
+      createMockV2Order({ status: 'ID_EXPIRED' as RampsOrder['status'] }),
     );
 
     renderWithTheme(<V2BankDetails />);

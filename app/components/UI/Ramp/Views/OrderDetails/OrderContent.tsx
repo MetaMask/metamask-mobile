@@ -5,7 +5,11 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
-import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  type RampsOrder,
+  RampsOrderStatus,
+  isTerminalOrderStatus,
+} from '@metamask/ramps-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { createProcessingInfoModalNavigationDetails } from '../Modals/ProcessingInfoModal/ProcessingInfoModal';
@@ -41,13 +45,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 const AMOUNT_PLACEHOLDER = '...';
-const TERMINAL_STATUSES = new Set([
-  RampsOrderStatus.Completed,
-  RampsOrderStatus.Failed,
-  RampsOrderStatus.Cancelled,
-  RampsOrderStatus.IdExpired,
-]);
-
 const localStyles = StyleSheet.create({
   badgeWrapperCenter: {
     alignSelf: 'center',
@@ -192,7 +189,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
       ((order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
         (order.cryptoAmount != null && Number(order.cryptoAmount) > 0)),
   );
-  const isTerminal = TERMINAL_STATUSES.has(order.status);
+  const isTerminal = isTerminalOrderStatus(order.status);
   const isLoading = !hasAmounts && !isTerminal;
 
   const handleClose = useCallback(() => {

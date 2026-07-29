@@ -16,7 +16,10 @@ import {
   ButtonSize,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  isTerminalOrderStatus,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
 import { extractOrderCode } from '../../utils/extractOrderCode';
 import {
@@ -37,7 +40,6 @@ import OrderContent from './OrderContent';
 import {
   emitOrderConfirmedAnalyticsFromCallback,
   emitTerminalOrderAnalyticsFromCallback,
-  isTerminalOrderStatus,
 } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { showV2OrderToast } from '../../utils/v2OrderToast';

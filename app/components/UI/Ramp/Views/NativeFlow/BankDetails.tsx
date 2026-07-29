@@ -25,6 +25,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import BankDetailRow from '../../components/BankDetailRow';
 import {
+  isTerminalOrderStatus,
   RampsOrderStatus,
   type TransakDepositOrder,
 } from '@metamask/ramps-controller';
@@ -46,12 +47,6 @@ export interface BankDetailsParams {
   orderId: string;
   shouldUpdate?: boolean;
 }
-
-const TERMINAL_STATUSES = new Set([
-  RampsOrderStatus.Completed,
-  RampsOrderStatus.Failed,
-  RampsOrderStatus.Cancelled,
-]);
 
 /**
  * V2 bank details screen. Reads order lifecycle from controller state
@@ -142,7 +137,7 @@ const V2BankDetails = () => {
   useEffect(() => {
     if (!order?.status) return;
     if (
-      TERMINAL_STATUSES.has(order.status) ||
+      isTerminalOrderStatus(order.status) ||
       order.status === RampsOrderStatus.Pending
     ) {
       // @ts-expect-error navigation prop mismatch
