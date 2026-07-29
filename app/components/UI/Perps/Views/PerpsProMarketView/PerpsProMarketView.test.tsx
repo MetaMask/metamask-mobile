@@ -113,7 +113,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// PerpsProPositionsPanel uses live stream hooks; avoid PerpsStreamProvider requirement.
+// Live stream hooks used by the positions panel and stats bar; mock the barrel
+// fully (no requireActual) so the view renders without a PerpsStreamProvider.
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: null,
@@ -127,6 +128,7 @@ jest.mock('../../hooks/stream', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
@@ -144,14 +146,6 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
     savedGrouping: undefined,
     saveGrouping: jest.fn(),
   })),
-}));
-
-// The stats bar and the price header both read live prices; mock the stream
-// barrel so the view renders without a PerpsStreamProvider (matches the lite
-// PerpsMarketDetailsView test's approach).
-jest.mock('../../hooks/stream', () => ({
-  ...jest.requireActual('../../hooks/stream'),
-  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
