@@ -779,6 +779,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardIntercomSupport: {
+    name: 'cardIntercomSupport',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   cardSupportedCountries: {
     name: 'cardSupportedCountries',
     type: FeatureFlagType.Remote,
