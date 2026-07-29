@@ -99,8 +99,11 @@ import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFia
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { KeyValueRowSkeleton } from '../../rows/key-value-row-skeleton';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import { typography } from '@metamask/design-tokens';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
+/** Reserve up to two BodySm lines so HelpText appearance does not shift the amount block. */
+const HELP_TEXT_SLOT_MIN_HEIGHT = typography.sBodySM.lineHeight * 2;
 
 type QuoteHandoff =
   | {
@@ -287,10 +290,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasNoQuotesAlert = alerts.some(
       (a) => a.key === AlertKeys.NoPayTokenQuotes,
     );
-    const showPaymentDetails =
-      showLoadingReview ||
-      Boolean(quotes?.length) ||
-      (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
     const isAwaitingPrefillResult =
       !hasAccountNoFunds &&
@@ -315,26 +314,38 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hidePercentageButtons =
       Boolean(selectedFiatPaymentMethodId) || shouldHideAccountSelector;
+
+    const showPaymentDetails =
+      showLoadingReview ||
+      Boolean(quotes?.length) ||
+      (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
+
     const showBuySection =
       (!hasPaymentOption || hasAccountNoFunds) &&
       !hideBuyForNoFunds &&
       !isDepositPrefillEnabled;
+
     const buyEmptyHelpText = getBuyEmptyHelpText(transactionMeta);
-    const displayHelpText =
+    const resolvedHelpText =
       (showBuySection ? buyEmptyHelpText : undefined) ??
       helpText ??
       (headlessBuyError
         ? `${strings('alert_system.headless_buy_error.title')} - ${headlessBuyError}`
         : undefined);
-    const displayHasBlockingError =
-      Boolean(displayHelpText) || hasBlockingError;
+    const hasBlockingErrorEffective =
+      Boolean(resolvedHelpText) || hasBlockingError;
     const hideConfirm = Boolean(showBuySection && buyEmptyHelpText);
     const disableConfirmEffective =
       disableConfirm ||
       isAccountSelectionNeeded ||
       isPrefillPending ||
       isAwaitingPrefillResult ||
-      displayHasBlockingError;
+      hasBlockingErrorEffective;
+
+    const showLiveAccountSelector =
+      Boolean(supportAccountSelection) &&
+      !selectedFiatPaymentMethodId &&
+      !shouldHideAccountSelector;
 
     const hasAutoSubmittedPrefill = useRef(false);
 
@@ -515,7 +526,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
-            hasAlert={Boolean(displayHelpText)}
+            hasAlert={Boolean(resolvedHelpText)}
             isLoading={
               !hasAccountNoFunds &&
               !skipDepositPrefill &&
@@ -525,14 +536,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disabled={!hasPaymentOption}
             showCursor={isKeyboardVisible && !showLoadingReview}
           />
-          {displayHelpText ? (
-            <HelpText
-              severity={HelpTextSeverity.Danger}
-              twClassName="px-4 text-center"
-            >
-              {displayHelpText}
-            </HelpText>
-          ) : null}
+          <Box
+            twClassName="w-full px-4 items-center justify-center"
+            style={{ minHeight: HELP_TEXT_SLOT_MIN_HEIGHT }}
+            testID={CustomAmountInfoTestIds.HELP_TEXT}
+          >
+            {resolvedHelpText ? (
+              <HelpText
+                severity={HelpTextSeverity.Danger}
+                twClassName="text-center"
+              >
+                {resolvedHelpText}
+              </HelpText>
+            ) : null}
+          </Box>
           {!hidePayTokenAmount &&
             disablePay !== true &&
             (isMoneyAccountDeposit ? (
@@ -552,13 +569,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         >
           {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && (
-                  <Box twClassName="border-b border-muted mb-[-4px]">
-                    <PayAccountSelector />
-                  </Box>
-                )}
+              {showLiveAccountSelector && (
+                <Box twClassName="border-b border-muted mb-[-4px]">
+                  <PayAccountSelector />
+                </Box>
+              )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
               {disablePay !== true &&
@@ -570,9 +585,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               pointerEvents={showLoadingReview ? 'none' : 'auto'}
               testID={CustomAmountInfoTestIds.REVIEW_ROWS}
             >
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && <PayAccountSelector />}
+              {showLiveAccountSelector && <PayAccountSelector />}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && (
@@ -606,7 +619,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <Box twClassName="px-4">
                 <DepositKeyboard
                   hidePercentageButtons={hidePercentageButtons}
-                  isDoneDisabled={displayHasBlockingError}
+                  isDoneDisabled={hasBlockingErrorEffective}
                   value={amountFiat}
                   onChange={updatePendingAmount}
                   onDonePress={handleDone}

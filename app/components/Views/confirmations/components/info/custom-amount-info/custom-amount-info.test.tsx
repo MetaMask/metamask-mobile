@@ -539,6 +539,21 @@ describe('CustomAmountInfo', () => {
     ).toBeDisabled();
   });
 
+  it('always reserves HelpText slot space under the amount', () => {
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertTitle: undefined,
+      alertMessage: undefined,
+      helpText: undefined,
+      hasBlockingError: false,
+    });
+
+    const { getByTestId } = render();
+
+    expect(getByTestId(CustomAmountInfoTestIds.HELP_TEXT)).toHaveStyle({
+      minHeight: 44,
+    });
+  });
+
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '0',

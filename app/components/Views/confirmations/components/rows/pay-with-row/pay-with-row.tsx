@@ -107,10 +107,22 @@ function PayWithRowComponent({
 
 export const PayWithRow = memo(PayWithRowComponent);
 
+type PayWithEndArrow = 'down' | 'right';
+
+/**
+ * Chevron for selectable KeyValueSelect rows:
+ * - `down` → opens a bottom sheet
+ * - `right` → navigates to another page
+ */
+const END_ARROW_ICON: Record<PayWithEndArrow, IconName> = {
+  down: IconName.ArrowDown,
+  right: IconName.ArrowRight,
+};
+
 function PayWithRowLayout({
   label,
   disabled,
-  showArrow,
+  endArrow,
   onPress,
   startAccessory,
   value,
@@ -119,7 +131,12 @@ function PayWithRowLayout({
 }: {
   label: string;
   disabled?: boolean;
-  showArrow?: boolean;
+  /**
+   * Trailing chevron on the SelectButton.
+   * Use `down` for bottom sheets, `right` for full-screen navigation.
+   * Omit when the row is not selectable.
+   */
+  endArrow?: PayWithEndArrow;
   onPress?: () => void;
   startAccessory?: React.ReactNode;
   /** Selected label for the SelectButton. Null/undefined shows placeholder. */
@@ -138,6 +155,8 @@ function PayWithRowLayout({
   const selectPlaceholder =
     placeholder ?? strings('confirm.label.select_token');
 
+  // SelectButton cannot show both a custom endAccessory and its built-in arrow,
+  // so when a balance is present the chevron is composed next to the balance.
   const valueEndAccessory =
     balance != null ? (
       <Box
@@ -153,13 +172,13 @@ function PayWithRowLayout({
         >
           {`(${balance})`}
         </Text>
-        {showArrow && (
+        {endArrow ? (
           <Icon
-            name={IconName.ArrowDown}
+            name={END_ARROW_ICON[endArrow]}
             size={IconSize.Sm}
-            color={disabled ? IconColor.IconMuted : IconColor.IconAlternative}
+            color={disabled ? IconColor.IconMuted : IconColor.IconDefault}
           />
-        )}
+        ) : null}
       </Box>
     ) : undefined;
 
@@ -181,7 +200,11 @@ function PayWithRowLayout({
       onPress={handlePress}
       selectButtonProps={{
         placeholder: selectPlaceholder,
-        hideEndArrow: Boolean(valueEndAccessory) || !showArrow,
+        // Native SelectButton arrow when there is no balance endAccessory.
+        hideEndArrow: Boolean(valueEndAccessory) || !endArrow,
+        ...(endArrow && !valueEndAccessory
+          ? { endArrowDirection: endArrow }
+          : {}),
         // testID is forwarded to SelectButton but omitted from shared selectButtonProps.
         ...({
           testID: TransactionPayComponentIDs.PAY_WITH_SYMBOL,
@@ -290,7 +313,7 @@ function PayWithRowInteractive() {
     <PayWithRowLayout
       label={label}
       disabled={isDisabled}
-      showArrow={Boolean(from)}
+      endArrow={from ? 'down' : undefined}
       onPress={handleClick}
       startAccessory={
         <TokenIcon
@@ -325,7 +348,7 @@ function PayWithFiatPaymentMethodRow({
     <PayWithRowLayout
       label={label}
       disabled={disabled}
-      showArrow={hasFrom}
+      endArrow={hasFrom ? 'down' : undefined}
       onPress={onPress}
       startAccessory={
         <PaymentMethodIcon
@@ -354,7 +377,7 @@ function PayWithRowEmpty({
     <PayWithRowLayout
       label={label}
       disabled={disabled}
-      showArrow={hasFrom}
+      endArrow={hasFrom ? 'down' : undefined}
       onPress={onPress}
       value={null}
       placeholder={strings('confirm.label.select_payment_method')}
@@ -385,7 +408,7 @@ function PayWithRowMoneyAccount() {
           ? strings('confirm.label.receive_as')
           : strings('confirm.label.pay_with')
       }
-      showArrow
+      endArrow="down"
       onPress={handleClick}
       startAccessory={
         <Image
