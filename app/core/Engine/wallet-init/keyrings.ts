@@ -13,6 +13,7 @@ import {
 } from '@metamask/eth-qr-keyring';
 import { QrKeyring as QrKeyringV2 } from '@metamask/eth-qr-keyring/v2';
 import {
+  LedgerDmkBridge,
   LedgerKeyring,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
@@ -24,6 +25,7 @@ import { MoneyKeyring } from '@metamask/eth-money-keyring';
 import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
+import Logger from '../../../util/Logger';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
@@ -31,6 +33,7 @@ import {
   scanCompleted,
   scanRequested,
 } from '../../redux/slices/qrKeyringScanner';
+import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import {
   snapKeyringV2AdaptedAsV1Builder,
   snapKeyringV2Builder,
@@ -53,10 +56,17 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
 /**
  * Build the list of keyring builders.
  *
+ * @param messenger - Needed by some builders that interact with the shared bus.
+ * TODO: Remove this parameter when we remove the DMK feature flag.
+ * @param useDmk - Whether to use the DMK Ledger bridge for Ledger keyrings.
+ * Read fresh from feature-flag state via `isDmkEnabled(flags)` (the `ledgerDmk`
+ * flag) at engine init; the adapter factory reads the same flag in
+ * `useAdapterLifecycle`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
 export function getKeyringBuilders(
   messenger: RootMessenger,
+  useDmk: boolean,
 ): KeyringControllerOptions['keyringBuilders'] {
   // Required by the HD keyring and money keyring to use native crypto functions.
   const cryptographicFunctions: CryptographicFunctions = {
@@ -78,7 +88,12 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+  const bridge = useDmk
+    ? new LedgerDmkBridge({ transportFactory: RNBleTransportFactory })
+    : new LedgerMobileBridge(new LedgerTransportMiddleware());
+  Logger.log(
+    `[Ledger] Using ${useDmk ? 'LedgerDmkBridge' : 'LedgerMobileBridge'}`,
+  );
   const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
   ledgerKeyringBuilder.type = LedgerKeyring.type;
 

@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
@@ -10,7 +11,6 @@ import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
 
 interface UseDeviceConnectionFlowOptions {
@@ -161,6 +161,20 @@ export const useDeviceConnectionFlow = ({
     [updateConnectionState],
   );
 
+  const ensureDeviceReadyOrError = useCallback(
+    async (
+      adapter: HardwareWalletAdapter,
+      targetDeviceId: string,
+    ): Promise<boolean> => {
+      const isReady = await adapter.ensureDeviceReady(targetDeviceId);
+      if (!isReady) {
+        handleError(new Error('Device not ready'));
+      }
+      return isReady;
+    },
+    [handleError],
+  );
+
   const connect = useCallback(
     async (targetDeviceId: string): Promise<void> => {
       if (refs.isConnectingRef.current) {
@@ -250,6 +264,58 @@ export const useDeviceConnectionFlow = ({
         adapter.resetFlowState();
       }
 
+      if (
+        targetDeviceId &&
+        adapter.isConnected?.() &&
+        adapter.getConnectedDeviceId() === targetDeviceId
+      ) {
+        DevLogger.log(
+          '[HardwareWallet] Already connected to device, checking readiness directly',
+        );
+        try {
+          refs.abortControllerRef.current = new AbortController();
+          return await ensureDeviceReadyOrError(adapter, targetDeviceId);
+        } catch (error) {
+          DevLogger.log(
+            '[HardwareWallet] Direct readiness check failed, falling through to full flow',
+            error,
+          );
+        } finally {
+          refs.abortControllerRef.current = null;
+        }
+      }
+
+      if (
+        targetDeviceId &&
+        !adapter.isConnected?.() &&
+        adapter.backgroundReconnect
+      ) {
+        DevLogger.log(
+          '[HardwareWallet] Not connected, trying background reconnect to:',
+          targetDeviceId,
+        );
+        try {
+          refs.abortControllerRef.current = new AbortController();
+          const reconnected = await adapter.backgroundReconnect(targetDeviceId);
+          if (reconnected) {
+            DevLogger.log(
+              '[HardwareWallet] Background reconnect succeeded, checking readiness',
+            );
+            return await ensureDeviceReadyOrError(adapter, targetDeviceId);
+          }
+          DevLogger.log(
+            '[HardwareWallet] Background reconnect failed, falling through to scanning UI',
+          );
+        } catch (error) {
+          DevLogger.log(
+            '[HardwareWallet] Background reconnect error, falling through to scanning UI',
+            error,
+          );
+        } finally {
+          refs.abortControllerRef.current = null;
+        }
+      }
+
       // Avoid pre-gating scan mode on transport state. BLE state can be
       // briefly unknown/stale on startup and wrongly show "Bluetooth required"
       // before discovery starts.
@@ -321,6 +387,7 @@ export const useDeviceConnectionFlow = ({
       updateConnectionState,
       resolveOrCreateAdapter,
       tryEnsureReady,
+      ensureDeviceReadyOrError,
       checkTransportEnabledOrShowError,
       createBlockingPromise,
       onFlowStart,
