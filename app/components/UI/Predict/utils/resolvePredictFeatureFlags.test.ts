@@ -834,6 +834,7 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
+        'first_half_moneyline',
         'both_teams_to_score',
         'both_teams_to_score_first_half',
         'both_teams_to_score_second_half',
@@ -961,6 +962,7 @@ describe('resolvePredictFeatureFlags', () => {
               'MONEYLINE',
               'spreads',
               'totals',
+              'first_half_moneyline',
               'soccer_halftime_result',
               'soccer_player_goals',
               'points',
@@ -973,6 +975,7 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
+        'first_half_moneyline',
         'soccer_halftime_result',
         'soccer_player_goals',
       ]);

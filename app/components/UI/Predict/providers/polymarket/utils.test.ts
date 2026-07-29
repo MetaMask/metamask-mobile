@@ -381,6 +381,62 @@ describe('polymarket utils', () => {
     ]);
   });
 
+  it('groups CFB first-half moneyline outcomes separately from game lines', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      mia: createNbaTeam('mia', { league: 'cfb' }),
+      ind: createNbaTeam('ind', { league: 'cfb', color: 'blue' }),
+    };
+    const event: PolymarketApiEvent = {
+      ...createNbaGameEvent([
+        createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+        createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+        createSportsMarket({ id: 'totals', sportsMarketType: 'totals' }),
+        createSportsMarket({
+          id: 'first-half-moneyline',
+          sportsMarketType: 'first_half_moneyline',
+        }),
+      ]),
+      id: 'cfb-game-event',
+      slug: 'cfb-mia-ind-2026-01-19',
+      title: 'Miami vs. Indiana',
+      series: [
+        {
+          id: 'cfb-series',
+          slug: 'cfb-2025',
+          title: 'CFB 2025',
+          recurrence: 'daily',
+        },
+      ],
+      tags: [
+        { id: 'games', label: 'Games', slug: 'games' },
+        { id: 'cfb', label: 'CFB', slug: 'cfb' },
+      ],
+      teams: Object.values(teamsByAbbreviation),
+      gameId: 'cfb-game-1',
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'sports',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['cfb'],
+      enabledSportsMarketTypes: [
+        'moneyline',
+        'spreads',
+        'totals',
+        'first_half_moneyline',
+      ],
+    });
+
+    expect(market.game?.league).toBe('cfb');
+    expect(market.outcomeGroups?.map((group) => group.key)).toEqual([
+      'game_lines',
+      'first_half',
+    ]);
+    expect(market.outcomeGroups?.[1].outcomes).toEqual([
+      expect.objectContaining({ sportsMarketType: 'first_half_moneyline' }),
+    ]);
+  });
+
   it('builds player goal subgroups per player', () => {
     const event = createNbaGameEvent([
       createSportsMarket({

@@ -568,7 +568,7 @@ describe('PolymarketProvider', () => {
         ],
         markets: [
           { active: true, sportsMarketType: 'spreads' },
-          { active: true, sportsMarketType: 'both_teams_to_score' },
+          { active: true, sportsMarketType: 'total_corners' },
         ],
       };
       const parsedMarket = { id: 'child-market', outcomes: [] };
@@ -607,7 +607,7 @@ describe('PolymarketProvider', () => {
         ],
         markets: [
           { active: true, sportsMarketType: 'spreads' },
-          { active: false, sportsMarketType: 'both_teams_to_score' },
+          { active: false, sportsMarketType: 'total_corners' },
         ],
       };
       const parsedMarket = { id: 'child-market', outcomes: [] };

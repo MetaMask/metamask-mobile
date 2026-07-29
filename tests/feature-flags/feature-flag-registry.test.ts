@@ -88,7 +88,10 @@ describe('Feature Flag Registry', () => {
       expect(extendedSportsFlag).toEqual(
         expect.objectContaining({
           versions: expect.objectContaining({
-            '7.82.0': expect.objectContaining({
+            '8.5.0': expect.objectContaining({
+              enabledSportsMarketTypes: expect.arrayContaining([
+                'first_half_moneyline',
+              ]),
               leagues: expect.arrayContaining(extendedSportsLeagues),
             }),
           }),
