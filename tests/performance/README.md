@@ -661,11 +661,16 @@ node tests/scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
 | `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
 
-### App profiling check (on-demand PR diff)
+### App profiling check (automatic on PR failures)
 
-When a performance scenario fails on a PR, the results comment includes an
-**App profiling check** command. Paste it as a PR comment to compare BrowserStack
-`profilingSummary` against the last green run of that scenario on `main`:
+When a PR performance run has failed scenarios, the results comment includes
+an inline **App profiling check** under each failed scenario that has a prior
+usable baseline on `main` (short summary + collapsed metric table). Scenarios
+without a prior baseline are omitted from that block.
+
+Header uses ⚠️ when there are failed tests.
+
+Manual re-run remains available via:
 
 ```text
 @metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run <RUN_ID>
@@ -677,8 +682,9 @@ Or compare all failed scenarios from that run:
 @metamaskbot app-profiling-check --all --run <RUN_ID>
 ```
 
-This runs `.github/workflows/app-profiling-check.yml`, which downloads
-`aggregated-reports` for the current run + baseline and posts a diff comment.
+This uses `.github/workflows/app-profiling-check.yml` (bot command /
+`workflow_dispatch`). The automatic PR path embeds profiling into the
+performance results comment from `run-performance-e2e.yml`.
 
 ### HTML Dashboard Features
 

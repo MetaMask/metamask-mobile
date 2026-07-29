@@ -245,6 +245,7 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
   selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
+  selectAiSocialAusCacheRefreshEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Assets/selectors/featureFlags', () => ({

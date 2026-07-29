@@ -93,16 +93,7 @@ const flaskTags = {};
 
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
-  regressionAccounts: 'RegressionAccounts:',
-  regressionConfirmations: 'RegressionConfirmations:',
-  regressionIdentity: 'RegressionIdentity:',
-  regressionNetworkAbstractions: 'RegressionNetworkAbstractions:',
-  regressionWalletPlatform: 'RegressionWalletPlatform:',
-  regressionNetworkExpansion: 'RegressionNetworkExpansion:',
-  regressionAssets: 'RegressionAssets:',
-  regressionWalletUX: 'RegressionWalletUX:',
-  regressionTrade: 'RegressionTrade:',
-  regressionSampleFeature: 'RegressionSampleFeature:',
+  sampleFeature: 'SampleFeature:',
   performance: 'Performance:',
   fixtureValidation: 'FixtureValidation:',
 };
@@ -113,7 +104,7 @@ const tagDescribe = (tagPrefix) => (testName) => `${tagPrefix} ${testName}`;
 /** smokeAccounts → SmokeAccounts */
 const smokeExportName = (key) => `Smoke${key.slice('smoke'.length)}`;
 
-/** regressionAccounts → RegressionAccounts; performance → SmokePerformance (tag stays "Performance:") */
+/** sampleFeature → SampleFeature; performance → SmokePerformance (tag stays "Performance:") */
 const otherExportName = (key) => {
   if (key === 'performance') {
     return 'SmokePerformance';
@@ -158,20 +149,8 @@ const {
   SmokeMMConnect,
 } = createSmokeDescribeFunctions(smokeTags);
 
-const {
-  RegressionAccounts,
-  RegressionConfirmations,
-  RegressionIdentity,
-  RegressionNetworkAbstractions,
-  RegressionWalletPlatform,
-  RegressionNetworkExpansion,
-  RegressionAssets,
-  RegressionWalletUX,
-  RegressionTrade,
-  RegressionSampleFeature,
-  SmokePerformance,
-  FixtureValidation,
-} = createOtherDescribeFunctions(otherTags);
+const { SampleFeature, SmokePerformance, FixtureValidation } =
+  createOtherDescribeFunctions(otherTags);
 
 export {
   smokeTags,
@@ -191,16 +170,7 @@ export {
   SmokeSeedlessOnboardingExtended,
   SmokeBrowser,
   SmokeMMConnect,
-  RegressionAccounts,
-  RegressionConfirmations,
-  RegressionIdentity,
-  RegressionNetworkAbstractions,
-  RegressionWalletPlatform,
-  RegressionNetworkExpansion,
-  RegressionAssets,
-  RegressionWalletUX,
-  RegressionTrade,
-  RegressionSampleFeature,
+  SampleFeature,
   SmokeSnaps,
   SmokePerformance,
   FixtureValidation,

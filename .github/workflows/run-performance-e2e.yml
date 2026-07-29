@@ -563,17 +563,19 @@ jobs:
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node tests/scripts/generate-performance-pr-comment.mjs \
             aggregated-reports/summary.json \
             performance-pr-comment.md
 
-      - name: Delete previous performance results comments
+      - name: Delete previous performance / app-profiling comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments" \
-            --jq '.[] | select(.body | contains("<!-- perf-test-results -->")) | .id')
+          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments?per_page=100" \
+            --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
             echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
@@ -582,7 +584,7 @@ jobs:
                   --method DELETE > /dev/null 2>&1 || true
               fi
             done
-            echo "Deleted previous performance results comments"
+            echo "Deleted previous performance / app-profiling comments"
           fi
 
       - name: Post PR comment
