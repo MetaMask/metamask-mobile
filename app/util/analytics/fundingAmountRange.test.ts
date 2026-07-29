@@ -7,6 +7,7 @@ import Engine from '../../core/Engine';
 import ReduxService from '../../core/redux';
 import { selectSelectedAccountGroupInternalAccounts } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectBalanceBySelectedAccountGroup } from '../../selectors/assets/balances';
+import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -48,10 +49,16 @@ jest.mock('../../selectors/assets/balances', () => ({
   selectBalanceBySelectedAccountGroup: jest.fn(),
 }));
 
+jest.mock('../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+}));
+
 const mockSelectSelectedAccountGroupInternalAccounts =
   selectSelectedAccountGroupInternalAccounts as unknown as jest.Mock;
 const mockSelectBalanceBySelectedAccountGroup =
   selectBalanceBySelectedAccountGroup as unknown as jest.Mock;
+const mockSelectIsAssetsUnifyStateEnabled =
+  selectIsAssetsUnifyStateEnabled as unknown as jest.Mock;
 
 const mockEngineContext = Engine.context as unknown as {
   AccountTrackerController: { refresh: jest.Mock };
@@ -324,6 +331,24 @@ describe('fetchImportedWalletFundingAmountRange', () => {
     expect(range).toBeUndefined();
     expect(
       mockEngineContext.AccountTrackerController.refresh,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('omits the range without refreshing when assetsUnifyState is enabled', async () => {
+    arrangeSuccessfulRefresh(50);
+    // Under the unified-assets flag the legacy balance controllers this
+    // fetch refreshes are deactivated; reading their empty state would
+    // misreport a funded wallet as a confirmed zero.
+    mockSelectIsAssetsUnifyStateEnabled.mockReturnValueOnce(true);
+
+    const range = await fetchImportedWalletFundingAmountRange();
+
+    expect(range).toBeUndefined();
+    expect(
+      mockEngineContext.AccountTrackerController.refresh,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockEngineContext.TokenBalancesController._executePoll,
     ).not.toHaveBeenCalled();
   });
 

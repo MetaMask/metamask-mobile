@@ -8,6 +8,7 @@ import {
 } from '../../selectors/networkController';
 import { selectSelectedAccountGroupInternalAccounts } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectBalanceBySelectedAccountGroup } from '../../selectors/assets/balances';
+import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 
 /**
  * USD buckets for the `funding_amount_range` prop on `Wallet Setup
@@ -58,6 +59,12 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   try {
     const state = ReduxService.store.getState();
+    if (selectIsAssetsUnifyStateEnabled(state)) {
+      Logger.log(
+        'fundingAmountRange: assetsUnifyState is enabled — funding_amount_range omitted (legacy balance refresh path is deactivated)',
+      );
+      return undefined;
+    }
     const evmNetworkConfigurations =
       selectEvmNetworkConfigurationsByChainId(state);
     const nativeCurrencies = selectNativeNetworkCurrencies(state);
