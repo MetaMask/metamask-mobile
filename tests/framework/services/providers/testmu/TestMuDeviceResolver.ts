@@ -11,9 +11,10 @@ const BROWSERSTACK_TO_TESTMU_DEVICE: Record<
   string,
   { name: string; osVersion?: string }
 > = {
-  // PoC: BS Pixel 7 Pro / 13 → TestMu Pixel 7 Pro / 15
-  'Google Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '15' },
-  'Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '15' },
+  // PoC: keep Pixel 7 Pro on Android 13 — TestMu rejects Pixel 7 Pro / 15
+  // ("This configuration is not supported") for this org; Pixel 8 Pro / 14 works.
+  'Google Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '13' },
+  'Pixel 7 Pro': { name: 'Pixel 7 Pro', osVersion: '13' },
   'Google Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
   'Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
   'Samsung Galaxy S25 Ultra': { name: 'Galaxy S25 Ultra', osVersion: '15' },

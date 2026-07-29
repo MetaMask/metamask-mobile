@@ -4,7 +4,7 @@
       "name": "Google Pixel 7 Pro",
       "os_version": "13.0",
       "category": "low",
-      "description": "Google Pixel 7 Pro with Android 13 on BrowserStack and TestMu. TestMu maps this to catalog name Pixel 7 Pro via TestMuDeviceResolver."
+      "description": "Google Pixel 7 Pro with Android 13 on BrowserStack and TestMu (Pixel 7 Pro / 15 is unsupported on TestMu for this org)."
     }
   ],
   "ios_devices": [
