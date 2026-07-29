@@ -1280,7 +1280,15 @@
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
-      "toast_failed_sell": "Couldn't sell {{symbol}}"
+      "toast_failed_sell": "Couldn't sell {{symbol}}",
+      "edit_quick_amounts_title": "Edit quick amounts",
+      "edit_quick_amounts_set_buy": "Set Buy amounts",
+      "edit_quick_amounts_set_sell": "Set Sell amounts",
+      "edit_quick_amounts_confirm": "Confirm",
+      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
+      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
+      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
+      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
     }
   },
   "perps": {
@@ -7519,14 +7527,14 @@
       "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
-      "title": "MetaMask Card",
-      "upsell_title": "Get MetaMask Card",
+      "title": "Card",
+      "upsell_title": "Get card",
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
-      "get_now": "Get now",
-      "link_title": "Link MetaMask Card",
+      "get_now": "Get",
+      "link_title": "Link card",
       "link_subtitle": "Spend your balance and earn on purchases.",
       "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
@@ -7554,7 +7562,6 @@
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Manage",
-      "avail_balance": "Avail. balance",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
@@ -7568,9 +7575,6 @@
       "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
-    },
-    "footer": {
-      "add_money": "Add funds"
     },
     "add_money_sheet": {
       "title": "Add funds",
@@ -7666,12 +7670,9 @@
       "filter_purchases": "Purchases"
     },
     "condensed_cards": {
-      "how_it_works_title": "How it works",
-      "how_it_works_subtitle": "See how your money works for you",
-      "musd_title": "MetaMask USD",
-      "musd_subtitle": "Learn more about mUSD",
-      "what_you_get_title": "What you get",
-      "what_you_get_subtitle": "Explore your benefits"
+      "how_it_works_title": "How your money grows",
+      "musd_title": "Meet mUSD",
+      "what_you_get_title": "Explore your benefits"
     },
     "transaction": {
       "deposited": "Deposited",
@@ -8299,6 +8300,8 @@
     "sort_balance": "Balance",
     "next": "Next",
     "explore_tokens": "Explore tokens",
+    "robinhood_banner_title": "Robinhood Chain is here",
+    "robinhood_banner_subtitle": "Explore trending tokens",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
@@ -9069,7 +9072,8 @@
         "title": "Join waitlist",
         "load_error": "Something went wrong loading the form. Please try again.",
         "try_again": "Try again",
-        "success_toast": "You're on the waitlist! We'll let you know when the card is available in your country."
+        "success_toast": "You're on the waitlist!",
+        "success_toast_description": "We'll let you know when the card is available in your country."
       },
       "region_selector": {
         "title": "Select your Region"
@@ -10522,7 +10526,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "top_traders": "Weekly Top Traders",
+      "top_traders": "Weekly top traders",
       "defi": "DeFi",
       "nfts": "NFTs",
       "watchlist": "Watchlist",

@@ -126,23 +126,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  browser-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeBrowser')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: browser-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeBrowser'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   snaps-android-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSnaps')
     strategy:
@@ -164,7 +147,7 @@ jobs:
     name: Report Android Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
-    # an Appium-only tag like SmokeAccounts / SmokeSwap / SmokeStake). Non-empty tags still trigger this workflow.
+    # an Appium-only tag like SmokeAccounts / SmokeSwap / SmokeStake / SmokeBrowser). Non-empty tags still trigger this workflow.
     if: >-
       ${{
         !cancelled() &&
@@ -180,7 +163,6 @@ jobs:
       - network-expansion-android-smoke
       - confirmations-android-smoke
       - multichain-api-android-smoke
-      - browser-android-smoke
       - snaps-android-smoke
     steps:
       - name: Checkout (Namespace)

@@ -92,8 +92,8 @@ jobs:
           platform: android
           setup-simulator: 'true'
           android-avd-name: appium_smoke_avd
-          android-api-level: '34'
           android-tag: ${{ inputs.android-tag }}
+          android-api-level: '36'
           android-abi: x86_64
           android-device: pixel_5
           configure-keystores: 'false'

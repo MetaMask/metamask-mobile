@@ -370,6 +370,21 @@ describe('TrendingTokensFullView', () => {
     });
   });
 
+  it('applies initial network filter from route params', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialNetwork: ['eip155:4663'] },
+    });
+
+    renderTrendingFullView();
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      sortBy: undefined,
+      chainIds: ['eip155:4663'],
+      searchQuery: undefined,
+      filterLowQuality: true,
+    });
+  });
+
   it('calls refetch when pull-to-refresh is triggered', () => {
     const mockTokens = [
       createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
