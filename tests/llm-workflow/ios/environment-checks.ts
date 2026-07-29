@@ -23,12 +23,12 @@ function isBinaryInstalled(file: string, args: string[]): boolean {
 }
 
 /**
- * @throws {IOSLaunchError} `MM_IOS_RUNNER_NOT_READY` when Xcode tools are absent.
+ * @throws {IOSLaunchError} `MM_DEPENDENCIES_MISSING` when Xcode tools are absent.
  */
 export function validateSimctlAvailable(): void {
   if (!isBinaryInstalled('xcrun', ['simctl', 'help'])) {
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEPENDENCIES_MISSING',
       message: '`xcrun simctl` not available. Is Xcode installed?',
       remediation:
         'Install Xcode from the Mac App Store and run `xcode-select --install`.',
@@ -56,12 +56,12 @@ export function isIdbCompanionAvailable(): boolean {
 }
 
 /**
- * @throws {IOSLaunchError} `MM_IOS_DEPENDENCY_MISSING` when `idb` is not found.
+ * @throws {IOSLaunchError} `MM_DEPENDENCIES_MISSING` when `idb` is not found.
  */
 export function validateIdbAvailable(): void {
   if (!isIdbAvailable()) {
     throw new IOSLaunchError({
-      code: 'MM_IOS_DEPENDENCY_MISSING',
+      code: 'MM_DEPENDENCIES_MISSING',
       message:
         '`idb` (Facebook iOS Debug Bridge) not found. It is required to drive ' +
         'the iOS Simulator (tap, type, snapshot, screenshot).',

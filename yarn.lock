@@ -8296,9 +8296,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/client-mcp-core@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@metamask/client-mcp-core@npm:0.7.0"
+"@metamask/client-mcp-core@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@metamask/client-mcp-core@npm:0.8.0"
   dependencies:
     "@metamask/device-mcp": "npm:^0.3.2"
     cosmiconfig: "npm:^9.0.0"
@@ -8309,7 +8309,7 @@ __metadata:
     playwright: ^1.49.0
   bin:
     mm: ./dist/cli/mm.cjs
-  checksum: 10/4296a49b579ce36373097312a3b3f927c49092a69da052b0dbc056d0f859c8a7768a4998091bd30dab23c2a4795f88d60399f0549d86c1778a809740e35bf14f
+  checksum: 10/ce9c8f1faa49c65b5fc41ae5d9187839e460481df5e60b99cb7a673e8305401a88d51a323c414f157367cd8563eab9ebdd1fa3ac8030231624003dd690b61c63
   languageName: node
   linkType: hard
 
@@ -36060,7 +36060,7 @@ __metadata:
     "@metamask/chain-agnostic-permission": "npm:^1.7.0"
     "@metamask/chomp-api-service": "npm:^4.0.0"
     "@metamask/client-controller": "npm:^1.0.1"
-    "@metamask/client-mcp-core": "npm:^0.7.0"
+    "@metamask/client-mcp-core": "npm:^0.8.0"
     "@metamask/client-utils": "npm:^1.2.1"
     "@metamask/compliance-controller": "npm:2.1.0"
     "@metamask/config-registry-controller": "npm:^0.3.1"

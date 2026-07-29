@@ -96,7 +96,7 @@ describe('metro-watch-attach', () => {
         fetchImpl: mockFetch,
       }),
     ).rejects.toMatchObject({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: expect.stringContaining('Failed to open Metro deep link'),
     } satisfies Partial<IOSLaunchError>);
 
@@ -134,7 +134,7 @@ describe('metro-watch-attach', () => {
         fetchImpl: mockFetch,
       }),
     ).rejects.toMatchObject({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_INVALID_CONFIG',
       message: expect.stringContaining('attach failed after 2 attempts'),
       remediation: expect.stringContaining('yarn watch:clean'),
     } satisfies Partial<IOSLaunchError>);

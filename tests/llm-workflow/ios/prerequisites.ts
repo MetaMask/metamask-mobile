@@ -85,7 +85,7 @@ function validateSimulatorDevice(simulatorDeviceId: string): string {
 
   if (!found) {
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: `Simulator UDID ${simulatorDeviceId} not found`,
       remediation: 'Run `xcrun simctl list devices` to find an available UDID.',
     });
@@ -102,7 +102,7 @@ function resolveBootedSimulatorDevice(): string {
 
   if (!booted) {
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: 'No simulator is booted',
       remediation:
         'Boot a simulator: `xcrun simctl boot <UDID>` (or open Xcode > Window > Devices and Simulators).',
@@ -121,7 +121,7 @@ function listSimctlDevices(args: string[]): SimctlDevicesResponse {
     return JSON.parse(output) as SimctlDevicesResponse;
   } catch {
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: 'Unable to list iOS simulator devices',
       remediation: 'Run `xcrun simctl list devices --json` to verify simctl works.',
     });
@@ -135,7 +135,7 @@ function resolveAppBundlePath(input: ResolveAppBundleInput): ResolveAppBundleRes
   // copy of the app (the simulator-internal path) and then fail to reinstall.
   if (installedMeta && !input.appBundlePath && (input.reinstall || input.resetAppData)) {
     throw new IOSLaunchError({
-      code: 'MM_LAUNCH_FAILED',
+      code: 'MM_INVALID_CONFIG',
       message:
         'Cannot use --reinstall or --reset-app-data without --app-bundle in prod context. ' +
         'The installed app is the only copy and would be destroyed by the uninstall step.',
@@ -175,7 +175,7 @@ function resolveAppBundlePath(input: ResolveAppBundleInput): ResolveAppBundleRes
       !input.reinstall
     ) {
       throw new IOSLaunchError({
-        code: 'MM_IOS_APP_IDENTITY_MISMATCH',
+        code: 'MM_INVALID_CONFIG',
         message: [
           `Refusing to install app with different fox_code.`,
           `  Installed fox_code: ${installedMeta.foxCode}`,
@@ -203,7 +203,7 @@ function resolveAppBundlePath(input: ResolveAppBundleInput): ResolveAppBundleRes
 
   if (!installedMeta && !input.appBundlePath) {
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_INVALID_CONFIG',
       message: 'No MetaMask app installed on the simulator and no --app-bundle provided.',
       remediation: [
         'Options:',
@@ -268,7 +268,7 @@ function throwAppBundleNotFound(
   appBundlePath: string,
 ): never {
   throw new IOSLaunchError({
-    code: 'MM_IOS_RUNNER_NOT_READY',
+    code: 'MM_INVALID_CONFIG',
     message: `MetaMask.app not found at ${appBundlePath}`,
     remediation: 'Build and run the iOS app first, for example with `yarn start:ios`.',
   });
@@ -289,7 +289,7 @@ async function validateMetroPort(metroPort: number): Promise<void> {
     }
   } catch {
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_INVALID_CONFIG',
       message: `Metro bundler not reachable on port ${metroPort}`,
       remediation: 'Run `yarn watch:clean` in another terminal.',
     });
@@ -314,7 +314,7 @@ export function readAppBundleMetadata(appBundlePath: string): IOSAppBundleMetada
   const bundleId = readPlistKey(appBundlePath, 'CFBundleIdentifier');
   if (!bundleId) {
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_INVALID_CONFIG',
       message: `Cannot read CFBundleIdentifier from ${appBundlePath}/Info.plist. The .app bundle may be corrupt.`,
       remediation: 'Rebuild the app or provide a valid .app bundle path.',
     });

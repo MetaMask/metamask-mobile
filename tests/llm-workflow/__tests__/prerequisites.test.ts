@@ -85,7 +85,7 @@ describe('validateIOSPrerequisites', () => {
     mockSystem();
 
     await expect(validateIOSPrerequisites({})).rejects.toMatchObject({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_INVALID_CONFIG',
       message: expect.stringContaining('No MetaMask app installed'),
     });
   });
@@ -107,7 +107,7 @@ describe('validateIOSPrerequisites', () => {
     await expect(
       validateIOSPrerequisites({ reinstall: true }),
     ).rejects.toMatchObject({
-      code: 'MM_LAUNCH_FAILED',
+      code: 'MM_INVALID_CONFIG',
       remediation: expect.not.stringContaining('e2e'),
     });
   });
@@ -122,7 +122,8 @@ describe('validateIOSPrerequisites', () => {
     await expect(
       validateIOSPrerequisites({ appBundlePath: 'explicit/MetaMask.app' }),
     ).rejects.toMatchObject({
-      code: 'MM_IOS_APP_IDENTITY_MISMATCH',
+      code: 'MM_INVALID_CONFIG',
+      message: expect.stringContaining('different fox_code'),
     });
   });
 
@@ -151,7 +152,7 @@ describe('validateIOSPrerequisites', () => {
     });
 
     await expect(validateIOSPrerequisites({})).rejects.toMatchObject({
-      code: 'MM_IOS_DEPENDENCY_MISSING',
+      code: 'MM_DEPENDENCIES_MISSING',
       remediation: expect.stringContaining('idb-companion'),
     });
   });
@@ -169,7 +170,7 @@ describe('validateIOSPrerequisites', () => {
     });
 
     await expect(validateIOSPrerequisites({})).rejects.toMatchObject({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
     });
   });
 });

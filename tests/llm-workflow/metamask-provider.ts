@@ -36,14 +36,6 @@ import {
 } from './launcher-types';
 import { appendLog } from './utils';
 
-export interface MobileLaunchInput extends SessionLaunchInput {
-  appBundlePath?: string;
-  metroPort?: number;
-  reinstall?: boolean;
-  resetAppData?: boolean;
-  allowFoxCodeMismatch?: boolean;
-}
-
 const IOS_PAGE_UNAVAILABLE =
   'Playwright Page/BrowserContext is not available on iOS sessions.';
 
@@ -86,7 +78,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     return this.sessionMetadata;
   }
 
-  async launch(input: MobileLaunchInput): Promise<SessionLaunchResult> {
+  async launch(input: SessionLaunchInput): Promise<SessionLaunchResult> {
     appendLog('MetaMask Provider Launch Started');
     if (this.launchInProgress) {
       throw new IOSLaunchError({
@@ -103,12 +95,12 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       });
     }
 
-    // Core CLI currently defaults omitted platform to "browser" before invoking
+    // The core launch schema defaults `platform` to "browser" before invoking
     // the consumer session manager. For the mobile provider, treat any
     // non-android platform as iOS so `yarn mm launch` works without extra flags.
     if (input.platform === 'android') {
       throw new IOSLaunchError({
-        code: 'MM_LAUNCH_FAILED',
+        code: 'MM_INVALID_CONFIG',
         message:
           'Android is not supported in this first-iteration mobile integration.',
       });
@@ -137,7 +129,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     }
     if (unsupported.length > 0) {
       throw new IOSLaunchError({
-        code: 'MM_LAUNCH_FAILED',
+        code: 'MM_INVALID_CONFIG',
         message:
           'MetaMask Mobile is prod-only and operates on the already-installed wallet. ' +
           `Unsupported E2E launch option(s): ${unsupported.join(', ')}. ` +
@@ -700,7 +692,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       });
     } catch (error) {
       throw new IOSLaunchError({
-        code: 'MM_IOS_RUNNER_NOT_READY',
+        code: 'MM_DEVICE_NOT_AVAILABLE',
         message: `Failed to boot simulator ${udid}: ${this.errorMessage(error)}`,
         remediation:
           'Run `xcrun simctl list devices` to verify the UDID and simulator state.',

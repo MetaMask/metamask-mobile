@@ -1,3 +1,6 @@
+/* eslint-disable import-x/no-extraneous-dependencies */
+import type { ErrorCode } from '@metamask/client-mcp-core';
+
 /**
  * Resolved iOS launch options after prerequisites validation.
  */
@@ -52,16 +55,20 @@ export interface IOSAppBundleMetadata {
 }
 
 /**
- * Error codes specific to iOS prerequisites and launch.
- * Mirror the package's MM_IOS_* convention.
+ * Error codes used by iOS prerequisites and launch.
+ *
+ * Constrained to core `ErrorCode`s: the `launch` tool collapses unknown codes
+ * into `MM_LAUNCH_FAILED`. iOS-specific detail belongs in the message and
+ * `remediation`.
  */
-export type IOSLaunchErrorCode =
-  | 'MM_IOS_RUNNER_NOT_READY'
-  | 'MM_IOS_PREREQUISITES_FAILED'
-  | 'MM_IOS_DEPENDENCY_MISSING'
+export type IOSLaunchErrorCode = Extract<
+  ErrorCode,
   | 'MM_LAUNCH_FAILED'
   | 'MM_SESSION_ALREADY_RUNNING'
-  | 'MM_IOS_APP_IDENTITY_MISMATCH';
+  | 'MM_DEPENDENCIES_MISSING'
+  | 'MM_DEVICE_NOT_AVAILABLE'
+  | 'MM_INVALID_CONFIG'
+>;
 
 export class IOSLaunchError extends Error {
   readonly code: IOSLaunchErrorCode;

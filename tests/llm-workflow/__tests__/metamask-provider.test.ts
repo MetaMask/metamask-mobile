@@ -2,13 +2,11 @@
 import { execFileSync } from 'node:child_process';
 import type {
   IPlatformDriver,
+  SessionLaunchInput,
   StateSnapshotCapability,
   WorkflowContext,
 } from '@metamask/client-mcp-core';
-import {
-  MetaMaskMobileSessionManager,
-  type MobileLaunchInput,
-} from '../metamask-provider';
+import { MetaMaskMobileSessionManager } from '../metamask-provider';
 import {
   createIOSPlatformDriver,
   type CreatedIOSDriver,
@@ -55,8 +53,8 @@ const resolved: ResolvedIOSLaunchOptions = {
 };
 
 function createLaunchInput(
-  overrides: Partial<MobileLaunchInput> = {},
-): MobileLaunchInput {
+  overrides: Partial<SessionLaunchInput> = {},
+): SessionLaunchInput {
   return {
     platform: 'ios',
     deviceId: 'SIM-UDID',
@@ -268,12 +266,12 @@ describe('MetaMaskMobileSessionManager', () => {
     ).rejects.toBeInstanceOf(IOSLaunchError);
   });
 
-  it('rejects unsupported E2E launch options with MM_LAUNCH_FAILED', async () => {
+  it('rejects unsupported E2E launch options with MM_INVALID_CONFIG', async () => {
     await expect(
       sessionManager.launch(createLaunchInput({ stateMode: 'onboarding' })),
     ).rejects.toMatchObject({
       name: 'IOSLaunchError',
-      code: 'MM_LAUNCH_FAILED',
+      code: 'MM_INVALID_CONFIG',
       message: expect.stringContaining("stateMode='onboarding'"),
     });
     expect(mockValidateIOSPrerequisites).not.toHaveBeenCalled();
@@ -390,7 +388,7 @@ describe('MetaMaskMobileSessionManager', () => {
     });
   });
 
-  it('throws MM_IOS_RUNNER_NOT_READY with stderr text when booting the simulator fails', async () => {
+  it('throws MM_DEVICE_NOT_AVAILABLE with stderr text when booting the simulator fails', async () => {
     mockExecFileSync.mockImplementation((file, args) => {
       if (file === 'xcrun' && args?.[1] === 'list') {
         return JSON.stringify({
@@ -409,7 +407,7 @@ describe('MetaMaskMobileSessionManager', () => {
       sessionManager.launch(createLaunchInput()),
     ).rejects.toMatchObject({
       name: 'IOSLaunchError',
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: expect.stringContaining('simctl: Unable to boot device'),
     });
   });

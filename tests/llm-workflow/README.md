@@ -51,6 +51,9 @@ yarn mm launch
 # Optionally choose a simulator
 yarn mm launch --device-id <UDID>
 
+# Install a specific build before launching
+yarn mm launch --app-bundle ios/build/MetaMask.app
+
 # Observe and interact
 yarn mm describe-screen
 yarn mm click e1
@@ -72,17 +75,33 @@ There is no alternate launch context. Supplying `--context e2e` is rejected clea
 
 ## Metro Watch Mode
 
-Metro attachment remains available for development builds. Start Metro and provide its port:
+Metro attachment remains available for development builds. Start Metro and provide its port with either the flag or the environment variable (the flag wins when both are set):
 
 ```bash
 yarn watch:clean
+yarn mm launch --metro-port 8081
+
+# Equivalent, still supported
 MM_METRO_PORT=8081 yarn mm launch
 ```
 
 On Node 20, CDP WebSocket use may require:
 
 ```bash
-NODE_OPTIONS="--experimental-websocket" MM_METRO_PORT=8081 yarn mm launch
+NODE_OPTIONS="--experimental-websocket" yarn mm launch --metro-port 8081
+```
+
+## Destructive Launch Flags
+
+`--reinstall` and `--reset-app-data` replace the installed app and destroy the wallet state it holds. `--allow-fox-code-mismatch` bypasses the app-identity guard and may make existing wallet/keychain data unreadable. This workflow is prod-only, so all three are guarded:
+
+- `--reinstall` and `--reset-app-data` are rejected unless `--app-bundle` is also supplied, because the installed app is otherwise the only copy and would be destroyed by the uninstall step.
+- Installing a bundle whose `fox_code` differs from the installed app is rejected unless `--reinstall` or `--allow-fox-code-mismatch` is passed.
+- A warning is printed to stderr whenever a destructive flag is honored.
+
+```bash
+# Replace the installed app with a local build, discarding wallet state
+yarn mm launch --app-bundle ios/build/MetaMask.app --reinstall
 ```
 
 ## Commands
@@ -122,12 +141,15 @@ NODE_OPTIONS="--experimental-websocket" MM_METRO_PORT=8081 yarn mm launch
 
 ## Troubleshooting
 
-| Error                          | Resolution                                                                             |
-| ------------------------------ | -------------------------------------------------------------------------------------- |
-| `MM_IOS_DEPENDENCY_MISSING`    | `idb` is not installed. Run `yarn mm:doctor`, then install with `brew tap facebook/fb && brew install idb-companion && pip3 install fb-idb`. |
-| `MM_IOS_RUNNER_NOT_READY`      | Verify Xcode, boot a simulator, and install MetaMask before launching.                 |
-| `MM_IOS_APP_IDENTITY_MISMATCH` | Reuse the installed app or install a matching app outside of the `mm` workflow.        |
-| `MM_NO_ACTIVE_SESSION`         | Run `yarn mm launch`.                                                                  |
-| `MM_TARGET_NOT_FOUND`          | Run `yarn mm describe-screen` and use fresh refs.                                      |
+Launch errors use the core `ErrorCode` set, because `@metamask/client-mcp-core` only preserves a consumer-thrown code when it is a known core code and collapses anything else into `MM_LAUNCH_FAILED`. The iOS-specific detail is carried in the message and remediation text.
+
+| Error                     | Resolution                                                                                                                                                                                                                                                        |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MM_DEPENDENCIES_MISSING` | Xcode command-line tools or `idb` are missing. Run `yarn mm:doctor`, then install `idb` with `brew tap facebook/fb && brew install idb-companion && pip3 install fb-idb`.                                                                                         |
+| `MM_DEVICE_NOT_AVAILABLE` | No simulator is booted, the given UDID does not exist, or `simctl` failed. Run `xcrun simctl list devices` and boot one.                                                                                                                                          |
+| `MM_INVALID_CONFIG`       | The launch options are not usable: no app installed and no `--app-bundle`, a destructive flag without `--app-bundle`, a `fox_code` mismatch, an unreachable Metro port, or an E2E-only option in this prod-only workflow. Read the remediation text in the error. |
+| `MM_LAUNCH_FAILED`        | The app or platform driver failed to start. Run `yarn mm cleanup` and retry.                                                                                                                                                                                      |
+| `MM_NO_ACTIVE_SESSION`    | Run `yarn mm launch`.                                                                                                                                                                                                                                             |
+| `MM_TARGET_NOT_FOUND`     | Run `yarn mm describe-screen` and use fresh refs.                                                                                                                                                                                                                 |
 
 For the complete agent-facing interaction guide, see `.claude/skills/metamask-mobile-visual-testing/SKILL.md`. Mobile platform support is part of `@metamask/client-mcp-core`; `@metamask/device-mcp` supplies the device backend.

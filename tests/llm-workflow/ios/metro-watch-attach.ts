@@ -69,7 +69,7 @@ export async function attachToMetroWatchMode(
       `[mm-mobile] metro-attach: deep link open failed: ${errorMessage(error)}\n`,
     );
     throw new IOSLaunchError({
-      code: 'MM_IOS_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: `Failed to open Metro deep link on simulator ${options.simulatorUdid}`,
       remediation:
         'Ensure the simulator is booted and the app is installed. Try `mm cleanup` then re-launch.',
@@ -102,7 +102,7 @@ export async function attachToMetroWatchMode(
   }
 
   throw new IOSLaunchError({
-    code: 'MM_IOS_RUNNER_NOT_READY',
+    code: 'MM_INVALID_CONFIG',
     message: `Metro watch-mode attach failed after ${maxAttempts} attempts (port ${options.metroPort})`,
     remediation:
       'Ensure `yarn watch:clean` is running and the Metro bundler is responsive. Try `mm cleanup` then re-launch.',
