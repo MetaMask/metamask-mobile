@@ -51,6 +51,21 @@ export function buildRampsBuyCufStartTags(
   };
 }
 
+/**
+ * Mirror start tags onto span `data` so they appear in Sentry's Attributes
+ * panel alongside end fields like `success` / `reason`. `trace()` maps
+ * `tags` → scope.setTag (transaction filters) and `data` → span attributes.
+ */
+function withStartSpanAttributes(
+  startTags: Record<string, TraceValue>,
+  data?: Record<string, TraceValue>,
+): Record<string, TraceValue> {
+  return {
+    ...startTags,
+    ...data,
+  };
+}
+
 /** Map BuildQuote `buyFlowOrigin` to a CUF surface tag when callers omit surface. */
 export function surfaceFromBuyFlowOrigin(
   buyFlowOrigin?: BuyFlowOrigin,
@@ -102,7 +117,7 @@ export function startRampsBuyCufTrace({
     id: opId,
     op: TraceOperation.RampOperation,
     startTime,
-    data,
+    data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });
 
@@ -205,6 +220,7 @@ export function startRampsBuyCufChildTrace({
   }
 
   const opId = nextCufOpId(name);
+  const startTags = buildRampsBuyCufStartTags(tags);
   pendingChildMeta.set(opId, { [CUF_META.NAME]: name });
   trace({
     name,
@@ -212,8 +228,8 @@ export function startRampsBuyCufChildTrace({
     op: TraceOperation.RampOperation,
     parentContext: parentSpan,
     startTime,
-    data,
-    tags: buildRampsBuyCufStartTags(tags),
+    data: withStartSpanAttributes(startTags, data),
+    tags: startTags,
   });
   return opId;
 }

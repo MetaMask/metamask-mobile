@@ -62,10 +62,16 @@ describe('rampsBuyCufTrace', () => {
     });
   });
 
-  it('starts a parent span with feature, ramp_type, and surface tags', () => {
+  it('starts a parent span with feature, ramp_type, and surface as tags and attributes', () => {
     const opId = startRampsBuyCufTrace({
       surface: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
     });
+
+    const startFields = {
+      [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
+      [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
+      [RAMPS_BUY_CUF_TAG.SURFACE]: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
+    };
 
     expect(opId).toContain(TraceName.RampBuyToOrderDetails);
     expect(hasActiveRampsBuyCufTrace()).toBe(true);
@@ -74,11 +80,9 @@ describe('rampsBuyCufTrace', () => {
         name: TraceName.RampBuyToOrderDetails,
         id: opId,
         op: TraceOperation.RampOperation,
-        tags: {
-          [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
-          [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
-          [RAMPS_BUY_CUF_TAG.SURFACE]: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
-        },
+        // tags → transaction filters; data → Attributes panel (with success)
+        tags: startFields,
+        data: startFields,
       }),
     );
     expect(getRampsBuyCufParentContext()).toEqual({ mocked: 'parent-span' });
@@ -218,6 +222,10 @@ describe('rampsBuyCufTrace', () => {
         parentContext: { mocked: 'parent-span' },
         tags: expect.objectContaining({
           [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
+        }),
+        data: expect.objectContaining({
+          [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
+          [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
         }),
       }),
     );
