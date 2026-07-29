@@ -25,6 +25,19 @@ let trackAppInstallInFlight = false;
 /** Delay so an incoming deeplink can land before App Opened fires. */
 const APP_OPENED_DEEPLINK_DELAY_MS = 2000;
 
+/**
+ * How recently a deeplink must have arrived to explain the current open.
+ *
+ * `setCurrentDeeplink` is also reached by in-app navigation — Rewards CTAs call
+ * `handleDeeplink` directly — and those values live until the next App Opened
+ * event consumes them. Without a recency check, tapping an in-app CTA and later
+ * resuming from the icon reports `source: deeplink` for a plainly direct open.
+ *
+ * Comfortably above APP_OPENED_DEEPLINK_DELAY_MS so every externally-delivered
+ * deeplink still classifies, including the slowest Branch resolutions.
+ */
+const DEEPLINK_ATTRIBUTION_TTL_MS = 5000;
+
 export enum AppOpenedType {
   ColdStart = 'cold_start',
   WarmStart = 'warm_start',
@@ -111,9 +124,9 @@ export class AppStateEventListener {
   public currentDeeplink: string | null = null;
   public pendingDeeplink: string | null = null;
   public pendingDeeplinkSource: string | null = null;
-  // Origin of currentDeeplink. Unlike pendingDeeplinkSource, it survives
-  // until the delayed App Opened event fires.
   private currentDeeplinkSource: string | null = null;
+  // When currentDeeplink was recorded, for DEEPLINK_ATTRIBUTION_TTL_MS.
+  private currentDeeplinkSetAt = 0;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -147,6 +160,7 @@ export class AppStateEventListener {
     if (source || !this.isPushSource(this.currentDeeplinkSource)) {
       this.currentDeeplinkSource = source ?? null;
     }
+    this.currentDeeplinkSetAt = Date.now();
     this.pendingDeeplink = deeplink;
     this.pendingDeeplinkSource = source ?? null;
   }
@@ -207,8 +221,17 @@ export class AppStateEventListener {
 
   private trackAppInstallOnce = trackAppInstallOnce;
 
+  // Push opens are only detectable via the deeplink on the push payload, so a
+  // push without a deeplink is reported as direct.
+  //
+  // A deeplink older than DEEPLINK_ATTRIBUTION_TTL_MS did not cause this open —
+  // it is a leftover from in-app navigation — so it also reports direct. This
+  // deliberately does not gate processAttribution, which keeps its existing
+  // behavior; only the reported source honors recency.
   private getAppOpenedSource = (): AppOpenedSource => {
-    if (!this.currentDeeplink) {
+    const isStaleDeeplink =
+      Date.now() - this.currentDeeplinkSetAt > DEEPLINK_ATTRIBUTION_TTL_MS;
+    if (!this.currentDeeplink || isStaleDeeplink) {
       return AppOpenedSource.Direct;
     }
     return this.isPushSource(this.currentDeeplinkSource)
@@ -248,6 +271,7 @@ export class AppStateEventListener {
       // background→active cycle to re-save and reset capturedAt (TTL).
       this.currentDeeplink = null;
       this.currentDeeplinkSource = null;
+      this.currentDeeplinkSetAt = 0;
     } catch (error) {
       Logger.error(
         error as Error,

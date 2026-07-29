@@ -687,6 +687,60 @@ describe('AppStateEventListener', () => {
         expect(appStateManager.pendingDeeplinkSource).toBeNull();
       });
     });
+
+    // In-app navigation (Rewards CTAs) also reaches setCurrentDeeplink, and the
+    // value survives until an App Opened event consumes it. A leftover must not
+    // describe a later resume the user reached from the icon.
+    describe('stale deeplink', () => {
+      it('reports direct when the deeplink predates the attribution window', () => {
+        appStateManager.setCurrentDeeplink('metamask://card-home');
+        jest.advanceTimersByTime(6000);
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'direct',
+        });
+      });
+
+      it('reports deeplink when it arrived within the attribution window', () => {
+        appStateManager.setCurrentDeeplink('https://link.metamask.io/swap');
+        jest.advanceTimersByTime(1000);
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'deeplink',
+        });
+      });
+
+      it('honors a deeplink recorded exactly at the window boundary', () => {
+        appStateManager.setCurrentDeeplink('https://link.metamask.io/swap');
+        // warmOpen() advances a further 2000ms, landing on exactly 5000ms.
+        jest.advanceTimersByTime(3000);
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'deeplink',
+        });
+      });
+
+      it('applies the window to push origins too', () => {
+        appStateManager.setCurrentDeeplink('metamask://promo', 'braze');
+        jest.advanceTimersByTime(6000);
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'direct',
+        });
+      });
+    });
   });
 
   describe('trackAppInstallOnce', () => {
