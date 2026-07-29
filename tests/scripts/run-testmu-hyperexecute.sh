@@ -195,7 +195,10 @@ chmod +x \
 
 # Download HE artefacts onto the GH runner so actions/upload-artifact can publish
 # them (uploadArtefacts alone only stores them on the HyperExecute dashboard).
+# CLI --download-artifacts is often skipped when the job exits with an error
+# ("Lambda error found"), so we also pull via the HE artefacts API using Job ID.
 HE_ARTIFACTS_DIR="${HE_WORKDIR}/downloaded-artifacts"
+HE_CLI_LOG="${HE_WORKDIR}/hyperexecute-cli.log"
 mkdir -p "$HE_ARTIFACTS_DIR"
 
 set +e
@@ -206,23 +209,74 @@ set +e
   --job-secret-file "$SECRETS_FILE" \
   --download-artifacts \
   --download-artifacts-path "$HE_ARTIFACTS_DIR" \
-  --verbose
-HE_EXIT=$?
+  --force-clean-artifacts \
+  --verbose 2>&1 | tee "$HE_CLI_LOG"
+HE_EXIT=${PIPESTATUS[0]}
 set -e
 
 echo "HyperExecute CLI exit code: $HE_EXIT"
 
+HE_JOB_ID="$(
+  rg -o 'Job ID:[[:space:]]*[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
+    | tail -1 \
+    | awk '{print $NF}'
+)"
+if [[ -z "$HE_JOB_ID" ]]; then
+  HE_JOB_ID="$(
+    rg -o 'jobId=[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
+      | tail -1 \
+      | cut -d= -f2
+  )"
+fi
+
+if [[ -n "$HE_JOB_ID" ]]; then
+  echo "HyperExecute Job ID: $HE_JOB_ID"
+  echo "Job Link: https://hyperexecute.lambdatest.com/hyperexecute/task?jobId=$HE_JOB_ID"
+  echo "Artefacts UI: https://hyperexecute.lambdatest.com/artifact/view/${HE_JOB_ID}?artifactName=performance-reports"
+
+  HE_API_ZIP="${HE_ARTIFACTS_DIR}/performance-reports.zip"
+  echo "Downloading artefacts via HyperExecute API (performance-reports)..."
+  set +e
+  HTTP_CODE="$(
+    curl -sS -u "${LT_USERNAME}:${LT_ACCESS_KEY}" \
+      -o "$HE_API_ZIP" \
+      -w "%{http_code}" \
+      "https://api.hyperexecute.cloud/v2.0/artefacts/${HE_JOB_ID}/download?name=performance-reports"
+  )"
+  CURL_EXIT=$?
+  set -e
+  echo "Artefacts API HTTP status: ${HTTP_CODE:-n/a} (curl exit=${CURL_EXIT})"
+
+  if [[ "$CURL_EXIT" -eq 0 && "$HTTP_CODE" == "200" && -s "$HE_API_ZIP" ]]; then
+    echo "Unpacking artefacts zip into $HE_ARTIFACTS_DIR..."
+    unzip -o -q "$HE_API_ZIP" -d "$HE_ARTIFACTS_DIR" || true
+  else
+    echo "⚠️ Artefacts API download did not return a zip (status=${HTTP_CODE:-n/a})."
+    if [[ -f "$HE_API_ZIP" ]]; then
+      echo "Response preview:"
+      head -c 400 "$HE_API_ZIP" || true
+      echo
+    fi
+  fi
+else
+  echo "⚠️ Could not parse HyperExecute Job ID from CLI log; skipping API artefact download."
+fi
+
 # Collect downloaded artefacts into the paths GHA already uploads.
 mkdir -p tests/reporters/reports tests/test-reports/playwright-report artifacts
-if [[ -d "$HE_ARTIFACTS_DIR" ]] && compgen -G "${HE_ARTIFACTS_DIR}/**" > /dev/null 2>&1; then
+echo "Contents of HE download dir ($HE_ARTIFACTS_DIR):"
+find "$HE_ARTIFACTS_DIR" -type f 2>/dev/null | head -80 || true
+
+if [[ -d "$HE_ARTIFACTS_DIR" ]]; then
   echo "Copying HyperExecute downloaded artefacts from $HE_ARTIFACTS_DIR..."
   # Preserve a copy under artifacts/ for the GHA upload-artifact path.
   cp -R "$HE_ARTIFACTS_DIR"/. artifacts/ 2>/dev/null || true
 fi
 
-if compgen -G "artifacts/**" > /dev/null 2>&1; then
-  echo "Copying HyperExecute artifacts/ into reporter paths..."
-  find artifacts -type f \( -name '*.json' -o -name '*.html' -o -name '*.csv' -o -name '*.zip' \) -print0 \
+copy_report_files() {
+  local root="$1"
+  [[ -d "$root" ]] || return 0
+  find "$root" -type f \( -name '*.json' -o -name '*.html' -o -name '*.csv' -o -name '*.zip' \) -print0 \
     | while IFS= read -r -d '' f; do
       base="$(basename "$f")"
       if [[ "$base" == *playwright* || "$f" == *playwright-report* ]]; then
@@ -232,19 +286,19 @@ if compgen -G "artifacts/**" > /dev/null 2>&1; then
         cp -f "$f" "tests/reporters/reports/" 2>/dev/null || true
       fi
     done
-  echo "Reporter files after artefact copy:"
-  find tests/reporters/reports tests/test-reports -type f 2>/dev/null | head -50 || true
-fi
+}
+
+copy_report_files artifacts
+copy_report_files "$HE_ARTIFACTS_DIR"
 
 # Also check common HE download folder names (CLI defaults)
-for dir in hyperexecute-artifacts HyperExecute-Artifacts Artefacts artefacts artifacts; do
-  if [[ -d "$dir" ]]; then
-    echo "Found artefact dir: $dir"
-    find "$dir" -type f \( -name '*.json' -o -name '*.html' -o -name '*.csv' \) -print0 \
-      | while IFS= read -r -d '' f; do
-          cp -f "$f" "tests/reporters/reports/" 2>/dev/null || true
-        done
-  fi
+for dir in hyperexecute-artifacts HyperExecute-Artifacts Artefacts artefacts; do
+  copy_report_files "$dir"
 done
+
+echo "Reporter files after artefact copy:"
+find tests/reporters/reports tests/test-reports -type f 2>/dev/null | head -80 || true
+REPORT_COUNT="$(find tests/reporters/reports -type f 2>/dev/null | wc -l | tr -d ' ')"
+echo "tests/reporters/reports file count: ${REPORT_COUNT:-0}"
 
 exit "$HE_EXIT"
