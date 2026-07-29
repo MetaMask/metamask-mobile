@@ -99,7 +99,7 @@ const TokenIdentityPerpLinkInner: React.FC<TokenIdentityPerpLinkProps> = ({
         { symbol: displaySymbol },
       )}
       style={({ pressed }) => [
-        tw.style('flex-1 min-w-0'),
+        tw.style('shrink min-w-0'),
         pressed ? { opacity: 0.7 } : null,
       ]}
     >
@@ -151,7 +151,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
       ) : (
         <AvatarToken name={symbol} size={AvatarTokenSize.Lg} />
       )}
-      <Box twClassName="flex-1 min-w-0">
+      <Box twClassName="shrink min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -228,7 +228,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
           { symbol },
         )}
         style={({ pressed }) => [
-          tw.style('flex-1 min-w-0'),
+          tw.style('shrink min-w-0'),
           pressed ? { opacity: 0.7 } : null,
         ]}
       >
@@ -236,7 +236,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
       </Pressable>
     );
   } else {
-    identity = <Box twClassName="flex-1 min-w-0">{content}</Box>;
+    identity = <Box twClassName="shrink min-w-0">{content}</Box>;
   }
 
   return (
