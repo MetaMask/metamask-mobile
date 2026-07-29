@@ -1,6 +1,7 @@
 import {
   trace,
   endTrace,
+  getTraceContext,
   TraceName,
   TraceOperation,
   type TraceContext,
@@ -29,6 +30,39 @@ let cufOpCounter = 0;
 function nextCufOpId(name: TraceName): string {
   cufOpCounter += 1;
   return `${name}#${cufOpCounter}`;
+}
+
+/** Drop module parent state when Sentry cleanup ended the span out-of-band. */
+function clearStaleParentState(): void {
+  if (parentTimeoutId) {
+    clearTimeout(parentTimeoutId);
+    parentTimeoutId = null;
+  }
+  parentOpId = null;
+  parentSpan = undefined;
+}
+
+function isParentSpanStillActive(): boolean {
+  if (!parentOpId) {
+    return false;
+  }
+  return (
+    getTraceContext({
+      name: TraceName.RampBuyToOrderDetails,
+      id: parentOpId,
+    }) !== undefined
+  );
+}
+
+function resolveParentContext(): TraceContext {
+  if (!parentOpId) {
+    return undefined;
+  }
+  if (!isParentSpanStillActive()) {
+    clearStaleParentState();
+    return undefined;
+  }
+  return parentSpan;
 }
 
 export function buildRampsBuyCufStartTags(
@@ -77,7 +111,10 @@ export function startRampsBuyCufTrace({
   data,
 }: StartRampsBuyCufTraceOptions = {}): string {
   if (parentOpId) {
-    return parentOpId;
+    if (isParentSpanStillActive()) {
+      return parentOpId;
+    }
+    clearStaleParentState();
   }
 
   const opId = nextCufOpId(TraceName.RampBuyToOrderDetails);
@@ -178,7 +215,8 @@ export function startRampsBuyCufChildTrace({
   startTime,
   data,
 }: StartRampsBuyCufChildTraceOptions): string | null {
-  if (!parentOpId) {
+  const parentContext = resolveParentContext();
+  if (!parentContext || !parentOpId) {
     return null;
   }
 
@@ -189,7 +227,7 @@ export function startRampsBuyCufChildTrace({
     name,
     id: opId,
     op: TraceOperation.RampOperation,
-    parentContext: parentSpan,
+    parentContext,
     startTime,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,

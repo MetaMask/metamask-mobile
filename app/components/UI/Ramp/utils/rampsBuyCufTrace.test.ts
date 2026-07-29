@@ -1,6 +1,7 @@
 import {
   trace,
   endTrace,
+  getTraceContext,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
@@ -28,16 +29,19 @@ jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn(() => ({ mocked: 'parent-span' })),
   endTrace: jest.fn(),
+  getTraceContext: jest.fn(() => ({ mocked: 'parent-span' })),
 }));
 
 const mockTrace = trace as jest.Mock;
 const mockEndTrace = endTrace as jest.Mock;
+const mockGetTraceContext = getTraceContext as jest.Mock;
 
 describe('rampsBuyCufTrace', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetRampsBuyCufTraceForTests();
+    mockGetTraceContext.mockReturnValue({ mocked: 'parent-span' });
   });
 
   afterEach(() => {
@@ -107,6 +111,21 @@ describe('rampsBuyCufTrace', () => {
     expect(second).toEqual(first);
     expect(mockTrace).toHaveBeenCalledTimes(1);
     expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+  });
+
+  it('starts a new parent when the prior Sentry span was cleaned up out-of-band', () => {
+    const first = startRampsBuyCufTrace({
+      surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE,
+    });
+    mockGetTraceContext.mockReturnValue(undefined);
+
+    const second = startRampsBuyCufTrace({
+      surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK,
+    });
+
+    expect(second).not.toEqual(first);
+    expect(mockTrace).toHaveBeenCalledTimes(2);
     expect(hasActiveRampsBuyCufTrace()).toBe(true);
   });
 
