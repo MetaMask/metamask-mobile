@@ -34,8 +34,7 @@ const FoxRiveLoaderAnimation = forwardRef<
   FoxRiveLoaderAnimationProps
 >((_props, ref) => {
   const { riveFile } = useRiveFile(onboardingRiveFile);
-  // riveViewRef only becomes available once the view is ready to receive
-  // inputs — the Nitro equivalent of the legacy post-mount delay.
+  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveRef, riveViewRef, setHybridRef } = useRive();
   const { colors } = useTheme();
   const tw = useTailwind();

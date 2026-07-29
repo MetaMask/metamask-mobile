@@ -6,10 +6,8 @@ import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 import { hideAsync } from 'expo-splash-screen';
 import Logger from '../../../util/Logger';
 
-// Override the global @rive-app/react-native mock so tests control when the
-// Rive view becomes ready (riveViewRef non-null == the legacy onPlay signal)
-// and can fire onError manually. The global mock makes riveViewRef available
-// immediately, which would not let us test the "before playback" paths.
+// Override the global Rive mock so tests control when the view becomes ready
+// (the global mock makes riveViewRef available immediately) and can fire onError.
 const mockTriggerInput = jest.fn();
 let mockRiveViewReady = false;
 let mockOnErrorCallback:
@@ -23,9 +21,8 @@ jest.mock('@rive-app/react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require('react-native');
 
-  // Stable across renders so component callbacks keep referential identity.
-  // triggerInput delegates lazily: the factory is hoisted and evaluated before
-  // the mockTriggerInput const initializer runs, so it can't be captured here.
+  // Stable across renders; triggerInput delegates lazily (the hoisted factory
+  // runs before the mockTriggerInput const initializer).
   const mockRiveMethods = {
     triggerInput: (...args: unknown[]) => mockTriggerInput(...args),
   };

@@ -110,9 +110,7 @@ describe('FoxAnimation', () => {
       // Arrange & Act
       render(<FoxAnimation hasFooter={false} />);
 
-      await act(async () => {
-        // Wait for useEffect to run
-      });
+      await act(async () => Promise.resolve());
 
       // Assert - No trigger means no animation
       expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
@@ -122,9 +120,7 @@ describe('FoxAnimation', () => {
       // Arrange & Act
       render(<FoxAnimation trigger="Start" hasFooter={false} />);
 
-      await act(async () => {
-        // Wait for useEffect to run
-      });
+      await act(async () => Promise.resolve());
 
       // Assert - triggerInput takes only the trigger name; the state machine
       // is configured via the stateMachineName view prop
@@ -135,9 +131,7 @@ describe('FoxAnimation', () => {
       // Arrange & Act
       render(<FoxAnimation trigger="Loader" hasFooter={false} />);
 
-      await act(async () => {
-        // Wait for useEffect to run
-      });
+      await act(async () => Promise.resolve());
 
       // Assert
       expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Loader');
@@ -155,9 +149,7 @@ describe('FoxAnimation', () => {
         <FoxAnimation trigger="Start" hasFooter={false} />,
       );
 
-      await act(async () => {
-        // Wait for useEffect to run
-      });
+      await act(async () => Promise.resolve());
 
       // Assert - Component still renders and the error is logged
       expect(getByTestId('fox-animation')).toBeTruthy();

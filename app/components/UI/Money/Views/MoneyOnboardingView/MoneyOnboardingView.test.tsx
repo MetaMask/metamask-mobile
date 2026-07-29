@@ -145,13 +145,8 @@ jest.mock('@rive-app/react-native', () => {
 
 const STEP_TRANSITION_MS = 300;
 
-/**
- * The Nitro runtime has no `onStateChanged`: the component reconstructs the
- * step from the artboard's `continue`/`back` view-model triggers, and the
- * overlay swap / VIEWED tracking / completion fire after the authored
- * STEP_TRANSITION_MS transition. Tests drive it the same way: fire a trigger,
- * then advance the fake timers to settle the transition.
- */
+// Steps are reconstructed from `continue`/`back` view-model triggers (no
+// `onStateChanged` in Nitro): fire a trigger, then settle the transition timer.
 const fireTrigger = (path: string) => {
   act(() => {
     __fireRiveTrigger(path);

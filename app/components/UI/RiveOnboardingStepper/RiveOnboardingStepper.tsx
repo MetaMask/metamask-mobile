@@ -65,8 +65,7 @@ const RiveOnboardingStepper = ({
 }: RiveOnboardingStepperProps) => {
   const tw = useTailwind();
   const { riveFile } = useRiveFile(riveConfig.source);
-  // riveViewRef only becomes available once the view is ready to receive
-  // inputs — the Nitro equivalent of the legacy onPlay gate.
+  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
   const hasCompletedRef = useRef(false);
   // When Rive is disabled the view never becomes ready, so treat it as ready

@@ -68,8 +68,7 @@ const FoxLoaderAnimation = ({
   const screenW = screenDims.width;
   const { styles } = useStyles(styleSheet, { screenH, screenW });
   const { riveFile } = useRiveFile(splashRiveFile);
-  // `riveViewRef` only becomes available once the view is ready to receive
-  // inputs — the Nitro equivalent of the legacy `onPlay` signal.
+  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveRef, riveViewRef, setHybridRef } = useRive();
   const isPlaying = riveViewRef != null;
   const exitTriggered = useRef(false);
@@ -167,11 +166,9 @@ const FoxLoaderAnimation = ({
     return () => clearTimeout(timeout);
   }, [completeAnimation]);
 
-  // Once both the app is ready and the fox is playing, fire the exit animation
-  // and complete on a timer. Legacy waited for the idle loop
-  // (`onStateChanged`) before firing `Stop` and observed `ExitState` to
-  // complete; the Nitro runtime exposes neither signal, so the trigger is
-  // fired as soon as the app is ready and completion is timed instead.
+  // Once app is ready and the fox is playing, fire the exit trigger and
+  // complete on a timer. Legacy observed `onStateChanged`/`ExitState`;
+  // Nitro exposes neither signal, so completion is timed instead.
   useEffect(() => {
     if (!appServicesReady || !isPlaying || exitTriggered.current) {
       return undefined;

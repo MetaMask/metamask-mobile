@@ -48,8 +48,7 @@ const SearchingForDevice = ({
 }: SearchingForDeviceProps) => {
   const tw = useTailwind();
   const { riveFile } = useRiveFile(HardwareWalletRive);
-  // riveViewRef only becomes available once the view is ready to receive
-  // inputs — the Nitro equivalent of the legacy onPlay gate.
+  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
 
   useEffect(() => {

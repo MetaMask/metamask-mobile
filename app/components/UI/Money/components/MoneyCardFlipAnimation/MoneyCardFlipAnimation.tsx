@@ -24,17 +24,10 @@ import { MoneyCardFlipAnimationTestIds } from './MoneyCardFlipAnimation.testIds'
 
 const log = createProjectLogger('money-card-flip');
 
-// -- Rive names ------------------------------------------------------------
-// These MUST match the names authored in card_tilt_v1.2.riv. If the Rive
-// designer renames any of these, update the constants here.
-//
-// The flip lives as a one-shot `yAnimation` timeline on the per-variant
-// artboards. The MainTilt state machine + ViewModel (cardType /
-// startAnimation) do not respond to the data-bound trigger in this asset
-// version, so the state machine is deliberately bypassed here. The Nitro
-// runtime has no `animationName` prop for raw-timeline playback either — the
-// variant artboards exist solely to hold the flip timeline, so `autoPlay`
-// plays it as the artboard's default animation.
+// Names below MUST match card_tilt_v1.2.riv. The flip is a one-shot timeline
+// on the per-variant artboards; the MainTilt state machine/ViewModel don't
+// respond to the data-bound trigger in this asset version and Nitro has no
+// `animationName` prop, so `autoPlay` plays it as the artboard's default.
 
 /** Artboard holding the virtual-card flip animation. */
 const RIVE_ARTBOARD_VIRTUAL = 'Card Tilt Y Animation - Digital';

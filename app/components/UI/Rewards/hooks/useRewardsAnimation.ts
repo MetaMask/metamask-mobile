@@ -71,8 +71,7 @@ export const useRewardsAnimation = ({
   value,
   state = RewardAnimationState.Idle,
 }: UseRewardsAnimationParams): UseRewardsAnimationResult => {
-  // `riveRef.current` only becomes populated once the view is ready to
-  // receive inputs — the Nitro equivalent of the legacy mount delay.
+  // riveRef.current populated == view ready for inputs (Nitro equivalent of legacy mount delay)
   const { riveRef, setHybridRef: setRiveHybridRef } = useRive();
   const previousValueRef = useRef<number | null>(null);
   const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());

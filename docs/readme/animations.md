@@ -70,80 +70,26 @@ Read more on the React Native documentation for Rive [here](https://rive.app/doc
 Declarative — load a bundled `.riv` with `useRiveFile` and render a `RiveView`:
 
 ```tsx
-import { Fit, Alignment, RiveView, useRiveFile } from '@rive-app/react-native';
+import { RiveView, useRiveFile } from '@rive-app/react-native';
 
 function App() {
   const { riveFile } = useRiveFile(MyAnimation); // a bundled .riv asset
 
   return (
-    riveFile && (
-      <RiveView
-        file={riveFile}
-        artboardName="Avatar 1"
-        stateMachineName="avatar"
-        autoPlay
-        fit={Fit.Contain}
-        alignment={Alignment.Center}
-        style={{ width: 400, height: 400 }}
-      />
-    )
+    riveFile && <RiveView file={riveFile} stateMachineName="avatar" autoPlay />
   );
 }
 ```
 
-#### In-app example (imperative inputs, view ref)
+Imperative inputs: pass `useRive()`'s `setHybridRef` to `<RiveView hybridRef={...}>`, wait for `riveViewRef` to become non-null (the Nitro equivalent of the legacy `onPlay` signal), then fire inputs with `riveRef.current?.triggerInput('Start')` / `setBooleanInputValue(...)`. See `app/components/UI/FoxLoader/FoxLoader.tsx`.
 
-A real usage from the app — `app/components/UI/FoxLoader/FoxLoader.tsx` — using `useRive` to get a view ref and fire state machine triggers:
-
-```tsx
-import { RiveView, useRive, useRiveFile } from '@rive-app/react-native';
-
-const { riveFile } = useRiveFile(splashRiveFile);
-const { riveRef, riveViewRef, setHybridRef } = useRive();
-
-// `riveViewRef` becomes non-null once the view is ready to receive inputs
-// (the Nitro equivalent of the legacy `onPlay` signal).
-useEffect(() => {
-  if (riveViewRef) riveRef.current?.triggerInput('Start');
-}, [riveViewRef, riveRef]);
-
-{
-  riveFile && (
-    <RiveView
-      hybridRef={setHybridRef}
-      file={riveFile}
-      stateMachineName="Splash_animation"
-      autoPlay
-    />
-  );
-}
-```
-
-#### Data binding (view models)
-
-For `.riv` files authored with view models, bind an instance with `useViewModelInstance` and the property hooks (`useRiveString`, `useRiveNumber`, `useRiveBoolean`, `useRiveTrigger`). See `app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx` for a full example:
-
-```tsx
-const { riveFile } = useRiveFile(MyAnimation);
-const { instance } = useViewModelInstance(riveFile, {
-  artboardName: 'My Artboard',
-  async: true,
-});
-const { setValue: setLabel } = useRiveString('button', instance);
-useRiveTrigger('continue', instance, { onTrigger: handleContinue });
-
-{riveFile && instance && (
-  <RiveView file={riveFile} dataBind={instance} autoPlay ... />
-)}
-```
+Data binding: for `.riv` files authored with view models, bind an instance with `useViewModelInstance(riveFile, { artboardName, async: true })`, pass it to `<RiveView dataBind={instance}>`, and use the property hooks (`useRiveString`, `useRiveNumber`, `useRiveBoolean`, `useRiveTrigger`). See `app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx`.
 
 ### Testing
 
 Jest maps `@rive-app/react-native` to `app/__mocks__/rive-app-react-native.tsx` (see `moduleNameMapper` in `jest.config.js`). The mock renders plain `View`s and exposes helpers (`__mockRiveTriggerInput`, `__getLastRiveViewMethods`, `__getRivePropertySetter`, `__fireRiveTrigger`, `__resetRiveMocks`) for asserting trigger/property interactions.
 
 ### Troubleshooting
-
-Explore more on the React Native documentation for Rive [here](https://rive.app/docs/runtimes/react-native/react-native).
 
 App crashes or `onError` fires when accessing an animation, state machine, or input?
 

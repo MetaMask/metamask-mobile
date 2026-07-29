@@ -26,8 +26,7 @@ const OnboardingSuccessEndAnimation: React.FC<
   OnboardingSuccessEndAnimationProps
 > = ({ onAnimationComplete: _onAnimationComplete }) => {
   const { riveFile } = useRiveFile(onboardingLoaderEndAnimation);
-  // riveViewRef only becomes available once the view is ready to receive
-  // inputs — the Nitro equivalent of the legacy post-mount delay.
+  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
