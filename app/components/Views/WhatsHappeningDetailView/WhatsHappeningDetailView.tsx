@@ -10,22 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
-  HeaderStandard,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../UI/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
@@ -44,6 +29,7 @@ import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import MarketInsightsDisclaimerBottomSheet from '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
+import { WhatsHappeningAIGeneratedLabel } from '../../UI/WhatsHappening/components';
 import PageIndicator from './components/PageIndicator';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -324,43 +310,10 @@ const WhatsHappeningDetailView = () => {
                   ))}
               </ScrollView>
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="mt-1 mb-4"
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={1}
-                >
-                  <Icon
-                    name={IconName.Sparkle}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('whats_happening.ai_generated')}
-                  </Text>
-                  <ButtonIcon
-                    iconName={IconName.Info}
-                    size={ButtonIconSize.Sm}
-                    iconProps={{
-                      color: IconColor.IconAlternative,
-                      size: IconSize.Sm,
-                    }}
-                    onPress={handleAIDisclaimerPress}
-                    accessibilityLabel={strings(
-                      'market_insights.disclaimer_modal.title',
-                    )}
-                    testID="whats-happening-ai-disclaimer-button"
-                  />
-                </Box>
-              </Box>
+              <WhatsHappeningAIGeneratedLabel
+                onInfoPress={handleAIDisclaimerPress}
+                twClassName="mt-1 mb-4 justify-center"
+              />
 
               <PageIndicator count={items.length} activeIndex={currentIndex} />
             </>
