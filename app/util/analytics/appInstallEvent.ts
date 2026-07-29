@@ -45,18 +45,28 @@ const readBranchAttributionAtInstall = async (): Promise<
 > => {
   try {
     const params = await branch.getLatestReferringParams();
+    Logger.log(
+      'AppInstall: getLatestReferringParams =',
+      JSON.stringify(params),
+    );
 
     const clickedBranchLink = params?.['+clicked_branch_link'] === true;
     const deeplinkPath = params?.$deeplink_path as string | undefined;
 
     if (!clickedBranchLink && !deeplinkPath) {
+      Logger.log('AppInstall: no Branch attribution (organic install)');
       return undefined;
     }
 
-    return {
+    const attribution = {
       clickedBranchLink,
       ...(deeplinkPath ? { deeplinkPath } : {}),
     };
+    Logger.log(
+      'AppInstall: Branch attribution captured =',
+      JSON.stringify(attribution),
+    );
+    return attribution;
   } catch (error) {
     Logger.error(
       error as Error,
@@ -110,13 +120,16 @@ export async function captureAppInstallOnce(): Promise<void> {
     }
 
     const branchAttribution = await readBranchAttributionAtInstall();
-
-    ReduxService.store.dispatch(
-      setPendingAppInstall({
-        installDate: new Date().toISOString().split('T')[0],
-        ...(branchAttribution ? { branchAttribution } : {}),
-      }),
+    const pendingPayload = {
+      installDate: new Date().toISOString().split('T')[0],
+      ...(branchAttribution ? { branchAttribution } : {}),
+    };
+    Logger.log(
+      'AppInstall: dispatching setPendingAppInstall =',
+      JSON.stringify(pendingPayload),
     );
+
+    ReduxService.store.dispatch(setPendingAppInstall(pendingPayload));
   } catch (error) {
     Logger.error(
       error as Error,
