@@ -11,6 +11,7 @@ import { FrameworkDetector } from './FrameworkDetector.ts';
 import Gestures from './Gestures.ts';
 import Matchers from './Matchers.ts';
 import { type PlaywrightElement } from './PlaywrightAdapter.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
 import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { getDriver } from './PlaywrightUtilities.ts';
@@ -171,6 +172,36 @@ export default class WebView {
       },
       [source],
     );
+  }
+
+  /**
+   * Blur the focused element inside the WebView.
+   * Appium-only — do not add new Detox coverage.
+   *
+   * @param pageUrl - Required on iOS to switch into the WebView context.
+   */
+  static async blurActiveElement(pageUrl: string): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'WebView.blurActiveElement is Appium-only. Do not add new Detox coverage for this path.',
+      );
+    }
+
+    if (PlatformDetector.isAndroidAppium()) {
+      // No Chromedriver context — dismiss the soft keyboard only.
+      await PlaywrightGestures.hideKeyboard().catch(() => undefined);
+      return;
+    }
+
+    await this.withContext(pageUrl, async () => {
+      await getDriver().execute(() => {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && typeof active.blur === 'function') {
+          active.blur();
+        }
+      });
+    });
+    await PlaywrightGestures.hideKeyboard().catch(() => undefined);
   }
 
   static async scrollIntoView(
