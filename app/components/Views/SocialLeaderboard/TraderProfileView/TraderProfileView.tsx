@@ -31,7 +31,7 @@ import React, {
 import { RefreshControl, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -76,6 +76,11 @@ import {
   type OpenSortKey,
   type SortKey,
 } from './utils/sortPositions';
+import { setPositionSort } from '../../../../reducers/socialLeaderboard';
+import {
+  selectClosedPositionSort,
+  selectOpenPositionSort,
+} from '../../../../reducers/socialLeaderboard/selectors';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -205,9 +210,12 @@ const TraderProfileView = () => {
     useTraderMute(traderId);
   const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
 
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
-  const [openSort, setOpenSort] = useState<OpenSortKey>('value');
-  const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
+  // Sort selection lives in Redux (persisted by default) so it survives leaving
+  // and returning to a profile and app restarts.
+  const openSort = useSelector(selectOpenPositionSort);
+  const closedSort = useSelector(selectClosedPositionSort);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -333,17 +341,15 @@ const TraderProfileView = () => {
     // Fire-and-forget haptic; ignore rejection (unsupported platforms).
     playSelection().catch(() => undefined);
     if (activeTab === 'open') {
-      setOpenSort((current) => {
-        const idx = OPEN_SORT_CYCLE.indexOf(current);
-        return OPEN_SORT_CYCLE[(idx + 1) % OPEN_SORT_CYCLE.length];
-      });
+      const idx = OPEN_SORT_CYCLE.indexOf(openSort);
+      const sortKey = OPEN_SORT_CYCLE[(idx + 1) % OPEN_SORT_CYCLE.length];
+      dispatch(setPositionSort({ tab: 'open', sortKey }));
     } else {
-      setClosedSort((current) => {
-        const idx = CLOSED_SORT_CYCLE.indexOf(current);
-        return CLOSED_SORT_CYCLE[(idx + 1) % CLOSED_SORT_CYCLE.length];
-      });
+      const idx = CLOSED_SORT_CYCLE.indexOf(closedSort);
+      const sortKey = CLOSED_SORT_CYCLE[(idx + 1) % CLOSED_SORT_CYCLE.length];
+      dispatch(setPositionSort({ tab: 'closed', sortKey }));
     }
-  }, [activeTab]);
+  }, [activeTab, openSort, closedSort, dispatch]);
 
   const {
     scrollY: scrollYShared,
