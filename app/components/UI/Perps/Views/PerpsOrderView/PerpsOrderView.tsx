@@ -81,7 +81,6 @@ import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import { PERPS_SLIDER_DRAG_STALL_COMMIT_MS } from '../../constants/perpsConfig';
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
@@ -342,67 +341,51 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const displayAmount = isDraggingSlider ? liveDragAmount : orderForm.amount;
 
-  // Safety net for a drag that never fires `onDragEnd` — a pan gesture
-  // cancelled by competing-gesture arbitration (e.g. a parent ScrollView
-  // taking over) finalizes internally in the design-system Slider without
-  // calling `onDragEnd`, and react-native-gesture-handler owns the touch
-  // outside RN's responder system, so an RN touch-cancel event is not
-  // reliable either (see PERPS_SLIDER_DRAG_STALL_COMMIT_MS). Restarted on
-  // every tick in handleSliderValueChange, so it only fires once ticks stop
-  // arriving without a normal drag end.
-  const dragStallTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
-  const clearDragStallTimeout = useCallback(() => {
-    if (dragStallTimeoutRef.current) {
-      clearTimeout(dragStallTimeoutRef.current);
-      dragStallTimeoutRef.current = null;
-    }
-  }, []);
-
-  const commitDragAmount = useCallback(
+  // Single funnel for "the slider is no longer the source of truth for
+  // displayAmount" — used by drag end/cancel below, and by every other input
+  // method's commit path (keypad, percentage, max, leverage clamp) so a
+  // gesture that never fires `onDragEnd` (see handleSliderDragCancel) cannot
+  // permanently wedge displayAmount on a stale liveDragAmount once the user
+  // does anything else. Unlike a quiet-period timer, this depends only on
+  // real "something else just committed a value" events, so it can never
+  // misfire mid-drag (e.g. a paused-but-still-active `step={1}` hold, where
+  // onValueChange legitimately stops ticking without the gesture ending).
+  const commitAmount = useCallback(
     (amount: string) => {
-      clearDragStallTimeout();
       setIsDraggingSlider(false);
       setLiveDragAmount(amount);
       setAmount(amount);
     },
-    [clearDragStallTimeout, setAmount],
+    [setAmount],
   );
 
-  const handleSliderValueChange = useCallback(
-    (value: number) => {
-      inputMethodRef.current = 'slider';
-      const amount = Math.floor(value).toString();
-      setIsDraggingSlider(true);
-      setLiveDragAmount(amount);
-
-      clearDragStallTimeout();
-      dragStallTimeoutRef.current = setTimeout(() => {
-        commitDragAmount(amount);
-      }, PERPS_SLIDER_DRAG_STALL_COMMIT_MS);
-    },
-    [clearDragStallTimeout, commitDragAmount],
-  );
+  const handleSliderValueChange = useCallback((value: number) => {
+    inputMethodRef.current = 'slider';
+    setIsDraggingSlider(true);
+    setLiveDragAmount(Math.floor(value).toString());
+  }, []);
 
   const handleSliderDragEnd = useCallback(
     (value: number) => {
-      commitDragAmount(Math.floor(value).toString());
+      commitAmount(Math.floor(value).toString());
     },
-    [commitDragAmount],
+    [commitAmount],
   );
 
-  // Best-effort extra signal: on paths where a cancelled touch does bubble to
-  // RN's responder system, commit immediately instead of waiting out the
-  // stall window above.
+  // A pan gesture cancelled by competing-gesture arbitration (e.g. a parent
+  // ScrollView taking over) finalizes internally in the design-system Slider
+  // without ever calling `onDragEnd`, and react-native-gesture-handler owns
+  // the touch outside RN's responder system, so this `onTouchCancel` is only
+  // a best-effort signal, not a guarantee. The real safety net is that every
+  // other input method funnels through `commitAmount`, which unconditionally
+  // clears `isDraggingSlider` — so even if this never fires, the very next
+  // keypad/percentage/max/leverage edit (or the place-order guard below)
+  // self-heals the stuck flag instead of leaving it wedged indefinitely.
   const handleSliderDragCancel = useCallback(() => {
     if (isDraggingSlider) {
-      commitDragAmount(liveDragAmount);
+      commitAmount(liveDragAmount);
     }
-  }, [commitDragAmount, isDraggingSlider, liveDragAmount]);
-
-  useEffect(() => clearDragStallTimeout, [clearDragStallTimeout]);
+  }, [commitAmount, isDraggingSlider, liveDragAmount]);
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
@@ -1263,18 +1246,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       if (digitCount > 9) {
         return; // Ignore input that would exceed 9 digits
       }
-      setAmount(value || '0');
+      commitAmount(value || '0');
     },
-    [setAmount],
+    [commitAmount],
   );
 
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
+    // See commitAmount above: clear a possibly-stuck dragging flag so this
+    // committed value renders immediately instead of being shadowed by a
+    // stale liveDragAmount from a previously cancelled slider gesture.
+    setIsDraggingSlider(false);
     handlePercentageAmount(percentage);
   };
 
   const handleMaxPress = () => {
     inputMethodRef.current = 'max';
+    setIsDraggingSlider(false);
     handleMaxAmount();
   };
 
@@ -1294,7 +1282,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // If user-entered amount exceeds the max purchasable with current balance/leverage,
         // snap it down to the maximum once input is closed.
         if (currentAmount > maxPossibleAmount) {
-          setAmount(String(maxPossibleAmount));
+          commitAmount(String(maxPossibleAmount));
         }
       }
     }
@@ -1310,6 +1298,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
       if (isSubmittingRef.current) {
+        return;
+      }
+
+      // Guard against submitting a stale committed `orderForm.amount` while
+      // `isDraggingSlider` is (or is stuck) true — e.g. a cancelled gesture
+      // that never reached commitAmount (see handleSliderDragCancel above).
+      // Flush the last live value and bail; `orderForm.amount` reflects it
+      // on the next render, so the very next tap submits the right amount
+      // instead of racing a same-tick submit against a state update.
+      if (isDraggingSlider) {
+        commitAmount(liveDragAmount);
         return;
       }
 
@@ -1633,6 +1632,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
     },
     [
+      isDraggingSlider,
+      commitAmount,
+      liveDragAmount,
       orderValidation.isValid,
       orderValidation.errors,
       track,
@@ -2290,7 +2292,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           const currentAmount = parseFloat(orderForm.amount || '0');
           const newMaxAmount = spendableBalance * leverage;
           if (currentAmount > newMaxAmount) {
-            setAmount(Math.floor(newMaxAmount).toString());
+            commitAmount(Math.floor(newMaxAmount).toString());
           }
 
           setIsLeverageVisible(false);
