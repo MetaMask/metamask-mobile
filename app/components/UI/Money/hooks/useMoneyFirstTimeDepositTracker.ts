@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -10,7 +11,7 @@ import { store } from '../../../../store';
 import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 
 export const useMoneyFirstTimeDepositTracker = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   useEffect(() => {
     const handleTransactionConfirmed = (tx: TransactionMeta) => {

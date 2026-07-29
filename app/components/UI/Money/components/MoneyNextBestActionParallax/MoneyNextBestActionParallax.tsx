@@ -14,7 +14,10 @@ import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import { pitchToParallaxValue, tiltToParallaxValue } from './parallax';
+import {
+  pitchToParallaxValue,
+  tiltToParallaxValue,
+} from '../../utils/parallax';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
 import styles from './MoneyNextBestActionParallax.styles';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';

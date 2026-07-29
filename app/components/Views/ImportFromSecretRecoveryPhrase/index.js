@@ -109,6 +109,9 @@ import {
   selectQrSyncPrimaryMnemonic,
 } from '../../../selectors/qrSyncController';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -212,6 +215,18 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentInputWord, setCurrentInputWord] = useState('');
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+
+  // Renders synchronously; `loading` is the submit flag, not an initial fetch.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.IMPORT_SRP,
+    contentReady: true,
+    isEmpty: false,
+  });
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.IMPORT_SRP,
+    destinationReady: true,
+  });
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
