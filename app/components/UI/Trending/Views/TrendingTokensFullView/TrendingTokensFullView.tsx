@@ -37,6 +37,8 @@ import {
 } from '../../../../Views/TrendingView/search/abTestConfig';
 import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
 import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import type { CaipChainId } from '@metamask/utils';
 
 export type TrendingTokensFullViewEntryPoint =
   | 'crypto_movers'
@@ -44,6 +46,10 @@ export type TrendingTokensFullViewEntryPoint =
 
 export interface TrendingTokensFullViewParams {
   initialTimeOption?: TimeOption;
+  /** Initial network filter applied when the view opens. */
+  initialNetwork?: CaipChainId[];
+  /** Token Details analytics source for row taps. */
+  tokenDetailsSource?: TokenDetailsSource;
   /** Quick Buy analytics source. Defaults to `explore_trending`. */
   quickBuySource?: QuickBuySheetSource;
   /** Entry surface for title and analytics context. */
@@ -61,6 +67,7 @@ export interface TrendingTokensDataProps {
   onLoadMore?: () => void;
   isLoadingMore?: boolean;
   onQuickTrade?: (token: TrendingAsset) => void;
+  tokenDetailsSource?: TokenDetailsSource;
 
   search: {
     searchResults: TrendingAsset[];
@@ -81,6 +88,7 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     onLoadMore,
     isLoadingMore,
     onQuickTrade,
+    tokenDetailsSource,
   } = props;
 
   const tw = useTailwind();
@@ -115,6 +123,7 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
         onLoadMore={onLoadMore}
         isLoadingMore={isLoadingMore}
         onQuickTrade={onQuickTrade}
+        tokenDetailsSource={tokenDetailsSource}
         refreshControl={
           <RefreshControl
             colors={[theme.colors.primary.default]}
@@ -143,12 +152,17 @@ const TrendingTokensFullView = () => {
       RouteProp<{ TrendingTokensFullView: TrendingTokensFullViewParams }>
     >();
   const initialTimeOption = params?.initialTimeOption;
+  const initialNetwork = params?.initialNetwork;
+  const tokenDetailsSource = params?.tokenDetailsSource;
   const quickBuySource = params?.quickBuySource ?? 'explore_trending';
   const pageTitle =
     params?.entryPoint === 'crypto_movers'
       ? strings('trending.crypto_movers')
       : strings('trending.trending_tokens');
-  const filters = useTokenListFilters({ timeOption: initialTimeOption });
+  const filters = useTokenListFilters({
+    timeOption: initialTimeOption,
+    initialNetwork,
+  });
 
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(
     initialTimeOption ? mapTimeOptionToSortBy(initialTimeOption) : undefined,
@@ -293,6 +307,7 @@ const TrendingTokensFullView = () => {
       extraFilters={timeFilterButton}
       onLoadMore={loadMore}
       isLoadingMore={isLoadingMore}
+      tokenDetailsSource={tokenDetailsSource}
       extraBottomSheets={
         <TrendingTokenTimeBottomSheet
           isVisible={showTimeBottomSheet}

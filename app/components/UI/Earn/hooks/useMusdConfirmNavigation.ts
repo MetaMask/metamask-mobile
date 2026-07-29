@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyHubEnabledFlag } from '../../Money/selectors/featureFlags';
 import { useSelector } from 'react-redux';
 
 export const useMusdConfirmNavigation = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 

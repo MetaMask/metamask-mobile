@@ -25,15 +25,14 @@
 ## Test Organization - MANDATORY
 
 - Organize tests into folders based on features and scenarios
-- Use the a directory that suits the test type (regression|smoke) based on the tag used
+- Place smoke specs under `tests/smoke/` (Detox) or `tests/smoke-appium/` (Appium), using the matching smoke tag
 - Each feature team should own one or more folders of tests
 - Follow the same organization pattern as the extension team for consistency
 - Place tests in logical feature directories:
   ```
   tests/smoke/<feature-name>/<e2e-test-name.spec.ts>
   tests/smoke/tokens/import/import-erc1155.spec.ts
-  tests/regression/wallet/settings/clear-activity.spec.ts
-  tests/regression/ppom/ppom-blockaid-alert-erc20-approval.spec.ts
+  tests/smoke-appium/wallet/browser/browser-navigation.spec.ts
   ```
 
 ## Framework Architecture
