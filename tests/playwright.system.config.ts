@@ -18,6 +18,7 @@ export default defineConfig({
       'html',
       { open: 'never', outputFolder: './test-reports/system-test-report' },
     ],
+    ['json', { outputFile: './test-reports/system-test-report/results.json' }],
     ['list'],
   ],
   use: {
