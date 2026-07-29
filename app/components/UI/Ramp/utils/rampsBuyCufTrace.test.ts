@@ -231,6 +231,10 @@ describe('rampsBuyCufTrace', () => {
           tags: expect.objectContaining({
             [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
           }),
+          data: expect.objectContaining({
+            [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
+            [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
+          }),
         }),
       );
     });
