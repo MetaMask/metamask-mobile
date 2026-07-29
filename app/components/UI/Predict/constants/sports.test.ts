@@ -145,15 +145,17 @@ describe('isMoneylineLikeMarketType', () => {
 });
 
 describe('isSpreadLikeMarketType', () => {
-  it.each(['spreads', 'map_handicap', 'round_handicap_game_3'])(
-    'returns true for %s',
-    (type) => {
-      expect(isSpreadLikeMarketType(type)).toBe(true);
-    },
-  );
+  it.each([
+    'spreads',
+    'map_handicap',
+    'round_handicap_game_3',
+    'round_handicap_game_7',
+  ])('returns true for %s', (type) => {
+    expect(isSpreadLikeMarketType(type)).toBe(true);
+  });
 
   it('returns false for an over-under market', () => {
-    expect(isSpreadLikeMarketType('round_over_under_game_3')).toBe(false);
+    expect(isSpreadLikeMarketType('round_over_under_game_7')).toBe(false);
   });
 });
 
@@ -161,7 +163,9 @@ describe('isLineMarketType', () => {
   it.each([
     'map_handicap',
     'round_handicap_game_1',
+    'round_handicap_game_7',
     'round_over_under_game_2',
+    'round_over_under_game_7',
     'kill_over_under_game',
     'map_participant_win_total',
   ])('returns true for esports line market %s', (type) => {

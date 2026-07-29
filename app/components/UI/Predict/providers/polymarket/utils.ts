@@ -1095,7 +1095,7 @@ export const parsePolymarketEvents = (
 
       const outcomeGroups =
         outcomesForGroups.length > 0
-          ? buildOutcomeGroups(outcomesForGroups, eventLeague)
+          ? buildOutcomeGroups(outcomesForGroups, eventLeague ?? undefined)
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);

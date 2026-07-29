@@ -1,4 +1,8 @@
 import { ContractConfig, RoundConfig } from './types';
+import {
+  isEsportsRoundHandicapMarketType,
+  isEsportsRoundOverUnderMarketType,
+} from '../../constants/sports';
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
@@ -185,18 +189,21 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   ...ESPORTS_MARKET_TYPES,
 ]);
 
+export const isSupportedSportsMarketType = (type?: string): boolean => {
+  const normalizedType = type?.toLowerCase();
+  if (!normalizedType) {
+    return false;
+  }
+
+  return (
+    SUPPORTED_SPORTS_MARKET_TYPES.has(normalizedType) ||
+    isEsportsRoundHandicapMarketType(normalizedType) ||
+    isEsportsRoundOverUnderMarketType(normalizedType)
+  );
+};
+
 export const GROUP_ORDER: string[] = [
   'game_lines',
-  'map_1',
-  'map_2',
-  'map_3',
-  'map_4',
-  'map_5',
-  'game_1',
-  'game_2',
-  'game_3',
-  'game_4',
-  'game_5',
   'team_totals',
   'exact_score',
   'halves',

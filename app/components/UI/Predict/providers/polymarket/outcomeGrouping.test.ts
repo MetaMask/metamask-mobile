@@ -2,6 +2,7 @@ import type { PredictOutcome } from '../../types';
 import { ESPORTS_MARKET_TYPES, POLYMARKET_PROVIDER_ID } from './constants';
 import {
   buildOutcomeGroups,
+  filterGroupableOutcomes,
   isLineOutcomeType,
   normalizeEnabledSportsMarketTypes,
   normalizeSportsMarketTypes,
@@ -105,6 +106,39 @@ describe('outcomeGrouping', () => {
 
       expect(result).toEqual(ESPORTS_MARKET_TYPES);
     });
+
+    it('keeps dynamic numbered esports round market types', () => {
+      const result = normalizeSportsMarketTypes([
+        'round_handicap_game_7',
+        'round_over_under_game_10',
+        'round_handicap_game_0',
+      ]);
+
+      expect(result).toEqual([
+        'round_handicap_game_7',
+        'round_over_under_game_10',
+      ]);
+    });
+  });
+
+  describe('filterGroupableOutcomes', () => {
+    it('keeps dynamic numbered esports round market types when the family is enabled', () => {
+      const outcomes = [
+        createGroupingOutcome('handicap-game-7', 'round_handicap_game_7'),
+        createGroupingOutcome('total-game-10', 'round_over_under_game_10'),
+        createGroupingOutcome('first-blood', 'first_blood_game'),
+      ];
+
+      const result = filterGroupableOutcomes(outcomes, [
+        'round_handicap_game_1',
+        'round_over_under_game_1',
+      ]);
+
+      expect(result.map((outcome) => outcome.id)).toEqual([
+        'handicap-game-7',
+        'total-game-10',
+      ]);
+    });
   });
 
   describe('isLineOutcomeType', () => {
@@ -112,6 +146,7 @@ describe('outcomeGrouping', () => {
       'map_handicap',
       'round_handicap_game_1',
       'round_over_under_game_5',
+      'round_over_under_game_10',
       'kill_over_under_game',
       'map_participant_win_total',
     ])('returns true for esports line market %s', (type) => {
@@ -172,6 +207,20 @@ describe('outcomeGrouping', () => {
             'Odd',
             'Map 5: Odd/Even Total Rounds',
           ),
+          createGroupingOutcome(
+            'map-10-total',
+            'round_over_under_game_10',
+            21.5,
+            'O 21.5',
+            'Map 10 Total Rounds',
+          ),
+          createGroupingOutcome(
+            'map-7-handicap',
+            'round_handicap_game_7',
+            -3.5,
+            'GenOne -3.5',
+            'Map 7 Rounds Handicap',
+          ),
         ],
         'cs2',
       );
@@ -181,6 +230,8 @@ describe('outcomeGrouping', () => {
         'map_1',
         'map_2',
         'map_5',
+        'map_7',
+        'map_10',
       ]);
       expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
         'moneyline',
@@ -230,6 +281,20 @@ describe('outcomeGrouping', () => {
             'Yes',
             'Game 3: Both Teams Slay Baron Nashor?',
           ),
+          createGroupingOutcome(
+            'game-10-kills',
+            'kill_over_under_game',
+            30.5,
+            'Over',
+            'Total Kills Over/Under 30.5 in Game 10?',
+          ),
+          createGroupingOutcome(
+            'game-7-first-blood',
+            'first_blood_game',
+            undefined,
+            'Yes',
+            'First Blood in Game 7?',
+          ),
         ],
         'lol',
       );
@@ -239,6 +304,8 @@ describe('outcomeGrouping', () => {
         'game_1',
         'game_2',
         'game_3',
+        'game_7',
+        'game_10',
       ]);
       expect(groups[1].subgroups?.map((group) => group.key)).toEqual([
         'child_moneyline',

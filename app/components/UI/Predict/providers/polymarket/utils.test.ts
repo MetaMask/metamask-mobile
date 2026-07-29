@@ -502,7 +502,7 @@ describe('polymarket utils', () => {
         question: 'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
         line: -1.5,
       }),
-      ...[1, 2, 3].flatMap((map) => [
+      ...[1, 2, 3, 7].flatMap((map) => [
         createEsportsMarket({
           id: `map-${map}-winner`,
           sportsMarketType: 'child_moneyline',
@@ -554,6 +554,7 @@ describe('polymarket utils', () => {
       'map_1',
       'map_2',
       'map_3',
+      'map_7',
     ]);
     expect(new Set(getGroupedOutcomeIds(market))).toEqual(
       new Set(markets.map((item) => item.conditionId)),
@@ -586,7 +587,7 @@ describe('polymarket utils', () => {
         question: 'Game Handicap: Barça eSports (-1.5) vs GIANTX Pride (+1.5)',
         line: -1.5,
       }),
-      ...[1, 2, 3].map((game) =>
+      ...[1, 2, 3, 7].map((game) =>
         createEsportsMarket({
           id: `game-${game}-winner`,
           sportsMarketType: 'child_moneyline',
@@ -663,6 +664,7 @@ describe('polymarket utils', () => {
       'game_1',
       'game_2',
       'game_3',
+      'game_7',
     ]);
     expect(new Set(getGroupedOutcomeIds(market))).toEqual(
       new Set(markets.map((item) => item.conditionId)),

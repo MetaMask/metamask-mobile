@@ -119,6 +119,7 @@ describe('useGameDetailsTabs', () => {
       const outcomeGroups = [
         createOpenGroup('game_lines'),
         createOpenGroup('game_1'),
+        createOpenGroup('game_7'),
       ];
 
       const { result } = renderHook(() =>
@@ -135,6 +136,30 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.chips).toEqual([
         { key: 'game_lines', label: 'Game Lines' },
         { key: 'game_1', label: 'Game 1' },
+        { key: 'game_7', label: 'Game 7' },
+      ]);
+    });
+
+    it('exposes map chips for an enabled CS2 match', () => {
+      mockUseSelector.mockReturnValue(ESPORTS_LEAGUES);
+      const outcomeGroups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('map_1'),
+        createOpenGroup('map_7'),
+      ];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          league: 'cs2',
+          outcomeGroups,
+        }),
+      );
+
+      expect(result.current.chips).toEqual([
+        { key: 'game_lines', label: 'Game Lines' },
+        { key: 'map_1', label: 'Map 1' },
+        { key: 'map_7', label: 'Map 7' },
       ]);
     });
   });
