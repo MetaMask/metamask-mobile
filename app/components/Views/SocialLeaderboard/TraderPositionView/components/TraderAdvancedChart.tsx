@@ -19,8 +19,11 @@ import {
   type CrosshairData,
   type IndicatorType,
   type OHLCVBar,
+  type PositionLineColors,
+  type PositionLines,
   type TradeMarker,
 } from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
+import { useTheme } from '../../../../../util/theme';
 import {
   TIME_RANGE_CONFIGS,
   type TimeRange,
@@ -262,6 +265,7 @@ const TraderAdvancedChart = ({
   scrollPassthrough = false,
 }: TraderAdvancedChartProps) => {
   const vsCurrency = CHART_VS_CURRENCY;
+  const { colors } = useTheme();
   const chartRef = useRef<AdvancedChartRef>(null);
   const handledFocusNonceRef = useRef<number | null>(null);
 
@@ -398,6 +402,33 @@ const TraderAdvancedChart = ({
   );
 
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
+
+  // Prominent, labeled "Current"-price marker (perps only). We only ship the
+  // current-price line here: the latest close is available with zero new data
+  // (`ohlcvData.at(-1)?.close`). Entry + liquidation lines are intentionally
+  // NOT drawn — the social `Position` model exposes no entry/liquidation price,
+  // and a guessed liquidation line in a trading UI is dangerous. `side` is
+  // required by the shared overlay contract but unused for a current-price-only
+  // marker, so it is fixed to 'long'. Both objects are memoized because
+  // AdvancedChart compares them by reference (a fresh object re-posts the
+  // position-lines message every frame).
+  const currentPrice = isPerp
+    ? ohlcvData[ohlcvData.length - 1]?.close
+    : undefined;
+  const positionLines = useMemo<PositionLines | undefined>(() => {
+    if (!isPerp || currentPrice == null) return undefined;
+    return { side: 'long', currentPrice, currentPriceLabel: 'Current' };
+  }, [isPerp, currentPrice]);
+  const positionLineColors = useMemo<PositionLineColors | undefined>(() => {
+    if (!isPerp) return undefined;
+    return {
+      currentPrice: colors.primary.default,
+      entry: colors.text.alternative,
+      takeProfit: colors.success.default,
+      stopLoss: colors.warning.default,
+      liquidation: colors.error.default,
+    };
+  }, [isPerp, colors]);
 
   // ALL trades become markers. The WebView draws each one as its candle enters
   // the loaded range (draw-on-pan): older trades appear when you scroll back and
@@ -656,6 +687,8 @@ const TraderAdvancedChart = ({
         ohlcvPagination={ohlcvPagination}
         visibleFromMs={visibleFromMs}
         visibleToMs={visibleToMs}
+        positionLines={positionLines}
+        positionLineColors={positionLineColors}
         tradeMarkers={tradeMarkers}
         onCrosshairMove={handleCrosshairMove}
         onTradeMarkerPress={onTradeMarkerPress}

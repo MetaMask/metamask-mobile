@@ -96,13 +96,20 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
   const lines: PositionLineConfig[] = [];
 
   if (position.currentPrice) {
+    // When a label is supplied (SocialLeaderboard), draw a prominent, labeled
+    // current-price marker: solid, thicker, with the label + price shown. When
+    // absent (Perps), keep the original label-less thin dashed line unchanged.
+    const currentPriceLabel = position.currentPriceLabel;
+    const hasLabel =
+      typeof currentPriceLabel === 'string' && !!currentPriceLabel;
     lines.push({
       price: position.currentPrice,
+      ...(hasLabel ? { text: currentPriceLabel } : {}),
       color: currentPriceColor,
-      lineStyle: 2,
-      lineWidth: 1,
-      showLabel: false,
-      showPrice: false,
+      lineStyle: hasLabel ? 0 : 2,
+      lineWidth: hasLabel ? 2 : 1,
+      showLabel: hasLabel,
+      showPrice: hasLabel,
       horzLabelsAlign: 'right',
     });
   }

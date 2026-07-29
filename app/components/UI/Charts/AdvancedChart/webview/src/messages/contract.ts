@@ -186,6 +186,12 @@ export interface PositionLines {
   side: PositionSide;
   entryPrice?: number;
   currentPrice?: number;
+  /**
+   * When set (alongside `currentPrice`), the current-price line is drawn
+   * emphasized with this label (e.g. 'Current'). Absent → the label-less,
+   * thin dashed current-price line used by Perps stays byte-for-byte unchanged.
+   */
+  currentPriceLabel?: string;
   takeProfitPrice?: number;
   stopLossPrice?: number;
   liquidationPrice?: number;
