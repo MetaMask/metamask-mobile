@@ -24,10 +24,11 @@ jest.mock('../../../../core/Engine', () => ({
 const mockStartRampsBuyQuoteFetchTrace = jest.fn(() => 'quote-cuf-op-1');
 const mockEndRampsBuyQuoteFetchTrace = jest.fn();
 jest.mock('../utils/rampsBuyCufTrace', () => ({
-  startRampsBuyQuoteFetchTrace: (...args: never[]) =>
-    mockStartRampsBuyQuoteFetchTrace(...args),
-  endRampsBuyQuoteFetchTrace: (...args: never[]) =>
-    mockEndRampsBuyQuoteFetchTrace(...args),
+  // Cast through a rest-param signature so tsc accepts the spread (TS2556).
+  startRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+    (mockStartRampsBuyQuoteFetchTrace as (...a: unknown[]) => string)(...args),
+  endRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+    (mockEndRampsBuyQuoteFetchTrace as (...a: unknown[]) => void)(...args),
 }));
 
 const createMockStore = () =>
