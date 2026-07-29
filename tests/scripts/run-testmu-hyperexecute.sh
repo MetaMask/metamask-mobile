@@ -8,7 +8,7 @@
 #   App URL env vars used by playwright.testmu.config.ts
 #
 # Optional:
-#   HE_CONCURRENCY          default 3
+#   HE_CONCURRENCY          default 1 (one real device at a time for PoC)
 #   HE_REGION               default us
 #   GREP_TAGS               optional playwright --grep
 #   HE_WORKDIR              default ./tmp/hyperexecute
@@ -26,7 +26,9 @@ cd "$ROOT_DIR"
 BUILD_TYPE="${BUILD_TYPE:-}"
 LT_USERNAME="${LT_USERNAME:-}"
 LT_ACCESS_KEY="${LT_ACCESS_KEY:-}"
-HE_CONCURRENCY="${HE_CONCURRENCY:-3}"
+# PoC org typically has a single Pixel available — parallel HE tasks compete for
+# the same device and hit WebDriver session timeouts. Keep sequential by default.
+HE_CONCURRENCY="${HE_CONCURRENCY:-1}"
 HE_REGION="${HE_REGION:-us}"
 HE_WORKDIR="${HE_WORKDIR:-./tmp/hyperexecute}"
 GREP_TAGS="${GREP_TAGS:-}"
@@ -135,7 +137,7 @@ env:
   LT_USERNAME: \${{.secrets.LT_USERNAME}}
   LT_ACCESS_KEY: \${{.secrets.LT_ACCESS_KEY}}
   TESTMU_DEVICE: "$(yaml_escape "${TESTMU_DEVICE:-Pixel 7 Pro}")"
-  TESTMU_OS_VERSION: "$(yaml_escape "${TESTMU_OS_VERSION:-15}")"
+  TESTMU_OS_VERSION: "$(yaml_escape "${TESTMU_OS_VERSION:-13}")"
   TESTMU_BUILD_NAME: "$(yaml_escape "${TESTMU_BUILD_NAME:-HyperExecute-Performance}")"
   TESTMU_GEO_LOCATION: "$(yaml_escape "${TESTMU_GEO_LOCATION:-SE}")"
   TEST_PLATFORM: "$(yaml_escape "${TEST_PLATFORM:-android}")"

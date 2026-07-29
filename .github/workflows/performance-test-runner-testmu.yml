@@ -69,6 +69,11 @@ on:
         description: 'HyperExecute autosplit concurrency'
       # LT_ACCESS_KEY is a secret (passed via secrets: inherit / secrets.LT_ACCESS_KEY).
       # It cannot be a workflow_call input — secrets.* is illegal in caller `with:`.
+      he_concurrency:
+        required: false
+        type: string
+        default: '1'
+        description: 'HyperExecute autosplit concurrency (1 = sequential; use when only one real device is available)'
     secrets:
       LT_ACCESS_KEY:
         required: true
@@ -186,7 +191,7 @@ jobs:
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
             echo "E2E_PERFORMANCE_CLOUD_PROVIDER=testmu"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
-            echo "HE_CONCURRENCY=${{ inputs.he_concurrency }}"
+            echo "HE_CONCURRENCY=${{ inputs.he_concurrency || '1' }}"
             echo "TESTMU_LOCAL=${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}"
           } >> "$GITHUB_ENV"
 
@@ -195,10 +200,11 @@ jobs:
         continue-on-error: true
         env:
           GREP_TAGS: ${{ inputs.grep_tags }}
-          HE_CONCURRENCY: ${{ inputs.he_concurrency }}
+          # Sequential by default — one real device; parallel HE tasks time out waiting for allocation.
+          HE_CONCURRENCY: ${{ inputs.he_concurrency || '1' }}
         working-directory: '.'
         run: |
-          echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} ==="
+          echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} (HE_CONCURRENCY=${HE_CONCURRENCY:-1}) ==="
           chmod +x ./tests/scripts/run-testmu-hyperexecute.sh
           ./tests/scripts/run-testmu-hyperexecute.sh
 
