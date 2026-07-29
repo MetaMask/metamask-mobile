@@ -1,0 +1,20 @@
+jest.config.llm-workflow.js
+  h_d6a04d82b61d5e 3,12
+tsconfig.json
+  h_d6a04d82b61d5e 79
+babel.config.tests.js
+  h_d6a04d82b61d5e 65
+mm-client-cli.config.ts
+  h_d6a04d82b61d5e 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "78ff470af829a8e05ece28ed94b67e2ec33edb24",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
