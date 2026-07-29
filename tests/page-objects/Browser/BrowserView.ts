@@ -496,8 +496,17 @@ class Browser {
 
   async navigateToURL(
     url: string,
-    options: { skipUrlEditorDismissal?: boolean } = {},
+    options: {
+      skipUrlEditorDismissal?: boolean;
+      closeAllTabsIfOpen?: boolean;
+    } = {},
   ): Promise<void> {
+    // Android Appium accumulates stale WebView tabs that confuse Chromedriver /
+    // native resource-id lookups. Opt in from callers (e.g. Test Snaps).
+    if (options.closeAllTabsIfOpen && PlatformDetector.isAndroidAppium()) {
+      await this.closeAllBrowserTabsIfOpen();
+    }
+
     if (FrameworkDetector.isAppium()) {
       await this.typeUrlAppium(url);
       return;

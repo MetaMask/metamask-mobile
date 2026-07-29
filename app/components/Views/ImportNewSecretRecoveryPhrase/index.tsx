@@ -9,6 +9,7 @@ import React, {
 import { Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -48,6 +49,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
@@ -95,7 +97,7 @@ function showImportSrpErrorAlert(errorMessage: string): void {
  * View that's displayed when the user is trying to import a new secret recovery phrase
  */
 const ImportNewSecretRecoveryPhrase = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const footerStyle = useMemo(
@@ -103,6 +105,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     [insets, tw],
   );
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
   // State
@@ -250,7 +253,8 @@ const ImportNewSecretRecoveryPhrase = () => {
           } ${strings('import_new_secret_recovery_phrase.success_2')}`,
         },
       ],
-      iconName: ComponentIconName.Check,
+      iconName: ComponentIconName.Confirmation,
+      iconColor: colors.success.default,
       hasNoTimeout: false,
     });
 
@@ -261,6 +265,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     seedPhrase,
     trackDiscoveryEvent,
     toastRef,
+    colors.success.default,
     hdKeyrings.length,
     fetchAccountsWithActivity,
     navigation,
