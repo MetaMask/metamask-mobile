@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TopTraderCard from './TopTraderCard';
@@ -194,8 +194,8 @@ describe('TopTraderCard', () => {
     }
     const styleFn = node?.props.style as (state: {
       pressed: boolean;
-    }) => unknown;
-    return StyleSheet.flatten(styleFn({ pressed }))?.backgroundColor;
+    }) => StyleProp<ViewStyle>;
+    return StyleSheet.flatten(styleFn({ pressed })).backgroundColor;
   };
 
   it('applies a pressed background to the whole card when pressed', () => {
