@@ -29,28 +29,28 @@ describe('formatCustomAmountHelpText', () => {
     ).toBe('Insufficient funds');
   });
 
-  it('formats insufficient token balance with title+message as CTA - error', () => {
+  it('formats insufficient token balance with title+message as error only', () => {
     expect(
       formatCustomAmountHelpText(
         alert({
           key: AlertKeys.InsufficientPayTokenBalance,
           title: 'Insufficient funds',
-          message: 'Add less or use a different payment method.',
+          message: 'Enter a lower amount or use a different payment method.',
         }),
       ),
-    ).toBe('Insufficient funds - Add less or use a different payment method.');
+    ).toBe('Enter a lower amount or use a different payment method.');
   });
 
-  it('formats insufficient fees as CTA - error', () => {
+  it('formats insufficient fees as error only', () => {
     expect(
       formatCustomAmountHelpText(
         alert({
           key: AlertKeys.InsufficientPayTokenFees,
           title: 'Insufficient funds',
-          message: 'Add less or use a different payment method.',
+          message: 'Enter a lower amount or use a different payment method.',
         }),
       ),
-    ).toBe('Insufficient funds - Add less or use a different payment method.');
+    ).toBe('Enter a lower amount or use a different payment method.');
   });
 
   it('formats insufficient native as error only', () => {

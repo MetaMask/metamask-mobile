@@ -4,7 +4,7 @@ import { transferConfirmationState } from '../../../../../../util/test/confirm-d
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
-import { getNavbar } from '../../UI/navbar/navbar';
+import useNavbar from '../../../hooks/ui/useNavbar';
 import Transfer from './transfer';
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
@@ -67,8 +67,9 @@ jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
-jest.mock('../../UI/navbar/navbar', () => ({
-  getNavbar: jest.fn(),
+jest.mock('../../../hooks/ui/useNavbar', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
@@ -107,6 +108,7 @@ describe('Transfer', () => {
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
+  const mockUseNavbar = jest.mocked(useNavbar);
   const mockSetConfirmationMetric = jest.fn();
 
   beforeEach(() => {
@@ -139,16 +141,7 @@ describe('Transfer', () => {
     ).toBeDefined();
     expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
-    expect(getNavbar).toHaveBeenCalled();
-    expect(getNavbar).toHaveBeenCalledWith({
-      title: '',
-      onReject: mockOnReject,
-      addBackButton: true,
-      theme: expect.any(Object),
-      mmPayRequestInProgressNavHandler: expect.objectContaining({
-        current: false,
-      }),
-    });
+    expect(mockUseNavbar).toHaveBeenCalledWith('');
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         transaction_transfer_usd_value: '3.359625',

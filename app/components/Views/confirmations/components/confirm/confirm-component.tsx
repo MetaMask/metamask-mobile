@@ -18,7 +18,10 @@ import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/Unstake
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
-import { ConfirmationContextProvider } from '../../context/confirmation-context';
+import {
+  ConfirmationContextProvider,
+  useConfirmationContext,
+} from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
@@ -42,6 +45,7 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { ConfirmationNavHeader } from '../UI/navbar/navbar';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -95,7 +99,7 @@ export interface FullScreenConfirmationParams extends ConfirmationParams {
   params?: ConfirmationParams;
 }
 
-const ConfirmWrapped = ({
+const ConfirmBody = ({
   styles,
   route,
 }: {
@@ -103,35 +107,57 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const isScrollDisabled = useDisableScroll();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { navHeaderConfig } = useConfirmationContext();
+  const { showPerpsHeader } = useParams<FullScreenConfirmationParams>({});
+  // Deposit-and-trade sets showPerpsHeader: false to omit the confirmation header.
+  const shouldShowInlineNavHeader =
+    isFullScreenConfirmation &&
+    Boolean(navHeaderConfig) &&
+    showPerpsHeader !== false;
 
   return (
-    <ConfirmationContextProvider>
-      <ConfirmationAssetPollingProvider>
-        <ConfirmationAlerts>
-          <QRHardwareContextProvider>
+    <ConfirmationAssetPollingProvider>
+      <ConfirmationAlerts>
+        <QRHardwareContextProvider>
+          {shouldShowInlineNavHeader && navHeaderConfig ? (
+            <ConfirmationNavHeader {...navHeaderConfig} />
+          ) : (
             <Title />
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollViewContent}
-              nestedScrollEnabled
-              scrollEnabled={!isScrollDisabled}
-            >
-              <TouchableWithoutFeedback>
-                <>
-                  <AlertBanner
-                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                  />
-                  <Info route={route} />
-                </>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-            <Footer />
-          </QRHardwareContextProvider>
-        </ConfirmationAlerts>
-      </ConfirmationAssetPollingProvider>
-    </ConfirmationContextProvider>
+          )}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            nestedScrollEnabled
+            scrollEnabled={!isScrollDisabled}
+          >
+            <TouchableWithoutFeedback>
+              <>
+                <AlertBanner
+                  ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                />
+                <Info route={route} />
+              </>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+          <Footer />
+        </QRHardwareContextProvider>
+      </ConfirmationAlerts>
+    </ConfirmationAssetPollingProvider>
   );
 };
+
+const ConfirmWrapped = ({
+  styles,
+  route,
+}: {
+  styles: ReturnType<typeof styleSheet>;
+  route?: UnstakeConfirmationViewProps['route'];
+}) => (
+  <ConfirmationContextProvider>
+    <ConfirmBody styles={styles} route={route} />
+  </ConfirmationContextProvider>
+);
 
 interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
@@ -159,14 +185,12 @@ export const Confirm = ({
     const options: NativeStackNavigationOptions = {
       // If not, keep the loading state in place until there is a request that can be rejected.
       gestureEnabled: Boolean(approvalRequest),
+      // Full-screen confirmations render HeaderStandard inline (see ConfirmBody).
+      headerShown: false,
     };
 
-    if (approvalRequest) {
-      options.headerShown = Boolean(isFullScreenConfirmation);
-    }
-
     navigation.setOptions(options);
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {

@@ -1,48 +1,44 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useEffect } from 'react';
-import { useTheme } from '../../../../../util/theme';
 import {
   getModalNavigationOptions,
-  getNavbar,
   NavbarOverrides,
 } from '../../components/UI/navbar/navbar';
-import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import { useConfirmationContext } from '../../context/confirmation-context';
 
+/**
+ * Registers an inline full-screen confirmation header (rendered by Confirm).
+ * Stack header stays hidden — see Confirm `headerShown: false`.
+ */
 const useNavbar = (
   title: string,
   addBackButton = true,
   overrides?: NavbarOverrides,
 ) => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const { onReject } = useConfirmActions();
-  const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
+  const { setNavHeaderConfig } = useConfirmationContext();
 
   useEffect(() => {
-    if (isFullScreenConfirmation) {
-      navigation.setOptions(
-        getNavbar({
-          title,
-          onReject,
-          addBackButton,
-          theme,
-          overrides,
-          mmPayRequestInProgressNavHandler,
-        }),
-      );
+    if (!isFullScreenConfirmation) {
+      return;
     }
+
+    setNavHeaderConfig({
+      title,
+      addBackButton,
+      overrides,
+    });
+
+    return () => {
+      setNavHeaderConfig(null);
+    };
   }, [
     addBackButton,
     isFullScreenConfirmation,
-    mmPayRequestInProgressNavHandler,
-    navigation,
-    onReject,
     overrides,
-    theme,
+    setNavHeaderConfig,
     title,
   ]);
 };
@@ -50,11 +46,9 @@ const useNavbar = (
 export function useModalNavbar() {
   const navigation = useNavigation<AppNavigationProp>();
 
-  const { onReject } = useConfirmActions();
-
   useEffect(() => {
     navigation.setOptions(getModalNavigationOptions());
-  }, [navigation, onReject]);
+  }, [navigation]);
 }
 
 export default useNavbar;

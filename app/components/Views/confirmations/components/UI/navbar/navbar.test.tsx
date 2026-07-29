@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { getNavbar } from './navbar';
+import { ConfirmationHeader, getEmptyNavHeader, getNavbar } from './navbar';
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -21,7 +21,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-describe('getNavbar', () => {
+describe('ConfirmationHeader', () => {
   const mockOnReject = jest.fn();
 
   beforeEach(() => {
@@ -33,12 +33,7 @@ describe('getNavbar', () => {
       const title = 'Test Title';
 
       const { getByText } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title,
-          }).header()}
-        </>,
+        <ConfirmationHeader onReject={mockOnReject} title={title} />,
       );
 
       expect(getByText(title)).toBeOnTheScreen();
@@ -46,12 +41,7 @@ describe('getNavbar', () => {
 
     it('calls onReject when the back button is pressed', () => {
       const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-          }).header()}
-        </>,
+        <ConfirmationHeader onReject={mockOnReject} title="Test Title" />,
       );
 
       fireEvent.press(getByTestId('Test Title-navbar-back-button'));
@@ -59,24 +49,13 @@ describe('getNavbar', () => {
       expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
 
-    it('returns an object with a header render function', () => {
-      const result = getNavbar({
-        onReject: mockOnReject,
-        title: 'Test Title',
-      });
-
-      expect(result.header).toBeInstanceOf(Function);
-    });
-
     it('hides the back button when addBackButton is false', () => {
       const { queryByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            addBackButton: false,
-          }).header()}
-        </>,
+        <ConfirmationHeader
+          onReject={mockOnReject}
+          title="Test Title"
+          addBackButton={false}
+        />,
       );
 
       expect(
@@ -91,13 +70,11 @@ describe('getNavbar', () => {
       const ref = { current: mockHandler as (() => void) | false };
 
       const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            mmPayRequestInProgressNavHandler: ref,
-          }).header()}
-        </>,
+        <ConfirmationHeader
+          onReject={mockOnReject}
+          title="Test Title"
+          mmPayRequestInProgressNavHandler={ref}
+        />,
       );
 
       fireEvent.press(getByTestId('Test Title-navbar-back-button'));
@@ -110,28 +87,11 @@ describe('getNavbar', () => {
       const ref = { current: false as (() => void) | false };
 
       const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            mmPayRequestInProgressNavHandler: ref,
-          }).header()}
-        </>,
-      );
-
-      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
-
-      expect(mockOnReject).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onReject when ref is not provided', () => {
-      const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-          }).header()}
-        </>,
+        <ConfirmationHeader
+          onReject={mockOnReject}
+          title="Test Title"
+          mmPayRequestInProgressNavHandler={ref}
+        />,
       );
 
       fireEvent.press(getByTestId('Test Title-navbar-back-button'));
@@ -147,13 +107,11 @@ describe('getNavbar', () => {
       );
 
       const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            overrides: { headerTitle: customHeaderTitle },
-          }).header()}
-        </>,
+        <ConfirmationHeader
+          onReject={mockOnReject}
+          title="Test Title"
+          overrides={{ headerTitle: customHeaderTitle }}
+        />,
       );
 
       expect(getByTestId('custom-header-title')).toBeOnTheScreen();
@@ -165,13 +123,11 @@ describe('getNavbar', () => {
       );
 
       const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            overrides: { headerLeft: customHeaderLeft },
-          }).header()}
-        </>,
+        <ConfirmationHeader
+          onReject={mockOnReject}
+          title="Test Title"
+          overrides={{ headerLeft: customHeaderLeft }}
+        />,
       );
 
       const customLeft = getByTestId('custom-header-left');
@@ -185,16 +141,34 @@ describe('getNavbar', () => {
       const customHeaderRight = () => <View testID="custom-header-right" />;
 
       const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            overrides: { headerRight: customHeaderRight },
-          }).header()}
-        </>,
+        <ConfirmationHeader
+          onReject={mockOnReject}
+          title="Test Title"
+          overrides={{ headerRight: customHeaderRight }}
+        />,
       );
 
       expect(getByTestId('custom-header-right')).toBeOnTheScreen();
+    });
+  });
+});
+
+describe('getNavbar', () => {
+  it('returns a header render function wrapping ConfirmationHeader', () => {
+    const result = getNavbar({
+      onReject: jest.fn(),
+      title: 'Test Title',
+    });
+
+    expect(result.header).toBeInstanceOf(Function);
+  });
+});
+
+describe('getEmptyNavHeader', () => {
+  it('hides the stack header', () => {
+    expect(getEmptyNavHeader()).toStrictEqual({
+      headerShown: false,
+      gestureEnabled: false,
     });
   });
 });

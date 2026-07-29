@@ -13,10 +13,10 @@ const HELP_TEXT_FORMAT_BY_KEY: Partial<
   Record<AlertKeys, CustomAmountHelpTextFormat>
 > = {
   [AlertKeys.InsufficientPayTokenBalance]: 'cta',
-  [AlertKeys.InsufficientPayTokenFees]: 'cta_and_error',
+  [AlertKeys.InsufficientPayTokenFees]: 'error',
   [AlertKeys.InsufficientPayTokenNative]: 'error',
-  [AlertKeys.InsufficientPerpsBalance]: 'cta_and_error',
-  [AlertKeys.InsufficientPredictBalance]: 'cta_and_error',
+  [AlertKeys.InsufficientPerpsBalance]: 'error',
+  [AlertKeys.InsufficientPredictBalance]: 'error',
   [AlertKeys.InsufficientMoneyAccountBalance]: 'cta',
   [AlertKeys.NoPayTokenQuotes]: 'error',
   [AlertKeys.MMPayHardwareAccount]: 'error',
@@ -70,10 +70,10 @@ export function formatCustomAmountHelpText(
   }
 
   // Insufficient token balance: message-only → CTA; title+message (e.g. money
-  // account total) → CTA - error.
+  // account total / payment method) → show the actionable error body only.
   if (key === AlertKeys.InsufficientPayTokenBalance) {
     if (alert.title && error) {
-      return joinCtaAndError(cta, error);
+      return error;
     }
     return cta;
   }

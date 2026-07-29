@@ -103,7 +103,7 @@
       "title": "Insufficient funds"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Enter a lower amount or use a different payment method."
     },
     "insufficient_pay_token_native": {
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",

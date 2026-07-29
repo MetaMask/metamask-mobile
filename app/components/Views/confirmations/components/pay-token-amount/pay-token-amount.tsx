@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text, {
+import {
+  Skeleton,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
@@ -11,7 +13,6 @@ import I18n from '../../../../../../locales/i18n';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import {
   useIsTransactionPayLoading,
@@ -97,7 +98,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   if (disabled) {
     return (
       <View testID="pay-token-amount">
-        <Text color={TextColor.Muted}>0 ETH</Text>
+        <Text color={TextColor.TextMuted}>0 ETH</Text>
       </View>
     );
   }
@@ -108,7 +109,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
   return (
     <View testID="pay-token-amount">
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {formattedAmount} {payToken?.symbol}
       </Text>
     </View>
@@ -118,7 +119,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 export function PayTokenAmountSkeleton() {
   return (
     <View testID="pay-token-amount-skeleton">
-      <Skeleton height={25} width={90} />
+      <Skeleton height={25} width={90} autoPlay={false} />
     </View>
   );
 }
