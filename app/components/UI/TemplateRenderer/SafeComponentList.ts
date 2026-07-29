@@ -31,7 +31,7 @@ import { SnapUIAvatar } from '../../Snaps/SnapUIAvatar/SnapUIAvatar';
 import { SnapUISelector } from '../../Snaps/SnapUISelector/SnapUISelector';
 import { SnapUISpinner } from '../../Snaps/SnapUISpinner/SnapUISpinner';
 import { SnapUITooltip } from '../../Snaps/SnapUITooltip/SnapUITooltip';
-import { Skeleton } from '../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../component-library/components-temp/Skeleton';
 import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
 import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
 import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
