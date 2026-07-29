@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
@@ -49,7 +50,7 @@ interface MoneyLinkCardSheetRouteParams {
 const MoneyLinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedViewRef = useRef(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyAccountBalance();
