@@ -5502,6 +5502,9 @@
     "enable_device_passcode_ios": "Unlock with device passcode?",
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
+  "balance_breakdown": {
+    "allocation": "Allocation"
+  },
   "authentication": {
     "auth_prompt_desc": "Please authenticate in order to use MetaMask",
     "labels": {

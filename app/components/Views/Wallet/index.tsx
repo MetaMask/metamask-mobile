@@ -119,6 +119,9 @@ import {
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
   HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
@@ -128,6 +131,8 @@ import {
 import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageActionButtonsGrid } from '../Homepage/components/HomepageActionButtonsGrid';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import HomepageBalanceBreakdown from '../Homepage/components/HomepageBalanceBreakdown';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -766,6 +771,19 @@ const Wallet = ({
     HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   );
 
+  const {
+    variant: balanceBreakdownVariant,
+    isActive: isBalanceBreakdownExperimentActive,
+  } = useABTest(
+    HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+    HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+    HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
+    ? balanceBreakdownVariant.layout
+    : null;
+
   const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
   const showDiscoveryPills =
     discoveryPillsVariant.showPills &&
@@ -1017,16 +1035,44 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
-  const portfolioHeader = (
-    <View style={styles.portfolioHeaderCluster}>
-      {bannerContent}
-      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
-      {walletHomeMainAssetDetailsActions}
+  const growthBanner = (
+    <>
       {/* Hide growth banners when money account is enabled but user is geo-blocked */}
       {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
         homeGrowthBannerContent}
+    </>
+  );
+
+  const contentBeforeBalanceBreakdown = (
+    <>
+      {walletHomeMainAssetDetailsActions}
+      {growthBanner}
       {homepageDiscoveryPills}
-      {isMoneyAccountVisible && <MoneyBalanceCard />}
+    </>
+  );
+
+  const portfolioHeader = (
+    <View style={styles.portfolioHeaderCluster}>
+      {bannerContent}
+      {balanceBreakdownLayout ? (
+        <HomepageBalanceBreakdown
+          accountGroupBalanceProps={walletHomeAccountGroupBalanceProps}
+          hideRows={inWalletHomePostOnboardingFlow}
+          layout={balanceBreakdownLayout}
+        >
+          {contentBeforeBalanceBreakdown}
+        </HomepageBalanceBreakdown>
+      ) : (
+        <>
+          <View style={styles.accountGroupBalanceContainer}>
+            <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+          </View>
+          {walletHomeMainAssetDetailsActions}
+          {growthBanner}
+          {homepageDiscoveryPills}
+          {isMoneyAccountVisible && <MoneyBalanceCard />}
+        </>
+      )}
     </View>
   );
 

@@ -153,6 +153,23 @@ describe('AccountGroupBalance', () => {
     expect(el).toBeOnTheScreen();
   });
 
+  it('renders an aggregate hero override', () => {
+    const { getByText } = renderWithProvider(
+      <AccountGroupBalance
+        heroOverride={{
+          totalFiat: 987.65,
+          userCurrency: 'USD',
+          status: 'ready',
+          delta: { amount: 12.34, percent: 0.05 },
+        }}
+      />,
+      { state: testState },
+    );
+
+    expect(getByText('$987.65')).toBeOnTheScreen();
+    expect(getByText('Today')).toBeOnTheScreen();
+  });
+
   it('renders empty state when fetched account group balance is zero', () => {
     const {
       selectAccountGroupBalanceForEmptyState,

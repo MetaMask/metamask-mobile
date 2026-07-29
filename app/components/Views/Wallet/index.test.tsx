@@ -104,9 +104,25 @@ jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
 
 let mockDiscoveryPillsVariantName = 'control';
 let mockActionButtonsGridVariantName = 'control';
+let mockBalanceBreakdownVariantName = 'unresolved';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
   useABTest: jest.fn((flagKey: string) => {
+    if (flagKey === 'homeTMCU1209AbtestHomepageBalanceBreakdown') {
+      return {
+        variantName: mockBalanceBreakdownVariantName,
+        variant: {
+          layout:
+            mockBalanceBreakdownVariantName === 'arrows'
+              ? 'arrows'
+              : mockBalanceBreakdownVariantName === 'allocation'
+                ? 'allocation'
+                : 'icons',
+        },
+        isActive: mockBalanceBreakdownVariantName !== 'unresolved',
+      };
+    }
+
     if (flagKey === 'homeTMCU926AbtestDiscoveryPills') {
       const isGrayIcons = mockDiscoveryPillsVariantName === 'grayIcons';
       const isColorIcons = mockDiscoveryPillsVariantName === 'colorIcons';
@@ -147,6 +163,21 @@ jest.mock('../../../hooks', () => ({
     throw new Error(`Unexpected A/B test flag: ${flagKey}`);
   }),
 }));
+
+const mockHomepageBalanceBreakdown = jest.fn();
+jest.mock('../Homepage/components/HomepageBalanceBreakdown', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockHomepageBalanceBreakdown(props);
+      return ReactMock.createElement(View, {
+        testID: 'homepage-balance-breakdown-mock',
+      });
+    },
+  };
+});
 
 const mockHomepageDiscoveryPills = jest.fn();
 const mockHomepageActionButtonsGrid = jest.fn();
@@ -1826,6 +1857,7 @@ describe('useHomeDeepLinkEffects', () => {
 describe('MoneyBalanceCard slot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBalanceBreakdownVariantName = 'unresolved';
     jest
       .mocked(useSelector)
       .mockImplementation((callback: (state: unknown) => unknown) =>
@@ -1835,6 +1867,7 @@ describe('MoneyBalanceCard slot', () => {
 
   afterEach(() => {
     mockMoneyAccountEnabled = false;
+    mockBalanceBreakdownVariantName = 'unresolved';
   });
 
   it('renders the MoneyBalanceCard when Money account is enabled', () => {
@@ -1851,5 +1884,60 @@ describe('MoneyBalanceCard slot', () => {
     const { queryByTestId } = render(Wallet);
 
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+  });
+
+  it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
+    mockMoneyAccountEnabled = true;
+    mockBalanceBreakdownVariantName = 'control';
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(getByTestId('homepage-balance-breakdown-mock')).toBeOnTheScreen();
+    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+  });
+});
+
+describe('Homepage balance breakdown ABC test', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockBalanceBreakdownVariantName = 'unresolved';
+    mockDiscoveryTabsVariantName = 'control';
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockBalanceBreakdownVariantName = 'unresolved';
+  });
+
+  it('does not mount the aggregation UI while assignment is unresolved', () => {
+    const { queryByTestId } = render(Wallet);
+
+    expect(
+      queryByTestId('homepage-balance-breakdown-mock'),
+    ).not.toBeOnTheScreen();
+    expect(mockHomepageBalanceBreakdown).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['control', 'icons'],
+    ['arrows', 'arrows'],
+    ['allocation', 'allocation'],
+  ])('maps %s assignment to the %s layout', (variantName, layout) => {
+    mockBalanceBreakdownVariantName = variantName;
+
+    const { getByTestId } = render(Wallet);
+
+    expect(getByTestId('homepage-balance-breakdown-mock')).toBeOnTheScreen();
+    expect(mockHomepageBalanceBreakdown).toHaveBeenCalledWith(
+      expect.objectContaining({
+        children: expect.anything(),
+        hideRows: false,
+        layout,
+      }),
+    );
   });
 });

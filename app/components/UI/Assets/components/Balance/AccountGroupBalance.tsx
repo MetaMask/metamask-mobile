@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
+import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -35,6 +36,17 @@ import { useWalletHomeOnboardingChecklistFundPress } from '../../../WalletHomeOn
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
 import { useWalletHomeOnboardingBalanceRefreshEffect } from './useWalletHomeOnboardingBalanceRefreshEffect';
 
+export interface AccountGroupBalanceHeroOverride {
+  totalFiat: number;
+  userCurrency: string;
+  status: 'loading' | 'ready' | 'error' | 'ineligible';
+  delta?: {
+    amount: number;
+    /** Fractional percentage change (0.01 = 1%). */
+    percent?: number;
+  };
+}
+
 export interface AccountGroupBalanceProps {
   /**
    * When set, the last post-onboarding step awaits this handler after the checklist fade.
@@ -48,6 +60,8 @@ export interface AccountGroupBalanceProps {
   onTradePrimaryPress?: () => void;
   /** Notifications checklist step: Primary invokes this (e.g. open settings) before advancing. */
   onNotificationsPrimaryPress?: () => void;
+  /** Replaces the standard wallet balance hero while preserving empty/onboarding surfaces. */
+  heroOverride?: AccountGroupBalanceHeroOverride;
 }
 
 const AccountGroupBalance = ({
@@ -55,6 +69,7 @@ const AccountGroupBalance = ({
   suspendRiveForCurtain = false,
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
+  heroOverride,
 }: AccountGroupBalanceProps) => {
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
@@ -117,11 +132,22 @@ const AccountGroupBalance = ({
     [PreferencesController],
   );
 
-  const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
-  const userCurrency = groupBalance?.userCurrency || 'USD';
-  const displayBalance = formatCurrency(totalBalance, userCurrency);
+  const totalBalance =
+    heroOverride?.totalFiat ?? groupBalance?.totalBalanceInUserCurrency ?? 0;
+  const userCurrency =
+    heroOverride?.userCurrency ?? groupBalance?.userCurrency ?? 'USD';
+  const displayBalance =
+    heroOverride &&
+    (heroOverride.status === 'error' || heroOverride.status === 'ineligible')
+      ? '—'
+      : formatCurrency(totalBalance, userCurrency);
 
-  const isLoading = !groupBalance || !hasBalanceFetched;
+  const isLoading = heroOverride
+    ? heroOverride.status === 'loading'
+    : !groupBalance || !hasBalanceFetched;
+  const displayedBalanceChange = heroOverride
+    ? heroOverride.delta
+    : balanceChange1d;
   const awaitBalanceForPostOnboardingSteps =
     isLoading && !walletHomeOnboardingSkipInitialBalanceWait;
 
@@ -135,7 +161,10 @@ const AccountGroupBalance = ({
 
   // Show empty state on accounts with an aggregated mainnet balance of zero
   const shouldShowEmptyState =
-    hasZeroAccountGroupBalance && !isCurrentNetworkTestnet;
+    !isCurrentNetworkTestnet &&
+    (heroOverride
+      ? heroOverride.status === 'ready' && heroOverride.totalFiat === 0
+      : hasZeroAccountGroupBalance);
 
   const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
@@ -180,14 +209,29 @@ const AccountGroupBalance = ({
           </SensitiveText>
         </Skeleton>
 
-        {balanceChange1d && (
+        {displayedBalanceChange && (
           <Skeleton hideChildren={isLoading}>
             <AccountGroupBalanceChange
               amountChangeInUserCurrency={
-                balanceChange1d.amountChangeInUserCurrency
+                heroOverride?.delta?.amount ??
+                balanceChange1d?.amountChangeInUserCurrency ??
+                0
               }
-              percentChange={balanceChange1d.percentChange}
-              userCurrency={balanceChange1d.userCurrency}
+              percentChange={
+                heroOverride?.delta?.percent !== undefined
+                  ? heroOverride.delta.percent * 100
+                  : (balanceChange1d?.percentChange ?? 0)
+              }
+              userCurrency={
+                heroOverride
+                  ? heroOverride.userCurrency
+                  : (balanceChange1d?.userCurrency ?? userCurrency)
+              }
+              label={
+                heroOverride
+                  ? strings('asset_overview.chart_time_period.1d')
+                  : undefined
+              }
             />
           </Skeleton>
         )}

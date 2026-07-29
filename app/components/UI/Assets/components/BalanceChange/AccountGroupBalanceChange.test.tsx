@@ -335,6 +335,20 @@ describe('AccountGroupBalanceChange', () => {
   });
 
   describe('component structure', () => {
+    it('renders an optional period label', () => {
+      const { getByText } = renderWithProvider(
+        <AccountGroupBalanceChange
+          amountChangeInUserCurrency={12.34}
+          percentChange={5.67}
+          userCurrency="usd"
+          label="Today"
+        />,
+        { state: baseState },
+      );
+
+      expect(getByText('Today')).toBeOnTheScreen();
+    });
+
     it('renders both amount and percentage elements', () => {
       const { getByTestId } = renderWithProvider(
         <AccountGroupBalanceChange
