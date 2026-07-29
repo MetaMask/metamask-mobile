@@ -78,15 +78,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPerpsClosePositionLimitOrderEnabledFlag: jest.fn(() => false),
 }));
 
-jest.mock('../../Debug/usePerpsClosePositionVisualStatePicker', () => ({
-  usePerpsClosePositionVisualStatePicker: jest.fn(() => ({
-    visualOverrides: null,
-    renderFlask: () => null,
-    sheet: null,
-    openSheet: jest.fn(),
-  })),
-}));
-
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Only mock components that would cause issues in tests
