@@ -13,6 +13,7 @@ import PerpBadges from '../../components/PerpBadges';
 import { formatPercent } from '../../utils/formatters';
 import type { PerpDirection } from '../../utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
+import TraderPositionHeaderTokenLink from './TraderPositionHeaderTokenLink';
 
 export interface TraderPositionCompactTokenStatsProps {
   symbol: string;
@@ -23,6 +24,14 @@ export interface TraderPositionCompactTokenStatsProps {
   traderAddress?: string;
   perpDirection?: PerpDirection | null;
   perpLeverage?: number | null;
+  /**
+   * Raw perp market symbol used to resolve the tradable market. Provided only
+   * for perp positions; when set together with {@link onTokenNavigate} the
+   * symbol becomes a tappable link to the Perps market page.
+   */
+  perpMarketSymbol?: string;
+  /** Navigates to the resolved perp market. Perp positions only. */
+  onTokenNavigate?: (targetSymbol: string) => void;
   onTraderPress: () => void;
 }
 
@@ -37,9 +46,12 @@ const TraderPositionCompactTokenStats: React.FC<
   traderAddress,
   perpDirection,
   perpLeverage,
+  perpMarketSymbol,
+  onTokenNavigate,
   onTraderPress,
 }) => {
   const hasChange = pricePercentChange != null;
+  const isTokenTappable = perpMarketSymbol != null && onTokenNavigate != null;
 
   return (
     <Box
@@ -77,16 +89,28 @@ const TraderPositionCompactTokenStats: React.FC<
         twClassName="max-w-full px-1"
         testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-          twClassName="shrink"
-          testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
-        >
-          {symbol}
-        </Text>
+        {isTokenTappable ? (
+          <TraderPositionHeaderTokenLink
+            symbol={perpMarketSymbol}
+            display={symbol}
+            onTrade={onTokenNavigate}
+            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+            linkTestID={
+              TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK
+            }
+          />
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="shrink"
+            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+          >
+            {symbol}
+          </Text>
+        )}
         {hasChange ? (
           <>
             <Text

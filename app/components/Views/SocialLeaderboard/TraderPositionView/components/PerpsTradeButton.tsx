@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import {
   Box,
   Button,
@@ -8,8 +8,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- shared Perps stream provider (UI layer, not a route)
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
-import { useTradablePerpsMarketSymbols } from '../../../../UI/WhatsHappening/hooks';
-import { getSupportedXyzPerpMarketSymbol } from '../../utils/perp';
+import { usePerpMarketNavigationTarget } from '../hooks/usePerpMarketNavigationTarget';
 
 export interface PerpsTradeButtonProps {
   /** Raw perp market symbol from the position (may carry a HIP-3 prefix). */
@@ -27,28 +26,10 @@ const PerpsTradeButtonInner: React.FC<PerpsTradeButtonProps> = ({
   onTrade,
   testID,
 }) => {
-  // We only support trading `xyz` HIP-3 markets. `xyz`/non-HIP-3 symbols link
-  // directly; other HIP-3 providers (e.g. `cash:SPCX`) are remapped to their
-  // `xyz` equivalent (`xyz:SPCX`) and are only tradable when that market exists.
-  const { tradableSymbols } = useTradablePerpsMarketSymbols();
-
-  const { targetSymbol, isSupported } = useMemo(() => {
-    const resolved = getSupportedXyzPerpMarketSymbol(symbol);
-    // An empty set means the market list hasn't arrived yet (per the hook's
-    // contract) — not that no markets are tradable. `usePerpsMarkets` can
-    // report `isLoading: false` with an empty list while a fetch is still in
-    // flight (or when an empty controller cache is treated as preloaded), so
-    // we key off the set being empty rather than the loading flag to avoid a
-    // false, sticky "Unsupported market". The perps list is never legitimately
-    // empty (BTC/ETH always present), so an empty set reliably means "unknown".
-    return {
-      targetSymbol: resolved.targetSymbol,
-      isSupported:
-        !resolved.requiresXyzMarketCheck ||
-        tradableSymbols.size === 0 ||
-        tradableSymbols.has(resolved.targetSymbol),
-    };
-  }, [symbol, tradableSymbols]);
+  // The `xyz`/HIP-3 resolution + existence check lives in the shared hook so
+  // the Trade CTA and the header token link resolve the target symbol
+  // identically from one source of truth.
+  const { targetSymbol, isSupported } = usePerpMarketNavigationTarget(symbol);
 
   const handlePress = useCallback(() => {
     if (!isSupported) return;

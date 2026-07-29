@@ -29,6 +29,8 @@ export interface TraderPositionAnimatedHeaderProps {
   activeTimePeriodLabel: string;
   perpDirection?: PerpDirection | null;
   perpLeverage?: number | null;
+  perpMarketSymbol?: string;
+  onTokenNavigate?: (targetSymbol: string) => void;
   onBack: () => void;
   onTraderPress: () => void;
 }
@@ -64,6 +66,8 @@ const TraderPositionAnimatedHeader: React.FC<
   activeTimePeriodLabel,
   perpDirection,
   perpLeverage,
+  perpMarketSymbol,
+  onTokenNavigate,
   onBack,
   onTraderPress,
 }) => {
@@ -140,6 +144,8 @@ const TraderPositionAnimatedHeader: React.FC<
             activeTimePeriodLabel={activeTimePeriodLabel}
             perpDirection={perpDirection}
             perpLeverage={perpLeverage}
+            perpMarketSymbol={perpMarketSymbol}
+            onTokenNavigate={onTokenNavigate}
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}

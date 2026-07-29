@@ -6,6 +6,7 @@ export const TraderPositionViewSelectorsIDs = {
   HEADER_COMPACT_TRADER_LINK: 'trader-position-view-header-compact-trader-link',
   HEADER_COMPACT_TOKEN_SYMBOL:
     'trader-position-view-header-compact-token-symbol',
+  HEADER_COMPACT_TOKEN_LINK: 'trader-position-view-header-compact-token-link',
   HEADER_COMPACT_TOKEN_CHANGE:
     'trader-position-view-header-compact-token-change',
   HEADER_COMPACT_PERP_BADGES: 'trader-position-view-header-compact-perp-badges',

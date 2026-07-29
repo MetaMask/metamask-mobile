@@ -351,6 +351,21 @@ describe('TraderPositionView', () => {
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
+  it('does not make the compact header token tappable for a spot position', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
+      ),
+    ).toBeNull();
+  });
+
   it('does not render the floating sticky day header at rest', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -598,6 +613,22 @@ describe('TraderPositionView', () => {
           source: 'social_leaderboard',
         },
       });
+    });
+
+    it('renders the compact header token as a tappable link wired to the Trade navigation', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      // The link renders only when perpMarketSymbol + onTokenNavigate are both
+      // wired (perp case) and the market is supported — its presence proves the
+      // header token reuses handlePerpTrade, the same handler the Trade CTA
+      // navigation is asserted with above. The compact layer is pointerEvents
+      // 'none' until scrolled, so the press→navigate path is exercised directly
+      // in TraderPositionCompactTokenStats/TraderPositionHeaderTokenLink tests.
+      expect(
+        screen.getByTestId(
+          TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('fires Follow Trading Token Screen Viewed with perps_market on mount', () => {

@@ -643,6 +643,8 @@ const TraderPositionView = () => {
           activeTimePeriodLabel={activeTimePeriod}
           perpDirection={perpDirection}
           perpLeverage={displayPosition?.perpLeverage}
+          perpMarketSymbol={isPerp ? displayPosition?.tokenSymbol : undefined}
+          onTokenNavigate={isPerp ? handlePerpTrade : undefined}
           onBack={handleBack}
           onTraderPress={handleTraderPress}
         />

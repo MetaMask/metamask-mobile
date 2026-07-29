@@ -4,6 +4,21 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
 
+// The perp header token link resolves the tradable market set and mounts a
+// PerpsStreamProvider; mock both so the spot tests need no perps wiring and the
+// perp test can drive support state directly.
+const mockUseTradablePerpsMarketSymbols = jest.fn().mockReturnValue({
+  tradableSymbols: new Set<string>(),
+  isLoading: false,
+});
+jest.mock('../../../../UI/WhatsHappening/hooks', () => ({
+  useTradablePerpsMarketSymbols: () => mockUseTradablePerpsMarketSymbols(),
+}));
+jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
 describe('TraderPositionCompactTokenStats', () => {
   it('renders trader on the first row and token change on the second', () => {
     const onTraderPress = jest.fn();
@@ -80,5 +95,62 @@ describe('TraderPositionCompactTokenStats', () => {
         TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE,
       ),
     ).toHaveTextContent('BTC-4.69%1W');
+  });
+
+  it('wraps the token symbol in a tappable link and navigates to the resolved market for perps', () => {
+    mockUseTradablePerpsMarketSymbols.mockReturnValueOnce({
+      tradableSymbols: new Set(['xyz:SPCX']),
+      isLoading: false,
+    });
+    const onTokenNavigate = jest.fn();
+
+    renderWithProvider(
+      <TraderPositionCompactTokenStats
+        symbol="SPCX"
+        pricePercentChange={1.23}
+        activeTimePeriodLabel="1D"
+        traderName="trader1"
+        perpDirection="long"
+        perpMarketSymbol="cash:SPCX"
+        onTokenNavigate={onTokenNavigate}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    const link = screen.getByTestId(
+      TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
+    );
+    expect(
+      within(link).getByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL,
+      ),
+    ).toHaveTextContent('SPCX');
+
+    fireEvent.press(link);
+
+    expect(onTokenNavigate).toHaveBeenCalledWith('xyz:SPCX');
+  });
+
+  it('renders a non-tappable token symbol for spot (no navigate handler)', () => {
+    renderWithProvider(
+      <TraderPositionCompactTokenStats
+        symbol="PEPE"
+        pricePercentChange={12.54}
+        activeTimePeriodLabel="1M"
+        traderName="trader1"
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL,
+      ),
+    ).toHaveTextContent('PEPE');
+    expect(
+      screen.queryByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
+      ),
+    ).toBeNull();
   });
 });
