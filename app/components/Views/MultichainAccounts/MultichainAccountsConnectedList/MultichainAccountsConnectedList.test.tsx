@@ -128,6 +128,11 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
     'keyring:test-group/group-2': 'mock-address',
     'keyring:test-group/group-3': 'mock-address',
   }),
+  selectAllAccountGroupIconSeedAddresses: () => ({
+    'keyring:test-group/group-1': 'mock-address',
+    'keyring:test-group/group-2': 'mock-address',
+    'keyring:test-group/group-3': 'mock-address',
+  }),
   selectSelectedInternalAccountByScope: () => () => ({
     address: '0x1234567890123456789012345678901234567890',
     id: 'mock-account-id',

@@ -49,6 +49,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
@@ -104,6 +105,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     [insets, tw],
   );
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
   // State
@@ -251,7 +253,8 @@ const ImportNewSecretRecoveryPhrase = () => {
           } ${strings('import_new_secret_recovery_phrase.success_2')}`,
         },
       ],
-      iconName: ComponentIconName.Check,
+      iconName: ComponentIconName.Confirmation,
+      iconColor: colors.success.default,
       hasNoTimeout: false,
     });
 
@@ -262,6 +265,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     seedPhrase,
     trackDiscoveryEvent,
     toastRef,
+    colors.success.default,
     hdKeyrings.length,
     fetchAccountsWithActivity,
     navigation,

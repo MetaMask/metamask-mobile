@@ -126,6 +126,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialAusCacheRefreshEnabled: {
+    name: 'aiSocialAusCacheRefreshEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.5.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardOnboardingEnabled: {
     name: 'aiSocialLeaderboardOnboardingEnabled',
     type: FeatureFlagType.Remote,
@@ -5136,16 +5147,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   confirmations_pay_hardware: {
     name: 'confirmations_pay_hardware',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  coreMCU589AbtestHubPageDiscoveryTabs: {
-    name: 'coreMCU589AbtestHubPageDiscoveryTabs',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {

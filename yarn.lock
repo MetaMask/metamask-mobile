@@ -7704,6 +7704,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@levischuck/tiny-cbor@npm:^0.3.3":
+  version: 0.3.6
+  resolution: "@levischuck/tiny-cbor@npm:0.3.6"
+  checksum: 10/3adcabfba4740b72ffabd87da45130e12a31c2e9f929f24ccc7495cda9eafc449f7bb24ada414f86d9011b4d9d582737fbc3cfd1d0c8c8ee7f85f29bc48999a3
+  languageName: node
+  linkType: hard
+
 "@lit-labs/ssr-dom-shim@npm:^1.2.0":
   version: 1.3.0
   resolution: "@lit-labs/ssr-dom-shim@npm:1.3.0"
@@ -8954,7 +8961,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^26.1.0, @metamask/gas-fee-controller@npm:^26.2.4, @metamask/gas-fee-controller@npm:^26.3.0":
+"@metamask/gas-fee-controller@npm:^26.2.4, @metamask/gas-fee-controller@npm:^26.3.0":
   version: 26.3.0
   resolution: "@metamask/gas-fee-controller@npm:26.3.0"
   dependencies:
@@ -9668,6 +9675,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/passkey-controller@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/passkey-controller@npm:3.0.0"
+  dependencies:
+    "@levischuck/tiny-cbor": "npm:^0.3.3"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/keyring-controller": "npm:^27.1.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/utils": "npm:^11.11.0"
+    "@noble/ciphers": "npm:^1.3.0"
+    "@noble/curves": "npm:^1.9.2"
+    "@noble/hashes": "npm:^1.8.0"
+    async-mutex: "npm:^0.5.0"
+  checksum: 10/8ceeca27fad12e74402155f870525a54bebc62ad73ee7ac45346b2075e55ec195be4d8793355282f423ae5a04a171b1ff5e502e99d10d20b0262295c62b13863
+  languageName: node
+  linkType: hard
+
 "@metamask/permission-controller@npm:^13.1.1":
   version: 13.1.1
   resolution: "@metamask/permission-controller@npm:13.1.1"
@@ -10085,22 +10109,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:^10.0.3":
-  version: 10.0.3
-  resolution: "@metamask/seedless-onboarding-controller@npm:10.0.3"
+"@metamask/seedless-onboarding-controller@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "@metamask/seedless-onboarding-controller@npm:10.1.0"
   dependencies:
     "@metamask/auth-network-utils": "npm:^0.3.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/toprf-secure-backup": "npm:^1.1.0"
     "@metamask/utils": "npm:^11.11.0"
     "@noble/ciphers": "npm:^1.3.0"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/f5f6894e4139abacf9992bc0638d847202c2bc85d68e854000aea37271447e22de3772d2f4fd01601c27d6b997ab876172feaf62e1a703131fdd1407e02f623f
+  checksum: 10/830a1e2959be649a2fc5cea342139687f7b26133bc8e4574632fb2de45a4fa051a3deabc249c79c472c83acce342477ba79e34ce42b52cdf6430c88d1b6a86b7
   languageName: node
   linkType: hard
 
@@ -10155,12 +10179,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/skills@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/skills@npm:0.1.0"
+"@metamask/skills@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/skills@npm:0.2.0"
   bin:
     metamask-skills: bin/metamask-skills.mjs
-  checksum: 10/e8c0fc1387c3d3706d0f2a49ef61ecba2a320e68c0bc00eb40077defc9fbf407c8830b20f10e31acc1481c6a2d7541c7f1c5294b62b0d3e6d0df3d6cfd533ce9
+  checksum: 10/d45757d90ab53fea84e80b9156b86f8ab22e1ba1f6799e9e8a9b7e64179af5a5fe750c530ad9d8c2f12c0dd6122ce0857ec76f33b1f2fad02d3a31ee59045812
   languageName: node
   linkType: hard
 
@@ -10434,9 +10458,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^2.6.0":
-  version: 2.6.0
-  resolution: "@metamask/social-controllers@npm:2.6.0"
+"@metamask/social-controllers@npm:^2.7.0":
+  version: 2.7.0
+  resolution: "@metamask/social-controllers@npm:2.7.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/base-data-service": "npm:^0.1.3"
@@ -10444,7 +10468,7 @@ __metadata:
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/superstruct": "npm:^3.1.0"
-  checksum: 10/44832ec78dc1f292f49cf65f3d951b1cc3b0dc3c1d7aea3fbbc545a29f38fc09270183eea4ad993e7d13cf7e6b8ba2e191e93e0a1278baa811446e77bf065a47
+  checksum: 10/11fae1b2ef9025254579e59459de815401bbedd2aa201680b78e244ae149209ad0e89a1b1ee02349ca420b2367edeec3f40ed57cd05749005d2ff05e75806d69
   languageName: node
   linkType: hard
 
@@ -10695,9 +10719,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/wallet@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "@metamask/wallet@npm:7.0.1"
+"@metamask/wallet@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "@metamask/wallet@npm:8.1.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^39.0.5"
     "@metamask/address-book-controller": "npm:^7.1.2"
@@ -10706,15 +10730,18 @@ __metadata:
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/connectivity-controller": "npm:^0.3.0"
     "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/gas-fee-controller": "npm:^26.3.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/network-controller": "npm:^34.0.0"
+    "@metamask/passkey-controller": "npm:^3.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/scure-bip39": "npm:^2.1.1"
+    "@metamask/seedless-onboarding-controller": "npm:^10.1.0"
     "@metamask/storage-service": "npm:^1.0.2"
-    "@metamask/transaction-controller": "npm:^69.0.0"
+    "@metamask/transaction-controller": "npm:^69.2.1"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/5c5726d2b811c0eec3148e84ae178bcba2878366e0feb6ae836246293126fa24c1b942d5a1abd9defa45346682c02ac05be96ba776d14ca51b7a5a55f7929378
+  checksum: 10/7c09457e7d4d2d137245311c3c889912321731562bed8cc4396b4ff5112c76c2fe2de1c9254dfc0233be0655d70562029c03cccbd498bd15d753f2c64dcd5c41
   languageName: node
   linkType: hard
 
@@ -35882,7 +35909,7 @@ __metadata:
     "@metamask/ethjs-query": "npm:^0.7.1"
     "@metamask/ethjs-unit": "npm:^0.3.0"
     "@metamask/foundryup": "npm:1.0.0"
-    "@metamask/gas-fee-controller": "npm:^26.1.0"
+    "@metamask/gas-fee-controller": "npm:^26.3.0"
     "@metamask/gator-permissions-controller": "npm:^4.0.0"
     "@metamask/geolocation-controller": "npm:^0.1.1"
     "@metamask/hw-wallet-sdk": "npm:^0.8.0"
@@ -35939,11 +35966,11 @@ __metadata:
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.0"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:^10.0.3"
+    "@metamask/seedless-onboarding-controller": "npm:^10.1.0"
     "@metamask/selected-network-controller": "npm:^26.1.4"
     "@metamask/sentinel-api-service": "npm:^1.0.0"
     "@metamask/signature-controller": "npm:^39.2.0"
-    "@metamask/skills": "npm:^0.1.0"
+    "@metamask/skills": "npm:^0.2.0"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:25.0.0"
     "@metamask/snap-account-service": "npm:^1.0.0"
@@ -35952,7 +35979,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.1.0"
     "@metamask/snaps-sdk": "npm:^11.2.0"
     "@metamask/snaps-utils": "npm:^12.4.0"
-    "@metamask/social-controllers": "npm:^2.6.0"
+    "@metamask/social-controllers": "npm:^2.7.0"
     "@metamask/solana-wallet-snap": "npm:^2.10.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
@@ -35967,7 +35994,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^26.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.33.1"
     "@metamask/utils": "npm:^11.11.0"
-    "@metamask/wallet": "npm:^7.0.1"
+    "@metamask/wallet": "npm:^8.1.0"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.1"
