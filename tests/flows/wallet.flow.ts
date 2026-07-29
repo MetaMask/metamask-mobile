@@ -57,6 +57,7 @@ import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper'
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import {
   isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroid,
   isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnAppium,
   isWalletHomeReadyOnIOS,
@@ -72,32 +73,32 @@ const WALLET_HOME_POLL_INTERVAL_MS = 250;
  * Waits for the wallet home screen to be ready after login.
  * On iOS, `wallet-screen` may exist but report `displayed === false` while
  * child indicators are visible — mirrors Detox `toExist` readiness checks.
+ * On Android, polls readiness helpers and re-dismisses system overlays during
+ * the wait (avoids a single visibility assert that can fail under shade/overlays).
  */
 export const waitForWalletHomePlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),
 ): Promise<void> => {
-  if (PlatformDetector.isAndroid()) {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(WalletView.container),
-      {
-        description: 'Wallet should be visible',
-        timeout,
-      },
-    );
-    return;
-  }
-
   const deadline = Date.now() + timeout;
+  const isAndroid = PlatformDetector.isAndroid();
+
   while (Date.now() < deadline) {
-    if (await isWalletHomeReadyOnIOS()) {
+    if (isAndroid) {
+      if (await isWalletHomeReadyOnAndroid()) {
+        logger.debug('Wallet home ready on Android');
+        return;
+      }
+      await dismissAndroidSystemOverlaysPlaywright();
+    } else if (await isWalletHomeReadyOnIOS()) {
       logger.debug('Wallet home ready on iOS');
       return;
     }
     await sleep(WALLET_HOME_POLL_INTERVAL_MS);
   }
 
+  const platform = isAndroid ? 'Android' : 'iOS';
   throw new Error(
-    `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
+    `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
   );
 };
 
@@ -139,7 +140,10 @@ export const ensureAccountListOpenPlaywright = async (
       // list not visible yet
     }
 
-    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+    const isWalletHomeReady = PlatformDetector.isAndroid()
+      ? await isWalletHomeReadyOnAndroid()
+      : await isWalletHomeReadyOnIOS();
+    if (isWalletHomeReady) {
       await WalletView.tapIdenticon();
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,
@@ -172,7 +176,10 @@ export const dismissToWalletHomePlaywright = async (
   const deadline = Date.now() + timeout;
 
   while (Date.now() < deadline) {
-    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+    const isWalletHomeReady = PlatformDetector.isAndroid()
+      ? await isWalletHomeReadyOnAndroid()
+      : await isWalletHomeReadyOnIOS();
+    if (isWalletHomeReady) {
       return;
     }
 
@@ -807,14 +814,12 @@ export const loginAndOpenAccountList = async (
   } = {},
 ): Promise<void> => {
   const {
-    walletTimeout = 15_000,
+    walletTimeout = resolveE2EWaitTimeoutMs(30_000),
     accountListDescription = 'Account list should be visible',
     ...loginOptions
   } = options;
 
   await loginToAppPlaywright(loginOptions);
-
-  await waitForWalletHomePlaywright(walletTimeout);
 
   await WalletView.tapIdenticon();
 
