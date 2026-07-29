@@ -28,9 +28,6 @@ import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFl
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { useOwnedNfts } from './Sections/NFTs/hooks';
-import { useNftDetection } from '../../hooks/useNftDetection';
-import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 
@@ -57,12 +54,8 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
   const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
-  const ownedNfts = useOwnedNfts();
-  const hasNfts = ownedNfts.length > 0;
-
   const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
     useNetworkEnablement();
-  const { detectNfts, abortDetection } = useNftDetection();
   const popularNetworksKey = popularNetworks.join(',');
   const areAllPopularNetworksEnabled = useMemo(() => {
     if (popularNetworksKey === '') {
@@ -87,20 +80,6 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
     }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
   );
 
-  // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
-  useThrottledFocusEffect(
-    useCallback(() => {
-      detectNfts(true, false).catch(() => {
-        // AbortError is expected when detection is cancelled on blur
-      });
-
-      return () => {
-        abortDetection();
-      };
-    }, [detectNfts, abortDetection]),
-    300_000, // 5 minutes
-  );
-
   /**
    * Compute the ordered list of enabled sections. Tokens are always present;
    * NFTs, Perps, Predictions, and DeFi are conditional.
@@ -117,13 +96,12 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
           enabled: isTopTradersEnabled,
         },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
-        { name: HomeSectionNames.NFTS, enabled: hasNfts },
+        { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((section) => section.enabled),
     [
       isPerpsEnabled,
       isPredictEnabled,
       isDeFiEnabled,
-      hasNfts,
       isTopTradersEnabled,
       isWatchlistEnabled,
     ],
@@ -201,13 +179,11 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
           totalSectionsLoaded={totalSectionsLoaded}
         />
       )}
-      {hasNfts && (
-        <NFTsSection
-          ref={nftsSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-      )}
+      <NFTsSection
+        ref={nftsSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
       <MoreSection />
     </Box>
   );

@@ -4,7 +4,7 @@ import {
   renderHookWithProvider,
   type DeepPartial,
 } from '../../../../util/test/renderWithProvider';
-import type { AccountState, Position } from '@metamask/perps-controller';
+import type { Position } from '@metamask/perps-controller';
 import {
   usePerpsPositionForAsset,
   _clearPositionCache,
@@ -47,15 +47,6 @@ const mockPosition: Position = {
   },
   takeProfitCount: 1,
   stopLossCount: 1,
-};
-
-const mockAccountState: AccountState = {
-  spendableBalance: '10000',
-  withdrawableBalance: '10000',
-  marginUsed: '800',
-  unrealizedPnl: '100',
-  returnOnEquity: '0.03',
-  totalBalance: '10500',
 };
 
 const mockUserAddress = '0x1234567890123456789012345678901234567890';
@@ -147,7 +138,6 @@ const createMockState = (
 
 describe('usePerpsPositionForAsset', () => {
   let mockGetPositions: jest.Mock;
-  let mockGetAccountState: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -155,11 +145,10 @@ describe('usePerpsPositionForAsset', () => {
     PerpsCacheInvalidator._clearAllSubscribers();
 
     mockGetPositions = jest.fn().mockResolvedValue([mockPosition]);
-    mockGetAccountState = jest.fn().mockResolvedValue(mockAccountState);
 
     mockUsePerpsTrading.mockReturnValue({
       getPositions: mockGetPositions,
-      getAccountState: mockGetAccountState,
+      getAccountState: jest.fn(),
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
       closePosition: jest.fn(),
@@ -212,7 +201,6 @@ describe('usePerpsPositionForAsset', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.position).toBeNull();
       expect(result.current.hasFundsInPerps).toBe(false);
-      expect(result.current.accountState).toBeNull();
       expect(result.current.error).toBeNull();
     });
 
@@ -241,7 +229,6 @@ describe('usePerpsPositionForAsset', () => {
 
       expect(result.current.position).toEqual(mockPosition);
       expect(result.current.hasFundsInPerps).toBe(true);
-      expect(result.current.accountState).toEqual(mockAccountState);
       expect(result.current.error).toBeNull();
     });
 
@@ -255,11 +242,6 @@ describe('usePerpsPositionForAsset', () => {
           standalone: true,
           userAddress: mockUserAddress,
         });
-      });
-
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        standalone: true,
-        userAddress: mockUserAddress,
       });
     });
 
@@ -275,11 +257,7 @@ describe('usePerpsPositionForAsset', () => {
         });
       });
 
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        standalone: true,
-        userAddress: mockUserAddress,
-      });
-      expect(mockGetAccountState).not.toHaveBeenCalledWith(
+      expect(mockGetPositions).not.toHaveBeenCalledWith(
         expect.objectContaining({ userAddress: mockNonEvmAddress }),
       );
     });
@@ -301,10 +279,8 @@ describe('usePerpsPositionForAsset', () => {
 
       expect(result.current.position).toBeNull();
       expect(result.current.hasFundsInPerps).toBe(false);
-      expect(result.current.accountState).toBeNull();
       expect(result.current.error).toBeNull();
       expect(mockGetPositions).not.toHaveBeenCalled();
-      expect(mockGetAccountState).not.toHaveBeenCalled();
     });
 
     it('handles case-insensitive symbol matching', async () => {
@@ -332,14 +308,10 @@ describe('usePerpsPositionForAsset', () => {
 
       expect(result.current.position).toBeNull();
       expect(result.current.hasFundsInPerps).toBe(true);
-      expect(result.current.accountState).toEqual(mockAccountState);
     });
 
-    it('returns hasFundsInPerps false when balance is zero', async () => {
-      mockGetAccountState.mockResolvedValue({
-        ...mockAccountState,
-        totalBalance: '0',
-      });
+    it('returns hasFundsInPerps false when positions array is empty', async () => {
+      mockGetPositions.mockResolvedValue([]);
 
       const { result } = renderHookWithProvider(
         () => usePerpsPositionForAsset('ETH'),
@@ -452,7 +424,7 @@ describe('usePerpsPositionForAsset', () => {
       });
 
       expect(result.current.position).toBeNull();
-      expect(result.current.hasFundsInPerps).toBe(true);
+      expect(result.current.hasFundsInPerps).toBe(false);
     });
   });
 
@@ -627,16 +599,16 @@ describe('usePerpsPositionForAsset', () => {
       });
 
       // First fetch
-      expect(mockGetAccountState).toHaveBeenCalledTimes(1);
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
 
-      // Invalidate accountState cache
+      // Invalidate accountState cache (still subscribed to keep reactivity for trade events)
       await act(async () => {
         PerpsCacheInvalidator.invalidate('accountState');
       });
 
-      // Should have re-fetched
+      // Should have re-fetched positions
       await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(2);
+        expect(mockGetPositions).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -655,10 +627,6 @@ describe('usePerpsPositionForAsset', () => {
 
       // Simulate position being closed - update mock to return empty positions
       mockGetPositions.mockResolvedValue([]);
-      mockGetAccountState.mockResolvedValue({
-        ...mockAccountState,
-        totalBalance: '0',
-      });
 
       // Invalidate cache (simulates what TradingService does after closePosition)
       await act(async () => {
