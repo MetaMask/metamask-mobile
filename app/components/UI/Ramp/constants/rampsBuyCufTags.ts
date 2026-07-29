@@ -34,11 +34,9 @@ export const RAMPS_BUY_CUF_PATH = {
   WIDGET: 'widget',
   NATIVE: 'native',
 } as const;
-
 export const RAMPS_BUY_CUF_BOUNDARY = {
   ORDER_DETAILS: 'order_details',
 } as const;
-
 export const RAMPS_BUY_CUF_END_REASON = {
   SUPERSEDED: 'superseded',
   TIMEOUT: 'timeout',
@@ -48,5 +46,4 @@ export const RAMPS_BUY_CUF_END_REASON = {
   ABANDONED: 'abandoned',
   HEADLESS: 'headless',
 } as const;
-
 export const RAMPS_BUY_CUF_TIMEOUT_MS = 10 * 60 * 1000;

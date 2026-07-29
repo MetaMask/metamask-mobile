@@ -459,10 +459,7 @@ export interface TraceRequest {
    */
   parentContext?: TraceContext;
 
-  /**
-   * When true, emit this span as its own Sentry transaction even if another
-   * span (e.g. navigation.initialization) is currently active on the scope.
-   */
+  /** Emit as a root Sentry transaction instead of nesting under the active span. */
   forceTransaction?: boolean;
 
   /**

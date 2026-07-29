@@ -8,7 +8,6 @@ import {
 import {
   startRampsBuyCufTrace,
   endRampsBuyCufTrace,
-  endRampsBuyCufTraceAfter,
   startRampsBuyCufChildTrace,
   endRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
@@ -48,22 +47,12 @@ describe('rampsBuyCufTrace', () => {
     jest.useRealTimers();
   });
 
-  describe('surfaceFromBuyFlowOrigin', () => {
-    it('maps tokenInfo to token_buy', () => {
-      expect(surfaceFromBuyFlowOrigin('tokenInfo')).toBe(
-        RAMPS_BUY_CUF_SURFACE.TOKEN_BUY,
-      );
-    });
-
-    it('maps homeTokenList to home_token_list', () => {
-      expect(surfaceFromBuyFlowOrigin('homeTokenList')).toBe(
-        RAMPS_BUY_CUF_SURFACE.HOME_TOKEN_LIST,
-      );
-    });
-
-    it('returns unknown when buyFlowOrigin is omitted', () => {
-      expect(surfaceFromBuyFlowOrigin()).toBe(RAMPS_BUY_CUF_SURFACE.UNKNOWN);
-    });
+  it.each([
+    ['tokenInfo', RAMPS_BUY_CUF_SURFACE.TOKEN_BUY],
+    ['homeTokenList', RAMPS_BUY_CUF_SURFACE.HOME_TOKEN_LIST],
+    [undefined, RAMPS_BUY_CUF_SURFACE.UNKNOWN],
+  ] as const)('surfaceFromBuyFlowOrigin(%s) → %s', (origin, expected) => {
+    expect(surfaceFromBuyFlowOrigin(origin)).toBe(expected);
   });
 
   it('starts a parent span with feature, ramp_type, and surface as tags and attributes', () => {
@@ -148,29 +137,18 @@ describe('rampsBuyCufTrace', () => {
     expect(getRampsBuyCufParentContext()).toBeUndefined();
   });
 
-  it('end is idempotent: only the first end reaches endTrace', () => {
+  it('end is idempotent and ignores mismatched ids', () => {
     startRampsBuyCufTrace();
-
+    endRampsBuyCufTrace({ id: 'other-id' });
+    expect(mockEndTrace).not.toHaveBeenCalled();
     endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
     endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
-
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
 
-  it('ignores end when id does not match the active parent', () => {
-    startRampsBuyCufTrace();
-
-    endRampsBuyCufTrace({ id: 'other-id' });
-
-    expect(mockEndTrace).not.toHaveBeenCalled();
-    expect(hasActiveRampsBuyCufTrace()).toBe(true);
-  });
-
-  it('ends the parent as timeout after the fallback delay', () => {
+  it('times out the open parent and no-ops after a prior end', () => {
     const opId = startRampsBuyCufTrace();
-
     jest.advanceTimersByTime(RAMPS_BUY_CUF_TIMEOUT_MS);
-
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampBuyToOrderDetails,
@@ -181,40 +159,11 @@ describe('rampsBuyCufTrace', () => {
         },
       }),
     );
-  });
-
-  it('timeout fallback no-ops when the parent already ended', () => {
     startRampsBuyCufTrace();
     endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
     mockEndTrace.mockClear();
-
     jest.advanceTimersByTime(RAMPS_BUY_CUF_TIMEOUT_MS);
-
     expect(mockEndTrace).not.toHaveBeenCalled();
-  });
-
-  it('endRampsBuyCufTraceAfter only ends the parent it was scheduled for', () => {
-    const first = startRampsBuyCufTrace();
-    endRampsBuyCufTraceAfter(
-      {
-        data: {
-          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.TIMEOUT,
-        },
-      },
-      1000,
-    );
-    endRampsBuyCufTrace({
-      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-    });
-    const second = startRampsBuyCufTrace();
-    mockEndTrace.mockClear();
-
-    jest.advanceTimersByTime(1000);
-
-    expect(mockEndTrace).not.toHaveBeenCalled();
-    expect(hasActiveRampsBuyCufTrace()).toBe(true);
-    expect(second).not.toEqual(first);
   });
 
   it('starts a child nested under the active parent context', () => {

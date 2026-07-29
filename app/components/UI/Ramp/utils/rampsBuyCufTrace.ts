@@ -32,7 +32,6 @@ function nextCufOpId(name: TraceName): string {
   return `${name}#${cufOpCounter}`;
 }
 
-/** Drop module parent state when Sentry cleanup ended the span out-of-band. */
 function clearStaleParentState(): void {
   if (parentTimeoutId) {
     clearTimeout(parentTimeoutId);
@@ -42,24 +41,17 @@ function clearStaleParentState(): void {
   parentSpan = undefined;
 }
 
-function isParentSpanStillActive(): boolean {
-  if (!parentOpId) {
-    return false;
-  }
-  return (
+function resolveParentContext(): TraceContext {
+  if (
+    !parentOpId ||
     getTraceContext({
       name: TraceName.RampBuyToOrderDetails,
       id: parentOpId,
-    }) !== undefined
-  );
-}
-
-function resolveParentContext(): TraceContext {
-  if (!parentOpId) {
-    return undefined;
-  }
-  if (!isParentSpanStillActive()) {
-    clearStaleParentState();
+    }) === undefined
+  ) {
+    if (parentOpId) {
+      clearStaleParentState();
+    }
     return undefined;
   }
   return parentSpan;
@@ -110,11 +102,8 @@ export function startRampsBuyCufTrace({
   startTime,
   data,
 }: StartRampsBuyCufTraceOptions = {}): string {
-  if (parentOpId) {
-    if (isParentSpanStillActive()) {
-      return parentOpId;
-    }
-    clearStaleParentState();
+  if (resolveParentContext() && parentOpId) {
+    return parentOpId;
   }
 
   const opId = nextCufOpId(TraceName.RampBuyToOrderDetails);
@@ -164,13 +153,7 @@ export function endRampsBuyCufTrace({
   }
 
   abandonOpenChildTraces(RAMPS_BUY_CUF_END_REASON.ABANDONED);
-
-  if (parentTimeoutId) {
-    clearTimeout(parentTimeoutId);
-    parentTimeoutId = null;
-  }
-  parentOpId = null;
-  parentSpan = undefined;
+  clearStaleParentState();
   endTrace({
     name: TraceName.RampBuyToOrderDetails,
     id: targetId,
@@ -283,12 +266,7 @@ function abandonOpenChildTraces(reason: string): void {
 }
 
 export function resetRampsBuyCufTraceForTests(): void {
-  if (parentTimeoutId) {
-    clearTimeout(parentTimeoutId);
-    parentTimeoutId = null;
-  }
+  clearStaleParentState();
   pendingChildMeta.clear();
-  parentOpId = null;
-  parentSpan = undefined;
   cufOpCounter = 0;
 }
