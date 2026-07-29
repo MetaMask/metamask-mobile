@@ -10,9 +10,9 @@ Compare against `MMQA-2042-TestMU-PoC` (direct GHA → TestMu hub).
 
 | Suite | Discovery | Device |
 | --- | --- | --- |
-| onboarding (+ seedless) | `tests/performance/onboarding/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 15 |
-| imported-wallet | `tests/performance/login/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 15 |
-| mm-connect | `tests/performance/mm-connect/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 15 |
+| onboarding (+ seedless) | `tests/performance/onboarding/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 13 |
+| imported-wallet | `tests/performance/login/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 13 |
+| mm-connect | `tests/performance/mm-connect/**/*.spec.ts` | BS: Pixel 7 Pro / 13 · TestMu: Pixel 7 Pro / 13 |
 
 MM-Connect starts the LT tunnel **inside each HyperExecute task** (not on the GHA runner).
 
@@ -40,9 +40,33 @@ so a mismatched task fails instead of reporting empty success.
 
 ## HyperExecute YAML version
 
-Generated configs use **YAML `version: "0.1"`** with custom `testDiscovery` +
-`testRunnerCommand`. YAML `0.2` requires `framework.name` and removes those fields
-(orchestration becomes framework-managed), which does not fit Appium-via-Playwright.
+Generated configs use **YAML `version: "0.2"`** (TestMu requirement) shaped like the
+official [Playwright Real Device on HyperExecute](https://www.testmuai.com/support/docs/playwright-real-device-on-hyperexecute/) sample:
+
+```yaml
+version: "0.2"
+runson: linux
+framework:
+  name: appium
+  args:
+    playwrightRD: true
+    region: us
+testDiscovery:
+  type: raw
+  mode: static
+  command: cat tests/hyperexecute/discovered-<build-type>.txt
+testRunnerCommand: bash ./tests/scripts/hyperexecute-run-performance-test.sh $test
+```
+
+Notes:
+
+- `framework.name: appium` + `playwrightRD: true` satisfies YAML 0.2 while keeping
+  AutoSplit `testDiscovery` / `testRunnerCommand` (same as the LT sample).
+- Discovery is **static** (0.2 drops dynamic/matrix discovery): the CLI host
+  materialises `tests/hyperexecute/discovered-*.txt` before upload.
+- Tasks still run on **linux** VMs and open Appium sessions to
+  `mobile-hub.lambdatest.com` via `TestMuAIProvider` (we do not use
+  `runson: android` / CDP Playwright-RD).
 
 ## Provider loading
 

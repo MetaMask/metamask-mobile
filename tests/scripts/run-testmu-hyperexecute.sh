@@ -120,18 +120,37 @@ chmod +x ./tests/scripts/verify-testmu-app-url.sh
 LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
   ./tests/scripts/verify-testmu-app-url.sh "$PRIMARY_APP_URL"
 
-# Use YAML 0.1: version 0.2 requires framework.name and drops support for
-# custom testDiscovery / testRunnerCommand (see HyperExecute YAML 0.2 docs).
-# This PoC orchestrates Appium-via-Playwright with our own discovery/runner.
+# YAML 0.2 (TestMu requirement) with Playwright Real Device / Appium shape:
+#   framework.name=appium + args.playwrightRD=true
+# Discovery/runner stay custom (AutoSplit raw) — same pattern as the official
+# LambdaTest HyperExecute Playwright-Appium sample. mode=static is required by
+# 0.2 (dynamic/matrix discovery removed). Tasks still run on linux VMs and open
+# Appium sessions to mobile-hub via TestMuAIProvider (not runson: android).
+DISCOVERY_LIST="${HE_WORKDIR}/discovered-${BUILD_TYPE}.txt"
+BUILD_TYPE="$BUILD_TYPE" bash ./tests/scripts/hyperexecute-discover-performance-tests.sh \
+  > "$DISCOVERY_LIST"
+DISCOVERY_COUNT="$(wc -l < "$DISCOVERY_LIST" | tr -d ' ')"
+if [[ "$DISCOVERY_COUNT" -lt 1 ]]; then
+  echo "❌ Discovery produced no specs for BUILD_TYPE=$BUILD_TYPE" >&2
+  exit 1
+fi
+# Keep a copy inside the payload so static discovery (cat) works on the CLI host
+# and the same list is available inside uploaded artefacts for debugging.
+mkdir -p tests/hyperexecute
+cp -f "$DISCOVERY_LIST" "tests/hyperexecute/discovered-${BUILD_TYPE}.txt"
+echo "Discovered ${DISCOVERY_COUNT} @Performance spec(s) for BUILD_TYPE=$BUILD_TYPE"
+
 cat > "$HE_YAML" <<EOF
-version: "0.1"
+version: "0.2"
 runson: linux
 autosplit: true
 concurrency: ${HE_CONCURRENCY}
+dynamicAllocation: true
 globalTimeout: 180
 testSuiteTimeout: 180
 testSuiteStep: 180
 retryOnFailure: false
+shell: bash
 
 runtime:
   language: node
@@ -145,6 +164,14 @@ cacheKey: '{{ checksum "yarn.lock" }}'
 cacheDirectories:
   - .yarn/cache
   - node_modules
+
+framework:
+  name: appium
+  defaultReports: false
+  args:
+    playwrightRD: true
+    region: "$(yaml_escape "$HE_REGION")"
+    reservation: false
 
 env:
   BUILD_TYPE: "$(yaml_escape "$BUILD_TYPE")"
@@ -185,21 +212,24 @@ uploadArtefacts:
       - tests/reporters/reports/**
       - tests/test-reports/**
 
+# Static discovery (YAML 0.2): list materialised on the CLI host before upload.
 testDiscovery:
   type: raw
-  mode: dynamic
-  command: BUILD_TYPE=${BUILD_TYPE} bash ./tests/scripts/hyperexecute-discover-performance-tests.sh
+  mode: static
+  command: cat tests/hyperexecute/discovered-${BUILD_TYPE}.txt
 
 testRunnerCommand: bash ./tests/scripts/hyperexecute-run-performance-test.sh \$test
 
-jobLabel: ['MMQA', 'HyperExecute', 'TestMu', '${BUILD_TYPE}', 'Pixel7Pro']
+jobLabel: ['MMQA', 'HyperExecute', 'TestMu', 'YAML0.2', '${BUILD_TYPE}', 'Pixel7Pro']
 EOF
 
 echo "=== Generated HyperExecute YAML: $HE_YAML ==="
+cat "$HE_YAML"
 echo "Secrets file: (outside workspace, wiped on exit)"
 echo "Primary app env key: $APP_URL_KEY=${!APP_URL_KEY:-<empty>}"
 echo "Device: ${TESTMU_DEVICE:-Pixel 7 Pro} / ${TESTMU_OS_VERSION:-13}"
 echo "Concurrency: $HE_CONCURRENCY"
+echo "YAML version: 0.2 (framework=appium, playwrightRD=true, region=$HE_REGION)"
 
 # Ensure scripts are executable inside the uploaded payload
 chmod +x \
