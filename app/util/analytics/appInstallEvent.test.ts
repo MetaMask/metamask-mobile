@@ -160,6 +160,30 @@ describe('appInstallEvent', () => {
       });
     });
 
+    it('stores the Branch referring link when present', async () => {
+      mockGetLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': true,
+        $deeplink_path: 'buy',
+        '~referring_link': 'https://metamask.app.link/buy',
+      });
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+            branchAttribution: {
+              clickedBranchLink: true,
+              deeplinkPath: 'buy',
+              referringLink: 'https://metamask.app.link/buy',
+            },
+          },
+        },
+      });
+    });
+
     it('stores no branchAttribution for an organic install', async () => {
       mockGetLatestReferringParams.mockResolvedValue({
         '+clicked_branch_link': false,
@@ -276,6 +300,21 @@ describe('appInstallEvent', () => {
       );
     });
 
+    // Extension parity: an opted-in install produces two App Installed rows,
+    // one with category App (attribution-bearing) and one with category
+    // Onboarding (bare), matching the background + consent-UI emissions.
+    it('emits two App Installed events with categories App and Onboarding', async () => {
+      await replayPendingAppInstall();
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        category: 'App',
+      });
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        category: 'Onboarding',
+      });
+    });
+
     it('marks the event fired and clears the pending install', async () => {
       await replayPendingAppInstall();
 
@@ -344,12 +383,34 @@ describe('appInstallEvent', () => {
       });
     });
 
+    // Extension parity: deeplink_path carries the full referring link URL
+    // (extension sources it from the metamask.io deferred_deeplink cookie).
+    it('emits the full referring link as deeplink_path when Branch provides it', async () => {
+      mockPendingAppInstall = {
+        installDate: '2026-07-01',
+        branchAttribution: {
+          clickedBranchLink: true,
+          deeplinkPath: 'buy',
+          referringLink: 'https://metamask.app.link/buy',
+        },
+      };
+
+      await replayPendingAppInstall();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+        deeplink_path: 'https://metamask.app.link/buy',
+      });
+    });
+
     it('adds no attribution properties for an organic install', async () => {
       mockPendingAppInstall = { installDate: '2026-07-01' };
 
       await replayPendingAppInstall();
 
-      expect(mockEventBuilder.addProperties).not.toHaveBeenCalled();
+      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ install_source: expect.anything() }),
+      );
     });
 
     it('does not call Branch at replay time', async () => {
@@ -394,7 +455,9 @@ describe('appInstallEvent', () => {
       await replayPendingAppInstall();
       await replayPendingAppInstall();
 
-      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
+      // First replay throws on the first emission; the retry delivers both
+      // the category App and category Onboarding events.
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(3);
       expect(mockStore.dispatch).toHaveBeenCalledWith(SET_FIRED);
     });
   });

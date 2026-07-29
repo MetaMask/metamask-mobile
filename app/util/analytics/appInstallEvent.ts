@@ -45,28 +45,20 @@ const readBranchAttributionAtInstall = async (): Promise<
 > => {
   try {
     const params = await branch.getLatestReferringParams();
-    Logger.log(
-      'AppInstall: getLatestReferringParams =',
-      JSON.stringify(params),
-    );
 
     const clickedBranchLink = params?.['+clicked_branch_link'] === true;
     const deeplinkPath = params?.$deeplink_path as string | undefined;
+    const referringLink = params?.['~referring_link'] as string | undefined;
 
     if (!clickedBranchLink && !deeplinkPath) {
-      Logger.log('AppInstall: no Branch attribution (organic install)');
       return undefined;
     }
 
-    const attribution = {
+    return {
       clickedBranchLink,
       ...(deeplinkPath ? { deeplinkPath } : {}),
+      ...(referringLink ? { referringLink } : {}),
     };
-    Logger.log(
-      'AppInstall: Branch attribution captured =',
-      JSON.stringify(attribution),
-    );
-    return attribution;
   } catch (error) {
     Logger.error(
       error as Error,
@@ -76,14 +68,26 @@ const readBranchAttributionAtInstall = async (): Promise<
   }
 };
 
+/**
+ * Builds the App Installed attribution properties from Branch's deferred
+ * attribution captured at install time.
+ *
+ * Payload shape mirrors extension (the source of truth for this event):
+ * `install_source: 'deeplink'` plus `deeplink_path` carrying the full
+ * referring link URL (extension sources it from the metamask.io
+ * `deferred_deeplink` cookie). Branch's short `$deeplink_path` is only used
+ * when no full URL is available.
+ */
 const attributionToEventProperties = (
   attribution: PendingAppInstallAttribution,
-): AnalyticsEventProperties => ({
-  install_source: 'deeplink',
-  ...(attribution.deeplinkPath
-    ? { deeplink_path: attribution.deeplinkPath }
-    : {}),
-});
+): AnalyticsEventProperties => {
+  const deeplinkPath = attribution.referringLink ?? attribution.deeplinkPath;
+
+  return {
+    install_source: 'deeplink',
+    ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
+  };
+};
 
 /**
  * Records a first install so the App Installed event can be emitted once the
@@ -120,14 +124,11 @@ export async function captureAppInstallOnce(): Promise<void> {
     }
 
     const branchAttribution = await readBranchAttributionAtInstall();
+
     const pendingPayload = {
       installDate: new Date().toISOString().split('T')[0],
       ...(branchAttribution ? { branchAttribution } : {}),
     };
-    Logger.log(
-      'AppInstall: dispatching setPendingAppInstall =',
-      JSON.stringify(pendingPayload),
-    );
 
     ReduxService.store.dispatch(setPendingAppInstall(pendingPayload));
   } catch (error) {
@@ -165,9 +166,13 @@ export async function replayPendingAppInstall(): Promise<void> {
       [UserProfileProperty.INSTALL_DATE_MOBILE]: pending.installDate,
     });
 
+    // Extension parity: every extension event carries a `category` property,
+    // and its App Installed e2e spec pins `category: 'App'` on the
+    // attribution-bearing emission. Mobile mirrors that so one cross-platform
+    // query (event = 'App Installed' AND category = 'App') covers both.
     const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.APP_INSTALLED,
-    );
+    ).addProperties({ category: 'App' });
 
     if (pending.branchAttribution) {
       eventBuilder.addProperties(
@@ -176,6 +181,17 @@ export async function replayPendingAppInstall(): Promise<void> {
     }
 
     analytics.trackEvent(eventBuilder.build());
+
+    // Extension parity: its onboarding consent UI emits a second bare
+    // App Installed with `category: 'Onboarding'` at opt-in, so opted-in
+    // installs produce two rows distinguished only by category. Emitted here
+    // (not from the consent screens) so the fail-closed pending-install
+    // guards also apply to it and wallet resets cannot re-fire it.
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_INSTALLED)
+        .addProperties({ category: 'Onboarding' })
+        .build(),
+    );
 
     // Only mark terminal once the event has actually been handed over while
     // consent is live, so a throw above leaves the install pending for retry.

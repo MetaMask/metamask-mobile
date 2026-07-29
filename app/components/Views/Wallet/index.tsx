@@ -19,7 +19,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
-  Text,
   unstable_batchedUpdates,
   View,
 } from 'react-native';
@@ -163,11 +162,6 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
-import {
-  selectAppInstallEventFired,
-  selectExistingUser,
-  selectPendingAppInstall,
-} from '../../../reducers/user/selectors';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
   selectPerpsEnabledFlag,
@@ -312,61 +306,6 @@ export const useHomeDeepLinkEffects = (opts: {
       onPerpsTabSelected,
       onNetworkSelectorSelected,
     ]),
-  );
-};
-
-// DEBUG: remove before merge
-const debugStyles = RNStyleSheet.create({
-  container: {
-    backgroundColor: 'lightyellow',
-    borderColor: 'goldenrod',
-    borderWidth: 1,
-    margin: 6,
-    padding: 8,
-    borderRadius: 6,
-  },
-  text: {
-    fontFamily: 'Courier',
-    fontSize: 10,
-    color: 'black',
-  },
-});
-
-const BranchDebugBanner: React.FC = () => {
-  const [latestParams, setLatestParams] = useState<string>('…');
-  const [firstParams, setFirstParams] = useState<string>('…');
-  const pendingAppInstall = useSelector(selectPendingAppInstall);
-  const appInstallEventFired = useSelector(selectAppInstallEventFired);
-  const existingUser = useSelector(selectExistingUser);
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const b = require('react-native-branch').default;
-    b.getLatestReferringParams()
-      .then((p: unknown) => setLatestParams(JSON.stringify(p, null, 2)))
-      .catch((e: Error) => setLatestParams(`ERROR: ${e.message}`));
-    b.getFirstReferringParams()
-      .then((p: unknown) => setFirstParams(JSON.stringify(p, null, 2)))
-      .catch((e: Error) => setFirstParams(`ERROR: ${e.message}`));
-  }, []);
-
-  return (
-    <View style={debugStyles.container}>
-      <Text style={debugStyles.text}>
-        {[
-          '[BRANCH DEBUG]',
-          `existingUser: ${existingUser}`,
-          `appInstallEventFired: ${appInstallEventFired}`,
-          `pendingAppInstall: ${JSON.stringify(pendingAppInstall)}`,
-          '',
-          'getLatestReferringParams:',
-          latestParams,
-          '',
-          'getFirstReferringParams:',
-          firstParams,
-        ].join('\n')}
-      </Text>
-    </View>
   );
 };
 
@@ -1111,7 +1050,6 @@ const Wallet = ({
           edges={{ top: 'additive' }}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
-          <BranchDebugBanner />
           {selectedInternalAccount ? (
             <>
               <View>

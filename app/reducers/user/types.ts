@@ -10,6 +10,8 @@ import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChar
 export interface PendingAppInstallAttribution {
   clickedBranchLink: boolean;
   deeplinkPath?: string;
+  /** Full referring link URL reported by Branch (`~referring_link`). */
+  referringLink?: string;
 }
 
 export interface PendingAppInstall {
