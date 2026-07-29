@@ -58,6 +58,7 @@ import { useNotificationStoragePreferences } from '../../Settings/NotificationsS
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
 import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
+import { useSocialLeaderboardBack } from '../hooks/useSocialLeaderboardBack';
 import {
   TraderRow,
   TraderRowSkeleton,
@@ -327,9 +328,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     };
   });
 
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  const handleBack = useSocialLeaderboardBack();
 
   // Auto-dismiss the notifications nudge after a fixed window so it never lingers
   // as permanent chrome. Cleared on manual close/unmount via the effect cleanup.

@@ -71,6 +71,7 @@ import {
 } from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
+import { useSocialLeaderboardBack } from '../hooks/useSocialLeaderboardBack';
 import {
   buildFollowTradingTokenContext,
   pickFollowTradingDismissedProperties,
@@ -196,13 +197,13 @@ const TraderPositionView = () => {
     }
   }, [refetchPosition, refreshProfile]);
 
-  // Plain goBack: returns to whatever the user was on before opening this
-  // screen — Profile (in-app row tap), Wallet Home (cold-start push), or the
-  // Notifications panel (in-app notification tap). The trader's name in the
-  // header is the affordance for navigating onward to Profile.
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  // Resolves to whatever the user was on before opening this screen — Profile
+  // (in-app row tap) or the Notifications panel (in-app notification tap) — and
+  // falls back to Wallet Home when nothing is beneath (cold-start push, where
+  // this screen is the stack root). The hook also consumes Android hardware
+  // back so it never bubbles to the OS and closes the app. The trader's name in
+  // the header is the affordance for navigating onward to Profile.
+  const handleBack = useSocialLeaderboardBack();
 
   const handleTraderPress = useCallback(() => {
     navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {

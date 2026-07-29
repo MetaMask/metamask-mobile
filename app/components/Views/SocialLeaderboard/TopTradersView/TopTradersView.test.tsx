@@ -77,6 +77,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => true);
@@ -120,12 +121,18 @@ jest.mock('@react-navigation/native', () => {
   // Real React Navigation returns a stable `navigation` reference across
   // renders. Mirror that here (lazily, to respect const TDZ at mock-init time)
   // so hooks depending on `navigation` stay referentially stable.
-  let navigation: { goBack: jest.Mock; navigate: jest.Mock } | undefined;
+  let navigation:
+    | { goBack: jest.Mock; navigate: jest.Mock; canGoBack: jest.Mock }
+    | undefined;
   return {
     ...actual,
     useNavigation: () => {
       if (!navigation) {
-        navigation = { goBack: mockGoBack, navigate: mockNavigate };
+        navigation = {
+          goBack: mockGoBack,
+          navigate: mockNavigate,
+          canGoBack: mockCanGoBack,
+        };
       }
       return navigation;
     },
@@ -295,6 +302,7 @@ jest.mock('../analytics', () => {
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
     resetTabResults();
     mockUseTopTradersHook.mockImplementation(
       (options?: UseTopTradersHookOptions) =>
@@ -363,10 +371,20 @@ describe('TopTradersView', () => {
     ).toHaveLength(1);
   });
 
-  it('calls goBack when the back button is pressed', () => {
+  it('calls goBack when the back button is pressed and a screen can be popped', () => {
+    mockCanGoBack.mockReturnValue(true);
     renderWithProvider(<TopTradersView />);
     fireEvent.press(screen.getByTestId(TopTradersViewSelectorsIDs.BACK_BUTTON));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.HOME_TABS);
+  });
+
+  it('navigates to Wallet Home when the back button is pressed at the stack root', () => {
+    mockCanGoBack.mockReturnValue(false);
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(screen.getByTestId(TopTradersViewSelectorsIDs.BACK_BUTTON));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('renders the notification button', () => {

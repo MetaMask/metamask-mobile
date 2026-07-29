@@ -54,6 +54,7 @@ import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import { useTraderMute } from '../hooks/useTraderMute';
+import { useSocialLeaderboardBack } from '../hooks/useSocialLeaderboardBack';
 import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
@@ -209,9 +210,7 @@ const TraderProfileView = () => {
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
   const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
 
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  const handleBack = useSocialLeaderboardBack();
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
