@@ -64,8 +64,10 @@ import {
 import type { NetworkConfig } from '@metamask/network-enablement-controller';
 import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
 import { selectAssetsControllerStateForBalances } from './assets-controller';
-import { augmentAssetControllersState } from '../../enablement/assets/arc';
-import { filterExcludedTokenBalances } from '../../enablement/assets/networks-customization';
+import {
+  augmentAssetControllersState,
+  filterExcludedTokenBalances,
+} from '../../enablement/assets/networks-customization';
 
 /**
  * TEMPORARY (until scaleToHumanIfRaw is fixed in core): strip `assetsInfo` so
