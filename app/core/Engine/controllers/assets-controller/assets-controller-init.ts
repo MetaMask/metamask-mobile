@@ -223,6 +223,11 @@ export const assetsControllerInit: MessengerClientInitFunction<
     },
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
     trace: createAssetsControllerTrace(initMessenger),
+    // TEMPORARY (ASSETS-3346): legacy state slices used to heal wiped `assetsInfo` metadata.
+    tempMigrateAssetsInfoMetadataAssets3346: () => ({
+      TokensController: persistedState?.TokensController,
+      AccountsController: persistedState?.AccountsController,
+    }),
   });
 
   return { controller };

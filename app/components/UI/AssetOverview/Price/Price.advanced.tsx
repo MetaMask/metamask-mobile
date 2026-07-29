@@ -14,6 +14,7 @@ import { toDateFormat } from '../../../../util/date';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
+  CHART_INTERVAL_CONFIGS,
   isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
@@ -33,7 +34,6 @@ import {
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
-  type OHLCVTimePeriod,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
@@ -44,6 +44,8 @@ import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { Box, TextColor } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
@@ -77,18 +79,6 @@ const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
   '1W': '1h',
   '1M': '1d',
   '1Y': '1d',
-};
-
-/**
- * Maps each candle interval to the API timePeriod that returns enough history.
- * Without this, e.g. interval=1d + timePeriod=1d returns only ~1 bar.
- */
-const INTERVAL_TO_TIME_PERIOD: Record<string, OHLCVTimePeriod> = {
-  '1m': '1d',
-  '5m': '1d',
-  '15m': '1d',
-  '1h': '1w',
-  '1d': '1m',
 };
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
@@ -172,7 +162,7 @@ const PriceAdvanced = ({
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const {
@@ -393,7 +383,7 @@ const PriceAdvanced = ({
   const chartInterval = displayInterval.toLowerCase();
 
   const effectiveTimePeriod = isTechnicalIndicatorsEnabled
-    ? INTERVAL_TO_TIME_PERIOD[chartInterval]
+    ? CHART_INTERVAL_CONFIGS[chartInterval]
     : config.timePeriod;
 
   const effectiveInterval = isTechnicalIndicatorsEnabled
@@ -531,8 +521,9 @@ const PriceAdvanced = ({
         .build(),
     );
 
-    navigation.navigate(
-      ...createMAPickerNavDetails({
+    navigateWithDetails(
+      navigation,
+      createMAPickerNavDetails({
         selectedMAs,
         onDone: (selected: string[]) => {
           setActiveIndicators((prev) => {

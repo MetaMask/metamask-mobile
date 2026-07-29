@@ -1012,6 +1012,7 @@ describe('usePerpsLivePositions', () => {
           entryPrice: '50000',
           size: '1.0',
           marginUsed: '5000',
+          positionValue: '50000',
         },
       ];
 
@@ -1019,6 +1020,24 @@ describe('usePerpsLivePositions', () => {
 
       expect(enriched[0].unrealizedPnl).toBe('2000');
       expect(enriched[0].returnOnEquity).toBe('0.4');
+      expect(enriched[0].positionValue).toBe('52000');
+    });
+
+    it('updates positionValue for shorts using absolute size', () => {
+      const positions: Position[] = [
+        {
+          ...mockPosition,
+          entryPrice: '50000',
+          size: '-2.0',
+          marginUsed: '10000',
+          positionValue: '100000',
+        },
+      ];
+
+      const enriched = enrichPositionsWithLivePnL(positions, basePriceData);
+
+      expect(enriched[0].unrealizedPnl).toBe('-4000');
+      expect(enriched[0].positionValue).toBe('104000');
     });
 
     it('returns positions unchanged when price data is empty', () => {

@@ -4,6 +4,7 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   Box,
@@ -58,7 +59,7 @@ function PaymentSelectionModal() {
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { amount: routeAmount, onPaymentMethodSelect } =
     useParams<PaymentSelectionModalParams>();
 
@@ -123,7 +124,15 @@ function PaymentSelectionModal() {
         })
         .build(),
     );
-    navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+    // Close the payment sheet before opening provider selection. Stacking two
+    // modal screens leaves the amount input on BuildQuote invisible behind the
+    // nested overlays (TRAM-3750).
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.MODALS.ID, {
+        screen: Routes.RAMP.MODALS.PROVIDER_SELECTION,
+        params: { amount },
+      });
+    });
   }, [
     navigation,
     amount,

@@ -20,6 +20,8 @@ import {
   PAY_HARDWARE_ENABLED_DEFAULT,
   selectDepositLimits,
   PAY_DEPOSIT_LIMITS_DEFAULT,
+  PAY_PREFILLED_AMOUNT_DEFAULT,
+  selectPrefilledAmountConfig,
   PreferredToken,
   getPreferredTokensForTransactionType,
   selectRelayFixedSpread,
@@ -680,5 +682,73 @@ describe('selectRelayFixedSpread', () => {
       routes: [],
     });
     expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('selectPrefilledAmountConfig', () => {
+  it('returns default (enabled: false) when no flags are set', () => {
+    expect(
+      selectPrefilledAmountConfig(
+        mockedEmptyFlagsState as unknown as RootState,
+      ),
+    ).toEqual(PAY_PREFILLED_AMOUNT_DEFAULT.default);
+  });
+
+  it('returns override config when transaction type has an override', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: false },
+            overrides: {
+              moneyAccountDeposit: { enabled: true },
+            },
+          },
+        },
+      };
+
+    expect(
+      selectPrefilledAmountConfig(
+        state as unknown as RootState,
+        'moneyAccountDeposit',
+      ),
+    ).toEqual({ enabled: true });
+  });
+
+  it('falls back to default when transaction type has no override', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: true },
+            overrides: {},
+          },
+        },
+      };
+
+    expect(
+      selectPrefilledAmountConfig(state as unknown as RootState, 'unknownType'),
+    ).toEqual({ enabled: true });
+  });
+
+  it('returns default when no transaction type is provided', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: true },
+            overrides: {
+              moneyAccountDeposit: { enabled: false },
+            },
+          },
+        },
+      };
+
+    expect(selectPrefilledAmountConfig(state as unknown as RootState)).toEqual({
+      enabled: true,
+    });
   });
 });

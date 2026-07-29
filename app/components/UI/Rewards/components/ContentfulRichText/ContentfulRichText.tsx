@@ -1,9 +1,6 @@
 import React, { Fragment, useCallback } from 'react';
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   Text,
@@ -105,7 +102,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
   bodyClassName = 'text-alternative',
   testID,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleLinkPress = useCallback(
     (url: string) => {

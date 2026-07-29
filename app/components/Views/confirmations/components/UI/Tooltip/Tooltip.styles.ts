@@ -1,14 +1,25 @@
 import { StyleSheet } from 'react-native';
 
-import { Theme } from '../../../../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
+import {
+  getElevatedSurfaceColor,
+  isPureBlackEnabled,
+} from '../../../../../../util/theme/themeUtils';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
+  const { colors } = theme;
+  const isPureBlackDark =
+    isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
 
   return StyleSheet.create({
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
+    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
     modalView: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: getElevatedSurfaceColor(theme),
+      borderWidth: isPureBlackDark ? 1 : 0,
+      borderColor: isPureBlackDark ? colors.border.muted : undefined,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 8,

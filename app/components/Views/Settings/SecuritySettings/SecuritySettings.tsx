@@ -31,6 +31,7 @@ import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import createStyles from './SecuritySettings.styles';
 import { SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
 import {
@@ -51,6 +52,7 @@ import { TextVariant as LibraryTextVariant } from '../../../../component-library
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import TopTradersSection from './Sections/TopTradersSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
@@ -70,7 +72,7 @@ const Settings: React.FC = () => {
     styles,
     theme: { colors, brandColors },
   } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =
@@ -411,6 +413,7 @@ const Settings: React.FC = () => {
           <MetaMetricsAndDataCollectionSection />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
           <DeleteWalletData />
+          <TopTradersSection />
           {renderHint()}
         </View>
       </ScrollView>

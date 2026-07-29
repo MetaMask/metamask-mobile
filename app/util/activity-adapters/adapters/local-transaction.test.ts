@@ -678,6 +678,46 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a zero-amount approve to a revoke spending-cap activity', () => {
+    const transaction = {
+      chainId: base,
+      id: 'revoke-id',
+      hash: '0xrevoke',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, 0n),
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'revokeSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xrevoke',
+      data: {
+        token: {
+          amount: '0',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
   it('uses bridge history token data to map a local swap', () => {
     const transaction = {
       chainId: base,
@@ -1332,6 +1372,55 @@ describe('mapLocalTransaction', () => {
           amount: expect.any(String),
         }),
         fees: expect.any(Array),
+      }),
+    );
+  });
+
+  it('uses the gasToken fee amount for a gasless EIP-7702 smart account upgrade', () => {
+    const gasTokenAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgradegasless',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      selectedGasFeeToken: gasTokenAddress,
+      gasFeeTokens: [
+        {
+          tokenAddress: gasTokenAddress,
+          amount: '0x64',
+          decimals: 18,
+          symbol: 'mUSD',
+          balance: '0x0',
+          gas: '0x0',
+          maxFeePerGas: '0x0',
+          maxPriorityFeePerGas: '0x0',
+          rateWei: '0x0',
+          recipient: '0x1',
+        },
+      ],
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('smartAccountUpgrade');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          direction: 'out',
+          amount: '100',
+        }),
+        fees: [
+          expect.objectContaining({
+            type: 'gasToken',
+            amount: '100',
+            symbol: 'mUSD',
+          }),
+        ],
       }),
     );
   });

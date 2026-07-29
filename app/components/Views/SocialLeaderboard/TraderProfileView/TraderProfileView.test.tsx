@@ -687,6 +687,7 @@ describe('TraderProfileView', () => {
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
         source: 'profile_position',
+        originalEntryPoint: 'leaderboard',
         isClosed: false,
       },
     );
@@ -707,6 +708,7 @@ describe('TraderProfileView', () => {
       expect.objectContaining({
         trader_address: '0xabc',
         asset_name: 'BTC',
+        chain_name: 'hyperliquid',
         perps_market: 'BTC',
         is_open: true,
       }),

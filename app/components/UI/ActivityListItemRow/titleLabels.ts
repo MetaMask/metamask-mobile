@@ -1,5 +1,23 @@
 import { strings } from '../../../../locales/i18n';
-import type { ActivityKind } from '../../../util/activity-adapters';
+import type { ActivityKind, Status } from '../../../util/activity-adapters';
+
+/**
+ * Lifecycle label for perps order rows (Filled / Canceled / Rejected / Open).
+ * Shared by the Activity list row (amount slot) and the details status pill so
+ * the two surfaces can't drift.
+ */
+export function resolvePerpsOrderStatusLabel(status: Status): string {
+  switch (status) {
+    case 'cancelled':
+      return strings('transactions.activity_order_status_canceled');
+    case 'failed':
+      return strings('transactions.activity_order_status_rejected');
+    case 'pending':
+      return strings('transactions.activity_order_status_open');
+    default:
+      return strings('transactions.activity_order_status_filled');
+  }
+}
 
 /**
  * Fallback title resolvers for activity kinds whose title comes straight from an
@@ -45,6 +63,12 @@ export const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   marketCloseShort: () => strings('transactions.activity_market_close_short'),
   limitShort: () => strings('transactions.activity_limit_short'),
   limitCloseShort: () => strings('transactions.activity_limit_close_short'),
+  marketLong: () => strings('transactions.activity_market_long'),
+  stopMarketCloseLong: () =>
+    strings('transactions.activity_stop_market_close_long'),
+  marketCloseLong: () => strings('transactions.activity_market_close_long'),
+  limitLong: () => strings('transactions.activity_limit_long'),
+  limitCloseLong: () => strings('transactions.activity_limit_close_long'),
 };
 
 /**

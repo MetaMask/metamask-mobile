@@ -12,8 +12,10 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -63,7 +65,7 @@ import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { goBack, dispatch } = useNavigation();
+  const { goBack, dispatch } = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
 
@@ -204,18 +206,16 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     }
   }, [preview, isFeeBreakdownVisible]);
 
-  // Use preview data if available, fallback to position data on error or when preview is unavailable
+  // Use estimated net proceeds when available, otherwise fall back to the position value.
   const currentValue = preview
-    ? preview.minAmountReceived
+    ? getPredictSellNetProceeds(preview)
     : position.currentValue;
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const exchangeFee = getPredictExchangeFee(preview?.fees);
-  const total = preview
-    ? getPredictSellNetProceeds(preview)
-    : roundDownToCents(currentValue);
+  const total = roundDownToCents(currentValue);
 
   // Recalculate PnL based on net proceeds so it reflects what the user actually receives after fees
   const cashPnl = useMemo(() => total - initialValue, [total, initialValue]);

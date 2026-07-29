@@ -7,9 +7,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -25,10 +27,7 @@ import {
   PredictOutcomeToken,
   type PredictMarketBuyButtonPress,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -155,8 +154,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const outcome = market.outcomes[0];
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
@@ -255,7 +253,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 <Image
                   source={{ uri: getImageUrl() }}
                   style={tw.style('w-full h-full')}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  recyclingKey={getImageUrl()}
                 />
               ) : (
                 <Box twClassName="w-full h-full bg-muted" />

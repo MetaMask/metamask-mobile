@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
@@ -35,12 +36,13 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
-interface PayWithModalParams {
+export interface PayWithModalParams {
   /**
    * When > 1, PayWithModal owns navigation on close by dispatching
    * `StackActions.pop(N)` atomically instead of relying on the legacy
@@ -54,7 +56,7 @@ interface PayWithModalParams {
 }
 
 export function PayWithModal() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
@@ -152,6 +154,10 @@ export function PayWithModal() {
             TransactionType.perpsDepositAndOrder,
           ])
         ) {
+          // Selecting a token via this nested picker is an explicit Perps
+          // selection — mark it so PerpsPayRow doesn't misread the sheet close
+          // as a dismissal (even when the token identity is unchanged).
+          markPerpsPaymentTokenSelection();
           onPerpsPaymentTokenChange(token);
           return;
         }

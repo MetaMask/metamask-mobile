@@ -1,7 +1,7 @@
 import {
   createIndicatorStudy,
   getMAColor,
-  isSubPaneIndicator,
+  isSubPanePreset,
   MA_LENGTHS,
   resolveStudyPreset,
 } from '../studies';
@@ -71,12 +71,17 @@ describe('resolveStudyPreset', () => {
   });
 });
 
-describe('isSubPaneIndicator', () => {
-  it('returns true for MACD and RSI only', () => {
-    expect(isSubPaneIndicator('MACD')).toBe(true);
-    expect(isSubPaneIndicator('RSI')).toBe(true);
-    expect(isSubPaneIndicator('BOL')).toBe(false);
-    expect(isSubPaneIndicator('MA200')).toBe(false);
+describe('isSubPanePreset', () => {
+  it('returns true for presets with paneTarget sub', () => {
+    const macd = resolveStudyPreset('MACD', colors);
+    const rsi = resolveStudyPreset('RSI', colors);
+    const bol = resolveStudyPreset('BOL', colors);
+    const ma200 = resolveStudyPreset('MA200', colors);
+
+    expect(isSubPanePreset(macd)).toBe(true);
+    expect(isSubPanePreset(rsi)).toBe(true);
+    expect(isSubPanePreset(bol)).toBe(false);
+    expect(isSubPanePreset(ma200)).toBe(false);
   });
 });
 

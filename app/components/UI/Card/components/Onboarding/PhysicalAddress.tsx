@@ -6,6 +6,11 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../../util/navigation/navUtils';
 import {
   Box,
   Label,
@@ -82,7 +87,7 @@ export const AddressFields = ({
   handleZipCodeChange: (text: string) => void;
   selectedCountry: Region | null;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { data: registrationSettings } = useRegistrationSettings();
 
   const regions: Region[] = useMemo(() => {
@@ -104,8 +109,9 @@ export const AddressFields = ({
     setOnValueChange((region) => {
       handleStateChange(region.key);
     });
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions,
       }),
     );
@@ -218,7 +224,7 @@ export const AddressFields = ({
 };
 
 const PhysicalAddress = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const dispatch = useDispatch();
   const { user, setUser, sdk } = useCardSDK();
@@ -538,7 +544,7 @@ const PhysicalAddress = () => {
           }
           setIsPollingVerification(false);
           dispatch(resetOnboardingState());
-          navigation.reset({
+          resetWithRoutes(navigation, {
             index: 0,
             routes: [route],
           });

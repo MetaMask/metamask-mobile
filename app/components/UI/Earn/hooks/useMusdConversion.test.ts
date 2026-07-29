@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useMusdConversion } from './useMusdConversion';
+import {
+  useMusdConversion,
+  selectPendingApprovalIds,
+} from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -1099,5 +1102,54 @@ describe('useMusdConversion', () => {
 
       expect(result.current.error).toBeNull();
     });
+  });
+});
+
+describe('selectPendingApprovalIds', () => {
+  const buildState = (pendingApprovals: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          ApprovalController: {
+            pendingApprovals,
+          },
+        },
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any;
+
+  it('returns the keys of the pending approvals map', () => {
+    const pendingApprovals = { '1': { id: '1' }, '2': { id: '2' } };
+
+    expect(selectPendingApprovalIds(buildState(pendingApprovals))).toEqual([
+      '1',
+      '2',
+    ]);
+  });
+
+  it('returns an empty array when there are no pending approvals', () => {
+    expect(selectPendingApprovalIds(buildState({}))).toEqual([]);
+  });
+
+  it('returns a stable array reference when the underlying approvals are unchanged', () => {
+    const state = buildState({ '1': { id: '1' } });
+
+    const firstResult = selectPendingApprovalIds(state);
+    const secondResult = selectPendingApprovalIds(state);
+
+    expect(secondResult).toBe(firstResult);
+  });
+
+  it('returns a new array reference when the underlying approvals change', () => {
+    const firstResult = selectPendingApprovalIds(
+      buildState({ '1': { id: '1' } }),
+    );
+    const secondResult = selectPendingApprovalIds(
+      buildState({ '1': { id: '1' }, '2': { id: '2' } }),
+    );
+
+    expect(secondResult).not.toBe(firstResult);
+    expect(secondResult).toEqual(['1', '2']);
   });
 });

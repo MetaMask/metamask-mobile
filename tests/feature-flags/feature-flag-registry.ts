@@ -93,6 +93,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialLeaderboardOptFlowEnabled: {
+    name: 'aiSocialLeaderboardOptFlowEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardPerpsEnabled: {
     name: 'aiSocialLeaderboardPerpsEnabled',
     type: FeatureFlagType.Remote,
@@ -100,6 +111,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '8.1.0',
       enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialFeedEnabled: {
+    name: 'aiSocialFeedEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialLeaderboardOnboardingEnabled: {
+    name: 'aiSocialLeaderboardOnboardingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -229,6 +262,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           featureVersion: null,
           minimumVersion: null,
           tracesEnabled: false,
+          deprecatedControllers: [],
+        },
+        '8.3.0': {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '8.3.0',
+          tracesEnabled: false,
+          deprecatedControllers: [],
         },
       },
     },
@@ -3325,6 +3366,44 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyDepositCtaTokens: {
+    name: 'earnMoneyDepositCtaTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarnBannerEnabled: {
+    name: 'earnMoneyEarnBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarnBannerTokens: {
+    name: 'earnMoneyEarnBannerTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyTokenListItemCtaEnabled: {
+    name: 'earnMoneyTokenListItemCtaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyFirstTimeDepositAnimationEnabled: {
     name: 'earnMoneyFirstTimeDepositAnimationEnabled',
     type: FeatureFlagType.Remote,
@@ -3883,6 +3962,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsProModeEnabled: {
+    name: 'perpsProModeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsHip3AllowlistMarkets: {
     name: 'perpsHip3AllowlistMarkets',
     type: FeatureFlagType.Remote,
@@ -4322,6 +4412,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  rampsTransakWidgetUrlProxy: {
+    name: 'rampsTransakWidgetUrlProxy',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   rewardsAnnouncementModalEnabled: {
     name: 'rewardsAnnouncementModalEnabled',
     type: FeatureFlagType.Remote,
@@ -4554,6 +4655,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           value: 0.95,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  socialAiTSA901AbtestTopTradersBuyAction: {
+    name: 'socialAiTSA901AbtestTopTradersBuyAction',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 0.5,
           type: 'percentage_rollout',
         },
       },
@@ -4972,6 +5096,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           depositLimit: {
             moneyAccountDeposit: 100000,
           },
+          prefilledAmount: {
+            default: {
+              enabled: false,
+            },
+            overrides: {
+              moneyAccountDeposit: {
+                enabled: true,
+              },
+            },
+          },
           enableDepositWalletWithdraw: true,
           enableMoneyAccountTransactions: {
             predictDeposit: true,
@@ -5012,31 +5146,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  coreMCU589AbtestHubPageDiscoveryTabs: {
-    name: 'coreMCU589AbtestHubPageDiscoveryTabs',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   extensionUxPna25: {
     name: 'extensionUxPna25',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
-  homeTMCU470AbtestTrendingSections: {
-    name: 'homeTMCU470AbtestTrendingSections',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5084,6 +5198,36 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       },
       {
         name: 'colorIcons',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1103AbtestActionButtonsGrid: {
+    name: 'homeTMCU1103AbtestActionButtonsGrid',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row1Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row2Top',
         scope: {
           type: 'percentage_rollout',
           value: 1,
@@ -5464,29 +5608,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU828AbtestOnboardingChecklistStepper: {
-    name: 'homeTMCU828AbtestOnboardingChecklistStepper',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 0.5,
-          type: 'percentage_rollout',
-        },
-      },
-      {
-        scope: {
-          value: 1,
-          type: 'percentage_rollout',
-        },
-        name: 'treatment',
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   predictHomeRedesign: {
     name: 'predictHomeRedesign',
     type: FeatureFlagType.Remote,
@@ -5494,6 +5615,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictFeedBanner: {
+    name: 'predictFeedBanner',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+      id: '',
+      title: '',
+      description: '',
+      position: 'after-world-cup-banner',
+      severity: 'info',
+      dismissible: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5530,14 +5668,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  swapsSWAPS4543AbtestPostTradeModal: {
-    name: 'swapsSWAPS4543AbtestPostTradeModal',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [],
-    status: FeatureFlagStatus.Active,
-  },
-
   swapsSWAPS4635AbtestVerified2: {
     name: 'swapsSWAPS4635AbtestVerified2',
     type: FeatureFlagType.Remote,
@@ -5557,16 +5687,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  priceAlertsEnabled: {
-    name: 'priceAlertsEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.81.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
   agentic_cli_notifications_enabled: {
     name: 'agentic_cli_notifications_enabled',
     type: FeatureFlagType.Remote,

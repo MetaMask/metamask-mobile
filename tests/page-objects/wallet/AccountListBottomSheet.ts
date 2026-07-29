@@ -29,6 +29,7 @@ import {
   Utilities,
 } from '../../framework';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
+import WalletView from './WalletView';
 
 const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
 
@@ -157,28 +158,38 @@ class AccountListBottomSheet {
    *
    * Detox has no native "return all matches" primitive — index into the
    * matcher with `.atIndex(N).toExist()` per expected cell instead.
+   *
+   * @param exactMatch - When false (default), match account names that contain
+   * the given string (e.g. "Account 3" matches "Account 3 (2)").
    */
   async getAccountElementsByAccountNameV2(
     accountName: string,
+    exactMatch: boolean = false,
   ): Promise<PlaywrightElement[]> {
     if (!FrameworkDetector.isAppium()) {
       throw new Error(
         'getAccountElementsByAccountNameV2 is Appium-only. On Detox, assert each cell with `getAccountElementByAccountNameV2(name)` indexed via .atIndex(N).',
       );
     }
+    const escapedAccountName = accountName.replace(/'/g, "\\'");
     if (PlatformDetector.isAndroid()) {
-      const escapedAccountName = accountName.replace(/'/g, "\\'");
       // Anchor on the name text, then step up to the tappable row — immune to
       // the RN view flattening that detaches the row from its CONTAINER.
+      const textPredicate = exactMatch
+        ? `@text='${escapedAccountName}'`
+        : `contains(@text,'${escapedAccountName}')`;
       return Matchers.getAllElementsByXPath(
-        `//*[@resource-id='${AccountCellIds.ADDRESS}' and @text='${escapedAccountName}']/ancestor::*[@resource-id='${AccountCellIds.SELECT}'][1]`,
+        `//*[@resource-id='${AccountCellIds.ADDRESS}' and ${textPredicate}]/ancestor::*[@resource-id='${AccountCellIds.SELECT}'][1]`,
       );
     }
 
     // iOS collapses the row's children, so match the row itself: name is the
     // testID, label aggregates to the account name.
+    const labelPredicate = exactMatch
+      ? `@label='${escapedAccountName}'`
+      : `contains(@label,'${escapedAccountName}')`;
     return Matchers.getAllElementsByXPath(
-      `//*[@name='${AccountCellIds.SELECT}' and @label='${accountName}']`,
+      `//*[@name='${AccountCellIds.SELECT}' and ${labelPredicate}]`,
     );
   }
 
@@ -394,7 +405,7 @@ class AccountListBottomSheet {
           scrollParams: { direction: 'down' },
         });
         await PlaywrightGestures.waitAndTap(link);
-        await this.waitForAccountSyncToComplete(90_000, {
+        await this.waitForAccountSyncToComplete(10000, {
           addAccountButtonIndex: index,
         });
       },
@@ -436,6 +447,7 @@ class AccountListBottomSheet {
         const name = await PlaywrightMatchers.getElementByText(accountName);
         await PlaywrightGestures.scrollIntoView(name);
         await PlaywrightGestures.waitAndTap(name);
+        await WalletView.checkActiveAccount(accountName);
       },
     });
   }
@@ -455,8 +467,10 @@ class AccountListBottomSheet {
         if (PlatformDetector.isAndroid()) {
           await Utilities.executeWithRetry(
             async () => {
-              const cells =
-                await this.getAccountElementsByAccountNameV2(accountName);
+              const cells = await this.getAccountElementsByAccountNameV2(
+                accountName,
+                exactMatch,
+              );
               if (cells.length === 0) {
                 throw new Error(`No account row found for "${accountName}"`);
               }

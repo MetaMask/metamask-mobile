@@ -32,6 +32,7 @@ import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -60,6 +61,7 @@ import {
   type RouteProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { RootState } from '../../../reducers';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
@@ -71,7 +73,7 @@ import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/us
  */
 const OptinMetrics = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -91,6 +93,7 @@ const OptinMetrics = () => {
   const walletSetupAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -168,6 +171,7 @@ const OptinMetrics = () => {
       walletSetupAttributionProps,
       dispatch,
       discoverAccountsLogContext: 'OptinMetrics',
+      needsQrProvisioning,
     });
 
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
@@ -185,6 +189,7 @@ const OptinMetrics = () => {
     accountType,
     isBasicFunctionalityEnabled,
     walletSetupAttributionProps,
+    needsQrProvisioning,
   ]);
 
   /**

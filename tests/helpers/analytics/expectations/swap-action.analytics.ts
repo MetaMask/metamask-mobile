@@ -26,7 +26,7 @@ const quotesRequestedProperties: Record<
   chain_id_destination: 'string',
   token_address_source: 'string',
   token_address_destination: 'string',
-  slippage_limit: 'number',
+  // Omitted while client slippage is Auto/unset; present after a numeric override.
   swap_type: 'string',
   custom_slippage: 'boolean',
   is_hardware_wallet: 'boolean',
@@ -102,11 +102,11 @@ const completedProperties: Record<
  *
  * Note: these expectations are run against events captured during the first swap only.
  * The `validate` callback handles the Input Changed events which require advanced checks
- * (count = 11 without custom slippage; chain_source, token_destination).
+ * (count = 9 without client default / custom slippage; chain_source, token_destination).
  *
- * Slippage `INPUT_CHANGED` assertion is disabled: swap-action smoke no longer opens the
- * slippage modal until https://github.com/MetaMask/metamask-mobile/issues/29615 is fixed,
- * so that event is not emitted and the count is 11 instead of 12.
+ * Slippage `INPUT_CHANGED` is not emitted until the user sets a numeric override:
+ * there is no client-side default slippage, and swap-action smoke does not open the
+ * slippage modal until https://github.com/MetaMask/metamask-mobile/issues/29615 is fixed.
  */
 export const swapActionExpectations: AnalyticsExpectations = {
   eventNames: expectedEventNames,
@@ -130,8 +130,8 @@ export const swapActionExpectations: AnalyticsExpectations = {
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
 
-    // 11 while custom slippage is skipped (bug #29615); was 12 with slippage modal.
-    await Assertions.checkIfArrayHasLength(inputChanged, 11);
+    // 9 with Auto/unset slippage (no client default InputChanged); was 11/12 before.
+    await Assertions.checkIfArrayHasLength(inputChanged, 9);
 
     for (const event of inputChanged) {
       await Assertions.checkIfValueIsDefined(event.properties.input);

@@ -12,17 +12,19 @@ import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { HeaderBase } from '@metamask/design-system-react-native';
+import {
+  HeaderBase,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import type { QrSyncPhase } from '../../../core/QrSync/types';
 import Engine from '../../../core/Engine';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
+  selectQrSyncError,
   selectQrSyncIsSessionActive,
   selectQrSyncPhase,
   selectQrSyncPresentation,
@@ -75,13 +77,6 @@ export const createQRScannerNavDetails =
   createNavigationDetails<QRTabSwitcherParams>(Routes.QR_TAB_SWITCHER);
 
 const QRTabSwitcher = () => {
-  // Start tracing component loading
-  const isFirstRender = useRef(true);
-
-  if (isFirstRender.current) {
-    trace({ name: TraceName.QRTabSwitcher });
-  }
-
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
   const { onScanError, onScanSuccess, onStartScan, origin } =
@@ -92,9 +87,25 @@ const QRTabSwitcher = () => {
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const qrSyncError = useSelector(selectQrSyncError);
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasShownExtensionCancelSheetRef = useRef(false);
   const prevPhaseRef = useRef(phase);
+  const keepWaitingScreenAfterCancelRef = useRef(false);
+
+  if (isAddDeviceOrigin) {
+    if (
+      phase === QrSyncPhases.INITIALIZING ||
+      phase === QrSyncPhases.DISPLAYING_OTP
+    ) {
+      keepWaitingScreenAfterCancelRef.current = false;
+    } else if (
+      DEVICE_LINKED_WAIT_PHASES.has(prevPhaseRef.current) &&
+      (phase === QrSyncPhases.IDLE || phase === QrSyncPhases.FAILED)
+    ) {
+      keepWaitingScreenAfterCancelRef.current = true;
+    }
+  }
 
   const showExtensionCancelSheetOnce = useCallback(() => {
     if (hasShownExtensionCancelSheetRef.current) {
@@ -102,8 +113,10 @@ const QRTabSwitcher = () => {
     }
 
     hasShownExtensionCancelSheetRef.current = true;
-    showExtensionCancelledErrorSheet(navigation);
-  }, [navigation]);
+    showExtensionCancelledErrorSheet(navigation, {
+      errorMessage: qrSyncError?.message,
+    });
+  }, [navigation, qrSyncError?.message]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -111,6 +124,7 @@ const QRTabSwitcher = () => {
 
   const resetExtensionCancelSheetState = useCallback(() => {
     hasShownExtensionCancelSheetRef.current = false;
+    keepWaitingScreenAfterCancelRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -134,7 +148,9 @@ const QRTabSwitcher = () => {
   useQrSyncImportNavigation({ enabled: isAddDeviceOrigin });
 
   const showDeviceAddedLoader =
-    isAddDeviceOrigin && presentation === 'device-linked';
+    isAddDeviceOrigin &&
+    (presentation === 'device-linked' ||
+      keepWaitingScreenAfterCancelRef.current);
 
   useEffect(() => {
     if (!isAddDeviceOrigin) {
@@ -183,10 +199,9 @@ const QRTabSwitcher = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  // End trace when component has finished initial loading
   useEffect(() => {
+    trace({ name: TraceName.QRTabSwitcher });
     endTrace({ name: TraceName.QRTabSwitcher });
-    isFirstRender.current = false;
   }, []);
 
   const goBack = () => {
@@ -195,8 +210,11 @@ const QRTabSwitcher = () => {
     }
 
     navigation.goBack();
+    const scanErrorCallback = onScanError;
     try {
-      onScanError?.(USER_CANCELLED);
+      if (scanErrorCallback) {
+        scanErrorCallback(USER_CANCELLED);
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.warn(`Error setting onScanError: ${error.message}`);
@@ -224,18 +242,16 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      <View style={styles.overlay}>
-        <HeaderBase
-          style={styles.header}
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Md}
-              onPress={goBack}
-            />
-          }
-        ></HeaderBase>
-      </View>
+      <HeaderBase
+        style={[styles.overlay, styles.header]}
+        endAccessory={
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            onPress={goBack}
+          />
+        }
+      />
 
       {/* QR scanner interface - camera view only */}
     </View>

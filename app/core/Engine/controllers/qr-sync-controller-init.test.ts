@@ -5,7 +5,7 @@ import {
   QrSyncController,
   defaultQrSyncControllerState,
 } from '../../QrSync/QrSyncController';
-import { QrSyncPhases, RELAY_URL } from '../../QrSync/constants';
+import { QrSyncPhases } from '../../QrSync/constants';
 import type {
   QrSyncControllerMessenger,
   QrSyncControllerState,
@@ -13,43 +13,37 @@ import type {
 import { qrSyncControllerInit } from './qr-sync-controller-init';
 import { getQrSyncControllerMessenger } from '../messengers/qr-sync-controller-messenger';
 import { KeyManager } from '../../SDKConnectV2/services/key-manager';
-import { store } from '../../../store';
-import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-
-jest.mock('../../QrSync/QrSyncController', () => {
-  const actual = jest.requireActual('../../QrSync/QrSyncController');
-  return {
-    ...actual,
-    QrSyncController: jest.fn(actual.QrSyncController),
-  };
-});
+import { registerE2EQrSyncDeepLinkHandler } from '../../QrSync/e2eBridgeQrSync';
 
 jest.mock('../../SDKConnectV2/services/key-manager', () => ({
   KeyManager: jest.fn(),
 }));
 
-jest.mock('../../../store', () => ({
-  store: {
-    getState: jest.fn(),
+const mockHasTestOverrides = jest.fn(() => false);
+
+jest.mock('../../../util/test/utils', () => ({
+  get hasTestOverrides() {
+    return mockHasTestOverrides();
   },
 }));
 
-jest.mock('../../../selectors/onboarding', () => ({
-  selectCompletedOnboarding: jest.fn(),
+jest.mock('../../QrSync/e2eBridgeQrSync', () => ({
+  registerE2EQrSyncDeepLinkHandler: jest.fn(),
 }));
 
 describe('qrSyncControllerInit', () => {
-  const qrSyncControllerClassMock = jest.mocked(QrSyncController);
   const keyManagerClassMock = jest.mocked(KeyManager);
-  const selectCompletedOnboardingMock = jest.mocked(selectCompletedOnboarding);
-  const storeGetStateMock = jest.mocked(store.getState);
+  const registerE2EQrSyncDeepLinkHandlerMock = jest.mocked(
+    registerE2EQrSyncDeepLinkHandler,
+  );
   let initRequestMock: jest.Mocked<
     MessengerClientInitRequest<QrSyncControllerMessenger>
   >;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockHasTestOverrides.mockReturnValue(false);
 
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -61,9 +55,6 @@ describe('qrSyncControllerInit', () => {
         baseControllerMessenger,
       ),
     };
-
-    selectCompletedOnboardingMock.mockReturnValue(true);
-    storeGetStateMock.mockReturnValue({} as ReturnType<typeof store.getState>);
   });
 
   it('returns a controller instance', () => {
@@ -75,10 +66,9 @@ describe('qrSyncControllerInit', () => {
   it('uses default state when no persisted state is provided', () => {
     initRequestMock.persistedState = {};
 
-    qrSyncControllerInit(initRequestMock);
+    const { controller } = qrSyncControllerInit(initRequestMock);
 
-    const constructorArgs = qrSyncControllerClassMock.mock.calls[0][0];
-    expect(constructorArgs.state).toStrictEqual(defaultQrSyncControllerState);
+    expect(controller.state).toStrictEqual(defaultQrSyncControllerState);
   });
 
   it('uses persisted state when provided', () => {
@@ -93,31 +83,69 @@ describe('qrSyncControllerInit', () => {
       QrSyncController: persistedState,
     };
 
-    qrSyncControllerInit(initRequestMock);
+    const { controller } = qrSyncControllerInit(initRequestMock);
 
-    const constructorArgs = qrSyncControllerClassMock.mock.calls[0][0];
-    expect(constructorArgs.state).toStrictEqual(persistedState);
+    expect(controller.state).toStrictEqual(persistedState);
   });
 
   it('passes relay URL and key manager to the controller', () => {
-    qrSyncControllerInit(initRequestMock);
+    const { controller } = qrSyncControllerInit(initRequestMock);
 
-    const constructorArgs = qrSyncControllerClassMock.mock.calls[0][0];
-    expect(constructorArgs.relayUrl).toBe(RELAY_URL);
-    expect(constructorArgs.keyManager).toBeInstanceOf(KeyManager);
+    expect(controller).toBeInstanceOf(QrSyncController);
     expect(keyManagerClassMock).toHaveBeenCalledTimes(1);
   });
 
-  it('wires onboarding completion lookup to the Redux store', () => {
-    selectCompletedOnboardingMock.mockReturnValue(false);
+  it('exposes provisioning mutation methods on the initialized controller', () => {
+    const { controller } = qrSyncControllerInit(initRequestMock);
+
+    expect(typeof controller.importRemainingSecrets).toBe('function');
+    expect(typeof controller.enrichProvisioningEntry).toBe('function');
+    expect(typeof controller.markProvisioningFailed).toBe('function');
+    expect(typeof controller.completeProvisioning).toBe('function');
+  });
+
+  it('registers provisioning mutation action handlers on the controller messenger', () => {
+    const registerSpy = jest.spyOn(
+      initRequestMock.controllerMessenger,
+      'registerActionHandler',
+    );
 
     qrSyncControllerInit(initRequestMock);
 
-    const constructorArgs = qrSyncControllerClassMock.mock.calls[0][0];
-    expect(constructorArgs.getIsOnboardingCompleted()).toBe(false);
-    expect(storeGetStateMock).toHaveBeenCalledTimes(1);
-    expect(selectCompletedOnboardingMock).toHaveBeenCalledWith(
-      storeGetStateMock.mock.results[0].value,
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:importRemainingSecrets',
+      expect.any(Function),
     );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:enrichProvisioningEntry',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:markProvisioningFailed',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:completeProvisioning',
+      expect.any(Function),
+    );
+  });
+
+  it('registers the E2E deep-link handler when test overrides are enabled', () => {
+    mockHasTestOverrides.mockReturnValue(true);
+
+    const { controller } = qrSyncControllerInit(initRequestMock);
+
+    expect(registerE2EQrSyncDeepLinkHandlerMock).toHaveBeenCalledTimes(1);
+    const resolveController =
+      registerE2EQrSyncDeepLinkHandlerMock.mock.calls[0][0];
+    expect(resolveController()).toBe(controller);
+  });
+
+  it('skips E2E deep-link registration when test overrides are disabled', () => {
+    mockHasTestOverrides.mockReturnValue(false);
+
+    qrSyncControllerInit(initRequestMock);
+
+    expect(registerE2EQrSyncDeepLinkHandlerMock).not.toHaveBeenCalled();
   });
 });

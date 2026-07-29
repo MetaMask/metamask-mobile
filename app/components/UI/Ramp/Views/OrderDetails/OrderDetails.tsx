@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -15,10 +16,7 @@ import {
   ButtonSize,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
-import {
-  normalizeProviderCode,
-  RampsOrderStatus,
-} from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
 import { extractOrderCode } from '../../utils/extractOrderCode';
 import {
@@ -31,11 +29,16 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
   useParams,
+  resetWithRoutes,
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
-import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import {
+  emitOrderConfirmedAnalyticsFromCallback,
+  emitTerminalOrderAnalyticsFromCallback,
+  isTerminalOrderStatus,
+} from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -83,7 +86,7 @@ const OrderDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -104,7 +107,7 @@ const OrderDetails = () => {
           walletAddress,
         );
         if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
-          navigation.reset({
+          resetWithRoutes(navigation, {
             index: 0,
             routes: getNavigateAfterExternalBrowserRoutes({
               returnDestination: 'buildQuote',
@@ -114,11 +117,16 @@ const OrderDetails = () => {
         }
         addOrder(fetchedOrder);
 
-        // TRAM-3691: a callback-fetched order that is already terminal is never
-        // polled, so `orderStatusChanged` never fires and the terminal metrics
-        // event would be lost. Emit it directly (no-ops for non-terminal orders
-        // and dedups against the polling path).
-        emitTerminalOrderAnalyticsFromCallback(fetchedOrder);
+        // TRAM-3738: non-terminal callback orders emit Confirmed (payment
+        // submitted). Terminal orders skip Confirmed and emit Completed/Failed
+        // directly — see TRAM-3691.
+        if (isTerminalOrderStatus(fetchedOrder.status)) {
+          emitTerminalOrderAnalyticsFromCallback(fetchedOrder);
+        } else {
+          emitOrderConfirmedAnalyticsFromCallback(fetchedOrder, {
+            rampType: 'UNIFIED_BUY_2',
+          });
+        }
 
         showV2OrderToast({
           orderId: fetchedOrder.providerOrderId,
@@ -204,7 +212,7 @@ const OrderDetails = () => {
     try {
       setError(null);
       setIsRefreshing(true);
-      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      const providerCode = order.provider?.id ?? '';
       await refreshOrder(
         providerCode,
         order.providerOrderId,

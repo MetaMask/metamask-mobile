@@ -5,12 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Image,
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import { RefreshControl, ScrollView, useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -352,6 +348,15 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     [market.series],
   );
 
+  // Stable reference so the memoized TimeSlotPicker doesn't re-render on
+  // every live price tick of this screen.
+  const handleMarketSelected = useCallback(
+    (nextMarket: PredictMarket) => {
+      setSelectedMarket(attachSeries(nextMarket));
+    },
+    [attachSeries],
+  );
+
   const getNextSelectedMarket = useCallback(
     (currentMarket: PredictMarketWithSeries): PredictMarketWithSeries => {
       if (!currentSeriesMarkets?.length) {
@@ -511,7 +516,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                   <Image
                     source={{ uri: selectedMarket.image }}
                     style={tw.style('w-full h-full')}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <Box twClassName="w-full h-full bg-muted" />
@@ -527,7 +532,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <TimeSlotPicker
           markets={visibleSlotMarkets}
           selectedMarketId={selectedMarket.id}
-          onMarketSelected={(m) => setSelectedMarket(attachSeries(m))}
+          onMarketSelected={handleMarketSelected}
         />
 
         <Box
