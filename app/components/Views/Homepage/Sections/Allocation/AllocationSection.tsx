@@ -12,10 +12,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { brandColor } from '@metamask/design-tokens';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
@@ -80,7 +80,6 @@ const AllocationSectionContent = ({
   perpsBalance,
 }: AllocationSectionContentProps) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { colors } = useTheme();
   const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
   const accountGroupBalance = useSelector(
@@ -173,11 +172,11 @@ const AllocationSectionContent = ({
   }
 
   const categoryColors: Record<AllocationRow['key'], string> = {
-    money: colors.success.default,
-    tokens: colors.primary.default,
-    perpetuals: `${colors.success.default}B8`,
-    predictions: `${colors.primary.default}A3`,
-    defi: `${colors.success.default}73`,
+    money: brandColor.green600,
+    tokens: brandColor.green500,
+    perpetuals: brandColor.green400,
+    predictions: brandColor.lime400,
+    defi: brandColor.green200,
   };
 
   return (
