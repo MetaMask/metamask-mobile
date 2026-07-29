@@ -582,7 +582,6 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     this.resolved = undefined;
     this.sessionState = undefined;
     this.sessionMetadata = undefined;
-    this.workflowContext = undefined;
     this.refMap.clear();
   }
 

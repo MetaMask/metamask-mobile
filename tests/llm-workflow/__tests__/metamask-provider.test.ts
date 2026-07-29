@@ -208,6 +208,21 @@ describe('MetaMaskMobileSessionManager', () => {
     expect(sessionManager.hasActiveSession()).toBe(false);
   });
 
+  it('retains the state snapshot capability across launch and cleanup cycles', async () => {
+    await sessionManager.launch(createLaunchInput());
+    await sessionManager.cleanup();
+
+    expect(sessionManager.getStateSnapshotCapability()).toBe(stateSnapshot);
+    expect(sessionManager.getContextInfo().capabilities.available).toEqual([
+      'stateSnapshot',
+    ]);
+
+    await expect(sessionManager.launch(createLaunchInput())).resolves.toEqual(
+      expect.objectContaining({ extensionId: 'io.metamask.MetaMask' }),
+    );
+    expect(sessionManager.getStateSnapshotCapability()).toBe(stateSnapshot);
+  });
+
   it('rejects cleanup while a launch is still in progress', async () => {
     const pendingState = platformDriver.getAppState() as ReturnType<
       IPlatformDriver['getAppState']
