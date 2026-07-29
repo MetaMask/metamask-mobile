@@ -1,3 +1,5 @@
+import { TRACES_CLEANUP_INTERVAL } from '../../../../util/trace';
+
 export const RAMPS_BUY_CUF_TAG = {
   FEATURE: 'feature',
   SURFACE: 'surface',
@@ -46,4 +48,5 @@ export const RAMPS_BUY_CUF_END_REASON = {
   ABANDONED: 'abandoned',
   HEADLESS: 'headless',
 } as const;
-export const RAMPS_BUY_CUF_TIMEOUT_MS = 10 * 60 * 1000;
+/** Must not exceed `TRACES_CLEANUP_INTERVAL` or Sentry ends the span first. */
+export const RAMPS_BUY_CUF_TIMEOUT_MS = TRACES_CLEANUP_INTERVAL;
