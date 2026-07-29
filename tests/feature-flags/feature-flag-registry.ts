@@ -228,6 +228,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          tracesEnabled: false,
         },
       },
     },
