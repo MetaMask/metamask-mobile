@@ -59,7 +59,10 @@ import {
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEarningSectionEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -201,6 +204,9 @@ const MoneyHomeView = () => {
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyEarningSectionEnabled = useSelector(
+    selectMoneyEarningSectionEnabledFlag,
+  );
   const isMoneyAccountGeoEligible = useSelector(
     selectIsMoneyAccountGeoEligible,
   );
@@ -764,7 +770,7 @@ const MoneyHomeView = () => {
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
-  if (hasBalanceValue && isFunded) {
+  if (isMoneyEarningSectionEnabled && hasBalanceValue && isFunded) {
     contentSections.push({
       key: 'earnings',
       node: (

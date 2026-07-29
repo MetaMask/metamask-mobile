@@ -57,7 +57,10 @@ import {
   CardScreens,
 } from '../../../Card/util/metrics';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEarningSectionEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -214,6 +217,7 @@ jest.mock('../../selectors/eligibility', () => ({
 
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEarningSectionEnabledFlag: jest.fn(() => true),
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => true),
 }));
 
@@ -302,6 +306,9 @@ const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
 );
 const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
   selectMoneyEnableMoneyAccountFlag,
+);
+const mockSelectMoneyEarningSectionEnabledFlag = jest.mocked(
+  selectMoneyEarningSectionEnabledFlag,
 );
 const mockUseMoneyAccountCardLinkage = jest.mocked(useMoneyAccountCardLinkage);
 const mockOpenLinkCardSheet = jest.fn();
@@ -464,6 +471,7 @@ describe('MoneyHomeView', () => {
     mockSelectCardHomeDataStatus.mockReturnValue('idle');
     mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+    mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(true);
 
     mockOpenLinkCardSheet.mockReset();
     mockStartLinkFlow.mockReset();
@@ -593,10 +601,18 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('renders the earnings section', () => {
+  it('renders the earnings section when its feature flag is enabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('does not render the earnings section when its feature flag is disabled', () => {
+    mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(false);
+
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(queryByTestId(MoneyEarningsTestIds.CONTAINER)).not.toBeOnTheScreen();
   });
 
   describe('pull to refresh', () => {
