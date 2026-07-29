@@ -167,7 +167,15 @@ describe('ConnectionRegistry', () => {
     mockStore.list = jest.fn().mockResolvedValue([]);
     mockStore.save = jest.fn().mockResolvedValue(undefined);
     mockStore.delete = jest.fn().mockResolvedValue(undefined);
-    mockStore.get = jest.fn().mockResolvedValue(null);
+    // Consistent with list() by default: ids in the (last) listed set
+    // resolve to their info, others to null. Reads list's prior result
+    // rather than calling it, to keep list call-count assertions intact.
+    mockStore.get = jest.fn().mockImplementation(async (id: string) => {
+      const lastList = mockStore.list.mock.results.at(-1);
+      const infos: ConnectionInfo[] =
+        lastList && lastList.type === 'return' ? await lastList.value : [];
+      return infos.find((info) => info.id === id) ?? null;
+    });
 
     mockConnection = {
       id: mockConnectionRequest.sessionRequest.id,
@@ -2106,6 +2114,59 @@ describe('ConnectionRegistry', () => {
       // The stale snapshot entry must be skipped, not reconnected.
       expect(mockExisting.client.reconnect).not.toHaveBeenCalled();
       await reconnectPromise;
+    });
+
+    it('skips resuming a persisted session that was disconnected while deferred', async () => {
+      const listDeferred = makeDeferred<ConnectionInfo[]>();
+      mockStore.list.mockReturnValue(listDeferred.promise);
+
+      const connectDeferred = makeDeferred();
+      const mockNew = createMockConnection('new-1', {
+        connect: jest.fn(() => connectDeferred.promise),
+      });
+      const mockExisting = createMockConnection('existing-1');
+
+      (Connection.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValueOnce(mockNew) // the new connect (happens first)
+        .mockResolvedValueOnce(mockExisting); // would-be resume (must not run)
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      // initialize() is now paused awaiting store.list().
+      await tick();
+
+      // Fire a new connect that stays in flight.
+      const connectPromise = registry.handleConnectDeeplink(validDeeplink);
+      await tick();
+
+      // Let initialize() reach its resume loop; it parks at the barrier.
+      listDeferred.resolve([createPersistedConnection('existing-1')]);
+      await tick();
+      expect(mockExisting.resume).not.toHaveBeenCalled();
+
+      // While parked, the user disconnects the not-yet-resumed session:
+      // its store entry is deleted.
+      await registry.disconnect('existing-1');
+      mockStore.get.mockResolvedValue(null);
+
+      connectDeferred.resolve(undefined);
+      await connectPromise;
+      await tick();
+
+      // The disconnected session must NOT be resurrected by the stale
+      // snapshot — only the new connect's Connection was created.
+      expect(mockExisting.resume).not.toHaveBeenCalled();
+      expect(Connection.create).toHaveBeenCalledTimes(1);
+      expect(
+        mockHostApp.syncConnectionList.mock.calls.at(-1)?.[0],
+      ).not.toContainEqual(
+        expect.objectContaining({ id: 'existing-1' }),
+      );
     });
 
     it('does not defer when no connect is in flight', async () => {

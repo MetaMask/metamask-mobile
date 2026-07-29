@@ -106,6 +106,19 @@ export class ConnectionRegistry {
       // established, so cold-start resume doesn't contend with the fresh
       // incoming connection on the shared relay socket.
       await this.waitForConnectIdle();
+
+      // The barrier may have parked this loop for a while. If this
+      // not-yet-resumed session was disconnected in the meantime, its store
+      // entry is gone — resuming it anyway would resurrect a session the
+      // user just removed. On a store read failure, err on resuming (the
+      // pre-barrier behavior).
+      const stillPersisted = await this.store
+        .get(connInfo.id)
+        .catch(() => connInfo);
+      if (!stillPersisted) {
+        continue;
+      }
+
       try {
         const conn = await Connection.create(
           connInfo,
