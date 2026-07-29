@@ -800,7 +800,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
+      enabled: false,
       minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
