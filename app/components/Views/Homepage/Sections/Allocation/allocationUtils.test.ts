@@ -25,4 +25,14 @@ describe('buildAllocationValues', () => {
       ]),
     ).toEqual([]);
   });
+
+  it('orders categories from highest to lowest allocation', () => {
+    expect(
+      buildAllocationValues([
+        { key: 'money', value: 100 },
+        { key: 'tokens', value: 700 },
+        { key: 'perpetuals', value: 200 },
+      ]).map(({ key }) => key),
+    ).toEqual(['tokens', 'perpetuals', 'money']);
+  });
 });

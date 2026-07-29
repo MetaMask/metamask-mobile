@@ -19,8 +19,10 @@ export const buildAllocationValues = (
     return [];
   }
 
-  return positiveValues.map((item) => ({
-    ...item,
-    percentage: (item.value / total) * 100,
-  }));
+  return positiveValues
+    .map((item) => ({
+      ...item,
+      percentage: (item.value / total) * 100,
+    }))
+    .sort((a, b) => b.percentage - a.percentage);
 };

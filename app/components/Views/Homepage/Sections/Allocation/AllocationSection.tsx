@@ -45,8 +45,6 @@ interface AllocationRow {
   onPress: () => void;
 }
 
-const GREEN_ALPHAS = ['', 'D6', 'AD', '84', '5C'];
-
 const styles = StyleSheet.create({
   allocationBar: {
     flexDirection: 'row',
@@ -174,10 +172,13 @@ const AllocationSectionContent = ({
     return null;
   }
 
-  const greenColors = rows.map(
-    (_row, index) =>
-      `${colors.success.default}${GREEN_ALPHAS[index] ?? GREEN_ALPHAS[GREEN_ALPHAS.length - 1]}`,
-  );
+  const categoryColors: Record<AllocationRow['key'], string> = {
+    money: colors.success.default,
+    tokens: colors.primary.default,
+    perpetuals: `${colors.success.default}B8`,
+    predictions: `${colors.primary.default}A3`,
+    defi: `${colors.success.default}73`,
+  };
 
   return (
     <View testID={AllocationSectionTestIds.CONTAINER}>
@@ -194,21 +195,21 @@ const AllocationSectionContent = ({
           style={styles.allocationBar}
           testID={AllocationSectionTestIds.BAR}
         >
-          {rows.map((row, index) => (
+          {rows.map((row) => (
             <View
               key={row.key}
               style={[
                 styles.allocationSegment,
                 {
                   flex: Math.max(row.percentage, 2),
-                  backgroundColor: greenColors[index],
+                  backgroundColor: categoryColors[row.key],
                 },
               ]}
             />
           ))}
         </View>
         <Box gap={1}>
-          {rows.map((row, index) => (
+          {rows.map((row) => (
             <Pressable
               key={row.key}
               onPress={row.onPress}
@@ -221,7 +222,10 @@ const AllocationSectionContent = ({
               ]}
             >
               <View
-                style={[styles.dot, { backgroundColor: greenColors[index] }]}
+                style={[
+                  styles.dot,
+                  { backgroundColor: categoryColors[row.key] },
+                ]}
               />
               <View style={styles.label}>
                 <Text
