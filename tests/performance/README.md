@@ -680,6 +680,28 @@ Or compare all failed scenarios from that run:
 This runs `.github/workflows/app-profiling-check.yml`, which downloads
 `aggregated-reports` for the current run + baseline and posts a diff comment.
 
+The comment includes:
+
+1. **Deterministic metric table** vs last green baseline (⚠️ only when
+   Current > Baseline + 10%).
+2. **Scenario failure context** (quality gates / test error / recording link)
+   from `summary.json`.
+3. **Optional AI triage** (when `E2E_CLAUDE_API_KEY`, `E2E_OPENAI_API_KEY`, or
+   `E2E_GEMINI_API_KEY` is available):
+   - Regression triage: likely `device_noise` / `ui_regression` / `test_or_setup` / `network`
+   - Correlation between the failure reason / QG violations and profiling signals
+   - One concrete next step for the owning team
+
+AI is additive and non-blocking: missing keys or LLM errors still post the
+deterministic diff. Use `--skip-ai` locally to disable it.
+
+Local dry-run:
+
+```bash
+node tests/scripts/diff-app-profiling.mjs \
+  --pr <PR> --run <RUN_ID> --all --dry-run
+```
+
 ### HTML Dashboard Features
 
 The aggregated HTML report (`performance-report.html`) includes:
