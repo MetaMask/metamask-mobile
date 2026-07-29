@@ -112,50 +112,49 @@ async function updateMoneyAccountDepositAmountInternal(
     failUpdate('incomplete approval/deposit updates');
   }
 
-  Engine.context.TransactionController.updateTransactionMetadataWithoutResimulation(
-    {
-      transactionId: transaction.id,
-      callback: (transactionMeta) => {
-        validateTransactionTemplate(transactionMeta);
+  Engine.context.TransactionController.updateTransactionMetadata({
+    transactionId: transaction.id,
+    skipResimulate: true,
+    callback: (transactionMeta) => {
+      validateTransactionTemplate(transactionMeta);
 
-        if (transactionMeta.chainId !== chainId) {
-          failUpdate('transaction chain changed during preparation');
+      if (transactionMeta.chainId !== chainId) {
+        failUpdate('transaction chain changed during preparation');
+      }
+
+      const { nestedTransactions, transactionData } = updateEIP7702BatchData({
+        from: transactionMeta.txParams.from as Hex,
+        transactions: transactionMeta.nestedTransactions ?? [],
+        updates: [
+          { transactionIndex: 0, transactionData: approveData },
+          { transactionIndex: 1, transactionData: depositData },
+        ],
+      });
+
+      transactionMeta.nestedTransactions = nestedTransactions;
+      transactionMeta.requiredAssets = buildRequiredAssets(
+        transactionMeta,
+        depositAssetAddress,
+        amountRaw,
+      );
+      transactionMeta.txParams.data = transactionData;
+      transactionMeta.txParams.gas = undefined;
+      transactionMeta.gasLimitNoBuffer = undefined;
+      transactionMeta.gasUsed = undefined;
+      transactionMeta.securityAlertResponse = undefined;
+      transactionMeta.simulationData = undefined;
+      transactionMeta.simulationFails = undefined;
+
+      if (transactionMeta.revert) {
+        delete transactionMeta.revert.gas;
+        delete transactionMeta.revert.simulation;
+
+        if (!transactionMeta.revert.receipt) {
+          transactionMeta.revert = undefined;
         }
-
-        const { nestedTransactions, transactionData } = updateEIP7702BatchData({
-          from: transactionMeta.txParams.from as Hex,
-          transactions: transactionMeta.nestedTransactions ?? [],
-          updates: [
-            { transactionIndex: 0, transactionData: approveData },
-            { transactionIndex: 1, transactionData: depositData },
-          ],
-        });
-
-        transactionMeta.nestedTransactions = nestedTransactions;
-        transactionMeta.requiredAssets = buildRequiredAssets(
-          transactionMeta,
-          depositAssetAddress,
-          amountRaw,
-        );
-        transactionMeta.txParams.data = transactionData;
-        transactionMeta.txParams.gas = undefined;
-        transactionMeta.gasLimitNoBuffer = undefined;
-        transactionMeta.gasUsed = undefined;
-        transactionMeta.securityAlertResponse = undefined;
-        transactionMeta.simulationData = undefined;
-        transactionMeta.simulationFails = undefined;
-
-        if (transactionMeta.revert) {
-          delete transactionMeta.revert.gas;
-          delete transactionMeta.revert.simulation;
-
-          if (!transactionMeta.revert.receipt) {
-            transactionMeta.revert = undefined;
-          }
-        }
-      },
+      }
     },
-  );
+  });
 
   return true;
 }

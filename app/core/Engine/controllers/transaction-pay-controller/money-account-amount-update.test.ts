@@ -30,7 +30,7 @@ jest.mock('../../index', () => ({
   default: {
     context: {
       TransactionController: {
-        updateTransactionMetadataWithoutResimulation: jest.fn(),
+        updateTransactionMetadata: jest.fn(),
       },
     },
   },
@@ -57,9 +57,8 @@ const getProviderMock = jest.mocked(getProviderByChainId);
 const getDepositAssetMock = jest.mocked(getMoneyAccountDepositAssetAddress);
 const buildDepositBatchMock = jest.mocked(buildMoneyAccountDepositBatch);
 const updateEIP7702BatchDataMock = jest.mocked(updateEIP7702BatchData);
-const updateTransactionMetadataWithoutResimulationMock = jest.mocked(
-  Engine.context.TransactionController
-    .updateTransactionMetadataWithoutResimulation,
+const updateTransactionMetadataMock = jest.mocked(
+  Engine.context.TransactionController.updateTransactionMetadata,
 );
 
 function buildTransaction(
@@ -115,18 +114,13 @@ describe('updateMoneyAccountDepositAmount', () => {
       },
     });
     updateEIP7702BatchDataMock.mockReturnValue({
-      nestedTransactions: [
-        { type: TransactionType.tokenMethodApprove, data: APPROVE_DATA },
-        { type: TransactionType.moneyAccountDeposit, data: DEPOSIT_DATA },
-      ],
+      nestedTransactions: [{ data: APPROVE_DATA }, { data: DEPOSIT_DATA }],
       transactionData: BATCH_DATA,
     });
-    updateTransactionMetadataWithoutResimulationMock.mockImplementation(
-      ({ callback }) => {
-        callback(currentTransaction);
-        return currentTransaction;
-      },
-    );
+    updateTransactionMetadataMock.mockImplementation(({ callback }) => {
+      callback(currentTransaction);
+      return currentTransaction;
+    });
   });
 
   it('prepares and commits one coherent update without re-simulation', async () => {
@@ -154,10 +148,9 @@ describe('updateMoneyAccountDepositAmount', () => {
       lensAddress: VAULT_CONFIG.lensAddress,
       provider,
     });
-    expect(
-      updateTransactionMetadataWithoutResimulationMock,
-    ).toHaveBeenCalledWith({
+    expect(updateTransactionMetadataMock).toHaveBeenCalledWith({
       transactionId: currentTransaction.id,
+      skipResimulate: true,
       callback: expect.any(Function),
     });
     expect(updateEIP7702BatchDataMock).toHaveBeenCalledWith({
@@ -265,9 +258,7 @@ describe('updateMoneyAccountDepositAmount', () => {
     });
 
     expect(await first).toBe(false);
-    expect(
-      updateTransactionMetadataWithoutResimulationMock,
-    ).toHaveBeenCalledTimes(1);
+    expect(updateTransactionMetadataMock).toHaveBeenCalledTimes(1);
   });
 
   it('joins identical in-flight intents', () => {

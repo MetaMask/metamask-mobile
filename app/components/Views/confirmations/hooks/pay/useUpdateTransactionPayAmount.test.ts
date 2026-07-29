@@ -305,7 +305,7 @@ describe('useUpdateTransactionPayAmount', () => {
     updatePromise.then(() => {
       isSettled = true;
     });
-    await flushPromises();
+    await Promise.resolve();
 
     expect(isSettled).toBe(false);
 
