@@ -45,7 +45,7 @@ Critical files (marked in file list) typically warrant wide testing. Use tools t
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
 Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.
 Do not exceed the maximum number of analysis iterations which is ${LLM_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.
-SmokeSnaps is for MetaMask Snaps functionality. Select this tag when changes affect tests/smoke-appium/snaps/ directory, snap-related app code (snap permissions, snap state, snap UI, browser), or Flask build configuration.`;
+SmokeSnaps is for MetaMask Snaps functionality. Select this tag when changes affect tests/smoke-appium/snaps/, shared snap mocks under tests/smoke/snaps/ (e.g. mocks.ts imported by Appium provider specs), snap-related app code (snap permissions, snap state, snap UI, browser), or Flask build configuration.`;
 
   const cosmeticChangesSection = `COSMETIC CHANGES — IGNORE FOR TEST SELECTION:
 The following types of changes have zero functional impact and must NOT trigger any additional test selection on their own. When you inspect a diff with get_git_diff and find that a file's changes are entirely cosmetic, treat that file as if it were not changed at all:
