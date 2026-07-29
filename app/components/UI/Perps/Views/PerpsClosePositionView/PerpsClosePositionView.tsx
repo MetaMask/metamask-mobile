@@ -3,6 +3,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -25,11 +27,10 @@ import {
   IconSize,
   KeyValueRow,
   KeyValueRowVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -86,7 +87,7 @@ import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../../selectors/f
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const {
@@ -662,7 +663,6 @@ const PerpsClosePositionView: React.FC = () => {
       hasRewardsError={rewardsState.hasError}
       accountOptedIn={rewardsState.accountOptedIn}
       rewardsAccount={rewardsState.account}
-      isInputFocused={isInputFocused}
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
         receiveTooltip:
@@ -716,7 +716,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
         </View>
@@ -773,7 +773,10 @@ const PerpsClosePositionView: React.FC = () => {
                   size={IconSize.Sm}
                   color={IconColor.ErrorDefault}
                 />
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {error}
                 </Text>
               </View>
@@ -837,27 +840,29 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleConfirm}
-            isDisabled={
-              isClosing ||
-              (effectiveOrderType === 'limit' &&
-                (!limitPrice || parseFloat(limitPrice) <= 0)) ||
-              (effectiveOrderType === 'market' && closePercentage === 0) ||
-              !validationResult.isValid
-            }
-            isLoading={isClosing}
-            testID={
-              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
-            }
-          >
-            {isClosing
-              ? strings('perps.close_position.closing')
-              : strings('perps.close_position.button')}
-          </Button>
+          <View style={styles.footerButton}>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleConfirm}
+              isDisabled={
+                isClosing ||
+                (effectiveOrderType === 'limit' &&
+                  (!limitPrice || parseFloat(limitPrice) <= 0)) ||
+                (effectiveOrderType === 'market' && closePercentage === 0) ||
+                !validationResult.isValid
+              }
+              isLoading={isClosing}
+              testID={
+                PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
+              }
+            >
+              {isClosing
+                ? strings('perps.close_position.closing')
+                : strings('perps.close_position.button')}
+            </Button>
+          </View>
         )}
       </View>
 

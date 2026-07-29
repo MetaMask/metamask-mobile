@@ -8,6 +8,13 @@ import {
 } from './PostTradeBottomSheet.testIds';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
 import { getDefaultDestToken } from '../../utils/tokenUtils';
+import { useABTest } from '../../../../../hooks';
+import {
+  ImpactMoment,
+  playErrorNotification,
+  playImpact,
+  playSuccessNotification,
+} from '../../../../../util/haptics';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -43,6 +50,7 @@ let mockParams = {
     chainId: '0x1',
     decimals: 6,
   },
+  transactionMetaId: undefined as string | undefined,
 };
 const expectedSharedProperties = {
   swap_type: 'single_chain',
@@ -79,6 +87,19 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('./usePostTradeTxStatus', () => ({
   usePostTradeTxStatus: () => mockPostTradeStatus,
 }));
+jest.mock('../../../../../hooks', () => ({
+  useABTest: jest.fn(() => ({
+    variant: { enableSwapHaptics: false },
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
+jest.mock('../../../../../util/haptics', () => ({
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+  playImpact: jest.fn(() => Promise.resolve()),
+  playSuccessNotification: jest.fn(() => Promise.resolve()),
+  playErrorNotification: jest.fn(() => Promise.resolve()),
+}));
 jest.mock('./usePostTradeTrendingTokens', () => ({
   usePostTradeTrendingTokens: () => mockPostTradeTrendingTokens,
 }));
@@ -90,8 +111,21 @@ jest.mock('../../utils/tokenUtils', () => {
   };
 });
 
+const mockUseABTest = jest.mocked(useABTest);
+const mockPlayImpact = jest.mocked(playImpact);
+const mockPlaySuccessNotification = jest.mocked(playSuccessNotification);
+const mockPlayErrorNotification = jest.mocked(playErrorNotification);
+
 beforeEach(() => {
   jest.clearAllMocks();
+  mockUseABTest.mockReturnValue({
+    variant: { enableSwapHaptics: false },
+    variantName: 'control',
+    isActive: false,
+  } as ReturnType<typeof useABTest>);
+  mockPlayImpact.mockResolvedValue(undefined);
+  mockPlaySuccessNotification.mockResolvedValue(undefined);
+  mockPlayErrorNotification.mockResolvedValue(undefined);
   mockNow = 1000;
   jest.spyOn(Date, 'now').mockImplementation(() => mockNow);
   mockPostTradeStatus = PostTradeStatus.Failed;
@@ -117,6 +151,7 @@ beforeEach(() => {
       chainId: '0x1',
       decimals: 6,
     },
+    transactionMetaId: undefined,
   };
 });
 
@@ -130,6 +165,31 @@ const getTrackedEvent = (event: unknown) =>
   )?.[0];
 
 describe('PostTradeBottomSheet', () => {
+  it('plays status haptics when swap haptics treatment is active', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { enableSwapHaptics: true },
+      variantName: 'treatment',
+      isActive: true,
+    } as ReturnType<typeof useABTest>);
+
+    mockPostTradeStatus = PostTradeStatus.InProgress;
+    mockParams = {
+      ...mockParams,
+      status: PostTradeStatus.InProgress,
+      transactionMetaId: 'tx-1',
+    };
+    const { rerender } = render(React.createElement(PostTradeBottomSheet));
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+
+    mockPostTradeStatus = PostTradeStatus.Success;
+    rerender(React.createElement(PostTradeBottomSheet));
+    expect(mockPlaySuccessNotification).toHaveBeenCalledTimes(1);
+
+    mockPostTradeStatus = PostTradeStatus.Failed;
+    rerender(React.createElement(PostTradeBottomSheet));
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
   it('tracks viewed with normalized status and trade properties', () => {
     mockPostTradeStatus = PostTradeStatus.Success;
     mockParams = {

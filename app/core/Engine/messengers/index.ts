@@ -37,9 +37,7 @@ import { getSnapAccountServiceMessenger } from './snap-account-service-messenger
 ///: END:ONLY_INCLUDE_IF
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
-import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
-import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
@@ -100,7 +98,9 @@ import {
   getMoneyAccountControllerMessenger,
 } from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
+import { getMoneyAccountApiDataServiceMessenger } from './money-account-api-data-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
+import { getSentinelApiServiceMessenger } from './sentinel-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
@@ -187,6 +187,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getGeolocationApiServiceMessenger,
     getInitMessenger: noop,
   },
+  SentinelApiService: {
+    getMessenger: getSentinelApiServiceMessenger,
+    getInitMessenger: noop,
+  },
   GeolocationController: {
     getMessenger: getGeolocationControllerMessenger,
     getInitMessenger: noop,
@@ -209,10 +213,6 @@ export const MESSENGER_FACTORIES = {
   },
   MultichainNetworkController: {
     getMessenger: getMultichainNetworkControllerMessenger,
-    getInitMessenger: noop,
-  },
-  GasFeeController: {
-    getMessenger: getGasFeeControllerMessenger,
     getInitMessenger: noop,
   },
   NftController: {
@@ -318,10 +318,6 @@ export const MESSENGER_FACTORIES = {
   PermissionController: {
     getMessenger: getPermissionControllerMessenger,
     getInitMessenger: getPermissionControllerInitMessenger,
-  },
-  SeedlessOnboardingController: {
-    getMessenger: getSeedlessOnboardingControllerMessenger,
-    getInitMessenger: noop,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
@@ -443,6 +439,10 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountBalanceService: {
     getMessenger: getMoneyAccountBalanceServiceMessenger,
+    getInitMessenger: noop,
+  },
+  MoneyAccountApiDataService: {
+    getMessenger: getMoneyAccountApiDataServiceMessenger,
     getInitMessenger: noop,
   },
   SocialService: {

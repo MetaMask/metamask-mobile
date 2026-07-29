@@ -489,6 +489,16 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
   }
 
+  const handleSlippageSettingsPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
+    });
+  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
+
   useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
@@ -573,6 +583,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
       <HeaderStandard
         title={headerTitle}
         onBack={() => navigation.goBack()}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleSlippageSettingsPress,
+            testID: BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON,
+            accessibilityLabel: strings('bridge.slippage'),
+          },
+        ]}
         includesTopInset
       />
       <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
