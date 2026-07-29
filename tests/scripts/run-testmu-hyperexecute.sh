@@ -106,6 +106,20 @@ RESOLVED_ANDROID_CLEAN_URL="${TESTMU_ANDROID_CLEAN_APP_URL:-$RESOLVED_ANDROID_AP
 RESOLVED_ANDROID_ONBOARDING_URL="${TESTMU_ANDROID_ONBOARDING_PERF_APP_URL:-$RESOLVED_ANDROID_CLEAN_URL}"
 RESOLVED_ANDROID_SEEDLESS_URL="${TESTMU_ANDROID_SEEDLESS_PERF_APP_URL:-$RESOLVED_ANDROID_CLEAN_URL}"
 
+# Fail fast if the primary lt:// is not listed in TestMu storage yet. Avoids
+# HyperExecute jobs that burn ~5m on "no valid app URL found".
+case "$BUILD_TYPE" in
+  onboarding) PRIMARY_APP_URL="$RESOLVED_ANDROID_CLEAN_URL" ;;
+  *) PRIMARY_APP_URL="$RESOLVED_ANDROID_APP_URL" ;;
+esac
+if [[ -z "$PRIMARY_APP_URL" ]]; then
+  echo "❌ Primary app URL for BUILD_TYPE=$BUILD_TYPE is empty ($APP_URL_KEY)" >&2
+  exit 1
+fi
+chmod +x ./tests/scripts/verify-testmu-app-url.sh
+LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
+  ./tests/scripts/verify-testmu-app-url.sh "$PRIMARY_APP_URL"
+
 # Use YAML 0.1: version 0.2 requires framework.name and drops support for
 # custom testDiscovery / testRunnerCommand (see HyperExecute YAML 0.2 docs).
 # This PoC orchestrates Appium-via-Playwright with our own discovery/runner.
