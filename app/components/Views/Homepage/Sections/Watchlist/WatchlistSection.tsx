@@ -9,14 +9,11 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import {
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { SectionHeader } from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import WatchlistEmptyState from './components/WatchlistEmptyState';
+import PopularWatchlistTokens from './components/PopularWatchlistTokens';
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
 import { mapWatchlistTokenToTrendingAsset } from './utils/mapWatchlistTokenToTrendingAsset';
@@ -43,6 +40,7 @@ const WatchlistSection = forwardRef<
   WatchlistSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
+  const popularTokensRef = useRef<SectionRefreshHandle>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { data, isLoading, refetch } = useTokenWatchlistQuery();
@@ -59,15 +57,16 @@ const WatchlistSection = forwardRef<
     [data],
   );
 
-  const isEmpty = !isLoading && displayTokens.length === 0;
-  const itemCount = displayTokens.length;
+  const isEmpty = false;
+  const itemCount =
+    displayTokens.length > 0 ? displayTokens.length : MAX_ITEMS_DISPLAYED;
 
   const handleSectionPress = useCallback(() => {
     navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
   }, [navigation]);
 
   const refresh = useCallback(async () => {
-    await refetch();
+    await Promise.all([refetch(), popularTokensRef.current?.refresh()]);
   }, [refetch]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -96,7 +95,6 @@ const WatchlistSection = forwardRef<
 
   return (
     <View ref={sectionViewRef} onLayout={onLayout}>
-      <SectionDivider />
       <SectionHeader
         title={title}
         isInteractive
@@ -108,8 +106,8 @@ const WatchlistSection = forwardRef<
           Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, i) => (
             <TrendingTokensSkeleton key={`watchlist-skeleton-${i}`} />
           ))
-        ) : isEmpty ? (
-          <WatchlistEmptyState />
+        ) : displayTokens.length === 0 ? (
+          <PopularWatchlistTokens ref={popularTokensRef} />
         ) : (
           displayTokens.map((token, index) => (
             <TrendingTokenRowItem

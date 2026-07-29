@@ -11,11 +11,7 @@ import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import {
-  SectionDivider,
-  Box,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
@@ -154,7 +150,6 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     if (!isLoading && hasError) {
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
-          <SectionDivider />
           <SectionHeader
             title={title}
             isInteractive
@@ -173,7 +168,6 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <SectionDivider />
         <SectionHeader
           title={title}
           isInteractive

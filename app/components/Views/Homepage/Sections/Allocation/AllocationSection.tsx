@@ -4,8 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  FontWeight,
-  SectionDivider,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -47,6 +48,7 @@ interface AllocationRow {
   value: number;
   percentage: number;
   apy?: number;
+  showAddAction?: boolean;
   onPress: () => void;
 }
 
@@ -163,7 +165,7 @@ const AllocationSectionContent = ({
       defi: navigateToDeFi,
     };
 
-    return allocations.map(({ key, value, percentage }) => ({
+    const allocationRows = allocations.map(({ key, value, percentage }) => ({
       key,
       label: strings(`homepage.sections.${key}`),
       value,
@@ -171,6 +173,20 @@ const AllocationSectionContent = ({
       apy: key === 'money' ? apyPercent : undefined,
       onPress: navigationByKey[key as keyof typeof navigationByKey],
     })) as AllocationRow[];
+
+    if (moneyBalance <= 0) {
+      allocationRows.push({
+        key: 'money',
+        label: strings('homepage.sections.money'),
+        value: 0,
+        percentage: 0,
+        apy: apyPercent,
+        showAddAction: true,
+        onPress: navigateToMoneyHome,
+      });
+    }
+
+    return allocationRows;
   }, [
     apyPercent,
     defiBalance,
@@ -189,34 +205,33 @@ const AllocationSectionContent = ({
     return null;
   }
 
+  const allocatedRows = rows.filter((row) => row.percentage > 0);
+
   return (
     <View testID={AllocationSectionTestIds.CONTAINER}>
-      <SectionDivider />
-      <Box paddingHorizontal={4} paddingVertical={4} gap={4}>
-        <Text
-          variant={TextVariant.HeadingMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
+      <Box paddingHorizontal={4} paddingTop={6} paddingBottom={3} gap={4}>
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
           {strings('homepage.sections.allocation')}
         </Text>
-        <View
-          style={styles.allocationBar}
-          testID={AllocationSectionTestIds.BAR}
-        >
-          {rows.map((row, index) => (
-            <View
-              key={row.key}
-              style={[
-                styles.allocationSegment,
-                {
-                  flex: Math.max(row.percentage, 2),
-                  backgroundColor: ALLOCATION_RANK_COLORS[index],
-                },
-              ]}
-            />
-          ))}
-        </View>
+        {allocatedRows.length > 0 ? (
+          <View
+            style={styles.allocationBar}
+            testID={AllocationSectionTestIds.BAR}
+          >
+            {allocatedRows.map((row, index) => (
+              <View
+                key={row.key}
+                style={[
+                  styles.allocationSegment,
+                  {
+                    flex: Math.max(row.percentage, 2),
+                    backgroundColor: ALLOCATION_RANK_COLORS[index],
+                  },
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
         <Box gap={1}>
           {rows.map((row, index) => (
             <Pressable
@@ -224,7 +239,11 @@ const AllocationSectionContent = ({
               onPress={row.onPress}
               testID={AllocationSectionTestIds.ROW(row.key)}
               accessibilityRole="button"
-              accessibilityLabel={`${row.label}, ${row.percentage.toFixed(1)}%, ${formatCurrency(row.value, currency)}`}
+              accessibilityLabel={
+                row.showAddAction
+                  ? `${row.label}, ${strings('money.action.add')}`
+                  : `${row.label}, ${row.percentage.toFixed(1)}%, ${formatCurrency(row.value, currency)}`
+              }
               style={({ pressed }) => [
                 styles.row,
                 pressed && styles.rowPressed,
@@ -244,9 +263,11 @@ const AllocationSectionContent = ({
                     numberOfLines={1}
                   >
                     {row.label}
-                    <Text color={TextColor.TextAlternative}>
-                      {` · ${row.percentage.toFixed(1)}%`}
-                    </Text>
+                    {!row.showAddAction ? (
+                      <Text color={TextColor.TextAlternative}>
+                        {` · ${row.percentage.toFixed(1)}%`}
+                      </Text>
+                    ) : null}
                   </Text>
                   {row.apy !== undefined && row.apy > 0 ? (
                     <TagBase
@@ -258,15 +279,27 @@ const AllocationSectionContent = ({
                   ) : null}
                 </View>
               </View>
-              <SensitiveText
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                numberOfLines={1}
-              >
-                {formatCurrency(row.value, currency)}
-              </SensitiveText>
+              {row.showAddAction ? (
+                <Button
+                  size={ButtonSize.Sm}
+                  variant={ButtonVariant.Secondary}
+                  onPress={row.onPress}
+                  twClassName="self-center"
+                  testID={AllocationSectionTestIds.ADD_MONEY_BUTTON}
+                >
+                  {strings('money.action.add')}
+                </Button>
+              ) : (
+                <SensitiveText
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                  numberOfLines={1}
+                >
+                  {formatCurrency(row.value, currency)}
+                </SensitiveText>
+              )}
             </Pressable>
           ))}
         </Box>

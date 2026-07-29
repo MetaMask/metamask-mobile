@@ -33,6 +33,7 @@ import { useNftDetection } from '../../hooks/useNftDetection';
 import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import { HOMEPAGE_SECTION_GAP } from './constants';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -154,6 +155,7 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
   return (
     <Box
       marginBottom={8}
+      gap={HOMEPAGE_SECTION_GAP}
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
       accessible={false}
     >

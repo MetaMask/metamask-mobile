@@ -73,7 +73,7 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 }));
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
-let mockMoneyAccountEnabled = false;
+const mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
@@ -82,19 +82,6 @@ const mockMoneyAccountGeoEligible = true;
 jest.mock('../../UI/Money/selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
 }));
-
-// Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
-jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
-  const ReactMock = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactMock.createElement(View, {
-        testID: 'money-balance-card-mock',
-      }),
-  };
-});
 
 // Mock NetworkConnectionBanner so the Wallet view's render does not depend on
 // NetworkController / controllerMessenger APIs. Without this, the banner hook
@@ -1820,36 +1807,5 @@ describe('useHomeDeepLinkEffects', () => {
 
     jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
     assertCase(mocks);
-  });
-});
-
-describe('MoneyBalanceCard slot', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest
-      .mocked(useSelector)
-      .mockImplementation((callback: (state: unknown) => unknown) =>
-        callback(mockInitialState),
-      );
-  });
-
-  afterEach(() => {
-    mockMoneyAccountEnabled = false;
-  });
-
-  it('renders the MoneyBalanceCard when Money account is enabled', () => {
-    mockMoneyAccountEnabled = true;
-
-    const { getByTestId } = render(Wallet);
-
-    expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
-  });
-
-  it('does not render the MoneyBalanceCard when Money account is disabled', () => {
-    mockMoneyAccountEnabled = false;
-
-    const { queryByTestId } = render(Wallet);
-
-    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
   });
 });

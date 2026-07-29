@@ -101,11 +101,11 @@ describe('WalletHomeOnboardingSteps', () => {
       },
     });
 
-  it('does not render Skip on the fund step', () => {
+  it('does not render Close on the fund step', () => {
     const { queryByTestId } = renderSteps();
 
     expect(
-      queryByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      queryByTestId(WalletHomeOnboardingStepsSelectors.CLOSE_BUTTON),
     ).toBeNull();
   });
 
@@ -322,13 +322,13 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  it('advances from trade step when Skip is pressed', async () => {
+  it('advances from trade step when Close is pressed', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
     });
 
     fireEvent.press(
-      getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      getByTestId(WalletHomeOnboardingStepsSelectors.CLOSE_BUTTON),
     );
 
     await flushWalletHomeStepTransition();
@@ -489,7 +489,7 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  it('does not invoke trade primary commit when Skip is pressed on trade step', async () => {
+  it('does not invoke trade primary commit when Close is pressed on trade step', async () => {
     const onTradePrimaryPress = jest.fn();
     const { getByTestId, store } = renderWithProvider(
       <WalletHomeOnboardingSteps
@@ -511,7 +511,7 @@ describe('WalletHomeOnboardingSteps', () => {
     );
 
     fireEvent.press(
-      getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      getByTestId(WalletHomeOnboardingStepsSelectors.CLOSE_BUTTON),
     );
 
     expect(onTradePrimaryPress).not.toHaveBeenCalled();
@@ -545,13 +545,13 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  it('completes flow when Skip is pressed on last step', async () => {
+  it('completes flow when Close is pressed on last step', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
     });
 
     fireEvent.press(
-      getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      getByTestId(WalletHomeOnboardingStepsSelectors.CLOSE_BUTTON),
     );
 
     await act(async () => {
@@ -599,13 +599,10 @@ describe('WalletHomeOnboardingSteps', () => {
     expect(getByTestId(primaryTestId)).toBeDisabled();
   });
 
-  it('renders fund hero and progress for step 0', () => {
+  it('renders the fund hero for step 0', () => {
     const { getByTestId } = renderSteps();
 
     expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
-    expect(
-      getByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
-    ).toBeOnTheScreen();
   });
 
   it('fires checklist Rive outro before advancing from fund step', async () => {
@@ -674,10 +671,7 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  describe('onboarding checklist progress bar', () => {
-    const progressTestId = WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL;
-    const firstSegmentTestId = `${progressTestId}-segment-0`;
-
+  describe('onboarding checklist progress animation', () => {
     const renderWithOnboardingState = (onboardingOverrides?: {
       walletHomeOnboardingSteps?: {
         suppressedReason: null;
@@ -693,18 +687,6 @@ describe('WalletHomeOnboardingSteps', () => {
           engine: { backgroundState },
         },
       });
-
-    it('renders the continuous progress bar with checklist title and step counter', () => {
-      const { getByTestId, getByText, queryByTestId } =
-        renderWithOnboardingState();
-
-      expect(getByTestId(progressTestId)).toBeOnTheScreen();
-      expect(queryByTestId(firstSegmentTestId)).toBeNull();
-      expect(
-        getByText(strings('wallet.home_onboarding_steps.get_started_title')),
-      ).toBeOnTheScreen();
-      expect(getByText('1/3')).toBeOnTheScreen();
-    });
 
     it('animates continuous progress to 100% on last-step complete', () => {
       const { getByTestId } = renderWithOnboardingState({

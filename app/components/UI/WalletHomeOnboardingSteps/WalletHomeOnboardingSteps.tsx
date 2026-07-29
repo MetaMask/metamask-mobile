@@ -24,9 +24,11 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
-  ButtonVariant,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -39,7 +41,6 @@ import {
 } from '../../../actions/onboarding';
 import { selectWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
-import WalletHomeOnboardingProgressBar from './WalletHomeOnboardingProgressBar';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 import Logger from '../../../util/Logger';
 import onboardChecklistV07Animation from '../../../animations/onboard_checklist_v07.riv';
@@ -93,9 +94,9 @@ export interface WalletHomeOnboardingStepsProps {
   onCoordinatedFlowExit?: () => Promise<void>;
   /** Pauses checklist Rive while the Wallet parent finishes the coordinated exit handoff. */
   suspendRiveForCurtain?: boolean;
-  /** Trade step: invoked when user taps Primary (before advancing). Skip does not call this. */
+  /** Trade step: invoked when user taps Primary (before advancing). Close does not call this. */
   onTradePrimaryPress?: () => void;
-  /** Notifications step: invoked when user taps Primary (before advancing). Skip does not call this. */
+  /** Notifications step: invoked when user taps Primary (before advancing). Close does not call this. */
   onNotificationsPrimaryPress?: () => void;
   /** Fund step: opens buy / on-ramp; advance runs only once {@link canAdvanceFundStepAfterBalance} is true. */
   onFundPrimaryPress?: () => void;
@@ -110,7 +111,7 @@ export interface WalletHomeOnboardingStepsProps {
  * Multi-step onboarding flow for newly onboarded users with zero aggregated balance.
  * Primary on trade/notifications with navigation callbacks defers advance until the user
  * returns to the wallet, briefly holds on the completed step, then runs outro + transition.
- * Skip advances immediately (no navigation).
+ * Close advances immediately (no navigation).
  * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set; advance to trade uses
  * the same outro + slide as other steps only after {@link canAdvanceFundStepAfterBalance} becomes true
  * (or immediately when that is already true after return). Incoming funds without leaving the wallet
@@ -129,6 +130,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const tw = useTailwind();
   const isFocused = useIsFocused();
   const checklistRiveRef = useRef<RiveRef>(null);
+  const isChecklistOutroPlayingRef = useRef(false);
   const prevSuspendRiveForCurtainRef = useRef(false);
   const [checklistFadeOpacity] = useState(() => new Animated.Value(1));
   const dispatch = useDispatch();
@@ -193,6 +195,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
    * autoplays before paint.
    */
   useLayoutEffect(() => {
+    isChecklistOutroPlayingRef.current = false;
     setSkipIntroAfterDeferredNavReturn(false);
   }, [stepIndex]);
 
@@ -329,7 +332,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     };
   }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn]);
 
-  const totalSteps = WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length;
   const currentStep =
     WALLET_HOME_ONBOARDING_VISIBLE_STEPS[visualStepIndexForProgress];
 
@@ -456,6 +458,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       const rive = checklistRiveRef.current;
       if (rive) {
         try {
+          isChecklistOutroPlayingRef.current = true;
+          rive.play();
           rive.fireState(
             WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
             WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
@@ -676,14 +680,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     onTradePrimaryPress,
   ]);
 
-  const progressLabel = useMemo(
-    () =>
-      strings('wallet.home_onboarding_steps.progress_a11y', {
-        current: displayStepIndex + 1,
-        total: totalSteps,
-      }),
-    [displayStepIndex, totalSteps],
-  );
+  const handleChecklistRiveLoopEnd = useCallback(() => {
+    if (!isChecklistOutroPlayingRef.current) {
+      checklistRiveRef.current?.pause();
+    }
+  }, []);
 
   if (!currentStep) {
     return null;
@@ -718,6 +719,24 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             importantForAccessibility="no-hide-descendants"
           />
         </View>
+        {currentStep.buttonLayout === 'skip_and_primary_row' ? (
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="absolute right-2 top-2 z-20 h-10 w-10"
+          >
+            <Box
+              pointerEvents="none"
+              twClassName="absolute inset-0 rounded-full bg-default opacity-40"
+            />
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSize.Sm}
+              onPress={goNextOrComplete}
+              testID={WalletHomeOnboardingStepsSelectors.CLOSE_BUTTON}
+            />
+          </Box>
+        ) : null}
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
@@ -747,6 +766,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               stateMachineName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE
               }
+              onLoopEnd={handleChecklistRiveLoopEnd}
               testID={`${testID}-hero-${currentStep.kind}-rive`}
             />
           ) : null}
@@ -760,7 +780,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         twClassName="w-full"
       >
         <Text
-          variant={TextVariant.HeadingLg}
+          variant={
+            currentStep.kind === 'fund'
+              ? TextVariant.HeadingLg
+              : TextVariant.HeadingMd
+          }
           color={TextColor.TextDefault}
           twClassName="w-full text-left"
         >
@@ -777,56 +801,19 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       </Box>
 
       <Box flexDirection={BoxFlexDirection.Column} gap={3} twClassName="w-full">
-        {currentStep.buttonLayout === 'full_width_primary' ? (
-          <Button
-            size={ButtonSize.Lg}
-            onPress={handlePrimaryPress}
-            isFullWidth
-            isDisabled={
-              isStepTransitioning ||
-              isAwaitingBalance ||
-              isAwaitingDeferredNavResumeHold
-            }
-            testID={primaryTestID}
-          >
-            {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
-          </Button>
-        ) : (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={3}
-            twClassName="w-full"
-          >
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={goNextOrComplete}
-              twClassName="min-w-0 flex-1"
-              isDisabled={
-                isStepTransitioning ||
-                isAwaitingBalance ||
-                isAwaitingDeferredNavResumeHold
-              }
-              testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
-            >
-              {strings('wallet.home_onboarding_steps.skip')}
-            </Button>
-            <Button
-              size={ButtonSize.Lg}
-              onPress={handlePrimaryPress}
-              twClassName="min-w-0 flex-1"
-              isDisabled={
-                isStepTransitioning ||
-                isAwaitingBalance ||
-                isAwaitingDeferredNavResumeHold
-              }
-              testID={primaryTestID}
-            >
-              {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
-            </Button>
-          </Box>
-        )}
+        <Button
+          size={ButtonSize.Lg}
+          onPress={handlePrimaryPress}
+          isFullWidth
+          isDisabled={
+            isStepTransitioning ||
+            isAwaitingBalance ||
+            isAwaitingDeferredNavResumeHold
+          }
+          testID={primaryTestID}
+        >
+          {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
+        </Button>
       </Box>
     </>
   );
@@ -842,36 +829,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         testID={testID}
         twClassName="rounded-2xl"
       >
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          gap={4}
-          twClassName="w-full"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            gap={2}
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {strings('wallet.home_onboarding_steps.get_started_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {displayStepIndex + 1}/{totalSteps}
-            </Text>
-          </Box>
-
-          <WalletHomeOnboardingProgressBar
-            progressRatio={progressRatio}
-            accessibilityLabel={progressLabel}
-            testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
-          />
-        </Box>
-
         {/*
           Always use the same Animated.View wrapper for the step body. Switching between
           View vs Animated.View when `isStepTransitioning` flips on the last step remounted

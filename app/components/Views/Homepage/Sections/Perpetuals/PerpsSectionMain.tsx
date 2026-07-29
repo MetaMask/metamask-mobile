@@ -8,11 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -308,13 +304,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       isLoading: isLoadingSection,
     });
 
-    const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;
-
     if (connectionError) {
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           <Box paddingBottom={3}>
-            <SectionDivider />
             <SectionHeader
               title={title}
               isInteractive
@@ -341,7 +334,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const sectionContent = (
       <>
-        <SectionDivider />
         <SectionHeader
           title={title}
           isInteractive
@@ -403,11 +395,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        {showsVerticalPositions ? (
-          sectionContent
-        ) : (
-          <Box paddingBottom={3}>{sectionContent}</Box>
-        )}
+        {sectionContent}
       </View>
     );
   },

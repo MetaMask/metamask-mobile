@@ -1,11 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -211,7 +207,6 @@ const HomepagePredictWorldCupDiscovery: React.FC<
 
   return (
     <>
-      <SectionDivider />
       <SectionHeader
         title={title}
         isInteractive

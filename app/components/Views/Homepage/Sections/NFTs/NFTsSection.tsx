@@ -12,7 +12,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   Box,
   BoxFlexDirection,
-  SectionDivider,
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
@@ -105,7 +104,6 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box paddingBottom={3}>
-          <SectionDivider />
           <SectionHeader
             title={title}
             isInteractive
