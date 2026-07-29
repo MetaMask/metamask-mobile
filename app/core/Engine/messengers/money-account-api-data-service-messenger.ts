@@ -19,8 +19,14 @@ export function getMoneyAccountApiDataServiceMessenger(
     MessengerEvents<MoneyAccountApiDataServiceMessenger>
   >,
 ): MoneyAccountApiDataServiceMessenger {
-  return new Messenger({
+  const messenger = new Messenger({
     namespace: 'MoneyAccountApiDataService',
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: ['AuthenticationController:getBearerToken'],
+    events: [],
+    messenger,
+  });
+  return messenger;
 }
