@@ -6,6 +6,7 @@ import {
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import type { PredictActivity } from '../../../app/components/UI/Predict/types';
 
 export const ACTIVITY_CV_ACCOUNT = '0x0000000000000000000000000000000000000001';
 
@@ -332,6 +333,140 @@ export const buildPendingLocalSendTransaction = (): TransactionMeta =>
       nonce: '0x1',
     },
   }) as unknown as TransactionMeta;
+
+/** Market question used as subtitle on Predict trade/claim Activity CV rows. */
+export const ACTIVITY_CV_PREDICT_MARKET_TITLE =
+  'Will Spain win the 2026 FIFA World Cup?';
+
+const ACTIVITY_CV_PREDICT_MARKET_ICON = 'https://example.com/spain.png';
+
+/** ERC-20 `transfer(to, amount)` calldata for Predict deposit/withdraw batches. */
+const buildErc20TransferCalldata = (to: string, amount: bigint): string =>
+  `0xa9059cbb${to.slice(2).toLowerCase().padStart(64, '0')}${amount
+    .toString(16)
+    .padStart(64, '0')}`;
+
+/** 4,000 USDC (6 decimals) — funded / withdrawal CV fixtures. */
+const ACTIVITY_CV_PREDICT_USDC_AMOUNT = 4_000_000_000n;
+
+/**
+ * Confirmed Predict deposit batch → `predictionsAddFunds` under Predictions filter.
+ */
+export const buildConfirmedLocalPredictDepositTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-predict-deposit',
+      hash: '0xactivitycvpredictdeposit',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_790_000,
+      type: TransactionType.batch,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0x0',
+        nonce: '0x9',
+      },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictDeposit,
+          to: ACTIVITY_CV_USDC,
+          data: buildErc20TransferCalldata(
+            ACTIVITY_CV_RECIPIENT,
+            ACTIVITY_CV_PREDICT_USDC_AMOUNT,
+          ),
+        },
+      ],
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed Predict withdraw batch → `predictionsWithdrawFunds` under Predictions filter.
+ */
+export const buildConfirmedLocalPredictWithdrawTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-predict-withdraw',
+      hash: '0xactivitycvpredictwithdraw',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_791_000,
+      type: TransactionType.batch,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0x0',
+        nonce: '0xa',
+      },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictWithdraw,
+          to: ACTIVITY_CV_USDC,
+          data: buildErc20TransferCalldata(
+            ACTIVITY_CV_ACCOUNT,
+            ACTIVITY_CV_PREDICT_USDC_AMOUNT,
+          ),
+        },
+      ],
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Provider feed buy → `predictionPlaced` (negative primary, market subtitle). */
+export const buildPredictBuyActivity = (): PredictActivity => ({
+  id: 'activity-cv-predict-buy',
+  providerId: 'polymarket',
+  title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+  outcome: 'Yes',
+  entry: {
+    type: 'buy',
+    timestamp: 1_716_367_792,
+    marketId: 'm-cv-1',
+    outcomeId: 'o-cv-1',
+    outcomeTokenId: 1,
+    amount: 3,
+    price: 0.42,
+  },
+});
+
+/** Provider feed sell → `predictionCashedOut` (positive primary, market subtitle). */
+export const buildPredictSellActivity = (): PredictActivity => ({
+  id: 'activity-cv-predict-sell',
+  providerId: 'polymarket',
+  title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+  outcome: 'Yes',
+  entry: {
+    type: 'sell',
+    timestamp: 1_716_367_793,
+    marketId: 'm-cv-1',
+    outcomeId: 'o-cv-1',
+    outcomeTokenId: 1,
+    amount: 75,
+    price: 0.6,
+  },
+});
+
+/** Provider feed claim → `predictionClaimWinnings` (positive primary, market subtitle). */
+export const buildPredictClaimActivity = (): PredictActivity => ({
+  id: 'activity-cv-predict-claim',
+  providerId: 'polymarket',
+  title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+  entry: {
+    type: 'claimWinnings',
+    timestamp: 1_716_367_794,
+    amount: 250,
+  },
+});
+
+/** Remote flag shape that enables PredictActivitySource on ActivityScreen CV. */
+export const activityPredictTradingEnabledFlag = {
+  predictTradingEnabled: {
+    enabled: true,
+    minimumVersion: '0.0.0',
+  },
+} as const;
 
 const enabledMainnetNetworkMap = {
   eip155: {
