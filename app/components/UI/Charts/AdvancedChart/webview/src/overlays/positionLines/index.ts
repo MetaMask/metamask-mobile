@@ -96,11 +96,11 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
   const lines: PositionLineConfig[] = [];
 
   if (position.currentPrice) {
-    // When a label is supplied (SocialLeaderboard), keep the existing thin
-    // dashed current-price line and only add a left-aligned "Current" label
-    // (matching the entry/liquidation labels); the price value stays on the
-    // right price axis. When absent (Perps), the line is byte-for-byte the
-    // original label-less thin dashed line.
+    // When a label is supplied (SocialLeaderboard), keep the original green
+    // dotted current-price line and render its label as a left-aligned pill
+    // showing "Current — <price>", matching the Entry/Liquidation pills. When
+    // absent (Perps), the line is byte-for-byte the original label-less thin
+    // dashed line.
     const currentPriceLabel = position.currentPriceLabel;
     const hasLabel =
       typeof currentPriceLabel === 'string' && !!currentPriceLabel;
@@ -108,10 +108,10 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
       price: position.currentPrice,
       ...(hasLabel ? { text: currentPriceLabel } : {}),
       color: currentPriceColor,
-      lineStyle: 2,
+      lineStyle: hasLabel ? 1 : 2,
       lineWidth: 1,
       showLabel: hasLabel,
-      showPrice: false,
+      showPrice: hasLabel,
       horzLabelsAlign: hasLabel ? 'left' : 'right',
     });
   }

@@ -148,7 +148,7 @@ describe('positionLines/index', () => {
     expect(getPositionShapeIds().length).toBeGreaterThan(0);
   });
 
-  it('adds a left-aligned "Current" label to the dashed current-price line when currentPriceLabel is supplied', () => {
+  it('renders a left-aligned "Current" pill on a green dotted line when currentPriceLabel is supplied', () => {
     const { createShape } = installWidget();
 
     handleSetPositionLines({
@@ -169,13 +169,13 @@ describe('positionLines/index', () => {
     expect(options.text).toBe('Current');
     const overrides = options.overrides as Record<string, unknown>;
     expect(overrides).not.toHaveProperty('text');
+    // Pill on the left (label + price), matching the Entry/Liquidation pills.
     expect(overrides.showLabel).toBe(true);
-    // The label sits on the left; the price stays on the right axis.
+    expect(overrides.showPrice).toBe(true);
     expect(overrides.horzLabelsAlign).toBe('left');
-    expect(overrides.showPrice).toBe(false);
-    // The line itself is unchanged — thin and dashed (not restyled).
+    // Original thin dotted line (dotted = 1), not restyled solid/thick.
     expect(overrides.linewidth).toBe(1);
-    expect(overrides.linestyle).toBe(2);
+    expect(overrides.linestyle).toBe(1);
   });
 
   it('keeps the Perps current-price line label-less, thin, dashed and right-aligned when no label is supplied (regression)', () => {

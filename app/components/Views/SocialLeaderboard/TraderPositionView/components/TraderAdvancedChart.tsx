@@ -422,7 +422,8 @@ const TraderAdvancedChart = ({
   const positionLineColors = useMemo<PositionLineColors | undefined>(() => {
     if (!isPerp) return undefined;
     return {
-      currentPrice: colors.primary.default,
+      // Green — matches the original native last-price line color.
+      currentPrice: colors.success.default,
       entry: colors.text.alternative,
       takeProfit: colors.success.default,
       stopLoss: colors.warning.default,
