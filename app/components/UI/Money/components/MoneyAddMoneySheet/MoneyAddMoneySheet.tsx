@@ -8,6 +8,7 @@ import React, {
 import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
 import { createProjectLogger, Hex } from '@metamask/utils';
@@ -55,7 +56,7 @@ const log = createProjectLogger('money-add-money-sheet');
 
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   const {
