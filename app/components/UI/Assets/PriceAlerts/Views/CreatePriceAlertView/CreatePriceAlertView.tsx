@@ -44,6 +44,7 @@ const CreatePriceAlertView: React.FC = () => {
     currentPrice,
     currentCurrency,
     assetId,
+    hasBalance,
     fromManage,
     existingAbsoluteAlerts,
     existingPercentAlerts,
@@ -61,6 +62,7 @@ const CreatePriceAlertView: React.FC = () => {
     assetId,
     displayTicker,
     fromManage,
+    hasBalance,
     shouldAutoWatchlistOnCreate,
   });
   const [alertType, setAlertType] = useState<AlertType>(

@@ -66,12 +66,12 @@ const styles = StyleSheet.create({
 });
 
 /** Analytics `alert_type` + `alert_period`/`alert_direction` for a given alert. */
-const analyticsPropsForAlert = (alert: Alert) =>
-  alert.type === 'percent_change'
+const analyticsPropsForAlert = (priceAlert: Alert) =>
+  priceAlert.type === 'percent_change'
     ? {
         alert_type: PriceAlertAnalytics.TYPE.PERCENT,
-        alert_period: alert.period,
-        alert_direction: alert.direction,
+        alert_period: priceAlert.period,
+        alert_direction: priceAlert.direction,
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
@@ -88,7 +88,7 @@ const ManagePriceAlertsView: React.FC = () => {
         'ManagePriceAlerts'
       >
     >();
-  const { symbol, ticker, currentPrice, currentCurrency, assetId } =
+  const { symbol, ticker, currentPrice, currentCurrency, assetId, hasBalance } =
     route.params;
   const displayTicker = ticker || symbol;
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -172,6 +172,7 @@ const ManagePriceAlertsView: React.FC = () => {
         currentPrice,
         currentCurrency,
         assetId,
+        hasBalance,
         fromManage: true,
         existingAbsoluteAlerts: alerts.filter(
           (a): a is AbsolutePriceAlert => a.type === 'absolute_price',
@@ -189,6 +190,7 @@ const ManagePriceAlertsView: React.FC = () => {
       currentPrice,
       currentCurrency,
       assetId,
+      hasBalance,
       alerts,
     ],
   );

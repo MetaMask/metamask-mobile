@@ -349,8 +349,16 @@ const TokenDetails: React.FC<{
       currentPrice: currentPriceUsd ?? 0,
       currentCurrency: 'usd',
       assetId: caip19AssetId,
+      hasBalance: hasBalanceValue,
     });
-  }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
+  }, [
+    navigation,
+    token.symbol,
+    token.ticker,
+    currentPriceUsd,
+    caip19AssetId,
+    hasBalanceValue,
+  ]);
 
   const {
     transactions,

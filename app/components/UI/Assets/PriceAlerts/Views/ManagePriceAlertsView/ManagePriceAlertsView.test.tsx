@@ -67,6 +67,7 @@ jest.mock('@react-navigation/native', () => ({
       currentPrice: 2500,
       currentCurrency: 'USD',
       assetId: 'eip155:1/slip44:60',
+      hasBalance: true,
     },
   }),
 }));
@@ -293,6 +294,7 @@ describe('ManagePriceAlertsView', () => {
           currentPrice: 2500,
           currentCurrency: 'USD',
           assetId: 'eip155:1/slip44:60',
+          hasBalance: true,
           fromManage: true,
         }),
       );
