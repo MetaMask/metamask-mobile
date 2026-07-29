@@ -17,12 +17,12 @@ describe('TestMuDeviceResolver', () => {
   });
 
   describe('resolveTestMuDeviceCapabilities', () => {
-    it('maps Google Pixel 7 Pro (BS 13) to TestMu Pixel 7 Pro / 15', () => {
+    it('maps Google Pixel 7 Pro (BS 13) to TestMu Pixel 7 Pro / 13', () => {
       expect(
         resolveTestMuDeviceCapabilities('Google Pixel 7 Pro', '13.0'),
       ).toEqual({
         deviceName: 'Pixel 7 Pro',
-        platformVersion: '15',
+        platformVersion: '13',
       });
     });
 
