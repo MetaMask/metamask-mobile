@@ -34,6 +34,7 @@ import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 import { QuickBuyProvider } from './QuickBuyContext';
+import QuickBuyEditQuickAmountsScreen from './QuickBuyEditQuickAmountsScreen';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
@@ -62,6 +63,8 @@ function renderActiveScreen(
   }
 
   switch (activeScreen) {
+    case 'editQuickAmounts':
+      return <QuickBuyEditQuickAmountsScreen />;
     case 'payWith':
       return <QuickBuyTokenSelectScreen />;
     case 'quoteDetails':
@@ -191,14 +194,17 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // bottom; the scroll-only screens (quote details / select quote / pay with /
   // receive) sit flush to the edge instead of leaving dead space below.
   const hasBottomCta =
-    activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
+    activeScreen === 'amount' ||
+    activeScreen === 'editQuickAmounts' ||
+    activeScreen === 'priceImpactConfirm';
 
-  // The amount screen in the keyboard treatment stays dynamic so it can grow and
-  // shrink with the keypad; every other screen (and the whole control variant)
-  // uses the locked height so sub-screens like "Pay with" don't collapse to
-  // their own short content height.
-  const isDynamicAmountScreen = useKeyboard && activeScreen === 'amount';
-  const shouldLockHeight = lockedHeight !== null && !isDynamicAmountScreen;
+  // `editQuickAmounts` stays dynamic for its always-open edit keypad; the amount
+  // screen is dynamic only in the keyboard A/B treatment. All other screens use
+  // the locked height so sub-screens like Pay with don't collapse.
+  const isDynamicHeightScreen =
+    activeScreen === 'editQuickAmounts' ||
+    (useKeyboard && activeScreen === 'amount');
+  const shouldLockHeight = lockedHeight !== null && !isDynamicHeightScreen;
 
   return (
     <BottomSheetDialog

@@ -8,6 +8,7 @@ import {
   type StartSpanOptions,
   type Span,
   withIsolationScope,
+  SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
@@ -1033,7 +1034,13 @@ function startTrace(request: TraceRequest): TraceContext {
       }
 
       log('Trace cleanup due to timeout', name, id);
-
+      if (span) {
+        span.setStatus({
+          code: SPAN_STATUS_ERROR,
+          message: 'deadline_exceeded',
+        });
+        span.setAttribute('trace.timed_out', true);
+      }
       // The timer only fires at or after the maximum lifetime (possibly hours
       // late when the app was backgrounded), so record the capped timestamp
       // rather than the current time.

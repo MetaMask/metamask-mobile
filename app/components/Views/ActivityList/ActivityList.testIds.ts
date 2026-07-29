@@ -15,3 +15,15 @@ export const activityListRowSubtitleTestId = (hash: string): string =>
 
 export const activityListRowPendingSpinnerTestId = (hash: string): string =>
   `activity-pending-spinner-${hash}`;
+
+export const activityListRowPrimaryAmountTestId = (hash: string): string =>
+  `activity-primary-amount-${hash}`;
+
+export const activityListRowSecondaryAmountTestId = (hash: string): string =>
+  `activity-secondary-amount-${hash}`;
+
+export const activityListRowAvatarSingleTestId = (hash: string): string =>
+  `activity-row-avatar-single-${hash}`;
+
+export const activityListRowAvatarStackTestId = (hash: string): string =>
+  `activity-row-avatar-stack-${hash}`;

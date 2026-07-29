@@ -34,6 +34,7 @@ import type {
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../../components/UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import type { Nft } from '@metamask/assets-controllers';
 import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
 import type { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DeFiProtocolPositionDetails';
@@ -178,9 +179,12 @@ import type {
   SDKLoadingParams,
   SDKFeedbackParams,
   SDKDisconnectParams,
+  SDKSessionsManagerParams,
+  SDKManageConnectionsParams,
   ReturnToDappNotificationParams,
 } from '../../components/Views/SDK/SDK.types';
 import type { SDKConnectV2OtpModalParams } from '../../components/Views/SDK/SDKConnectV2OtpModal';
+import type { TradeWalletActionsParams } from '../../components/Views/TradeWalletActions/TradeWalletActions';
 
 // Notification params
 import type { NotificationDetailsParams } from '../../components/Views/Notifications/Notifications.types';
@@ -250,17 +254,11 @@ import type {
   EarnModalsNavigationParamList,
   EarnScreensStackParamList,
 } from '../../components/UI/Earn/types/navigation';
-
-/** Earn token list sheet params (WalletActions / StakeModals). */
-interface EarnTokenListParams {
-  tokenFilter: {
-    includeReceiptTokens: boolean;
-    includeNativeTokens?: boolean;
-    includeStakingTokens?: boolean;
-    includeLendingTokens?: boolean;
-  };
-  onItemPressScreen: string;
-}
+import type {
+  EarnTokenListParams,
+  StakeModalsNavigationParamList,
+  StakeScreensStackParamList,
+} from '../../components/UI/Stake/types/navigation';
 
 // Modal params
 import type {
@@ -313,14 +311,6 @@ interface OnboardingSuccessFlowParamList {
   GeneralSettings: undefined;
   AssetsSettings: undefined;
   SecuritySettings: undefined;
-}
-
-interface StakeModalsNavigationParamList {
-  LearnMore: LearnMoreModalParams | undefined;
-  TrxLearnMore: undefined;
-  MaxInput: MaxInputModalParams;
-  GasImpact: GasImpactModalParams;
-  EarnTokenList: EarnTokenListParams | undefined;
 }
 
 /** Onboarding social-login screens share AccountStatus params plus trace context. */
@@ -400,7 +390,7 @@ type TraderPositionViewParams =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootModalFlowParamList = {
   WalletActions: undefined;
-  TradeWalletActions: undefined;
+  TradeWalletActions: TradeWalletActionsParams | undefined;
   FundActionMenu: FundActionMenuParams | undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
@@ -421,7 +411,7 @@ export type RootModalFlowParamList = {
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
-  SDKManageConnections: undefined;
+  SDKManageConnections: SDKManageConnectionsParams | undefined;
   ExperienceEnhancer: undefined;
   DataCollection: undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
@@ -437,7 +427,9 @@ export type RootModalFlowParamList = {
   ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   TurnOffRememberMeModal: undefined;
   AssetHideConfirmation: { onConfirm: () => void } | undefined;
@@ -666,7 +658,7 @@ export type RootStackParamList = {
   UpdateNeededModal: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
   WalletActions: undefined;
-  TradeWalletActions: undefined;
+  TradeWalletActions: TradeWalletActionsParams | undefined;
   FundActionMenu: FundActionMenuParams | undefined;
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
@@ -779,7 +771,7 @@ export type RootStackParamList = {
   NotificationsSettings: undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
-  SDKSessionsManager: undefined;
+  SDKSessionsManager: SDKSessionsManagerParams | undefined;
   NetworksManagement: undefined;
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
@@ -792,13 +784,15 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
-  SDKManageConnections: undefined;
+  SDKManageConnections: SDKManageConnectionsParams | undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
   AccountPermissions: AccountPermissionsParams | undefined;
@@ -1045,6 +1039,7 @@ export type RootStackParamList = {
   NotificationsDetails: NotificationDetailsParams | undefined;
 
   // Staking routes
+  StakeScreens: NavigatorScreenParams<StakeScreensStackParamList> | undefined;
   StakeModals:
     | NavigatorScreenParams<StakeModalsNavigationParamList>
     | undefined;
@@ -1092,6 +1087,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes

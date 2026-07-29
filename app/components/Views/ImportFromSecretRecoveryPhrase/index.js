@@ -679,15 +679,15 @@ const ImportFromSecretRecoveryPhrase = ({
           ]}
         >
           {currentStep === 0 && (
-            <>
-              <Text
-                variant={TextVariant.DisplayMd}
-                color={TextColor.TextDefault}
-                testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
-              >
-                {strings('import_from_seed.title')}
-              </Text>
-              <Box twClassName="mt-1.5">
+            <Box twClassName="gap-y-2">
+              <Box twClassName="gap-y-1.5">
+                <Text
+                  variant={TextVariant.DisplayMd}
+                  color={TextColor.TextDefault}
+                  testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
+                >
+                  {strings('import_from_seed.title')}
+                </Text>
                 {isAddDeviceSyncEnabled ? (
                   <Text
                     variant={TextVariant.BodyMd}
@@ -741,20 +741,21 @@ const ImportFromSecretRecoveryPhrase = ({
                     </TouchableOpacity>
                   </Box>
                 )}
-                <SrpInputGrid
-                  ref={srpInputGridRef}
-                  seedPhrase={seedPhrase}
-                  onSeedPhraseChange={setSeedPhrase}
-                  onError={setError}
-                  externalError={error}
-                  testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
-                  placeholderText={strings('import_from_seed.srp_placeholder')}
-                  uniqueId={uniqueId}
-                  onCurrentWordChange={setCurrentInputWord}
-                  autoFocus={false}
-                />
               </Box>
-            </>
+              <SrpInputGrid
+                ref={srpInputGridRef}
+                seedPhrase={seedPhrase}
+                onSeedPhraseChange={setSeedPhrase}
+                onError={setError}
+                externalError={error}
+                testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+                placeholderText={strings('import_from_seed.srp_placeholder')}
+                uniqueId={uniqueId}
+                onCurrentWordChange={setCurrentInputWord}
+                autoFocus={false}
+                includeTopMargin={false}
+              />
+            </Box>
           )}
 
           {currentStep === 1 && (
