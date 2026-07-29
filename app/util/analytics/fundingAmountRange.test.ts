@@ -146,6 +146,33 @@ describe('fetchImportedWalletFundingAmountRange', () => {
     ]);
   });
 
+  it('fetches token rates only after detection and the balance poll settle', async () => {
+    arrangeSuccessfulRefresh(50);
+    // Hold detection open: the rates poll prices the token set in state at
+    // call time, so it must not start until detection has registered tokens.
+    let resolveDetection: () => void = () => undefined;
+    mockEngineContext.TokenDetectionController.detectTokens.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDetection = resolve;
+      }),
+    );
+
+    const rangePromise = fetchImportedWalletFundingAmountRange();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(
+      mockEngineContext.TokenRatesController._executePoll,
+    ).not.toHaveBeenCalled();
+
+    resolveDetection();
+    const range = await rangePromise;
+
+    expect(range).toBe('10.00 - 99.99');
+    expect(
+      mockEngineContext.TokenRatesController._executePoll,
+    ).toHaveBeenCalledWith({ chainIds: ['0x1'] });
+  });
+
   it('returns < 0.01 for a confirmed zero balance', async () => {
     arrangeSuccessfulRefresh(0);
 

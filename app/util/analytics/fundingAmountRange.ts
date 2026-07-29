@@ -122,10 +122,11 @@ export async function fetchImportedWalletFundingAmountRange(): Promise<
             throw error;
           }),
         ),
-        labeled('tokenRates', () =>
-          TokenRatesController._executePoll({ chainIds }),
-        ),
       ]);
+
+      await labeled('tokenRates', () =>
+        TokenRatesController._executePoll({ chainIds }),
+      );
 
       const nonEvmAccounts = selectSelectedAccountGroupInternalAccounts(
         ReduxService.store.getState(),
