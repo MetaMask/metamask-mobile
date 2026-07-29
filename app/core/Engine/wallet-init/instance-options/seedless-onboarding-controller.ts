@@ -1,23 +1,17 @@
 import type { Json } from '@metamask/utils';
-import type { MessengerClientInitFunction } from '../../types';
-import {
-  SeedlessOnboardingController,
-  SeedlessOnboardingControllerState,
-  Web3AuthNetwork,
-  getDefaultSeedlessOnboardingControllerState,
-  type SeedlessOnboardingControllerMessenger,
-} from '@metamask/seedless-onboarding-controller';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import type { WalletOptions } from '@metamask/wallet';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 import type {
   EncryptionKey,
   KeyDerivationOptions,
 } from '../../../Encryptor/types';
-import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
+import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 
-const encryptor = new Encryptor({
-  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
-});
+type SeedlessOnboardingControllerOptions = NonNullable<
+  WalletOptions['instanceOptions']['seedlessOnboardingController']
+>;
 
 /**
  * Encryption result interface expected by the SeedlessOnboardingController.
@@ -31,6 +25,10 @@ interface ControllerEncryptionResult {
   keyMetadata?: KeyDerivationOptions;
 }
 
+const encryptor = new Encryptor({
+  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+});
+
 /**
  * Normalizes a serialized vault so the mobile Encryptor can decrypt it
  * regardless of whether the vault was written by the adapter (using 'data')
@@ -41,6 +39,9 @@ interface ControllerEncryptionResult {
  * Encryptor, 'cipher' field).  The mobile Encryptor's decrypt / decryptWithDetail
  * always reads 'cipher', so vaults produced by the adapter must be normalized
  * before being handed to those methods.
+ *
+ * @param text - Serialized vault JSON.
+ * @returns Vault JSON with a `cipher` field when only `data` is present.
  */
 function normalizeVaultFormat(text: string): string {
   const payload: Record<string, unknown> = JSON.parse(text);
@@ -55,7 +56,7 @@ function normalizeVaultFormat(text: string): string {
  * SeedlessOnboardingController's VaultEncryptor interface.
  * Maps 'cipher' <-> 'data' between mobile and controller formats.
  */
-const encryptorAdapter = {
+export const seedlessOnboardingEncryptorAdapter = {
   ...encryptor,
   encryptWithKey: async (
     key: EncryptionKey,
@@ -102,15 +103,13 @@ const encryptorAdapter = {
 };
 
 /**
- * Initialize the SeedlessOnboardingController.
+ * Build the client-specific `SeedlessOnboardingController` options for the
+ * `@metamask/wallet` `Wallet`. The wallet owns the controller messenger and
+ * persisted state, so those are excluded here.
  *
- * @param request - The request object.
- * @returns The SeedlessOnboardingController.
+ * @returns The SeedlessOnboardingController instance options.
  */
-export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
-  SeedlessOnboardingController<EncryptionKey>,
-  SeedlessOnboardingControllerMessenger
-> = (request) => {
+export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboardingControllerOptions {
   if (!web3AuthNetwork) {
     throw new Error(
       `Missing environment variables for SeedlessOnboardingController\n
@@ -118,23 +117,16 @@ export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
     );
   }
 
-  const { controllerMessenger, persistedState } = request;
-
-  const seedlessOnboardingControllerState =
-    persistedState.SeedlessOnboardingController ??
-    getDefaultSeedlessOnboardingControllerState();
-
-  const controller = new SeedlessOnboardingController({
-    messenger: controllerMessenger,
-    state:
-      seedlessOnboardingControllerState as SeedlessOnboardingControllerState,
-    encryptor: encryptorAdapter,
+  return {
+    // Mobile's Encryptor yields `cipher`-shaped results, while the wallet pins
+    // the seedless encryptor to the controller's default `data`-shaped generics.
+    // The adapter reconciles the two at runtime.
+    encryptor:
+      seedlessOnboardingEncryptorAdapter as unknown as SeedlessOnboardingControllerOptions['encryptor'],
     network: web3AuthNetwork as Web3AuthNetwork,
     passwordOutdatedCacheTTL: 15_000, // 15 seconds
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
     renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
-  });
-
-  return { controller };
-};
+  };
+}
