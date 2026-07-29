@@ -199,6 +199,9 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'rewards.vip.progress_to_next_tier' && params) {
       return `${params.pointsRemaining} points to next tier`;
     }
+    if (key === 'rewards.vip.maintain_this_tier' && params) {
+      return `${params.points} points to maintain this tier`;
+    }
     const translations: Record<string, string> = {
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
@@ -830,5 +833,44 @@ describe('RewardsVipView', () => {
     await waitFor(() => {
       expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
+  });
+
+  it('passes the maintain subline to the progress card when the current tier has a maintain threshold', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        tiers: defaultDashboard.tiers.map((tier) =>
+          tier.id === defaultDashboard.currentTier.id
+            ? { ...tier, maintainPointsRequirement: 250_000 }
+            : tier,
+        ),
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    expect(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toHaveTextContent('250k points to maintain this tier');
+  });
+
+  it('does not pass a maintain subline when the current tier has no maintain threshold', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(
+      queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toBeNull();
   });
 });
