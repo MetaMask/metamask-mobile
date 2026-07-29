@@ -113,6 +113,9 @@ jest.mock('../../rows/predict-account-picker-row', () => ({
 }));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 
+const updatePendingAmountPercentageNoop = (_percentage: number): boolean =>
+  true;
+
 const mockTransactionPayControllerState = {
   transactionData: {} as Record<
     string,
@@ -412,7 +415,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: jest.fn(),
     });
 
@@ -512,7 +515,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: jest.fn().mockResolvedValue(undefined),
     });
     useTransactionPayQuotesMock.mockReturnValue([{}] as never);
@@ -567,7 +570,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: jest.fn(),
     });
     useIsTransactionPayLoadingMock.mockReturnValue(true);
@@ -1172,7 +1175,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: updateTokenAmountMock,
     });
 
@@ -1235,7 +1238,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: updateTokenAmountMock,
     });
 
@@ -1287,7 +1290,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: updateTokenAmountMock,
     });
 
@@ -1327,7 +1330,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: updateTokenAmountMock,
     });
 
@@ -1441,7 +1444,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: false,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: jest.fn(),
       });
     });
@@ -1562,7 +1565,7 @@ describe('CustomAmountInfo', () => {
 
   describe('Max auto-submit', () => {
     const updateTokenAmountMock = jest.fn();
-    const updatePendingAmountPercentageMock = jest.fn();
+    const updatePendingAmountPercentageMock = jest.fn(() => true);
 
     beforeEach(() => {
       useTransactionCustomAmountMock.mockReturnValue({
@@ -2107,7 +2110,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: jest.fn().mockRejectedValue(new Error('fail')),
     });
 
@@ -2136,7 +2139,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: jest.fn(),
     });
 
@@ -2164,7 +2167,7 @@ describe('CustomAmountInfo', () => {
       isPrefillPending: false,
       isDepositPrefillLoading: false,
       updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
+      updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
       updateTokenAmount: jest.fn(),
     });
 
@@ -2276,7 +2279,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: true,
         isDepositPrefillLoading: false,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: updateTokenAmountMock,
       });
 
@@ -2296,7 +2299,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: false,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: updateTokenAmountMock,
       });
 
@@ -2326,7 +2329,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: false,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: updateTokenAmountMock,
       });
 
@@ -2353,7 +2356,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: false,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: updateTokenAmountMock,
       });
 
@@ -2377,7 +2380,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: false,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: updateTokenAmountMock,
       });
 
@@ -2411,7 +2414,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: false,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: jest.fn(),
       });
     }
@@ -2478,7 +2481,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: true,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: jest.fn(),
       });
 
@@ -2503,7 +2506,7 @@ describe('CustomAmountInfo', () => {
         isPrefillPending: false,
         isDepositPrefillLoading: true,
         updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
         updateTokenAmount: jest.fn(),
       });
       useTransactionPayTokenMock.mockReturnValue({
