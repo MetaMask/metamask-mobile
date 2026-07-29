@@ -10,7 +10,7 @@ let latestPrizePoolProps: {
   isLoading: boolean;
   hasError: boolean;
   refetch: () => void;
-} | null = null;
+} | null;
 
 jest.mock('../CampaignPrizePool', () => {
   const ReactActual = jest.requireActual('react');

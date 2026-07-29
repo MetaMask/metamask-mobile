@@ -10,13 +10,13 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
-let mockFocusEffectCallback: (() => void) | null = null;
-let mockIsGeoRestricted = false;
-let mockIsGeoLoading = false;
-let mockOptedInAny = false;
-let mockIsParticipationLoading = false;
-let mockBindingConflict = false;
-let mockHasActionableAddMoneyOptions = true;
+let mockFocusEffectCallback: (() => void) | null;
+let mockIsGeoRestricted: boolean;
+let mockIsGeoLoading: boolean;
+let mockOptedInAny: boolean;
+let mockIsParticipationLoading: boolean;
+let mockBindingConflict: boolean;
+let mockHasActionableAddMoneyOptions: boolean;
 const mockEnsureOptedIn = jest.fn(
   async (): Promise<{
     success: boolean;
@@ -33,7 +33,7 @@ let latestOptInSheetProps: {
   title?: string;
   onOptIn?: () => Promise<boolean>;
   onClose?: () => void;
-} | null = null;
+} | null;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -189,16 +189,16 @@ function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
 describe('MoneyAccountSweepstakesCampaignCTA', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusEffectCallback = null;
     mockIsGeoRestricted = false;
     mockIsGeoLoading = false;
     mockOptedInAny = false;
     mockIsParticipationLoading = false;
     mockBindingConflict = false;
     mockHasActionableAddMoneyOptions = true;
+    latestOptInSheetProps = null;
     mockEnsureOptedIn.mockResolvedValue({ success: true });
     mockEnsureBound.mockResolvedValue('bound');
-    latestOptInSheetProps = null;
-    mockFocusEffectCallback = null;
   });
 
   it('renders nothing when series status is not active', () => {
