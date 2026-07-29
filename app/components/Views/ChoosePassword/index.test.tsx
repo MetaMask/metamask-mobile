@@ -681,8 +681,7 @@ describe('ChoosePassword', () => {
   });
 
   describe('Navigation', () => {
-    it('back button navigates to the previous screen and tracks WALLET_SETUP_CANCELLED', async () => {
-      mockTrackOnboarding.mockClear();
+    it('back button navigates to the previous screen', async () => {
       const { getByTestId } = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
@@ -692,6 +691,18 @@ describe('ChoosePassword', () => {
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('tracks WALLET_SETUP_CANCELLED when back button is pressed', async () => {
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const backButton = getByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID);
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           name: EVENT_NAME.WALLET_SETUP_CANCELLED,

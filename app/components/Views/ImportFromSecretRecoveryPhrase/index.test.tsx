@@ -44,9 +44,11 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () => ({
   default: jest.fn(),
 }));
 
-const mockTrackOnboarding = jest.requireMock(
-  '../../../util/metrics/TrackOnboarding/trackOnboarding',
-).default as jest.Mock;
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+
+const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
+  typeof trackOnboarding
+>;
 
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
