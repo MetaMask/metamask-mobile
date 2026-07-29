@@ -179,6 +179,7 @@ describe('rampsBuyCufTrace', () => {
           id: opId,
           op: TraceOperation.RampOperation,
           parentContext: undefined,
+          forceTransaction: true,
           tags: expect.objectContaining({
             [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
           }),
@@ -201,6 +202,7 @@ describe('rampsBuyCufTrace', () => {
           name: TraceName.RampBuyQuoteFetch,
           id: opId,
           parentContext: { mocked: 'parent-span' },
+          forceTransaction: false,
         }),
       );
     });
