@@ -107,7 +107,7 @@ const mockConnectionRequest = (
     publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
     channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
     mode: 'trusted',
-    expiresAt: Date.now() + 600_000,
+    expiresAt: 1_722_470_400_000 + 600_000,
   },
   metadata: {
     dapp: {
